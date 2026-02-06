@@ -500,6 +500,27 @@
             opacity: 0;
             font-weight: 400;
         }
+        .hero-sub .typing-static {
+            color: var(--text-muted);
+        }
+        .hero-sub .typing-dynamic {
+            color: var(--white);
+            font-weight: 500;
+            position: relative;
+        }
+        .hero-sub .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.1em;
+            background: var(--accent);
+            margin-left: 2px;
+            vertical-align: text-bottom;
+            animation: cursorBlink 0.7s step-end infinite;
+        }
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
         .hero-buttons {
             display: flex;
             gap: 1rem;
@@ -4830,7 +4851,7 @@
                 <span class="line" id="heroLine1">You describe it.</span>
                 <span class="line" id="heroLine2">We build it.</span>
             </h1>
-            <p class="hero-sub" id="heroSub">AI-powered digital studio. Websites, chatbots, automations &mdash; delivered in hours.</p>
+            <p class="hero-sub" id="heroSub"><span class="typing-static">AI-powered studio for </span><span class="typing-dynamic" id="heroTyping"></span><span class="typing-cursor" id="heroCursor"></span></p>
             <div class="hero-buttons" id="heroButtons">
                 <a href="https://wa.me/436764433763?text=Hi!%20I%27d%20like%20to%20start%20a%20project." class="btn-primary magnetic-btn" aria-label="Start a project via WhatsApp">Start a Project <span aria-hidden="true">&rarr;</span></a>
                 <a href="#services" class="btn-secondary magnetic-btn" aria-label="See what we build">See What We Build <span aria-hidden="true">&darr;</span></a>
@@ -9305,6 +9326,61 @@
             }
             animate();
         }
+
+        /* === HERO TYPING EFFECT === */
+        function initHeroTyping() {
+            var el = document.getElementById('heroTyping');
+            if (!el) return;
+
+            var phrases = [
+                'stunning websites.',
+                'intelligent chatbots.',
+                'automated workflows.',
+                'SEO-optimized content.',
+                'promotional videos.',
+                'data scraping pipelines.',
+                'anything you can imagine.'
+            ];
+
+            var phraseIdx = 0;
+            var charIdx = 0;
+            var isDeleting = false;
+            var typeSpeed = 60;
+            var deleteSpeed = 35;
+            var pauseAfterType = 2200;
+            var pauseAfterDelete = 400;
+
+            function tick() {
+                var current = phrases[phraseIdx];
+
+                if (!isDeleting) {
+                    charIdx++;
+                    el.textContent = current.slice(0, charIdx);
+
+                    if (charIdx === current.length) {
+                        isDeleting = true;
+                        setTimeout(tick, pauseAfterType);
+                        return;
+                    }
+                    setTimeout(tick, typeSpeed + Math.random() * 40);
+                } else {
+                    charIdx--;
+                    el.textContent = current.slice(0, charIdx);
+
+                    if (charIdx === 0) {
+                        isDeleting = false;
+                        phraseIdx = (phraseIdx + 1) % phrases.length;
+                        setTimeout(tick, pauseAfterDelete);
+                        return;
+                    }
+                    setTimeout(tick, deleteSpeed);
+                }
+            }
+
+            // Start after hero animation completes (~2.5s)
+            setTimeout(tick, 2800);
+        }
+        initHeroTyping();
 
     })();
     </script>
