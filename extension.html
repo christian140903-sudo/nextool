@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexTool Extension — 20+ AI Tools in One Chrome Extension | Pay Once, Use Forever</title>
+    <meta name="description" content="NexTool gives you 20+ AI-powered tools in one Chrome extension. Bring your own API key. Pay once $49. No subscriptions. Summarize, rewrite, translate, extract data and more.">
+    <meta property="og:title" content="NexTool — One $49 Extension Replaced 5 Subscriptions">
+    <meta property="og:description" content="20+ AI tools in one Chrome extension. Bring your own API key. Pay once, use forever. Starting free.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/">
+    <meta property="og:image" content="https://nextool.app/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NexTool — One $49 Extension Replaced 5 Subscriptions">
+    <meta name="twitter:description" content="20+ AI tools in one Chrome extension. Bring your own API key. Pay once, use forever.">
+    <link rel="canonical" href="https://nextool.app/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "NexTool",
+        "applicationCategory": "BrowserApplication",
+        "operatingSystem": "Chrome",
+        "offers": [
+            {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD",
+                "name": "Free"
+            },
+            {
+                "@type": "Offer",
+                "price": "49",
+                "priceCurrency": "USD",
+                "name": "Pro — Lifetime"
+            }
+        ],
+        "description": "20+ AI-powered tools in one Chrome extension. Bring your own API key. Pay once, use forever."
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a1a;
+            --bg-2: #0f0f2a;
+            --bg-3: #14142e;
+            --surface: #1a1a3e;
+            --surface-2: #22224a;
+            --border: rgba(99, 102, 241, 0.15);
+            --border-2: rgba(99, 102, 241, 0.08);
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --accent: #a855f7;
+            --success: #22c55e;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --white: #ffffff;
+            --max-w: 1200px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 1px 1px, rgba(99, 102, 241, 0.03) 1px, transparent 0);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Utility */
+        .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+        .gradient-text { background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .gradient-text-green { background: linear-gradient(135deg, var(--success) 0%, #4ade80 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .fade-in-delay-1 { transition-delay: 0.1s; }
+        .fade-in-delay-2 { transition-delay: 0.2s; }
+        .fade-in-delay-3 { transition-delay: 0.3s; }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 16px 0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 10, 26, 0.8);
+            border-bottom: 1px solid transparent;
+        }
+        nav.scrolled { border-bottom-color: var(--border); }
+
+        .nav-inner {
+            max-width: var(--max-w);
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-logo svg { width: 28px; height: 28px; }
+        .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--white); }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+        .btn-large { padding: 14px 32px; font-size: 16px; border-radius: 12px; }
+        .btn-chrome {
+            background: var(--primary);
+            color: var(--white);
+            padding: 14px 32px;
+            font-size: 16px;
+            border-radius: 12px;
+        }
+        .btn-chrome:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.35);
+        }
+        .btn-pro {
+            background: linear-gradient(135deg, var(--accent), #ec4899);
+            color: var(--white);
+            padding: 14px 32px;
+            font-size: 16px;
+            border-radius: 12px;
+        }
+        .btn-pro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(168, 85, 247, 0.35);
+        }
+
+        .nav-cta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 8px;
+        }
+
+        /* Mobile Menu */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 160px 0 120px;
+            text-align: center;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 13px;
+            color: var(--primary-hover);
+            margin-bottom: 32px;
+            font-weight: 500;
+        }
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 6vw, 72px);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero p {
+            font-size: clamp(16px, 2vw, 20px);
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+        .hero-cta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .hero-meta {
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .hero-meta span { display: flex; align-items: center; gap: 6px; }
+        .hero-meta svg { width: 14px; height: 14px; color: var(--success); }
+
+        /* Hero Visual */
+        .hero-visual {
+            margin-top: 80px;
+            position: relative;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-mockup {
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.05);
+        }
+        .mockup-toolbar {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-3);
+            border-bottom: 1px solid var(--border-2);
+            gap: 8px;
+        }
+        .mockup-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--surface-2);
+        }
+        .mockup-dot:nth-child(1) { background: #ef4444; }
+        .mockup-dot:nth-child(2) { background: #eab308; }
+        .mockup-dot:nth-child(3) { background: #22c55e; }
+        .mockup-url {
+            flex: 1;
+            margin-left: 12px;
+            padding: 6px 12px;
+            background: var(--surface);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .mockup-body {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 400px;
+        }
+        .mockup-sidebar {
+            background: var(--bg-3);
+            border-right: 1px solid var(--border-2);
+            padding: 16px;
+        }
+        .mockup-sidebar-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+        .mockup-tool-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: default;
+            transition: all 0.2s;
+        }
+        .mockup-tool-item.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--white);
+        }
+        .mockup-tool-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .mockup-tool-item.active .mockup-tool-icon {
+            background: rgba(99, 102, 241, 0.15);
+        }
+        .mockup-content {
+            padding: 24px;
+        }
+        .mockup-content-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 16px;
+        }
+        .mockup-textarea {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border-2);
+            border-radius: 8px;
+            padding: 16px;
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.6;
+            min-height: 100px;
+            margin-bottom: 16px;
+        }
+        .mockup-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .mockup-output {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.15);
+            border-radius: 8px;
+        }
+        .mockup-output-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--success);
+            margin-bottom: 8px;
+        }
+        .mockup-output-text {
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .hero-glow {
+            position: absolute;
+            bottom: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(ellipse, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Section */
+        section { padding: 120px 0; position: relative; }
+        .section-label {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+        }
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        .section-header { text-align: center; margin-bottom: 64px; }
+        .section-header .section-subtitle { margin: 0 auto; }
+
+        /* Pain Points */
+        .pain { background: var(--bg-2); }
+        .pain-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 48px;
+        }
+        .pain-card {
+            background: var(--surface);
+            border: 1px solid var(--border-2);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .pain-card:hover {
+            border-color: var(--border);
+            transform: translateY(-2px);
+        }
+        .pain-card.highlight {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.03);
+        }
+        .pain-card.highlight::before {
+            content: 'BEST VALUE';
+            position: absolute;
+            top: 12px;
+            right: -32px;
+            background: var(--success);
+            color: var(--bg);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 40px;
+            transform: rotate(45deg);
+            letter-spacing: 0.05em;
+        }
+        .pain-card-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+        .pain-card-price {
+            font-size: 36px;
+            font-weight: 900;
+            margin: 16px 0;
+        }
+        .pain-card-price .period {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dim);
+        }
+        .pain-card-yearly {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+        }
+        .pain-card-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .tag-red { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .tag-green { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+
+        /* Tools Grid */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .tool-card {
+            background: var(--surface);
+            border: 1px solid var(--border-2);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .tool-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1);
+        }
+        .tool-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+        .tool-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+        .tool-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .tool-card-arrow {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .tool-card-coming {
+            background: var(--bg-3);
+            border-style: dashed;
+        }
+        .tool-card-coming:hover {
+            border-color: var(--border);
+            transform: none;
+            box-shadow: none;
+            cursor: default;
+        }
+
+        /* How it Works */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+        .step-card {
+            text-align: center;
+            position: relative;
+        }
+        .step-number {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 0 auto 20px;
+        }
+        .step-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+        .step-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .step-connector {
+            display: none;
+        }
+
+        /* BYOK */
+        .byok { background: var(--bg-2); }
+        .byok-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: center;
+        }
+        .byok-content h2 {
+            font-size: clamp(28px, 4vw, 40px);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+        }
+        .byok-content p {
+            font-size: 16px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+        .byok-benefits {
+            list-style: none;
+            margin-top: 24px;
+        }
+        .byok-benefits li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 8px 0;
+            font-size: 15px;
+            color: var(--text);
+        }
+        .byok-benefits li svg {
+            width: 20px;
+            height: 20px;
+            color: var(--success);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .byok-visual {
+            background: var(--surface);
+            border: 1px solid var(--border-2);
+            border-radius: 16px;
+            padding: 32px;
+        }
+        .byok-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .byok-flow-step {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-3);
+            border-radius: 12px;
+            border: 1px solid var(--border-2);
+        }
+        .byok-flow-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .byok-flow-text {
+            font-size: 14px;
+            color: var(--text);
+        }
+        .byok-flow-text span {
+            display: block;
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .byok-flow-arrow {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 18px;
+        }
+        .byok-cost {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.15);
+            border-radius: 12px;
+            text-align: center;
+        }
+        .byok-cost-amount {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--success);
+        }
+        .byok-cost-label {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        /* Pricing */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .pricing-card {
+            background: var(--surface);
+            border: 1px solid var(--border-2);
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .pricing-card:hover {
+            transform: translateY(-4px);
+        }
+        .pricing-card.popular {
+            border-color: var(--primary);
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, var(--surface) 100%);
+        }
+        .pricing-popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: var(--white);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 16px;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+        .pricing-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+        .pricing-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+        .pricing-amount {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--white);
+            line-height: 1;
+        }
+        .pricing-amount .currency { font-size: 24px; vertical-align: top; }
+        .pricing-period {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-top: 4px;
+            margin-bottom: 32px;
+        }
+        .pricing-original {
+            text-decoration: line-through;
+            color: var(--text-dim);
+            font-size: 18px;
+            margin-left: 8px;
+        }
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 32px;
+        }
+        .pricing-features li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 14px;
+            color: var(--text);
+        }
+        .pricing-features li svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+        .pricing-features li svg.check { color: var(--success); }
+        .pricing-features li svg.x { color: var(--text-dim); }
+        .pricing-features li.dimmed { color: var(--text-dim); }
+        .pricing-btn { width: 100%; justify-content: center; }
+        .pricing-guarantee {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .pricing-compare {
+            text-align: center;
+            margin-top: 32px;
+            padding: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border-2);
+            border-radius: 12px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .pricing-compare p {
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+        .pricing-compare strong {
+            color: var(--white);
+        }
+
+        /* Testimonials */
+        .testimonials { background: var(--bg-2); }
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .testimonial-card {
+            background: var(--surface);
+            border: 1px solid var(--border-2);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+        .testimonial-card:hover {
+            border-color: var(--border);
+        }
+        .testimonial-stars {
+            color: #eab308;
+            font-size: 14px;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+        .testimonial-text {
+            font-size: 15px;
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .testimonial-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--white);
+        }
+        .testimonial-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--white);
+        }
+        .testimonial-role {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        /* FAQ */
+        .faq-list {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        .faq-item {
+            border-bottom: 1px solid var(--border-2);
+        }
+        .faq-question {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 0;
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+        }
+        .faq-question:hover { color: var(--primary-hover); }
+        .faq-icon {
+            font-size: 20px;
+            transition: transform 0.3s;
+            flex-shrink: 0;
+            margin-left: 16px;
+            color: var(--text-dim);
+        }
+        .faq-item.open .faq-icon { transform: rotate(45deg); }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .faq-answer-inner {
+            padding: 0 0 24px;
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+        .faq-item.open .faq-answer {
+            max-height: 300px;
+        }
+
+        /* Final CTA */
+        .final-cta {
+            text-align: center;
+            padding: 120px 0;
+            position: relative;
+        }
+        .final-cta::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(ellipse, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .final-cta h2 {
+            font-size: clamp(32px, 5vw, 52px);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+        }
+        .final-cta p {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-2);
+            padding: 64px 0 32px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 48px;
+        }
+        .footer-brand p {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-top: 16px;
+            max-width: 280px;
+        }
+        .footer-col h4 {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+        .footer-col a {
+            display: block;
+            font-size: 14px;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 4px 0;
+            transition: color 0.2s;
+        }
+        .footer-col a:hover { color: var(--primary-hover); }
+        .footer-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-2);
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .footer-bottom-links { display: flex; gap: 24px; }
+        .footer-bottom-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-bottom-links a:hover { color: var(--text); }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .mockup-body { grid-template-columns: 1fr; }
+            .mockup-sidebar { display: none; }
+            .byok-grid { grid-template-columns: 1fr; gap: 40px; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-cta .btn-secondary { display: none; }
+            .mobile-toggle { display: block; }
+            .pain-grid { grid-template-columns: 1fr; }
+            .steps-grid { grid-template-columns: 1fr 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .testimonial-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .hero { padding: 120px 0 80px; }
+            section { padding: 80px 0; }
+            .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .steps-grid { grid-template-columns: 1fr; }
+            .hero-cta { flex-direction: column; }
+            .hero-cta .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav id="nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-logo">
+            <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="#6366f1"/><path d="M8 10l4 8 4-8 4 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            NexTool
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">AI Studio</a></li>
+            <li><a href="#tools">Tools</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <div class="nav-cta">
+            <a href="/" class="btn btn-secondary nav-btn">AI Studio</a>
+            <a href="#" class="btn btn-primary nav-btn">Add to Chrome</a>
+        </div>
+        <button class="mobile-toggle" aria-label="Open menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+    </div>
+</nav>
+
+<main>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="fade-in">
+            <div class="hero-badge">
+                <span class="dot"></span>
+                Now available on Chrome Web Store
+            </div>
+        </div>
+        <h1 class="fade-in fade-in-delay-1">One $49 Extension<br><span class="gradient-text">Replaced 5 Subscriptions</span></h1>
+        <p class="fade-in fade-in-delay-2">NexTool gives you 20+ AI-powered tools in one Chrome extension. Bring your own API key. Pay once. Use forever.</p>
+        <div class="hero-cta fade-in fade-in-delay-3">
+            <a href="#" class="btn btn-chrome">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
+                Add to Chrome &mdash; Free
+            </a>
+            <a href="#pricing" class="btn btn-pro">Get Pro &mdash; $49</a>
+        </div>
+        <div class="hero-meta fade-in fade-in-delay-3">
+            <span>
+                <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm3.78 5.28l-4.5 5.5a.75.75 0 01-1.12.02l-2-2a.75.75 0 111.06-1.06l1.42 1.42 3.96-4.84a.75.75 0 111.18.96z"/></svg>
+                No credit card needed
+            </span>
+            <span>
+                <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm3.78 5.28l-4.5 5.5a.75.75 0 01-1.12.02l-2-2a.75.75 0 111.06-1.06l1.42 1.42 3.96-4.84a.75.75 0 111.18.96z"/></svg>
+                Works with GPT-4, Claude & Gemini
+            </span>
+            <span>
+                <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm3.78 5.28l-4.5 5.5a.75.75 0 01-1.12.02l-2-2a.75.75 0 111.06-1.06l1.42 1.42 3.96-4.84a.75.75 0 111.18.96z"/></svg>
+                Launch price — limited time
+            </span>
+        </div>
+
+        <!-- Hero Visual Mockup -->
+        <div class="hero-visual fade-in">
+            <div class="hero-mockup">
+                <div class="mockup-toolbar">
+                    <div class="mockup-dot"></div>
+                    <div class="mockup-dot"></div>
+                    <div class="mockup-dot"></div>
+                    <div class="mockup-url">nextool.app</div>
+                </div>
+                <div class="mockup-body">
+                    <div class="mockup-sidebar">
+                        <div class="mockup-sidebar-title">AI Tools</div>
+                        <div class="mockup-tool-item active">
+                            <div class="mockup-tool-icon">&#128221;</div>
+                            Summarizer
+                        </div>
+                        <div class="mockup-tool-item">
+                            <div class="mockup-tool-icon">&#9997;&#65039;</div>
+                            Rewriter
+                        </div>
+                        <div class="mockup-tool-item">
+                            <div class="mockup-tool-icon">&#127760;</div>
+                            Translator
+                        </div>
+                        <div class="mockup-tool-item">
+                            <div class="mockup-tool-icon">&#128202;</div>
+                            Data Extractor
+                        </div>
+                        <div class="mockup-tool-item">
+                            <div class="mockup-tool-icon">&#128172;</div>
+                            Prompt Library
+                        </div>
+                        <div class="mockup-tool-item">
+                            <div class="mockup-tool-icon">&#128196;</div>
+                            PDF Chat
+                        </div>
+                        <div class="mockup-tool-item">
+                            <div class="mockup-tool-icon">&#128444;&#65039;</div>
+                            Image Analyzer
+                        </div>
+                        <div class="mockup-tool-item">
+                            <div class="mockup-tool-icon">&#128187;</div>
+                            Code Explainer
+                        </div>
+                    </div>
+                    <div class="mockup-content">
+                        <div class="mockup-content-title">AI Summarizer</div>
+                        <div class="mockup-textarea">Paste any text, article, or URL here and get an instant AI-powered summary. Supports bullet points, key takeaways, and custom lengths...</div>
+                        <div class="mockup-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            Summarize
+                        </div>
+                        <div class="mockup-output">
+                            <div class="mockup-output-label">Summary</div>
+                            <div class="mockup-output-text">NexTool is a Chrome extension that provides 20+ AI-powered tools using a bring-your-own-key model. Users pay once for lifetime access instead of monthly subscriptions, saving up to 90% compared to alternatives.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-glow"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Pain Point Section -->
+<section class="pain" id="comparison">
+    <div class="container">
+        <div class="section-header fade-in">
+            <div class="section-label">The Problem</div>
+            <h2 class="section-title">Tired of Paying $20/Month<br>for <span class="gradient-text">AI Wrappers?</span></h2>
+            <p class="section-subtitle">Every AI Chrome extension charges you a monthly subscription for the same underlying API. NexTool cuts out the middleman.</p>
+        </div>
+        <div class="pain-grid">
+            <div class="pain-card fade-in">
+                <div class="pain-card-name">Monica AI</div>
+                <div class="pain-card-price" style="color: #ef4444;">$16.60<span class="period">/mo</span></div>
+                <div class="pain-card-yearly">= $199/year, every year</div>
+                <div class="pain-card-tag tag-red">Recurring subscription</div>
+            </div>
+            <div class="pain-card fade-in fade-in-delay-1">
+                <div class="pain-card-name">Merlin AI</div>
+                <div class="pain-card-price" style="color: #ef4444;">$19.00<span class="period">/mo</span></div>
+                <div class="pain-card-yearly">= $228/year, every year</div>
+                <div class="pain-card-tag tag-red">Recurring subscription</div>
+            </div>
+            <div class="pain-card highlight fade-in fade-in-delay-2">
+                <div class="pain-card-name gradient-text" style="font-size: 22px;">NexTool Pro</div>
+                <div class="pain-card-price gradient-text-green">$49<span class="period" style="color: var(--text-dim);"> once</span></div>
+                <div class="pain-card-yearly" style="color: var(--success);">Forever. No renewals. Ever.</div>
+                <div class="pain-card-tag tag-green">One-time payment</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tools Grid Section -->
+<section id="tools">
+    <div class="container">
+        <div class="section-header fade-in">
+            <div class="section-label">All Tools</div>
+            <h2 class="section-title">20+ AI Tools,<br><span class="gradient-text">One Extension</span></h2>
+            <p class="section-subtitle">Every tool is powered by GPT-4, Claude, or Gemini. Pick your favorite AI provider and go.</p>
+        </div>
+        <div class="tools-grid">
+            <a href="tools/summarizer.html" class="tool-card fade-in">
+                <div class="tool-icon">&#128221;</div>
+                <h3>AI Summarizer</h3>
+                <p>Summarize any text, article, or webpage in seconds. Choose bullet points or paragraphs.</p>
+                <div class="tool-card-arrow">Learn more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+            </a>
+            <a href="tools/rewriter.html" class="tool-card fade-in">
+                <div class="tool-icon">&#9997;&#65039;</div>
+                <h3>AI Rewriter</h3>
+                <p>Rewrite text in any tone: professional, casual, academic, or creative. Perfect paraphrasing.</p>
+                <div class="tool-card-arrow">Learn more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+            </a>
+            <a href="tools/translator.html" class="tool-card fade-in">
+                <div class="tool-icon">&#127760;</div>
+                <h3>AI Translator</h3>
+                <p>Translate between 50+ languages with context awareness that beats Google Translate.</p>
+                <div class="tool-card-arrow">Learn more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+            </a>
+            <a href="tools/data-extractor.html" class="tool-card fade-in">
+                <div class="tool-icon">&#128202;</div>
+                <h3>Data Extractor</h3>
+                <p>Extract structured data from any website. Emails, prices, tables, contacts &mdash; in one click.</p>
+                <div class="tool-card-arrow">Learn more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+            </a>
+            <a href="tools/prompt-library.html" class="tool-card fade-in">
+                <div class="tool-icon">&#128172;</div>
+                <h3>Prompt Library</h3>
+                <p>50+ curated prompts for writing, coding, marketing, and more. Ready to use instantly.</p>
+                <div class="tool-card-arrow">Learn more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+            </a>
+            <div class="tool-card fade-in">
+                <div class="tool-icon">&#128196;</div>
+                <h3>PDF Chat</h3>
+                <p>Upload any PDF and chat with it. Ask questions, extract info, summarize chapters.</p>
+            </div>
+            <div class="tool-card fade-in">
+                <div class="tool-icon">&#128444;&#65039;</div>
+                <h3>Image Analyzer</h3>
+                <p>Analyze any image with AI vision. Describe contents, extract text, identify objects.</p>
+            </div>
+            <div class="tool-card fade-in">
+                <div class="tool-icon">&#128187;</div>
+                <h3>Code Explainer</h3>
+                <p>Paste any code snippet and get a clear explanation. Supports 30+ programming languages.</p>
+            </div>
+            <div class="tool-card fade-in">
+                <div class="tool-icon">&#9993;&#65039;</div>
+                <h3>Email Writer</h3>
+                <p>Generate professional emails in seconds. Cold outreach, follow-ups, replies, and more.</p>
+            </div>
+            <div class="tool-card fade-in">
+                <div class="tool-icon">&#128640;</div>
+                <h3>Content Generator</h3>
+                <p>Create blog posts, social captions, ad copy, and marketing content with one click.</p>
+            </div>
+            <div class="tool-card tool-card-coming fade-in">
+                <div class="tool-icon" style="opacity: 0.5;">&#10024;</div>
+                <h3 style="color: var(--text-muted);">More Coming Weekly</h3>
+                <p>New tools are added every week. Pro users get every future tool at no extra cost.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section id="how-it-works" style="background: var(--bg-2);">
+    <div class="container">
+        <div class="section-header fade-in">
+            <div class="section-label">How It Works</div>
+            <h2 class="section-title">Up and Running<br><span class="gradient-text">in 60 Seconds</span></h2>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card fade-in">
+                <div class="step-number">1</div>
+                <h3>Install the Extension</h3>
+                <p>One click from the Chrome Web Store. No account required to start.</p>
+            </div>
+            <div class="step-card fade-in fade-in-delay-1">
+                <div class="step-number">2</div>
+                <h3>Add Your API Key</h3>
+                <p>Paste your OpenAI, Anthropic, or Google AI key. Takes 30 seconds.</p>
+            </div>
+            <div class="step-card fade-in fade-in-delay-2">
+                <div class="step-number">3</div>
+                <h3>Use Any Tool, Anywhere</h3>
+                <p>Open the side panel on any website and pick the tool you need. Done.</p>
+            </div>
+            <div class="step-card fade-in fade-in-delay-3">
+                <div class="step-number">4</div>
+                <h3>Unlock Pro for $49</h3>
+                <p>Remove limits, unlock all tools, get every future update. One payment. Forever.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- BYOK Section -->
+<section class="byok" id="byok">
+    <div class="container">
+        <div class="byok-grid">
+            <div class="byok-content fade-in">
+                <div class="section-label">Bring Your Own Key</div>
+                <h2>Your Key. Your Data.<br><span class="gradient-text">Your Savings.</span></h2>
+                <p>NexTool uses your own API key from OpenAI, Anthropic, or Google. This means your data goes directly to the AI provider &mdash; never through our servers. We literally cannot see your data.</p>
+                <p>Plus, API calls cost a fraction of what subscription tools charge. The average NexTool use costs about $0.01.</p>
+                <ul class="byok-benefits">
+                    <li>
+                        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        100% private &mdash; your data never touches our servers
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        100x cheaper than any subscription AI tool
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        Use GPT-4, Claude 3.5, or Gemini Pro &mdash; your choice
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        No middleman markups, no hidden fees
+                    </li>
+                </ul>
+            </div>
+            <div class="byok-visual fade-in fade-in-delay-1">
+                <div class="byok-flow">
+                    <div class="byok-flow-step">
+                        <div class="byok-flow-icon">&#128100;</div>
+                        <div class="byok-flow-text">
+                            <strong>You</strong>
+                            <span>Type a prompt in NexTool</span>
+                        </div>
+                    </div>
+                    <div class="byok-flow-arrow">&#8595;</div>
+                    <div class="byok-flow-step">
+                        <div class="byok-flow-icon">&#128274;</div>
+                        <div class="byok-flow-text">
+                            <strong>Your API Key</strong>
+                            <span>Stored locally in your browser only</span>
+                        </div>
+                    </div>
+                    <div class="byok-flow-arrow">&#8595;</div>
+                    <div class="byok-flow-step">
+                        <div class="byok-flow-icon">&#9889;</div>
+                        <div class="byok-flow-text">
+                            <strong>Direct to AI Provider</strong>
+                            <span>OpenAI / Anthropic / Google &mdash; you choose</span>
+                        </div>
+                    </div>
+                    <div class="byok-flow-arrow">&#8595;</div>
+                    <div class="byok-flow-step" style="border-color: rgba(34, 197, 94, 0.2); background: rgba(34, 197, 94, 0.03);">
+                        <div class="byok-flow-icon" style="background: rgba(34, 197, 94, 0.1);">&#9989;</div>
+                        <div class="byok-flow-text">
+                            <strong style="color: var(--success);">Response</strong>
+                            <span>Fast, private, and incredibly cheap</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="byok-cost">
+                    <div class="byok-cost-amount">~$0.01</div>
+                    <div class="byok-cost-label">Average cost per AI tool use</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing">
+    <div class="container">
+        <div class="section-header fade-in">
+            <div class="section-label">Pricing</div>
+            <h2 class="section-title">One Price.<br><span class="gradient-text">Forever.</span></h2>
+            <p class="section-subtitle">No subscriptions. No surprise renewals. Pay once and every tool is yours &mdash; including every future update.</p>
+        </div>
+        <div class="pricing-grid">
+            <div class="pricing-card fade-in">
+                <div class="pricing-name">Free</div>
+                <div class="pricing-desc">Perfect for trying it out</div>
+                <div class="pricing-amount"><span class="currency">$</span>0</div>
+                <div class="pricing-period">Free forever</div>
+                <ul class="pricing-features">
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> All 20+ AI tools</li>
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> 10 uses per day</li>
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> 1 API key</li>
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> GPT-4, Claude & Gemini</li>
+                    <li class="dimmed"><svg class="x" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg> Custom prompts</li>
+                    <li class="dimmed"><svg class="x" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg> Multiple API keys</li>
+                    <li class="dimmed"><svg class="x" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg> Priority support</li>
+                </ul>
+                <a href="#" class="btn btn-secondary btn-large pricing-btn">Get Started Free</a>
+            </div>
+            <div class="pricing-card popular fade-in fade-in-delay-1">
+                <div class="pricing-popular-badge">MOST POPULAR</div>
+                <div class="pricing-name">Pro &mdash; Lifetime</div>
+                <div class="pricing-desc">Everything. Forever. One payment.</div>
+                <div class="pricing-amount"><span class="currency">$</span>49<span class="pricing-original">$149</span></div>
+                <div class="pricing-period">One-time payment &bull; 67% off launch price</div>
+                <ul class="pricing-features">
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> All 20+ AI tools</li>
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> <strong>Unlimited</strong> uses</li>
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> Multiple API keys</li>
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> Custom prompts & templates</li>
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> All future tools included</li>
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> Priority support</li>
+                    <li><svg class="check" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z"/></svg> 30-day money-back guarantee</li>
+                </ul>
+                <a href="https://christianity24.gumroad.com/l/upzibw" class="btn btn-pro pricing-btn" target="_blank">Get Pro &mdash; $49</a>
+                <div class="pricing-guarantee">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    30-day money-back guarantee
+                </div>
+            </div>
+        </div>
+        <div class="pricing-compare fade-in">
+            <p>That's <strong>less than 3 months of Monica AI</strong>. And NexTool is yours <strong>forever</strong>. Including every tool we build next.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials">
+    <div class="container">
+        <div class="section-header fade-in">
+            <div class="section-label">Testimonials</div>
+            <h2 class="section-title">Loved by <span class="gradient-text">Builders</span></h2>
+        </div>
+        <div class="testimonial-grid">
+            <div class="testimonial-card fade-in">
+                <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                <div class="testimonial-text">"I was paying $19/month for Merlin just for the summarizer and translator. NexTool gives me both plus 18 more tools for a one-time fee. Absolute no-brainer."</div>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">S</div>
+                    <div>
+                        <div class="testimonial-name">Sarah K.</div>
+                        <div class="testimonial-role">Content Strategist</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card fade-in fade-in-delay-1">
+                <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                <div class="testimonial-text">"The BYOK model is genius. I use my OpenAI key and pay maybe $2/month in API costs. That's it. No subscription, no middleman, and my data stays private."</div>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">M</div>
+                    <div>
+                        <div class="testimonial-name">Marcus T.</div>
+                        <div class="testimonial-role">Software Engineer</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card fade-in fade-in-delay-2">
+                <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                <div class="testimonial-text">"Finally, an AI tool that respects my privacy. My data goes straight to the AI provider, not some random startup's server. Plus the price is unbeatable."</div>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">L</div>
+                    <div>
+                        <div class="testimonial-name">Lisa R.</div>
+                        <div class="testimonial-role">Freelance Writer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+    <div class="container">
+        <div class="section-header fade-in">
+            <div class="section-label">FAQ</div>
+            <h2 class="section-title">Common <span class="gradient-text">Questions</span></h2>
+        </div>
+        <div class="faq-list fade-in">
+            <div class="faq-item">
+                <button class="faq-question">
+                    What API keys do I need?
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">NexTool works with API keys from OpenAI (GPT-4), Anthropic (Claude), or Google (Gemini). You only need one key to get started. Getting a key is free and takes about 2 minutes &mdash; just visit the provider's website, create an account, and generate an API key. We have a step-by-step guide inside the extension.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    How much does API usage actually cost?
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">The average NexTool use costs about $0.01 (one cent). A typical user spends $1-3 per month in API costs. Compare that to $16-20/month for subscription tools. Even heavy users rarely exceed $5/month. You can set spending limits directly on the API provider's dashboard.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Is my data safe?
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">Yes, completely. Your data goes directly from your browser to the AI provider (OpenAI, Anthropic, or Google). NexTool never sees, stores, or processes your data. Your API key is stored locally in your browser and never sent to our servers. This is the most private way to use AI tools.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    What's included in Free vs Pro?
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">Free gives you access to all 20+ tools with 10 uses per day and 1 API key. Pro ($49 one-time) removes all limits: unlimited daily uses, multiple API keys, custom prompts and templates, all future tools, and priority support. Once you buy Pro, you have it forever.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Do I get future tools for free?
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">Yes. Every tool we build in the future is automatically included in your Pro license at no extra cost. We ship new tools every week. You paid once &mdash; you get everything, forever.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Can I use multiple AI providers?
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">With the Free plan, you can use one API key. With Pro, you can add keys from all three providers (OpenAI, Anthropic, Google) and switch between them per tool. Want to use Claude for writing and GPT-4 for coding? No problem.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    What if I don't have an API key?
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">Getting an API key is free and takes 2 minutes. When you install NexTool, we walk you through the process step by step. OpenAI gives you $5 in free credits to start. You'll be up and running before you finish your coffee.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    What's the money-back guarantee?
+                    <span class="faq-icon">+</span>
+                </button>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">We offer a full 30-day money-back guarantee on Pro. If NexTool doesn't save you time and money, email us and we'll refund you immediately. No questions asked. We're that confident you'll love it.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final CTA -->
+<section class="final-cta">
+    <div class="container">
+        <h2 class="fade-in">Stop Renting AI Tools.<br><span class="gradient-text">Start Owning Them.</span></h2>
+        <p class="fade-in fade-in-delay-1">We built this because we were sick of paying $20/month for AI wrappers. Now you don't have to either.</p>
+        <div class="hero-cta fade-in fade-in-delay-2">
+            <a href="#" class="btn btn-chrome">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
+                Add to Chrome &mdash; Free
+            </a>
+            <a href="https://christianity24.gumroad.com/l/upzibw" class="btn btn-pro" target="_blank">Get Pro &mdash; $49</a>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="/" class="nav-logo">
+                    <svg viewBox="0 0 28 28" fill="none" width="28" height="28"><rect width="28" height="28" rx="6" fill="#6366f1"/><path d="M8 10l4 8 4-8 4 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    NexTool
+                </a>
+                <p>20+ AI tools in one Chrome extension. Bring your own API key. Pay once, use forever. Part of <a href="/" style="color: var(--primary-hover); text-decoration: none;">NexTool AI Studio</a>.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Product</h4>
+                <a href="/#tools">All Tools</a>
+                <a href="/pricing.html">Pricing</a>
+                <a href="/#how-it-works">How It Works</a>
+                <a href="/#byok">BYOK Explained</a>
+            </div>
+            <div class="footer-col">
+                <h4>Tools</h4>
+                <a href="/tools/summarizer.html">AI Summarizer</a>
+                <a href="/tools/rewriter.html">AI Rewriter</a>
+                <a href="/tools/translator.html">AI Translator</a>
+                <a href="/tools/data-extractor.html">Data Extractor</a>
+                <a href="/tools/prompt-library.html">Prompt Library</a>
+            </div>
+            <div class="footer-col">
+                <h4>Support</h4>
+                <a href="/#faq">FAQ</a>
+                <a href="mailto:support@nextool.app">Contact</a>
+                <a href="#">Chrome Web Store</a>
+                <a href="#">Gumroad</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 NexTool. All rights reserved.</span>
+            <div class="footer-bottom-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+// Scroll-triggered animations
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Nav scroll effect
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+});
+
+// FAQ accordion
+document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const item = btn.parentElement;
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+        if (!wasOpen) item.classList.add('open');
+    });
+});
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+});
+</script>
+</body>
+</html>
