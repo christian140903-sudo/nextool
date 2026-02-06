@@ -94,31 +94,61 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+            transition: clip-path 1s cubic-bezier(0.76, 0, 0.24, 1);
+            clip-path: inset(0 0 0 0);
         }
         #preloader.done {
-            transform: translateY(-100%);
+            clip-path: inset(0 0 100% 0);
+        }
+        #preloader::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 300px; height: 300px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: preloaderGlow 2s ease-in-out infinite alternate;
+        }
+        @keyframes preloaderGlow {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.3; }
+            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.7; }
         }
         #preloader .preloader-text {
             font-size: clamp(2rem, 6vw, 5rem);
             font-weight: 900;
             letter-spacing: -0.03em;
             overflow: hidden;
+            position: relative;
         }
         #preloader .preloader-text span {
             display: inline-block;
             transform: translateY(100%);
             opacity: 0;
             background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            animation: preloaderGradientShift 3s ease infinite;
+        }
+        @keyframes preloaderGradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        #preloader .preloader-counter {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.3);
+            margin-top: 1rem;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.1em;
         }
         #preloader .progress-bar {
             width: 200px;
             height: 2px;
             background: rgba(255,255,255,0.1);
-            margin-top: 2rem;
+            margin-top: 1.5rem;
             border-radius: 2px;
             overflow: hidden;
         }
@@ -306,6 +336,100 @@
             .nav-hamburger { display: flex; }
         }
 
+        /* ====== HERO AURORA GLOW ====== */
+        .hero-aurora {
+            position: absolute;
+            top: -30%; left: -30%;
+            width: 160%; height: 160%;
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(80px);
+            opacity: 0.4;
+            will-change: transform;
+        }
+        .hero-aurora-layer {
+            position: absolute;
+            border-radius: 50%;
+            will-change: transform;
+        }
+        .hero-aurora-layer--1 {
+            width: 60%; height: 60%;
+            top: 10%; left: 5%;
+            background: radial-gradient(circle, rgba(99,102,241,0.8) 0%, rgba(99,102,241,0) 70%);
+            animation: auroraFloat1 18s ease-in-out infinite;
+        }
+        .hero-aurora-layer--2 {
+            width: 50%; height: 50%;
+            top: 30%; right: 5%;
+            background: radial-gradient(circle, rgba(168,85,247,0.7) 0%, rgba(168,85,247,0) 70%);
+            animation: auroraFloat2 22s ease-in-out infinite;
+        }
+        .hero-aurora-layer--3 {
+            width: 45%; height: 45%;
+            bottom: 5%; left: 25%;
+            background: radial-gradient(circle, rgba(236,72,153,0.6) 0%, rgba(236,72,153,0) 70%);
+            animation: auroraFloat3 25s ease-in-out infinite;
+        }
+        .hero-aurora-layer--4 {
+            width: 35%; height: 35%;
+            top: 50%; left: 60%;
+            background: radial-gradient(circle, rgba(59,130,246,0.5) 0%, rgba(59,130,246,0) 70%);
+            animation: auroraFloat4 20s ease-in-out infinite;
+        }
+        .hero-aurora-layer--5 {
+            width: 55%; height: 40%;
+            top: 0%; left: 40%;
+            background: radial-gradient(ellipse, rgba(139,92,246,0.5) 0%, transparent 70%);
+            animation: auroraFloat5 28s ease-in-out infinite;
+        }
+        @keyframes auroraFloat1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(8%, -5%) scale(1.1); }
+            50% { transform: translate(-5%, 8%) scale(0.95); }
+            75% { transform: translate(10%, 5%) scale(1.05); }
+        }
+        @keyframes auroraFloat2 {
+            0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            33% { transform: translate(-10%, 6%) scale(1.08) rotate(3deg); }
+            66% { transform: translate(6%, -8%) scale(0.92) rotate(-2deg); }
+        }
+        @keyframes auroraFloat3 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            20% { transform: translate(12%, -3%) scale(1.12); }
+            40% { transform: translate(-8%, 10%) scale(0.9); }
+            60% { transform: translate(5%, 5%) scale(1.05); }
+            80% { transform: translate(-10%, -5%) scale(0.95); }
+        }
+        @keyframes auroraFloat4 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-15%, 10%) rotate(5deg); }
+        }
+        @keyframes auroraFloat5 {
+            0%, 100% { transform: translate(0, 0) scaleX(1); }
+            33% { transform: translate(10%, -8%) scaleX(1.15); }
+            66% { transform: translate(-8%, 5%) scaleX(0.9); }
+        }
+        @media (pointer: coarse) {
+            .hero-aurora { filter: blur(60px); opacity: 0.3; }
+        }
+
+        /* ====== CURSOR CLICK RIPPLE ====== */
+        .click-ripple {
+            position: fixed;
+            border-radius: 50%;
+            border: 1.5px solid rgba(99, 102, 241, 0.6);
+            pointer-events: none;
+            z-index: 9996;
+            animation: clickRippleExpand 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes clickRippleExpand {
+            0% { width: 0; height: 0; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { width: 80px; height: 80px; opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+        @media (pointer: coarse) {
+            .click-ripple { display: none; }
+        }
+
         /* ====== HERO ====== */
         #hero {
             position: relative;
@@ -344,10 +468,22 @@
             display: inline-block;
             opacity: 0;
             transform: translateY(100%);
-            background: linear-gradient(135deg, var(--white) 0%, var(--primary-light) 100%);
+            background: linear-gradient(135deg, var(--white) 0%, var(--primary-light) 40%, var(--accent) 70%, var(--pink) 100%);
+            background-size: 300% 300%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            animation: heroCharGradient 8s ease infinite;
+            animation-play-state: paused;
+        }
+        .hero-headline .char.revealed {
+            animation-play-state: running;
+        }
+        @keyframes heroCharGradient {
+            0%, 100% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
         }
         .hero-sub {
             font-size: clamp(1rem, 2vw, 1.4rem);
@@ -559,6 +695,231 @@
         }
         @media (max-width: 640px) {
             .services-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ====== SERVICE CARD HOVER DEMOS ====== */
+        .card-demo {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border-radius: var(--radius);
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .service-card:hover .card-demo {
+            opacity: 1;
+        }
+        /* Website demo: animated wireframe */
+        .demo-wireframe {
+            position: absolute;
+            inset: 12px;
+            opacity: 0.08;
+        }
+        .demo-wireframe .wf-nav {
+            height: 8px;
+            background: var(--primary-light);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: wfReveal 0.5s 0.1s ease-out forwards;
+        }
+        .demo-wireframe .wf-hero {
+            height: 40%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transform: scaleY(0);
+            transform-origin: top;
+            animation: wfRevealY 0.5s 0.2s ease-out forwards;
+        }
+        .demo-wireframe .wf-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .demo-wireframe .wf-card {
+            height: 24px;
+            background: var(--accent);
+            border-radius: 4px;
+            transform: scale(0);
+            animation: wfPop 0.3s ease-out forwards;
+        }
+        .demo-wireframe .wf-card:nth-child(1) { animation-delay: 0.35s; }
+        .demo-wireframe .wf-card:nth-child(2) { animation-delay: 0.4s; }
+        .demo-wireframe .wf-card:nth-child(3) { animation-delay: 0.45s; }
+        .demo-wireframe .wf-card:nth-child(4) { animation-delay: 0.5s; }
+        .service-card:not(:hover) .demo-wireframe * { animation: none; transform: scale(0); }
+
+        @keyframes wfReveal { to { transform: scaleX(1); } }
+        @keyframes wfRevealY { to { transform: scaleY(1); } }
+        @keyframes wfPop { to { transform: scale(1); } }
+
+        /* Chatbot demo: floating bubbles */
+        .demo-bubbles {
+            position: absolute;
+            inset: 12px;
+            opacity: 0.1;
+        }
+        .demo-bubble {
+            position: absolute;
+            border-radius: 12px;
+            transform: translateY(20px) scale(0.8);
+            opacity: 0;
+        }
+        .demo-bubble--bot {
+            left: 0;
+            background: var(--primary);
+            width: 65%;
+            height: 16px;
+        }
+        .demo-bubble--user {
+            right: 0;
+            background: var(--accent);
+            width: 50%;
+            height: 14px;
+        }
+        .demo-bubble:nth-child(1) { top: 10%; animation: bubbleIn 0.4s 0.1s ease-out forwards; }
+        .demo-bubble:nth-child(2) { top: 28%; animation: bubbleIn 0.4s 0.25s ease-out forwards; }
+        .demo-bubble:nth-child(3) { top: 44%; animation: bubbleIn 0.4s 0.4s ease-out forwards; }
+        .demo-bubble:nth-child(4) { top: 60%; animation: bubbleIn 0.4s 0.55s ease-out forwards; }
+        .demo-bubble:nth-child(5) { top: 76%; animation: bubbleIn 0.4s 0.7s ease-out forwards; }
+        .service-card:not(:hover) .demo-bubble { animation: none; opacity: 0; }
+        @keyframes bubbleIn { to { transform: translateY(0) scale(1); opacity: 1; } }
+
+        /* Automation demo: connecting nodes */
+        .demo-nodes {
+            position: absolute;
+            inset: 12px;
+            opacity: 0.08;
+        }
+        .demo-node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            transform: scale(0);
+        }
+        .demo-node:nth-child(1) { top: 15%; left: 15%; animation: nodePop 0.3s 0.1s ease-out forwards; }
+        .demo-node:nth-child(2) { top: 15%; right: 15%; animation: nodePop 0.3s 0.2s ease-out forwards; }
+        .demo-node:nth-child(3) { top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); animation: nodePopCenter 0.3s 0.3s ease-out forwards; }
+        .demo-node:nth-child(4) { bottom: 15%; left: 20%; animation: nodePop 0.3s 0.4s ease-out forwards; }
+        .demo-node:nth-child(5) { bottom: 15%; right: 20%; animation: nodePop 0.3s 0.5s ease-out forwards; }
+        .demo-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform-origin: left;
+            transform: scaleX(0);
+        }
+        .demo-line:nth-child(6) { top: 21%; left: 22%; width: 56%; transform: rotate(25deg) scaleX(0); animation: lineGrow 0.4s 0.35s ease-out forwards; }
+        .demo-line:nth-child(7) { top: 50%; left: 22%; width: 30%; transform: rotate(-20deg) scaleX(0); animation: lineGrow 0.4s 0.45s ease-out forwards; }
+        .demo-line:nth-child(8) { top: 50%; right: 22%; width: 30%; transform: rotate(20deg) scaleX(0); animation: lineGrow 0.4s 0.55s ease-out forwards; }
+        .service-card:not(:hover) .demo-node,
+        .service-card:not(:hover) .demo-line { animation: none; transform: scale(0); }
+        @keyframes nodePop { to { transform: scale(1); } }
+        @keyframes nodePopCenter { to { transform: translate(-50%, -50%) scale(1); } }
+        @keyframes lineGrow { to { transform: scaleX(1); } }
+
+        /* Content demo: text lines */
+        .demo-lines {
+            position: absolute;
+            inset: 12px;
+            opacity: 0.08;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-top: 10%;
+        }
+        .demo-textline {
+            height: 6px;
+            background: var(--primary-light);
+            border-radius: 3px;
+            transform: scaleX(0);
+            transform-origin: left;
+        }
+        .demo-textline:nth-child(1) { width: 80%; animation: wfReveal 0.3s 0.1s ease-out forwards; }
+        .demo-textline:nth-child(2) { width: 95%; animation: wfReveal 0.3s 0.18s ease-out forwards; }
+        .demo-textline:nth-child(3) { width: 70%; animation: wfReveal 0.3s 0.26s ease-out forwards; }
+        .demo-textline:nth-child(4) { width: 88%; animation: wfReveal 0.3s 0.34s ease-out forwards; }
+        .demo-textline:nth-child(5) { width: 60%; animation: wfReveal 0.3s 0.42s ease-out forwards; }
+        .demo-textline:nth-child(6) { width: 75%; animation: wfReveal 0.3s 0.50s ease-out forwards; }
+        .service-card:not(:hover) .demo-textline { animation: none; transform: scaleX(0); }
+
+        /* Video demo: play button pulse */
+        .demo-play {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+        }
+        .demo-play-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(168,85,247,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: playPulse 1.5s ease-in-out infinite;
+        }
+        .demo-play-triangle {
+            width: 0;
+            height: 0;
+            border-left: 14px solid var(--accent);
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            margin-left: 3px;
+        }
+        .demo-play-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            border: 1px solid rgba(168,85,247,0.2);
+            transform: translate(-50%, -50%);
+            animation: playRing 1.5s ease-out infinite;
+        }
+        .service-card:hover .demo-play { animation: playAppear 0.4s 0.1s ease-out forwards; }
+        .service-card:not(:hover) .demo-play { animation: none; opacity: 0; transform: translate(-50%, -50%) scale(0); }
+        @keyframes playAppear { to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+        @keyframes playPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes playRing { 0% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; } 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
+
+        /* Data demo: bar chart */
+        .demo-chart {
+            position: absolute;
+            bottom: 12px; left: 12px; right: 12px;
+            height: 60%;
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            opacity: 0.08;
+        }
+        .demo-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--primary), var(--accent));
+            border-radius: 3px 3px 0 0;
+            transform: scaleY(0);
+            transform-origin: bottom;
+        }
+        .demo-bar:nth-child(1) { height: 40%; animation: barGrow 0.4s 0.1s ease-out forwards; }
+        .demo-bar:nth-child(2) { height: 65%; animation: barGrow 0.4s 0.15s ease-out forwards; }
+        .demo-bar:nth-child(3) { height: 45%; animation: barGrow 0.4s 0.2s ease-out forwards; }
+        .demo-bar:nth-child(4) { height: 80%; animation: barGrow 0.4s 0.25s ease-out forwards; }
+        .demo-bar:nth-child(5) { height: 55%; animation: barGrow 0.4s 0.3s ease-out forwards; }
+        .demo-bar:nth-child(6) { height: 90%; animation: barGrow 0.4s 0.35s ease-out forwards; }
+        .demo-bar:nth-child(7) { height: 70%; animation: barGrow 0.4s 0.4s ease-out forwards; }
+        .service-card:not(:hover) .demo-bar { animation: none; transform: scaleY(0); }
+        @keyframes barGrow { to { transform: scaleY(1); } }
+
+        /* ====== HERO TEXT GLOW ====== */
+        .hero-headline .line {
+            text-shadow: 0 0 40px rgba(99,102,241,0.3), 0 0 80px rgba(168,85,247,0.15);
         }
 
         /* ====== HOW IT WORKS (Horizontal Scroll) ====== */
@@ -4317,6 +4678,7 @@
         <div class="preloader-text">
             <span>N</span><span>e</span><span>x</span><span>T</span><span>o</span><span>o</span><span>l</span>
         </div>
+        <div class="preloader-counter" id="preloaderCounter">0%</div>
         <div class="progress-bar">
             <div class="progress-fill" id="progressFill"></div>
         </div>
@@ -4354,6 +4716,14 @@
 
     <!-- HERO -->
     <section id="hero" aria-label="Hero">
+        <!-- Aurora Glow Background -->
+        <div class="hero-aurora" id="heroAurora" aria-hidden="true">
+            <div class="hero-aurora-layer hero-aurora-layer--1"></div>
+            <div class="hero-aurora-layer hero-aurora-layer--2"></div>
+            <div class="hero-aurora-layer hero-aurora-layer--3"></div>
+            <div class="hero-aurora-layer hero-aurora-layer--4"></div>
+            <div class="hero-aurora-layer hero-aurora-layer--5"></div>
+        </div>
         <canvas id="hero-canvas" aria-hidden="true"></canvas>
         <div class="hero-content">
             <h1 class="hero-headline" id="heroHeadline">
@@ -4486,6 +4856,16 @@
                 <!-- Websites -->
                 <div class="service-card" data-tilt>
                     <div class="glow-border" aria-hidden="true"></div>
+                    <div class="card-demo" aria-hidden="true">
+                        <div class="demo-wireframe">
+                            <div class="wf-nav"></div>
+                            <div class="wf-hero"></div>
+                            <div class="wf-grid">
+                                <div class="wf-card"></div><div class="wf-card"></div>
+                                <div class="wf-card"></div><div class="wf-card"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="service-icon">
                         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
                     </div>
@@ -4496,6 +4876,15 @@
                 <!-- Chatbots -->
                 <div class="service-card" data-tilt>
                     <div class="glow-border" aria-hidden="true"></div>
+                    <div class="card-demo" aria-hidden="true">
+                        <div class="demo-bubbles">
+                            <div class="demo-bubble demo-bubble--bot"></div>
+                            <div class="demo-bubble demo-bubble--user"></div>
+                            <div class="demo-bubble demo-bubble--bot"></div>
+                            <div class="demo-bubble demo-bubble--user"></div>
+                            <div class="demo-bubble demo-bubble--bot"></div>
+                        </div>
+                    </div>
                     <div class="service-icon">
                         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     </div>
@@ -4506,6 +4895,14 @@
                 <!-- Automations -->
                 <div class="service-card" data-tilt>
                     <div class="glow-border" aria-hidden="true"></div>
+                    <div class="card-demo" aria-hidden="true">
+                        <div class="demo-nodes">
+                            <div class="demo-node"></div><div class="demo-node"></div>
+                            <div class="demo-node"></div><div class="demo-node"></div>
+                            <div class="demo-node"></div>
+                            <div class="demo-line"></div><div class="demo-line"></div><div class="demo-line"></div>
+                        </div>
+                    </div>
                     <div class="service-icon">
                         <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
                     </div>
@@ -4516,6 +4913,13 @@
                 <!-- Content -->
                 <div class="service-card" data-tilt>
                     <div class="glow-border" aria-hidden="true"></div>
+                    <div class="card-demo" aria-hidden="true">
+                        <div class="demo-lines">
+                            <div class="demo-textline"></div><div class="demo-textline"></div>
+                            <div class="demo-textline"></div><div class="demo-textline"></div>
+                            <div class="demo-textline"></div><div class="demo-textline"></div>
+                        </div>
+                    </div>
                     <div class="service-icon">
                         <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     </div>
@@ -4526,6 +4930,14 @@
                 <!-- Video -->
                 <div class="service-card" data-tilt>
                     <div class="glow-border" aria-hidden="true"></div>
+                    <div class="card-demo" aria-hidden="true">
+                        <div class="demo-play">
+                            <div class="demo-play-ring"></div>
+                            <div class="demo-play-circle">
+                                <div class="demo-play-triangle"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="service-icon">
                         <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                     </div>
@@ -4536,6 +4948,14 @@
                 <!-- Data -->
                 <div class="service-card" data-tilt>
                     <div class="glow-border" aria-hidden="true"></div>
+                    <div class="card-demo" aria-hidden="true">
+                        <div class="demo-chart">
+                            <div class="demo-bar"></div><div class="demo-bar"></div>
+                            <div class="demo-bar"></div><div class="demo-bar"></div>
+                            <div class="demo-bar"></div><div class="demo-bar"></div>
+                            <div class="demo-bar"></div>
+                        </div>
+                    </div>
                     <div class="service-icon">
                         <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
                     </div>
@@ -5388,8 +5808,8 @@
             <span class="konami-emoji" aria-hidden="true">&#x1F3AE;</span>
             <h3 class="konami-title">You found the secret!</h3>
             <div class="konami-stats" id="konamiStats">
-                This website has <strong id="konamiLines">7,000+</strong> lines of code,
-                <strong id="konamiAnimations">50+</strong> animations, and was built
+                This website has <strong id="konamiLines">9,000+</strong> lines of code,
+                <strong id="konamiAnimations">60+</strong> animations, and was built
                 by <strong>one person with AI</strong>.
             </div>
             <p class="konami-stats">Want something like this? It starts at <strong>$29</strong>.</p>
@@ -5475,6 +5895,7 @@
         ========================================================== */
         const preloader = document.getElementById('preloader');
         const progressFill = document.getElementById('progressFill');
+        const preloaderCounter = document.getElementById('preloaderCounter');
         const preloaderLetters = preloader.querySelectorAll('.preloader-text span');
 
         function runPreloader() {
@@ -5483,38 +5904,51 @@
                 initAll();
                 return;
             }
-            // Animate letters in
+            // Animate letters in with spring effect
             let delay = 200;
             preloaderLetters.forEach((span, i) => {
                 setTimeout(() => {
-                    span.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s';
+                    span.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s';
                     span.style.transform = 'translateY(0)';
                     span.style.opacity = '1';
-                }, delay + i * 80);
+                }, delay + i * 90);
             });
 
-            // Progress bar
+            // Progress bar + counter
             let progress = 0;
+            let displayProgress = 0;
             const progressInterval = setInterval(() => {
-                progress += Math.random() * 15 + 5;
+                progress += Math.random() * 12 + 4;
                 if (progress >= 100) {
                     progress = 100;
                     clearInterval(progressInterval);
                 }
-                progressFill.style.width = progress + '%';
-                progressFill.style.transition = 'width 0.3s';
-            }, 150);
+            }, 120);
+
+            function updateCounter() {
+                displayProgress += (progress - displayProgress) * 0.15;
+                const rounded = Math.round(displayProgress);
+                if (preloaderCounter) preloaderCounter.textContent = rounded + '%';
+                progressFill.style.width = displayProgress + '%';
+                progressFill.style.transition = 'width 0.1s linear';
+                if (displayProgress < 99.5) {
+                    requestAnimationFrame(updateCounter);
+                }
+            }
+            requestAnimationFrame(updateCounter);
 
             setTimeout(() => {
+                progress = 100;
                 progressFill.style.width = '100%';
+                if (preloaderCounter) preloaderCounter.textContent = '100%';
                 setTimeout(() => {
                     preloader.classList.add('done');
                     setTimeout(() => {
                         preloader.style.display = 'none';
-                    }, 900);
+                    }, 1100);
                     initAll();
-                }, 300);
-            }, 1800);
+                }, 400);
+            }, 2000);
         }
 
         window.addEventListener('load', runPreloader);
@@ -5879,6 +6313,9 @@
                 duration: 0.6,
                 stagger: 0.03,
                 ease: 'power3.out',
+                onComplete: function() {
+                    document.querySelectorAll('#heroLine1 .char').forEach(function(c) { c.classList.add('revealed'); });
+                }
             })
             .to('#heroLine2 .char', {
                 y: 0,
@@ -5886,6 +6323,9 @@
                 duration: 0.6,
                 stagger: 0.03,
                 ease: 'power3.out',
+                onComplete: function() {
+                    document.querySelectorAll('#heroLine2 .char').forEach(function(c) { c.classList.add('revealed'); });
+                }
             }, '-=0.3')
             .to('#heroSub', {
                 opacity: 1,
@@ -8610,12 +9050,158 @@
             initKeyboardNav();
             initFloatingChat();
             if (typeof THREE !== 'undefined') enhanceHeroCanvas();
+            initAuroraGlow();
+            initClickRipples();
+            initSectionColorJourney();
         }
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() { setTimeout(initNewFeatures, 100); });
         } else {
             setTimeout(initNewFeatures, 100);
+        }
+
+
+        /* === MOUSE-REACTIVE AURORA GLOW === */
+        function initAuroraGlow() {
+            var aurora = document.getElementById('heroAurora');
+            if (!aurora || isTouch) return;
+
+            var layers = aurora.querySelectorAll('.hero-aurora-layer');
+            var targetX = 0, targetY = 0, currentX = 0, currentY = 0;
+
+            document.addEventListener('mousemove', function(e) {
+                var cx = (e.clientX / window.innerWidth - 0.5) * 2;
+                var cy = (e.clientY / window.innerHeight - 0.5) * 2;
+                targetX = cx * 30;
+                targetY = cy * 20;
+            });
+
+            var heroVisible = true;
+            var heroSection = document.getElementById('hero');
+            if (heroSection) {
+                var obs = new IntersectionObserver(function(entries) {
+                    heroVisible = entries[0].isIntersecting;
+                }, { threshold: 0 });
+                obs.observe(heroSection);
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                if (!heroVisible) return;
+
+                currentX += (targetX - currentX) * 0.02;
+                currentY += (targetY - currentY) * 0.02;
+
+                layers.forEach(function(layer, i) {
+                    var factor = 0.3 + i * 0.15;
+                    layer.style.marginLeft = (currentX * factor) + 'px';
+                    layer.style.marginTop = (currentY * factor) + 'px';
+                });
+            }
+            animate();
+        }
+
+
+        /* === CLICK RIPPLE EFFECT === */
+        function initClickRipples() {
+            if (isTouch || prefersReducedMotion) return;
+
+            document.addEventListener('click', function(e) {
+                var ripple = document.createElement('div');
+                ripple.className = 'click-ripple';
+                ripple.style.left = e.clientX + 'px';
+                ripple.style.top = e.clientY + 'px';
+                document.body.appendChild(ripple);
+                setTimeout(function() { ripple.remove(); }, 600);
+            });
+        }
+
+
+        /* === SECTION COLOR JOURNEY === */
+        function initSectionColorJourney() {
+            if (prefersReducedMotion) return;
+
+            var sectionColors = {
+                'hero':         { primary: '99,102,241', accent: '168,85,247' },
+                'services':     { primary: '99,102,241', accent: '168,85,247' },
+                'live-build':   { primary: '59,130,246', accent: '99,102,241' },
+                'process':      { primary: '79,70,229',  accent: '139,92,246' },
+                'demo':         { primary: '168,85,247', accent: '236,72,153' },
+                'comparison':   { primary: '99,102,241', accent: '59,130,246' },
+                'use-cases':    { primary: '139,92,246', accent: '168,85,247' },
+                'pricing':      { primary: '168,85,247', accent: '236,72,153' },
+                'transparency': { primary: '34,197,94',  accent: '59,130,246' },
+                'about-story':  { primary: '99,102,241', accent: '168,85,247' },
+                'testimonials': { primary: '236,72,153', accent: '168,85,247' },
+                'faq':          { primary: '99,102,241', accent: '139,92,246' },
+                'final-cta':    { primary: '168,85,247', accent: '236,72,153' }
+            };
+
+            var sections = [];
+            for (var id in sectionColors) {
+                var el = document.getElementById(id);
+                if (el) {
+                    sections.push({ el: el, colors: sectionColors[id] });
+                }
+            }
+
+            if (!sections.length) return;
+
+            var currentPrimary = { r: 99, g: 102, b: 241 };
+            var targetPrimary = { r: 99, g: 102, b: 241 };
+            var currentAccent = { r: 168, g: 85, b: 247 };
+            var targetAccent = { r: 168, g: 85, b: 247 };
+
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+                        var id = entry.target.id;
+                        if (sectionColors[id]) {
+                            var p = sectionColors[id].primary.split(',');
+                            targetPrimary = { r: parseInt(p[0]), g: parseInt(p[1]), b: parseInt(p[2]) };
+                            var a = sectionColors[id].accent.split(',');
+                            targetAccent = { r: parseInt(a[0]), g: parseInt(a[1]), b: parseInt(a[2]) };
+                        }
+                    }
+                });
+            }, { threshold: [0.3, 0.5] });
+
+            sections.forEach(function(s) { observer.observe(s.el); });
+
+            var scrollProgress = document.getElementById('scrollProgressFill');
+            var gradientDividers = document.querySelectorAll('.gradient-divider');
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                currentPrimary.r += (targetPrimary.r - currentPrimary.r) * 0.03;
+                currentPrimary.g += (targetPrimary.g - currentPrimary.g) * 0.03;
+                currentPrimary.b += (targetPrimary.b - currentPrimary.b) * 0.03;
+                currentAccent.r += (targetAccent.r - currentAccent.r) * 0.03;
+                currentAccent.g += (targetAccent.g - currentAccent.g) * 0.03;
+                currentAccent.b += (targetAccent.b - currentAccent.b) * 0.03;
+
+                var pr = Math.round(currentPrimary.r);
+                var pg = Math.round(currentPrimary.g);
+                var pb = Math.round(currentPrimary.b);
+                var ar = Math.round(currentAccent.r);
+                var ag = Math.round(currentAccent.g);
+                var ab = Math.round(currentAccent.b);
+
+                var primaryRgb = 'rgb(' + pr + ',' + pg + ',' + pb + ')';
+                var accentRgb = 'rgb(' + ar + ',' + ag + ',' + ab + ')';
+                var gradient = 'linear-gradient(90deg, ' + primaryRgb + ', ' + accentRgb + ')';
+
+                if (scrollProgress) {
+                    scrollProgress.style.background = gradient;
+                }
+
+                gradientDividers.forEach(function(d) {
+                    d.style.background = gradient;
+                });
+            }
+            animate();
         }
 
     })();
