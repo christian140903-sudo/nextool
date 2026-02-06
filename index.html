@@ -804,6 +804,287 @@
             margin-top: 2rem;
         }
 
+        /* ====== FLOATING CHAT WIDGET ====== */
+        .nt-fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9990;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 24px rgba(99, 102, 241, 0.4);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
+        }
+        .nt-fab::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--gradient);
+            animation: ntPulse 2.5s ease-in-out infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .nt-fab.open::before { animation: none; opacity: 0; }
+        @keyframes ntPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.5); opacity: 0; }
+        }
+        .nt-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 32px rgba(99, 102, 241, 0.6);
+        }
+        .nt-fab svg {
+            width: 26px;
+            height: 26px;
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.3s, opacity 0.2s;
+        }
+        .nt-fab .nt-ic-close { position: absolute; opacity: 0; transform: rotate(-90deg) scale(0.5); }
+        .nt-fab.open .nt-ic-chat { opacity: 0; transform: rotate(90deg) scale(0.5); }
+        .nt-fab.open .nt-ic-close { opacity: 1; transform: rotate(0) scale(1); }
+
+        .nt-chat-win {
+            position: fixed;
+            bottom: 6.5rem;
+            right: 2rem;
+            width: 400px;
+            max-height: 580px;
+            z-index: 9989;
+            border-radius: 20px;
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none;
+            transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.05);
+        }
+        .nt-chat-win.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+        @media (max-width: 480px) {
+            .nt-chat-win {
+                bottom: 0; right: 0; left: 0;
+                width: 100%; max-height: 100vh; height: 100dvh;
+                border-radius: 0;
+            }
+            .nt-fab { bottom: 1.25rem; right: 1.25rem; width: 54px; height: 54px; }
+            .nt-fab svg { width: 22px; height: 22px; }
+        }
+
+        .nt-chat-hdr {
+            padding: 0.9rem 1.25rem;
+            background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(168,85,247,0.04));
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+        .nt-chat-av {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: 800; color: white;
+            position: relative; flex-shrink: 0;
+        }
+        .nt-chat-av::after {
+            content: '';
+            position: absolute; bottom: 0; right: 0;
+            width: 10px; height: 10px;
+            background: #22c55e;
+            border-radius: 50%;
+            border: 2px solid var(--surface);
+        }
+        .nt-chat-nm { font-weight: 600; font-size: 0.92rem; }
+        .nt-chat-st { font-size: 0.72rem; color: #22c55e; }
+
+        .nt-chat-body {
+            flex: 1;
+            padding: 1rem 1.15rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            scroll-behavior: smooth;
+            min-height: 260px;
+            max-height: 340px;
+        }
+        .nt-chat-body::-webkit-scrollbar { width: 3px; }
+        .nt-chat-body::-webkit-scrollbar-track { background: transparent; }
+        .nt-chat-body::-webkit-scrollbar-thumb { background: var(--text-dim); border-radius: 4px; }
+
+        .nt-m {
+            max-width: 88%;
+            padding: 0.65rem 0.95rem;
+            border-radius: 14px;
+            font-size: 0.86rem;
+            line-height: 1.55;
+            animation: ntMIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            word-wrap: break-word;
+        }
+        @keyframes ntMIn {
+            from { opacity: 0; transform: translateY(8px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .nt-m.b {
+            align-self: flex-start;
+            background: var(--surface-hover);
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+        }
+        .nt-m.u {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .nt-m strong { color: var(--primary-light); }
+        .nt-m.u strong { color: rgba(255,255,255,0.9); }
+        .nt-m a { color: var(--primary-light); text-decoration: underline; }
+        .nt-m.u a { color: rgba(255,255,255,0.9); }
+
+        .nt-sc {
+            margin-top: 0.5rem;
+            padding: 0.65rem 0.85rem;
+            background: rgba(99, 102, 241, 0.06);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 10px;
+        }
+        .nt-sc h4 {
+            font-size: 0.82rem;
+            margin-bottom: 0.35rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nt-sc-r {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            padding: 0.15rem 0;
+        }
+        .nt-sc-r span:last-child { color: var(--primary-light); font-weight: 600; }
+
+        .nt-chips {
+            padding: 0.3rem 1.15rem 0.15rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            flex-shrink: 0;
+        }
+        .nt-chip {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.72rem;
+            border-radius: 100px;
+            border: 1px solid var(--glass-border);
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .nt-chip:hover {
+            border-color: var(--primary);
+            color: var(--primary-light);
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .nt-chat-ft {
+            padding: 0.65rem 1.15rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .nt-chat-in {
+            flex: 1;
+            background: var(--bg-alt);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            padding: 0.6rem 1rem;
+            color: var(--text);
+            font-size: 0.86rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .nt-chat-in::placeholder { color: var(--text-dim); }
+        .nt-chat-in:focus { border-color: var(--primary); }
+        .nt-chat-snd {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: var(--gradient);
+            border: none;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+        .nt-chat-snd:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+        }
+        .nt-chat-snd svg { width: 15px; height: 15px; fill: white; }
+
+        .nt-typing {
+            display: flex;
+            gap: 4px;
+            padding: 0.65rem 0.95rem;
+            align-self: flex-start;
+            background: var(--surface-hover);
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+            animation: ntMIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nt-typing span {
+            width: 5px; height: 5px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: ntBnc 1.4s infinite;
+        }
+        .nt-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .nt-typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes ntBnc {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        .nt-badge {
+            position: absolute;
+            top: -2px; right: -2px;
+            width: 12px; height: 12px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+            animation: ntBPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+        @keyframes ntBPop {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
         /* ====== PRICING ====== */
         #pricing { padding: 8rem 2rem; }
         .pricing-grid {
@@ -4447,7 +4728,7 @@
                     </div>
                 </div>
                 <div class="chat-messages" id="chatMessages" role="log" aria-live="polite">
-                    <div class="chat-msg bot">Hey! I'm the NexTool assistant. Describe a project you have in mind and I'll show you what we can do. Try something like "I need a website for my restaurant" or "scrape product data".</div>
+                    <div class="chat-msg bot">Hey! Describe any project idea and I'll tell you exactly what we'd build, what it costs, and how fast we deliver. Try anything — "I need a landing page for my bakery" or "automate my email follow-ups".</div>
                 </div>
                 <div class="chat-input-area">
                     <input type="text" class="chat-input" id="chatInput" placeholder="Describe your project..." aria-label="Type your project idea" autocomplete="off">
@@ -5142,6 +5423,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <!-- NexTool AI Chat Widget -->
+    <div id="ntChatWidget" aria-label="Chat with NexTool AI">
+        <button id="ntFab" class="nt-fab" aria-label="Open chat" aria-expanded="false">
+            <svg class="nt-ic-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+            <svg class="nt-ic-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div id="ntChatWin" class="nt-chat-win" role="dialog" aria-label="NexTool AI Chat">
+            <div class="nt-chat-hdr">
+                <div class="nt-chat-av" aria-hidden="true">N</div>
+                <div style="flex:1">
+                    <div class="nt-chat-nm">NexTool AI</div>
+                    <div class="nt-chat-st">Online</div>
+                </div>
+            </div>
+            <div class="nt-chat-body" id="ntChatBody" role="log" aria-live="polite"></div>
+            <div class="nt-chips" id="ntChips"></div>
+            <div class="nt-chat-ft">
+                <input type="text" class="nt-chat-in" id="ntChatIn" placeholder="Ask me anything..." autocomplete="off" aria-label="Type your message">
+                <button class="nt-chat-snd" id="ntChatSnd" aria-label="Send">
+                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
 
     <script>
@@ -5864,152 +6170,443 @@
         }
 
         /* ==========================================================
-           INTERACTIVE DEMO CHAT
+           INTERACTIVE DEMO CHAT (inline section)
         ========================================================== */
         function initChat() {
-            const input = document.getElementById('chatInput');
-            const sendBtn = document.getElementById('chatSend');
-            const messages = document.getElementById('chatMessages');
+            var input = document.getElementById('chatInput');
+            var sendBtn = document.getElementById('chatSend');
+            var messages = document.getElementById('chatMessages');
+            if (!input || !sendBtn || !messages) return;
 
-            const responses = {
-                website: {
-                    type: 'Website Development',
-                    example: "Let's say you need a restaurant website.",
-                    scope: 'Custom-designed landing page or multi-page site. Mobile-responsive, SEO-optimized, deployed on Vercel (free hosting).',
-                    price: '$29 - $149 depending on complexity',
-                    timeline: '24-48 hours',
-                    deliverables: 'Complete source code, live deployed site, free hosting setup, Google Analytics integration'
-                },
-                bot: {
-                    type: 'Chatbot Development',
-                    example: "An AI-powered customer support bot.",
-                    scope: 'WhatsApp, Telegram, or web-based chatbot. Can handle FAQs, bookings, lead qualification, or custom workflows.',
-                    price: '$29 - $149',
-                    timeline: '24-48 hours',
-                    deliverables: 'Deployed bot, full source code, documentation, conversation flow diagrams'
-                },
-                chatbot: null, // alias, handled below
-                automation: {
-                    type: 'Workflow Automation',
-                    example: "Automate your email-to-spreadsheet pipeline.",
-                    scope: 'Make.com or custom automation. Connect apps, schedule tasks, handle data transformations.',
-                    price: '$5 - $99',
-                    timeline: 'Same-day to 24 hours',
-                    deliverables: 'Working automation, documentation, Make.com blueprint (exportable)'
-                },
-                workflow: null,
-                content: {
-                    type: 'Content Creation',
-                    example: "SEO blog posts for your niche.",
-                    scope: 'Blog posts, social media calendars, email sequences, product descriptions. SEO-optimized and brand-voiced.',
-                    price: '$5 - $49',
-                    timeline: 'Same-day delivery',
-                    deliverables: 'Ready-to-publish content files, editorial calendar, keyword research'
-                },
-                blog: null,
-                video: {
-                    type: 'Video Production',
-                    example: "A 30-second promotional reel.",
-                    scope: 'Promo videos, social media reels, motion graphics, video editing. Platform-optimized formats.',
-                    price: '$49 - $199',
-                    timeline: '48-72 hours',
-                    deliverables: 'Final video file in multiple formats, raw project files, thumbnail'
-                },
-                scrape: {
-                    type: 'Data Extraction',
-                    example: "Scrape 500 product listings from a competitor.",
-                    scope: 'Web scraping, data cleaning, spreadsheet formatting. Any publicly available data.',
-                    price: '$5 - $49',
-                    timeline: 'Same-day delivery',
-                    deliverables: 'Clean spreadsheet/CSV, Python script (reusable), documentation'
-                },
-                data: null,
-            };
-
-            // Aliases
-            responses.chatbot = responses.bot;
-            responses.workflow = responses.automation;
-            responses.blog = responses.content;
-            responses.data = responses.scrape;
-
-            function addMessage(text, type) {
-                const msg = document.createElement('div');
-                msg.className = 'chat-msg ' + type;
-                msg.textContent = text;
-                messages.appendChild(msg);
+            function addMsg(html, cls) {
+                var d = document.createElement('div');
+                d.className = 'chat-msg ' + cls;
+                d.innerHTML = html;
+                messages.appendChild(d);
                 messages.scrollTop = messages.scrollHeight;
             }
+            function typing(show) {
+                var t = document.getElementById('typingIndicator');
+                if (!show && t) { t.remove(); return; }
+                if (show && !t) {
+                    var d = document.createElement('div');
+                    d.className = 'typing-indicator'; d.id = 'typingIndicator';
+                    d.innerHTML = '<span></span><span></span><span></span>';
+                    messages.appendChild(d);
+                    messages.scrollTop = messages.scrollHeight;
+                }
+            }
 
-            function addHTML(html, type) {
-                const msg = document.createElement('div');
-                msg.className = 'chat-msg ' + type;
-                msg.innerHTML = html;
-                messages.appendChild(msg);
-                messages.scrollTop = messages.scrollHeight;
+            function respond(text) {
+                var intent = ntDetectIntent(text);
+                var r = ntGetResponse(intent, text);
+                typing(true);
+                setTimeout(function() {
+                    typing(false);
+                    addMsg(r.html, 'bot');
+                }, 800 + Math.random() * 600);
+            }
+
+            function send() {
+                var text = input.value.trim();
+                if (!text) return;
+                addMsg(text.replace(/</g, '&lt;'), 'user');
+                input.value = '';
+                respond(text);
+            }
+            sendBtn.addEventListener('click', send);
+            input.addEventListener('keydown', function(e) { if (e.key === 'Enter') send(); });
+        }
+
+        /* ==========================================================
+           INTELLIGENT CHAT ENGINE (shared by demo + floating widget)
+        ========================================================== */
+        var ntChatIntents = {
+            greeting:    { w: ['hi','hello','hey','good morning','good evening','howdy','yo','greetings','sup','what\'s up'], s: 2 },
+            website:     { w: ['website','web site','landing page','web page','homepage','portfolio','online presence','web design','web app','frontend','html','react','site','webpage'], s: 3 },
+            chatbot:     { w: ['chatbot','chat bot','bot','customer service bot','whatsapp bot','telegram bot','ai assistant','virtual assistant','support bot','messenger bot'], s: 3 },
+            automation:  { w: ['automation','automate','workflow','integrate','integration','zapier','make.com','connect apps','pipeline','trigger','scheduled','cron','api connect'], s: 3 },
+            content:     { w: ['content','blog','social media','email marketing','copywriting','article','post','newsletter','seo content','copy','writing','email sequence'], s: 3 },
+            video:       { w: ['video','promo','animation','motion graphics','edit','reel','clip','footage','explainer','trailer','youtube'], s: 3 },
+            data:        { w: ['data','scrape','scraping','dashboard','analysis','extract','crawl','csv','spreadsheet','database','analytics','visualization','report'], s: 3 },
+            pricing:     { w: ['how much','cost','price','pricing','cheap','expensive','budget','afford','pay','money','rate','fee','quote','estimate','invoice'], s: 2 },
+            timeline:    { w: ['how long','when','fast','urgent','deadline','rush','quick','delivery time','turnaround','speed','asap','tomorrow','today'], s: 2 },
+            process:     { w: ['how does it work','how do you work','process','steps','what happens','how to start','get started','workflow','procedure'], s: 2 },
+            quality:     { w: ['example','portfolio','quality','guarantee','experience','sample','showcase','previous work','proof','refund','money back'], s: 2 },
+            comparison:  { w: ['vs','compare','agency','freelancer','diy','why you','why nextool','better than','different from','alternative'], s: 2 },
+            help:        { w: ['help','not sure','don\'t know','confused','recommend','suggest','what should','which service','what do i need','advice'], s: 2 },
+            thanks:      { w: ['thanks','thank you','great','awesome','perfect','cool','nice','appreciate','wonderful','excellent'], s: 1 },
+            whatsapp:    { w: ['whatsapp','contact','phone','call','message','reach','talk to human','real person','speak'], s: 2 },
+            negative:    { w: ['no thanks','not interested','too expensive','maybe later','not now','pass','nah','nope'], s: 1 }
+        };
+
+        function ntDetectIntent(text) {
+            var lower = text.toLowerCase().replace(/[^\w\s']/g, ' ');
+            var scores = {};
+            for (var key in ntChatIntents) {
+                var cfg = ntChatIntents[key];
+                var score = 0;
+                for (var i = 0; i < cfg.w.length; i++) {
+                    if (lower.indexOf(cfg.w[i]) !== -1) {
+                        score += cfg.s * (cfg.w[i].split(' ').length);
+                    }
+                }
+                if (score > 0) scores[key] = score;
+            }
+            var best = null, bestScore = 0;
+            for (var k in scores) {
+                if (scores[k] > bestScore) { bestScore = scores[k]; best = k; }
+            }
+            return best || 'general';
+        }
+
+        function ntGetResponse(intent, text) {
+            var svc = {
+                website:  { name: 'Website Development', price: '$29 - $499+', time: '24h - 7 days', stack: 'HTML/CSS/JS, React' },
+                chatbot:  { name: 'Chatbot Development', price: '$29 - $499+', time: '24h - 7 days', stack: 'Node.js, Claude AI, Twilio' },
+                automation:{ name: 'Workflow Automation', price: '$5 - $499+',  time: 'Same day - 7 days', stack: 'Make.com, Zapier, Custom' },
+                content:  { name: 'Content Creation',    price: '$5 - $149',   time: 'Same day - 5 days', stack: 'AI-assisted + human editing' },
+                video:    { name: 'Video Production',     price: '$49 - $499+', time: '2-7 days', stack: 'AI generation + pro editing' },
+                data:     { name: 'Data Solutions',       price: '$5 - $149',   time: 'Same day - 5 days', stack: 'Python, Node.js, dashboards' }
+            };
+
+            function card(s) {
+                return '<div class="nt-sc"><h4>' + s.name + '</h4>' +
+                    '<div class="nt-sc-r"><span>Price range</span><span>' + s.price + '</span></div>' +
+                    '<div class="nt-sc-r"><span>Delivery</span><span>' + s.time + '</span></div>' +
+                    '<div class="nt-sc-r"><span>Built with</span><span>' + s.stack + '</span></div></div>';
+            }
+
+            var pick = function(arr) { return arr[Math.floor(Math.random() * arr.length)]; };
+            var wa = '<a href="' + WA_LINK + '" style="color:var(--primary-light);text-decoration:underline">message us on WhatsApp</a>';
+            var r = { html: '', chips: [] };
+
+            switch (intent) {
+                case 'greeting':
+                    r.html = pick([
+                        'Hey! What are you working on? I can help with websites, bots, automations, and more.',
+                        'Hi there! Describe what you need and I\'ll show you what we can build — and what it\'ll cost.',
+                        'Hey! Whether it\'s a website, chatbot, automation, or anything digital — tell me what you need.'
+                    ]);
+                    r.chips = ['I need a website', 'Build me a chatbot', 'Automate something', 'What do you offer?'];
+                    break;
+
+                case 'website':
+                    r.html = pick([
+                        'Websites are our specialty. From simple landing pages to full web apps — we build fast, clean, and responsive.',
+                        'We build everything from one-page sites to complex web applications. Fully responsive, SEO-optimized, deployed free.'
+                    ]) + card(svc.website) + '<br>What kind of site do you have in mind?';
+                    r.chips = ['Landing page', 'Business website', 'Portfolio', 'Web application'];
+                    break;
+
+                case 'chatbot':
+                    r.html = pick([
+                        'We build intelligent chatbots that actually understand your customers — not just keyword matchers.',
+                        'From FAQ bots to full AI assistants with conversation memory — we handle WhatsApp, Telegram, and web chat.'
+                    ]) + card(svc.chatbot) + '<br>What platform do you need the bot on?';
+                    r.chips = ['WhatsApp bot', 'Website chat', 'Telegram bot', 'AI assistant'];
+                    break;
+
+                case 'automation':
+                    r.html = pick([
+                        'We connect your apps and automate repetitive work. Save hours every week with zero manual effort.',
+                        'Whether it\'s email triggers, data syncing, or complex multi-step workflows — we build automations that just work.'
+                    ]) + card(svc.automation) + '<br>What are you looking to automate?';
+                    r.chips = ['Email automation', 'App integration', 'Data pipeline', 'Custom workflow'];
+                    break;
+
+                case 'content':
+                    r.html = pick([
+                        'We create SEO-optimized blog posts, social media content, email sequences — all matched to your brand voice.',
+                        'From a single blog post to a full content calendar — AI-assisted creation with human quality control.'
+                    ]) + card(svc.content) + '<br>What type of content do you need?';
+                    r.chips = ['Blog posts', 'Social media', 'Email sequences', 'Ad copy'];
+                    break;
+
+                case 'video':
+                    r.html = pick([
+                        'We produce promotional videos, explainers, social clips, and motion graphics using AI tools + professional editing.',
+                        'Short-form promos, product demos, brand intros — we handle the full pipeline from script to final export.'
+                    ]) + card(svc.video) + '<br>What kind of video do you need?';
+                    r.chips = ['Promo video', 'Explainer', 'Social media clip', 'Product demo'];
+                    break;
+
+                case 'data':
+                    r.html = pick([
+                        'We scrape, clean, analyze, and visualize data. From simple CSV exports to interactive dashboards.',
+                        'Need data from the web? Competitor analysis? A dashboard? We handle extraction, cleaning, and presentation.'
+                    ]) + card(svc.data) + '<br>What data do you need?';
+                    r.chips = ['Web scraping', 'Data analysis', 'Dashboard', 'Competitor research'];
+                    break;
+
+                case 'pricing':
+                    r.html = '<strong>Our pricing is transparent:</strong><br><br>' +
+                        '&#8226; <strong>Starter</strong> — $5-49 (simple, same-day projects)<br>' +
+                        '&#8226; <strong>Professional</strong> — $149 (multi-day, polished work)<br>' +
+                        '&#8226; <strong>Enterprise</strong> — $499+ (complex, custom solutions)<br><br>' +
+                        'The exact price depends on scope. Tell me what you need and I\'ll give you a more accurate range — or ' + wa + ' for a detailed quote.';
+                    r.chips = ['I need a website', 'What\'s the cheapest option?', 'Enterprise project'];
+                    break;
+
+                case 'timeline':
+                    r.html = '<strong>Delivery times:</strong><br><br>' +
+                        '&#8226; Simple projects (Starter): <strong>Same day to 24h</strong><br>' +
+                        '&#8226; Professional projects: <strong>2-3 days</strong><br>' +
+                        '&#8226; Enterprise projects: <strong>5-7 days</strong><br><br>' +
+                        'Need something urgent? We can often fast-track. Tell me what you need and when you need it.';
+                    r.chips = ['I need something ASAP', 'Tell me about your services', 'Start a project'];
+                    break;
+
+                case 'process':
+                    r.html = '<strong>How it works:</strong><br><br>' +
+                        '<strong>1. Describe</strong> — Tell us what you need (here or on WhatsApp)<br>' +
+                        '<strong>2. Quote</strong> — We give you a clear price and timeline<br>' +
+                        '<strong>3. Pay</strong> — Secure payment via PayPal<br>' +
+                        '<strong>4. Preview</strong> — Review a live preview before final delivery<br>' +
+                        '<strong>5. Launch</strong> — Get everything: source code, deployed project, docs<br><br>' +
+                        'Unlimited revisions within scope. 100% money-back guarantee.';
+                    r.chips = ['Start a project', 'See pricing', 'What can you build?'];
+                    break;
+
+                case 'quality':
+                    r.html = 'You\'re looking at our portfolio right now — <strong>this website</strong> is built by us. Every animation, every interaction, every line of code.<br><br>' +
+                        'We offer a <strong>100% money-back guarantee</strong>. You see a live preview before final payment. If you\'re not satisfied, you don\'t pay.<br><br>' +
+                        'Ready to see what we\'d build for you? ' + wa + '.';
+                    r.chips = ['Start a project', 'Tell me about pricing', 'How does it work?'];
+                    break;
+
+                case 'comparison':
+                    r.html = '<strong>NexTool vs the alternatives:</strong><br><br>' +
+                        '&#8226; <strong>vs Agencies</strong>: We\'re 10-100x cheaper, deliver in days not months<br>' +
+                        '&#8226; <strong>vs Freelancers</strong>: AI-accelerated = faster and more consistent<br>' +
+                        '&#8226; <strong>vs DIY</strong>: Professional quality without learning curves<br><br>' +
+                        'One developer + AI tools = agency-quality output at freelancer speed. You own everything we build — no lock-in, no subscriptions.';
+                    r.chips = ['See pricing', 'Start a project', 'What do you build?'];
+                    break;
+
+                case 'help':
+                    r.html = 'No worries — let me help you figure it out. What\'s your situation?<br><br>' +
+                        '&#8226; <strong>Need an online presence?</strong> → Website<br>' +
+                        '&#8226; <strong>Want to automate customer support?</strong> → Chatbot<br>' +
+                        '&#8226; <strong>Tired of repetitive tasks?</strong> → Automation<br>' +
+                        '&#8226; <strong>Need marketing material?</strong> → Content or Video<br>' +
+                        '&#8226; <strong>Need information from the web?</strong> → Data<br><br>' +
+                        'Just describe your problem and I\'ll recommend the best solution.';
+                    r.chips = ['I have a business idea', 'I need marketing help', 'I want to save time', 'Something custom'];
+                    break;
+
+                case 'thanks':
+                    r.html = pick([
+                        'Anytime! If you\'re ready to start a project, just ' + wa + '. We\'d love to build something for you.',
+                        'Happy to help! Whenever you\'re ready to get started, we\'re just a message away — ' + wa + '.',
+                        'Glad I could help! Don\'t hesitate to reach out when you\'re ready to build something.'
+                    ]);
+                    r.chips = ['Start a project', 'I have another question'];
+                    break;
+
+                case 'whatsapp':
+                    r.html = 'You can reach us directly on WhatsApp: <strong>+43 676 4433 763</strong><br><br>' +
+                        wa + ' — we usually respond within minutes during business hours (8AM-10PM CET).<br><br>' +
+                        'Or just keep chatting here if you have more questions first!';
+                    r.chips = ['Tell me about pricing', 'What can you build?'];
+                    break;
+
+                case 'negative':
+                    r.html = pick([
+                        'No pressure at all. We\'re here whenever you need us. Good luck with your project!',
+                        'Totally understand. If you change your mind or have questions later, you know where to find us.',
+                        'All good! We\'ll be here if you ever need anything built. Have a great day!'
+                    ]);
+                    break;
+
+                default:
+                    var lower = text.toLowerCase();
+                    if (lower.length < 10) {
+                        r.html = 'Tell me more — what are you looking to build or automate? The more detail you give, the better I can help.';
+                    } else {
+                        r.html = pick([
+                            'Interesting! That sounds like something we could definitely help with. Can you tell me a bit more about what the end result should look like?',
+                            'I think we can work with that. Let me understand better — what\'s the main problem you\'re trying to solve?',
+                            'Sounds like a great project. To give you an accurate quote, I\'d need a few more details. What\'s the most important feature or outcome for you?'
+                        ]);
+                    }
+                    r.chips = ['I need a website', 'Build me a chatbot', 'Automate something', 'Show me pricing'];
+                    break;
+            }
+            return r;
+        }
+
+        /* ==========================================================
+           FLOATING CHAT WIDGET
+        ========================================================== */
+        function initFloatingChat() {
+            var CHAT_API = null; // Set to API URL when deployed, e.g. 'https://nextool-chat.up.railway.app'
+
+            var fab = document.getElementById('ntFab');
+            var win = document.getElementById('ntChatWin');
+            var body = document.getElementById('ntChatBody');
+            var input = document.getElementById('ntChatIn');
+            var sendBtn = document.getElementById('ntChatSnd');
+            var chipsEl = document.getElementById('ntChips');
+            if (!fab || !win) return;
+
+            var isOpen = false;
+            var sessionId = null;
+            var history = [];
+            var sending = false;
+
+            // Try to restore session
+            try { sessionId = localStorage.getItem('nt_chat_sid'); } catch(e) {}
+
+            function toggle() {
+                isOpen = !isOpen;
+                fab.classList.toggle('open', isOpen);
+                fab.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                win.classList.toggle('visible', isOpen);
+                if (isOpen) {
+                    if (body.children.length === 0) greet();
+                    setTimeout(function() { input.focus(); }, 350);
+                }
+            }
+
+            function greet() {
+                addBot('Hey! I\'m the NexTool AI. Tell me what you need — a website, chatbot, automation, or anything digital — and I\'ll show you what we can build.');
+                showChips(['I need a website', 'Build me a chatbot', 'Automate a workflow', 'What do you offer?']);
+            }
+
+            function addBot(html) {
+                var d = document.createElement('div');
+                d.className = 'nt-m b';
+                d.innerHTML = html;
+                body.appendChild(d);
+                body.scrollTop = body.scrollHeight;
+            }
+
+            function addUser(text) {
+                var d = document.createElement('div');
+                d.className = 'nt-m u';
+                d.textContent = text;
+                body.appendChild(d);
+                body.scrollTop = body.scrollHeight;
             }
 
             function showTyping() {
-                const typing = document.createElement('div');
-                typing.className = 'typing-indicator';
-                typing.id = 'typingIndicator';
-                typing.innerHTML = '<span></span><span></span><span></span>';
-                messages.appendChild(typing);
-                messages.scrollTop = messages.scrollHeight;
+                var existing = body.querySelector('.nt-typing');
+                if (existing) return;
+                var d = document.createElement('div');
+                d.className = 'nt-typing';
+                d.innerHTML = '<span></span><span></span><span></span>';
+                body.appendChild(d);
+                body.scrollTop = body.scrollHeight;
             }
 
-            function removeTyping() {
-                const t = document.getElementById('typingIndicator');
+            function hideTyping() {
+                var t = body.querySelector('.nt-typing');
                 if (t) t.remove();
             }
 
-            function getResponse(text) {
-                const lower = text.toLowerCase();
-                for (const key of Object.keys(responses)) {
-                    if (responses[key] && lower.includes(key)) {
-                        return responses[key];
-                    }
-                }
-                return null;
+            function showChips(arr) {
+                chipsEl.innerHTML = '';
+                if (!arr || !arr.length) return;
+                arr.forEach(function(label) {
+                    var btn = document.createElement('button');
+                    btn.className = 'nt-chip';
+                    btn.textContent = label;
+                    btn.addEventListener('click', function() {
+                        input.value = label;
+                        handleSend();
+                    });
+                    chipsEl.appendChild(btn);
+                });
             }
 
             function handleSend() {
-                const text = input.value.trim();
-                if (!text) return;
-
-                addMessage(text, 'user');
+                var text = input.value.trim();
+                if (!text || sending) return;
                 input.value = '';
+                addUser(text);
+                chipsEl.innerHTML = '';
+                history.push({ role: 'user', content: text });
 
-                showTyping();
-
-                setTimeout(() => {
-                    removeTyping();
-                    const resp = getResponse(text);
-                    if (resp) {
-                        addHTML(
-                            `<strong>Project type:</strong> ${resp.type}<br><br>` +
-                            `${resp.example}<br><br>` +
-                            `<strong>Scope:</strong> ${resp.scope}<br><br>` +
-                            `<strong>Estimated price:</strong> ${resp.price}<br>` +
-                            `<strong>Timeline:</strong> ${resp.timeline}<br>` +
-                            `<strong>You'll receive:</strong> ${resp.deliverables}<br><br>` +
-                            `Want to get started for real? <a href="${WA_LINK}" style="color:var(--primary-light);text-decoration:underline;">Message us on WhatsApp</a>.`,
-                            'bot'
-                        );
-                    } else {
-                        addHTML(
-                            `Interesting project idea! I'd love to help, but I need a bit more detail to give you an accurate quote.<br><br>` +
-                            `Try mentioning what you need: a <strong>website</strong>, <strong>chatbot</strong>, <strong>automation</strong>, <strong>content</strong>, <strong>video</strong>, or <strong>data scraping</strong>?<br><br>` +
-                            `Or just <a href="${WA_LINK}" style="color:var(--primary-light);text-decoration:underline;">message us on WhatsApp</a> and we'll figure it out together.`,
-                            'bot'
-                        );
-                    }
-                }, 1200 + Math.random() * 800);
+                if (CHAT_API) {
+                    sendToAPI(text);
+                } else {
+                    sendOffline(text);
+                }
             }
 
+            function sendOffline(text) {
+                sending = true;
+                showTyping();
+                var intent = ntDetectIntent(text);
+                var r = ntGetResponse(intent, text);
+                var delay = 600 + Math.min(r.html.length * 2, 1200) + Math.random() * 400;
+                setTimeout(function() {
+                    hideTyping();
+                    addBot(r.html);
+                    if (r.chips) showChips(r.chips);
+                    history.push({ role: 'assistant', content: r.html });
+                    sending = false;
+                }, delay);
+            }
+
+            function sendToAPI(text) {
+                sending = true;
+                showTyping();
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', CHAT_API + '/api/chat');
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onload = function() {
+                    hideTyping();
+                    sending = false;
+                    if (xhr.status === 200) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            sessionId = data.sessionId;
+                            try { localStorage.setItem('nt_chat_sid', sessionId); } catch(e) {}
+                            addBot(data.reply.replace(/\n/g, '<br>'));
+                            history.push({ role: 'assistant', content: data.reply });
+                        } catch(e) {
+                            addBot('Something went wrong. Try again or <a href="' + WA_LINK + '" style="color:var(--primary-light);text-decoration:underline">message us on WhatsApp</a>.');
+                        }
+                    } else {
+                        addBot('I\'m having trouble connecting. Try again in a moment or <a href="' + WA_LINK + '" style="color:var(--primary-light);text-decoration:underline">message us on WhatsApp</a>.');
+                    }
+                };
+                xhr.onerror = function() {
+                    hideTyping();
+                    sending = false;
+                    addBot('Connection issue. Try <a href="' + WA_LINK + '" style="color:var(--primary-light);text-decoration:underline">WhatsApp</a> instead — we respond fast.');
+                };
+                xhr.send(JSON.stringify({ message: text, sessionId: sessionId }));
+            }
+
+            fab.addEventListener('click', toggle);
             sendBtn.addEventListener('click', handleSend);
-            input.addEventListener('keydown', (e) => {
+            input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') handleSend();
             });
+
+            // Close on Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && isOpen) toggle();
+            });
+
+            // Auto-open after 30 seconds if not interacted
+            var autoTimer = setTimeout(function() {
+                if (!isOpen && !body.children.length) {
+                    var badge = document.createElement('span');
+                    badge.className = 'nt-badge';
+                    fab.appendChild(badge);
+                }
+            }, 30000);
+
+            // Clear auto-timer on any interaction
+            fab.addEventListener('click', function() {
+                clearTimeout(autoTimer);
+                var badge = fab.querySelector('.nt-badge');
+                if (badge) badge.remove();
+            }, { once: true });
         }
 
         /* ==========================================================
@@ -8011,6 +8608,7 @@
             initStatsBand();
             initPageVisibility();
             initKeyboardNav();
+            initFloatingChat();
             if (typeof THREE !== 'undefined') enhanceHeroCanvas();
         }
 
