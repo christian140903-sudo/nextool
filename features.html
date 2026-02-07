@@ -1,0 +1,2202 @@
+<!--
+  =====================================================================
+  NEXTOOL INTERACTIVE FEATURES — Drop-in code for index.html
+  =====================================================================
+
+  INTEGRATION INSTRUCTIONS:
+
+  1. CSS:    Paste the <style> block below into the existing <style> tag,
+             right before the closing </style> (after the reduced-motion rules).
+
+  2. HTML:
+     - FEATURE 1 (Pricing Calculator): Insert BEFORE the existing
+       <div class="pricing-grid section-container"> inside #pricing
+     - FEATURE 2 (Testimonials): Insert a new <section id="testimonials">
+       between the #transparency closing </section> and the divider6 div
+     - FEATURE 3 (Sound Toggle): Insert before </body>
+     - FEATURE 4 (Easter Egg): Insert before </body>
+
+  3. JS:     Paste the <script> block AFTER the existing </script> and
+             before </body>. Then:
+     - Add these calls inside initAll():
+         initPricingCalculator();
+         initTestimonialCarousel();
+         initSoundSystem();
+         initKonamiCode();
+         enhanceHeroCanvas(scene, camera, renderer);
+     - To use enhanceHeroCanvas, you must expose scene/camera/renderer
+       from initHeroCanvas() to the outer scope (change const to let at
+       function scope, assign to outer variables).
+
+  =====================================================================
+-->
+
+
+<!-- ================================================================
+     CSS FOR ALL FEATURES
+     ================================================================ -->
+<style>
+
+/* === FEATURE 1: INTERACTIVE PRICING CALCULATOR === */
+
+.pricing-calculator {
+    max-width: 800px;
+    margin: 0 auto 4rem;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 3rem 2.5rem;
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.pricing-calculator::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: var(--radius);
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.3));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.calc-section {
+    margin-bottom: 2.5rem;
+}
+
+.calc-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.calc-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.calc-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.calc-toggle {
+    padding: 0.6rem 1.2rem;
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    border-radius: 100px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.calc-toggle:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    color: var(--text);
+}
+
+.calc-toggle.active {
+    background: var(--gradient);
+    border-color: transparent;
+    color: var(--white);
+    font-weight: 600;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+/* Complexity Slider */
+.calc-slider-wrap {
+    position: relative;
+    padding: 0.5rem 0 2rem;
+}
+
+.calc-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--surface);
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.calc-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--gradient);
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.calc-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.7);
+}
+
+.calc-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--gradient);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+}
+
+.calc-slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+}
+
+.calc-slider-labels span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.calc-slider-labels span.active-label {
+    color: var(--primary-light);
+    font-weight: 700;
+}
+
+/* Rush Toggle */
+.calc-rush-toggle {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.rush-switch {
+    position: relative;
+    width: 52px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.rush-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.rush-switch-track {
+    position: absolute;
+    inset: 0;
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rush-switch-track::after {
+    content: '';
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    top: 2px;
+    left: 3px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rush-switch input:checked + .rush-switch-track {
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    border-color: transparent;
+}
+
+.rush-switch input:checked + .rush-switch-track::after {
+    transform: translateX(23px);
+    background: var(--white);
+}
+
+.rush-labels {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.rush-labels span {
+    color: var(--text-muted);
+    transition: color 0.3s;
+}
+
+.rush-labels span.active-label {
+    color: var(--white);
+    font-weight: 600;
+}
+
+/* Price Result Display */
+.calc-result {
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--glass-border);
+    text-align: center;
+}
+
+.calc-result-placeholder {
+    color: var(--text-muted);
+    font-size: 1rem;
+    padding: 2rem 0;
+}
+
+.calc-result-content {
+    display: none;
+}
+
+.calc-result-content.visible {
+    display: block;
+    animation: calcResultIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes calcResultIn {
+    from { opacity: 0; transform: translateY(15px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.calc-price-display {
+    margin-bottom: 1.5rem;
+}
+
+.calc-price-number {
+    font-size: clamp(3.5rem, 8vw, 5rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    line-height: 1.1;
+}
+
+.calc-price-number.bounce {
+    animation: priceBounce 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes priceBounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.08); }
+    60% { transform: scale(0.97); }
+    100% { transform: scale(1); }
+}
+
+.calc-rush-badge {
+    display: none;
+    margin: 0.5rem auto 0;
+    padding: 0.3rem 0.8rem;
+    background: rgba(236, 72, 153, 0.15);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--pink);
+    width: fit-content;
+}
+
+.calc-rush-badge.visible {
+    display: block;
+    animation: calcResultIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.calc-includes {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.calc-includes li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text);
+}
+
+.calc-includes li svg {
+    width: 16px;
+    height: 16px;
+    stroke: #22c55e;
+    flex-shrink: 0;
+}
+
+.calc-delivery {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+.calc-delivery strong {
+    color: var(--white);
+}
+
+.calc-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.9rem 2rem;
+    background: var(--gradient);
+    border: none;
+    border-radius: 100px;
+    color: var(--white);
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: inherit;
+    text-decoration: none;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
+}
+
+.calc-cta:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 40px rgba(99, 102, 241, 0.5);
+}
+
+.calc-cta svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--white);
+}
+
+@media (max-width: 640px) {
+    .pricing-calculator {
+        padding: 2rem 1.5rem;
+    }
+    .calc-toggles {
+        gap: 0.4rem;
+    }
+    .calc-toggle {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.8rem;
+    }
+    .calc-includes {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+
+/* === FEATURE 2: TESTIMONIAL CAROUSEL === */
+
+#testimonials {
+    padding: 8rem 2rem;
+    overflow: hidden;
+}
+
+.testimonial-header {
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto 4rem;
+}
+
+.testimonial-carousel-wrap {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.testimonial-track-container {
+    overflow: hidden;
+    border-radius: var(--radius);
+}
+
+.testimonial-track {
+    display: flex;
+    gap: 1.5rem;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: grab;
+}
+
+.testimonial-track:active {
+    cursor: grabbing;
+}
+
+.testimonial-card {
+    flex: 0 0 calc(100% - 1.5rem);
+    max-width: 560px;
+    min-height: 280px;
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.testimonial-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: var(--radius);
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.testimonial-card:hover::before {
+    opacity: 1;
+}
+
+.testimonial-quote-mark {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0.1;
+    pointer-events: none;
+    font-family: Georgia, serif;
+}
+
+.testimonial-text {
+    font-size: 1.05rem;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.testimonial-text em {
+    color: var(--primary-light);
+    font-style: normal;
+    font-weight: 600;
+}
+
+.testimonial-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.testimonial-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.testimonial-card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 100px;
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.3s, background 0.3s;
+    text-decoration: none;
+    margin-top: 1rem;
+    width: fit-content;
+}
+
+.testimonial-card-cta:hover {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+/* Carousel Navigation */
+.testimonial-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.testimonial-arrow {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: inherit;
+}
+
+.testimonial-arrow:hover {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+    transform: scale(1.1);
+}
+
+.testimonial-arrow svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.testimonial-dots {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.testimonial-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 0;
+}
+
+.testimonial-dot.active {
+    background: var(--gradient);
+    border-color: transparent;
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+}
+
+@media (max-width: 768px) {
+    .testimonial-card {
+        flex: 0 0 100%;
+        max-width: 100%;
+        min-height: auto;
+        padding: 2rem 1.5rem;
+    }
+    .testimonial-text {
+        font-size: 0.95rem;
+    }
+}
+
+
+/* === FEATURE 3: SOUND SYSTEM TOGGLE === */
+
+.sound-toggle {
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    z-index: 999;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sound-toggle:hover {
+    border-color: var(--primary);
+    color: var(--white);
+    transform: scale(1.1);
+}
+
+.sound-toggle svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.sound-toggle .sound-waves {
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.sound-toggle .sound-wave {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    opacity: 0;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.sound-toggle.active .sound-wave {
+    animation: soundWavePulse 1.5s infinite;
+}
+
+.sound-toggle.active .sound-wave:nth-child(2) {
+    animation-delay: 0.3s;
+    right: 2px;
+}
+
+.sound-toggle.active .sound-wave:nth-child(3) {
+    animation-delay: 0.6s;
+    right: -2px;
+}
+
+@keyframes soundWavePulse {
+    0%, 100% { opacity: 0; transform: translateY(-50%) scale(0.5); }
+    50% { opacity: 0.8; transform: translateY(-50%) scale(1); }
+}
+
+.sound-tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.7rem;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.sound-toggle:hover .sound-tooltip {
+    opacity: 1;
+}
+
+@media (pointer: coarse) {
+    .sound-toggle {
+        cursor: pointer;
+    }
+}
+
+@media (max-width: 640px) {
+    .sound-toggle {
+        bottom: 1rem;
+        left: 1rem;
+        width: 38px;
+        height: 38px;
+    }
+    .sound-toggle svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+
+/* === FEATURE 4: EASTER EGG (KONAMI CODE) === */
+
+.konami-glitch {
+    animation: konamiGlitch 0.5s linear;
+}
+
+@keyframes konamiGlitch {
+    0% { clip-path: inset(0); filter: none; }
+    10% { clip-path: inset(20% 0 30% 0); filter: hue-rotate(90deg); }
+    15% { clip-path: inset(50% 0 10% 0); filter: hue-rotate(180deg) saturate(2); }
+    20% { clip-path: inset(10% 0 60% 0); filter: hue-rotate(270deg); }
+    25% { clip-path: inset(40% 0 20% 0); filter: hue-rotate(45deg) brightness(1.5); }
+    30% { clip-path: inset(5% 0 45% 0); filter: hue-rotate(135deg); }
+    35% { clip-path: inset(60% 0 5% 0); filter: hue-rotate(200deg) contrast(1.5); }
+    40% { clip-path: inset(15% 0 35% 0); filter: hue-rotate(300deg); }
+    50% { clip-path: inset(0); filter: none; }
+    55% { clip-path: inset(30% 0 25% 0); filter: hue-rotate(120deg); }
+    60% { clip-path: inset(70% 0 5% 0); filter: hue-rotate(60deg); }
+    70% { clip-path: inset(0); filter: none; }
+    80% { clip-path: inset(10% 0 50% 0); filter: hue-rotate(240deg); }
+    90% { clip-path: inset(0); filter: none; }
+    100% { clip-path: inset(0); filter: none; }
+}
+
+.konami-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 5, 8, 0.92);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.konami-overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.konami-content {
+    text-align: center;
+    max-width: 500px;
+    padding: 3rem 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.konami-content::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 24px;
+    padding: 2px;
+    background: var(--gradient);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: konamiGlow 3s ease-in-out infinite;
+}
+
+@keyframes konamiGlow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; filter: brightness(1.3); }
+}
+
+.konami-emoji {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.konami-title {
+    font-size: 2rem;
+    font-weight: 900;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+}
+
+.konami-stats {
+    font-size: 1rem;
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 2rem;
+}
+
+.konami-stats strong {
+    color: var(--white);
+}
+
+.konami-cta-row {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.konami-cta-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.8rem;
+    background: var(--gradient);
+    border: none;
+    border-radius: 100px;
+    color: var(--white);
+    font-weight: 700;
+    font-size: 0.95rem;
+    font-family: inherit;
+    text-decoration: none;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.konami-cta-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+}
+
+.konami-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+    z-index: 3;
+}
+
+.konami-close:hover {
+    border-color: var(--primary);
+    color: var(--white);
+    transform: scale(1.1);
+}
+
+.konami-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.konami-found-badge {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 998;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+}
+
+.konami-found-badge.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.konami-found-badge:hover {
+    transform: scale(1.15);
+    border-color: var(--primary);
+}
+
+@media (max-width: 640px) {
+    .konami-content {
+        padding: 2rem 1.5rem;
+    }
+    .konami-title {
+        font-size: 1.5rem;
+    }
+    .konami-found-badge {
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+
+
+/* === FEATURE 5: ENHANCED HERO — no extra CSS needed (Three.js only) === */
+
+
+/* === REDUCED MOTION OVERRIDES FOR ALL NEW FEATURES === */
+@media (prefers-reduced-motion: reduce) {
+    .calc-toggle,
+    .testimonial-card,
+    .calc-result-content,
+    .konami-overlay,
+    .sound-toggle {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
+    .testimonial-card {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    .konami-glitch {
+        animation: none !important;
+    }
+    .sound-toggle.active .sound-wave {
+        animation: none !important;
+    }
+}
+
+</style>
+
+
+<!-- ================================================================
+     HTML: FEATURE 1 — PRICING CALCULATOR
+     Insert this INSIDE #pricing, BEFORE <div class="pricing-grid ...">
+     ================================================================ -->
+
+<div class="pricing-calculator" id="pricingCalc" aria-label="Interactive pricing calculator">
+    <div class="calc-section">
+        <span class="calc-label">What do you need?</span>
+        <div class="calc-toggles" id="calcServiceToggles" role="group" aria-label="Select a service">
+            <button class="calc-toggle" data-service="website" type="button">Website</button>
+            <button class="calc-toggle" data-service="chatbot" type="button">Chatbot</button>
+            <button class="calc-toggle" data-service="automation" type="button">Automation</button>
+            <button class="calc-toggle" data-service="content" type="button">Content</button>
+            <button class="calc-toggle" data-service="video" type="button">Video</button>
+            <button class="calc-toggle" data-service="data" type="button">Data</button>
+        </div>
+    </div>
+
+    <div class="calc-section">
+        <span class="calc-label">Complexity level</span>
+        <div class="calc-slider-wrap">
+            <input type="range" min="0" max="2" step="1" value="0" class="calc-slider" id="calcComplexity" aria-label="Complexity level">
+            <div class="calc-slider-labels">
+                <span class="active-label" data-level="0">Simple</span>
+                <span data-level="1">Medium</span>
+                <span data-level="2">Complex</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="calc-section">
+        <span class="calc-label">Need it fast?</span>
+        <div class="calc-rush-toggle">
+            <label class="rush-switch">
+                <input type="checkbox" id="calcRush" aria-label="Rush delivery toggle">
+                <span class="rush-switch-track"></span>
+            </label>
+            <div class="rush-labels">
+                <span class="active-label" data-rush="normal">Normal</span>
+                <span data-rush="rush">Rush (+50%)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="calc-result">
+        <div class="calc-result-placeholder" id="calcPlaceholder">Select a service above to see your estimate</div>
+        <div class="calc-result-content" id="calcResult">
+            <div class="calc-price-display">
+                <div class="calc-price-number" id="calcPriceDisplay">$0</div>
+                <div class="calc-rush-badge" id="calcRushBadge">Rush delivery: +50%</div>
+            </div>
+            <ul class="calc-includes" id="calcIncludes"></ul>
+            <div class="calc-delivery" id="calcDelivery"></div>
+            <a href="#" class="calc-cta magnetic-btn" id="calcCTA" aria-label="Start this project on WhatsApp">
+                <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Start This Project
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================================================================
+     HTML: FEATURE 2 — TESTIMONIAL CAROUSEL
+     Insert as a new section between #transparency and the divider6
+     ================================================================ -->
+
+<!-- GRADIENT DIVIDER (new, between transparency and testimonials) -->
+<div class="gradient-divider" id="dividerTestimonials" aria-hidden="true"></div>
+
+<section id="testimonials" aria-label="What people are saying">
+    <div class="testimonial-header">
+        <h2 class="section-title" id="testimonialsTitle">What People Are Saying</h2>
+        <p class="section-subtitle" id="testimonialsSub" style="margin-left:auto;margin-right:auto;">We just launched. Here's why you should still trust us.</p>
+    </div>
+
+    <div class="testimonial-carousel-wrap">
+        <div class="testimonial-track-container" id="testimonialContainer">
+            <div class="testimonial-track" id="testimonialTrack">
+                <!-- Card 1: Invitation -->
+                <div class="testimonial-card">
+                    <span class="testimonial-quote-mark">"</span>
+                    <p class="testimonial-text">We just launched. <em>These spots are reserved for our first customers.</em> Want to be featured here? Be one of our first projects and get a permanent spot on our homepage.</p>
+                    <div class="testimonial-meta">
+                        <span class="testimonial-badge">Your Name Here</span>
+                    </div>
+                    <a href="https://wa.me/436764433763?text=Hi!%20I%20want%20to%20be%20one%20of%20your%20first%20customers." class="testimonial-card-cta magnetic-btn">Claim This Spot &rarr;</a>
+                </div>
+                <!-- Card 2: Portfolio Proof -->
+                <div class="testimonial-card">
+                    <span class="testimonial-quote-mark">"</span>
+                    <p class="testimonial-text">Don't take our word for it. <em>This website is our portfolio piece #1.</em> Inspect the code. Test the interactions. Count the animations. That's our quality standard for every project.</p>
+                    <div class="testimonial-meta">
+                        <span class="testimonial-badge">Live Proof</span>
+                    </div>
+                    <button class="testimonial-card-cta" id="testimonialViewSource" type="button">View Source (Ctrl+U) &rarr;</button>
+                </div>
+                <!-- Card 3: Trust Badge -->
+                <div class="testimonial-card">
+                    <span class="testimonial-quote-mark">"</span>
+                    <p class="testimonial-text"><em>Money-back guarantee</em> means zero risk. If we can't deliver what we promised, you pay nothing. No questions asked. We'd rather lose revenue than disappoint a customer.</p>
+                    <div class="testimonial-meta">
+                        <span class="testimonial-badge">Zero Risk</span>
+                    </div>
+                </div>
+                <!-- Card 4: Manifesto -->
+                <div class="testimonial-card">
+                    <span class="testimonial-quote-mark">"</span>
+                    <p class="testimonial-text"><em>One developer. AI-powered. 10x faster than agencies at 1/10th the price.</em> No project managers, no meetings, no overhead. Just results delivered to your WhatsApp.</p>
+                    <div class="testimonial-meta">
+                        <span class="testimonial-badge">Our Promise</span>
+                    </div>
+                    <a href="https://wa.me/436764433763?text=Hi!%20I%27d%20like%20to%20start%20a%20project." class="testimonial-card-cta magnetic-btn">Test Us &rarr;</a>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-nav" aria-label="Carousel navigation">
+            <button class="testimonial-arrow" id="testimonialPrev" aria-label="Previous testimonial" type="button">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="testimonial-dots" id="testimonialDots" role="tablist" aria-label="Testimonial slides"></div>
+            <button class="testimonial-arrow" id="testimonialNext" aria-label="Next testimonial" type="button">
+                <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"></polyline></svg>
+            </button>
+        </div>
+    </div>
+</section>
+
+
+<!-- ================================================================
+     HTML: FEATURE 3 — SOUND TOGGLE
+     Insert before </body>
+     ================================================================ -->
+
+<button class="sound-toggle" id="soundToggle" type="button" aria-label="Toggle sound effects" aria-pressed="false">
+    <svg id="soundIconOn" viewBox="0 0 24 24" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <svg id="soundIconOff" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+    <div class="sound-waves" aria-hidden="true">
+        <span class="sound-wave"></span>
+        <span class="sound-wave"></span>
+        <span class="sound-wave"></span>
+    </div>
+    <span class="sound-tooltip">Toggle sound effects</span>
+</button>
+
+
+<!-- ================================================================
+     HTML: FEATURE 4 — EASTER EGG OVERLAY + BADGE
+     Insert before </body>
+     ================================================================ -->
+
+<div class="konami-overlay" id="konamiOverlay" role="dialog" aria-label="Easter egg found">
+    <canvas class="konami-canvas" id="konamiCanvas"></canvas>
+    <button class="konami-close" id="konamiClose" aria-label="Close" type="button">&times;</button>
+    <div class="konami-content">
+        <span class="konami-emoji" aria-hidden="true">&#x1F3AE;</span>
+        <h3 class="konami-title">You found the secret!</h3>
+        <div class="konami-stats" id="konamiStats">
+            This website has <strong id="konamiLines">2,500+</strong> lines of code,
+            <strong id="konamiAnimations">40+</strong> animations, and was built
+            by <strong>one person with AI</strong>.
+        </div>
+        <p class="konami-stats">Want something like this? It starts at <strong>$29</strong>.</p>
+        <div class="konami-cta-row">
+            <a href="https://wa.me/436764433763?text=Hi!%20I%20found%20the%20easter%20egg%20%F0%9F%8E%AE%20I%27d%20love%20to%20build%20something%20like%20this!" class="konami-cta-primary magnetic-btn">
+                Let's Build This &rarr;
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="konami-found-badge" id="konamiBadge" aria-label="Easter egg found" title="You found the secret!">&#x1F3AE;</div>
+
+
+<!-- ================================================================
+     JAVASCRIPT FOR ALL FEATURES
+     ================================================================ -->
+<script>
+(function() {
+    'use strict';
+
+    /* Shared refs */
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const WA_BASE = 'https://wa.me/436764433763?text=';
+
+    /* === FEATURE 1: INTERACTIVE PRICING CALCULATOR === */
+
+    function initPricingCalculator() {
+        const serviceToggles = document.querySelectorAll('#calcServiceToggles .calc-toggle');
+        const complexitySlider = document.getElementById('calcComplexity');
+        const rushCheckbox = document.getElementById('calcRush');
+        const placeholder = document.getElementById('calcPlaceholder');
+        const resultContainer = document.getElementById('calcResult');
+        const priceDisplay = document.getElementById('calcPriceDisplay');
+        const rushBadge = document.getElementById('calcRushBadge');
+        const includesEl = document.getElementById('calcIncludes');
+        const deliveryEl = document.getElementById('calcDelivery');
+        const ctaBtn = document.getElementById('calcCTA');
+        const sliderLabels = document.querySelectorAll('.calc-slider-labels span');
+        const rushLabels = document.querySelectorAll('.rush-labels span');
+
+        if (!complexitySlider || !resultContainer) return;
+
+        const pricing = {
+            website:    { prices: [29, 99, 199],  delivery: ['Same-day', '24-48 hours', '3-5 days'] },
+            chatbot:    { prices: [29, 99, 149],  delivery: ['Same-day', '24-48 hours', '3-5 days'] },
+            automation: { prices: [5, 49, 99],    delivery: ['Same-day', '24 hours', '48-72 hours'] },
+            content:    { prices: [5, 29, 49],    delivery: ['Same-day', 'Same-day', '24-48 hours'] },
+            video:      { prices: [49, 99, 199],  delivery: ['24-48 hours', '48-72 hours', '5-7 days'] },
+            data:       { prices: [5, 29, 49],    delivery: ['Same-day', 'Same-day', '24-48 hours'] },
+        };
+
+        const includes = {
+            website: {
+                0: ['Single page', 'Mobile responsive', 'SEO basics', 'Free hosting'],
+                1: ['Multi-page site', 'Custom design', 'Animations', 'Analytics', 'Free hosting'],
+                2: ['Full web app', 'Complex interactions', 'CMS/backend', 'API integrations', 'Performance optimized'],
+            },
+            chatbot: {
+                0: ['Single-platform bot', 'FAQ responses', 'Basic flow', 'Source code'],
+                1: ['Multi-platform', 'AI-powered responses', 'Custom workflows', 'Analytics dashboard'],
+                2: ['Advanced AI', 'CRM integration', 'Multi-language', 'Custom training', 'Priority support'],
+            },
+            automation: {
+                0: ['Single workflow', 'App connection', 'Documentation', 'Free tier compatible'],
+                1: ['Multi-step workflow', 'Data transformations', 'Error handling', 'Exportable blueprint'],
+                2: ['Complex system', 'Multiple workflows', 'API integrations', 'Monitoring setup', 'Full documentation'],
+            },
+            content: {
+                0: ['5 blog posts OR 30-day calendar', 'SEO optimized', 'Ready to publish'],
+                1: ['Full content strategy', 'Keyword research', '10+ pieces', 'Brand voice matching'],
+                2: ['Complete content system', '25+ pieces', 'Multiple formats', 'Editorial calendar', 'Analytics setup'],
+            },
+            video: {
+                0: ['30-sec promo reel', 'Platform optimized', 'Thumbnail', 'One revision'],
+                1: ['60-sec professional video', 'Motion graphics', 'Sound design', 'Multiple formats'],
+                2: ['Full video package', 'Custom animations', 'Script writing', 'Multiple deliverables', 'Raw files included'],
+            },
+            data: {
+                0: ['500 records scraped', 'Clean spreadsheet', 'Reusable script', 'Documentation'],
+                1: ['5,000+ records', 'Data cleaning', 'Dashboard', 'Automated updates'],
+                2: ['Enterprise scraping', 'Real-time pipeline', 'API endpoint', 'Monitoring', 'Full documentation'],
+            },
+        };
+
+        const complexityNames = ['Simple', 'Medium', 'Complex'];
+        let selectedService = null;
+
+        function updateCalc() {
+            if (!selectedService) {
+                placeholder.style.display = '';
+                resultContainer.classList.remove('visible');
+                return;
+            }
+
+            placeholder.style.display = 'none';
+            resultContainer.classList.add('visible');
+
+            const complexity = parseInt(complexitySlider.value);
+            const isRush = rushCheckbox.checked;
+            const basePrice = pricing[selectedService].prices[complexity];
+            const finalPrice = isRush ? Math.round(basePrice * 1.5) : basePrice;
+            const deliveryTime = pricing[selectedService].delivery[complexity];
+            const rushDelivery = isRush ? 'Rush: ~50% faster' : deliveryTime;
+
+            /* Animate price with counter */
+            const currentText = priceDisplay.textContent.replace('$', '').replace(/,/g, '');
+            const currentVal = parseInt(currentText) || 0;
+
+            priceDisplay.classList.add('bounce');
+            setTimeout(() => priceDisplay.classList.remove('bounce'), 400);
+
+            if (!prefersReducedMotion) {
+                const startTime = performance.now();
+                const duration = 400;
+                function animatePrice(now) {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const val = Math.round(currentVal + (finalPrice - currentVal) * eased);
+                    priceDisplay.textContent = '$' + val;
+                    if (progress < 1) requestAnimationFrame(animatePrice);
+                    else priceDisplay.textContent = '$' + finalPrice;
+                }
+                requestAnimationFrame(animatePrice);
+            } else {
+                priceDisplay.textContent = '$' + finalPrice;
+            }
+
+            /* Rush badge */
+            if (isRush) {
+                rushBadge.classList.add('visible');
+            } else {
+                rushBadge.classList.remove('visible');
+            }
+
+            /* Includes */
+            const items = includes[selectedService][complexity];
+            const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+            includesEl.innerHTML = items.map(item => `<li>${checkSvg}${item}</li>`).join('');
+
+            /* Delivery */
+            deliveryEl.innerHTML = `Estimated delivery: <strong>${rushDelivery}</strong>`;
+
+            /* CTA with pre-filled WhatsApp */
+            const complexityLabel = complexityNames[complexity];
+            const rushLabel = isRush ? ' (Rush)' : '';
+            const msg = encodeURIComponent(`Hi! I'd like a ${complexityLabel} ${selectedService} project${rushLabel}. Budget: ~$${finalPrice}. Can you help?`);
+            ctaBtn.href = WA_BASE + msg;
+        }
+
+        /* Service toggle clicks */
+        serviceToggles.forEach(btn => {
+            btn.addEventListener('click', () => {
+                serviceToggles.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedService = btn.dataset.service;
+                updateCalc();
+            });
+        });
+
+        /* Complexity slider */
+        complexitySlider.addEventListener('input', () => {
+            const val = parseInt(complexitySlider.value);
+            sliderLabels.forEach(lbl => {
+                lbl.classList.toggle('active-label', parseInt(lbl.dataset.level) === val);
+            });
+            updateCalc();
+        });
+
+        /* Rush toggle */
+        rushCheckbox.addEventListener('change', () => {
+            rushLabels.forEach(lbl => {
+                if (lbl.dataset.rush === 'rush') {
+                    lbl.classList.toggle('active-label', rushCheckbox.checked);
+                } else {
+                    lbl.classList.toggle('active-label', !rushCheckbox.checked);
+                }
+            });
+            updateCalc();
+        });
+    }
+
+
+    /* === FEATURE 2: TESTIMONIAL CAROUSEL === */
+
+    function initTestimonialCarousel() {
+        const track = document.getElementById('testimonialTrack');
+        const container = document.getElementById('testimonialContainer');
+        const dotsContainer = document.getElementById('testimonialDots');
+        const prevBtn = document.getElementById('testimonialPrev');
+        const nextBtn = document.getElementById('testimonialNext');
+        const viewSourceBtn = document.getElementById('testimonialViewSource');
+
+        if (!track || !container) return;
+
+        const cards = track.querySelectorAll('.testimonial-card');
+        const total = cards.length;
+        let currentIndex = 0;
+        let autoplayTimer = null;
+        let isDragging = false;
+        let startX = 0;
+        let currentTranslate = 0;
+
+        /* Build dots */
+        for (let i = 0; i < total; i++) {
+            const dot = document.createElement('button');
+            dot.className = 'testimonial-dot' + (i === 0 ? ' active' : '');
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+            dot.type = 'button';
+            dot.addEventListener('click', () => goTo(i));
+            dotsContainer.appendChild(dot);
+        }
+
+        function getCardWidth() {
+            const gap = 24; /* 1.5rem */
+            return cards[0].offsetWidth + gap;
+        }
+
+        function goTo(index) {
+            if (index < 0) index = total - 1;
+            if (index >= total) index = 0;
+            currentIndex = index;
+
+            const cardWidth = getCardWidth();
+            const containerWidth = container.offsetWidth;
+            const maxTranslate = track.scrollWidth - containerWidth;
+            let translateX = cardWidth * currentIndex;
+            translateX = Math.min(translateX, maxTranslate);
+
+            track.style.transform = `translateX(-${translateX}px)`;
+
+            /* Update dots */
+            dotsContainer.querySelectorAll('.testimonial-dot').forEach((d, i) => {
+                d.classList.toggle('active', i === currentIndex);
+            });
+
+            resetAutoplay();
+        }
+
+        function next() { goTo(currentIndex + 1); }
+        function prev() { goTo(currentIndex - 1); }
+
+        prevBtn.addEventListener('click', prev);
+        nextBtn.addEventListener('click', next);
+
+        /* Autoplay */
+        function startAutoplay() {
+            if (prefersReducedMotion) return;
+            autoplayTimer = setInterval(next, 5000);
+        }
+
+        function resetAutoplay() {
+            clearInterval(autoplayTimer);
+            startAutoplay();
+        }
+
+        /* Pause on hover */
+        container.addEventListener('mouseenter', () => clearInterval(autoplayTimer));
+        container.addEventListener('mouseleave', startAutoplay);
+
+        /* Touch/mouse drag */
+        function onDragStart(e) {
+            isDragging = true;
+            startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            track.style.transition = 'none';
+        }
+
+        function onDragMove(e) {
+            if (!isDragging) return;
+            const x = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            currentTranslate = x - startX;
+        }
+
+        function onDragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+            track.style.transition = '';
+
+            if (Math.abs(currentTranslate) > 60) {
+                if (currentTranslate < 0) next();
+                else prev();
+            }
+            currentTranslate = 0;
+        }
+
+        container.addEventListener('mousedown', onDragStart);
+        container.addEventListener('mousemove', onDragMove);
+        container.addEventListener('mouseup', onDragEnd);
+        container.addEventListener('mouseleave', onDragEnd);
+        container.addEventListener('touchstart', onDragStart, { passive: true });
+        container.addEventListener('touchmove', onDragMove, { passive: true });
+        container.addEventListener('touchend', onDragEnd);
+
+        /* Animate cards in with GSAP if available */
+        if (typeof gsap !== 'undefined' && !prefersReducedMotion) {
+            gsap.registerPlugin(ScrollTrigger);
+
+            cards.forEach((card, i) => {
+                gsap.to(card, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.7,
+                    delay: i * 0.1,
+                    ease: 'power3.out',
+                    scrollTrigger: {
+                        trigger: card,
+                        start: 'top 90%',
+                        toggleActions: 'play none none reverse',
+                    }
+                });
+            });
+
+            /* Also animate the title + subtitle */
+            const titleEl = document.getElementById('testimonialsTitle');
+            if (titleEl) {
+                const text = titleEl.textContent;
+                titleEl.innerHTML = '';
+                text.split('').forEach(ch => {
+                    const span = document.createElement('span');
+                    span.className = 'char';
+                    span.textContent = ch === ' ' ? '\u00A0' : ch;
+                    titleEl.appendChild(span);
+                });
+                gsap.set(titleEl.querySelectorAll('.char'), { opacity: 0, y: 20 });
+                gsap.to(titleEl.querySelectorAll('.char'), {
+                    opacity: 1, y: 0, duration: 0.5, stagger: 0.02, ease: 'power3.out',
+                    scrollTrigger: { trigger: titleEl, start: 'top 80%', toggleActions: 'play none none reverse' }
+                });
+            }
+
+            const subEl = document.getElementById('testimonialsSub');
+            if (subEl) {
+                gsap.from(subEl, {
+                    opacity: 0, y: 30, duration: 0.8, ease: 'power3.out',
+                    scrollTrigger: { trigger: subEl, start: 'top 85%', toggleActions: 'play none none reverse' }
+                });
+            }
+
+            /* Also animate the new divider */
+            const newDivider = document.getElementById('dividerTestimonials');
+            if (newDivider) {
+                gsap.to(newDivider, {
+                    scaleX: 1, duration: 1.2, ease: 'power3.out',
+                    scrollTrigger: { trigger: newDivider, start: 'top 90%', toggleActions: 'play none none reverse' }
+                });
+            }
+        } else {
+            /* Fallback: just show them */
+            cards.forEach(card => {
+                card.style.opacity = '1';
+                card.style.transform = 'none';
+            });
+        }
+
+        startAutoplay();
+
+        /* "View Source" button */
+        if (viewSourceBtn) {
+            viewSourceBtn.addEventListener('click', () => {
+                /* Open view-source in new tab */
+                window.open('view-source:' + window.location.href, '_blank');
+            });
+        }
+
+        /* Keyboard navigation */
+        document.addEventListener('keydown', (e) => {
+            if (!isElementInViewport(container)) return;
+            if (e.key === 'ArrowLeft') prev();
+            if (e.key === 'ArrowRight') next();
+        });
+
+        function isElementInViewport(el) {
+            const rect = el.getBoundingClientRect();
+            return rect.top < window.innerHeight && rect.bottom > 0;
+        }
+    }
+
+
+    /* === FEATURE 3: SOUND SYSTEM === */
+
+    function initSoundSystem() {
+        const toggle = document.getElementById('soundToggle');
+        const iconOn = document.getElementById('soundIconOn');
+        const iconOff = document.getElementById('soundIconOff');
+
+        if (!toggle) return;
+
+        let audioCtx = null;
+        let soundEnabled = localStorage.getItem('nextool-sound') === 'on';
+        let scrollMilestones = { 25: false, 50: false, 75: false, 100: false };
+        let sectionMilestones = new Set();
+
+        function updateToggleUI() {
+            if (soundEnabled) {
+                toggle.classList.add('active');
+                toggle.setAttribute('aria-pressed', 'true');
+                iconOn.style.display = '';
+                iconOff.style.display = 'none';
+            } else {
+                toggle.classList.remove('active');
+                toggle.setAttribute('aria-pressed', 'false');
+                iconOn.style.display = 'none';
+                iconOff.style.display = '';
+            }
+        }
+
+        function getAudioCtx() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        /* Sound generators using Web Audio API oscillators */
+
+        function playHoverTick() {
+            if (!soundEnabled || prefersReducedMotion) return;
+            const ctx = getAudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.type = 'sine';
+            osc.frequency.value = 800;
+            gain.gain.setValueAtTime(0.03, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.03);
+        }
+
+        function playClickPop() {
+            if (!soundEnabled || prefersReducedMotion) return;
+            const ctx = getAudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.04, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.06);
+        }
+
+        function playSectionChime() {
+            if (!soundEnabled || prefersReducedMotion) return;
+            const ctx = getAudioCtx();
+            const freqs = [600, 800, 1000];
+            freqs.forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                const startT = ctx.currentTime + i * 0.07;
+                gain.gain.setValueAtTime(0, startT);
+                gain.gain.linearRampToValueAtTime(0.03, startT + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, startT + 0.15);
+
+                osc.start(startT);
+                osc.stop(startT + 0.15);
+            });
+        }
+
+        function playAchievementPing() {
+            if (!soundEnabled || prefersReducedMotion) return;
+            const ctx = getAudioCtx();
+            const freqs = [800, 1200];
+            freqs.forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                const startT = ctx.currentTime + i * 0.1;
+                gain.gain.setValueAtTime(0, startT);
+                gain.gain.linearRampToValueAtTime(0.04, startT + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, startT + 0.2);
+
+                osc.start(startT);
+                osc.stop(startT + 0.2);
+            });
+        }
+
+        /* Toggle button */
+        toggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('nextool-sound', soundEnabled ? 'on' : 'off');
+            updateToggleUI();
+            if (soundEnabled) {
+                /* Play a small confirmation sound */
+                playClickPop();
+            }
+        });
+
+        updateToggleUI();
+
+        /* Hover sounds on buttons & links */
+        let hoverThrottle = false;
+        document.addEventListener('mouseover', (e) => {
+            if (!soundEnabled || hoverThrottle) return;
+            const el = e.target.closest('a, button, .service-card, .pricing-card, .faq-question, .calc-toggle, .testimonial-card');
+            if (el) {
+                hoverThrottle = true;
+                playHoverTick();
+                setTimeout(() => { hoverThrottle = false; }, 80);
+            }
+        });
+
+        /* Click sounds */
+        document.addEventListener('click', (e) => {
+            if (!soundEnabled) return;
+            const el = e.target.closest('a, button');
+            if (el && el !== toggle) {
+                playClickPop();
+            }
+        });
+
+        /* Scroll milestone sounds */
+        let scrollThrottle = false;
+        window.addEventListener('scroll', () => {
+            if (!soundEnabled || scrollThrottle) return;
+            scrollThrottle = true;
+            setTimeout(() => { scrollThrottle = false; }, 200);
+
+            const scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+
+            [25, 50, 75, 100].forEach(milestone => {
+                if (scrollPercent >= milestone && !scrollMilestones[milestone]) {
+                    scrollMilestones[milestone] = true;
+                    playAchievementPing();
+                }
+            });
+
+            /* Reset milestones when scrolling back up */
+            [25, 50, 75, 100].forEach(milestone => {
+                if (scrollPercent < milestone - 5) {
+                    scrollMilestones[milestone] = false;
+                }
+            });
+        });
+
+        /* Section scroll milestone chimes */
+        if (typeof IntersectionObserver !== 'undefined') {
+            const sections = document.querySelectorAll('section[id]');
+            const sectionObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !sectionMilestones.has(entry.target.id)) {
+                        sectionMilestones.add(entry.target.id);
+                        playSectionChime();
+                    }
+                });
+            }, { threshold: 0.3 });
+
+            sections.forEach(section => sectionObserver.observe(section));
+        }
+    }
+
+
+    /* === FEATURE 4: KONAMI CODE EASTER EGG === */
+
+    function initKonamiCode() {
+        const sequence = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        let index = 0;
+        let eggFound = false;
+        const overlay = document.getElementById('konamiOverlay');
+        const closeBtn = document.getElementById('konamiClose');
+        const badge = document.getElementById('konamiBadge');
+        const konamiCanvas = document.getElementById('konamiCanvas');
+
+        if (!overlay) return;
+
+        /* Check if previously found */
+        if (localStorage.getItem('nextool-konami') === 'found') {
+            badge.classList.add('visible');
+            eggFound = true;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+            if (key === sequence[index]) {
+                index++;
+                if (index === sequence.length) {
+                    index = 0;
+                    activateEasterEgg();
+                }
+            } else {
+                index = 0;
+                /* Check if first key matches to restart */
+                if (key === sequence[0]) index = 1;
+            }
+        });
+
+        function activateEasterEgg() {
+            if (prefersReducedMotion) {
+                /* Skip glitch, just show overlay */
+                showOverlay();
+                return;
+            }
+
+            /* Glitch effect on body */
+            document.body.classList.add('konami-glitch');
+            setTimeout(() => {
+                document.body.classList.remove('konami-glitch');
+                showOverlay();
+            }, 500);
+        }
+
+        function showOverlay() {
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+            localStorage.setItem('nextool-konami', 'found');
+            eggFound = true;
+
+            /* Count stats (approximation) */
+            const htmlLength = document.documentElement.outerHTML.length;
+            const estimatedLines = Math.round(htmlLength / 50);
+            const konamiLinesEl = document.getElementById('konamiLines');
+            if (konamiLinesEl) {
+                konamiLinesEl.textContent = estimatedLines.toLocaleString() + '+';
+            }
+
+            /* Count animations */
+            const allStyleSheets = document.styleSheets;
+            let animCount = 0;
+            try {
+                for (const sheet of allStyleSheets) {
+                    try {
+                        for (const rule of sheet.cssRules) {
+                            if (rule instanceof CSSKeyframesRule) animCount++;
+                            if (rule.style && (rule.style.animation || rule.style.transition)) animCount++;
+                        }
+                    } catch(e) { /* cross-origin */ }
+                }
+            } catch(e) {}
+            const konamiAnimEl = document.getElementById('konamiAnimations');
+            if (konamiAnimEl) {
+                konamiAnimEl.textContent = Math.max(animCount, 40) + '+';
+            }
+
+            /* Three.js confetti on konami canvas */
+            if (typeof THREE !== 'undefined' && !prefersReducedMotion) {
+                launchConfetti();
+            }
+        }
+
+        function closeOverlay() {
+            overlay.classList.remove('visible');
+            document.body.style.overflow = '';
+            badge.classList.add('visible');
+        }
+
+        closeBtn.addEventListener('click', closeOverlay);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeOverlay();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('visible')) {
+                closeOverlay();
+            }
+        });
+
+        badge.addEventListener('click', () => {
+            activateEasterEgg();
+        });
+
+        /* Confetti with Three.js */
+        function launchConfetti() {
+            const canvas = konamiCanvas;
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, canvas.offsetWidth / canvas.offsetHeight, 0.1, 100);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+            renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const confettiCount = 200;
+            const positions = new Float32Array(confettiCount * 3);
+            const colors = new Float32Array(confettiCount * 3);
+            const velocities = [];
+            const colorPalette = [
+                [99/255, 102/255, 241/255],   /* primary */
+                [168/255, 85/255, 247/255],    /* accent */
+                [236/255, 72/255, 153/255],    /* pink */
+                [34/255, 197/255, 94/255],     /* green */
+                [251/255, 191/255, 36/255],    /* yellow */
+                [1, 1, 1],                     /* white */
+            ];
+
+            for (let i = 0; i < confettiCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 0.5;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
+
+                const col = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+                colors[i * 3] = col[0];
+                colors[i * 3 + 1] = col[1];
+                colors[i * 3 + 2] = col[2];
+
+                velocities.push({
+                    x: (Math.random() - 0.5) * 0.3,
+                    y: Math.random() * 0.3 + 0.1,
+                    z: (Math.random() - 0.5) * 0.3,
+                    gravity: -0.003 - Math.random() * 0.002,
+                    rotSpeed: (Math.random() - 0.5) * 0.1,
+                });
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.08,
+                vertexColors: true,
+                transparent: true,
+                opacity: 1,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true,
+            });
+
+            const points = new THREE.Points(geometry, material);
+            scene.add(points);
+            camera.position.z = 5;
+
+            let frame = 0;
+            const maxFrames = 180; /* ~3 seconds at 60fps */
+
+            function animateConfetti() {
+                if (frame > maxFrames) {
+                    renderer.dispose();
+                    return;
+                }
+                requestAnimationFrame(animateConfetti);
+                frame++;
+
+                const posArray = geometry.attributes.position.array;
+                for (let i = 0; i < confettiCount; i++) {
+                    const v = velocities[i];
+                    v.y += v.gravity;
+
+                    posArray[i * 3] += v.x;
+                    posArray[i * 3 + 1] += v.y;
+                    posArray[i * 3 + 2] += v.z;
+
+                    /* Slow down horizontal */
+                    v.x *= 0.99;
+                    v.z *= 0.99;
+                }
+                geometry.attributes.position.needsUpdate = true;
+
+                material.opacity = Math.max(0, 1 - frame / maxFrames);
+
+                renderer.render(scene, camera);
+            }
+
+            animateConfetti();
+        }
+    }
+
+
+    /* === FEATURE 5: ENHANCED THREE.JS HERO === */
+    /*
+       This function enhances the existing hero canvas.
+       IMPORTANT: To use this, you must modify the existing initHeroCanvas()
+       to expose scene, camera, renderer to an outer scope.
+
+       In the existing IIFE, add these before initHeroCanvas:
+         let heroScene, heroCamera, heroRenderer;
+
+       Then inside initHeroCanvas(), after creating them, add:
+         heroScene = scene;
+         heroCamera = camera;
+         heroRenderer = renderer;
+
+       Then call: enhanceHeroCanvas(heroScene, heroCamera, heroRenderer);
+
+       If called without arguments, it will attempt to create its own
+       layer on top of the existing canvas.
+    */
+
+    function enhanceHeroCanvas(scene, camera, renderer) {
+        if (prefersReducedMotion) return;
+
+        /* If no scene provided, try to find the existing canvas and create a secondary overlay */
+        let useOverlay = false;
+        if (!scene || !camera || !renderer) {
+            useOverlay = true;
+            const existingCanvas = document.getElementById('hero-canvas');
+            if (!existingCanvas) return;
+
+            const overlayCanvas = document.createElement('canvas');
+            overlayCanvas.id = 'hero-canvas-enhanced';
+            overlayCanvas.setAttribute('aria-hidden', 'true');
+            overlayCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;';
+            existingCanvas.parentElement.insertBefore(overlayCanvas, existingCanvas.nextSibling);
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: overlayCanvas, alpha: true, antialias: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            camera.position.z = 8;
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        /* --- Layer 2: Larger, slower accent particles --- */
+        const accentCount = isMobile ? 60 : 200;
+        const accentPositions = new Float32Array(accentCount * 3);
+        const accentOriginal = new Float32Array(accentCount * 3);
+
+        for (let i = 0; i < accentCount * 3; i += 3) {
+            const x = (Math.random() - 0.5) * 25;
+            const y = (Math.random() - 0.5) * 18;
+            const z = (Math.random() - 0.5) * 12;
+            accentPositions[i] = x;
+            accentPositions[i + 1] = y;
+            accentPositions[i + 2] = z;
+            accentOriginal[i] = x;
+            accentOriginal[i + 1] = y;
+            accentOriginal[i + 2] = z;
+        }
+
+        const accentGeometry = new THREE.BufferGeometry();
+        accentGeometry.setAttribute('position', new THREE.BufferAttribute(accentPositions, 3));
+
+        const accentMaterial = new THREE.PointsMaterial({
+            size: isMobile ? 0.12 : 0.09,
+            color: 0xa855f7,
+            transparent: true,
+            opacity: 0.5,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true,
+        });
+
+        const accentPoints = new THREE.Points(accentGeometry, accentMaterial);
+        scene.add(accentPoints);
+
+        /* --- Mouse attract mode --- */
+        let mouse3D = { x: 0, y: 0 };
+        let lastMoveTime = Date.now();
+        let mouseStill = false;
+
+        document.addEventListener('mousemove', (e) => {
+            mouse3D.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse3D.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            lastMoveTime = Date.now();
+            mouseStill = false;
+        });
+
+        /* --- Shooting stars --- */
+        const shootingStarGeometry = new THREE.BufferGeometry();
+        const shootingStarPositions = new Float32Array(6); /* 2 vertices = one line segment */
+        shootingStarGeometry.setAttribute('position', new THREE.BufferAttribute(shootingStarPositions, 3));
+
+        const shootingStarMaterial = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0,
+            blending: THREE.AdditiveBlending,
+        });
+
+        const shootingStar = new THREE.LineSegments(shootingStarGeometry, shootingStarMaterial);
+        scene.add(shootingStar);
+
+        let shootingStarActive = false;
+        let shootingStarTimer = 0;
+        let ssStart = { x: 0, y: 0, z: 0 };
+        let ssVelocity = { x: 0, y: 0, z: 0 };
+        let ssLife = 0;
+        let ssMaxLife = 30;
+
+        function triggerShootingStar() {
+            shootingStarActive = true;
+            ssLife = 0;
+            ssMaxLife = 25 + Math.random() * 15;
+
+            /* Start from edge */
+            const side = Math.random();
+            if (side < 0.5) {
+                ssStart.x = -15 + Math.random() * 5;
+                ssStart.y = 5 + Math.random() * 5;
+            } else {
+                ssStart.x = 10 + Math.random() * 5;
+                ssStart.y = 5 + Math.random() * 5;
+            }
+            ssStart.z = -2 + Math.random() * 4;
+
+            const angle = Math.PI + (Math.random() - 0.5) * 0.5;
+            const speed = 0.3 + Math.random() * 0.2;
+            ssVelocity.x = Math.cos(angle) * speed * (side < 0.5 ? 1 : -1);
+            ssVelocity.y = -Math.abs(Math.sin(angle) * speed * 0.5);
+            ssVelocity.z = 0;
+        }
+
+        /* --- Color cycling --- */
+        const colorTargets = [
+            { r: 99/255, g: 102/255, b: 241/255 },   /* primary */
+            { r: 168/255, g: 85/255, b: 247/255 },    /* accent */
+            { r: 236/255, g: 72/255, b: 153/255 },    /* pink */
+        ];
+        let colorPhase = 0;
+
+        /* --- Hero visibility observer --- */
+        let heroEnhancedVisible = true;
+        const heroSection = document.getElementById('hero');
+        if (heroSection) {
+            const obs = new IntersectionObserver((entries) => {
+                heroEnhancedVisible = entries[0].isIntersecting;
+            }, { threshold: 0 });
+            obs.observe(heroSection);
+        }
+
+        /* --- Animation loop --- */
+        function animateEnhanced() {
+            requestAnimationFrame(animateEnhanced);
+            if (!heroEnhancedVisible) return;
+
+            const time = Date.now() * 0.0002;
+            const posArray = accentGeometry.attributes.position.array;
+
+            /* Check if mouse is still */
+            if (Date.now() - lastMoveTime > 2000 && !isTouch) {
+                mouseStill = true;
+            }
+
+            const mouseWorldX = mouse3D.x * 12;
+            const mouseWorldY = mouse3D.y * 9;
+
+            for (let i = 0; i < accentCount * 3; i += 3) {
+                /* Slow floating motion */
+                posArray[i] = accentOriginal[i] + Math.sin(time * 0.7 + i * 0.05) * 0.25;
+                posArray[i + 1] = accentOriginal[i + 1] + Math.cos(time * 0.5 + i * 0.03) * 0.2;
+                posArray[i + 2] = accentOriginal[i + 2] + Math.sin(time * 0.3 + i * 0.02) * 0.15;
+
+                /* Mouse attract when still, scatter when moving */
+                if (!isTouch) {
+                    const dx = posArray[i] - mouseWorldX;
+                    const dy = posArray[i + 1] - mouseWorldY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (mouseStill && dist < 5) {
+                        /* Attract: slowly drift toward cursor */
+                        const attractForce = (5 - dist) / 5 * 0.02;
+                        posArray[i] -= dx * attractForce;
+                        posArray[i + 1] -= dy * attractForce;
+                    } else if (!mouseStill && dist < 4) {
+                        /* Scatter: repel away from cursor */
+                        const scatterForce = (4 - dist) / 4 * 0.8;
+                        posArray[i] += (dx / dist) * scatterForce;
+                        posArray[i + 1] += (dy / dist) * scatterForce;
+                    }
+                }
+            }
+            accentGeometry.attributes.position.needsUpdate = true;
+
+            /* Slow rotation */
+            accentPoints.rotation.y = time * 0.08;
+            accentPoints.rotation.x = Math.sin(time * 0.2) * 0.03;
+
+            /* Color cycling */
+            colorPhase += 0.001;
+            const ci = Math.floor(colorPhase) % colorTargets.length;
+            const ni = (ci + 1) % colorTargets.length;
+            const t = colorPhase % 1;
+            const smoothT = t * t * (3 - 2 * t); /* smoothstep */
+            const r = colorTargets[ci].r + (colorTargets[ni].r - colorTargets[ci].r) * smoothT;
+            const g = colorTargets[ci].g + (colorTargets[ni].g - colorTargets[ci].g) * smoothT;
+            const b = colorTargets[ci].b + (colorTargets[ni].b - colorTargets[ci].b) * smoothT;
+            accentMaterial.color.setRGB(r, g, b);
+
+            /* Shooting stars */
+            shootingStarTimer++;
+            if (!shootingStarActive && shootingStarTimer > (300 + Math.random() * 180)) {
+                shootingStarTimer = 0;
+                triggerShootingStar();
+            }
+
+            if (shootingStarActive) {
+                ssLife++;
+                ssStart.x += ssVelocity.x;
+                ssStart.y += ssVelocity.y;
+                ssStart.z += ssVelocity.z;
+
+                const tailLen = 1.5;
+                const ssPos = shootingStarGeometry.attributes.position.array;
+                ssPos[0] = ssStart.x;
+                ssPos[1] = ssStart.y;
+                ssPos[2] = ssStart.z;
+                ssPos[3] = ssStart.x - ssVelocity.x * tailLen / Math.sqrt(ssVelocity.x * ssVelocity.x + ssVelocity.y * ssVelocity.y + 0.001) * tailLen;
+                ssPos[4] = ssStart.y - ssVelocity.y * tailLen / Math.sqrt(ssVelocity.x * ssVelocity.x + ssVelocity.y * ssVelocity.y + 0.001) * tailLen;
+                ssPos[5] = ssStart.z;
+                shootingStarGeometry.attributes.position.needsUpdate = true;
+
+                /* Fade in then out */
+                const lifeRatio = ssLife / ssMaxLife;
+                if (lifeRatio < 0.2) {
+                    shootingStarMaterial.opacity = lifeRatio / 0.2 * 0.9;
+                } else {
+                    shootingStarMaterial.opacity = (1 - (lifeRatio - 0.2) / 0.8) * 0.9;
+                }
+
+                if (ssLife >= ssMaxLife) {
+                    shootingStarActive = false;
+                    shootingStarMaterial.opacity = 0;
+                }
+            }
+
+            /* If using overlay mode, render independently */
+            if (useOverlay) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        animateEnhanced();
+    }
+
+
+    /* === INIT ALL NEW FEATURES === */
+
+    /* Wait for DOM + existing init to complete */
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initNewFeatures);
+    } else {
+        /* Small delay to ensure existing IIFE has run */
+        setTimeout(initNewFeatures, 100);
+    }
+
+    function initNewFeatures() {
+        initPricingCalculator();
+        initTestimonialCarousel();
+        initSoundSystem();
+        initKonamiCode();
+
+        /* Enhanced hero: use overlay mode (separate canvas layer) since
+           the original scene/camera/renderer are enclosed in the existing IIFE */
+        enhanceHeroCanvas(null, null, null);
+    }
+
+})();
+</script>
