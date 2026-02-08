@@ -2812,8 +2812,12 @@
             background: var(--gradient);
             transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .nav-links a:hover::after {
+        .nav-links a:hover::after,
+        .nav-links a.nav-active::after {
             width: 100%;
+        }
+        .nav-links a.nav-active {
+            color: var(--primary-light);
         }
 
         /* Button press feedback */
@@ -9956,6 +9960,38 @@
             });
         }
 
+        /* === SCROLLSPY — ACTIVE NAV HIGHLIGHTING === */
+        function initScrollspy() {
+            var navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+            if (!navLinks.length || !('IntersectionObserver' in window)) return;
+
+            var sectionMap = {};
+            navLinks.forEach(function(link) {
+                var id = link.getAttribute('href').substring(1);
+                var section = document.getElementById(id);
+                if (section) sectionMap[id] = { link: link, section: section };
+            });
+
+            var currentActive = null;
+
+            var spyObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        var id = entry.target.id;
+                        if (sectionMap[id]) {
+                            if (currentActive) currentActive.classList.remove('nav-active');
+                            sectionMap[id].link.classList.add('nav-active');
+                            currentActive = sectionMap[id].link;
+                        }
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '-80px 0px -50% 0px' });
+
+            Object.keys(sectionMap).forEach(function(id) {
+                spyObserver.observe(sectionMap[id].section);
+            });
+        }
+
         /* === TEXT SCRAMBLE EFFECT FOR SECTION TITLES === */
         function initTextScramble() {
             if (prefersReducedMotion) return;
@@ -10042,6 +10078,7 @@
 
         function initNewFeatures() {
             initScrollReveal();
+            initScrollspy();
             initTextScramble();
             initPricingCalculator();
             initTestimonialCarousel();
