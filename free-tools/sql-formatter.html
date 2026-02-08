@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Formatter & Beautifier — NexTool Free Tools</title>
+<meta name="description" content="Format and beautify SQL queries online. Syntax highlighting, indent options, uppercase keywords. Free tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text2:#94a3b8;--radius:12px;--font:'Inter',sans-serif}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.6}
+a{color:var(--primary);text-decoration:none;transition:color .2s}a:hover{color:var(--accent)}
+
+/* Nav */
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-brand{font-weight:700;font-size:1.25rem;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:24px;list-style:none}
+.nav-links a{color:var(--text2);font-size:.9rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+
+/* Hero */
+.hero{text-align:center;padding:48px 24px 32px}
+.hero h1{font-size:2.2rem;font-weight:700;margin-bottom:8px;background:linear-gradient(135deg,var(--primary),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1.05rem;max-width:600px;margin:0 auto}
+
+/* Main */
+.container{max-width:1200px;margin:0 auto;padding:0 24px 48px;flex:1}
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.panel-title{font-weight:600;font-size:.95rem}
+.panel-actions{display:flex;gap:8px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:#818cf8;transform:translateY(-1px)}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-ghost{background:transparent;color:var(--text2);padding:6px 10px}.btn-ghost:hover{color:var(--text);background:var(--surface2)}
+
+/* Textarea & Code */
+textarea{width:100%;flex:1;min-height:300px;padding:16px;background:var(--bg);color:var(--text);border:none;font-family:'Courier New',monospace;font-size:.9rem;resize:vertical;outline:none;line-height:1.7}
+.output-area{width:100%;flex:1;min-height:300px;padding:16px;background:var(--bg);font-family:'Courier New',monospace;font-size:.9rem;overflow:auto;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+
+/* Options */
+.options-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
+.option-group{display:flex;align-items:center;gap:8px}
+.option-group label{font-size:.85rem;color:var(--text2);font-weight:500}
+select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:var(--font);font-size:.85rem;outline:none;cursor:pointer}
+select:focus{border-color:var(--primary)}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:11px;transition:.3s}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:var(--primary)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px)}
+
+/* Examples */
+.examples{margin-top:24px}
+.examples h3{font-size:1rem;font-weight:600;margin-bottom:12px;color:var(--text2)}
+.example-chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:.82rem;color:var(--text2);cursor:pointer;transition:all .2s}
+.chip:hover{border-color:var(--primary);color:var(--primary);background:var(--surface2)}
+
+/* Syntax Highlighting */
+.kw{color:#c084fc;font-weight:700}.str{color:#34d399}.num{color:#f59e0b}.fn{color:#38bdf8}.cm{color:#6b7280;font-style:italic}.op{color:#f472b6}.paren{color:#94a3b8}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;font-weight:500;transform:translateY(80px);opacity:0;transition:all .3s;z-index:200}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* Footer */
+footer{background:var(--surface);border-top:1px solid var(--border);text-align:center;padding:20px 24px;color:var(--text2);font-size:.85rem;margin-top:auto}
+
+/* Responsive */
+@media(max-width:768px){
+  .tool-grid{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:60px;left:0;right:0;background:var(--surface);flex-direction:column;padding:16px 24px;border-bottom:1px solid var(--border)}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .options-bar{flex-direction:column;align-items:flex-start}
+  .hero h1{font-size:1.7rem}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">NexTool</a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/free-tools/">Free Tools</a></li>
+      <li><a href="/services/">Services</a></li>
+      <li><a href="/products/">Products</a></li>
+      <li><a href="/blog/">Blog</a></li>
+      <li><a href="/pricing.html">Pricing</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>SQL Formatter & Beautifier</h1>
+  <p>Format, beautify, and syntax-highlight your SQL queries instantly. Supports SELECT, INSERT, UPDATE, DELETE, and CREATE TABLE statements.</p>
+</div>
+
+<div class="container">
+  <div class="options-bar">
+    <div class="option-group">
+      <label for="indentStyle">Indent:</label>
+      <select id="indentStyle">
+        <option value="2">2 Spaces</option>
+        <option value="4" selected>4 Spaces</option>
+        <option value="tab">Tab</option>
+      </select>
+    </div>
+    <div class="option-group">
+      <label>Uppercase Keywords</label>
+      <label class="toggle"><input type="checkbox" id="uppercaseKw" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div class="option-group">
+      <label>Highlight Syntax</label>
+      <label class="toggle"><input type="checkbox" id="highlightSyntax" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div style="margin-left:auto" class="panel-actions">
+      <button class="btn btn-primary" onclick="formatSQL()">Format SQL</button>
+      <button class="btn btn-outline btn-sm" onclick="clearAll()">Clear</button>
+    </div>
+  </div>
+
+  <div class="tool-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Input SQL</span>
+        <button class="btn btn-ghost btn-sm" onclick="pasteFromClipboard()">Paste</button>
+      </div>
+      <textarea id="sqlInput" placeholder="Paste your SQL query here..." spellcheck="false">SELECT users.id, users.name, users.email, orders.total, orders.created_at FROM users INNER JOIN orders ON users.id = orders.user_id WHERE users.active = 1 AND orders.total > 50 ORDER BY orders.created_at DESC LIMIT 100;</textarea>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Formatted Output</span>
+        <button class="btn btn-ghost btn-sm" onclick="copyOutput()">Copy</button>
+      </div>
+      <div class="output-area" id="sqlOutput"></div>
+    </div>
+  </div>
+
+  <div class="examples">
+    <h3>Try an Example</h3>
+    <div class="example-chips">
+      <div class="chip" onclick="loadExample('select')">Complex SELECT</div>
+      <div class="chip" onclick="loadExample('insert')">INSERT INTO</div>
+      <div class="chip" onclick="loadExample('update')">UPDATE</div>
+      <div class="chip" onclick="loadExample('delete')">DELETE</div>
+      <div class="chip" onclick="loadExample('create')">CREATE TABLE</div>
+      <div class="chip" onclick="loadExample('subquery')">Subquery</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>&copy; 2026 NexTool. All rights reserved.</footer>
+
+<script>
+const EXAMPLES = {
+  select: `SELECT u.id, u.name, u.email, p.title, p.created_at, COUNT(c.id) AS comment_count FROM users u INNER JOIN posts p ON u.id = p.author_id LEFT JOIN comments c ON p.id = c.post_id WHERE u.active = 1 AND p.published = true AND p.created_at >= '2025-01-01' GROUP BY u.id, u.name, u.email, p.title, p.created_at HAVING COUNT(c.id) > 5 ORDER BY comment_count DESC, p.created_at DESC LIMIT 50 OFFSET 10;`,
+  insert: `INSERT INTO employees (first_name, last_name, email, department, salary, hire_date, manager_id) VALUES ('John', 'Doe', 'john.doe@company.com', 'Engineering', 95000.00, '2025-03-15', 42), ('Jane', 'Smith', 'jane.smith@company.com', 'Marketing', 85000.00, '2025-03-16', 17);`,
+  update: `UPDATE products SET price = price * 1.10, updated_at = NOW(), discount_percent = CASE WHEN category = 'electronics' THEN 5 WHEN category = 'clothing' THEN 10 ELSE 0 END WHERE stock_quantity > 0 AND last_sale_date >= '2025-01-01' AND vendor_id IN (SELECT id FROM vendors WHERE active = true);`,
+  delete: `DELETE FROM session_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY) AND user_id NOT IN (SELECT id FROM users WHERE role = 'admin') AND status = 'expired';`,
+  create: `CREATE TABLE IF NOT EXISTS orders (id BIGINT PRIMARY KEY AUTO_INCREMENT, user_id BIGINT NOT NULL, product_id BIGINT NOT NULL, quantity INT DEFAULT 1, total_amount DECIMAL(10, 2) NOT NULL, status ENUM('pending', 'paid', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending', shipping_address TEXT, notes VARCHAR(500), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (product_id) REFERENCES products(id), INDEX idx_user_orders (user_id, created_at), INDEX idx_status (status));`,
+  subquery: `SELECT d.department_name, d.avg_salary FROM (SELECT department, AVG(salary) AS avg_salary, COUNT(*) AS emp_count FROM employees WHERE hire_date >= '2024-01-01' GROUP BY department HAVING COUNT(*) >= 3) d WHERE d.avg_salary > (SELECT AVG(salary) FROM employees) ORDER BY d.avg_salary DESC;`
+};
+
+const KEYWORDS = [
+  'SELECT','FROM','WHERE','AND','OR','NOT','IN','EXISTS','BETWEEN','LIKE',
+  'INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','ALTER',
+  'DROP','INDEX','VIEW','TRIGGER','PROCEDURE','FUNCTION','IF','THEN','ELSE',
+  'END','CASE','WHEN','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','CROSS',
+  'ON','AS','IS','NULL','TRUE','FALSE','ORDER','BY','GROUP','HAVING','LIMIT',
+  'OFFSET','UNION','ALL','DISTINCT','TOP','ASC','DESC','COUNT','SUM','AVG',
+  'MIN','MAX','COALESCE','CAST','CONVERT','DATE_SUB','NOW','CURRENT_TIMESTAMP',
+  'DEFAULT','NOT','AUTO_INCREMENT','PRIMARY','KEY','FOREIGN','REFERENCES',
+  'CASCADE','CONSTRAINT','UNIQUE','CHECK','ENUM','INT','BIGINT','VARCHAR',
+  'TEXT','DECIMAL','TIMESTAMP','DATE','BOOLEAN','FLOAT','DOUBLE','CHAR',
+  'INTERVAL','DAY','MONTH','YEAR','HOUR','MINUTE','SECOND','WITH','RECURSIVE',
+  'OVER','PARTITION','ROW_NUMBER','RANK','DENSE_RANK','LAG','LEAD','FETCH',
+  'NEXT','ROWS','ONLY','NULLS','FIRST','LAST','PRECEDING','FOLLOWING',
+  'UNBOUNDED','CURRENT','ROW','RANGE','GROUPS','EXCLUDE','TIES','OTHERS',
+  'NO','ACTION','RESTRICT','USING','NATURAL','LATERAL','MATERIALIZED',
+  'TEMPORARY','TEMP','REPLACE','TRUNCATE','EXPLAIN','ANALYZE','GRANT',
+  'REVOKE','BEGIN','COMMIT','ROLLBACK','SAVEPOINT','RELEASE'
+];
+
+const MAJOR_CLAUSES = [
+  'SELECT','FROM','WHERE','ORDER BY','GROUP BY','HAVING','LIMIT','OFFSET',
+  'INSERT INTO','VALUES','UPDATE','SET','DELETE FROM','CREATE TABLE',
+  'ALTER TABLE','DROP TABLE','INNER JOIN','LEFT JOIN','RIGHT JOIN',
+  'FULL JOIN','CROSS JOIN','FULL OUTER JOIN','LEFT OUTER JOIN',
+  'RIGHT OUTER JOIN','UNION','UNION ALL','ON','AND','OR','CASE',
+  'WHEN','THEN','ELSE','END','FOREIGN KEY','PRIMARY KEY','INDEX',
+  'CONSTRAINT','IF NOT EXISTS','IF EXISTS','AUTO_INCREMENT','DEFAULT',
+  'REFERENCES','CASCADE','ON DELETE','ON UPDATE'
+];
+
+function getIndent() {
+  const v = document.getElementById('indentStyle').value;
+  return v === 'tab' ? '\t' : ' '.repeat(parseInt(v));
+}
+
+function formatSQL() {
+  const raw = document.getElementById('sqlInput').value.trim();
+  if (!raw) return;
+  const uc = document.getElementById('uppercaseKw').checked;
+  const highlight = document.getElementById('highlightSyntax').checked;
+
+  let sql = raw.replace(/\s+/g, ' ').trim();
+  const indent = getIndent();
+
+  const newlineBefore = [
+    'SELECT','FROM','WHERE','ORDER BY','GROUP BY','HAVING','LIMIT','OFFSET',
+    'INSERT INTO','VALUES','UPDATE','SET','DELETE FROM','CREATE TABLE',
+    'ALTER TABLE','DROP TABLE','UNION ALL','UNION',
+    'INNER JOIN','LEFT OUTER JOIN','RIGHT OUTER JOIN','FULL OUTER JOIN',
+    'LEFT JOIN','RIGHT JOIN','FULL JOIN','CROSS JOIN','NATURAL JOIN'
+  ];
+
+  const indentedClauses = [
+    'AND','OR','ON','WHEN','THEN','ELSE','END',
+    'FOREIGN KEY','PRIMARY KEY','INDEX','CONSTRAINT'
+  ];
+
+  let formatted = sql;
+
+  // Handle keyword casing
+  KEYWORDS.forEach(kw => {
+    const re = new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+    formatted = formatted.replace(re, uc ? kw.toUpperCase() : kw.toLowerCase());
+  });
+
+  // Add newlines before major clauses
+  newlineBefore.sort((a, b) => b.length - a.length).forEach(clause => {
+    const target = uc ? clause.toUpperCase() : clause.toLowerCase();
+    const re = new RegExp('\\s+(' + target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\\b', 'gi');
+    formatted = formatted.replace(re, '\n$1');
+  });
+
+  // Indent sub-clauses
+  const lines = formatted.split('\n');
+  const result = [];
+  let depth = 0;
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) continue;
+
+    const upperLine = line.toUpperCase();
+
+    // Handle closing parens reducing depth
+    const opens = (line.match(/\(/g) || []).length;
+    const closes = (line.match(/\)/g) || []).length;
+
+    let isIndented = false;
+    for (const ic of indentedClauses) {
+      const target = uc ? ic.toUpperCase() : ic.toLowerCase();
+      if (upperLine.startsWith(ic)) {
+        result.push(indent + line);
+        isIndented = true;
+        break;
+      }
+    }
+
+    if (!isIndented) {
+      // Columns after SELECT, VALUES content, etc.
+      if (result.length > 0) {
+        const prevUpper = result[result.length - 1].trim().toUpperCase();
+        if ((prevUpper.startsWith('SELECT') || prevUpper.startsWith('SET')) && !upperLine.startsWith('FROM') && !upperLine.startsWith('WHERE') && !line.startsWith(indent)) {
+          // Check if this is a continuation of SELECT columns
+        }
+      }
+      result.push(line);
+    }
+
+    depth += opens - closes;
+    if (depth < 0) depth = 0;
+  }
+
+  // Format column lists (after SELECT, add newlines for each column)
+  let final = result.join('\n');
+  final = final.replace(/(SELECT\s+)([\s\S]*?)(\s*FROM\b)/gi, (match, sel, cols, from) => {
+    const colList = cols.split(',').map(c => c.trim()).filter(Boolean);
+    if (colList.length > 1) {
+      return sel + '\n' + colList.map(c => indent + c).join(',\n') + '\n' + from.trim();
+    }
+    return match;
+  });
+
+  // Format CREATE TABLE columns
+  final = final.replace(/\(([^()]*(?:ENUM\s*\([^)]*\))?[^()]*)\)/gi, (match, inner) => {
+    if (inner.includes(',') && (final.toUpperCase().includes('CREATE TABLE') || final.toUpperCase().includes('VALUES'))) {
+      const items = [];
+      let depth = 0, current = '';
+      for (const ch of inner) {
+        if (ch === '(') depth++;
+        if (ch === ')') depth--;
+        if (ch === ',' && depth === 0) {
+          items.push(current.trim());
+          current = '';
+        } else {
+          current += ch;
+        }
+      }
+      if (current.trim()) items.push(current.trim());
+      if (items.length > 2) {
+        return '(\n' + items.map(i => indent + i).join(',\n') + '\n)';
+      }
+    }
+    return match;
+  });
+
+  if (highlight) {
+    document.getElementById('sqlOutput').innerHTML = highlightSQL(final);
+  } else {
+    document.getElementById('sqlOutput').textContent = final;
+  }
+}
+
+function highlightSQL(sql) {
+  let escaped = sql.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // Highlight strings
+  escaped = escaped.replace(/('(?:[^'\\]|\\.)*')/g, '<span class="str">$1</span>');
+
+  // Highlight numbers
+  escaped = escaped.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="num">$1</span>');
+
+  // Highlight keywords
+  KEYWORDS.forEach(kw => {
+    const re = new RegExp('\\b(' + kw + ')\\b', 'gi');
+    escaped = escaped.replace(re, (m) => '<span class="kw">' + m + '</span>');
+  });
+
+  // Highlight functions
+  escaped = escaped.replace(/\b(COUNT|SUM|AVG|MIN|MAX|COALESCE|CAST|NOW|DATE_SUB|CONCAT|IFNULL|NULLIF|TRIM|UPPER|LOWER|LENGTH|SUBSTRING|REPLACE|ROUND|CEIL|FLOOR|ABS|POWER|SQRT|MOD|RAND|UUID|ROW_NUMBER|RANK|DENSE_RANK|LAG|LEAD)\b/gi, '<span class="fn">$1</span>');
+
+  // Highlight comments
+  escaped = escaped.replace(/(--[^\n]*)/g, '<span class="cm">$1</span>');
+
+  // Highlight operators
+  escaped = escaped.replace(/([=<>!]+|&gt;=?|&lt;=?)/g, '<span class="op">$1</span>');
+
+  return escaped;
+}
+
+function loadExample(key) {
+  document.getElementById('sqlInput').value = EXAMPLES[key];
+  formatSQL();
+}
+
+function copyOutput() {
+  const el = document.getElementById('sqlOutput');
+  const text = el.textContent || el.innerText;
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!'));
+}
+
+function pasteFromClipboard() {
+  navigator.clipboard.readText().then(t => {
+    document.getElementById('sqlInput').value = t;
+  }).catch(() => showToast('Cannot access clipboard'));
+}
+
+function clearAll() {
+  document.getElementById('sqlInput').value = '';
+  document.getElementById('sqlOutput').innerHTML = '';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Auto-format on load
+window.addEventListener('DOMContentLoaded', formatSQL);
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>

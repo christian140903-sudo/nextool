@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JWT Token Decoder — NexTool Free Tools</title>
+<meta name="description" content="Decode JWT tokens instantly. View header, payload, and signature with syntax highlighting. Check expiration. Free tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text2:#94a3b8;--green:#34d399;--red:#f87171;--yellow:#fbbf24;--radius:12px;--font:'Inter',sans-serif}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.6}
+a{color:var(--primary);text-decoration:none;transition:color .2s}a:hover{color:var(--accent)}
+
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-brand{font-weight:700;font-size:1.25rem;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:24px;list-style:none}
+.nav-links a{color:var(--text2);font-size:.9rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+
+.hero{text-align:center;padding:48px 24px 32px}
+.hero h1{font-size:2.2rem;font-weight:700;margin-bottom:8px;background:linear-gradient(135deg,var(--primary),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1.05rem;max-width:600px;margin:0 auto}
+
+.container{max-width:960px;margin:0 auto;padding:0 24px 48px;flex:1;width:100%}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.panel-title{font-weight:600;font-size:.95rem;display:flex;align-items:center;gap:8px}
+.panel-body{padding:16px 18px}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:#818cf8;transform:translateY(-1px)}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-ghost{background:transparent;color:var(--text2);padding:6px 10px}.btn-ghost:hover{color:var(--text);background:var(--surface2)}
+
+textarea{width:100%;min-height:120px;padding:16px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;font-family:'Courier New',monospace;font-size:.88rem;resize:vertical;outline:none;line-height:1.5;transition:border-color .2s}
+textarea:focus{border-color:var(--primary)}
+
+.jwt-visual{display:flex;flex-wrap:wrap;word-break:break-all;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.6;padding:12px 16px;background:var(--bg);border-radius:8px;margin-top:12px}
+.jwt-header-part{color:#f87171}.jwt-payload-part{color:#a855f7}.jwt-sig-part{color:#38bdf8}
+.jwt-dot{color:var(--text2);font-weight:700}
+
+.decoded-json{background:var(--bg);border-radius:8px;padding:16px;font-family:'Courier New',monospace;font-size:.88rem;line-height:1.7;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+.json-key{color:#f87171}.json-str{color:#34d399}.json-num{color:#fbbf24}.json-bool{color:#c084fc}.json-null{color:#94a3b8}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:.78rem;font-weight:600}
+.badge-green{background:rgba(52,211,153,.15);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.3)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow);border:1px solid rgba(251,191,36,.3)}
+.badge-blue{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.3)}
+
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px}
+.info-card{background:var(--bg);border-radius:8px;padding:12px 14px;border:1px solid var(--border)}
+.info-card .label{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.info-card .value{font-size:.95rem;font-weight:600}
+
+.actions-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+.error-msg{color:var(--red);font-size:.9rem;padding:12px 16px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;margin-top:12px;display:none}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;font-weight:500;transform:translateY(80px);opacity:0;transition:all .3s;z-index:200}
+.toast.show{transform:translateY(0);opacity:1}
+
+footer{background:var(--surface);border-top:1px solid var(--border);text-align:center;padding:20px 24px;color:var(--text2);font-size:.85rem;margin-top:auto}
+
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:60px;left:0;right:0;background:var(--surface);flex-direction:column;padding:16px 24px;border-bottom:1px solid var(--border)}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.7rem}
+  .info-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">NexTool</a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/free-tools/">Free Tools</a></li>
+      <li><a href="/services/">Services</a></li>
+      <li><a href="/products/">Products</a></li>
+      <li><a href="/blog/">Blog</a></li>
+      <li><a href="/pricing.html">Pricing</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>JWT Token Decoder</h1>
+  <p>Decode JSON Web Tokens instantly. View header, payload, and check expiration. Everything runs client-side -- your tokens never leave your browser.</p>
+</div>
+
+<div class="container">
+  <!-- Input -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Paste JWT Token</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="loadSample()">Load Sample</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <textarea id="jwtInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY..." spellcheck="false" oninput="decodeJWT()"></textarea>
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="jwt-visual" id="jwtVisual" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Token Info -->
+  <div class="panel" id="infoPanel" style="display:none">
+    <div class="panel-header">
+      <span class="panel-title">Token Info</span>
+      <span id="statusBadge"></span>
+    </div>
+    <div class="panel-body">
+      <div class="info-grid" id="infoGrid"></div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="panel" id="headerPanel" style="display:none">
+    <div class="panel-header">
+      <span class="panel-title"><span style="color:#f87171">&#9679;</span> Header (JOSE)</span>
+      <button class="btn btn-ghost btn-sm" onclick="copyPart('header')">Copy</button>
+    </div>
+    <div class="panel-body">
+      <div class="decoded-json" id="headerJson"></div>
+    </div>
+  </div>
+
+  <!-- Payload -->
+  <div class="panel" id="payloadPanel" style="display:none">
+    <div class="panel-header">
+      <span class="panel-title"><span style="color:#a855f7">&#9679;</span> Payload (Claims)</span>
+      <button class="btn btn-ghost btn-sm" onclick="copyPart('payload')">Copy</button>
+    </div>
+    <div class="panel-body">
+      <div class="decoded-json" id="payloadJson"></div>
+    </div>
+  </div>
+
+  <!-- Signature -->
+  <div class="panel" id="sigPanel" style="display:none">
+    <div class="panel-header">
+      <span class="panel-title"><span style="color:#38bdf8">&#9679;</span> Signature</span>
+      <button class="btn btn-ghost btn-sm" onclick="copyPart('signature')">Copy</button>
+    </div>
+    <div class="panel-body">
+      <div class="decoded-json" id="sigJson" style="color:var(--text2)"></div>
+      <p style="color:var(--text2);font-size:.82rem;margin-top:8px">Signature verification requires the secret/key and is not performed client-side.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>&copy; 2026 NexTool. All rights reserved.</footer>
+
+<script>
+let decodedParts = { header: null, payload: null, signature: '' };
+
+function base64UrlDecode(str) {
+  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = base64.length % 4;
+  if (pad) base64 += '='.repeat(4 - pad);
+  try {
+    return decodeURIComponent(atob(base64).split('').map(c =>
+      '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+    ).join(''));
+  } catch (e) {
+    return atob(base64);
+  }
+}
+
+function decodeJWT() {
+  const token = document.getElementById('jwtInput').value.trim();
+  const errEl = document.getElementById('errorMsg');
+  const panels = ['infoPanel','headerPanel','payloadPanel','sigPanel'];
+
+  if (!token) {
+    panels.forEach(id => document.getElementById(id).style.display = 'none');
+    document.getElementById('jwtVisual').style.display = 'none';
+    errEl.style.display = 'none';
+    return;
+  }
+
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    errEl.textContent = 'Invalid JWT: Expected 3 parts (header.payload.signature), found ' + parts.length + '.';
+    errEl.style.display = 'block';
+    panels.forEach(id => document.getElementById(id).style.display = 'none');
+    document.getElementById('jwtVisual').style.display = 'none';
+    return;
+  }
+
+  let header, payload;
+  try {
+    header = JSON.parse(base64UrlDecode(parts[0]));
+  } catch (e) {
+    errEl.textContent = 'Invalid JWT: Could not decode header. ' + e.message;
+    errEl.style.display = 'block';
+    panels.forEach(id => document.getElementById(id).style.display = 'none');
+    return;
+  }
+
+  try {
+    payload = JSON.parse(base64UrlDecode(parts[1]));
+  } catch (e) {
+    errEl.textContent = 'Invalid JWT: Could not decode payload. ' + e.message;
+    errEl.style.display = 'block';
+    panels.forEach(id => document.getElementById(id).style.display = 'none');
+    return;
+  }
+
+  errEl.style.display = 'none';
+  decodedParts = { header, payload, signature: parts[2] };
+
+  // Visual token
+  const vis = document.getElementById('jwtVisual');
+  vis.style.display = 'flex';
+  vis.innerHTML =
+    '<span class="jwt-header-part">' + escHtml(parts[0]) + '</span>' +
+    '<span class="jwt-dot">.</span>' +
+    '<span class="jwt-payload-part">' + escHtml(parts[1]) + '</span>' +
+    '<span class="jwt-dot">.</span>' +
+    '<span class="jwt-sig-part">' + escHtml(parts[2]) + '</span>';
+
+  // Header
+  document.getElementById('headerPanel').style.display = 'block';
+  document.getElementById('headerJson').innerHTML = highlightJSON(header);
+
+  // Payload
+  document.getElementById('payloadPanel').style.display = 'block';
+  document.getElementById('payloadJson').innerHTML = highlightJSON(payload);
+
+  // Signature
+  document.getElementById('sigPanel').style.display = 'block';
+  document.getElementById('sigJson').textContent = parts[2];
+
+  // Info
+  renderInfo(header, payload);
+}
+
+function renderInfo(header, payload) {
+  const panel = document.getElementById('infoPanel');
+  panel.style.display = 'block';
+
+  const grid = document.getElementById('infoGrid');
+  const badge = document.getElementById('statusBadge');
+
+  let cards = '';
+
+  // Algorithm
+  if (header.alg) {
+    cards += infoCard('Algorithm', header.alg);
+  }
+  if (header.typ) {
+    cards += infoCard('Type', header.typ);
+  }
+  if (header.kid) {
+    cards += infoCard('Key ID', header.kid);
+  }
+
+  // Subject
+  if (payload.sub) {
+    cards += infoCard('Subject', payload.sub);
+  }
+  // Issuer
+  if (payload.iss) {
+    cards += infoCard('Issuer', payload.iss);
+  }
+  // Audience
+  if (payload.aud) {
+    cards += infoCard('Audience', Array.isArray(payload.aud) ? payload.aud.join(', ') : payload.aud);
+  }
+
+  // Issued at
+  if (payload.iat) {
+    const d = new Date(payload.iat * 1000);
+    cards += infoCard('Issued At', formatDate(d));
+  }
+
+  // Expiration
+  if (payload.exp) {
+    const d = new Date(payload.exp * 1000);
+    const now = Date.now();
+    const isExpired = payload.exp * 1000 < now;
+    cards += infoCard('Expires', formatDate(d));
+
+    if (isExpired) {
+      const ago = timeDiff(now - payload.exp * 1000);
+      badge.innerHTML = '<span class="badge badge-red">Expired ' + ago + ' ago</span>';
+    } else {
+      const until = timeDiff(payload.exp * 1000 - now);
+      badge.innerHTML = '<span class="badge badge-green">Valid for ' + until + '</span>';
+    }
+  } else {
+    badge.innerHTML = '<span class="badge badge-yellow">No expiration</span>';
+  }
+
+  // Not before
+  if (payload.nbf) {
+    const d = new Date(payload.nbf * 1000);
+    const isActive = payload.nbf * 1000 <= Date.now();
+    cards += infoCard('Not Before', formatDate(d) + (isActive ? ' (active)' : ' (not yet active)'));
+  }
+
+  // JWT ID
+  if (payload.jti) {
+    cards += infoCard('JWT ID', payload.jti);
+  }
+
+  grid.innerHTML = cards;
+}
+
+function infoCard(label, value) {
+  return '<div class="info-card"><div class="label">' + escHtml(label) + '</div><div class="value">' + escHtml(String(value)) + '</div></div>';
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) +
+    ' ' + d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+function timeDiff(ms) {
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return s + 's';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + 'm';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ' + (m % 60) + 'm';
+  const d = Math.floor(h / 24);
+  return d + 'd ' + (h % 24) + 'h';
+}
+
+function highlightJSON(obj) {
+  const json = JSON.stringify(obj, null, 2);
+  let html = escHtml(json);
+  // Keys
+  html = html.replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:');
+  // String values
+  html = html.replace(/:\s*"([^"]*)"/g, ': <span class="json-str">"$1"</span>');
+  // Numbers
+  html = html.replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-num">$1</span>');
+  // Booleans
+  html = html.replace(/:\s*(true|false)/g, ': <span class="json-bool">$1</span>');
+  // Null
+  html = html.replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+  return html;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function copyPart(part) {
+  let text = '';
+  if (part === 'header') text = JSON.stringify(decodedParts.header, null, 2);
+  else if (part === 'payload') text = JSON.stringify(decodedParts.payload, null, 2);
+  else if (part === 'signature') text = decodedParts.signature;
+  navigator.clipboard.writeText(text).then(() => showToast('Copied ' + part + '!'));
+}
+
+function loadSample() {
+  // Create a sample JWT (header.payload.signature) with an expiration in the future
+  const header = btoa(JSON.stringify({alg:"HS256",typ:"JWT"})).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const now = Math.floor(Date.now()/1000);
+  const payloadObj = {
+    sub: "1234567890",
+    name: "Jane Developer",
+    email: "jane@example.com",
+    iat: now - 3600,
+    exp: now + 86400,
+    iss: "https://auth.nextool.app",
+    aud: "nextool-api",
+    role: "admin",
+    permissions: ["read","write","deploy"]
+  };
+  const payload = btoa(JSON.stringify(payloadObj)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const sig = 'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+  document.getElementById('jwtInput').value = header + '.' + payload + '.' + sig;
+  decodeJWT();
+}
+
+function clearAll() {
+  document.getElementById('jwtInput').value = '';
+  decodeJWT();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Animation Generator - Free Tool | NexTool</title>
+<meta name="description" content="Create CSS keyframe animations visually. Predefined presets, customizable timing, live preview. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text2:#94a3b8;--border:#2a2a3a;--radius:12px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--primary);text-decoration:none;transition:color .2s}a:hover{color:var(--accent)}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{font-size:1.25rem;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:24px;list-style:none}
+.nav-links a{color:var(--text2);font-size:.875rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:48px 24px}
+h1{font-size:2rem;font-weight:700;margin-bottom:8px;background:linear-gradient(135deg,var(--primary),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:var(--text2);font-size:1rem;margin-bottom:36px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.card h2{font-size:1.05rem;font-weight:600;margin-bottom:16px}
+label{display:block;color:var(--text2);font-size:.8rem;font-weight:500;margin-bottom:6px;margin-top:12px}
+label:first-child{margin-top:0}
+select,input[type="text"],input[type="number"],input[type="range"]{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:.85rem;outline:none;transition:border-color .2s}
+select:focus,input:focus{border-color:var(--primary)}
+input[type="range"]{padding:4px 0;border:none;background:transparent;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--surface2)}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--primary);cursor:pointer}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.preset-btn{padding:5px 12px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);border-radius:6px;font-size:.78rem;cursor:pointer;transition:all .2s;font-family:inherit}
+.preset-btn:hover,.preset-btn.active{border-color:var(--primary);color:var(--primary);background:rgba(99,102,241,.1)}
+.range-row{display:flex;align-items:center;gap:10px}
+.range-row input[type="range"]{flex:1}
+.range-val{color:var(--text);font-size:.85rem;font-weight:500;min-width:50px;text-align:right}
+/* Preview */
+.preview-area{width:100%;height:240px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:16px;position:relative}
+.preview-element{width:80px;height:80px;border-radius:var(--radius);background:linear-gradient(135deg,var(--primary),var(--accent))}
+.shape-options{display:flex;gap:6px;margin-bottom:12px}
+.shape-btn{padding:5px 12px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);border-radius:6px;font-size:.78rem;cursor:pointer;transition:all .2s;font-family:inherit}
+.shape-btn:hover,.shape-btn.active{border-color:var(--accent);color:var(--accent)}
+/* Code output */
+.code-area{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Courier New',monospace;font-size:.82rem;color:var(--text);white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto;line-height:1.6;position:relative}
+.code-area .kw{color:var(--pink)}.code-area .prop{color:var(--primary)}.code-area .val{color:#22c55e}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-family:inherit;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{border-color:var(--primary)}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center;color:var(--text2);font-size:.8rem}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:12px 20px;border-radius:8px;font-size:.875rem;font-weight:500;opacity:0;transform:translateY(12px);transition:all .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:60px;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);flex-direction:column;padding:16px 24px;gap:12px}
+  .nav-links.open{display:flex}.nav-toggle{display:block}
+  .grid{grid-template-columns:1fr}
+  h1{font-size:1.5rem}
+  main{padding:32px 16px}
+  .card{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">NexTool</a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/free-tools/">Free Tools</a></li>
+      <li><a href="/services/">Services</a></li>
+      <li><a href="/products/">Products</a></li>
+      <li><a href="/blog/">Blog</a></li>
+      <li><a href="/pricing.html">Pricing</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <h1>CSS Animation Generator</h1>
+  <p class="subtitle">Create beautiful keyframe animations with a visual editor and live preview.</p>
+
+  <div class="grid">
+    <div>
+      <div class="card" style="margin-bottom:24px">
+        <h2>Preset Animations</h2>
+        <div class="presets" id="presets"></div>
+      </div>
+      <div class="card">
+        <h2>Customize</h2>
+        <label>Animation Name</label>
+        <input type="text" id="animName" value="myAnimation" oninput="update()">
+
+        <label>Duration</label>
+        <div class="range-row">
+          <input type="range" id="duration" min="0.1" max="5" step="0.1" value="1" oninput="update()">
+          <span class="range-val" id="durationVal">1s</span>
+        </div>
+
+        <label>Timing Function</label>
+        <select id="timing" onchange="update()">
+          <option value="ease">ease</option>
+          <option value="ease-in">ease-in</option>
+          <option value="ease-out">ease-out</option>
+          <option value="ease-in-out">ease-in-out</option>
+          <option value="linear">linear</option>
+          <option value="cubic-bezier(0.68,-0.55,0.27,1.55)">elastic</option>
+          <option value="cubic-bezier(0.34,1.56,0.64,1)">bounce-out</option>
+          <option value="steps(5, end)">steps(5)</option>
+        </select>
+
+        <label>Delay</label>
+        <div class="range-row">
+          <input type="range" id="delay" min="0" max="3" step="0.1" value="0" oninput="update()">
+          <span class="range-val" id="delayVal">0s</span>
+        </div>
+
+        <label>Iteration Count</label>
+        <select id="iterations" onchange="update()">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="infinite" selected>infinite</option>
+        </select>
+
+        <label>Direction</label>
+        <select id="direction" onchange="update()">
+          <option value="normal">normal</option>
+          <option value="reverse">reverse</option>
+          <option value="alternate" selected>alternate</option>
+          <option value="alternate-reverse">alternate-reverse</option>
+        </select>
+
+        <label>Fill Mode</label>
+        <select id="fillMode" onchange="update()">
+          <option value="none">none</option>
+          <option value="forwards">forwards</option>
+          <option value="backwards">backwards</option>
+          <option value="both" selected>both</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:24px">
+        <h2>Live Preview</h2>
+        <div class="shape-options">
+          <button class="shape-btn active" data-shape="box" onclick="setShape(this,'box')">Box</button>
+          <button class="shape-btn" data-shape="circle" onclick="setShape(this,'circle')">Circle</button>
+          <button class="shape-btn" data-shape="text" onclick="setShape(this,'text')">Text</button>
+          <button class="shape-btn" data-shape="button" onclick="setShape(this,'button')">Button</button>
+        </div>
+        <div class="preview-area" id="previewArea">
+          <div class="preview-element" id="previewEl"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="restartPreview()">Restart Animation</button>
+      </div>
+
+      <div class="card">
+        <h2>CSS Code</h2>
+        <div class="code-area" id="codeOutput"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary btn-sm" onclick="copyCode()">Copy CSS</button>
+          <button class="btn btn-secondary btn-sm" onclick="copyShorthand()">Copy Shorthand</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>&copy; 2026 NexTool. All rights reserved.</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const presets = {
+  bounce: { keyframes: '0%,100%{transform:translateY(0)}50%{transform:translateY(-30px)}', timing: 'ease', direction: 'normal', iterations: 'infinite' },
+  fadeIn: { keyframes: '0%{opacity:0}100%{opacity:1}', timing: 'ease', direction: 'normal', iterations: '1' },
+  fadeOut: { keyframes: '0%{opacity:1}100%{opacity:0}', timing: 'ease', direction: 'normal', iterations: '1' },
+  slideInLeft: { keyframes: '0%{transform:translateX(-100px);opacity:0}100%{transform:translateX(0);opacity:1}', timing: 'ease-out', direction: 'normal', iterations: '1' },
+  slideInRight: { keyframes: '0%{transform:translateX(100px);opacity:0}100%{transform:translateX(0);opacity:1}', timing: 'ease-out', direction: 'normal', iterations: '1' },
+  slideInUp: { keyframes: '0%{transform:translateY(60px);opacity:0}100%{transform:translateY(0);opacity:1}', timing: 'ease-out', direction: 'normal', iterations: '1' },
+  rotate: { keyframes: '0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}', timing: 'linear', direction: 'normal', iterations: 'infinite' },
+  pulse: { keyframes: '0%,100%{transform:scale(1)}50%{transform:scale(1.15)}', timing: 'ease-in-out', direction: 'normal', iterations: 'infinite' },
+  shake: { keyframes: '0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-5px)}20%,40%,60%,80%{transform:translateX(5px)}', timing: 'ease-in-out', direction: 'normal', iterations: '1' },
+  flip: { keyframes: '0%{transform:perspective(400px) rotateY(0)}100%{transform:perspective(400px) rotateY(360deg)}', timing: 'ease-in-out', direction: 'normal', iterations: 'infinite' },
+  swing: { keyframes: '0%{transform:rotate(0deg)}20%{transform:rotate(15deg)}40%{transform:rotate(-10deg)}60%{transform:rotate(5deg)}80%{transform:rotate(-5deg)}100%{transform:rotate(0deg)}', timing: 'ease-in-out', direction: 'normal', iterations: 'infinite' },
+  jello: { keyframes: '0%,100%{transform:skewX(0) skewY(0)}30%{transform:skewX(-12.5deg) skewY(-12.5deg)}40%{transform:skewX(6.25deg) skewY(6.25deg)}50%{transform:skewX(-3.125deg) skewY(-3.125deg)}65%{transform:skewX(1.5625deg) skewY(1.5625deg)}75%{transform:skewX(-0.78125deg) skewY(-0.78125deg)}', timing: 'ease-in-out', direction: 'normal', iterations: 'infinite' },
+  glow: { keyframes: '0%,100%{box-shadow:0 0 5px rgba(99,102,241,.4)}50%{box-shadow:0 0 25px rgba(99,102,241,.8),0 0 50px rgba(168,85,247,.4)}', timing: 'ease-in-out', direction: 'normal', iterations: 'infinite' },
+  float: { keyframes: '0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}', timing: 'ease-in-out', direction: 'normal', iterations: 'infinite' },
+  heartbeat: { keyframes: '0%{transform:scale(1)}14%{transform:scale(1.3)}28%{transform:scale(1)}42%{transform:scale(1.3)}70%{transform:scale(1)}', timing: 'ease-in-out', direction: 'normal', iterations: 'infinite' },
+};
+
+let currentPreset = 'bounce';
+let currentShape = 'box';
+let activeStyleEl = null;
+
+function init() {
+  const container = document.getElementById('presets');
+  container.innerHTML = Object.keys(presets).map(name =>
+    `<button class="preset-btn${name===currentPreset?' active':''}" onclick="selectPreset('${name}')">${name}</button>`
+  ).join('');
+  selectPreset('bounce');
+}
+
+function selectPreset(name) {
+  currentPreset = name;
+  const p = presets[name];
+  document.getElementById('animName').value = name;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', b.textContent === name));
+  const timingSel = document.getElementById('timing');
+  for (let i = 0; i < timingSel.options.length; i++) {
+    if (timingSel.options[i].value === p.timing) { timingSel.selectedIndex = i; break; }
+  }
+  document.getElementById('direction').value = p.direction;
+  document.getElementById('iterations').value = p.iterations;
+  update();
+}
+
+function setShape(btn, shape) {
+  currentShape = shape;
+  document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPreviewElement();
+  update();
+}
+
+function renderPreviewElement() {
+  const el = document.getElementById('previewEl');
+  el.className = 'preview-element';
+  el.textContent = '';
+  el.style.cssText = '';
+  if (currentShape === 'circle') {
+    el.style.borderRadius = '50%';
+  } else if (currentShape === 'text') {
+    el.style.width = 'auto';
+    el.style.height = 'auto';
+    el.style.background = 'none';
+    el.style.fontSize = '1.5rem';
+    el.style.fontWeight = '700';
+    el.style.color = 'var(--text)';
+    el.textContent = 'NexTool';
+  } else if (currentShape === 'button') {
+    el.style.width = 'auto';
+    el.style.height = 'auto';
+    el.style.padding = '12px 28px';
+    el.style.fontSize = '1rem';
+    el.style.fontWeight = '600';
+    el.style.color = '#fff';
+    el.style.borderRadius = '8px';
+    el.textContent = 'Click Me';
+  }
+}
+
+function getValues() {
+  const name = document.getElementById('animName').value || 'myAnimation';
+  const duration = parseFloat(document.getElementById('duration').value);
+  const timing = document.getElementById('timing').value;
+  const delay = parseFloat(document.getElementById('delay').value);
+  const iterations = document.getElementById('iterations').value;
+  const direction = document.getElementById('direction').value;
+  const fillMode = document.getElementById('fillMode').value;
+  return { name, duration, timing, delay, iterations, direction, fillMode };
+}
+
+function getKeyframes() {
+  return presets[currentPreset]?.keyframes || presets.bounce.keyframes;
+}
+
+function formatKeyframes(name, raw) {
+  const formatted = raw.replace(/(\d+%(?:,\s*\d+%)*)\s*\{/g, '\n  $1 {\n    ').replace(/}/g, '\n  }').replace(/;/g, ';\n    ');
+  return `@keyframes ${name} {${formatted}\n}`;
+}
+
+function buildCSS() {
+  const v = getValues();
+  const kf = getKeyframes();
+  const kfFormatted = formatKeyframes(v.name, kf);
+  const shorthand = `${v.name} ${v.duration}s ${v.timing} ${v.delay}s ${v.iterations} ${v.direction} ${v.fillMode}`;
+  const longhand = `.animated-element {\n  animation-name: ${v.name};\n  animation-duration: ${v.duration}s;\n  animation-timing-function: ${v.timing};\n  animation-delay: ${v.delay}s;\n  animation-iteration-count: ${v.iterations};\n  animation-direction: ${v.direction};\n  animation-fill-mode: ${v.fillMode};\n}`;
+  return { kfFormatted, shorthand, longhand, kf, v };
+}
+
+function update() {
+  const { kfFormatted, shorthand, longhand, kf, v } = buildCSS();
+  document.getElementById('durationVal').textContent = v.duration + 's';
+  document.getElementById('delayVal').textContent = v.delay + 's';
+
+  const codeOut = document.getElementById('codeOutput');
+  codeOut.textContent = `${kfFormatted}\n\n${longhand}\n\n/* Shorthand */\n.animated-element {\n  animation: ${shorthand};\n}`;
+
+  applyPreview(kf, v);
+}
+
+function applyPreview(kf, v) {
+  if (activeStyleEl) activeStyleEl.remove();
+  activeStyleEl = document.createElement('style');
+  activeStyleEl.textContent = `@keyframes __preview{${kf}} #previewEl{animation:__preview ${v.duration}s ${v.timing} ${v.delay}s ${v.iterations} ${v.direction} ${v.fillMode};}`;
+  document.head.appendChild(activeStyleEl);
+}
+
+function restartPreview() {
+  const el = document.getElementById('previewEl');
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = '';
+  update();
+}
+
+function copyCode() {
+  const { kfFormatted, longhand, shorthand } = buildCSS();
+  const full = `${kfFormatted}\n\n${longhand}\n\n/* Shorthand */\n.animated-element {\n  animation: ${shorthand};\n}`;
+  navigator.clipboard.writeText(full).then(() => showToast('CSS copied to clipboard'));
+}
+
+function copyShorthand() {
+  const { shorthand } = buildCSS();
+  navigator.clipboard.writeText(`animation: ${shorthand};`).then(() => showToast('Shorthand copied'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+init();
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>
