@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free Text Analyzer — Word Count, Readability, SEO Analysis | NexTool</title>
+<meta name="description" content="Analyze your text with word count, readability scores (Flesch-Kincaid, Gunning Fog), keyword density, reading time, and more. Free, instant, no signup.">
+<meta name="keywords" content="text analyzer, word count, readability score, Flesch-Kincaid, keyword density, SEO analysis, reading time, free tool">
+<meta property="og:title" content="Free Text Analyzer | NexTool">
+<meta property="og:description" content="Word count, readability scores, keyword density, and reading time analysis. Instant, free.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://nextool.app/free-tools/text-analyzer">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Text Analyzer","applicationCategory":"UtilitiesApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free text analysis tool with readability scores, keyword extraction, and SEO metrics."}</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#252533;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text2:#94a3b8;--radius:12px;--glass:rgba(17,17,24,.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a{color:var(--primary);text-decoration:none}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-links a{color:var(--text2);font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;font-size:.85rem;-webkit-text-fill-color:#fff}
+.nav-cta:hover{opacity:.9}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem}
+.hero h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;margin-bottom:.5rem;background:linear-gradient(135deg,#fff,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1.05rem;max-width:600px;margin:0 auto}
+/* LAYOUT */
+.tool-wrap{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:900px){.main-grid{grid-template-columns:1fr}}
+.card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;transition:opacity .5s,transform .5s;opacity:0;transform:translateY(20px)}
+.card.visible{opacity:1;transform:translateY(0)}
+.card h3{font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.card h3 span{font-size:1.1rem}
+/* TEXTAREA */
+#textInput{width:100%;min-height:350px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:1rem;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:.95rem;line-height:1.6;resize:vertical;transition:border-color .2s}
+#textInput:focus{outline:none;border-color:var(--primary)}
+#textInput::placeholder{color:var(--text2)}
+.input-actions{display:flex;gap:.5rem;margin-top:.8rem;flex-wrap:wrap}
+.btn-sm{padding:.45rem .8rem;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:500;transition:all .2s}
+.btn-sm:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm.accent{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none}
+.btn-sm.accent:hover{opacity:.85}
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem}
+@media(max-width:500px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.8rem;text-align:center}
+.stat-val{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-top:.2rem}
+/* READABILITY */
+.readability-meters{display:flex;flex-direction:column;gap:1rem}
+.meter{position:relative}
+.meter-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem}
+.meter-name{font-size:.85rem;font-weight:600}
+.meter-score{font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.meter-bar{width:100%;height:8px;background:var(--surface2);border-radius:8px;overflow:hidden}
+.meter-fill{height:100%;border-radius:8px;transition:width .4s ease}
+.meter-desc{font-size:.75rem;color:var(--text2);margin-top:.3rem}
+.reading-level{margin-top:1rem;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;text-align:center}
+.level-grade{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.level-label{font-size:.85rem;color:var(--text2);margin-top:.2rem}
+/* KEYWORDS */
+.kw-table{width:100%;border-collapse:collapse}
+.kw-table th{text-align:left;font-size:.75rem;text-transform:uppercase;color:var(--text2);letter-spacing:.04em;padding:.5rem;border-bottom:1px solid var(--border)}
+.kw-table td{padding:.5rem;font-size:.85rem;border-bottom:1px solid var(--border)}
+.kw-bar-cell{width:40%}
+.kw-bar{height:6px;border-radius:6px;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .3s}
+.kw-empty{text-align:center;color:var(--text2);padding:2rem;font-size:.9rem}
+/* SENTENCE CHART */
+.sent-chart{display:flex;align-items:flex-end;gap:2px;height:100px;margin-top:.5rem;padding:.5rem 0}
+.sent-bar{flex:1;min-width:3px;max-width:20px;background:linear-gradient(0deg,var(--primary),var(--accent));border-radius:3px 3px 0 0;transition:height .3s}
+.sent-bar:hover{opacity:.7}
+.sent-stats{margin-top:.8rem;display:flex;gap:1.5rem;flex-wrap:wrap}
+.sent-stat{font-size:.85rem}
+.sent-stat strong{color:var(--primary)}
+/* COMPOSITION */
+.comp-grid{display:flex;flex-direction:column;gap:.4rem}
+.comp-row{display:flex;justify-content:space-between;align-items:center;padding:.45rem .6rem;background:var(--surface);border-radius:8px;border:1px solid var(--border)}
+.comp-label{font-size:.82rem;color:var(--text2)}
+.comp-val{font-size:.9rem;font-weight:700;color:var(--primary)}
+/* WORD LENGTH CHART */
+.wl-chart{display:flex;align-items:flex-end;gap:3px;height:70px;padding:.3rem 0}
+.wl-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.wl-bar{width:100%;background:linear-gradient(0deg,var(--accent),var(--pink));border-radius:3px 3px 0 0;transition:height .3s;min-height:2px}
+.wl-label{font-size:.6rem;color:var(--text2)}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;margin-top:3rem}
+.cta-section h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;margin-bottom:.8rem}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem;font-size:1rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));padding:.8rem 2rem;border-radius:10px;color:#fff;font-weight:700;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;margin-top:2rem}
+.footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text);margin-bottom:1rem}
+.footer-col a{display:block;color:var(--text2);font-size:.85rem;margin-bottom:.5rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);color:var(--text2);font-size:.8rem}
+@media(max-width:640px){.nav-links a:not(.nav-cta){display:none}.hero h1{font-size:1.6rem}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/#services">Services</a>
+    <a href="/free-tools">Free Tools</a>
+    <a href="/blog">Blog</a>
+    <a href="/#contact" class="nav-cta">Start a Project</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>Text Analyzer</h1>
+  <p>Paste your text to get instant word count, readability scores, keyword density, and reading time estimates.</p>
+</section>
+
+<div class="tool-wrap">
+  <div class="main-grid">
+    <!-- LEFT: Input + Stats -->
+    <div>
+      <div class="card" data-anim>
+        <h3><span>&#9997;</span> Your Text</h3>
+        <textarea id="textInput" placeholder="Paste or type your text here to analyze..."></textarea>
+        <div class="input-actions">
+          <button class="btn-sm" onclick="loadSample()">Load Sample</button>
+          <button class="btn-sm" onclick="clearText()">Clear</button>
+          <button class="btn-sm accent" onclick="exportReport()">Export Report</button>
+        </div>
+      </div>
+
+      <div class="card" data-anim style="margin-top:1.5rem">
+        <h3><span>&#128202;</span> Basic Stats</h3>
+        <div class="stats-grid">
+          <div class="stat-box"><div class="stat-val" id="sChars">0</div><div class="stat-label">Characters</div></div>
+          <div class="stat-box"><div class="stat-val" id="sCharsNoSp">0</div><div class="stat-label">No Spaces</div></div>
+          <div class="stat-box"><div class="stat-val" id="sWords">0</div><div class="stat-label">Words</div></div>
+          <div class="stat-box"><div class="stat-val" id="sSentences">0</div><div class="stat-label">Sentences</div></div>
+          <div class="stat-box"><div class="stat-val" id="sParagraphs">0</div><div class="stat-label">Paragraphs</div></div>
+          <div class="stat-box"><div class="stat-val" id="sReadTime">0m</div><div class="stat-label">Read Time</div></div>
+          <div class="stat-box"><div class="stat-val" id="sSpeakTime">0m</div><div class="stat-label">Speak Time</div></div>
+          <div class="stat-box"><div class="stat-val" id="sAvgWordLen">0</div><div class="stat-label">Avg Word Len</div></div>
+          <div class="stat-box"><div class="stat-val" id="sAvgSentLen">0</div><div class="stat-label">Avg Sent Len</div></div>
+        </div>
+      </div>
+
+      <div class="card" data-anim style="margin-top:1.5rem">
+        <h3><span>&#128200;</span> Sentence Length Distribution</h3>
+        <div class="sent-chart" id="sentChart"></div>
+        <div class="sent-stats">
+          <div class="sent-stat">Shortest: <strong id="sentMin">0</strong> words</div>
+          <div class="sent-stat">Longest: <strong id="sentMax">0</strong> words</div>
+          <div class="sent-stat">Std Dev: <strong id="sentStd">0</strong></div>
+        </div>
+      </div>
+
+      <div class="card" data-anim style="margin-top:1.5rem">
+        <h3><span>&#128300;</span> Text Composition</h3>
+        <div class="comp-grid">
+          <div class="comp-row">
+            <span class="comp-label">Unique Words</span>
+            <span class="comp-val" id="cUnique">0</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-label">Vocabulary Richness</span>
+            <span class="comp-val" id="cRichness">0%</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-label">Complex Words (3+ syllables)</span>
+            <span class="comp-val" id="cComplex">0</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-label">Complex Word Ratio</span>
+            <span class="comp-val" id="cComplexPct">0%</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-label">Total Syllables</span>
+            <span class="comp-val" id="cSyllables">0</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-label">Avg Syllables/Word</span>
+            <span class="comp-val" id="cAvgSyll">0</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-label">Longest Word</span>
+            <span class="comp-val" id="cLongest">--</span>
+          </div>
+        </div>
+        <h4 style="font-size:.85rem;margin-top:1.2rem;margin-bottom:.5rem;color:var(--text2)">Word Length Distribution</h4>
+        <div class="wl-chart" id="wordLenChart"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Readability + Keywords -->
+    <div>
+      <div class="card" data-anim>
+        <h3><span>&#128214;</span> Readability</h3>
+        <div class="readability-meters">
+          <div class="meter">
+            <div class="meter-header"><span class="meter-name">Flesch-Kincaid Reading Ease</span><span class="meter-score" id="fkScore">0</span></div>
+            <div class="meter-bar"><div class="meter-fill" id="fkBar" style="width:0%;background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e)"></div></div>
+            <div class="meter-desc" id="fkDesc">Enter text to analyze</div>
+          </div>
+          <div class="meter">
+            <div class="meter-header"><span class="meter-name">Gunning Fog Index</span><span class="meter-score" id="gfScore">0</span></div>
+            <div class="meter-bar"><div class="meter-fill" id="gfBar" style="width:0%;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444)"></div></div>
+            <div class="meter-desc" id="gfDesc">Enter text to analyze</div>
+          </div>
+          <div class="meter">
+            <div class="meter-header"><span class="meter-name">Coleman-Liau Index</span><span class="meter-score" id="clScore">0</span></div>
+            <div class="meter-bar"><div class="meter-fill" id="clBar" style="width:0%;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444)"></div></div>
+            <div class="meter-desc" id="clDesc">Enter text to analyze</div>
+          </div>
+        </div>
+        <div class="reading-level">
+          <div class="level-grade" id="gradeLevel">--</div>
+          <div class="level-label" id="gradeLabel">Reading Level</div>
+        </div>
+      </div>
+
+      <div class="card" data-anim style="margin-top:1.5rem">
+        <h3><span>&#128273;</span> Top Keywords</h3>
+        <div id="kwContainer">
+          <div class="kw-empty">Enter text to see keyword analysis</div>
+        </div>
+      </div>
+
+      <div class="card" data-anim style="margin-top:1.5rem">
+        <h3><span>&#128203;</span> Keyword Density</h3>
+        <div id="kdContainer">
+          <div class="kw-empty">Enter text to see density analysis</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Need something more powerful?</h2>
+  <p>Let us build it for you. Custom websites, automations, chatbots, and more.</p>
+  <a href="/#contact" class="cta-btn">Start a Project</a>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Services</h4>
+      <a href="/#services">Websites</a>
+      <a href="/#services">Chatbots</a>
+      <a href="/#services">Automations</a>
+      <a href="/#services">Content</a>
+      <a href="/#services">Video</a>
+      <a href="/#services">Data</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools">Free Tools</a>
+      <a href="/free-tools/gradient-generator">Gradient Generator</a>
+      <a href="/free-tools/text-analyzer">Text Analyzer</a>
+      <a href="/blog">Blog</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a>
+      <a href="/#pricing">Pricing</a>
+      <a href="/#contact">Contact</a>
+      <a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI Automation Studio.</div>
+</footer>
+
+<script>
+/* ===== STOP WORDS ===== */
+const STOP_WORDS = new Set([
+  'the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you',
+  'do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one',
+  'all','would','there','their','what','so','up','out','if','about','who','get','which','go','me',
+  'when','make','can','like','time','no','just','him','know','take','people','into','year','your',
+  'good','some','could','them','see','other','than','then','now','look','only','come','its','over',
+  'think','also','back','after','use','two','how','our','work','first','well','way','even','new',
+  'want','because','any','these','give','day','most','us','is','are','was','were','been','being',
+  'had','has','did','does','doing','am','more','very','much','many','such','each','own','same',
+  'both','few','still','should','may','might','must','need','here','too','through','between',
+  'before','where','while','those','thing','things','really','got','been','had','has','just',
+  'don','doesn','didn','isn','wasn','weren','won','wouldn','couldn','shouldn','can','t','s','re',
+  've','ll','d','m','ain'
+]);
+
+/* ===== ANALYSIS ENGINE ===== */
+function getWords(text) {
+  return text.match(/[a-zA-Z\u00C0-\u024F']+/g) || [];
+}
+
+function getSentences(text) {
+  const sents = text.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 0);
+  return sents;
+}
+
+function getParagraphs(text) {
+  return text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0);
+}
+
+function countSyllables(word) {
+  word = word.toLowerCase().replace(/[^a-z]/g, '');
+  if (word.length <= 3) return 1;
+  word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+  word = word.replace(/^y/, '');
+  const m = word.match(/[aeiouy]{1,2}/g);
+  return m ? m.length : 1;
+}
+
+function isComplexWord(word) {
+  return countSyllables(word) >= 3;
+}
+
+/* Flesch-Kincaid Reading Ease: 206.835 - 1.015*(words/sentences) - 84.6*(syllables/words) */
+function fleschKincaid(words, sentences, syllables) {
+  if (!sentences || !words.length) return 0;
+  return 206.835 - 1.015 * (words.length / sentences) - 84.6 * (syllables / words.length);
+}
+
+function fleschLabel(score) {
+  if (score >= 90) return 'Very Easy (5th grade)';
+  if (score >= 80) return 'Easy (6th grade)';
+  if (score >= 70) return 'Fairly Easy (7th grade)';
+  if (score >= 60) return 'Standard (8th-9th grade)';
+  if (score >= 50) return 'Fairly Difficult (10th-12th grade)';
+  if (score >= 30) return 'Difficult (College)';
+  return 'Very Difficult (College Graduate)';
+}
+
+/* Gunning Fog: 0.4*(words/sentences + 100*(complexWords/words)) */
+function gunningFog(words, sentenceCount, complexCount) {
+  if (!sentenceCount || !words.length) return 0;
+  return 0.4 * ((words.length / sentenceCount) + 100 * (complexCount / words.length));
+}
+
+function fogLabel(score) {
+  if (score <= 6) return 'Easy reading';
+  if (score <= 8) return '6th to 8th grade';
+  if (score <= 10) return '8th to 10th grade';
+  if (score <= 12) return '10th to 12th grade';
+  if (score <= 14) return 'College level';
+  return 'College graduate+';
+}
+
+/* Coleman-Liau: 0.0588*L - 0.296*S - 15.8 (L=avg letters per 100 words, S=avg sentences per 100 words) */
+function colemanLiau(words, sentenceCount) {
+  if (!words.length) return 0;
+  const totalLetters = words.reduce((a, w) => a + w.replace(/[^a-zA-Z]/g, '').length, 0);
+  const L = (totalLetters / words.length) * 100;
+  const S = (sentenceCount / words.length) * 100;
+  return 0.0588 * L - 0.296 * S - 15.8;
+}
+
+function colemanLabel(score) {
+  if (score <= 5) return '5th grade or lower';
+  if (score <= 8) return '6th-8th grade';
+  if (score <= 12) return '9th-12th grade';
+  if (score <= 16) return 'College level';
+  return 'Graduate level';
+}
+
+function gradeToAudience(grade) {
+  if (grade <= 5) return 'General Public / Children';
+  if (grade <= 8) return 'Middle School Students';
+  if (grade <= 12) return 'High School Students';
+  if (grade <= 16) return 'College Students';
+  return 'Professionals / Academics';
+}
+
+function extractKeywords(words, topN) {
+  const freq = {};
+  words.forEach(w => {
+    const lw = w.toLowerCase();
+    if (lw.length < 2 || STOP_WORDS.has(lw) || /^\d+$/.test(lw)) return;
+    freq[lw] = (freq[lw] || 0) + 1;
+  });
+  return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, topN);
+}
+
+/* ===== ANALYSIS + RENDER ===== */
+function analyze() {
+  const text = document.getElementById('textInput').value;
+  const words = getWords(text);
+  const sentences = getSentences(text);
+  const paragraphs = getParagraphs(text);
+  const wordCount = words.length;
+  const sentCount = sentences.length;
+
+  /* Basic stats */
+  document.getElementById('sChars').textContent = text.length.toLocaleString();
+  document.getElementById('sCharsNoSp').textContent = text.replace(/\s/g, '').length.toLocaleString();
+  document.getElementById('sWords').textContent = wordCount.toLocaleString();
+  document.getElementById('sSentences').textContent = sentCount;
+  document.getElementById('sParagraphs').textContent = text.trim() === '' ? 0 : paragraphs.length;
+
+  const readMin = Math.ceil(wordCount / 238);
+  const readSec = Math.round((wordCount / 238) * 60);
+  document.getElementById('sReadTime').textContent = readMin > 0 ? `${readMin}m ${readSec % 60}s` : '0s';
+
+  const speakMin = Math.ceil(wordCount / 150);
+  const speakSec = Math.round((wordCount / 150) * 60);
+  document.getElementById('sSpeakTime').textContent = speakMin > 0 ? `${speakMin}m ${speakSec % 60}s` : '0s';
+
+  const totalLetters = words.reduce((a, w) => a + w.length, 0);
+  const avgWordLen = wordCount > 0 ? (totalLetters / wordCount).toFixed(1) : '0';
+  document.getElementById('sAvgWordLen').textContent = avgWordLen;
+
+  const avgSentLen = sentCount > 0 ? (wordCount / sentCount).toFixed(1) : '0';
+  document.getElementById('sAvgSentLen').textContent = avgSentLen;
+
+  /* Readability */
+  const totalSyllables = words.reduce((a, w) => a + countSyllables(w), 0);
+  const complexCount = words.filter(isComplexWord).length;
+
+  const fk = Math.max(0, Math.min(100, fleschKincaid(words, sentCount, totalSyllables)));
+  document.getElementById('fkScore').textContent = fk.toFixed(1);
+  document.getElementById('fkBar').style.width = fk + '%';
+  document.getElementById('fkDesc').textContent = wordCount > 0 ? fleschLabel(fk) : 'Enter text to analyze';
+
+  const gf = Math.max(0, gunningFog(words, sentCount, complexCount));
+  document.getElementById('gfScore').textContent = gf.toFixed(1);
+  document.getElementById('gfBar').style.width = Math.min(100, (gf / 20) * 100) + '%';
+  document.getElementById('gfDesc').textContent = wordCount > 0 ? fogLabel(gf) : 'Enter text to analyze';
+
+  const cl = colemanLiau(words, sentCount);
+  const clClamped = Math.max(0, cl);
+  document.getElementById('clScore').textContent = cl.toFixed(1);
+  document.getElementById('clBar').style.width = Math.min(100, (clClamped / 20) * 100) + '%';
+  document.getElementById('clDesc').textContent = wordCount > 0 ? colemanLabel(cl) : 'Enter text to analyze';
+
+  /* Grade level (average of fog + coleman) */
+  const avgGrade = wordCount > 0 ? ((gf + Math.max(0, cl)) / 2).toFixed(0) : '--';
+  document.getElementById('gradeLevel').textContent = avgGrade === '--' ? '--' : `Grade ${avgGrade}`;
+  document.getElementById('gradeLabel').textContent = avgGrade === '--' ? 'Reading Level' : gradeToAudience(+avgGrade);
+
+  /* Keywords */
+  const keywords = extractKeywords(words, 15);
+  renderKeywords(keywords, wordCount);
+
+  /* Keyword density */
+  renderDensity(keywords, wordCount);
+
+  /* Sentence chart */
+  renderSentChart(sentences);
+
+  /* Composition */
+  renderComposition(words, totalSyllables, complexCount);
+}
+
+function renderKeywords(keywords, totalWords) {
+  const el = document.getElementById('kwContainer');
+  if (!keywords.length) { el.innerHTML = '<div class="kw-empty">Enter text to see keyword analysis</div>'; return; }
+  const max = keywords[0][1];
+  el.innerHTML = `<table class="kw-table">
+    <tr><th>Keyword</th><th>Count</th><th>Frequency</th></tr>
+    ${keywords.map(([w, c]) => `<tr>
+      <td>${w}</td>
+      <td>${c}</td>
+      <td class="kw-bar-cell"><div class="kw-bar" style="width:${(c / max) * 100}%"></div></td>
+    </tr>`).join('')}
+  </table>`;
+}
+
+function renderDensity(keywords, totalWords) {
+  const el = document.getElementById('kdContainer');
+  if (!keywords.length || !totalWords) { el.innerHTML = '<div class="kw-empty">Enter text to see density analysis</div>'; return; }
+  el.innerHTML = `<table class="kw-table">
+    <tr><th>Keyword</th><th>Count</th><th>Density</th></tr>
+    ${keywords.slice(0, 10).map(([w, c]) => {
+      const pct = ((c / totalWords) * 100).toFixed(2);
+      return `<tr><td>${w}</td><td>${c}</td><td>${pct}%</td></tr>`;
+    }).join('')}
+  </table>`;
+}
+
+function renderSentChart(sentences) {
+  const chart = document.getElementById('sentChart');
+  const wordCounts = sentences.map(s => (s.match(/[a-zA-Z\u00C0-\u024F']+/g) || []).length).filter(n => n > 0);
+  if (!wordCounts.length) {
+    chart.innerHTML = '';
+    document.getElementById('sentMin').textContent = '0';
+    document.getElementById('sentMax').textContent = '0';
+    document.getElementById('sentStd').textContent = '0';
+    return;
+  }
+  const max = Math.max(...wordCounts);
+  const min = Math.min(...wordCounts);
+  const avg = wordCounts.reduce((a, b) => a + b, 0) / wordCounts.length;
+  const std = Math.sqrt(wordCounts.reduce((a, v) => a + (v - avg) ** 2, 0) / wordCounts.length);
+
+  chart.innerHTML = wordCounts.map((c, i) =>
+    `<div class="sent-bar" style="height:${Math.max(4, (c / max) * 100)}%" title="Sentence ${i + 1}: ${c} words"></div>`
+  ).join('');
+
+  document.getElementById('sentMin').textContent = min;
+  document.getElementById('sentMax').textContent = max;
+  document.getElementById('sentStd').textContent = std.toFixed(1);
+}
+
+function renderComposition(words, totalSyllables, complexCount) {
+  const wc = words.length;
+  const uniqueSet = new Set(words.map(w => w.toLowerCase()));
+  const unique = uniqueSet.size;
+  document.getElementById('cUnique').textContent = unique;
+  document.getElementById('cRichness').textContent = wc > 0 ? ((unique / wc) * 100).toFixed(1) + '%' : '0%';
+  document.getElementById('cComplex').textContent = complexCount;
+  document.getElementById('cComplexPct').textContent = wc > 0 ? ((complexCount / wc) * 100).toFixed(1) + '%' : '0%';
+  document.getElementById('cSyllables').textContent = totalSyllables;
+  document.getElementById('cAvgSyll').textContent = wc > 0 ? (totalSyllables / wc).toFixed(2) : '0';
+  const longest = words.reduce((a, w) => w.length > a.length ? w : a, '');
+  document.getElementById('cLongest').textContent = longest || '--';
+
+  /* Word length distribution */
+  const lenDist = {};
+  words.forEach(w => {
+    const len = w.length;
+    const bucket = len >= 12 ? '12+' : String(len);
+    lenDist[bucket] = (lenDist[bucket] || 0) + 1;
+  });
+  const chart = document.getElementById('wordLenChart');
+  if (!wc) { chart.innerHTML = ''; return; }
+  const buckets = ['1','2','3','4','5','6','7','8','9','10','11','12+'];
+  const maxLen = Math.max(...buckets.map(b => lenDist[b] || 0), 1);
+  chart.innerHTML = buckets.map(b => {
+    const count = lenDist[b] || 0;
+    const h = Math.max(2, (count / maxLen) * 60);
+    return `<div class="wl-bar-wrap">
+      <div class="wl-bar" style="height:${h}px" title="${b} letters: ${count} words"></div>
+      <div class="wl-label">${b}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ===== ACTIONS ===== */
+function loadSample() {
+  document.getElementById('textInput').value = `The rapid advancement of artificial intelligence has fundamentally transformed how businesses operate in the modern economy. Machine learning algorithms now power everything from recommendation engines to autonomous vehicles, creating unprecedented opportunities for innovation.
+
+However, this technological revolution also raises important questions about privacy, employment, and ethical governance. As AI systems become more sophisticated, the need for transparent and accountable development practices grows increasingly urgent.
+
+Industry leaders argue that responsible AI development requires collaboration between technologists, policymakers, and civil society. Without proper oversight, the potential for misuse and unintended consequences remains a significant concern for communities worldwide.
+
+Recent studies indicate that organizations investing in AI literacy programs see measurable improvements in productivity and employee satisfaction. The key lies in viewing artificial intelligence not as a replacement for human capabilities, but as a powerful tool that amplifies human potential when deployed thoughtfully.`;
+  analyze();
+}
+
+function clearText() {
+  document.getElementById('textInput').value = '';
+  analyze();
+}
+
+function exportReport() {
+  const text = document.getElementById('textInput').value;
+  if (!text.trim()) return;
+
+  const words = getWords(text);
+  const sentences = getSentences(text);
+  const paragraphs = getParagraphs(text);
+  const totalSyllables = words.reduce((a, w) => a + countSyllables(w), 0);
+  const complexCount = words.filter(isComplexWord).length;
+  const fk = Math.max(0, Math.min(100, fleschKincaid(words, sentences.length, totalSyllables)));
+  const gf = gunningFog(words, sentences.length, complexCount);
+  const cl = colemanLiau(words, sentences.length);
+  const keywords = extractKeywords(words, 10);
+
+  let report = `TEXT ANALYSIS REPORT — Generated by NexTool\n${'='.repeat(50)}\n\n`;
+  report += `BASIC STATS\n${'-'.repeat(30)}\n`;
+  report += `Characters:       ${text.length}\n`;
+  report += `Characters (no sp):${text.replace(/\s/g,'').length}\n`;
+  report += `Words:            ${words.length}\n`;
+  report += `Sentences:        ${sentences.length}\n`;
+  report += `Paragraphs:       ${paragraphs.length}\n`;
+  report += `Reading Time:     ${Math.ceil(words.length / 238)} min\n`;
+  report += `Speaking Time:    ${Math.ceil(words.length / 150)} min\n`;
+  report += `Avg Word Length:  ${words.length ? (words.reduce((a,w) => a + w.length, 0) / words.length).toFixed(1) : 0}\n`;
+  report += `Avg Sent Length:  ${sentences.length ? (words.length / sentences.length).toFixed(1) : 0} words\n\n`;
+
+  report += `READABILITY\n${'-'.repeat(30)}\n`;
+  report += `Flesch-Kincaid:   ${fk.toFixed(1)} — ${fleschLabel(fk)}\n`;
+  report += `Gunning Fog:      ${gf.toFixed(1)} — ${fogLabel(gf)}\n`;
+  report += `Coleman-Liau:     ${cl.toFixed(1)} — ${colemanLabel(cl)}\n`;
+  const avgGrade = ((gf + Math.max(0, cl)) / 2).toFixed(0);
+  report += `Grade Level:      ${avgGrade} — ${gradeToAudience(+avgGrade)}\n\n`;
+
+  report += `TOP KEYWORDS\n${'-'.repeat(30)}\n`;
+  keywords.forEach(([w, c]) => {
+    report += `${w.padEnd(20)} ${c}x  (${((c/words.length)*100).toFixed(2)}%)\n`;
+  });
+  report += `\n${'='.repeat(50)}\nhttps://nextool.app/free-tools/text-analyzer\n`;
+
+  const blob = new Blob([report], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'text-analysis-report.txt';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ===== REAL-TIME ===== */
+document.getElementById('textInput').addEventListener('input', analyze);
+
+/* ===== INTERSECTION OBSERVER ===== */
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('[data-anim]').forEach(el => obs.observe(el));
+
+/* ===== INIT ===== */
+analyze();
+</script>
+</body>
+</html>

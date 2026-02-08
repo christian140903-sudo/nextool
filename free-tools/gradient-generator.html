@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free CSS Gradient Generator — Beautiful Gradients for Web | NexTool</title>
+<meta name="description" content="Create stunning CSS gradients with our free visual generator. Linear, radial, conic gradients with drag-and-drop color stops, presets, and one-click copy.">
+<meta name="keywords" content="CSS gradient generator, gradient maker, linear gradient, radial gradient, conic gradient, free tool, web design">
+<meta property="og:title" content="Free CSS Gradient Generator | NexTool">
+<meta property="og:description" content="Create beautiful CSS gradients visually. Linear, radial, conic with presets and export.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://nextool.app/free-tools/gradient-generator">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool CSS Gradient Generator","applicationCategory":"DesignApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free visual CSS gradient generator with drag-and-drop color stops, presets, and export."}</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#252533;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text2:#94a3b8;--radius:12px;--glass:rgba(17,17,24,.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a{color:var(--primary);text-decoration:none}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-links a{color:var(--text2);font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;font-size:.85rem;-webkit-text-fill-color:#fff}
+.nav-cta:hover{opacity:.9}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem}
+.hero h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;margin-bottom:.5rem;background:linear-gradient(135deg,#fff,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1.05rem;max-width:600px;margin:0 auto}
+/* TOOL CONTAINER */
+.tool-wrap{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+/* PREVIEW */
+.preview-section{position:relative;border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem;border:1px solid var(--border)}
+#gradientPreview{width:100%;height:55vh;min-height:300px;transition:background .15s}
+.preview-actions{position:absolute;top:1rem;right:1rem;display:flex;gap:.5rem}
+.preview-actions button{background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;cursor:pointer;font-size:.8rem;font-family:inherit;font-weight:500;transition:all .2s}
+.preview-actions button:hover{background:var(--primary);border-color:var(--primary)}
+/* CONTROLS */
+.controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:768px){.controls-grid{grid-template-columns:1fr}}
+.card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;transition:opacity .5s,transform .5s;opacity:0;transform:translateY(20px)}
+.card.visible{opacity:1;transform:translateY(0)}
+.card h3{font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.card h3 span{font-size:1.1rem}
+/* GRADIENT TYPE */
+.type-btns{display:flex;gap:.5rem;margin-bottom:1rem}
+.type-btns button{flex:1;padding:.6rem;border:1px solid var(--border);background:var(--surface);color:var(--text2);border-radius:8px;cursor:pointer;font-family:inherit;font-size:.85rem;font-weight:500;transition:all .2s}
+.type-btns button.active{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-color:transparent}
+/* ANGLE */
+.angle-row{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+.angle-wheel{width:80px;height:80px;border-radius:50%;border:2px solid var(--border);position:relative;cursor:pointer;background:var(--surface);flex-shrink:0}
+.angle-needle{position:absolute;width:2px;height:35px;background:linear-gradient(var(--primary),var(--accent));left:50%;top:5px;transform-origin:bottom center;border-radius:2px}
+.angle-dot{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--primary);top:0;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 8px var(--primary)}
+.angle-input{width:80px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.5rem;border-radius:8px;font-family:inherit;text-align:center;font-size:1rem}
+/* COLOR STOPS */
+.stop-bar-wrap{position:relative;height:40px;margin:1rem 0;border-radius:8px;overflow:visible}
+#stopBar{width:100%;height:30px;border-radius:8px;cursor:crosshair;border:1px solid var(--border)}
+.stop-handle{position:absolute;top:22px;width:18px;height:18px;border-radius:50%;border:2px solid #fff;cursor:grab;transform:translateX(-50%);box-shadow:0 2px 8px rgba(0,0,0,.5);z-index:2;transition:box-shadow .2s}
+.stop-handle:hover,.stop-handle.dragging{box-shadow:0 0 12px var(--primary);z-index:3}
+.stop-list{display:flex;flex-direction:column;gap:.5rem;margin-top:1rem}
+.stop-item{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;background:var(--surface);border-radius:8px;border:1px solid var(--border)}
+.stop-item input[type=color]{width:32px;height:28px;border:none;background:none;cursor:pointer;border-radius:4px}
+.stop-item input[type=number]{width:55px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.3rem .4rem;border-radius:6px;font-family:inherit;text-align:center;font-size:.85rem}
+.stop-item .stop-pct{color:var(--text2);font-size:.8rem;min-width:15px}
+.stop-remove{background:none;border:none;color:#ef4444;cursor:pointer;font-size:1.1rem;padding:0 .3rem;line-height:1}
+.btn-row{display:flex;gap:.5rem;margin-top:.8rem;flex-wrap:wrap}
+.btn-sm{padding:.45rem .8rem;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:500;transition:all .2s}
+.btn-sm:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm.accent{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none}
+.btn-sm.accent:hover{opacity:.85}
+/* CSS OUTPUT */
+.css-output{position:relative}
+#cssCode{width:100%;background:var(--surface);border:1px solid var(--border);color:#a5f3fc;padding:1rem;border-radius:8px;font-family:'Fira Code',monospace;font-size:.82rem;resize:vertical;min-height:80px;line-height:1.5}
+.copy-btn{position:absolute;top:.5rem;right:.5rem;background:var(--primary);color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:600;font-family:inherit;transition:all .2s}
+.copy-btn:hover{background:var(--accent)}
+.copy-btn.copied{background:#22c55e}
+/* PRESETS */
+.presets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:.6rem}
+.preset-swatch{height:50px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.preset-swatch:hover{border-color:var(--primary);transform:scale(1.05)}
+/* EXPORT */
+.export-btns{display:flex;gap:.5rem;flex-wrap:wrap}
+.export-btns button{flex:1;min-width:80px}
+/* FULLSCREEN */
+.fullscreen-overlay{position:fixed;inset:0;z-index:200;display:none;cursor:pointer}
+.fullscreen-overlay.active{display:block}
+.fs-close{position:fixed;top:1.5rem;right:1.5rem;z-index:201;background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.2);padding:.5rem 1rem;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.85rem}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;margin-top:3rem}
+.cta-section h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;margin-bottom:.8rem}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem;font-size:1rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));padding:.8rem 2rem;border-radius:10px;color:#fff;font-weight:700;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;margin-top:2rem}
+.footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text);margin-bottom:1rem}
+.footer-col a{display:block;color:var(--text2);font-size:.85rem;margin-bottom:.5rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);color:var(--text2);font-size:.8rem}
+/* MOBILE NAV */
+@media(max-width:640px){.nav-links a:not(.nav-cta){display:none}.hero h1{font-size:1.6rem}.presets-grid{grid-template-columns:repeat(4,1fr)}}
+/* CANVAS HIDDEN */
+#exportCanvas{display:none}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/#services">Services</a>
+    <a href="/free-tools">Free Tools</a>
+    <a href="/blog">Blog</a>
+    <a href="/#contact" class="nav-cta">Start a Project</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>CSS Gradient Generator</h1>
+  <p>Create beautiful gradients visually. Pick colors, adjust stops, choose direction, and copy the CSS instantly.</p>
+</section>
+
+<div class="tool-wrap">
+  <!-- PREVIEW -->
+  <div class="preview-section">
+    <div id="gradientPreview"></div>
+    <div class="preview-actions">
+      <button onclick="randomGradient()" title="Random gradient">Random</button>
+      <button onclick="toggleFullscreen()" title="Fullscreen preview">Fullscreen</button>
+    </div>
+  </div>
+
+  <div class="controls-grid">
+    <!-- LEFT: Type + Angle + Stops -->
+    <div>
+      <div class="card" data-anim>
+        <h3><span>&#127912;</span> Gradient Type</h3>
+        <div class="type-btns">
+          <button class="active" data-type="linear" onclick="setType('linear',this)">Linear</button>
+          <button data-type="radial" onclick="setType('radial',this)">Radial</button>
+          <button data-type="conic" onclick="setType('conic',this)">Conic</button>
+        </div>
+        <div class="angle-row" id="angleRow">
+          <div class="angle-wheel" id="angleWheel">
+            <div class="angle-needle" id="angleNeedle"></div>
+            <div class="angle-dot" id="angleDot"></div>
+          </div>
+          <div>
+            <label style="color:var(--text2);font-size:.8rem">Angle</label><br>
+            <input type="number" class="angle-input" id="angleInput" value="135" min="0" max="360" onchange="setAngle(this.value)"> <span style="color:var(--text2);font-size:.85rem">deg</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-anim style="margin-top:1.5rem">
+        <h3><span>&#127752;</span> Color Stops</h3>
+        <div class="stop-bar-wrap">
+          <div id="stopBar"></div>
+          <div id="stopHandles"></div>
+        </div>
+        <div class="stop-list" id="stopList"></div>
+        <div class="btn-row">
+          <button class="btn-sm" onclick="addStop()">+ Add Stop</button>
+          <button class="btn-sm accent" onclick="randomGradient()">Random</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Output + Presets + Export -->
+    <div>
+      <div class="card" data-anim>
+        <h3><span>&#128196;</span> CSS Output</h3>
+        <div class="css-output">
+          <textarea id="cssCode" readonly></textarea>
+          <button class="copy-btn" onclick="copyCSS(this)">Copy</button>
+        </div>
+      </div>
+
+      <div class="card" data-anim style="margin-top:1.5rem">
+        <h3><span>&#10024;</span> Presets</h3>
+        <div class="presets-grid" id="presetsGrid"></div>
+      </div>
+
+      <div class="card" data-anim style="margin-top:1.5rem">
+        <h3><span>&#128229;</span> Export</h3>
+        <div class="export-btns">
+          <button class="btn-sm" onclick="exportCSS()">CSS</button>
+          <button class="btn-sm" onclick="exportSVG()">SVG</button>
+          <button class="btn-sm" onclick="exportPNG()">PNG</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FULLSCREEN -->
+<div class="fullscreen-overlay" id="fsOverlay" onclick="toggleFullscreen()"></div>
+<button class="fs-close" id="fsClose" onclick="toggleFullscreen()" style="display:none">Close (Esc)</button>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Need something more powerful?</h2>
+  <p>Let us build it for you. Custom websites, automations, chatbots, and more.</p>
+  <a href="/#contact" class="cta-btn">Start a Project</a>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Services</h4>
+      <a href="/#services">Websites</a>
+      <a href="/#services">Chatbots</a>
+      <a href="/#services">Automations</a>
+      <a href="/#services">Content</a>
+      <a href="/#services">Video</a>
+      <a href="/#services">Data</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools">Free Tools</a>
+      <a href="/free-tools/gradient-generator">Gradient Generator</a>
+      <a href="/free-tools/text-analyzer">Text Analyzer</a>
+      <a href="/blog">Blog</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a>
+      <a href="/#pricing">Pricing</a>
+      <a href="/#contact">Contact</a>
+      <a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI Automation Studio.</div>
+</footer>
+
+<canvas id="exportCanvas"></canvas>
+
+<script>
+/* ===== STATE ===== */
+let gradType = 'linear';
+let angle = 135;
+let stops = [
+  { color: '#6366f1', pos: 0 },
+  { color: '#a855f7', pos: 50 },
+  { color: '#ec4899', pos: 100 }
+];
+let dragging = null;
+
+const PRESETS = [
+  [{ color:'#667eea',pos:0 },{ color:'#764ba2',pos:100 }],
+  [{ color:'#f093fb',pos:0 },{ color:'#f5576c',pos:100 }],
+  [{ color:'#4facfe',pos:0 },{ color:'#00f2fe',pos:100 }],
+  [{ color:'#43e97b',pos:0 },{ color:'#38f9d7',pos:100 }],
+  [{ color:'#fa709a',pos:0 },{ color:'#fee140',pos:100 }],
+  [{ color:'#a18cd1',pos:0 },{ color:'#fbc2eb',pos:100 }],
+  [{ color:'#fccb90',pos:0 },{ color:'#d57eeb',pos:100 }],
+  [{ color:'#e0c3fc',pos:0 },{ color:'#8ec5fc',pos:100 }],
+  [{ color:'#f5576c',pos:0 },{ color:'#ffd452',pos:50 },{ color:'#43e97b',pos:100 }],
+  [{ color:'#0c0c1d',pos:0 },{ color:'#6366f1',pos:50 },{ color:'#ec4899',pos:100 }],
+  [{ color:'#ff9a9e',pos:0 },{ color:'#fecfef',pos:50 },{ color:'#fdfcfb',pos:100 }],
+  [{ color:'#2b5876',pos:0 },{ color:'#4e4376',pos:100 }],
+  [{ color:'#ff0844',pos:0 },{ color:'#ffb199',pos:100 }],
+  [{ color:'#09203f',pos:0 },{ color:'#537895',pos:100 }],
+  [{ color:'#c471f5',pos:0 },{ color:'#fa71cd',pos:100 }],
+  [{ color:'#48c6ef',pos:0 },{ color:'#6f86d6',pos:100 }]
+];
+
+/* ===== DOM REFS ===== */
+const preview = document.getElementById('gradientPreview');
+const stopBar = document.getElementById('stopBar');
+const stopHandles = document.getElementById('stopHandles');
+const stopList = document.getElementById('stopList');
+const cssCode = document.getElementById('cssCode');
+const angleInput = document.getElementById('angleInput');
+const angleNeedle = document.getElementById('angleNeedle');
+const angleDot = document.getElementById('angleDot');
+const angleWheel = document.getElementById('angleWheel');
+const angleRow = document.getElementById('angleRow');
+const presetsGrid = document.getElementById('presetsGrid');
+const fsOverlay = document.getElementById('fsOverlay');
+const fsClose = document.getElementById('fsClose');
+
+/* ===== RENDER ===== */
+function buildCSS() {
+  const sorted = [...stops].sort((a, b) => a.pos - b.pos);
+  const colorStr = sorted.map(s => `${s.color} ${s.pos}%`).join(', ');
+  if (gradType === 'linear') return `linear-gradient(${angle}deg, ${colorStr})`;
+  if (gradType === 'radial') return `radial-gradient(circle, ${colorStr})`;
+  return `conic-gradient(from ${angle}deg, ${colorStr})`;
+}
+
+function render() {
+  const css = buildCSS();
+  preview.style.background = css;
+  stopBar.style.background = css.replace(/\d+deg,\s*/, '90deg, ').replace('circle,', 'circle,');
+  // force linear for bar
+  const sorted = [...stops].sort((a, b) => a.pos - b.pos);
+  stopBar.style.background = `linear-gradient(90deg, ${sorted.map(s => `${s.color} ${s.pos}%`).join(', ')})`;
+  cssCode.value = `background: ${css};`;
+  fsOverlay.style.background = css;
+  renderAngle();
+  renderHandles();
+  renderStopList();
+}
+
+function renderAngle() {
+  angleNeedle.style.transform = `rotate(${angle}deg)`;
+  const rad = (angle - 90) * Math.PI / 180;
+  const r = 36;
+  angleDot.style.left = `${50 + Math.cos(rad) * r / 40 * 50}%`;
+  angleDot.style.top = `${50 + Math.sin(rad) * r / 40 * 50}%`;
+  angleInput.value = angle;
+  angleRow.style.display = (gradType === 'radial') ? 'none' : 'flex';
+}
+
+function renderHandles() {
+  stopHandles.innerHTML = '';
+  stops.forEach((s, i) => {
+    const h = document.createElement('div');
+    h.className = 'stop-handle';
+    h.style.left = s.pos + '%';
+    h.style.background = s.color;
+    h.setAttribute('data-idx', i);
+    h.addEventListener('mousedown', e => startDragHandle(e, i));
+    h.addEventListener('touchstart', e => startDragHandle(e, i), { passive: false });
+    stopHandles.appendChild(h);
+  });
+}
+
+function renderStopList() {
+  stopList.innerHTML = '';
+  stops.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'stop-item';
+    div.innerHTML = `
+      <input type="color" value="${s.color}" onchange="updateStopColor(${i},this.value)">
+      <input type="number" value="${s.pos}" min="0" max="100" onchange="updateStopPos(${i},+this.value)">
+      <span class="stop-pct">%</span>
+      ${stops.length > 2 ? `<button class="stop-remove" onclick="removeStop(${i})">&times;</button>` : ''}
+    `;
+    stopList.appendChild(div);
+  });
+}
+
+/* ===== INTERACTIONS ===== */
+function setType(t, btn) {
+  gradType = t;
+  document.querySelectorAll('.type-btns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function setAngle(a) {
+  angle = ((+a % 360) + 360) % 360;
+  render();
+}
+
+function updateStopColor(i, c) { stops[i].color = c; render(); }
+function updateStopPos(i, p) { stops[i].pos = Math.max(0, Math.min(100, p)); render(); }
+
+function addStop() {
+  if (stops.length >= 6) return;
+  const sorted = [...stops].sort((a, b) => a.pos - b.pos);
+  // find the biggest gap
+  let maxGap = 0, gapIdx = 0;
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const gap = sorted[i + 1].pos - sorted[i].pos;
+    if (gap > maxGap) { maxGap = gap; gapIdx = i; }
+  }
+  const newPos = Math.round((sorted[gapIdx].pos + sorted[gapIdx + 1].pos) / 2);
+  stops.push({ color: randomColor(), pos: newPos });
+  render();
+}
+
+function removeStop(i) {
+  if (stops.length <= 2) return;
+  stops.splice(i, 1);
+  render();
+}
+
+/* Handle dragging */
+function startDragHandle(e, idx) {
+  e.preventDefault();
+  dragging = idx;
+  const h = stopHandles.children[idx];
+  if (h) h.classList.add('dragging');
+  const onMove = ev => {
+    if (dragging === null) return;
+    const rect = stopBar.getBoundingClientRect();
+    const clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+    let pct = ((clientX - rect.left) / rect.width) * 100;
+    pct = Math.max(0, Math.min(100, Math.round(pct)));
+    stops[dragging].pos = pct;
+    render();
+  };
+  const onUp = () => {
+    if (dragging !== null) {
+      const h2 = stopHandles.children[dragging];
+      if (h2) h2.classList.remove('dragging');
+    }
+    dragging = null;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend', onUp);
+}
+
+/* Click on bar to add stop */
+stopBar.addEventListener('click', e => {
+  if (stops.length >= 6) return;
+  const rect = stopBar.getBoundingClientRect();
+  const pct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+  stops.push({ color: randomColor(), pos: Math.max(0, Math.min(100, pct)) });
+  render();
+});
+
+/* Angle wheel drag */
+function angleFromEvent(e) {
+  const rect = angleWheel.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  let deg = Math.atan2(clientY - cy, clientX - cx) * 180 / Math.PI + 90;
+  deg = ((deg % 360) + 360) % 360;
+  return Math.round(deg);
+}
+
+let draggingAngle = false;
+angleWheel.addEventListener('mousedown', e => {
+  draggingAngle = true;
+  angle = angleFromEvent(e);
+  render();
+});
+document.addEventListener('mousemove', e => {
+  if (!draggingAngle) return;
+  angle = angleFromEvent(e);
+  render();
+});
+document.addEventListener('mouseup', () => { draggingAngle = false; });
+angleWheel.addEventListener('touchstart', e => {
+  e.preventDefault();
+  draggingAngle = true;
+  angle = angleFromEvent(e);
+  render();
+}, { passive: false });
+document.addEventListener('touchmove', e => {
+  if (!draggingAngle) return;
+  angle = angleFromEvent(e);
+  render();
+}, { passive: false });
+document.addEventListener('touchend', () => { draggingAngle = false; });
+
+/* ===== PRESETS ===== */
+function initPresets() {
+  PRESETS.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'preset-swatch';
+    const css = `linear-gradient(135deg, ${p.map(s => `${s.color} ${s.pos}%`).join(', ')})`;
+    div.style.background = css;
+    div.title = `Preset ${i + 1}`;
+    div.addEventListener('click', () => {
+      stops = p.map(s => ({ ...s }));
+      gradType = 'linear'; angle = 135;
+      document.querySelectorAll('.type-btns button').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-type="linear"]').classList.add('active');
+      render();
+    });
+    presetsGrid.appendChild(div);
+  });
+}
+
+/* ===== RANDOM ===== */
+function randomColor() {
+  return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+}
+
+function randomGradient() {
+  const n = 2 + Math.floor(Math.random() * 3);
+  stops = [];
+  for (let i = 0; i < n; i++) {
+    stops.push({ color: randomColor(), pos: Math.round(i / (n - 1) * 100) });
+  }
+  angle = Math.floor(Math.random() * 360);
+  const types = ['linear', 'radial', 'conic'];
+  gradType = types[Math.floor(Math.random() * 3)];
+  document.querySelectorAll('.type-btns button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-type="${gradType}"]`).classList.add('active');
+  render();
+}
+
+/* ===== COPY ===== */
+function copyCSS(btn) {
+  navigator.clipboard.writeText(cssCode.value).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+/* ===== FULLSCREEN ===== */
+function toggleFullscreen() {
+  const active = fsOverlay.classList.toggle('active');
+  fsClose.style.display = active ? 'block' : 'none';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && fsOverlay.classList.contains('active')) toggleFullscreen();
+});
+
+/* ===== EXPORT ===== */
+function exportCSS() {
+  const blob = new Blob([`/* Generated by NexTool Gradient Generator */\n.gradient {\n  ${cssCode.value}\n}\n`], { type: 'text/css' });
+  downloadBlob(blob, 'gradient.css');
+}
+
+function exportSVG() {
+  const sorted = [...stops].sort((a, b) => a.pos - b.pos);
+  let svgStops = sorted.map(s => {
+    const rgb = hexToRGB(s.color);
+    return `    <stop offset="${s.pos}%" stop-color="${s.color}" />`;
+  }).join('\n');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+${svgStops}
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#grad)" />
+</svg>`;
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  downloadBlob(blob, 'gradient.svg');
+}
+
+function exportPNG() {
+  const canvas = document.getElementById('exportCanvas');
+  canvas.width = 1920; canvas.height = 1080;
+  const ctx = canvas.getContext('2d');
+  const sorted = [...stops].sort((a, b) => a.pos - b.pos);
+  let grad;
+  if (gradType === 'radial') {
+    grad = ctx.createRadialGradient(960, 540, 0, 960, 540, 960);
+  } else if (gradType === 'conic') {
+    // approximate conic with linear
+    const rad = angle * Math.PI / 180;
+    const x2 = 960 + Math.cos(rad) * 960;
+    const y2 = 540 + Math.sin(rad) * 540;
+    grad = ctx.createLinearGradient(960, 540, x2, y2);
+  } else {
+    const rad = (angle - 90) * Math.PI / 180;
+    const cx = 960, cy = 540, len = 1200;
+    grad = ctx.createLinearGradient(cx - Math.cos(rad)*len, cy - Math.sin(rad)*len, cx + Math.cos(rad)*len, cy + Math.sin(rad)*len);
+  }
+  sorted.forEach(s => grad.addColorStop(s.pos / 100, s.color));
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1920, 1080);
+  canvas.toBlob(blob => downloadBlob(blob, 'gradient.png'), 'image/png');
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function hexToRGB(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return { r, g, b };
+}
+
+/* ===== INTERSECTION OBSERVER ===== */
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('[data-anim]').forEach(el => obs.observe(el));
+
+/* ===== INIT ===== */
+initPresets();
+render();
+</script>
+</body>
+</html>

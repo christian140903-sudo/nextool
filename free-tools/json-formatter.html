@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free JSON Formatter & Validator — Format, Minify, Validate JSON | NexTool</title>
+<meta name="description" content="Free online JSON formatter, validator, and minifier. Pretty print JSON with syntax highlighting, tree view, error detection with line numbers. No signup required.">
+<meta name="keywords" content="JSON formatter, JSON validator, JSON minifier, pretty print JSON, JSON tree view, free online tool, NexTool">
+<meta property="og:title" content="Free JSON Formatter & Validator | NexTool">
+<meta property="og:description" content="Format, validate, and minify JSON instantly. Syntax highlighting, tree view, error detection. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/json-formatter">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free JSON Formatter & Validator | NexTool">
+<meta name="twitter:description" content="Format, validate, and minify JSON instantly. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool JSON Formatter & Validator","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online JSON formatter, validator, and minifier with syntax highlighting and tree view."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar select{appearance:none;padding-right:1.8rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.valid{background:var(--green)}
+.status-dot.invalid{background:var(--red)}
+.status-dot.empty{background:var(--border)}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:500px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto}
+#jsonInput{width:100%;height:100%;min-height:400px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:none;outline:none;line-height:1.7;tab-size:2}
+#jsonInput::placeholder{color:var(--text2);opacity:.5}
+.output-area{padding:1rem;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.7;white-space:pre-wrap;word-break:break-all;min-height:400px}
+/* SYNTAX HIGHLIGHTING */
+.hl-key{color:#c084fc}.hl-str{color:#4ade80}.hl-num{color:var(--cyan)}.hl-bool{color:var(--yellow)}.hl-null{color:#6b7280}.hl-brace{color:var(--text2)}.hl-comma{color:var(--text2)}
+/* TREE VIEW */
+.tree{padding:1rem;font-size:.85rem}
+.tree-item{margin-left:1.2rem;border-left:1px solid var(--border);padding-left:.6rem}
+.tree-key{color:#c084fc;font-weight:600;cursor:default}
+.tree-toggle{cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:.3rem;padding:2px 0}
+.tree-toggle::before{content:'';display:inline-block;width:0;height:0;border-left:5px solid var(--text2);border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s}
+.tree-toggle.open::before{transform:rotate(90deg)}
+.tree-children{overflow:hidden;transition:max-height .2s}
+.tree-children.collapsed{max-height:0!important;overflow:hidden}
+.tree-val-str{color:#4ade80}.tree-val-num{color:var(--cyan)}.tree-val-bool{color:var(--yellow)}.tree-val-null{color:#6b7280}
+.tree-bracket{color:var(--text2);font-size:.75rem;margin-left:.3rem}
+/* ERROR */
+.error-display{padding:1rem;color:var(--red);font-size:.85rem;font-family:'Courier New',monospace;white-space:pre-wrap}
+.error-display .error-line{background:rgba(239,68,68,.1);border-left:3px solid var(--red);padding:.3rem .6rem;margin:.3rem 0;border-radius:4px}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/#services">Services</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/#blog">Blog</a>
+    <a href="/#contact" class="nav-cta">Start a Project</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>JSON Formatter</span> & Validator</h1>
+  <p>Paste your JSON to format, validate, minify, and explore with syntax highlighting and tree view. No signup, no limits.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button onclick="formatJSON()" title="Pretty print">Format</button>
+    <button onclick="minifyJSON()" title="Compact">Minify</button>
+    <button onclick="copyOutput()" title="Copy to clipboard">Copy</button>
+    <button onclick="downloadJSON()" title="Download .json">Download</button>
+    <select id="indentSelect" onchange="formatJSON()">
+      <option value="2">2 spaces</option>
+      <option value="4">4 spaces</option>
+      <option value="tab">Tab</option>
+    </select>
+    <button id="viewToggle" onclick="toggleView()" title="Toggle tree view">Tree View</button>
+    <button onclick="clearAll()" title="Clear input and output">Clear</button>
+    <button onclick="loadSample()" title="Load sample JSON">Sample</button>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Paste JSON to begin</span>
+    <span id="sizeInfo" style="margin-left:auto"></span>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-header"><span>Input</span><span id="lineCount"></span></div>
+      <div class="panel-body">
+        <textarea id="jsonInput" placeholder='Paste your JSON here...&#10;&#10;Example:&#10;{&#10;  "name": "NexTool",&#10;  "version": "1.0"&#10;}' spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span id="outputLabel">Output</span><span id="outputInfo"></span></div>
+      <div class="panel-body" id="outputPanel">
+        <div class="output-area" id="formattedOutput"></div>
+        <div class="tree" id="treeOutput" style="display:none"></div>
+        <div class="error-display" id="errorOutput" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Services</h4>
+      <a href="/#services">Websites</a><a href="/#services">Chatbots</a><a href="/#services">Automation</a><a href="/#services">Content</a><a href="/#services">Video</a><a href="/#services">Data</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/#blog">Blog</a><a href="/#faq">FAQ</a><a href="/#pricing">Pricing</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const input = document.getElementById('jsonInput');
+const formattedOutput = document.getElementById('formattedOutput');
+const treeOutput = document.getElementById('treeOutput');
+const errorOutput = document.getElementById('errorOutput');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const sizeInfo = document.getElementById('sizeInfo');
+const lineCount = document.getElementById('lineCount');
+const outputLabel = document.getElementById('outputLabel');
+const outputInfo = document.getElementById('outputInfo');
+const viewToggle = document.getElementById('viewToggle');
+let isTreeView = false;
+let lastParsed = null;
+let lastFormatted = '';
+
+input.addEventListener('input', debounce(autoProcess, 300));
+input.addEventListener('input', updateLineCount);
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function updateLineCount() {
+  const lines = input.value.split('\n').length;
+  lineCount.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+
+function autoProcess() {
+  const raw = input.value.trim();
+  if (!raw) {
+    clearOutputs();
+    statusDot.className = 'status-dot empty';
+    statusText.textContent = 'Paste JSON to begin';
+    sizeInfo.textContent = '';
+    return;
+  }
+  sizeInfo.textContent = formatBytes(new Blob([raw]).size);
+  try {
+    lastParsed = JSON.parse(raw);
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid JSON';
+    if (isTreeView) renderTree(lastParsed); else formatJSON();
+  } catch (e) {
+    statusDot.className = 'status-dot invalid';
+    statusText.textContent = 'Invalid JSON';
+    showError(e, raw);
+    lastParsed = null;
+  }
+}
+
+function formatJSON() {
+  if (!input.value.trim()) return;
+  try {
+    const obj = JSON.parse(input.value);
+    lastParsed = obj;
+    const sel = document.getElementById('indentSelect').value;
+    const indent = sel === 'tab' ? '\t' : parseInt(sel);
+    const formatted = JSON.stringify(obj, null, indent);
+    lastFormatted = formatted;
+    if (isTreeView) { renderTree(obj); return; }
+    formattedOutput.innerHTML = syntaxHighlight(formatted);
+    showPanel('formatted');
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid JSON — Formatted';
+    outputInfo.textContent = formatted.split('\n').length + ' lines';
+  } catch (e) {
+    showError(e, input.value);
+  }
+}
+
+function minifyJSON() {
+  if (!input.value.trim()) return;
+  try {
+    const obj = JSON.parse(input.value);
+    lastParsed = obj;
+    const minified = JSON.stringify(obj);
+    lastFormatted = minified;
+    formattedOutput.innerHTML = syntaxHighlight(minified);
+    showPanel('formatted');
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid JSON — Minified';
+    outputInfo.textContent = formatBytes(new Blob([minified]).size);
+    if (isTreeView) { isTreeView = false; viewToggle.classList.remove('active'); }
+  } catch (e) {
+    showError(e, input.value);
+  }
+}
+
+function syntaxHighlight(json) {
+  return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|\bnull\b|[{}\[\],])/g, match => {
+      let cls = 'hl-num';
+      if (/^"/.test(match)) {
+        cls = /:$/.test(match) ? 'hl-key' : 'hl-str';
+      } else if (/true|false/.test(match)) {
+        cls = 'hl-bool';
+      } else if (/null/.test(match)) {
+        cls = 'hl-null';
+      } else if (/[{}\[\],]/.test(match)) {
+        cls = 'hl-brace';
+      }
+      return '<span class="' + cls + '">' + match + '</span>';
+    });
+}
+
+function showError(e, raw) {
+  const msg = e.message;
+  let lineNum = null;
+  const posMatch = msg.match(/position\s+(\d+)/i);
+  if (posMatch) {
+    const pos = parseInt(posMatch[1]);
+    lineNum = raw.substring(0, pos).split('\n').length;
+  }
+  let html = '<strong>JSON Validation Error</strong>\n\n';
+  html += '<div class="error-line">' + escapeHtml(msg) + '</div>\n';
+  if (lineNum) {
+    html += '\nError near line ' + lineNum + ':\n';
+    const lines = raw.split('\n');
+    const start = Math.max(0, lineNum - 3);
+    const end = Math.min(lines.length, lineNum + 2);
+    for (let i = start; i < end; i++) {
+      const marker = i === lineNum - 1 ? ' >>> ' : '     ';
+      html += '<span style="color:' + (i === lineNum - 1 ? 'var(--red)' : 'var(--text2)') + '">' + marker + (i + 1) + ' | ' + escapeHtml(lines[i]) + '</span>\n';
+    }
+  }
+  errorOutput.innerHTML = html;
+  showPanel('error');
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* TREE VIEW */
+function toggleView() {
+  isTreeView = !isTreeView;
+  viewToggle.classList.toggle('active', isTreeView);
+  outputLabel.textContent = isTreeView ? 'Tree View' : 'Output';
+  if (isTreeView && lastParsed !== null) renderTree(lastParsed);
+  else if (!isTreeView && lastParsed !== null) formatJSON();
+}
+
+function renderTree(data) {
+  treeOutput.innerHTML = '';
+  treeOutput.appendChild(buildTreeNode('root', data, true));
+  showPanel('tree');
+}
+
+function buildTreeNode(key, value, isRoot) {
+  const wrap = document.createElement('div');
+  if (!isRoot) wrap.className = 'tree-item';
+  if (value !== null && typeof value === 'object') {
+    const isArr = Array.isArray(value);
+    const entries = isArr ? value : Object.entries(value);
+    const count = isArr ? value.length : Object.keys(value).length;
+    const toggle = document.createElement('span');
+    toggle.className = 'tree-toggle open';
+    let label = '';
+    if (!isRoot) label = '<span class="tree-key">' + escapeHtml(String(key)) + '</span>: ';
+    label += '<span class="tree-bracket">' + (isArr ? '[' : '{') + ' ' + count + (count === 1 ? ' item' : ' items') + '</span>';
+    toggle.innerHTML = label;
+    wrap.appendChild(toggle);
+    const children = document.createElement('div');
+    children.className = 'tree-children';
+    if (isArr) {
+      value.forEach((v, i) => children.appendChild(buildTreeNode(i, v, false)));
+    } else {
+      for (const [k, v] of Object.entries(value)) children.appendChild(buildTreeNode(k, v, false));
+    }
+    wrap.appendChild(children);
+    toggle.addEventListener('click', () => {
+      toggle.classList.toggle('open');
+      children.classList.toggle('collapsed');
+    });
+  } else {
+    let valHtml;
+    if (typeof value === 'string') valHtml = '<span class="tree-val-str">"' + escapeHtml(value) + '"</span>';
+    else if (typeof value === 'number') valHtml = '<span class="tree-val-num">' + value + '</span>';
+    else if (typeof value === 'boolean') valHtml = '<span class="tree-val-bool">' + value + '</span>';
+    else valHtml = '<span class="tree-val-null">null</span>';
+    wrap.innerHTML = '<span class="tree-key">' + escapeHtml(String(key)) + '</span>: ' + valHtml;
+  }
+  return wrap;
+}
+
+function showPanel(which) {
+  formattedOutput.style.display = which === 'formatted' ? '' : 'none';
+  treeOutput.style.display = which === 'tree' ? '' : 'none';
+  errorOutput.style.display = which === 'error' ? '' : 'none';
+}
+
+function clearOutputs() {
+  formattedOutput.innerHTML = '';
+  treeOutput.innerHTML = '';
+  errorOutput.innerHTML = '';
+  outputInfo.textContent = '';
+  formattedOutput.style.display = '';
+  treeOutput.style.display = 'none';
+  errorOutput.style.display = 'none';
+}
+
+function clearAll() {
+  input.value = '';
+  lastParsed = null;
+  lastFormatted = '';
+  clearOutputs();
+  statusDot.className = 'status-dot empty';
+  statusText.textContent = 'Paste JSON to begin';
+  sizeInfo.textContent = '';
+  lineCount.textContent = '';
+  if (isTreeView) { isTreeView = false; viewToggle.classList.remove('active'); outputLabel.textContent = 'Output'; }
+}
+
+function copyOutput() {
+  if (!lastFormatted && !lastParsed) { showToast('Nothing to copy'); return; }
+  const text = lastFormatted || JSON.stringify(lastParsed, null, 2);
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+function downloadJSON() {
+  if (!lastParsed) { showToast('No valid JSON to download'); return; }
+  const text = lastFormatted || JSON.stringify(lastParsed, null, 2);
+  const blob = new Blob([text], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'formatted.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Downloaded formatted.json');
+}
+
+function loadSample() {
+  input.value = JSON.stringify({
+    "name": "NexTool",
+    "version": "2.0.0",
+    "description": "AI Automation Studio",
+    "services": ["Websites", "Chatbots", "Automation", "Content", "Video", "Data"],
+    "pricing": { "starter": 5, "pro": 149, "enterprise": 499 },
+    "features": {
+      "ai_powered": true,
+      "custom_solutions": true,
+      "turnaround_hours": 24,
+      "satisfaction_rate": null
+    },
+    "contact": { "website": "https://nextool.app", "email": "hello@nextool.app" },
+    "tags": ["AI", "automation", "no-code", "tools"],
+    "active": true,
+    "founded": 2026
+  }, null, 2);
+  updateLineCount();
+  autoProcess();
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024, sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* INPUT: Tab key support */
+input.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = input.selectionStart, end = input.selectionEnd;
+    input.value = input.value.substring(0, start) + '  ' + input.value.substring(end);
+    input.selectionStart = input.selectionEnd = start + 2;
+  }
+});
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
