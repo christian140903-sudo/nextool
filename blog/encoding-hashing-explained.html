@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64, URL Encoding, and Hashing Explained: What Every Web Developer Should Know | NexTool Blog</title>
+    <meta name="description" content="Complete guide to encoding vs encryption vs hashing. Learn Base64 encoding, URL percent-encoding, SHA-256, bcrypt, and when to use each. Practical JavaScript examples and security implications for web developers.">
+    <meta name="keywords" content="base64 encoding explained, url encoding characters, difference between encoding and hashing, percent encoding, encodeURIComponent, sha256, bcrypt, base64 vs encryption, url encoder, hash generator">
+    <meta name="author" content="NexTool Team">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <link rel="canonical" href="https://nextool.app/blog/encoding-hashing-explained.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Base64, URL Encoding, and Hashing Explained: What Every Web Developer Should Know">
+    <meta property="og:description" content="Master encoding, encryption, and hashing. Learn Base64, URL percent-encoding, SHA-256, bcrypt, and the critical differences between them with practical JavaScript examples.">
+    <meta property="og:url" content="https://nextool.app/blog/encoding-hashing-explained.html">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/encoding-hashing-explained-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-09T08:00:00Z">
+    <meta property="article:modified_time" content="2026-02-09T08:00:00Z">
+    <meta property="article:author" content="NexTool Team">
+    <meta property="article:section" content="Web Development">
+    <meta property="article:tag" content="Encoding">
+    <meta property="article:tag" content="Hashing">
+    <meta property="article:tag" content="Security">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Base64, URL Encoding, and Hashing Explained: What Every Web Developer Should Know">
+    <meta name="twitter:description" content="Master encoding, encryption, and hashing. Learn Base64, URL percent-encoding, SHA-256, bcrypt, and the critical differences between them.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/encoding-hashing-explained-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Base64, URL Encoding, and Hashing Explained: What Every Web Developer Should Know",
+        "description": "Complete guide to encoding vs encryption vs hashing. Learn Base64 encoding, URL percent-encoding, SHA-256, bcrypt, and when to use each with practical JavaScript examples.",
+        "image": "https://nextool.app/assets/images/blog/encoding-hashing-explained-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool Team",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-09T08:00:00Z",
+        "dateModified": "2026-02-09T08:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/encoding-hashing-explained.html"
+        },
+        "wordCount": 2900,
+        "keywords": ["base64 encoding explained", "url encoding characters", "difference between encoding and hashing", "percent encoding", "sha256", "bcrypt"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Base64, URL Encoding, and Hashing Explained",
+                "item": "https://nextool.app/blog/encoding-hashing-explained.html"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Is Base64 encoding the same as encryption?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. Base64 is an encoding scheme, not encryption. It transforms binary data into a text-safe ASCII string using a 64-character alphabet. There is no secret key involved, and anyone can decode a Base64 string instantly. Encoding is reversible by design and provides zero security. Encryption, by contrast, requires a key to both encrypt and decrypt data, making the output unreadable without the correct key. If you need to protect sensitive data, use AES-256 or another proper encryption algorithm, not Base64."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the difference between encodeURI and encodeURIComponent in JavaScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "encodeURI is designed to encode a complete URI while preserving characters that have special meaning in URLs, such as ://?#[]@!$&'()*+,;= and the path separator /. It is used when you need to encode an entire URL string. encodeURIComponent encodes everything except letters, digits, and the characters - _ . ~ making it suitable for encoding individual query parameter values or path segments. Use encodeURIComponent for parameter values and encodeURI for full URLs."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Why can't I reverse a hash back to the original input?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Hash functions are mathematically designed to be one-way functions. They map an input of any size to a fixed-size output (e.g., SHA-256 always produces 256 bits). Because the output is a fixed size but the input can be infinitely large, information is irreversibly lost during hashing. Multiple different inputs can produce the same hash (called a collision), so there is no unique way to reverse the process. This one-way property is what makes hashing useful for password storage and data integrity verification."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Which hashing algorithm should I use for storing passwords?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "For password storage, use bcrypt, scrypt, or Argon2id. These are purpose-built password hashing functions that include a salt (to prevent rainbow table attacks) and a configurable work factor (to make brute-force attacks computationally expensive). Never use MD5 or SHA-256 alone for passwords because they are designed to be fast, which makes them easy to brute-force. Argon2id is the current recommendation from OWASP and won the Password Hashing Competition. Bcrypt remains widely used and is a solid choice with a cost factor of at least 12."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "When should I use Base64 encoding in web development?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Base64 encoding is used whenever you need to represent binary data in a text-only context. Common use cases include: embedding small images directly in HTML or CSS using data URIs, encoding file attachments in email (MIME), encoding the header and payload sections of JSON Web Tokens (JWT), transmitting binary data in JSON or XML payloads, and encoding API credentials in HTTP Basic Authentication headers. Base64 increases data size by approximately 33%, so it should not be used for large files."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}:root{--bg:#050508;--surface:#111118;--surface-2:#1a1a24;--surface-3:#232330;--primary:#6366f1;--primary-hover:#818cf8;--accent:#a855f7;--text:#e2e8f0;--text-secondary:#94a3b8;--text-muted:#64748b;--border:#1e1e2e;--code-bg:#0d0d14;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:800px;--header-height:64px}html{scroll-behavior:smooth}body{font-family:var(--font-sans);background:var(--bg);color:var(--text);line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:4px}.nav{position:fixed;top:0;left:0;right:0;height:var(--header-height);background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:1000;display:flex;align-items:center;justify-content:center}.nav-inner{width:100%;max-width:1200px;padding:0 24px;display:flex;align-items:center;justify-content:space-between}.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:700;font-size:1.25rem}.nav-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.875rem;font-weight:800;color:#fff}.nav-links{display:flex;align-items:center;gap:28px;list-style:none}.nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}.nav-cta{background:var(--primary);color:#fff!important;padding:8px 20px;border-radius:8px;font-weight:600}.article-wrapper{max-width:var(--max-width);margin:0 auto;padding:calc(var(--header-height) + 48px) 24px 80px}.breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:32px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}.breadcrumb a{color:var(--text-secondary);text-decoration:none}.article-header{margin-bottom:48px}.article-meta{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}.article-category{padding:4px 12px;background:rgba(99,102,241,.15);color:var(--primary-hover);border-radius:20px;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px}.article-date,.reading-time{color:var(--text-muted);font-size:.85rem}h1{font-size:2.5rem;font-weight:800;line-height:1.2;margin-bottom:16px}h1 .gradient{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.article-subtitle{font-size:1.15rem;color:var(--text-secondary)}.article-content h2{font-size:1.6rem;font-weight:700;margin:48px 0 16px;color:#fff}.article-content h3{font-size:1.25rem;font-weight:600;margin:32px 0 12px}.article-content p{margin-bottom:20px;color:var(--text-secondary);line-height:1.8}.article-content a{color:var(--primary-hover);text-decoration:none;border-bottom:1px solid rgba(99,102,241,.3)}.article-content ul,.article-content ol{margin:0 0 20px 24px;color:var(--text-secondary)}.article-content li{margin-bottom:8px}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin:20px 0;overflow-x:auto;font-family:var(--font-mono);font-size:.875rem;line-height:1.6}code{font-family:var(--font-mono);font-size:.9em;background:rgba(99,102,241,.1);color:var(--primary-hover);padding:2px 6px;border-radius:4px}pre code{background:none;padding:0;color:inherit}.tool-cta{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(168,85,247,.1));border:1px solid rgba(99,102,241,.2);border-radius:10px;color:var(--primary-hover);font-weight:600;text-decoration:none;margin:16px 0;transition:all .2s}.tool-cta:hover{transform:translateY(-1px)}.info-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:8px;padding:20px 24px;margin:24px 0}.info-box strong{color:var(--text)}.info-box p{margin-bottom:0}.cta-box{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(168,85,247,.08));border:1px solid rgba(99,102,241,.2);border-radius:16px;padding:32px;margin:40px 0;text-align:center}.cta-box h3{font-size:1.35rem;font-weight:700;margin-bottom:10px;color:var(--text)}.cta-box p{color:var(--text-secondary);margin-bottom:20px}.cta-button{display:inline-block;padding:12px 32px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-radius:10px;font-weight:700;text-decoration:none;transition:transform .2s,box-shadow .2s}.cta-button:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(99,102,241,.3)}.pro-promo{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;margin:48px 0;text-align:center}.pro-promo h3{font-size:1.2rem;font-weight:700;margin-bottom:8px}.pro-promo p{color:var(--text-muted);font-size:.95rem;margin-bottom:16px}.pro-promo .cta-button{font-size:.95rem;padding:10px 28px}.faq-section{margin-top:48px}.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}.faq-question{width:100%;background:none;border:none;color:var(--text);padding:20px 24px;font-size:1rem;font-weight:600;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-sans)}.faq-question:hover{background:var(--surface-2)}.faq-question .icon{transition:transform .3s;font-size:1.25rem;color:var(--text-muted)}.faq-item.open .faq-question .icon{transform:rotate(45deg)}.faq-answer{max-height:0;overflow:hidden;transition:max-height .3s ease}.faq-answer-inner{padding:0 24px 20px;color:var(--text-secondary);line-height:1.7}.code-label{display:inline-block;background:var(--surface-2);color:var(--text-muted);font-family:var(--font-mono);font-size:.75rem;padding:2px 10px;border-radius:6px 6px 0 0;margin-bottom:-1px;position:relative;top:1px}.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}.fade-in.visible{opacity:1;transform:translateY(0)}footer{border-top:1px solid var(--border);padding:60px 24px 32px;max-width:1200px;margin:0 auto}.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}.footer-brand h3{font-size:1.1rem;font-weight:700;margin-bottom:8px}.footer-brand p{color:var(--text-muted);font-size:.85rem}.footer-col h4{font-size:.85rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:12px}.footer-col a{display:block;color:var(--text-muted);text-decoration:none;font-size:.85rem;padding:4px 0}.footer-col a:hover{color:var(--primary-hover)}.footer-bottom{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;color:var(--text-muted);font-size:.8rem}.comparison-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.9rem}.comparison-table th,.comparison-table td{padding:12px 16px;text-align:left;border:1px solid var(--border)}.comparison-table th{background:var(--surface);color:var(--text);font-weight:600}.comparison-table td{color:var(--text-secondary);background:var(--code-bg)}.comparison-table tr:hover td{background:var(--surface)}@media(max-width:768px){h1{font-size:1.75rem}.nav-links{display:none}.footer-grid{grid-template-columns:1fr 1fr}.article-content pre{padding:16px;font-size:.8rem}.comparison-table{font-size:.8rem}.comparison-table th,.comparison-table td{padding:8px 10px}}
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">
+                <div class="nav-logo-icon">N</div>
+                NexTool
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/free-tools/">Free Tools</a></li>
+                <li><a href="/pro.html">Pro</a></li>
+                <li><a href="/workspace.html">Workspace</a></li>
+                <li><a href="/blog/">Blog</a></li>
+                <li><a href="/pro.html" class="nav-cta">Get Pro &mdash; $29</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Article -->
+    <article class="article-wrapper" itemscope itemtype="https://schema.org/Article">
+
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <span>/</span>
+            <a href="/blog/">Blog</a>
+            <span>/</span>
+            <span>Encoding &amp; Hashing Explained</span>
+        </nav>
+
+        <!-- Article Header -->
+        <header class="article-header fade-in">
+            <div class="article-meta">
+                <span class="article-category">Web Development</span>
+                <span class="article-date">February 9, 2026</span>
+                <span class="reading-time">15 min read</span>
+            </div>
+            <h1 itemprop="headline"><span class="gradient">Base64, URL Encoding, and Hashing</span> Explained: What Every Web Developer Should Know</h1>
+            <p class="article-subtitle">Encoding, encryption, and hashing are three fundamentally different operations &mdash; yet developers confuse them constantly. This guide breaks down exactly how each works, when to use them, and the security mistakes that happen when you mix them up.</p>
+        </header>
+
+        <!-- Article Content -->
+        <div class="article-content" itemprop="articleBody">
+
+            <h2 class="fade-in" id="encoding-encryption-hashing">Encoding vs. Encryption vs. Hashing: The Critical Distinction</h2>
+
+            <p class="fade-in">Before we dive into specific algorithms, you need to understand the fundamental difference between these three operations. Confusing them is not just a terminology issue &mdash; it leads to real security vulnerabilities. Developers who treat Base64 as "encryption" or SHA-256 as a password storage solution are building systems with exploitable flaws.</p>
+
+            <p class="fade-in"><strong>Encoding</strong> transforms data from one format to another for compatibility or transport purposes. It uses a publicly known scheme and requires no key. Anyone can encode and decode data freely. Encoding provides <em>zero security</em>. Its purpose is purely to make data safe for a particular transmission channel &mdash; Base64 makes binary data safe for text-based protocols, and URL encoding makes special characters safe for URLs.</p>
+
+            <p class="fade-in"><strong>Encryption</strong> transforms data to make it unreadable without a specific key. It is reversible, but only by someone who possesses the correct decryption key. AES-256, RSA, and ChaCha20 are encryption algorithms. The purpose is confidentiality &mdash; preventing unauthorized parties from reading the data.</p>
+
+            <p class="fade-in"><strong>Hashing</strong> transforms data into a fixed-size digest (fingerprint) that cannot be reversed. There is no key, no decryption, and no way to recover the original input from the hash. SHA-256, bcrypt, and Argon2 are hash functions. The purpose is integrity verification and secure storage of secrets like passwords.</p>
+
+            <table class="comparison-table fade-in">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Encoding</th>
+                        <th>Encryption</th>
+                        <th>Hashing</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Reversible?</strong></td>
+                        <td>Yes, by anyone</td>
+                        <td>Yes, with the key</td>
+                        <td>No, never</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Key required?</strong></td>
+                        <td>No</td>
+                        <td>Yes</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Purpose</strong></td>
+                        <td>Data compatibility</td>
+                        <td>Confidentiality</td>
+                        <td>Integrity / fingerprint</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Output size</strong></td>
+                        <td>Varies (~33% larger)</td>
+                        <td>Varies (similar to input)</td>
+                        <td>Fixed (e.g., 256 bits)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Examples</strong></td>
+                        <td>Base64, URL encoding</td>
+                        <td>AES-256, RSA</td>
+                        <td>SHA-256, bcrypt</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-box fade-in">
+                <p><strong>The golden rule:</strong> Encoding is for transport. Encryption is for secrecy. Hashing is for verification. If you use one where another is needed, you have a security vulnerability.</p>
+            </div>
+
+            <h2 class="fade-in" id="base64-encoding">Base64 Encoding: How It Works and When to Use It</h2>
+
+            <p class="fade-in">Base64 is an encoding scheme that converts binary data into a string of 64 ASCII characters (<code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, <code>+</code>, <code>/</code>, and <code>=</code> for padding). It was designed to solve a specific problem: many transport protocols (email, JSON, XML, HTML) only support text, not raw binary data. Base64 bridges that gap.</p>
+
+            <h3 class="fade-in">How Base64 Actually Works</h3>
+
+            <p class="fade-in">The algorithm is straightforward. It takes every 3 bytes (24 bits) of input and splits them into four 6-bit groups. Each 6-bit value (0-63) maps to a character in the Base64 alphabet. If the input length is not a multiple of 3, the output is padded with <code>=</code> characters to maintain alignment.</p>
+
+            <div class="code-label">Step-by-step: encoding "Hi" to Base64</div>
+<pre class="fade-in"><code>Input:    "Hi"
+ASCII:    72, 105
+Binary:   01001000 01101001
+
+Split into 6-bit groups:
+010010 | 000110 | 1001xx
+
+Pad the last group with zeros:
+010010 | 000110 | 100100
+
+Map to Base64 alphabet:
+010010 = 18 = S
+000110 = 6  = G
+100100 = 36 = k
+
+Add padding (input was 2 bytes, not 3):
+Result: "SGk="</code></pre>
+
+            <p class="fade-in">This is why Base64 always increases the data size by approximately 33% &mdash; three bytes of input become four bytes of output. That overhead is the cost of text-safe representation.</p>
+
+            <h3 class="fade-in">When to Use Base64</h3>
+
+            <p class="fade-in">Base64 is the right choice in these specific situations:</p>
+
+            <ul class="fade-in">
+                <li><strong>Data URIs</strong> &mdash; Embedding small images, fonts, or files directly in HTML or CSS. For example, <code>&lt;img src="data:image/png;base64,iVBORw0KGgo..."&gt;</code> eliminates an HTTP request at the cost of a larger HTML document. This is beneficial for icons under 2-3 KB but counterproductive for larger assets.</li>
+                <li><strong>JSON Web Tokens (JWT)</strong> &mdash; The header and payload of every JWT are Base64URL-encoded. This allows the structured JSON data to be safely embedded in HTTP headers, cookies, and URLs.</li>
+                <li><strong>Email attachments (MIME)</strong> &mdash; The SMTP protocol only supports 7-bit ASCII. Base64 encoding allows binary files (images, PDFs, executables) to be transmitted as text within email bodies.</li>
+                <li><strong>API payloads</strong> &mdash; When you need to send binary data (file contents, images, certificates) inside a JSON request body, Base64 encoding the data is the standard approach since JSON does not support raw binary.</li>
+                <li><strong>HTTP Basic Authentication</strong> &mdash; The credentials are encoded as <code>Base64(username:password)</code> and sent in the <code>Authorization</code> header. Note: this is encoding, not encryption. The credentials are readable by anyone who intercepts the header. Always use HTTPS.</li>
+            </ul>
+
+            <div class="code-label">javascript &mdash; Base64 encoding and decoding</div>
+<pre class="fade-in"><code>// Browser: btoa() encodes to Base64, atob() decodes
+const encoded = btoa("Hello, World!");
+console.log(encoded); // "SGVsbG8sIFdvcmxkIQ=="
+
+const decoded = atob("SGVsbG8sIFdvcmxkIQ==");
+console.log(decoded); // "Hello, World!"
+
+// Handling Unicode characters (btoa only supports Latin-1)
+function base64Encode(str) {
+  return btoa(encodeURIComponent(str).replace(
+    /%([0-9A-F]{2})/g,
+    (_, p1) => String.fromCharCode(parseInt(p1, 16))
+  ));
+}
+
+function base64Decode(b64) {
+  return decodeURIComponent(
+    atob(b64).split("").map(
+      c => "%" + c.charCodeAt(0).toString(16).padStart(2, "0")
+    ).join("")
+  );
+}
+
+console.log(base64Encode("Hallo Welt!")); // Works with any Unicode
+console.log(base64Decode(base64Encode("Hallo Welt!"))); // "Hallo Welt!"
+
+// Node.js: Use Buffer
+const b64 = Buffer.from("Hello, World!").toString("base64");
+const text = Buffer.from(b64, "base64").toString("utf-8");
+
+// Base64URL variant (used in JWTs) — no +, /, or = characters
+function toBase64Url(base64) {
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function fromBase64Url(base64url) {
+  let b64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4 !== 0) b64 += "=";
+  return b64;
+}</code></pre>
+
+            <a href="/free-tools/base64.html" class="tool-cta fade-in">&#x1F504; Try It Now &rarr; Base64 Encoder/Decoder Tool</a>
+
+            <div class="info-box fade-in">
+                <p><strong>Common misconception:</strong> "Base64 is a form of encryption." This is categorically false. Base64 is as secure as writing a message in pig Latin. There is no key, no secret, and anyone can decode it instantly. If you see an API key or password stored in Base64 and someone tells you "it is encrypted," you have found a security vulnerability.</p>
+            </div>
+
+            <h2 class="fade-in" id="url-encoding">URL Encoding: Percent-Encoding for the Web</h2>
+
+            <p class="fade-in">URLs have a strictly defined set of characters they can contain. Letters, digits, and a few special characters (<code>-</code>, <code>_</code>, <code>.</code>, <code>~</code>) are allowed as-is. Everything else &mdash; spaces, accented characters, emoji, symbols like <code>&amp;</code> and <code>=</code> that have special meaning in query strings &mdash; must be percent-encoded before being placed in a URL.</p>
+
+            <h3 class="fade-in">How Percent-Encoding Works</h3>
+
+            <p class="fade-in">Percent-encoding is simple: take the UTF-8 byte representation of a character and express each byte as <code>%</code> followed by two hexadecimal digits. A space becomes <code>%20</code>, an ampersand becomes <code>%26</code>, and the euro sign (<code>&euro;</code>) becomes <code>%E2%82%AC</code> because its UTF-8 representation is three bytes: <code>0xE2</code>, <code>0x82</code>, <code>0xAC</code>.</p>
+
+            <div class="code-label">Common percent-encoded characters</div>
+<pre class="fade-in"><code>Space     → %20  (or + in form data)
+!         → %21
+#         → %23
+$         → %24
+&amp;         → %26
++         → %2B
+/         → %2F
+:         → %3A
+=         → %3D
+?         → %3F
+@         → %40
+[         → %5B
+]         → %5D</code></pre>
+
+            <h3 class="fade-in">encodeURI vs. encodeURIComponent</h3>
+
+            <p class="fade-in">JavaScript provides two functions for URL encoding, and choosing the wrong one is a frequent source of bugs.</p>
+
+            <p class="fade-in"><code>encodeURI</code> encodes a <strong>complete URL</strong>. It preserves characters that have structural meaning in URLs: <code>: / ? # [ ] @ ! $ &amp; ' ( ) * + , ; =</code>. Use it when you have a full URL string and want to make it safe without breaking its structure.</p>
+
+            <p class="fade-in"><code>encodeURIComponent</code> encodes a <strong>URL component</strong> (a query parameter value, a path segment). It encodes everything except <code>A-Z a-z 0-9 - _ . ~</code>. Use it when you are building a URL piece by piece and need to encode the individual values.</p>
+
+            <div class="code-label">javascript &mdash; encodeURI vs encodeURIComponent</div>
+<pre class="fade-in"><code>const url = "https://example.com/search?q=hello world&lang=en";
+
+// encodeURI: preserves URL structure characters
+console.log(encodeURI(url));
+// "https://example.com/search?q=hello%20world&lang=en"
+// Note: & and = are preserved (they are part of the URL structure)
+
+// encodeURIComponent: encodes EVERYTHING except unreserved chars
+console.log(encodeURIComponent(url));
+// "https%3A%2F%2Fexample.com%2Fsearch%3Fq%3Dhello%20world%26lang%3Den"
+// Note: This BREAKS the URL — it encoded the structure characters too
+
+// CORRECT usage: Build URLs with encodeURIComponent for values
+const query = "price >= 100 & category = tools";
+const safeUrl = `https://example.com/search?q=${encodeURIComponent(query)}`;
+console.log(safeUrl);
+// "https://example.com/search?q=price%20%3E%3D%20100%20%26%20category%20%3D%20tools"
+
+// Modern alternative: URLSearchParams handles encoding automatically
+const params = new URLSearchParams({
+  q: "hello world",
+  category: "dev tools & utilities",
+  page: "1"
+});
+console.log(params.toString());
+// "q=hello+world&category=dev+tools+%26+utilities&page=1"
+
+const fullUrl = `https://example.com/search?${params}`;
+console.log(fullUrl);
+// Clean, correctly encoded URL</code></pre>
+
+            <a href="/free-tools/url-encoder.html" class="tool-cta fade-in">&#x1F517; URL Encoder/Decoder &rarr; Free Tool</a>
+
+            <div class="info-box fade-in">
+                <p><strong>Pro tip:</strong> Use <code>URLSearchParams</code> whenever possible. It handles encoding automatically, deals with edge cases correctly, and produces cleaner code than manual string concatenation with <code>encodeURIComponent</code>. It also correctly handles the <code>+</code> sign for spaces in query strings (the <code>application/x-www-form-urlencoded</code> format) instead of <code>%20</code>.</p>
+            </div>
+
+            <h3 class="fade-in">Common URL Encoding Pitfalls</h3>
+
+            <ul class="fade-in">
+                <li><strong>Double encoding</strong> &mdash; If you encode a value that is already encoded, <code>%20</code> becomes <code>%2520</code>. This happens when frameworks or libraries encode values automatically and you encode them manually as well. Always know whether your framework handles encoding for you.</li>
+                <li><strong>Forgetting to encode path segments</strong> &mdash; File names with spaces or special characters in URL paths break if not encoded. Use <code>encodeURIComponent</code> for each path segment individually.</li>
+                <li><strong>Using encodeURI for query values</strong> &mdash; If a query value contains <code>&amp;</code> or <code>=</code>, <code>encodeURI</code> will not encode them, which breaks the query string parsing. Always use <code>encodeURIComponent</code> for parameter values.</li>
+                <li><strong>The <code>+</code> sign ambiguity</strong> &mdash; In query strings (<code>application/x-www-form-urlencoded</code>), <code>+</code> means space. In path segments, <code>+</code> means a literal plus. This distinction catches many developers off guard when parsing URLs manually.</li>
+            </ul>
+
+            <h2 class="fade-in" id="hashing">Hashing: One-Way Functions for Integrity and Security</h2>
+
+            <p class="fade-in">A hash function takes an input of any size and produces a fixed-size output (the hash, or digest) that serves as a unique fingerprint of the input. Change even one bit of the input, and the entire hash changes unpredictably. Critically, hashing is a <strong>one-way operation</strong> &mdash; you cannot reverse a hash to recover the original input.</p>
+
+            <h3 class="fade-in">Common Hash Algorithms</h3>
+
+            <p class="fade-in"><strong>MD5</strong> produces a 128-bit (32 hex character) hash. It is fast and widely supported but cryptographically broken &mdash; collisions (two different inputs producing the same hash) can be generated in seconds. Do not use MD5 for anything security-related. It is still acceptable for non-security checksums, like verifying file integrity during downloads where an attacker cannot modify the checksum.</p>
+
+            <p class="fade-in"><strong>SHA-1</strong> produces a 160-bit (40 hex character) hash. Like MD5, it is considered broken for security purposes since practical collision attacks were demonstrated in 2017. Major browsers and certificate authorities stopped trusting SHA-1 certificates years ago. Do not use SHA-1 in new systems.</p>
+
+            <p class="fade-in"><strong>SHA-256</strong> and <strong>SHA-512</strong> are members of the SHA-2 family. SHA-256 produces a 256-bit (64 hex character) hash, and SHA-512 produces a 512-bit (128 hex character) hash. Both remain secure with no known practical attacks. SHA-256 is the standard choice for digital signatures, certificate chains, blockchain, and data integrity verification.</p>
+
+            <p class="fade-in"><strong>bcrypt</strong>, <strong>scrypt</strong>, and <strong>Argon2</strong> are specialized password hashing functions. Unlike general-purpose hash functions that are designed to be fast, these are intentionally slow and memory-intensive. They include a built-in salt and a configurable cost factor that makes brute-force attacks impractical. Argon2id is the current state-of-the-art recommendation.</p>
+
+            <div class="code-label">javascript &mdash; Hashing in the browser with Web Crypto API</div>
+<pre class="fade-in"><code>// SHA-256 hash in the browser (Web Crypto API)
+async function sha256(message) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Usage
+const hash = await sha256("Hello, World!");
+console.log(hash);
+// "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
+
+// SHA-512
+async function sha512(message) {
+  const data = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest("SHA-512", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// MD5 is NOT available in Web Crypto API (intentionally — it is broken)
+// If you need MD5 for legacy compatibility, use a library like js-md5</code></pre>
+
+            <div class="code-label">javascript &mdash; Hashing in Node.js</div>
+<pre class="fade-in"><code>import { createHash, randomBytes, timingSafeEqual } from "crypto";
+
+// SHA-256
+const hash = createHash("sha256").update("Hello, World!").digest("hex");
+console.log(hash);
+// "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
+
+// SHA-512
+const hash512 = createHash("sha512").update("Hello, World!").digest("hex");
+
+// File integrity check — hash an entire file
+import { createReadStream } from "fs";
+
+function hashFile(filePath) {
+  return new Promise((resolve, reject) => {
+    const hash = createHash("sha256");
+    const stream = createReadStream(filePath);
+    stream.on("data", chunk => hash.update(chunk));
+    stream.on("end", () => resolve(hash.digest("hex")));
+    stream.on("error", reject);
+  });
+}
+
+// HMAC — Hash-based Message Authentication Code
+import { createHmac } from "crypto";
+const hmac = createHmac("sha256", "your-secret-key")
+  .update("message to authenticate")
+  .digest("hex");
+
+// bcrypt for passwords (use the 'bcrypt' npm package)
+import bcrypt from "bcrypt";
+const saltRounds = 12;
+
+// Hash a password
+const passwordHash = await bcrypt.hash("user-password-here", saltRounds);
+// "$2b$12$LJ3m4ys8Lp.XHxZp2Kq.5OQ4H1Gq6e3mZf8Rj8NxK0hP1qE9Tv.C"
+
+// Verify a password
+const isValid = await bcrypt.compare("user-password-here", passwordHash);
+console.log(isValid); // true</code></pre>
+
+            <a href="/free-tools/hash-generator.html" class="tool-cta fade-in">&#x1F512; Generate Hashes Instantly &rarr; Hash Generator Tool</a>
+
+            <h3 class="fade-in">When to Use Which Hash Algorithm</h3>
+
+            <ul class="fade-in">
+                <li><strong>Passwords:</strong> Always use bcrypt (cost 12+), scrypt, or Argon2id. Never SHA-256 or MD5. General-purpose hash functions are too fast &mdash; an attacker can try billions of guesses per second.</li>
+                <li><strong>Data integrity:</strong> Use SHA-256. Verifying file downloads, ensuring data has not been tampered with, generating checksums for caching.</li>
+                <li><strong>Digital signatures:</strong> Use SHA-256 or SHA-512 as part of RSA, ECDSA, or EdDSA signature schemes.</li>
+                <li><strong>API authentication:</strong> Use HMAC-SHA256 for signing API requests (like AWS Signature V4).</li>
+                <li><strong>Deduplication:</strong> SHA-256 for content-addressable storage where you need to detect duplicate files.</li>
+                <li><strong>Non-security checksums:</strong> MD5 or CRC32 is acceptable when you only need to detect accidental data corruption, not deliberate tampering.</li>
+            </ul>
+
+            <div class="cta-box fade-in">
+                <h3>Encode, Decode, and Hash &mdash; All in One Place</h3>
+                <p>NexTool provides free Base64, URL encoding, and hash generation tools that run entirely in your browser. No data leaves your machine.</p>
+                <a href="/free-tools/base64.html" class="cta-button">Open Base64 Encoder</a>
+            </div>
+
+            <h2 class="fade-in" id="security-implications">Security Implications and Common Mistakes</h2>
+
+            <p class="fade-in">Here are the mistakes that actually cause breaches, not theoretical vulnerabilities but patterns found in production systems every day.</p>
+
+            <h3 class="fade-in">Mistake 1: Storing Passwords with SHA-256</h3>
+
+            <p class="fade-in">SHA-256 is a good hash function, but it is a terrible password hash. Modern GPUs can compute billions of SHA-256 hashes per second, which means an attacker who obtains your hashed password database can brute-force most passwords in hours. Password hashing functions like bcrypt, scrypt, and Argon2 are intentionally slow (hundreds of milliseconds per hash) and include salts that prevent precomputed attacks.</p>
+
+            <h3 class="fade-in">Mistake 2: Treating Base64 as Security</h3>
+
+            <p class="fade-in">Storing API keys, tokens, or sensitive configuration as Base64 strings and calling it "obfuscation" or "light encryption" is a recurring anti-pattern. Base64 decoding is a single function call. It provides no security whatsoever. If you need to protect secrets at rest, use proper encryption (AES-256-GCM) with a key management system.</p>
+
+            <h3 class="fade-in">Mistake 3: Using MD5 or SHA-1 for Security</h3>
+
+            <p class="fade-in">Both MD5 and SHA-1 have known collision attacks. An attacker can create two different documents with the same hash. This undermines certificate verification, code signing, and any system that relies on the hash as proof of integrity. Migrate to SHA-256 for all security-critical applications.</p>
+
+            <h3 class="fade-in">Mistake 4: Not Salting Hashes</h3>
+
+            <p class="fade-in">Without a salt (a random string appended to the input before hashing), identical passwords produce identical hashes. This enables rainbow table attacks &mdash; precomputed tables mapping common passwords to their hashes. A unique salt per user makes precomputed attacks useless because the attacker would need a separate rainbow table for every possible salt value. Bcrypt, scrypt, and Argon2 handle salting automatically.</p>
+
+            <h3 class="fade-in">Mistake 5: Comparing Hashes with ===</h3>
+
+            <p class="fade-in">String comparison with <code>===</code> in most languages is not constant-time. It returns <code>false</code> as soon as it finds the first differing character. An attacker can measure the response time to determine how many characters of a hash match, gradually narrowing down the correct value. This is called a timing attack. Always use a constant-time comparison function like Node.js <code>crypto.timingSafeEqual()</code> when comparing hashes or signatures.</p>
+
+            <div class="code-label">javascript &mdash; Constant-time hash comparison</div>
+<pre class="fade-in"><code>import { timingSafeEqual, createHmac } from "crypto";
+
+function verifySignature(payload, signature, secret) {
+  const expected = createHmac("sha256", secret)
+    .update(payload)
+    .digest();
+
+  const received = Buffer.from(signature, "hex");
+
+  // Prevent timing attacks: both buffers must be the same length
+  if (expected.length !== received.length) return false;
+
+  // Constant-time comparison — takes the same time regardless of where
+  // the first difference occurs
+  return timingSafeEqual(expected, received);
+}
+
+// WRONG: Vulnerable to timing attacks
+// if (computedHash === receivedHash) { ... }
+
+// CORRECT: Constant-time comparison
+// if (timingSafeEqual(computedHash, receivedHash)) { ... }</code></pre>
+
+            <h2 class="fade-in" id="binary-hex-connection">The Connection to Binary and Hex</h2>
+
+            <p class="fade-in">All encoding and hashing ultimately operates on binary data. Understanding how data flows between binary, hexadecimal, Base64, and text representations gives you a complete mental model of data transformation in web development.</p>
+
+            <p class="fade-in">When you hash a string with SHA-256, the internal computation works entirely on the binary representation of the input. The hex output you see (<code>dffd6021bb...</code>) is just one way to display those 256 bits as human-readable text. You could equally represent the same hash as Base64 (<code>3/1gIbsr1bC...</code>) or raw binary.</p>
+
+            <p class="fade-in">Our <a href="/free-tools/binary-converter.html">Binary Converter</a> and <a href="/free-tools/hex-converter.html">Hex Converter</a> tools let you see exactly how text maps to binary and hexadecimal representations. This is invaluable when debugging encoding issues, inspecting network traffic, or understanding how cryptographic functions process your data at the byte level.</p>
+
+            <a href="/free-tools/binary-converter.html" class="tool-cta fade-in">&#x1F4BB; Binary Converter &rarr; Free Tool</a>
+            <a href="/free-tools/hex-converter.html" class="tool-cta fade-in">&#x1F522; Hex Converter &rarr; Free Tool</a>
+
+            <h2 class="fade-in" id="practical-cheatsheet">Practical Cheatsheet: What to Use When</h2>
+
+            <table class="comparison-table fade-in">
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Use This</th>
+                        <th>Never Use This</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Storing user passwords</td>
+                        <td>bcrypt / Argon2id</td>
+                        <td>SHA-256, MD5, Base64</td>
+                    </tr>
+                    <tr>
+                        <td>Embedding image in HTML</td>
+                        <td>Base64 data URI</td>
+                        <td>Any hash or encryption</td>
+                    </tr>
+                    <tr>
+                        <td>URL query parameter value</td>
+                        <td>encodeURIComponent</td>
+                        <td>encodeURI, Base64</td>
+                    </tr>
+                    <tr>
+                        <td>File integrity check</td>
+                        <td>SHA-256</td>
+                        <td>MD5 (for security), Base64</td>
+                    </tr>
+                    <tr>
+                        <td>API request signing</td>
+                        <td>HMAC-SHA256</td>
+                        <td>Plain SHA-256, MD5</td>
+                    </tr>
+                    <tr>
+                        <td>Sending binary in JSON</td>
+                        <td>Base64</td>
+                        <td>Raw binary, hex (too large)</td>
+                    </tr>
+                    <tr>
+                        <td>Protecting sensitive data</td>
+                        <td>AES-256-GCM encryption</td>
+                        <td>Base64, any hash function</td>
+                    </tr>
+                    <tr>
+                        <td>JWT header &amp; payload</td>
+                        <td>Base64URL</td>
+                        <td>Standard Base64 (not URL-safe)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 class="fade-in" id="tools">Essential Tools for Encoding, Decoding, and Hashing</h2>
+
+            <p class="fade-in">Having the right tools at hand eliminates guesswork. These run entirely in your browser &mdash; no data is sent to any server, and no signup is needed.</p>
+
+            <ul class="fade-in">
+                <li><a href="/free-tools/base64.html"><strong>Base64 Encoder/Decoder</strong></a> &mdash; Encode text or binary to Base64, decode Base64 strings back to their original form. Supports standard Base64 and Base64URL. Essential for debugging JWTs, data URIs, and API payloads.</li>
+                <li><a href="/free-tools/url-encoder.html"><strong>URL Encoder/Decoder</strong></a> &mdash; Encode and decode URL components with proper percent-encoding. See exactly which characters get encoded and how. Invaluable when debugging query strings and API endpoints.</li>
+                <li><a href="/free-tools/hash-generator.html"><strong>Hash Generator</strong></a> &mdash; Generate MD5, SHA-1, SHA-256, and SHA-512 hashes of any input instantly. Compare hashes, verify file integrity, and understand how different algorithms produce different outputs.</li>
+                <li><a href="/free-tools/binary-converter.html"><strong>Binary Converter</strong></a> &mdash; Convert between text, binary, and decimal representations. See the raw binary data that underlies all encoding and hashing operations.</li>
+                <li><a href="/free-tools/hex-converter.html"><strong>Hex Converter</strong></a> &mdash; Convert between text and hexadecimal. Inspect hash outputs, debug byte sequences, and understand how hex notation maps to binary data.</li>
+            </ul>
+
+            <a href="/free-tools/base64.html" class="tool-cta fade-in">&#x1F504; Base64 Encoder/Decoder &rarr; Free Tool</a>
+
+            <!-- FAQ Section -->
+            <div class="faq-section fade-in" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Is Base64 encoding the same as encryption?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>No. Base64 is an encoding scheme, not encryption. It transforms binary data into a text-safe ASCII string using a 64-character alphabet. There is no secret key involved, and anyone can decode a Base64 string instantly. Encoding is reversible by design and provides zero security. Encryption, by contrast, requires a key to both encrypt and decrypt data, making the output unreadable without the correct key. If you need to protect sensitive data, use AES-256 or another proper encryption algorithm, not Base64.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between encodeURI and encodeURIComponent?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p><code>encodeURI</code> is designed to encode a complete URI while preserving characters that have special meaning in URLs, such as <code>: / ? # [ ] @ ! $ &amp; ' ( ) * + , ; =</code> and the path separator <code>/</code>. It is used when you need to encode an entire URL string. <code>encodeURIComponent</code> encodes everything except letters, digits, and the characters <code>- _ . ~</code>, making it suitable for encoding individual query parameter values or path segments. Use <code>encodeURIComponent</code> for parameter values and <code>encodeURI</code> for full URLs.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Why can't I reverse a hash back to the original input?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Hash functions are mathematically designed to be one-way functions. They map an input of any size to a fixed-size output (for example, SHA-256 always produces 256 bits). Because the output is a fixed size but the input can be infinitely large, information is irreversibly lost during hashing. Multiple different inputs can produce the same hash (called a collision), so there is no unique way to reverse the process. This one-way property is exactly what makes hashing useful for password storage and data integrity verification.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Which hashing algorithm should I use for storing passwords?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>For password storage, use bcrypt, scrypt, or Argon2id. These are purpose-built password hashing functions that include a salt (to prevent rainbow table attacks) and a configurable work factor (to make brute-force attacks computationally expensive). Never use MD5 or SHA-256 alone for passwords because they are designed to be fast, which makes them easy to brute-force. Argon2id is the current recommendation from OWASP and won the Password Hashing Competition. Bcrypt remains widely used and is a solid choice with a cost factor of at least 12.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>When should I use Base64 encoding in web development?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Base64 encoding is used whenever you need to represent binary data in a text-only context. Common use cases include: embedding small images directly in HTML or CSS using data URIs, encoding file attachments in email (MIME), encoding the header and payload sections of JSON Web Tokens (JWT), transmitting binary data in JSON or XML payloads, and encoding API credentials in HTTP Basic Authentication headers. Base64 increases data size by approximately 33%, so it should not be used for large files where a direct binary transfer would be more efficient.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pro Promo -->
+            <div class="pro-promo fade-in">
+                <h3>NexTool Pro &mdash; Unlimited Access to All Tools</h3>
+                <p>Get advanced features, no usage limits, and priority access to new tools. One-time payment, lifetime access.</p>
+                <a href="/pro.html" class="cta-button">Get Pro &mdash; $29</a>
+            </div>
+
+        </div>
+    </article>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>NexTool</h3>
+                <p>150+ free developer and business tools. Built to save you time. No signup required for any free tool.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Free Tools</h4>
+                <a href="/free-tools/base64.html">Base64 Encoder</a>
+                <a href="/free-tools/url-encoder.html">URL Encoder</a>
+                <a href="/free-tools/hash-generator.html">Hash Generator</a>
+                <a href="/free-tools/binary-converter.html">Binary Converter</a>
+                <a href="/free-tools/hex-converter.html">Hex Converter</a>
+            </div>
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <a href="/">Home</a>
+                <a href="/free-tools/">All Free Tools</a>
+                <a href="/blog/">Blog</a>
+                <a href="/pro.html">NexTool Pro</a>
+                <a href="/workspace.html">Workspace</a>
+            </div>
+            <div class="footer-col">
+                <h4>Connect</h4>
+                <a href="mailto:christianjunbucher@gmail.com">Email Us</a>
+                <a href="/imprint.html">Imprint</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 NexTool. All rights reserved.</span>
+            <span>150+ Free Tools &mdash; No Signup Required</span>
+        </div>
+    </footer>
+
+    <!-- Fade-in Observer -->
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    </script>
+
+    <!-- FAQ Toggle Script -->
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <!-- Revenue Scripts -->
+    <script defer src="/js/revenue.js"></script>
+</body>
+</html>
