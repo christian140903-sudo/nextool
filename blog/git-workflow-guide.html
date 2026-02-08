@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Complete Git Workflow Guide: From Beginner to Advanced | NexTool Blog</title>
+    <meta name="description" content="Master Git from basics to advanced: branching strategies (Git Flow, GitHub Flow, Trunk-Based), merge vs rebase, conflict resolution, hooks, cherry-pick, bisect, reflog, and collaboration best practices.">
+    <meta name="keywords" content="git workflow, git branching strategy, git flow, github flow, trunk based development, git rebase, git merge, git tutorial, git advanced commands">
+    <meta name="author" content="NexTool">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/git-workflow-guide.html">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="The Complete Git Workflow Guide: From Beginner to Advanced">
+    <meta property="og:description" content="Master Git from basics to advanced: branching strategies, merge vs rebase, conflict resolution, hooks, and collaboration best practices.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://nextool.app/blog/git-workflow-guide.html">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/images/blog/git-workflow-guide-og.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Complete Git Workflow Guide: From Beginner to Advanced">
+    <meta name="twitter:description" content="Master Git from basics to advanced: branching strategies, merge vs rebase, conflict resolution, and more.">
+
+    <!-- JSON-LD Article Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "The Complete Git Workflow Guide: From Beginner to Advanced",
+        "description": "Master Git from basics to advanced: branching strategies, merge vs rebase, conflict resolution, hooks, cherry-pick, bisect, reflog, and collaboration best practices.",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "url": "https://nextool.app",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-08",
+        "dateModified": "2026-02-08",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/git-workflow-guide.html"
+        },
+        "image": "https://nextool.app/images/blog/git-workflow-guide-og.png",
+        "keywords": ["git workflow", "git branching strategy", "git flow", "github flow", "git rebase", "git tutorial"]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #050508;
+            --surface: #111118;
+            --surface-2: #1a1a24;
+            --surface-3: #222230;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --accent: #a855f7;
+            --pink: #ec4899;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --text-muted: #64748b;
+            --border: #1e1e2e;
+            --border-light: #2a2a3e;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --cyan: #06b6d4;
+            --orange: #f97316;
+            --gradient-primary: linear-gradient(135deg, #6366f1, #a855f7);
+            --gradient-accent: linear-gradient(135deg, #a855f7, #ec4899);
+            --gradient-full: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: rgba(99, 102, 241, 0.3);
+            color: #fff;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--primary-hover);
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        /* ===== NAVIGATION ===== */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--text);
+        }
+
+        .nav-cta {
+            background: var(--gradient-primary);
+            color: #fff !important;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .nav-mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* ===== ARTICLE HEADER ===== */
+        .article-header {
+            padding: 120px 2rem 60px;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .article-category {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .article-date,
+        .article-read-time {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .article-title {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-full);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .article-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* ===== TABLE OF CONTENTS ===== */
+        .toc {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .toc-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem;
+        }
+
+        .toc-list li a {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s, transform 0.2s;
+            padding: 2px 0;
+        }
+
+        .toc-list li a:hover {
+            color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .toc-number {
+            color: var(--success);
+            font-weight: 600;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            min-width: 22px;
+        }
+
+        /* ===== ARTICLE CONTENT ===== */
+        .article-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        .article-content h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 3rem 0 1.2rem;
+            color: var(--text);
+            line-height: 1.3;
+            scroll-margin-top: 80px;
+        }
+
+        .article-content h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin: 2.5rem 0 0.8rem;
+            color: var(--text);
+            scroll-margin-top: 80px;
+        }
+
+        .article-content h4 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.5rem;
+            color: var(--text);
+        }
+
+        .article-content p {
+            margin-bottom: 1.2rem;
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        .article-content strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 1.2rem;
+            padding-left: 1.5rem;
+        }
+
+        .article-content li {
+            color: var(--text-dim);
+            margin-bottom: 0.4rem;
+            line-height: 1.7;
+        }
+
+        .article-content li strong {
+            color: var(--text);
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid var(--primary);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+
+        .article-content blockquote p {
+            color: var(--text);
+            font-style: italic;
+            margin-bottom: 0;
+        }
+
+        /* ===== CODE BLOCKS ===== */
+        .code-block {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 1rem;
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-lang {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--success);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .code-copy {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-family: var(--font-sans);
+            transition: all 0.2s;
+        }
+
+        .code-copy:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        pre {
+            padding: 1.2rem;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-dim);
+        }
+
+        code {
+            font-family: var(--font-mono);
+        }
+
+        :not(pre) > code {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: var(--success);
+        }
+
+        /* ===== BRANCH VISUALIZATION ===== */
+        .branch-viz {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+
+        .branch-viz-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .branch-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            min-width: 600px;
+        }
+
+        .branch-row {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            height: 28px;
+        }
+
+        .branch-label {
+            width: 100px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-align: right;
+            padding-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .branch-label.main-branch { color: var(--primary); }
+        .branch-label.dev-branch { color: var(--accent); }
+        .branch-label.feature-branch { color: var(--success); }
+        .branch-label.release-branch { color: var(--cyan); }
+        .branch-label.hotfix-branch { color: var(--error); }
+
+        .branch-line {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .commit-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .commit-dot.main { background: var(--primary); }
+        .commit-dot.dev { background: var(--accent); }
+        .commit-dot.feature { background: var(--success); }
+        .commit-dot.release { background: var(--cyan); }
+        .commit-dot.hotfix { background: var(--error); }
+        .commit-dot.merge {
+            border: 3px solid;
+            background: var(--surface);
+        }
+        .commit-dot.merge.main { border-color: var(--primary); }
+        .commit-dot.merge.dev { border-color: var(--accent); }
+
+        .branch-segment {
+            height: 3px;
+            width: 60px;
+            flex-shrink: 0;
+        }
+
+        .branch-segment.main { background: var(--primary); }
+        .branch-segment.dev { background: var(--accent); }
+        .branch-segment.feature { background: var(--success); }
+        .branch-segment.release { background: var(--cyan); }
+        .branch-segment.hotfix { background: var(--error); }
+        .branch-segment.empty { background: transparent; }
+
+        .branch-segment.dashed {
+            background: none;
+            border-top: 3px dashed;
+        }
+        .branch-segment.dashed.feature { border-color: var(--success); }
+        .branch-segment.dashed.release { border-color: var(--cyan); }
+        .branch-segment.dashed.hotfix { border-color: var(--error); }
+        .branch-segment.dashed.dev { border-color: var(--accent); }
+
+        /* ===== INFO BOXES ===== */
+        .info-box {
+            padding: 1.2rem 1.5rem;
+            border-radius: var(--radius);
+            margin: 1.5rem 0;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .info-box.tip {
+            background: rgba(99, 102, 241, 0.06);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .info-box.warning {
+            background: rgba(245, 158, 11, 0.06);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
+
+        .info-box.danger {
+            background: rgba(239, 68, 68, 0.06);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+        }
+
+        .info-box.nextools {
+            background: rgba(168, 85, 247, 0.06);
+            border: 1px solid rgba(168, 85, 247, 0.15);
+        }
+
+        .info-box-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            line-height: 1.5;
+        }
+
+        .info-box-content { flex: 1; }
+
+        .info-box-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            color: var(--text);
+        }
+
+        .info-box-text {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        /* ===== COMPARISON TABLE ===== */
+        .comparison-table-wrapper {
+            overflow-x: auto;
+            margin: 2rem 0;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .comparison-table thead {
+            background: var(--surface-2);
+        }
+
+        .comparison-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .comparison-table td {
+            padding: 0.8rem 1rem;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table tbody tr:hover {
+            background: rgba(99, 102, 241, 0.03);
+        }
+
+        /* ===== MISTAKE CARD ===== */
+        .mistake-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--error);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .mistake-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .mistake-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--error);
+        }
+
+        .fix-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--success);
+            margin-top: 1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .mistake-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .mistake-desc {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* ===== CTA SECTION ===== */
+        .cta-section {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 3rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-full);
+        }
+
+        .cta-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 0.8rem;
+            color: var(--text);
+        }
+
+        .cta-desc {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 12px 28px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: var(--font-sans);
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* ===== RELATED ARTICLES ===== */
+        .related-section {
+            max-width: 800px;
+            margin: 2rem auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .related-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .related-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: border-color 0.3s, transform 0.2s;
+            text-decoration: none;
+            display: block;
+        }
+
+        .related-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .related-card-cat {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .related-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .related-card-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        .footer-copy {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* ===== SYNTAX COLORS ===== */
+        .cmd { color: #61afef; }
+        .flag { color: #c678dd; }
+        .arg { color: #98c379; }
+        .cmt { color: #5c6370; font-style: italic; }
+        .out { color: #d19a66; }
+        .var { color: #e06c75; }
+
+        /* ===== MOBILE ===== */
+        @media (max-width: 768px) {
+            .nav { padding: 0 1rem; }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 64px;
+                left: 0;
+                right: 0;
+                background: var(--surface);
+                border-bottom: 1px solid var(--border);
+                flex-direction: column;
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .nav-links.active { display: flex; }
+            .nav-mobile-toggle { display: block; }
+
+            .article-header { padding: 100px 1rem 40px; }
+            .article-content { padding: 0 1rem 3rem; }
+            .toc { margin: 1rem; padding: 1.5rem; }
+            .toc-list { grid-template-columns: 1fr; }
+            .cta-section { margin: 2rem 1rem; padding: 2rem 1.5rem; }
+            .related-section { padding: 0 1rem; }
+            .branch-viz { padding: 1rem; }
+        }
+
+        @media (max-width: 480px) {
+            .article-title { font-size: 1.8rem; }
+            .cta-buttons { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== NAVIGATION ===== -->
+    <nav class="nav">
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon">N</div>
+            NexTool
+        </a>
+        <button class="nav-mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('active')" aria-label="Toggle menu">
+            &#9776;
+        </button>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/free-tools/">Free Tools</a></li>
+            <li><a href="/blog/" class="active">Blog</a></li>
+            <li><a href="/products/">Products</a></li>
+            <li><a href="/products/ultimate-bundle.html" class="nav-cta">Get Ultimate Bundle</a></li>
+        </ul>
+    </nav>
+
+    <!-- ===== ARTICLE HEADER ===== -->
+    <header class="article-header">
+        <div class="article-meta">
+            <span class="article-category">Git</span>
+            <span class="article-date">February 8, 2026</span>
+            <span class="article-read-time">35 min read</span>
+        </div>
+        <h1 class="article-title">The Complete Git Workflow Guide: From Beginner to Advanced</h1>
+        <p class="article-subtitle">
+            Everything you need to know about Git: from your first commit to advanced rebasing, branching strategies used by top engineering teams, and the commands that will save you when things go wrong.
+        </p>
+    </header>
+
+    <!-- ===== TABLE OF CONTENTS ===== -->
+    <div class="toc">
+        <div class="toc-title">Table of Contents</div>
+        <ul class="toc-list">
+            <li><a href="#basics"><span class="toc-number">01</span> Git Fundamentals</a></li>
+            <li><a href="#branching"><span class="toc-number">02</span> Branching Strategies</a></li>
+            <li><a href="#merge-rebase"><span class="toc-number">03</span> Merge vs Rebase</a></li>
+            <li><a href="#conflicts"><span class="toc-number">04</span> Conflict Resolution</a></li>
+            <li><a href="#hooks"><span class="toc-number">05</span> Git Hooks</a></li>
+            <li><a href="#advanced"><span class="toc-number">06</span> Advanced Commands</a></li>
+            <li><a href="#mistakes"><span class="toc-number">07</span> Common Mistakes & Fixes</a></li>
+            <li><a href="#collaboration"><span class="toc-number">08</span> Collaboration Best Practices</a></li>
+            <li><a href="#tools"><span class="toc-number">09</span> Tools & Resources</a></li>
+        </ul>
+    </div>
+
+    <!-- ===== ARTICLE CONTENT ===== -->
+    <article class="article-content">
+
+        <!-- SECTION: BASICS -->
+        <section id="basics">
+            <h2>Git Fundamentals</h2>
+
+            <p>
+                Git is a distributed version control system. Unlike centralized systems (SVN, Perforce), every developer has a complete copy of the repository history on their local machine. This means you can commit, branch, merge, and view history without a network connection. Understanding this distributed nature is key to understanding why Git works the way it does.
+            </p>
+
+            <h3>The Three Areas</h3>
+            <p>
+                Git manages your code across three areas. Understanding these is the single most important concept for Git proficiency:
+            </p>
+
+            <ul>
+                <li><strong>Working Directory</strong> -- the actual files on your filesystem. This is what you see and edit.</li>
+                <li><strong>Staging Area (Index)</strong> -- a buffer between your working directory and the repository. You choose which changes to include in the next commit by staging them.</li>
+                <li><strong>Repository (.git)</strong> -- the committed history. Once changes are committed, they are safely stored and can be recovered.</li>
+            </ul>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Initialize a new repository</span>
+<span class="cmd">git</span> <span class="flag">init</span>
+
+<span class="cmt"># Check the status of all three areas</span>
+<span class="cmd">git</span> <span class="flag">status</span>
+
+<span class="cmt"># Move changes from Working Directory → Staging Area</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="arg">file.js</span>              <span class="cmt"># stage a specific file</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="arg">src/</span>                <span class="cmt"># stage an entire directory</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="flag">-p</span>                   <span class="cmt"># interactively stage hunks</span>
+
+<span class="cmt"># Move changes from Staging Area → Repository</span>
+<span class="cmd">git</span> <span class="flag">commit</span> <span class="flag">-m</span> <span class="arg">"Add user authentication"</span>
+
+<span class="cmt"># View commit history</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="flag">--oneline</span> <span class="flag">--graph</span>
+
+<span class="cmt"># View changes in working directory (unstaged)</span>
+<span class="cmd">git</span> <span class="flag">diff</span>
+
+<span class="cmt"># View changes in staging area (staged, ready to commit)</span>
+<span class="cmd">git</span> <span class="flag">diff</span> <span class="flag">--staged</span></pre>
+            </div>
+
+            <h3>Configuring Git</h3>
+            <p>
+                Before your first commit, configure your identity. These settings are stored in <code>~/.gitconfig</code> (global) or <code>.git/config</code> (per-repo).
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Required: your name and email (used in commit metadata)</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">user.name</span> <span class="arg">"Your Name"</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">user.email</span> <span class="arg">"you@example.com"</span>
+
+<span class="cmt"># Recommended: default branch name</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">init.defaultBranch</span> <span class="arg">main</span>
+
+<span class="cmt"># Recommended: auto-setup rebase on pull</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">pull.rebase</span> <span class="arg">true</span>
+
+<span class="cmt"># Recommended: colorized diff output</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">core.pager</span> <span class="arg">"delta"</span>
+
+<span class="cmt"># Set default editor</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">core.editor</span> <span class="arg">"code --wait"</span>
+
+<span class="cmt"># Useful aliases</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">alias.co</span> <span class="arg">checkout</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">alias.br</span> <span class="arg">branch</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">alias.st</span> <span class="arg">status</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">alias.lg</span> <span class="arg">"log --oneline --graph --all"</span></pre>
+            </div>
+
+            <h3>The .gitignore File</h3>
+            <p>
+                A <code>.gitignore</code> file tells Git which files and directories to ignore. This is essential for keeping build artifacts, dependencies, secrets, and OS-specific files out of your repository.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">.gitignore</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Dependencies</span>
+node_modules/
+vendor/
+.venv/
+
+<span class="cmt"># Build output</span>
+dist/
+build/
+.next/
+
+<span class="cmt"># Environment & secrets</span>
+.env
+.env.local
+*.pem
+
+<span class="cmt"># OS files</span>
+.DS_Store
+Thumbs.db
+
+<span class="cmt"># IDE</span>
+.idea/
+.vscode/
+*.swp
+
+<span class="cmt"># Logs</span>
+*.log
+npm-debug.log*</pre>
+            </div>
+
+            <div class="info-box nextools">
+                <div class="info-box-icon">&#128736;</div>
+                <div class="info-box-content">
+                    <div class="info-box-title">NexTool .gitignore Generator</div>
+                    <div class="info-box-text">
+                        Use the <a href="/free-tools/">NexTool .gitignore generator</a> to create a comprehensive .gitignore file for your project's tech stack. Select your languages, frameworks, and IDEs, and get a production-ready file instantly.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: BRANCHING STRATEGIES -->
+        <section id="branching">
+            <h2>Branching Strategies</h2>
+
+            <p>
+                How your team manages branches determines your development velocity, release stability, and merge conflict frequency. There is no universally best strategy. The right choice depends on your team size, release cadence, and infrastructure.
+            </p>
+
+            <h3>1. Git Flow</h3>
+            <p>
+                Git Flow uses long-lived <code>main</code> and <code>develop</code> branches with short-lived feature, release, and hotfix branches. It was designed for projects with scheduled releases and is well-suited for mobile apps, enterprise software, and anything with a formal release process.
+            </p>
+
+            <div class="branch-viz">
+                <div class="branch-viz-title">Git Flow Branch Diagram</div>
+                <div class="branch-diagram">
+                    <div class="branch-row">
+                        <span class="branch-label main-branch">main</span>
+                        <div class="branch-line">
+                            <div class="commit-dot main"></div>
+                            <div class="branch-segment main"></div>
+                            <div class="branch-segment main"></div>
+                            <div class="branch-segment main"></div>
+                            <div class="branch-segment main"></div>
+                            <div class="commit-dot merge main"></div>
+                            <div class="branch-segment main"></div>
+                            <div class="branch-segment main"></div>
+                            <div class="commit-dot merge main"></div>
+                            <div class="branch-segment main"></div>
+                            <div class="commit-dot main"></div>
+                        </div>
+                    </div>
+                    <div class="branch-row">
+                        <span class="branch-label release-branch">release</span>
+                        <div class="branch-line">
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="commit-dot release"></div>
+                            <div class="branch-segment release"></div>
+                            <div class="commit-dot release"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                        </div>
+                    </div>
+                    <div class="branch-row">
+                        <span class="branch-label dev-branch">develop</span>
+                        <div class="branch-line">
+                            <div class="commit-dot dev"></div>
+                            <div class="branch-segment dev"></div>
+                            <div class="commit-dot dev"></div>
+                            <div class="branch-segment dev"></div>
+                            <div class="commit-dot merge dev"></div>
+                            <div class="branch-segment dev"></div>
+                            <div class="commit-dot dev"></div>
+                            <div class="branch-segment dev"></div>
+                            <div class="commit-dot merge dev"></div>
+                            <div class="branch-segment dev"></div>
+                            <div class="commit-dot dev"></div>
+                        </div>
+                    </div>
+                    <div class="branch-row">
+                        <span class="branch-label feature-branch">feature</span>
+                        <div class="branch-line">
+                            <div class="branch-segment empty"></div>
+                            <div class="commit-dot feature"></div>
+                            <div class="branch-segment feature"></div>
+                            <div class="commit-dot feature"></div>
+                            <div class="branch-segment feature"></div>
+                            <div class="commit-dot feature"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                        </div>
+                    </div>
+                    <div class="branch-row">
+                        <span class="branch-label hotfix-branch">hotfix</span>
+                        <div class="branch-line">
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="branch-segment empty"></div>
+                            <div class="commit-dot hotfix"></div>
+                            <div class="branch-segment hotfix"></div>
+                            <div class="commit-dot hotfix"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Start a feature</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">develop</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="flag">-b</span> <span class="arg">feature/user-auth</span>
+
+<span class="cmt"># Work on the feature, commit regularly</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="arg">.</span> && <span class="cmd">git</span> <span class="flag">commit</span> <span class="flag">-m</span> <span class="arg">"Add login form component"</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="arg">.</span> && <span class="cmd">git</span> <span class="flag">commit</span> <span class="flag">-m</span> <span class="arg">"Add JWT token validation"</span>
+
+<span class="cmt"># Finish feature: merge back to develop</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">develop</span>
+<span class="cmd">git</span> <span class="flag">merge</span> <span class="flag">--no-ff</span> <span class="arg">feature/user-auth</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="flag">-d</span> <span class="arg">feature/user-auth</span>
+
+<span class="cmt"># Create a release</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="flag">-b</span> <span class="arg">release/1.2.0</span> <span class="arg">develop</span>
+<span class="cmt"># ... fix bugs, bump version ...</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">main</span> && <span class="cmd">git</span> <span class="flag">merge</span> <span class="flag">--no-ff</span> <span class="arg">release/1.2.0</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="flag">-a</span> <span class="arg">v1.2.0</span> <span class="flag">-m</span> <span class="arg">"Release 1.2.0"</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">develop</span> && <span class="cmd">git</span> <span class="flag">merge</span> <span class="flag">--no-ff</span> <span class="arg">release/1.2.0</span>
+
+<span class="cmt"># Emergency hotfix</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="flag">-b</span> <span class="arg">hotfix/critical-fix</span> <span class="arg">main</span>
+<span class="cmt"># ... fix the issue ...</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">main</span> && <span class="cmd">git</span> <span class="flag">merge</span> <span class="flag">--no-ff</span> <span class="arg">hotfix/critical-fix</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">develop</span> && <span class="cmd">git</span> <span class="flag">merge</span> <span class="flag">--no-ff</span> <span class="arg">hotfix/critical-fix</span></pre>
+            </div>
+
+            <h3>2. GitHub Flow</h3>
+            <p>
+                GitHub Flow is simpler: one <code>main</code> branch that is always deployable, plus short-lived feature branches. Every change goes through a pull request and code review. After merging, you deploy. This works well for web applications with continuous deployment, small teams, and projects that ship multiple times per day.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># The entire GitHub Flow workflow:</span>
+
+<span class="cmt"># 1. Create a branch from main</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">main</span>
+<span class="cmd">git</span> <span class="flag">pull</span> <span class="flag">origin</span> <span class="arg">main</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="flag">-b</span> <span class="arg">feature/add-search</span>
+
+<span class="cmt"># 2. Make commits</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="arg">.</span> && <span class="cmd">git</span> <span class="flag">commit</span> <span class="flag">-m</span> <span class="arg">"Add search component"</span>
+
+<span class="cmt"># 3. Push and open a Pull Request</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="flag">-u</span> <span class="arg">origin feature/add-search</span>
+<span class="cmd">gh</span> <span class="flag">pr</span> <span class="flag">create</span> <span class="flag">--title</span> <span class="arg">"Add search functionality"</span>
+
+<span class="cmt"># 4. Review, discuss, iterate</span>
+<span class="cmt"># 5. Merge via GitHub UI (squash merge recommended)</span>
+<span class="cmt"># 6. Deploy automatically from main</span></pre>
+            </div>
+
+            <h3>3. Trunk-Based Development</h3>
+            <p>
+                Trunk-Based Development (TBD) has developers commit directly to <code>main</code> (or use very short-lived branches that last at most one to two days). It requires robust CI/CD, feature flags for incomplete work, and high test coverage. Used by Google, Meta, and most large-scale tech companies. It eliminates merge conflicts and long-lived branch divergence.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Trunk-Based: short-lived branches (max 1-2 days)</span>
+
+<span class="cmt"># Pull latest main</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">main</span> && <span class="cmd">git</span> <span class="flag">pull</span>
+
+<span class="cmt"># Create a short-lived branch</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="flag">-b</span> <span class="arg">short/add-button</span>
+
+<span class="cmt"># Make a small, focused change</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="arg">.</span> && <span class="cmd">git</span> <span class="flag">commit</span> <span class="flag">-m</span> <span class="arg">"Add submit button to form"</span>
+
+<span class="cmt"># Push and merge same day</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="flag">-u</span> <span class="arg">origin short/add-button</span>
+<span class="cmt"># PR → Review → Merge → Delete branch</span>
+
+<span class="cmt"># Feature flags for incomplete features:</span>
+<span class="cmt"># if (featureFlags.newSearch) { showNewSearch() }</span></pre>
+            </div>
+
+            <h3>Strategy Comparison</h3>
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Criteria</th>
+                            <th>Git Flow</th>
+                            <th>GitHub Flow</th>
+                            <th>Trunk-Based</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Complexity</strong></td>
+                            <td>High</td>
+                            <td>Low</td>
+                            <td>Low (process), High (infra)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Release cadence</strong></td>
+                            <td>Scheduled</td>
+                            <td>Continuous</td>
+                            <td>Continuous</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Merge conflicts</strong></td>
+                            <td>Frequent</td>
+                            <td>Moderate</td>
+                            <td>Rare</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Team size</strong></td>
+                            <td>Large teams</td>
+                            <td>Small-medium</td>
+                            <td>Any size</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Requires feature flags</strong></td>
+                            <td>No</td>
+                            <td>Optional</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Best for</strong></td>
+                            <td>Mobile, enterprise</td>
+                            <td>Web apps, startups</td>
+                            <td>High-velocity teams</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECTION: MERGE VS REBASE -->
+        <section id="merge-rebase">
+            <h2>Merge vs Rebase</h2>
+
+            <p>
+                This is the most debated topic in Git. Both <code>merge</code> and <code>rebase</code> integrate changes from one branch into another, but they do it differently, and the choice has real implications for your team's workflow.
+            </p>
+
+            <h3>Merge: Preserves History</h3>
+            <p>
+                <code>git merge</code> creates a new "merge commit" that ties two branch histories together. The original commit history of both branches is preserved exactly as it happened. This is the safest option because it never rewrites history.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Merge feature branch into main</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">main</span>
+<span class="cmd">git</span> <span class="flag">merge</span> <span class="arg">feature/add-search</span>
+
+<span class="cmt"># --no-ff forces a merge commit even if fast-forward is possible</span>
+<span class="cmd">git</span> <span class="flag">merge</span> <span class="flag">--no-ff</span> <span class="arg">feature/add-search</span></pre>
+            </div>
+
+            <h3>Rebase: Linear History</h3>
+            <p>
+                <code>git rebase</code> replays your branch's commits on top of another branch, creating new commits with the same changes but different hashes. The result is a clean, linear history. The trade-off: it rewrites history, which can cause problems if the branch has already been shared.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Rebase feature branch onto latest main</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">feature/add-search</span>
+<span class="cmd">git</span> <span class="flag">rebase</span> <span class="arg">main</span>
+
+<span class="cmt"># Interactive rebase to clean up commits before merging</span>
+<span class="cmd">git</span> <span class="flag">rebase</span> <span class="flag">-i</span> <span class="arg">main</span>
+<span class="cmt"># In the editor, you can:</span>
+<span class="cmt"># pick   - keep the commit</span>
+<span class="cmt"># squash - combine with previous commit</span>
+<span class="cmt"># reword - change the commit message</span>
+<span class="cmt"># drop   - remove the commit entirely</span>
+<span class="cmt"># edit   - pause to amend the commit</span></pre>
+            </div>
+
+            <div class="info-box warning">
+                <div class="info-box-icon">&#9888;</div>
+                <div class="info-box-content">
+                    <div class="info-box-title">The Golden Rule of Rebase</div>
+                    <div class="info-box-text">
+                        Never rebase commits that have been pushed to a shared branch. Rebasing rewrites commit hashes, which will cause conflicts for anyone who has already pulled those commits. Only rebase local, unshared commits.
+                    </div>
+                </div>
+            </div>
+
+            <h3>Recommended Approach</h3>
+            <p>
+                The most common professional workflow combines both: <strong>rebase locally, merge publicly</strong>. Before opening a PR, rebase your feature branch onto the latest main to get a clean, up-to-date set of commits. Then merge (or squash-merge) the PR via the GitHub/GitLab UI.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Before opening a PR: rebase onto latest main</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">feature/my-feature</span>
+<span class="cmd">git</span> <span class="flag">fetch</span> <span class="arg">origin</span>
+<span class="cmd">git</span> <span class="flag">rebase</span> <span class="arg">origin/main</span>
+
+<span class="cmt"># If conflicts, resolve them, then:</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="arg">.</span>
+<span class="cmd">git</span> <span class="flag">rebase</span> <span class="flag">--continue</span>
+
+<span class="cmt"># Force push (safe because only you work on this branch)</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="flag">--force-with-lease</span></pre>
+            </div>
+        </section>
+
+        <!-- SECTION: CONFLICT RESOLUTION -->
+        <section id="conflicts">
+            <h2>Conflict Resolution</h2>
+
+            <p>
+                Merge conflicts happen when two branches modify the same lines of the same file. Git cannot automatically determine which change to keep, so it marks the conflict and asks you to resolve it manually. The key is to not panic. Conflicts are normal and resolvable.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">CONFLICT MARKERS</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt">// This is what a conflict looks like in your file:</span>
+
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+<span class="var">const theme = 'dark';</span>
+=======
+<span class="arg">const theme = 'light';</span>
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/light-mode
+
+<span class="cmt">// HEAD = your current branch's version</span>
+<span class="cmt">// feature/light-mode = the incoming branch's version</span>
+<span class="cmt">// You choose: keep one, keep both, or write something new</span></pre>
+            </div>
+
+            <h3>Resolution Steps</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># 1. See which files have conflicts</span>
+<span class="cmd">git</span> <span class="flag">status</span>
+
+<span class="cmt"># 2. Open the conflicted file, resolve manually</span>
+<span class="cmt">#    Remove the <<<<<<, =======, >>>>>>> markers</span>
+<span class="cmt">#    Keep the correct code</span>
+
+<span class="cmt"># 3. Mark as resolved by staging</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="arg">conflicted-file.js</span>
+
+<span class="cmt"># 4. Continue the merge or rebase</span>
+<span class="cmd">git</span> <span class="flag">merge</span> <span class="flag">--continue</span>    <span class="cmt"># if merging</span>
+<span class="cmd">git</span> <span class="flag">rebase</span> <span class="flag">--continue</span>   <span class="cmt"># if rebasing</span>
+
+<span class="cmt"># If it gets messy, abort and start over</span>
+<span class="cmd">git</span> <span class="flag">merge</span> <span class="flag">--abort</span>
+<span class="cmd">git</span> <span class="flag">rebase</span> <span class="flag">--abort</span>
+
+<span class="cmt"># Use a visual merge tool</span>
+<span class="cmd">git</span> <span class="flag">mergetool</span></pre>
+            </div>
+
+            <div class="info-box tip">
+                <div class="info-box-icon">&#128161;</div>
+                <div class="info-box-content">
+                    <div class="info-box-title">Preventing Conflicts</div>
+                    <div class="info-box-text">
+                        The best conflict resolution is conflict prevention. Keep branches short-lived (1-2 days max), rebase onto main frequently, break large changes into smaller PRs, and coordinate with teammates when working on the same files.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: GIT HOOKS -->
+        <section id="hooks">
+            <h2>Git Hooks</h2>
+
+            <p>
+                Git hooks are scripts that run automatically at specific points in the Git workflow: before a commit, before a push, after a merge, and more. They are the enforcement mechanism for code quality standards.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Hooks live in .git/hooks/ (local, not committed)</span>
+<span class="cmt"># Use Husky to manage hooks via package.json (committed)</span>
+
+<span class="cmt"># Install Husky</span>
+<span class="cmd">npx</span> <span class="arg">husky init</span>
+
+<span class="cmt"># Create a pre-commit hook that runs linting</span>
+<span class="cmd">echo</span> <span class="arg">"npx lint-staged"</span> > .husky/pre-commit
+
+<span class="cmt"># Create a commit-msg hook for conventional commits</span>
+<span class="cmd">echo</span> <span class="arg">"npx commitlint --edit \$1"</span> > .husky/commit-msg</pre>
+            </div>
+
+            <h3>Common Hook Types</h3>
+            <ul>
+                <li><strong>pre-commit</strong> -- runs before a commit is created. Use it for linting, formatting, and type checking. This is the most commonly used hook.</li>
+                <li><strong>commit-msg</strong> -- validates the commit message format. Enforce conventional commits (<code>feat:</code>, <code>fix:</code>, <code>docs:</code>) automatically.</li>
+                <li><strong>pre-push</strong> -- runs before pushing. Use it to run tests and prevent pushing broken code.</li>
+                <li><strong>post-merge</strong> -- runs after a merge. Use it to auto-install dependencies if <code>package.json</code> changed.</li>
+            </ul>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH - .husky/pre-commit</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt">#!/bin/sh</span>
+
+<span class="cmt"># Run lint-staged (only checks staged files)</span>
+npx lint-staged
+
+<span class="cmt"># Run type checking</span>
+npx tsc --noEmit</pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON - package.json (lint-staged config)</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre>{
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.css": [
+      "stylelint --fix",
+      "prettier --write"
+    ],
+    "*.md": [
+      "prettier --write"
+    ]
+  }
+}</pre>
+            </div>
+        </section>
+
+        <!-- SECTION: ADVANCED COMMANDS -->
+        <section id="advanced">
+            <h2>Advanced Git Commands</h2>
+
+            <p>
+                These are the commands that separate Git beginners from Git power users. Each one solves a specific problem that you will inevitably encounter.
+            </p>
+
+            <h3>git stash -- Save Work Without Committing</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Stash current changes (both staged and unstaged)</span>
+<span class="cmd">git</span> <span class="flag">stash</span>
+
+<span class="cmt"># Stash with a descriptive name</span>
+<span class="cmd">git</span> <span class="flag">stash</span> <span class="flag">push</span> <span class="flag">-m</span> <span class="arg">"WIP: auth refactor"</span>
+
+<span class="cmt"># Include untracked files</span>
+<span class="cmd">git</span> <span class="flag">stash</span> <span class="flag">-u</span>
+
+<span class="cmt"># List all stashes</span>
+<span class="cmd">git</span> <span class="flag">stash</span> <span class="flag">list</span>
+
+<span class="cmt"># Apply most recent stash (keeps it in stash list)</span>
+<span class="cmd">git</span> <span class="flag">stash</span> <span class="flag">apply</span>
+
+<span class="cmt"># Apply and remove from stash list</span>
+<span class="cmd">git</span> <span class="flag">stash</span> <span class="flag">pop</span>
+
+<span class="cmt"># Apply a specific stash</span>
+<span class="cmd">git</span> <span class="flag">stash</span> <span class="flag">apply</span> <span class="arg">stash@{2}</span>
+
+<span class="cmt"># Create a branch from a stash</span>
+<span class="cmd">git</span> <span class="flag">stash</span> <span class="flag">branch</span> <span class="arg">new-branch-from-stash</span></pre>
+            </div>
+
+            <h3>git cherry-pick -- Copy Specific Commits</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Apply a specific commit to current branch</span>
+<span class="cmd">git</span> <span class="flag">cherry-pick</span> <span class="arg">abc123</span>
+
+<span class="cmt"># Cherry-pick a range of commits</span>
+<span class="cmd">git</span> <span class="flag">cherry-pick</span> <span class="arg">abc123..def456</span>
+
+<span class="cmt"># Cherry-pick without committing (stage only)</span>
+<span class="cmd">git</span> <span class="flag">cherry-pick</span> <span class="flag">--no-commit</span> <span class="arg">abc123</span>
+
+<span class="cmt"># Use case: backport a fix to a release branch</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">release/1.0</span>
+<span class="cmd">git</span> <span class="flag">cherry-pick</span> <span class="arg">abc123</span>  <span class="cmt"># the bugfix commit from main</span></pre>
+            </div>
+
+            <h3>git bisect -- Find the Bug-Introducing Commit</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Start bisect</span>
+<span class="cmd">git</span> <span class="flag">bisect</span> <span class="flag">start</span>
+
+<span class="cmt"># Mark current commit as bad (has the bug)</span>
+<span class="cmd">git</span> <span class="flag">bisect</span> <span class="flag">bad</span>
+
+<span class="cmt"># Mark a known good commit (before the bug existed)</span>
+<span class="cmd">git</span> <span class="flag">bisect</span> <span class="flag">good</span> <span class="arg">v1.0.0</span>
+
+<span class="cmt"># Git checks out a midpoint commit. Test it, then:</span>
+<span class="cmd">git</span> <span class="flag">bisect</span> <span class="flag">good</span>    <span class="cmt"># if this commit is fine</span>
+<span class="cmd">git</span> <span class="flag">bisect</span> <span class="flag">bad</span>     <span class="cmt"># if this commit has the bug</span>
+
+<span class="cmt"># Repeat until Git identifies the exact bad commit</span>
+<span class="cmt"># Output: "abc123 is the first bad commit"</span>
+
+<span class="cmt"># Automated bisect with a test script</span>
+<span class="cmd">git</span> <span class="flag">bisect</span> <span class="flag">run</span> <span class="arg">npm test</span>
+
+<span class="cmt"># Reset when done</span>
+<span class="cmd">git</span> <span class="flag">bisect</span> <span class="flag">reset</span></pre>
+            </div>
+
+            <h3>git reflog -- Your Safety Net</h3>
+            <p>
+                <code>git reflog</code> is the most important recovery tool in Git. It records every time HEAD changes, even across resets, rebases, and checkouts. If you accidentally lose commits, reflog has them.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># View reflog (recent HEAD movements)</span>
+<span class="cmd">git</span> <span class="flag">reflog</span>
+<span class="out">abc1234 HEAD@{0}: commit: Add new feature</span>
+<span class="out">def5678 HEAD@{1}: rebase: fast-forward</span>
+<span class="out">ghi9012 HEAD@{2}: checkout: moving from main to feature</span>
+<span class="out">jkl3456 HEAD@{3}: reset: moving to HEAD~3</span>
+
+<span class="cmt"># Recover a "lost" commit after a bad rebase/reset</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="flag">-b</span> <span class="arg">recovery-branch</span> <span class="arg">HEAD@{3}</span>
+
+<span class="cmt"># Or reset current branch to a previous state</span>
+<span class="cmd">git</span> <span class="flag">reset</span> <span class="flag">--hard</span> <span class="arg">HEAD@{3}</span></pre>
+            </div>
+
+            <div class="info-box tip">
+                <div class="info-box-icon">&#128161;</div>
+                <div class="info-box-content">
+                    <div class="info-box-title">Reflog Saves Lives</div>
+                    <div class="info-box-text">
+                        If you ever think you have lost work in Git, check the reflog first. Commits are not actually deleted for at least 30 days (the garbage collection grace period). The reflog is how you find them.
+                    </div>
+                </div>
+            </div>
+
+            <h3>git worktree -- Multiple Working Directories</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Create a worktree for a different branch (no stash needed!)</span>
+<span class="cmd">git</span> <span class="flag">worktree</span> <span class="flag">add</span> <span class="arg">../project-hotfix</span> <span class="arg">hotfix/urgent-fix</span>
+
+<span class="cmt"># Work on the hotfix in ../project-hotfix</span>
+<span class="cmt"># while your main work stays untouched in the original directory</span>
+
+<span class="cmt"># List worktrees</span>
+<span class="cmd">git</span> <span class="flag">worktree</span> <span class="flag">list</span>
+
+<span class="cmt"># Remove when done</span>
+<span class="cmd">git</span> <span class="flag">worktree</span> <span class="flag">remove</span> <span class="arg">../project-hotfix</span></pre>
+            </div>
+        </section>
+
+        <!-- SECTION: COMMON MISTAKES -->
+        <section id="mistakes">
+            <h2>Common Mistakes and How to Fix Them</h2>
+
+            <div class="mistake-card">
+                <div class="mistake-card-header">
+                    <span class="mistake-label">Mistake</span>
+                </div>
+                <div class="mistake-title">Committed to the wrong branch</div>
+                <div class="mistake-desc">You made commits on <code>main</code> when you meant to commit on a feature branch.</div>
+                <div class="fix-label">Fix</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">BASH</span>
+                        <button class="code-copy">Copy</button>
+                    </div>
+<pre><span class="cmt"># Create the branch you wanted (it will have your commits)</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="arg">feature/my-feature</span>
+
+<span class="cmt"># Reset main back to before your commits</span>
+<span class="cmd">git</span> <span class="flag">reset</span> <span class="flag">--hard</span> <span class="arg">origin/main</span>
+
+<span class="cmt"># Switch to your feature branch</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">feature/my-feature</span></pre>
+                </div>
+            </div>
+
+            <div class="mistake-card">
+                <div class="mistake-card-header">
+                    <span class="mistake-label">Mistake</span>
+                </div>
+                <div class="mistake-title">Committed a file with secrets</div>
+                <div class="mistake-desc">You accidentally committed a <code>.env</code> file or API key.</div>
+                <div class="fix-label">Fix</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">BASH</span>
+                        <button class="code-copy">Copy</button>
+                    </div>
+<pre><span class="cmt"># If not pushed yet: amend the commit</span>
+<span class="cmd">git</span> <span class="flag">rm</span> <span class="flag">--cached</span> <span class="arg">.env</span>
+<span class="cmd">echo</span> <span class="arg">".env"</span> >> .gitignore
+<span class="cmd">git</span> <span class="flag">add</span> <span class="arg">.gitignore</span>
+<span class="cmd">git</span> <span class="flag">commit</span> <span class="flag">--amend</span>
+
+<span class="cmt"># If already pushed: rewrite history (WARNING: rewrites all history)</span>
+<span class="cmd">git</span> <span class="flag">filter-branch</span> <span class="flag">--force</span> <span class="flag">--index-filter</span> \
+  <span class="arg">"git rm --cached --ignore-unmatch .env"</span> \
+  <span class="flag">--prune-empty</span> <span class="flag">--tag-name-filter</span> <span class="arg">cat</span> <span class="flag">--</span> <span class="flag">--all</span>
+
+<span class="cmt"># IMPORTANT: Rotate the exposed secrets immediately!</span></pre>
+                </div>
+            </div>
+
+            <div class="mistake-card">
+                <div class="mistake-card-header">
+                    <span class="mistake-label">Mistake</span>
+                </div>
+                <div class="mistake-title">Need to undo the last commit</div>
+                <div class="mistake-desc">You committed too early or included the wrong files.</div>
+                <div class="fix-label">Fix</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">BASH</span>
+                        <button class="code-copy">Copy</button>
+                    </div>
+<pre><span class="cmt"># Undo commit, keep changes staged</span>
+<span class="cmd">git</span> <span class="flag">reset</span> <span class="flag">--soft</span> <span class="arg">HEAD~1</span>
+
+<span class="cmt"># Undo commit, keep changes unstaged</span>
+<span class="cmd">git</span> <span class="flag">reset</span> <span class="arg">HEAD~1</span>
+
+<span class="cmt"># Undo commit AND discard changes (DANGEROUS)</span>
+<span class="cmd">git</span> <span class="flag">reset</span> <span class="flag">--hard</span> <span class="arg">HEAD~1</span>
+
+<span class="cmt"># If already pushed: create a revert commit (safe)</span>
+<span class="cmd">git</span> <span class="flag">revert</span> <span class="arg">HEAD</span></pre>
+                </div>
+            </div>
+
+            <div class="mistake-card">
+                <div class="mistake-card-header">
+                    <span class="mistake-label">Mistake</span>
+                </div>
+                <div class="mistake-title">Detached HEAD state</div>
+                <div class="mistake-desc">You checked out a commit hash or tag and now you are in "detached HEAD" state.</div>
+                <div class="fix-label">Fix</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">BASH</span>
+                        <button class="code-copy">Copy</button>
+                    </div>
+<pre><span class="cmt"># If you made commits in detached HEAD and want to keep them:</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="flag">-b</span> <span class="arg">save-my-work</span>
+
+<span class="cmt"># If you just want to go back to a branch:</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="arg">main</span></pre>
+                </div>
+            </div>
+
+            <div class="mistake-card">
+                <div class="mistake-card-header">
+                    <span class="mistake-label">Mistake</span>
+                </div>
+                <div class="mistake-title">Accidentally ran git reset --hard</div>
+                <div class="mistake-desc">You lost commits by resetting too far back.</div>
+                <div class="fix-label">Fix</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">BASH</span>
+                        <button class="code-copy">Copy</button>
+                    </div>
+<pre><span class="cmt"># Reflog to the rescue</span>
+<span class="cmd">git</span> <span class="flag">reflog</span>
+<span class="cmt"># Find the commit hash before the reset</span>
+<span class="cmd">git</span> <span class="flag">reset</span> <span class="flag">--hard</span> <span class="arg">HEAD@{1}</span>  <span class="cmt"># or the specific hash</span></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: COLLABORATION -->
+        <section id="collaboration">
+            <h2>Collaboration Best Practices</h2>
+
+            <h3>Write Good Commit Messages</h3>
+            <p>
+                Commit messages are not just for you right now. They are for your teammates trying to understand a change six months from now, and for your future self running <code>git blame</code> on a confusing line.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">CONVENTIONAL COMMITS</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Format: type(scope): description</span>
+
+<span class="arg">feat(auth): add OAuth2 login with Google provider</span>
+<span class="arg">fix(api): handle null response from payment gateway</span>
+<span class="arg">docs(readme): update installation instructions for v2</span>
+<span class="arg">refactor(database): replace raw SQL with query builder</span>
+<span class="arg">test(cart): add integration tests for checkout flow</span>
+<span class="arg">chore(deps): update React from 19.0 to 19.1</span>
+<span class="arg">perf(images): add lazy loading to product gallery</span>
+
+<span class="cmt"># Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore</span></pre>
+            </div>
+
+            <h3>Pull Request Etiquette</h3>
+            <ul>
+                <li><strong>Keep PRs small.</strong> 200-400 lines of code change is the sweet spot. Larger PRs get worse reviews and sit longer.</li>
+                <li><strong>Write a description.</strong> Explain what the change does, why it is needed, and how to test it. Link to the relevant issue.</li>
+                <li><strong>Self-review first.</strong> Read the diff yourself before requesting reviews. You will catch obvious issues.</li>
+                <li><strong>Respond to feedback promptly.</strong> A PR that sits for days accumulates merge conflicts and blocks downstream work.</li>
+                <li><strong>Use draft PRs</strong> for work-in-progress that you want early feedback on without triggering a full review.</li>
+            </ul>
+
+            <h3>Protecting Main</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Branch protection rules (configure in GitHub/GitLab settings):</span>
+<span class="cmt"># - Require pull request reviews (1-2 approvals)</span>
+<span class="cmt"># - Require status checks to pass (CI/CD must be green)</span>
+<span class="cmt"># - Require branches to be up to date before merging</span>
+<span class="cmt"># - Require signed commits (optional, for high-security projects)</span>
+<span class="cmt"># - Restrict force push to main</span>
+
+<span class="cmt"># Using GitHub CLI to set up branch protection:</span>
+<span class="cmd">gh</span> <span class="flag">api</span> <span class="arg">repos/{owner}/{repo}/branches/main/protection</span> \
+  <span class="flag">--method</span> <span class="arg">PUT</span> \
+  <span class="flag">-f</span> <span class="arg">"required_pull_request_reviews[required_approving_review_count]=1"</span> \
+  <span class="flag">-F</span> <span class="arg">"enforce_admins=true"</span></pre>
+            </div>
+
+            <h3>Keeping a Clean History</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Squash merge: combine all feature commits into one clean commit</span>
+<span class="cmd">git</span> <span class="flag">merge</span> <span class="flag">--squash</span> <span class="arg">feature/my-feature</span>
+<span class="cmd">git</span> <span class="flag">commit</span> <span class="flag">-m</span> <span class="arg">"feat(auth): add OAuth2 login with Google"</span>
+
+<span class="cmt"># Interactive rebase before PR to clean up messy commits</span>
+<span class="cmd">git</span> <span class="flag">rebase</span> <span class="flag">-i</span> <span class="arg">HEAD~5</span>
+<span class="cmt"># squash "wip" and "fix typo" commits into meaningful ones</span>
+
+<span class="cmt"># Amend the last commit message</span>
+<span class="cmd">git</span> <span class="flag">commit</span> <span class="flag">--amend</span> <span class="flag">-m</span> <span class="arg">"Better commit message"</span>
+
+<span class="cmt"># Add forgotten file to last commit</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="arg">forgotten-file.js</span>
+<span class="cmd">git</span> <span class="flag">commit</span> <span class="flag">--amend</span> <span class="flag">--no-edit</span></pre>
+            </div>
+        </section>
+
+        <!-- SECTION: TOOLS & RESOURCES -->
+        <section id="tools">
+            <h2>Tools and Resources</h2>
+
+            <h3>Git CLI Enhancements</h3>
+            <ul>
+                <li><strong>delta</strong> -- a beautiful diff viewer with syntax highlighting and side-by-side mode. Set it as your default pager.</li>
+                <li><strong>lazygit</strong> -- a terminal UI for Git that makes staging, branching, rebasing, and conflict resolution visual and fast.</li>
+                <li><strong>gh (GitHub CLI)</strong> -- create PRs, manage issues, and trigger actions from the command line.</li>
+                <li><strong>git-absorb</strong> -- automatically creates fixup commits that amend the right parent commit during interactive rebase.</li>
+            </ul>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="code-copy">Copy</button>
+                </div>
+<pre><span class="cmt"># Install delta (beautiful diffs)</span>
+<span class="cmd">brew</span> <span class="flag">install</span> <span class="arg">git-delta</span>
+<span class="cmd">git</span> <span class="flag">config</span> <span class="flag">--global</span> <span class="arg">core.pager</span> <span class="arg">delta</span>
+
+<span class="cmt"># Install lazygit (terminal UI)</span>
+<span class="cmd">brew</span> <span class="flag">install</span> <span class="arg">lazygit</span>
+
+<span class="cmt"># Install GitHub CLI</span>
+<span class="cmd">brew</span> <span class="flag">install</span> <span class="arg">gh</span>
+<span class="cmd">gh</span> <span class="flag">auth</span> <span class="flag">login</span></pre>
+            </div>
+
+            <div class="info-box nextools">
+                <div class="info-box-icon">&#128736;</div>
+                <div class="info-box-content">
+                    <div class="info-box-title">NexTool Git Tools</div>
+                    <div class="info-box-text">
+                        Use the <a href="/free-tools/">NexTool .gitignore generator</a> and <a href="/free-tools/">Git command builder</a> for quick reference and template generation. Available free at nextool.app/free-tools.
+                    </div>
+                </div>
+            </div>
+
+            <h3>Quick Reference: Essential Commands</h3>
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Command</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Undo last commit (keep changes)</td>
+                            <td><code>git reset --soft HEAD~1</code></td>
+                        </tr>
+                        <tr>
+                            <td>Discard all local changes</td>
+                            <td><code>git checkout -- .</code></td>
+                        </tr>
+                        <tr>
+                            <td>See who changed a line</td>
+                            <td><code>git blame file.js</code></td>
+                        </tr>
+                        <tr>
+                            <td>Find when a bug was introduced</td>
+                            <td><code>git bisect start</code></td>
+                        </tr>
+                        <tr>
+                            <td>Save work without committing</td>
+                            <td><code>git stash</code></td>
+                        </tr>
+                        <tr>
+                            <td>Copy a specific commit</td>
+                            <td><code>git cherry-pick &lt;hash&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td>Recover lost commits</td>
+                            <td><code>git reflog</code></td>
+                        </tr>
+                        <tr>
+                            <td>Clean up local branches</td>
+                            <td><code>git branch --merged | xargs git branch -d</code></td>
+                        </tr>
+                        <tr>
+                            <td>Search commit messages</td>
+                            <td><code>git log --grep="keyword"</code></td>
+                        </tr>
+                        <tr>
+                            <td>Search code changes</td>
+                            <td><code>git log -S "function_name"</code></td>
+                        </tr>
+                        <tr>
+                            <td>Show changes in a commit</td>
+                            <td><code>git show &lt;hash&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td>Compare two branches</td>
+                            <td><code>git diff main..feature</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Final Thoughts</h3>
+            <p>
+                Git is a tool that rewards depth of knowledge. You can use it productively with just <code>add</code>, <code>commit</code>, <code>push</code>, and <code>pull</code>, but understanding the full toolkit transforms how you work. You stop fearing experiments because you know you can always recover. You stop dreading merge conflicts because you have a systematic process. And you stop wasting time because your tools work with you, not against you.
+            </p>
+            <p>
+                The commands and workflows in this guide represent real-world practices used by professional engineering teams. Start with the basics, adopt a branching strategy that fits your team, and gradually integrate the advanced techniques as you encounter the problems they solve. Git mastery is a career-long investment that pays dividends every day.
+            </p>
+        </section>
+
+    </article>
+
+    <!-- ===== CTA SECTION ===== -->
+    <div class="cta-section">
+        <h2 class="cta-title">Build Better, Ship Faster</h2>
+        <p class="cta-desc">
+            Generate .gitignore files, build Git commands visually, and access 20+ free developer tools at NexTool.
+        </p>
+        <div class="cta-buttons">
+            <a href="/free-tools/" class="btn btn-primary">Explore Free Tools</a>
+            <a href="/products/ultimate-bundle.html" class="btn btn-outline">Get Ultimate Bundle</a>
+        </div>
+    </div>
+
+    <!-- ===== RELATED ARTICLES ===== -->
+    <div class="related-section">
+        <h2 class="related-title">Related Articles</h2>
+        <div class="related-grid">
+            <a href="/blog/developer-productivity-tools-2026.html" class="related-card">
+                <div class="related-card-cat">Developer Tools</div>
+                <div class="related-card-title">Top 30 Developer Productivity Tools in 2026</div>
+                <div class="related-card-desc">The ultimate guide to tools that will supercharge your development workflow.</div>
+            </a>
+            <a href="/blog/css-tricks-every-developer-should-know.html" class="related-card">
+                <div class="related-card-cat">CSS</div>
+                <div class="related-card-title">25 CSS Tricks Every Developer Should Know in 2026</div>
+                <div class="related-card-desc">Practical CSS techniques with code examples, from container queries to view transitions.</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/free-tools/">Tools</a>
+            <a href="/blog/">Blog</a>
+            <a href="/products/">Products</a>
+            <a href="/#contact">Contact</a>
+        </div>
+        <p class="footer-copy">&copy; 2026 NexTool. All rights reserved.</p>
+    </footer>
+
+    <script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>
