@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Tokens Explained: How to Decode, Debug, and Secure Your Authentication | NexTool Blog</title>
+    <meta name="description" content="Complete guide to JSON Web Tokens (JWT). Learn JWT structure (Header, Payload, Signature), how to decode and debug tokens, common security vulnerabilities, and best practices for secure authentication in 2026.">
+    <meta name="keywords" content="jwt token explained, how to decode jwt, jwt debugger, json web token, jwt authentication, jwt security, jwt claims, jwt best practices, jwt vulnerabilities, jwt base64">
+    <meta name="author" content="NexTool Team">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <link rel="canonical" href="https://nextool.app/blog/jwt-tokens-explained">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="JWT Tokens Explained: How to Decode, Debug, and Secure Your Authentication">
+    <meta property="og:description" content="Master JSON Web Tokens from structure to security. Learn to decode JWTs, understand claims, avoid common vulnerabilities, and implement authentication best practices.">
+    <meta property="og:url" content="https://nextool.app/blog/jwt-tokens-explained">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/jwt-tokens-explained-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-09T08:00:00Z">
+    <meta property="article:modified_time" content="2026-02-09T08:00:00Z">
+    <meta property="article:author" content="NexTool Team">
+    <meta property="article:section" content="Security">
+    <meta property="article:tag" content="JWT">
+    <meta property="article:tag" content="Authentication">
+    <meta property="article:tag" content="Security">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="JWT Tokens Explained: How to Decode, Debug, and Secure Your Authentication">
+    <meta name="twitter:description" content="Master JSON Web Tokens from structure to security. Learn to decode JWTs, understand claims, and avoid common vulnerabilities.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/jwt-tokens-explained-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "JWT Tokens Explained: How to Decode, Debug, and Secure Your Authentication",
+        "description": "Complete guide to JSON Web Tokens (JWT). Learn JWT structure, how to decode and debug tokens, common security vulnerabilities, and best practices for secure authentication.",
+        "image": "https://nextool.app/assets/images/blog/jwt-tokens-explained-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool Team",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-09T08:00:00Z",
+        "dateModified": "2026-02-09T08:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/jwt-tokens-explained"
+        },
+        "wordCount": 2800,
+        "keywords": ["jwt token explained", "how to decode jwt", "jwt debugger", "json web token", "jwt authentication", "jwt security"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "JWT Tokens Explained",
+                "item": "https://nextool.app/blog/jwt-tokens-explained"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is a JWT token and how does it work?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "A JSON Web Token (JWT) is a compact, URL-safe token format used for securely transmitting information between parties as a JSON object. It consists of three Base64URL-encoded parts separated by dots: a Header (specifying the algorithm and token type), a Payload (containing claims like user ID, expiration time, and roles), and a Signature (a cryptographic hash that verifies the token has not been tampered with). The server creates the token upon login, the client stores it, and sends it with every subsequent request for stateless authentication."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I decode a JWT token?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "To decode a JWT token, split it at the two dot characters to get three parts: Header, Payload, and Signature. The Header and Payload are Base64URL-encoded JSON strings. Decode them using a Base64 decoder to see the JSON contents. The Signature cannot be decoded — it must be verified using the secret key or public key. You can use free online tools like NexTool's JWT Decoder to instantly decode and inspect any JWT token without writing code."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Where should I store JWT tokens on the client side?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The safest place to store JWT tokens on the client side is in an HttpOnly, Secure, SameSite cookie. This prevents JavaScript from accessing the token, which protects against XSS attacks. Avoid storing JWTs in localStorage or sessionStorage because any JavaScript running on the page (including third-party scripts or injected code) can read them. If you must use localStorage, keep token lifetimes very short and implement refresh token rotation."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the 'none' algorithm attack in JWT?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The 'none' algorithm attack is a well-known JWT vulnerability where an attacker modifies the token header to set the algorithm to 'none', effectively removing signature verification. If the server's JWT library accepts the 'none' algorithm, it will treat the token as valid without checking any signature, allowing the attacker to forge tokens with arbitrary claims. To prevent this, always explicitly specify the allowed algorithms when verifying tokens and reject any token with alg set to 'none'."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}:root{--bg:#050508;--surface:#111118;--surface-2:#1a1a24;--surface-3:#232330;--primary:#6366f1;--primary-hover:#818cf8;--accent:#a855f7;--text:#e2e8f0;--text-secondary:#94a3b8;--text-muted:#64748b;--border:#1e1e2e;--code-bg:#0d0d14;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:800px;--header-height:64px}html{scroll-behavior:smooth}body{font-family:var(--font-sans);background:var(--bg);color:var(--text);line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:4px}.nav{position:fixed;top:0;left:0;right:0;height:var(--header-height);background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:1000;display:flex;align-items:center;justify-content:center}.nav-inner{width:100%;max-width:1200px;padding:0 24px;display:flex;align-items:center;justify-content:space-between}.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:700;font-size:1.25rem}.nav-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.875rem;font-weight:800;color:#fff}.nav-links{display:flex;align-items:center;gap:28px;list-style:none}.nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}.nav-cta{background:var(--primary);color:#fff!important;padding:8px 20px;border-radius:8px;font-weight:600}.article-wrapper{max-width:var(--max-width);margin:0 auto;padding:calc(var(--header-height) + 48px) 24px 80px}.breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:32px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}.breadcrumb a{color:var(--text-secondary);text-decoration:none}.article-header{margin-bottom:48px}.article-meta{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}.article-category{padding:4px 12px;background:rgba(99,102,241,.15);color:var(--primary-hover);border-radius:20px;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px}.article-date,.reading-time{color:var(--text-muted);font-size:.85rem}h1{font-size:2.5rem;font-weight:800;line-height:1.2;margin-bottom:16px}h1 .gradient{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.article-subtitle{font-size:1.15rem;color:var(--text-secondary)}.article-content h2{font-size:1.6rem;font-weight:700;margin:48px 0 16px;color:#fff}.article-content h3{font-size:1.25rem;font-weight:600;margin:32px 0 12px}.article-content p{margin-bottom:20px;color:var(--text-secondary);line-height:1.8}.article-content a{color:var(--primary-hover);text-decoration:none;border-bottom:1px solid rgba(99,102,241,.3)}.article-content ul,.article-content ol{margin:0 0 20px 24px;color:var(--text-secondary)}.article-content li{margin-bottom:8px}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin:20px 0;overflow-x:auto;font-family:var(--font-mono);font-size:.875rem;line-height:1.6}code{font-family:var(--font-mono);font-size:.9em;background:rgba(99,102,241,.1);color:var(--primary-hover);padding:2px 6px;border-radius:4px}pre code{background:none;padding:0;color:inherit}.tool-cta{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(168,85,247,.1));border:1px solid rgba(99,102,241,.2);border-radius:10px;color:var(--primary-hover);font-weight:600;text-decoration:none;margin:16px 0;transition:all .2s}.tool-cta:hover{transform:translateY(-1px)}.info-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:8px;padding:20px 24px;margin:24px 0}.info-box strong{color:var(--text)}.info-box p{margin-bottom:0}.cta-box{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(168,85,247,.08));border:1px solid rgba(99,102,241,.2);border-radius:16px;padding:32px;margin:40px 0;text-align:center}.cta-box h3{font-size:1.35rem;font-weight:700;margin-bottom:10px;color:var(--text)}.cta-box p{color:var(--text-secondary);margin-bottom:20px}.cta-button{display:inline-block;padding:12px 32px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-radius:10px;font-weight:700;text-decoration:none;transition:transform .2s,box-shadow .2s}.cta-button:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(99,102,241,.3)}.pro-promo{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;margin:48px 0;text-align:center}.pro-promo h3{font-size:1.2rem;font-weight:700;margin-bottom:8px}.pro-promo p{color:var(--text-muted);font-size:.95rem;margin-bottom:16px}.pro-promo .cta-button{font-size:.95rem;padding:10px 28px}.faq-section{margin-top:48px}.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}.faq-question{width:100%;background:none;border:none;color:var(--text);padding:20px 24px;font-size:1rem;font-weight:600;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-sans)}.faq-question:hover{background:var(--surface-2)}.faq-question .icon{transition:transform .3s;font-size:1.25rem;color:var(--text-muted)}.faq-item.open .faq-question .icon{transform:rotate(45deg)}.faq-answer{max-height:0;overflow:hidden;transition:max-height .3s ease}.faq-answer-inner{padding:0 24px 20px;color:var(--text-secondary);line-height:1.7}.code-label{display:inline-block;background:var(--surface-2);color:var(--text-muted);font-family:var(--font-mono);font-size:.75rem;padding:2px 10px;border-radius:6px 6px 0 0;margin-bottom:-1px;position:relative;top:1px}.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}.fade-in.visible{opacity:1;transform:translateY(0)}footer{border-top:1px solid var(--border);padding:60px 24px 32px;max-width:1200px;margin:0 auto}.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}.footer-brand h3{font-size:1.1rem;font-weight:700;margin-bottom:8px}.footer-brand p{color:var(--text-muted);font-size:.85rem}.footer-col h4{font-size:.85rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:12px}.footer-col a{display:block;color:var(--text-muted);text-decoration:none;font-size:.85rem;padding:4px 0}.footer-col a:hover{color:var(--primary-hover)}.footer-bottom{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;color:var(--text-muted);font-size:.8rem}@media(max-width:768px){h1{font-size:1.75rem}.nav-links{display:none}.footer-grid{grid-template-columns:1fr 1fr}.article-content pre{padding:16px;font-size:.8rem}}
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">
+                <div class="nav-logo-icon">N</div>
+                NexTool
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/free-tools/">Free Tools</a></li>
+                <li><a href="/pro.html">Pro</a></li>
+                <li><a href="/workspace.html">Workspace</a></li>
+                <li><a href="/blog/">Blog</a></li>
+                <li><a href="/pro.html" class="nav-cta">Get Pro &mdash; $29</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Article -->
+    <article class="article-wrapper" itemscope itemtype="https://schema.org/Article">
+
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <span>/</span>
+            <a href="/blog/">Blog</a>
+            <span>/</span>
+            <span>JWT Tokens Explained</span>
+        </nav>
+
+        <!-- Article Header -->
+        <header class="article-header fade-in">
+            <div class="article-meta">
+                <span class="article-category">Security</span>
+                <span class="article-date">February 9, 2026</span>
+                <span class="reading-time">14 min read</span>
+            </div>
+            <h1 itemprop="headline"><span class="gradient">JWT Tokens</span> Explained: How to Decode, Debug, and Secure Your Authentication</h1>
+            <p class="article-subtitle">Everything you need to know about JSON Web Tokens &mdash; from the three-part structure and Base64 encoding to security best practices, common vulnerabilities, and hands-on debugging techniques.</p>
+        </header>
+
+        <!-- Article Content -->
+        <div class="article-content" itemprop="articleBody">
+
+            <h2 class="fade-in" id="what-is-jwt">What Is a JSON Web Token (JWT)?</h2>
+
+            <p class="fade-in">A JSON Web Token, universally abbreviated as JWT and pronounced "jot," is a compact, URL-safe token format defined in <a href="https://datatracker.ietf.org/doc/html/rfc7519">RFC 7519</a>. It enables you to transmit information between two parties as a digitally signed JSON object. The signature guarantees the data has not been tampered with in transit, making JWTs the backbone of stateless authentication in modern web applications.</p>
+
+            <p class="fade-in">Unlike session-based authentication &mdash; where the server stores session data and the client carries only a session ID &mdash; JWT-based authentication is <strong>stateless</strong>. The token itself contains all the information the server needs to identify and authorize the user. No database lookup is required on each request, which makes JWTs extremely efficient at scale.</p>
+
+            <p class="fade-in">In practice, the flow works like this: the user logs in with their credentials, the server validates them and returns a signed JWT, and the client includes that token in the <code>Authorization</code> header of every subsequent request. The server verifies the signature, reads the claims, and processes the request &mdash; all without touching a database.</p>
+
+            <div class="info-box fade-in">
+                <p><strong>Why it matters:</strong> JWTs are used by virtually every modern API, single-page application, and mobile app for authentication. Understanding how they work is not optional for developers &mdash; it is foundational knowledge.</p>
+            </div>
+
+            <h2 class="fade-in" id="jwt-structure">The Three-Part Structure of a JWT</h2>
+
+            <p class="fade-in">Every JWT consists of exactly three parts, separated by dots (<code>.</code>): the <strong>Header</strong>, the <strong>Payload</strong>, and the <strong>Signature</strong>. Each part is Base64URL-encoded, which means it uses only URL-safe characters and can be safely transmitted in URLs, HTTP headers, and HTML forms.</p>
+
+            <p class="fade-in">Here is a real JWT you can decode right now:</p>
+
+            <div class="code-label">A complete JWT token</div>
+<pre class="fade-in"><code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE3NzA3NjgwMDAsInJvbGUiOiJhZG1pbiJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+Part 1 (Header):  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+Part 2 (Payload): eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE3NzA3NjgwMDAsInJvbGUiOiJhZG1pbiJ9
+Part 3 (Signature): SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</code></pre>
+
+            <a href="/free-tools/jwt-decoder.html" class="tool-cta fade-in">&#x1F511; Decode This JWT Instantly &rarr; JWT Decoder Tool</a>
+
+            <h3 class="fade-in" id="header">Part 1: The Header</h3>
+
+            <p class="fade-in">The header is a JSON object that describes how the token is signed. It typically contains two fields: <code>alg</code> (the signing algorithm) and <code>typ</code> (the token type, almost always "JWT").</p>
+
+            <div class="code-label">Decoded Header (Base64URL &rarr; JSON)</div>
+<pre class="fade-in"><code>{
+  "alg": "HS256",
+  "typ": "JWT"
+}</code></pre>
+
+            <p class="fade-in">The most common algorithms are:</p>
+
+            <ul class="fade-in">
+                <li><strong>HS256</strong> (HMAC + SHA-256) &mdash; Symmetric. Same secret key signs and verifies. Simple but requires sharing the secret with every service that needs to verify tokens.</li>
+                <li><strong>RS256</strong> (RSA + SHA-256) &mdash; Asymmetric. Private key signs, public key verifies. Preferred in distributed systems where multiple services need to verify tokens but only the auth server should create them.</li>
+                <li><strong>ES256</strong> (ECDSA + SHA-256) &mdash; Asymmetric with elliptic curves. Smaller keys, faster operations, same security level as RS256. Growing in popularity.</li>
+                <li><strong>EdDSA</strong> (Ed25519) &mdash; Modern, fast, and secure. Gaining adoption quickly in 2026. Excellent performance with high security margins.</li>
+            </ul>
+
+            <h3 class="fade-in" id="payload">Part 2: The Payload</h3>
+
+            <p class="fade-in">The payload contains the <strong>claims</strong> &mdash; statements about the user and additional metadata. Claims are the actual data your application uses for authorization and identity.</p>
+
+            <div class="code-label">Decoded Payload (Base64URL &rarr; JSON)</div>
+<pre class="fade-in"><code>{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "iat": 1516239022,
+  "exp": 1770768000,
+  "role": "admin"
+}</code></pre>
+
+            <p class="fade-in">There are three categories of claims:</p>
+
+            <p class="fade-in"><strong>Registered claims</strong> are standardized names defined in the JWT specification. They are not mandatory but are strongly recommended for interoperability:</p>
+
+            <ul class="fade-in">
+                <li><code>iss</code> (Issuer) &mdash; Who created and signed the token. For example, <code>"iss": "https://auth.myapp.com"</code>. Your server should verify this matches the expected issuer to reject tokens from rogue sources.</li>
+                <li><code>sub</code> (Subject) &mdash; The entity the token describes, typically a user ID. For example, <code>"sub": "user_4f8a2b"</code>. This is the primary identifier your application uses to look up the user.</li>
+                <li><code>aud</code> (Audience) &mdash; The intended recipient of the token. For example, <code>"aud": "https://api.myapp.com"</code>. If your API receives a token with a different audience, it should reject it.</li>
+                <li><code>exp</code> (Expiration Time) &mdash; A Unix timestamp after which the token is no longer valid. This is the most critical security claim &mdash; tokens without expiration are a major vulnerability.</li>
+                <li><code>iat</code> (Issued At) &mdash; When the token was created. Useful for calculating token age and detecting stale tokens.</li>
+                <li><code>nbf</code> (Not Before) &mdash; The token should not be accepted before this timestamp. Useful for tokens that should activate in the future.</li>
+                <li><code>jti</code> (JWT ID) &mdash; A unique identifier for the token. Used to prevent token replay attacks by maintaining a revocation list.</li>
+            </ul>
+
+            <p class="fade-in"><strong>Public claims</strong> are custom names registered in the <a href="https://www.iana.org/assignments/jwt/jwt.xhtml">IANA JSON Web Token Claims registry</a> to avoid naming collisions between different systems.</p>
+
+            <p class="fade-in"><strong>Private claims</strong> are entirely custom. These are the claims you define for your specific application &mdash; things like <code>role</code>, <code>permissions</code>, <code>team_id</code>, or <code>plan</code>. Just remember that anyone can decode the payload, so never put sensitive data here (passwords, credit card numbers, etc.).</p>
+
+            <div class="info-box fade-in">
+                <p><strong>Important:</strong> The payload is Base64URL-<em>encoded</em>, not encrypted. Anyone with access to the token can decode and read the claims. The signature only guarantees integrity (the data has not been modified), not confidentiality. If you need to hide the payload contents, use JWE (JSON Web Encryption) instead of JWS (JSON Web Signature).</p>
+            </div>
+
+            <h3 class="fade-in" id="signature">Part 3: The Signature</h3>
+
+            <p class="fade-in">The signature is what makes JWTs trustworthy. It is created by taking the encoded header and payload, concatenating them with a dot, and then signing them with the specified algorithm and a secret key (or private key for asymmetric algorithms).</p>
+
+            <div class="code-label">How the signature is computed (HS256)</div>
+<pre class="fade-in"><code>HMACSHA256(
+  base64UrlEncode(header) + "." + base64UrlEncode(payload),
+  secret
+)
+
+// With the example token:
+HMACSHA256(
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" + "." +
+  "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE3NzA3NjgwMDAsInJvbGUiOiJhZG1pbiJ9",
+  "your-256-bit-secret"
+)</code></pre>
+
+            <p class="fade-in">When the server receives a JWT, it recomputes the signature using the same algorithm and secret. If the recomputed signature matches the one in the token, the token is valid. If even a single character in the header or payload has been modified, the signature will not match and the token will be rejected.</p>
+
+            <p class="fade-in">Want to see this process in action? Use our <a href="/free-tools/hash-generator.html">Hash Generator</a> to understand how HMAC-SHA256 works, then paste a complete token into the <a href="/free-tools/jwt-decoder.html">JWT Decoder</a> to see the three parts broken down instantly.</p>
+
+            <h2 class="fade-in" id="base64-in-jwts">Base64URL Encoding in JWTs</h2>
+
+            <p class="fade-in">JWTs use <strong>Base64URL encoding</strong> (not standard Base64) for the header and payload. The difference is subtle but important: Base64URL replaces <code>+</code> with <code>-</code> and <code>/</code> with <code>_</code>, and it omits the trailing <code>=</code> padding characters. This makes the output safe for URLs, query parameters, and HTTP headers without any additional percent-encoding.</p>
+
+            <div class="code-label">javascript &mdash; Decoding JWT parts manually</div>
+<pre class="fade-in"><code>// Split the JWT into its three parts
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE3NzA3NjgwMDAsInJvbGUiOiJhZG1pbiJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
+const [headerB64, payloadB64, signature] = token.split(".");
+
+// Base64URL decode function
+function base64UrlDecode(str) {
+  // Replace Base64URL chars with standard Base64 chars
+  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  // Add padding if needed
+  while (base64.length % 4 !== 0) base64 += "=";
+  return JSON.parse(atob(base64));
+}
+
+const header = base64UrlDecode(headerB64);
+const payload = base64UrlDecode(payloadB64);
+
+console.log("Header:", header);
+// { alg: "HS256", typ: "JWT" }
+
+console.log("Payload:", payload);
+// { sub: "1234567890", name: "John Doe", iat: 1516239022, exp: 1770768000, role: "admin" }
+
+// Check if token is expired
+const isExpired = payload.exp * 1000 < Date.now();
+console.log("Expired:", isExpired);</code></pre>
+
+            <p class="fade-in">If you work with Base64 encoding regularly, our <a href="/free-tools/base64.html">Base64 Encoder/Decoder</a> lets you encode and decode strings instantly. This is especially handy when debugging tokens where the payload appears garbled or you suspect encoding issues.</p>
+
+            <a href="/free-tools/base64.html" class="tool-cta fade-in">&#x1F504; Base64 Encoder/Decoder &rarr; Free Tool</a>
+
+            <h2 class="fade-in" id="debugging-jwts">How to Debug JWT Tokens in Practice</h2>
+
+            <p class="fade-in">Debugging JWT issues is one of the most common tasks in web development. When authentication fails, the token is usually the first suspect. Here is a systematic approach to diagnosing JWT problems.</p>
+
+            <h3 class="fade-in">Step 1: Decode the Token</h3>
+
+            <p class="fade-in">Start by decoding the token to inspect its contents. You can do this in your browser console, in your terminal, or with an online tool. Our <a href="/free-tools/jwt-decoder.html">JWT Decoder</a> is purpose-built for this &mdash; paste the token and instantly see the header, payload, and expiration status.</p>
+
+            <h3 class="fade-in">Step 2: Check Expiration</h3>
+
+            <p class="fade-in">The most common JWT issue is an expired token. Look at the <code>exp</code> claim and compare it to the current Unix timestamp. Remember that <code>exp</code> is in <strong>seconds</strong> (not milliseconds) since the Unix epoch (January 1, 1970).</p>
+
+            <div class="code-label">bash &mdash; Quick expiration check in terminal</div>
+<pre class="fade-in"><code># Decode the payload (middle part) of a JWT
+echo "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE3NzA3NjgwMDAsInJvbGUiOiJhZG1pbiJ9" | \
+  tr '_-' '/+' | base64 -d 2>/dev/null | python3 -m json.tool
+
+# Check if a timestamp is expired
+python3 -c "
+import time
+exp = 1770768000
+now = int(time.time())
+print(f'Expires: {time.ctime(exp)}')
+print(f'Now:     {time.ctime(now)}')
+print(f'Expired: {now > exp}')
+print(f'Remaining: {(exp - now) // 3600} hours')
+"</code></pre>
+
+            <h3 class="fade-in">Step 3: Verify the Issuer and Audience</h3>
+
+            <p class="fade-in">If the token is not expired, check that <code>iss</code> and <code>aud</code> match what your server expects. A token issued by <code>auth.staging.myapp.com</code> will be rejected by a server that only accepts tokens from <code>auth.myapp.com</code>. This is a frequent source of bugs when switching between environments.</p>
+
+            <h3 class="fade-in">Step 4: Verify the Signature</h3>
+
+            <p class="fade-in">If the claims look correct, the issue might be a signature mismatch. This happens when the signing secret has been rotated, the token was created by a different service, or (in asymmetric setups) the wrong public key is being used for verification. Our <a href="/free-tools/jwt-decoder.html">JWT Decoder</a> highlights signature verification status so you can quickly identify this class of issue.</p>
+
+            <h2 class="fade-in" id="security-best-practices">JWT Security Best Practices</h2>
+
+            <p class="fade-in">JWTs are secure when implemented correctly. The problem is that "correctly" involves several non-obvious decisions. Here are the practices that matter most.</p>
+
+            <h3 class="fade-in">Where to Store Tokens</h3>
+
+            <p class="fade-in">This is the single most debated topic in JWT security, and the answer is unambiguous: <strong>use HttpOnly cookies</strong>.</p>
+
+            <ul class="fade-in">
+                <li><strong>HttpOnly + Secure + SameSite cookies</strong> (Recommended) &mdash; JavaScript cannot access the token, which eliminates XSS as an attack vector. The <code>Secure</code> flag ensures the cookie is only sent over HTTPS. <code>SameSite=Strict</code> or <code>SameSite=Lax</code> prevents CSRF. This is the gold standard.</li>
+                <li><strong>localStorage</strong> (Common but risky) &mdash; Convenient for SPAs but vulnerable to XSS attacks. Any JavaScript running on the page &mdash; including compromised third-party scripts &mdash; can steal the token. If you must use localStorage, keep token lifetimes under 15 minutes.</li>
+                <li><strong>sessionStorage</strong> (Slightly better) &mdash; Cleared when the tab closes, which limits the exposure window. Still vulnerable to XSS during the active session.</li>
+                <li><strong>In-memory variable</strong> (Most secure for SPAs) &mdash; Store the access token in a JavaScript variable. It disappears on refresh, so pair it with a refresh token stored in an HttpOnly cookie. This is the pattern recommended by OWASP for SPAs.</li>
+            </ul>
+
+            <h3 class="fade-in">Token Expiration Strategy</h3>
+
+            <p class="fade-in">Short-lived access tokens combined with longer-lived refresh tokens is the standard pattern:</p>
+
+            <ul class="fade-in">
+                <li><strong>Access token:</strong> 5 to 15 minutes. This is the token sent with every API request. A short lifetime limits the damage if it is stolen.</li>
+                <li><strong>Refresh token:</strong> 7 to 30 days. Stored securely (HttpOnly cookie), used only to obtain a new access token when the current one expires. Should be single-use &mdash; after each refresh, issue a new refresh token and invalidate the old one (refresh token rotation).</li>
+            </ul>
+
+            <div class="code-label">javascript &mdash; Token refresh flow</div>
+<pre class="fade-in"><code>async function fetchWithAuth(url, options = {}) {
+  let accessToken = getAccessToken(); // From memory
+
+  // Try the request with the current access token
+  let response = await fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      "Authorization": `Bearer ${accessToken}`
+    }
+  });
+
+  // If 401 Unauthorized, try refreshing the token
+  if (response.status === 401) {
+    const refreshResponse = await fetch("/api/auth/refresh", {
+      method: "POST",
+      credentials: "include" // Sends the HttpOnly refresh token cookie
+    });
+
+    if (refreshResponse.ok) {
+      const { access_token } = await refreshResponse.json();
+      setAccessToken(access_token); // Store in memory
+
+      // Retry the original request with the new token
+      response = await fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          "Authorization": `Bearer ${access_token}`
+        }
+      });
+    } else {
+      // Refresh failed — redirect to login
+      window.location.href = "/login";
+    }
+  }
+
+  return response;
+}</code></pre>
+
+            <h3 class="fade-in">Additional Best Practices</h3>
+
+            <ul class="fade-in">
+                <li><strong>Always validate all registered claims</strong> &mdash; Check <code>exp</code>, <code>iss</code>, <code>aud</code>, and <code>nbf</code> on every request. Do not rely on the token being valid just because the signature checks out.</li>
+                <li><strong>Use strong secrets</strong> &mdash; For HS256, your secret must be at least 256 bits (32 bytes) of cryptographically random data. A password like "my-secret" is trivially brute-forced. Use <code>openssl rand -base64 32</code> to generate a proper secret.</li>
+                <li><strong>Keep payloads small</strong> &mdash; Every claim adds bytes to every request. Do not store entire user profiles in the token. Include only what is needed for authorization (user ID, role, permissions).</li>
+                <li><strong>Implement token revocation</strong> &mdash; For critical actions (password change, account compromise), you need the ability to invalidate tokens before they expire. Options include a blocklist, a token version counter, or short-lived tokens with refresh token revocation.</li>
+                <li><strong>Use asymmetric algorithms in production</strong> &mdash; RS256 or ES256 separates the signing authority (private key) from verification (public key). This is essential when multiple services need to verify tokens.</li>
+            </ul>
+
+            <a href="/free-tools/jwt-generator.html" class="tool-cta fade-in">&#x1F6E0; Generate Test JWT Tokens &rarr; JWT Generator Tool</a>
+
+            <h2 class="fade-in" id="common-vulnerabilities">Common JWT Vulnerabilities</h2>
+
+            <p class="fade-in">Understanding how JWTs can be attacked is just as important as knowing how to use them correctly. Here are the vulnerabilities that have caused real-world breaches.</p>
+
+            <h3 class="fade-in">1. The "none" Algorithm Attack</h3>
+
+            <p class="fade-in">This is the most infamous JWT vulnerability. The JWT specification technically allows <code>"alg": "none"</code>, which means "no signature." If a server's JWT library naively trusts the algorithm specified in the header, an attacker can:</p>
+
+            <ol class="fade-in">
+                <li>Decode the payload of a valid token</li>
+                <li>Modify the claims (e.g., change <code>"role": "user"</code> to <code>"role": "admin"</code>)</li>
+                <li>Set the header algorithm to <code>"alg": "none"</code></li>
+                <li>Remove the signature entirely</li>
+                <li>Send the forged token, which the server accepts as valid</li>
+            </ol>
+
+            <div class="code-label">A forged "none" algorithm token</div>
+<pre class="fade-in"><code>// Original token (signed with HS256):
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicm9sZSI6InVzZXIifQ.validSignature
+
+// Attacker's forged token (no signature):
+eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwicm9sZSI6ImFkbWluIn0.
+
+// Decoded header: { "alg": "none", "typ": "JWT" }
+// Decoded payload: { "sub": "1234567890", "role": "admin" }  &lt;-- elevated to admin!</code></pre>
+
+            <p class="fade-in"><strong>Prevention:</strong> Always explicitly whitelist the algorithms your server accepts. Never let the token header dictate which algorithm to use for verification.</p>
+
+            <div class="code-label">javascript &mdash; Secure verification with explicit algorithm</div>
+<pre class="fade-in"><code>import jwt from "jsonwebtoken";
+
+// WRONG: Trusts the algorithm from the token header
+const decoded = jwt.verify(token, secret);
+
+// CORRECT: Explicitly specifies allowed algorithms
+const decoded = jwt.verify(token, secret, {
+  algorithms: ["HS256"],       // Only allow HS256
+  issuer: "https://auth.myapp.com",
+  audience: "https://api.myapp.com"
+});</code></pre>
+
+            <h3 class="fade-in">2. Token Exposure in URLs</h3>
+
+            <p class="fade-in">Passing JWTs as URL query parameters is a common anti-pattern:</p>
+
+<pre class="fade-in"><code>https://api.example.com/data?token=eyJhbGciOiJIUzI1NiIs...</code></pre>
+
+            <p class="fade-in">This is dangerous because URLs are logged in server access logs, browser history, proxy logs, and analytics tools. Anyone with access to these logs gains access to valid authentication tokens. Additionally, the <code>Referer</code> header will leak the full URL (including the token) to any external resource loaded on the page. Always send tokens in the <code>Authorization</code> header or in HttpOnly cookies.</p>
+
+            <h3 class="fade-in">3. Long-Lived Tokens Without Revocation</h3>
+
+            <p class="fade-in">A JWT with a 30-day expiration and no revocation mechanism is essentially an irrevocable 30-day key to your system. If the token is stolen, the attacker has a full month of access. The solution is to use short-lived access tokens (5-15 minutes) paired with refresh tokens that can be revoked individually.</p>
+
+            <h3 class="fade-in">4. Algorithm Confusion (RS256 vs HS256)</h3>
+
+            <p class="fade-in">In systems using RS256, the server verifies tokens with the public key. An attacker can change the header to <code>"alg": "HS256"</code> and sign the token using the public key as the HMAC secret. If the server does not enforce the expected algorithm, it will verify the forged token using the public key as an HMAC secret, and the verification will succeed. This is another reason to always whitelist algorithms explicitly.</p>
+
+            <h3 class="fade-in">5. Sensitive Data in the Payload</h3>
+
+            <p class="fade-in">Because the JWT payload is only encoded (not encrypted), any data in the payload is readable by anyone who intercepts the token. Never include passwords, social security numbers, credit card numbers, or other sensitive data in JWT claims. If you need the payload to be confidential, use JWE (JSON Web Encryption).</p>
+
+            <div class="info-box fade-in">
+                <p><strong>Security tip:</strong> Run your JWT implementation through a checklist: Are algorithms explicitly whitelisted? Are tokens short-lived? Is there a revocation mechanism? Are tokens stored in HttpOnly cookies? Is the payload free of sensitive data? If the answer to any of these is "no," you have work to do.</p>
+            </div>
+
+            <h2 class="fade-in" id="jwt-vs-alternatives">JWT vs. Session Tokens vs. OAuth</h2>
+
+            <p class="fade-in">JWTs are not always the right choice. Here is when to use each approach:</p>
+
+            <ul class="fade-in">
+                <li><strong>JWT (Stateless tokens):</strong> Best for microservices, distributed systems, and APIs serving mobile and SPA clients. The server does not need to store session state, which simplifies horizontal scaling. The tradeoff is that revocation requires extra infrastructure.</li>
+                <li><strong>Session tokens (Stateful):</strong> Best for traditional server-rendered applications. The server stores the session data and the client carries a simple session ID cookie. Revocation is trivial (delete the session record). The tradeoff is that you need a session store (Redis, database) that all servers can access.</li>
+                <li><strong>OAuth 2.0:</strong> An authorization framework, not an authentication mechanism. OAuth defines how third-party applications can obtain limited access to a user's account. JWTs are often used as the token format within OAuth flows. OAuth is the right choice when you need to grant third-party access to user resources.</li>
+            </ul>
+
+            <p class="fade-in">For most modern APIs and SPAs, JWTs with refresh token rotation strike the best balance of performance, scalability, and security.</p>
+
+            <h2 class="fade-in" id="practical-implementation">Practical JWT Implementation</h2>
+
+            <p class="fade-in">Here is a complete, production-ready JWT authentication flow in Node.js with Express. This example implements all the best practices discussed above: short-lived access tokens, refresh token rotation, HttpOnly cookies, and explicit algorithm verification.</p>
+
+            <div class="code-label">javascript &mdash; Complete JWT auth middleware (Node.js + Express)</div>
+<pre class="fade-in"><code>import jwt from "jsonwebtoken";
+import crypto from "crypto";
+
+const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;  // 256-bit random key
+const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET; // Different 256-bit key
+const ACCESS_EXPIRY = "15m";    // 15 minutes
+const REFRESH_EXPIRY = "7d";    // 7 days
+
+// Store for revoked refresh tokens (use Redis in production)
+const revokedTokens = new Set();
+
+// Generate token pair
+function generateTokens(user) {
+  const accessToken = jwt.sign(
+    { sub: user.id, role: user.role },
+    ACCESS_SECRET,
+    {
+      algorithm: "HS256",
+      expiresIn: ACCESS_EXPIRY,
+      issuer: "https://auth.myapp.com",
+      audience: "https://api.myapp.com"
+    }
+  );
+
+  const refreshToken = jwt.sign(
+    { sub: user.id, jti: crypto.randomUUID() },
+    REFRESH_SECRET,
+    { algorithm: "HS256", expiresIn: REFRESH_EXPIRY }
+  );
+
+  return { accessToken, refreshToken };
+}
+
+// Auth middleware — verifies access token from Authorization header
+function authenticate(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Missing or malformed token" });
+  }
+
+  const token = authHeader.slice(7);
+
+  try {
+    const payload = jwt.verify(token, ACCESS_SECRET, {
+      algorithms: ["HS256"],   // Explicit algorithm whitelist
+      issuer: "https://auth.myapp.com",
+      audience: "https://api.myapp.com"
+    });
+
+    req.user = { id: payload.sub, role: payload.role };
+    next();
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({ error: "Token expired" });
+    }
+    return res.status(401).json({ error: "Invalid token" });
+  }
+}
+
+// POST /api/auth/login
+app.post("/api/auth/login", async (req, res) => {
+  const user = await validateCredentials(req.body);
+  if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+  const { accessToken, refreshToken } = generateTokens(user);
+
+  // Set refresh token as HttpOnly cookie
+  res.cookie("refresh_token", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: "/api/auth/refresh"          // Only sent to refresh endpoint
+  });
+
+  // Return access token in response body (stored in memory by client)
+  res.json({ access_token: accessToken, expires_in: 900 });
+});
+
+// POST /api/auth/refresh — Refresh token rotation
+app.post("/api/auth/refresh", (req, res) => {
+  const oldRefreshToken = req.cookies.refresh_token;
+  if (!oldRefreshToken) return res.status(401).json({ error: "No refresh token" });
+
+  try {
+    const payload = jwt.verify(oldRefreshToken, REFRESH_SECRET, {
+      algorithms: ["HS256"]
+    });
+
+    // Check if this token has been revoked
+    if (revokedTokens.has(payload.jti)) {
+      return res.status(401).json({ error: "Token revoked" });
+    }
+
+    // Revoke the old refresh token (single-use)
+    revokedTokens.add(payload.jti);
+
+    // Issue new token pair
+    const user = { id: payload.sub, role: payload.role };
+    const { accessToken, refreshToken } = generateTokens(user);
+
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true, secure: true, sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, path: "/api/auth/refresh"
+    });
+
+    res.json({ access_token: accessToken, expires_in: 900 });
+  } catch {
+    return res.status(401).json({ error: "Invalid refresh token" });
+  }
+});</code></pre>
+
+            <div class="cta-box fade-in">
+                <h3>Decode Any JWT Instantly</h3>
+                <p>Paste any JWT token and see the decoded header, payload, and expiration status in real time. No signup, no installation, completely free.</p>
+                <a href="/free-tools/jwt-decoder.html" class="cta-button">Open JWT Decoder</a>
+            </div>
+
+            <h2 class="fade-in" id="tools-for-jwt">Essential Tools for Working with JWTs</h2>
+
+            <p class="fade-in">Whether you are building an authentication system, debugging a failing API call, or auditing your security posture, these tools will save you significant time:</p>
+
+            <ul class="fade-in">
+                <li><a href="/free-tools/jwt-decoder.html"><strong>JWT Decoder</strong></a> &mdash; Paste any JWT and instantly see the decoded header, payload, expiration status, and algorithm. The fastest way to debug token issues.</li>
+                <li><a href="/free-tools/jwt-generator.html"><strong>JWT Generator</strong></a> &mdash; Create test JWTs with custom claims, algorithms, and expiration times. Essential for building and testing auth flows without a running server.</li>
+                <li><a href="/free-tools/base64.html"><strong>Base64 Encoder/Decoder</strong></a> &mdash; Encode and decode Base64 and Base64URL strings. Useful when you need to manually inspect or modify individual JWT parts.</li>
+                <li><a href="/free-tools/hash-generator.html"><strong>Hash Generator</strong></a> &mdash; Generate SHA-256, HMAC, and other hashes. Helps you understand how JWT signatures are computed and verify hash outputs.</li>
+            </ul>
+
+            <a href="/free-tools/jwt-decoder.html" class="tool-cta fade-in">&#x1F511; JWT Decoder &mdash; Decode Tokens Instantly &rarr;</a>
+
+            <!-- FAQ Section -->
+            <div class="faq-section fade-in" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is a JWT token and how does it work?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>A JSON Web Token (JWT) is a compact, URL-safe token format used for securely transmitting information between parties as a JSON object. It consists of three Base64URL-encoded parts separated by dots: a Header (specifying the algorithm and token type), a Payload (containing claims like user ID, expiration time, and roles), and a Signature (a cryptographic hash that verifies the token has not been tampered with). The server creates the token upon login, the client stores it, and sends it with every subsequent request for stateless authentication.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I decode a JWT token?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>To decode a JWT token, split it at the two dot characters to get three parts: Header, Payload, and Signature. The Header and Payload are Base64URL-encoded JSON strings &mdash; decode them using a Base64 decoder to see the JSON contents. The Signature cannot be decoded; it must be verified using the secret key or public key. You can use free online tools like <a href="/free-tools/jwt-decoder.html">NexTool's JWT Decoder</a> to instantly decode and inspect any JWT token without writing code.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Where should I store JWT tokens on the client side?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>The safest place to store JWT tokens on the client side is in an HttpOnly, Secure, SameSite cookie. This prevents JavaScript from accessing the token, which protects against XSS attacks. Avoid storing JWTs in localStorage or sessionStorage because any JavaScript running on the page (including third-party scripts or injected code) can read them. If you must use localStorage, keep token lifetimes very short (under 15 minutes) and implement refresh token rotation with an HttpOnly cookie for the refresh token.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the "none" algorithm attack in JWT?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>The "none" algorithm attack is a well-known JWT vulnerability where an attacker modifies the token header to set the algorithm to "none," effectively removing signature verification. If the server's JWT library accepts the "none" algorithm, it will treat the token as valid without checking any signature, allowing the attacker to forge tokens with arbitrary claims (like elevating their role to admin). To prevent this, always explicitly specify the allowed algorithms when verifying tokens and reject any token with alg set to "none."</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between HS256 and RS256?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>HS256 (HMAC + SHA-256) is a symmetric algorithm that uses the same secret key for both signing and verifying tokens. It is simple and fast but requires sharing the secret with every service that needs to verify tokens. RS256 (RSA + SHA-256) is an asymmetric algorithm that uses a private key for signing and a separate public key for verification. RS256 is preferred in distributed systems and microservices architectures because only the authentication server needs the private key, while any service can verify tokens using the publicly available public key.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pro Promo -->
+            <div class="pro-promo fade-in">
+                <h3>NexTool Pro &mdash; Unlimited Access to All Tools</h3>
+                <p>Get advanced features, no usage limits, and priority access to new tools. One-time payment, lifetime access.</p>
+                <a href="/pro.html" class="cta-button">Get Pro &mdash; $29</a>
+            </div>
+
+        </div>
+    </article>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>NexTool</h3>
+                <p>150+ free developer and business tools. Built to save you time. No signup required for any free tool.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Free Tools</h4>
+                <a href="/free-tools/jwt-decoder.html">JWT Decoder</a>
+                <a href="/free-tools/jwt-generator.html">JWT Generator</a>
+                <a href="/free-tools/base64.html">Base64 Encoder</a>
+                <a href="/free-tools/hash-generator.html">Hash Generator</a>
+                <a href="/free-tools/json-formatter.html">JSON Formatter</a>
+            </div>
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <a href="/">Home</a>
+                <a href="/free-tools/">All Free Tools</a>
+                <a href="/blog/">Blog</a>
+                <a href="/pro.html">NexTool Pro</a>
+                <a href="/workspace.html">Workspace</a>
+            </div>
+            <div class="footer-col">
+                <h4>Connect</h4>
+                <a href="mailto:christianjunbucher@gmail.com">Email Us</a>
+                <a href="/imprint.html">Imprint</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 NexTool. All rights reserved.</span>
+            <span>150+ Free Tools &mdash; No Signup Required</span>
+        </div>
+    </footer>
+
+    <!-- Fade-in Observer -->
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    </script>
+
+    <!-- FAQ Toggle Script -->
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <!-- Revenue Scripts -->
+    <script defer src="/js/revenue.js"></script>
+</body>
+</html>
