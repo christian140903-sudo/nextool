@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown to HTML Converter - Free Tool | NexTool</title>
+    <meta name="description" content="Convert Markdown to clean HTML with GitHub Flavored Markdown support. Tables, task lists, code blocks with syntax highlighting, and live preview.">
+    <meta name="keywords" content="markdown to html, markdown converter, gfm converter, markdown preview, html generator">
+    <meta property="og:title" content="Markdown to HTML Converter - NexTool Free Tools">
+    <meta property="og:description" content="Convert Markdown to clean HTML with GFM support. Free online tool with live preview.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/markdown-to-html.html">
+    <meta property="og:image" content="https://nextool.app/og/markdown-to-html.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://nextool.app/free-tools/markdown-to-html.html">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app/"},
+            {"@type": "ListItem", "position": 2, "name": "Free Tools", "item": "https://nextool.app/free-tools/"},
+            {"@type": "ListItem", "position": 3, "name": "Markdown to HTML", "item": "https://nextool.app/free-tools/markdown-to-html.html"}
+        ]
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #050508; --surface: #111118; --surface2: #1a1a24;
+            --primary: #6366f1; --accent: #a855f7; --pink: #ec4899;
+            --tool: #22c55e; --tool-dim: rgba(34, 197, 94, 0.12);
+            --text: #e2e8f0; --text2: #94a3b8; --radius: 16px;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        a { color: inherit; text-decoration: none; }
+
+        /* NAV */
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(5,5,8,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(99,102,241,0.1); }
+        .nav-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 28px; align-items: center; }
+        .nav-links a { font-size: 14px; color: var(--text2); transition: color 0.2s; font-weight: 500; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+        .nav-hamburger span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: 0.3s; }
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; background: rgba(5,5,8,0.97); flex-direction: column; padding: 20px 24px; gap: 16px; border-bottom: 1px solid rgba(99,102,241,0.1); }
+            .nav-links.open { display: flex; }
+            .nav-hamburger { display: flex; }
+        }
+
+        /* HERO */
+        .hero { padding: 120px 24px 50px; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; background: radial-gradient(ellipse, rgba(34,197,94,0.08), transparent 70%); pointer-events: none; }
+        .breadcrumb { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+        .breadcrumb a:hover { color: var(--tool); }
+        .breadcrumb .sep { opacity: 0.4; }
+        .hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+        .hero h1 .grad { background: linear-gradient(135deg, var(--tool), #4ade80); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 18px; color: var(--text2); max-width: 600px; margin: 0 auto; line-height: 1.6; }
+
+        /* TOOL */
+        .tool-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
+        .tool-card { background: var(--surface); border: 1px solid rgba(34,197,94,0.15); border-radius: var(--radius); overflow: hidden; }
+        .tool-header { padding: 16px 20px; border-bottom: 1px solid rgba(34,197,94,0.1); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: var(--surface2); }
+        .tool-header-left { display: flex; align-items: center; gap: 12px; }
+        .tool-header h2 { font-size: 14px; font-weight: 700; color: var(--tool); }
+        .view-tabs { display: flex; gap: 4px; }
+        .view-tab { padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text2); font-family: 'Inter', sans-serif; transition: 0.2s; }
+        .view-tab.active { background: var(--tool); color: #000; }
+        .tool-actions { display: flex; gap: 8px; }
+        .btn { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+        .btn-primary { background: var(--tool); color: #000; }
+        .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+        .btn-ghost { background: rgba(34,197,94,0.1); color: var(--tool); border: 1px solid rgba(34,197,94,0.2); }
+        .btn-ghost:hover { background: rgba(34,197,94,0.2); }
+
+        /* SPLIT PANE */
+        .split-pane { display: grid; grid-template-columns: 1fr 1fr; min-height: 550px; }
+        @media (max-width: 768px) { .split-pane { grid-template-columns: 1fr; } }
+        .pane { display: flex; flex-direction: column; }
+        .pane:first-child { border-right: 1px solid rgba(255,255,255,0.05); }
+        .pane-header { padding: 10px 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .pane-header .word-count { font-weight: 500; color: var(--text2); text-transform: none; letter-spacing: 0; font-size: 11px; }
+        textarea.md-input { flex: 1; background: transparent; border: none; color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.8; padding: 20px; resize: none; outline: none; min-height: 500px; tab-size: 4; }
+        textarea.md-input::placeholder { color: rgba(148,163,184,0.4); }
+
+        /* PREVIEW */
+        .preview-pane { flex: 1; padding: 24px; overflow: auto; min-height: 500px; }
+        .preview-pane.html-view { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.7; color: var(--tool); white-space: pre-wrap; word-break: break-all; }
+
+        /* RENDERED MARKDOWN STYLES */
+        .md-render h1 { font-size: 28px; font-weight: 800; margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .md-render h2 { font-size: 22px; font-weight: 700; margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .md-render h3 { font-size: 18px; font-weight: 700; margin: 20px 0 10px; }
+        .md-render h4 { font-size: 15px; font-weight: 700; margin: 16px 0 8px; }
+        .md-render h5 { font-size: 14px; font-weight: 700; margin: 14px 0 6px; }
+        .md-render h6 { font-size: 13px; font-weight: 700; margin: 12px 0 6px; color: var(--text2); }
+        .md-render p { margin: 0 0 14px; line-height: 1.7; font-size: 14px; }
+        .md-render strong { font-weight: 700; color: #fff; }
+        .md-render em { font-style: italic; }
+        .md-render del { text-decoration: line-through; color: var(--text2); }
+        .md-render a { color: var(--tool); text-decoration: underline; }
+        .md-render code { background: var(--surface2); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: var(--pink); }
+        .md-render pre { background: var(--surface2); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 16px; margin: 0 0 16px; overflow-x: auto; }
+        .md-render pre code { background: none; padding: 0; color: var(--tool); font-size: 13px; line-height: 1.6; }
+        .md-render blockquote { border-left: 3px solid var(--tool); padding: 8px 16px; margin: 0 0 14px; background: rgba(34,197,94,0.05); border-radius: 0 8px 8px 0; }
+        .md-render blockquote p { margin: 0; color: var(--text2); }
+        .md-render ul, .md-render ol { margin: 0 0 14px; padding-left: 24px; }
+        .md-render li { margin: 4px 0; font-size: 14px; line-height: 1.6; }
+        .md-render hr { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 24px 0; }
+        .md-render img { max-width: 100%; border-radius: 8px; }
+        .md-render table { width: 100%; border-collapse: collapse; margin: 0 0 16px; font-size: 13px; }
+        .md-render th, .md-render td { padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); text-align: left; }
+        .md-render th { background: var(--surface2); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .md-render .task-item { list-style: none; margin-left: -20px; }
+        .md-render .task-item input { margin-right: 6px; accent-color: var(--tool); }
+        .md-render .code-lang { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 700; }
+
+        /* STATS */
+        .stats-bar { padding: 10px 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; color: var(--text2); }
+        .stat-item span { color: var(--tool); font-weight: 700; }
+
+        /* TOOLBAR */
+        .toolbar { padding: 8px 16px; display: flex; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; }
+        .tb-btn { width: 32px; height: 30px; border-radius: 6px; border: none; background: transparent; color: var(--text2); cursor: pointer; font-size: 14px; font-family: 'Inter', sans-serif; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .tb-btn:hover { background: var(--surface2); color: var(--text); }
+        .tb-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.06); margin: 5px 4px; }
+
+        /* MORE TOOLS */
+        .more-tools { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
+        .more-tools h2 { font-size: 28px; font-weight: 800; margin-bottom: 32px; text-align: center; }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+        .tool-link { background: var(--surface); border: 1px solid rgba(99,102,241,0.1); border-radius: var(--radius); padding: 24px; transition: all 0.3s; display: block; }
+        .tool-link:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(99,102,241,0.1); }
+        .tool-link .icon { font-size: 28px; margin-bottom: 12px; }
+        .tool-link h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .tool-link p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+        /* FOOTER */
+        .footer { border-top: 1px solid rgba(99,102,241,0.1); padding: 40px 24px; text-align: center; }
+        .footer-brand { font-size: 18px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .footer p { font-size: 13px; color: var(--text2); }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--tool); color: #000; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all 0.3s; z-index: 999; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-logo">NexTool</a>
+        <div class="nav-links" id="navLinks">
+            <a href="/">Home</a>
+            <a href="/free-tools/">Tools</a>
+            <a href="/services/">Services</a>
+            <a href="/blog/">Blog</a>
+            <a href="/products/">Products</a>
+            <a href="/pricing/">Pricing</a>
+            <a href="/extension.html">Extension</a>
+        </div>
+        <button class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="breadcrumb">
+        <a href="/">Home</a><span class="sep">/</span>
+        <a href="/free-tools/">Free Tools</a><span class="sep">/</span>
+        <span>Markdown to HTML</span>
+    </div>
+    <h1>Markdown to <span class="grad">HTML</span></h1>
+    <p>Convert Markdown to clean, semantic HTML with full GFM support. Tables, task lists, code blocks, and more with a live split-pane preview.</p>
+</section>
+
+<!-- TOOL -->
+<div class="tool-wrap">
+    <div class="tool-card">
+        <div class="tool-header">
+            <div class="tool-header-left">
+                <h2>Editor</h2>
+                <div class="view-tabs">
+                    <button class="view-tab active" onclick="setView('preview', this)">Preview</button>
+                    <button class="view-tab" onclick="setView('html', this)">HTML</button>
+                </div>
+            </div>
+            <div class="tool-actions">
+                <button class="btn btn-ghost" onclick="loadExample()">Example</button>
+                <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+                <button class="btn btn-primary" onclick="copyHTML()">Copy HTML</button>
+            </div>
+        </div>
+        <div class="split-pane">
+            <div class="pane">
+                <div class="toolbar">
+                    <button class="tb-btn" onclick="insertMd('**','**')" title="Bold">B</button>
+                    <button class="tb-btn" onclick="insertMd('*','*')" title="Italic" style="font-style:italic">I</button>
+                    <button class="tb-btn" onclick="insertMd('~~','~~')" title="Strikethrough" style="text-decoration:line-through">S</button>
+                    <button class="tb-btn" onclick="insertMd('`','`')" title="Inline code" style="font-size:12px;font-family:monospace">&lt;&gt;</button>
+                    <div class="tb-sep"></div>
+                    <button class="tb-btn" onclick="insertLine('# ')" title="H1" style="font-size:11px">H1</button>
+                    <button class="tb-btn" onclick="insertLine('## ')" title="H2" style="font-size:11px">H2</button>
+                    <button class="tb-btn" onclick="insertLine('### ')" title="H3" style="font-size:11px">H3</button>
+                    <div class="tb-sep"></div>
+                    <button class="tb-btn" onclick="insertLine('- ')" title="List">-</button>
+                    <button class="tb-btn" onclick="insertLine('1. ')" title="Ordered list" style="font-size:11px">1.</button>
+                    <button class="tb-btn" onclick="insertLine('- [ ] ')" title="Task list" style="font-size:11px">[]</button>
+                    <div class="tb-sep"></div>
+                    <button class="tb-btn" onclick="insertLine('> ')" title="Blockquote" style="font-size:16px">"</button>
+                    <button class="tb-btn" onclick="insertLine('---')" title="Horizontal rule" style="font-size:16px">--</button>
+                    <button class="tb-btn" onclick="insertMd('[','](url)')" title="Link" style="font-size:12px">@</button>
+                    <button class="tb-btn" onclick="insertCodeBlock()" title="Code block" style="font-size:11px">{}</button>
+                    <button class="tb-btn" onclick="insertTable()" title="Table" style="font-size:11px">T</button>
+                </div>
+                <div class="pane-header">
+                    <span>Markdown</span>
+                    <span class="word-count" id="wordCount">0 words</span>
+                </div>
+                <textarea class="md-input" id="mdInput" placeholder="Type your Markdown here..." oninput="render()"></textarea>
+            </div>
+            <div class="pane">
+                <div class="pane-header">
+                    <span id="outputLabel">Preview</span>
+                    <span class="word-count" id="charCount">0 chars</span>
+                </div>
+                <div class="preview-pane md-render" id="previewPane"></div>
+            </div>
+        </div>
+        <div class="stats-bar">
+            <div class="stat-item">Words: <span id="statWords">0</span></div>
+            <div class="stat-item">Characters: <span id="statChars">0</span></div>
+            <div class="stat-item">Lines: <span id="statLines">0</span></div>
+            <div class="stat-item">HTML size: <span id="statSize">0 B</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- MORE TOOLS -->
+<section class="more-tools">
+    <h2>More Free Tools</h2>
+    <div class="tools-grid">
+        <a href="/free-tools/tailwind-converter.html" class="tool-link">
+            <div class="icon">🎨</div>
+            <h3>Tailwind CSS Converter</h3>
+            <p>Convert vanilla CSS to Tailwind utility classes instantly.</p>
+        </a>
+        <a href="/free-tools/flexbox-playground.html" class="tool-link">
+            <div class="icon">📐</div>
+            <h3>Flexbox Playground</h3>
+            <p>Visual flexbox CSS builder with live preview and code export.</p>
+        </a>
+        <a href="/free-tools/api-request-builder.html" class="tool-link">
+            <div class="icon">🔗</div>
+            <h3>API Request Builder</h3>
+            <p>Build and test HTTP requests visually with auth and response viewer.</p>
+        </a>
+        <a href="/free-tools/regex-tester.html" class="tool-link">
+            <div class="icon">🔍</div>
+            <h3>Regex Tester</h3>
+            <p>Test and debug regular expressions with real-time matching.</p>
+        </a>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-brand">NexTool</div>
+    <p>AI-powered tools for modern developers. &copy; 2026 NexTool. All rights reserved.</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentView = 'preview';
+let lastHTML = '';
+
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function parseMarkdown(md) {
+    let html = md;
+
+    // Code blocks (fenced) - must be first
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(_, lang, code) {
+        const langLabel = lang ? `<div class="code-lang">${escapeHtml(lang)}</div>` : '';
+        return `<pre>${langLabel}<code>${escapeHtml(code.replace(/\n$/, ''))}</code></pre>`;
+    });
+
+    // Tables
+    html = html.replace(/^(\|.+\|)\n(\|[\s\-:|]+\|)\n((?:\|.+\|\n?)*)/gm, function(_, header, align, body) {
+        const ths = header.split('|').filter(c => c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
+        const alignCells = align.split('|').filter(c => c.trim());
+        const aligns = alignCells.map(c => {
+            c = c.trim();
+            if (c.startsWith(':') && c.endsWith(':')) return 'center';
+            if (c.endsWith(':')) return 'right';
+            return 'left';
+        });
+        const rows = body.trim().split('\n').map(row => {
+            const tds = row.split('|').filter(c => c.trim()).map((c, i) =>
+                `<td style="text-align:${aligns[i] || 'left'}">${c.trim()}</td>`
+            ).join('');
+            return `<tr>${tds}</tr>`;
+        }).join('\n');
+        return `<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table>`;
+    });
+
+    // Horizontal rules
+    html = html.replace(/^(---|\*\*\*|___)\s*$/gm, '<hr>');
+
+    // Headers
+    html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
+    html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
+    html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+    // Blockquotes
+    html = html.replace(/^> (.+)$/gm, '<blockquote><p>$1</p></blockquote>');
+
+    // Task lists
+    html = html.replace(/^- \[x\] (.+)$/gm, '<li class="task-item"><input type="checkbox" checked disabled> $1</li>');
+    html = html.replace(/^- \[ \] (.+)$/gm, '<li class="task-item"><input type="checkbox" disabled> $1</li>');
+
+    // Unordered lists
+    html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/((?:<li(?:\s[^>]*)?>.*<\/li>\n?)+)/g, function(match) {
+        if (match.includes('task-item')) return `<ul style="list-style:none;padding-left:4px">${match}</ul>`;
+        return `<ul>${match}</ul>`;
+    });
+
+    // Ordered lists
+    html = html.replace(/^\d+\. (.+)$/gm, '<oli>$1</oli>');
+    html = html.replace(/((?:<oli>.*<\/oli>\n?)+)/g, function(match) {
+        return `<ol>${match.replace(/<\/?oli>/g, function(t) { return t.replace('oli', 'li'); })}</ol>`;
+    });
+
+    // Images
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+
+    // Links
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
+    // Bold + Italic
+    html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    // Bold
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    // Italic
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+    // Strikethrough
+    html = html.replace(/~~(.+?)~~/g, '<del>$1</del>');
+
+    // Inline code (after code blocks)
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Paragraphs - wrap remaining loose text
+    html = html.replace(/^(?!<[a-z/])((?!<).+)$/gm, '<p>$1</p>');
+
+    // Clean up empty paragraphs
+    html = html.replace(/<p>\s*<\/p>/g, '');
+
+    // Clean up consecutive blockquotes
+    html = html.replace(/<\/blockquote>\n<blockquote>/g, '\n');
+
+    return html;
+}
+
+function render() {
+    const md = document.getElementById('mdInput').value;
+    lastHTML = parseMarkdown(md);
+
+    const preview = document.getElementById('previewPane');
+    if (currentView === 'preview') {
+        preview.innerHTML = lastHTML;
+        preview.classList.add('md-render');
+        preview.classList.remove('html-view');
+    } else {
+        // Format HTML nicely
+        let formatted = lastHTML
+            .replace(/></g, '>\n<')
+            .replace(/\n\n+/g, '\n')
+            .trim();
+        preview.textContent = formatted;
+        preview.classList.remove('md-render');
+        preview.classList.add('html-view');
+    }
+
+    updateStats(md);
+}
+
+function updateStats(md) {
+    const words = md.trim() ? md.trim().split(/\s+/).length : 0;
+    const chars = md.length;
+    const lines = md.split('\n').length;
+    const size = new Blob([lastHTML]).size;
+
+    document.getElementById('statWords').textContent = words;
+    document.getElementById('statChars').textContent = chars;
+    document.getElementById('statLines').textContent = lines;
+    document.getElementById('statSize').textContent = size > 1024 ? (size / 1024).toFixed(1) + ' KB' : size + ' B';
+    document.getElementById('wordCount').textContent = words + ' words';
+    document.getElementById('charCount').textContent = lastHTML.length + ' chars';
+}
+
+function setView(view, btn) {
+    currentView = view;
+    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('outputLabel').textContent = view === 'preview' ? 'Preview' : 'HTML Output';
+    render();
+}
+
+function insertMd(before, after) {
+    const ta = document.getElementById('mdInput');
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const selected = ta.value.substring(start, end) || 'text';
+    ta.value = ta.value.substring(0, start) + before + selected + after + ta.value.substring(end);
+    ta.selectionStart = start + before.length;
+    ta.selectionEnd = start + before.length + selected.length;
+    ta.focus();
+    render();
+}
+
+function insertLine(prefix) {
+    const ta = document.getElementById('mdInput');
+    const start = ta.selectionStart;
+    const lineStart = ta.value.lastIndexOf('\n', start - 1) + 1;
+    ta.value = ta.value.substring(0, lineStart) + prefix + ta.value.substring(lineStart);
+    ta.selectionStart = ta.selectionEnd = lineStart + prefix.length;
+    ta.focus();
+    render();
+}
+
+function insertCodeBlock() {
+    const ta = document.getElementById('mdInput');
+    const pos = ta.selectionStart;
+    const block = '```javascript\n// your code here\n```';
+    ta.value = ta.value.substring(0, pos) + block + ta.value.substring(pos);
+    ta.selectionStart = pos + 14;
+    ta.selectionEnd = pos + 14 + 20;
+    ta.focus();
+    render();
+}
+
+function insertTable() {
+    const ta = document.getElementById('mdInput');
+    const pos = ta.selectionStart;
+    const table = '| Header 1 | Header 2 | Header 3 |\n| --- | --- | --- |\n| Cell 1 | Cell 2 | Cell 3 |\n| Cell 4 | Cell 5 | Cell 6 |';
+    ta.value = ta.value.substring(0, pos) + table + ta.value.substring(pos);
+    ta.focus();
+    render();
+}
+
+function copyHTML() {
+    navigator.clipboard.writeText(lastHTML).then(() => showToast('HTML copied to clipboard!'));
+}
+
+function clearAll() {
+    document.getElementById('mdInput').value = '';
+    render();
+}
+
+function loadExample() {
+    document.getElementById('mdInput').value = `# Welcome to Markdown
+
+This is a **bold** statement and this is *italic*. You can also do ~~strikethrough~~.
+
+## Features
+
+- GFM tables
+- Task lists
+- Code blocks with language labels
+- Blockquotes
+- And much more!
+
+### Code Example
+
+\`\`\`javascript
+function greet(name) {
+  console.log(\`Hello, \${name}!\`);
+  return { message: "Welcome", status: 200 };
+}
+\`\`\`
+
+Use inline \`code\` too.
+
+### Task List
+
+- [x] Build Markdown parser
+- [x] Add GFM support
+- [ ] Add syntax highlighting
+- [ ] Export to PDF
+
+### Table
+
+| Feature | Status | Priority |
+| --- | :---: | ---: |
+| Tables | Done | High |
+| Code blocks | Done | High |
+| Task lists | Done | Medium |
+| Footnotes | Planned | Low |
+
+### Blockquote
+
+> "The best way to predict the future is to create it."
+> — Peter Drucker
+
+---
+
+Made with [NexTool](https://nextool.app) Free Tools.`;
+    render();
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Support tab key in textarea
+document.getElementById('mdInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = this.selectionStart;
+        this.value = this.value.substring(0, start) + '    ' + this.value.substring(this.selectionEnd);
+        this.selectionStart = this.selectionEnd = start + 4;
+        render();
+    }
+});
+</script>
+<script defer src="/free-tools/js/revenue.js"></script>
+<script defer src="/free-tools/js/lead-capture.js"></script>
+<script defer src="/free-tools/js/analytics-lite.js"></script>
+</body>
+</html>
