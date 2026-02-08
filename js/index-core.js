@@ -643,7 +643,7 @@
                     scrollTrigger: {
                         trigger: div,
                         start: 'top 90%',
-                        toggleActions: 'play none none reverse',
+                        toggleActions: 'play none none none',
                     }
                 });
             });
@@ -671,7 +671,7 @@
                     scrollTrigger: {
                         trigger: el,
                         start: 'top 80%',
-                        toggleActions: 'play none none reverse',
+                        toggleActions: 'play none none none',
                     }
                 });
                 gsap.set(el.querySelectorAll('.char'), { opacity: 0, y: 20 });
@@ -690,7 +690,7 @@
                     scrollTrigger: {
                         trigger: el,
                         start: 'top 85%',
-                        toggleActions: 'play none none reverse',
+                        toggleActions: 'play none none none',
                     }
                 });
             });
@@ -706,7 +706,7 @@
                     scrollTrigger: {
                         trigger: card,
                         start: 'top 85%',
-                        toggleActions: 'play none none reverse',
+                        toggleActions: 'play none none none',
                     }
                 });
             });
@@ -722,7 +722,7 @@
                     scrollTrigger: {
                         trigger: card,
                         start: 'top 85%',
-                        toggleActions: 'play none none reverse',
+                        toggleActions: 'play none none none',
                     }
                 });
             });
@@ -738,7 +738,7 @@
                     scrollTrigger: {
                         trigger: card,
                         start: 'top 85%',
-                        toggleActions: 'play none none reverse',
+                        toggleActions: 'play none none none',
                     }
                 });
             });
@@ -754,7 +754,7 @@
                     scrollTrigger: {
                         trigger: pt,
                         start: 'top 90%',
-                        toggleActions: 'play none none reverse',
+                        toggleActions: 'play none none none',
                     }
                 });
             });
@@ -770,7 +770,7 @@
                     scrollTrigger: {
                         trigger: item,
                         start: 'top 90%',
-                        toggleActions: 'play none none reverse',
+                        toggleActions: 'play none none none',
                     }
                 });
             });
@@ -784,7 +784,7 @@
                 scrollTrigger: {
                     trigger: '#final-cta',
                     start: 'top 70%',
-                    toggleActions: 'play none none reverse',
+                    toggleActions: 'play none none none',
                 }
             });
         }
@@ -839,7 +839,7 @@
                         scrollTrigger: {
                             trigger: step,
                             start: 'top 85%',
-                            toggleActions: 'play none none reverse',
+                            toggleActions: 'play none none none',
                         }
                     });
                     gsap.set(step, { opacity: 0, x: 40 });
@@ -880,7 +880,7 @@
                         trigger: step,
                         containerAnimation: scrollTween,
                         start: 'left 80%',
-                        toggleActions: 'play none none reverse',
+                        toggleActions: 'play none none none',
                     }
                 });
             });
@@ -1503,7 +1503,7 @@
                     scrollTrigger: {
                         trigger: el,
                         start: 'top 85%',
-                        toggleActions: 'play none none reverse',
+                        toggleActions: 'play none none none',
                     },
                     onUpdate: function() {
                         el.textContent = Math.round(parseFloat(el.textContent));
