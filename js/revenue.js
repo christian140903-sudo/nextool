@@ -12,6 +12,8 @@ var P='ntool_rev_',D=864e5,BD=3e4,PU=3,EU='/pro.html',UU='/pro.html';
 // Compact catalog: [slug,displayName,category] — category: d=dev,g=design,t=text,m=media,c=converter,u=utility
 var T='qr-generator:QR Code Generator:m,password-generator:Password Generator:u,json-formatter:JSON Formatter:d,color-palette:Color Palette Generator:g,gradient-generator:CSS Gradient Generator:g,text-analyzer:Text Analyzer:t,base64:Base64 Encoder/Decoder:d,regex-tester:Regex Tester:d,markdown-preview:Markdown Preview:t,image-compressor:Image Compressor:m,unit-converter:Unit Converter:c,lorem-generator:Lorem Ipsum Generator:t,css-formatter:CSS Beautifier:d,hash-generator:Hash Generator:d,timestamp-converter:Timestamp Converter:c,diff-checker:Diff Checker:d,emoji-picker:Emoji Picker:t,meta-tag-generator:Meta Tag Generator:d,favicon-generator:Favicon Generator:m,box-shadow-generator:Box Shadow Generator:g,pomodoro-timer:Pomodoro Timer:u,markdown-table:Markdown Table Generator:t,color-converter:Color Converter:g,placeholder-image:Placeholder Image:m,svg-optimizer:SVG Optimizer:m,aspect-ratio-calculator:Aspect Ratio Calculator:g,crontab-generator:Crontab Generator:d,json-to-csv:JSON to CSV:c,html-to-markdown:HTML to Markdown:c,chmod-calculator:chmod Calculator:d,ip-info:IP Address Info:u,noise-generator:Noise Generator:u,url-encoder:URL Encoder/Decoder:d,text-diff-merger:Text Diff & Merger:t,yaml-json:YAML/JSON Converter:c,pixel-ruler:Pixel Ruler:g'.split(',').map(function(s){var p=s.split(':');return{s:p[0],n:p[1],c:p[2]};});
 var CL={d:'Developer',g:'Design',t:'Text & Content',m:'Media',c:'Converter',u:'Utility'};
+// Blog article catalog: [slug,title,categories] — categories match tool cats (d,g,t,m,c,u,a=all)
+var A='10-developer-tools-2026:10 Developer Tools You Need in 2026:d,api-testing-guide:The Complete API Testing Guide:d,api-design-best-practices:API Design Best Practices:d,git-workflow-guide:Git Workflow Guide for Teams:d,free-developer-tools-2026:Free Developer Tools in 2026:dc,developer-productivity-tools-2026:Developer Productivity Tools 2026:du,javascript-performance-optimization:JavaScript Performance Optimization:d,css-tricks-every-developer-should-know:CSS Tricks Every Developer Should Know:gd,css-animations-complete-guide:CSS Animations Complete Guide:g,css-layout-masterclass:CSS Layout Masterclass:g,responsive-design-guide-2026:Responsive Design Guide 2026:gm,ai-content-brand-voice-framework:AI Content & Brand Voice Framework:t,build-landing-page-one-hour:Build a Landing Page in One Hour:tgm,automation-saves-20-hours-week:How Automation Saves 20 Hours/Week:ua,automate-business-workflows:Automate Your Business Workflows:ua,best-ai-tools-small-business-2026:Best AI Tools for Small Business:ua,ai-solopreneur-playbook:The AI Solopreneur Playbook:ua,web-security-checklist:Web Security Checklist 2026:du,create-privacy-policy-guide:Create a Privacy Policy Guide:du,why-small-business-needs-website-2026:Why Your Business Needs a Website:a,5-costly-website-mistakes:5 Costly Website Mistakes to Avoid:a,website-templates-vs-custom-build:Templates vs Custom Build:gm'.split(',').map(function(s){var p=s.split(':');return{s:p[0],t:p[1],c:p[2]};});
 function st(k,v){try{localStorage.setItem(P+k,JSON.stringify(v))}catch(e){}}
 function ld(k,f){try{var v=localStorage.getItem(P+k);return v!==null?JSON.parse(v):f}catch(e){return f}}
 function slug(){var m=location.pathname.match(/\/free-tools\/([^\/]+)\.html/);return m?m[1]:null}
@@ -49,6 +51,21 @@ var sec=document.createElement('div');sec.className='nrl';
 sec.innerHTML='<h3>More tools you\'ll love</h3><div class="nrlg">'+pk.map(function(t){return'<a href="/free-tools/'+t.s+'.html">'+t.n+'<span>'+(CL[t.c]||'Tool')+'</span></a>'}).join('')+'</div>';
 var ft=document.querySelector('footer');
 if(ft)ft.parentNode.insertBefore(sec,ft);else document.body.appendChild(sec)}
+function reading(){
+var s=slug();if(!s)return;
+var cat=null;for(var i=0;i<T.length;i++)if(T[i].s===s){cat=T[i].c;break}
+if(!cat)cat='a';
+var ma=A.filter(function(a){return a.c.indexOf(cat)!==-1||a.c.indexOf('a')!==-1});
+var oa=A.filter(function(a){return a.c.indexOf(cat)===-1&&a.c.indexOf('a')===-1});
+function sh(arr){for(var j=arr.length-1;j>0;j--){var k=Math.floor(Math.random()*(j+1)),tmp=arr[j];arr[j]=arr[k];arr[k]=tmp}return arr}
+sh(ma);sh(oa);
+var pk=ma.slice(0,3);if(pk.length<2)pk=pk.concat(oa.slice(0,2-pk.length));
+if(!pk.length)return;
+var sec=document.createElement('div');sec.className='nrl nra';
+sec.innerHTML='<h3>Related reading</h3><div class="nrlg">'+pk.map(function(a){return'<a href="/blog/'+a.s+'.html">'+a.t+'<span>Blog</span></a>'}).join('')+'</div>';
+var rt=document.querySelector('.nrl:not(.nra)');
+if(rt&&rt.nextSibling)rt.parentNode.insertBefore(sec,rt.nextSibling);
+else{var ft=document.querySelector('footer');if(ft)ft.parentNode.insertBefore(sec,ft);else document.body.appendChild(sec)}}
 function share(){
 var btn=document.createElement('button');btn.className='nrs';btn.id='nrs';btn.innerHTML='\uD83D\uDD17';btn.title='Share this tool';btn.setAttribute('aria-label','Copy link to share this tool');
 var toast=document.createElement('div');toast.className='nrt';toast.id='nrt';toast.textContent='Link copied!';
@@ -58,7 +75,7 @@ function tt(){toast.classList.add('show');setTimeout(function(){toast.classList.
 function init(){
 var s=slug();if(!s)return;
 css();trackVisit();share();
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',related);else related();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){related();reading()});else{related();reading()}
 setTimeout(banner,BD);
 window.addEventListener('beforeunload',trackTime)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
