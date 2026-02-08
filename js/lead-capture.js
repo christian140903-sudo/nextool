@@ -226,4 +226,8 @@
   } else {
     init();
   }
+  /* Load conversion engine on blog pages (tool pages load via revenue.js) */
+  if (/\/blog\//.test(location.pathname) && !document.querySelector('script[src*="conversion-engine"]')) {
+    var ce = document.createElement('script'); ce.src = '/js/conversion-engine.js'; ce.defer = true; document.head.appendChild(ce);
+  }
 })();
