@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visual JSON Editor - Tree View &amp; Raw Editor | NexTool</title>
+<meta name="description" content="Free Visual JSON Editor with tree view, expand/collapse, inline editing, type detection, add/delete properties, undo/redo, import/export, and real-time validation. No signup required.">
+<meta name="keywords" content="json editor, json viewer, json tree, json formatter, json validator, visual json, free json tool, NexTool">
+<link rel="canonical" href="https://nextool.app/free-tools/json-editor.html">
+<meta property="og:title" content="Visual JSON Editor - Tree View &amp; Raw Editor | NexTool">
+<meta property="og:description" content="Edit JSON visually with a tree editor, or work with raw JSON. Inline editing, validation, and type detection.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/json-editor.html">
+<meta property="og:image" content="https://nextool.app/free-tools/og/json-editor.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Visual JSON Editor - Tree View &amp; Raw Editor | NexTool">
+<meta name="twitter:description" content="Edit JSON visually with tree view, inline editing, validation, and type detection.">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"Home","item":"https://nextool.app/"},
+    {"@type":"ListItem","position":2,"name":"Free Tools","item":"https://nextool.app/free-tools/"},
+    {"@type":"ListItem","position":3,"name":"JSON Editor","item":"https://nextool.app/free-tools/json-editor.html"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"SoftwareApplication",
+  "name":"Visual JSON Editor",
+  "applicationCategory":"DeveloperApplication",
+  "operatingSystem":"Web",
+  "description":"Free Visual JSON Editor with tree view, inline editing, type detection, undo/redo, and real-time validation.",
+  "url":"https://nextool.app/free-tools/json-editor.html",
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+  "author":{"@type":"Organization","name":"NexTool","url":"https://nextool.app"}
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--surface3:#22222f;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text-dim:#94a3b8;--text-muted:#64748b;--gradient:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);--green:#22c55e;--red:#ef4444;--yellow:#eab308;--blue:#3b82f6;--orange:#f97316;--radius:12px;--radius-lg:20px}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(5,5,8,.75);backdrop-filter:blur(20px);border-bottom:1px solid rgba(99,102,241,.1)}
+.nav-logo{display:flex;align-items:center;gap:.5rem;font-weight:800;font-size:1.15rem;text-decoration:none;color:var(--text)}
+.nav-logo .ico{width:28px;height:28px;border-radius:7px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:900;color:#fff}
+.nav-logo span{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-links a{color:var(--text-dim);font-size:.85rem;font-weight:500;text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.breadcrumb{max-width:1100px;margin:0 auto;padding:80px 1.5rem 0;font-size:.8rem}
+.breadcrumb a{color:var(--text-muted);text-decoration:none;transition:color .2s}
+.breadcrumb a:hover{color:var(--text)}
+.breadcrumb span{color:var(--text-muted);margin:0 .4rem}
+.breadcrumb .current{color:var(--text-dim)}
+.main{max-width:1100px;margin:0 auto;padding:1rem 1.5rem 3rem}
+.tool-header{text-align:center;margin-bottom:2.5rem}
+.tool-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:100px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.15);font-size:.72rem;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem}
+.tool-header h1{font-size:clamp(1.75rem,4vw,2.5rem);font-weight:800;margin-bottom:.5rem}
+.tool-header h1 .gr{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tool-header p{color:var(--text-dim);font-size:1rem;max-width:600px;margin:0 auto}
+
+/* Toolbar */
+.toolbar{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+.tb-btn{padding:.4rem .75rem;border-radius:6px;border:1px solid var(--surface3);background:var(--surface2);color:var(--text-dim);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:flex;align-items:center;gap:.35rem}
+.tb-btn:hover{border-color:var(--primary);color:var(--text)}
+.tb-btn:disabled{opacity:.35;cursor:not-allowed}
+.tb-btn svg{width:14px;height:14px}
+.tb-sep{width:1px;height:24px;background:var(--surface3);margin:0 .25rem}
+.tb-status{margin-left:auto;font-size:.78rem;display:flex;align-items:center;gap:.35rem}
+.tb-status.valid{color:var(--green)}
+.tb-status.invalid{color:var(--red)}
+
+/* Split pane */
+.split-pane{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid rgba(99,102,241,.1);border-radius:var(--radius-lg);overflow:hidden;min-height:500px;position:relative;background:var(--surface)}
+.split-pane::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gradient);z-index:2}
+.pane{display:flex;flex-direction:column;overflow:hidden}
+.pane-header{padding:.6rem 1rem;background:var(--surface2);border-bottom:1px solid var(--surface3);font-size:.75rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pane-header .pane-tag{padding:.15rem .4rem;border-radius:4px;background:rgba(99,102,241,.1);color:var(--primary);font-size:.65rem}
+.pane-left{border-right:1px solid var(--surface3)}
+
+/* Tree view */
+.tree-wrap{flex:1;overflow:auto;padding:1rem;font-size:.85rem}
+.tree-node{margin-left:1.25rem;position:relative}
+.tree-node::before{content:'';position:absolute;left:-1rem;top:0;bottom:0;width:1px;background:var(--surface3)}
+.tree-root{margin-left:0}
+.tree-root::before{display:none}
+.tree-row{display:flex;align-items:center;gap:.35rem;padding:.2rem .35rem;border-radius:4px;cursor:default;min-height:28px;transition:background .15s}
+.tree-row:hover{background:rgba(99,102,241,.06)}
+.tree-toggle{width:16px;height:16px;border:none;background:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.65rem;transition:transform .15s;flex-shrink:0;padding:0}
+.tree-toggle.open{transform:rotate(90deg)}
+.tree-toggle.hidden-toggle{visibility:hidden}
+.tree-key{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:600}
+.tree-sep{color:var(--text-muted);margin:0 .15rem}
+.tree-value{font-family:'JetBrains Mono',monospace;font-size:.82rem;cursor:pointer;padding:.1rem .3rem;border-radius:3px;border:1px solid transparent;transition:all .15s;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tree-value:hover{background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.2)}
+.tree-value.editing{background:var(--surface2);border-color:var(--primary);outline:none;cursor:text;max-width:none;color:var(--text)}
+.val-string{color:var(--green)}
+.val-number{color:var(--blue)}
+.val-boolean{color:var(--orange)}
+.val-null{color:var(--text-muted);font-style:italic}
+.tree-type{font-size:.6rem;color:var(--text-muted);padding:.1rem .3rem;border-radius:3px;background:rgba(99,102,241,.06);margin-left:.25rem}
+.tree-actions{display:flex;gap:.2rem;margin-left:auto;opacity:0;transition:opacity .15s}
+.tree-row:hover .tree-actions{opacity:1}
+.tree-action-btn{width:20px;height:20px;border-radius:4px;border:1px solid transparent;background:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.65rem;transition:all .15s;padding:0}
+.tree-action-btn:hover{border-color:var(--primary);color:var(--text);background:rgba(99,102,241,.08)}
+.tree-action-btn.del:hover{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.08)}
+.tree-count{font-size:.7rem;color:var(--text-muted);margin-left:.25rem}
+
+/* Add property modal inline */
+.add-inline{display:flex;gap:.35rem;align-items:center;padding:.35rem;margin-left:1.25rem;margin-top:.15rem}
+.add-inline input,.add-inline select{padding:.25rem .4rem;border-radius:4px;border:1px solid var(--surface3);background:var(--surface2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.78rem;outline:none}
+.add-inline input:focus,.add-inline select:focus{border-color:var(--primary)}
+.add-inline input{width:100px}
+.add-inline select{width:80px}
+.add-inline button{padding:.25rem .5rem;border-radius:4px;border:none;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+.add-confirm{background:var(--green);color:#fff}
+.add-cancel{background:var(--surface3);color:var(--text-dim)}
+
+/* Raw editor */
+.raw-wrap{flex:1;display:flex;flex-direction:column}
+.raw-editor{flex:1;width:100%;padding:1rem;background:transparent;border:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:none;outline:none;tab-size:2}
+.raw-editor::placeholder{color:var(--text-muted)}
+
+/* Footer */
+.footer{border-top:1px solid rgba(99,102,241,.06);padding:2rem 0;text-align:center}
+.footer-inner{max-width:1100px;margin:0 auto;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.footer-logo{display:flex;align-items:center;gap:.4rem;font-weight:700;font-size:.9rem}
+.footer-logo .ico{width:20px;height:20px;border-radius:5px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:.5rem;font-weight:900;color:#fff}
+.footer-logo span{color:var(--text-dim)}
+.footer-links{display:flex;gap:1.25rem}
+.footer-links a{color:var(--text-muted);font-size:.8rem;text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{color:var(--text-muted);font-size:.75rem;width:100%;text-align:center;margin-top:.5rem}
+
+@media(max-width:768px){
+  .main{padding:1rem 1rem 2rem}
+  .breadcrumb{padding:80px 1rem 0}
+  .nav-links{display:none}
+  .split-pane{grid-template-columns:1fr;min-height:auto}
+  .pane-left{border-right:none;border-bottom:1px solid var(--surface3)}
+  .tree-wrap{max-height:400px}
+  .raw-editor{min-height:300px}
+  .footer-inner{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="/"><div class="ico">N</div><span>NexTool</span></a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/pro.html">Pro</a>
+    <a href="/blog/">Blog</a>
+  </div>
+</nav>
+
+<div class="breadcrumb">
+  <a href="/">Home</a><span>/</span><a href="/free-tools/">Free Tools</a><span>/</span><span class="current">JSON Editor</span>
+</div>
+
+<div class="main">
+  <div class="tool-header">
+    <div class="tool-badge">Free Tool</div>
+    <h1><span class="gr">Visual JSON</span> Editor</h1>
+    <p>Edit JSON with a tree view or raw editor. Add, edit, and delete properties with type detection. Changes sync in real time.</p>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="tb-btn" id="undoBtn" disabled title="Undo (Ctrl+Z)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      Undo
+    </button>
+    <button class="tb-btn" id="redoBtn" disabled title="Redo (Ctrl+Y)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+      Redo
+    </button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="expandAllBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      Expand All
+    </button>
+    <button class="tb-btn" id="collapseAllBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+      Collapse All
+    </button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="importBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Import
+    </button>
+    <button class="tb-btn" id="exportBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+    <input type="file" id="importFile" accept=".json,.txt" style="display:none">
+    <div class="tb-status valid" id="validationStatus">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+      Valid JSON
+    </div>
+  </div>
+
+  <!-- Split Editor -->
+  <div class="split-pane">
+    <div class="pane pane-left">
+      <div class="pane-header">
+        <span>Tree View</span>
+        <span class="pane-tag">Interactive</span>
+      </div>
+      <div class="tree-wrap" id="treeWrap"></div>
+    </div>
+    <div class="pane">
+      <div class="pane-header">
+        <span>Raw JSON</span>
+        <span class="pane-tag">Editable</span>
+      </div>
+      <div class="raw-wrap">
+        <textarea class="raw-editor" id="rawEditor" spellcheck="false" placeholder="Paste or type JSON here..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo"><div class="ico">N</div><span>NexTool</span></div>
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="/free-tools/">Free Tools</a>
+      <a href="/pro.html">Pro</a>
+      <a href="/blog/">Blog</a>
+    </div>
+    <div class="footer-copy">&copy; 2025 NexTool. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+const rawEditor = document.getElementById('rawEditor');
+const treeWrap = document.getElementById('treeWrap');
+const validationStatus = document.getElementById('validationStatus');
+const undoBtn = document.getElementById('undoBtn');
+const redoBtn = document.getElementById('redoBtn');
+const expandAllBtn = document.getElementById('expandAllBtn');
+const collapseAllBtn = document.getElementById('collapseAllBtn');
+const importBtn = document.getElementById('importBtn');
+const exportBtn = document.getElementById('exportBtn');
+const importFile = document.getElementById('importFile');
+
+let jsonData = null;
+let undoStack = [];
+let redoStack = [];
+let syncingFromTree = false;
+let syncingFromRaw = false;
+
+// Default sample
+const sampleJSON = {
+  "name": "NexTool",
+  "version": "2.5.0",
+  "description": "The ultimate free tools platform",
+  "features": ["JSON Editor", "Image Resizer", "Text to Speech", "Stopwatch"],
+  "stats": {
+    "tools": 125,
+    "users": 50000,
+    "rating": 4.9,
+    "premium": false
+  },
+  "author": {
+    "name": "NexTool Team",
+    "website": "https://nextool.app",
+    "contact": null
+  },
+  "tags": ["productivity", "developer", "free"]
+};
+
+function init() {
+  jsonData = sampleJSON;
+  const formatted = JSON.stringify(jsonData, null, 2);
+  rawEditor.value = formatted;
+  pushUndo(formatted);
+  renderTree();
+  validate();
+}
+
+// Undo / Redo
+function pushUndo(json) {
+  undoStack.push(json);
+  if (undoStack.length > 100) undoStack.shift();
+  redoStack = [];
+  updateUndoRedoButtons();
+}
+
+function undo() {
+  if (undoStack.length <= 1) return;
+  redoStack.push(undoStack.pop());
+  const prev = undoStack[undoStack.length - 1];
+  rawEditor.value = prev;
+  syncFromRaw(false);
+  updateUndoRedoButtons();
+}
+
+function redo() {
+  if (redoStack.length === 0) return;
+  const next = redoStack.pop();
+  undoStack.push(next);
+  rawEditor.value = next;
+  syncFromRaw(false);
+  updateUndoRedoButtons();
+}
+
+function updateUndoRedoButtons() {
+  undoBtn.disabled = undoStack.length <= 1;
+  redoBtn.disabled = redoStack.length === 0;
+}
+
+undoBtn.addEventListener('click', undo);
+redoBtn.addEventListener('click', redo);
+
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    if (e.target !== rawEditor) { e.preventDefault(); undo(); }
+  }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+    if (e.target !== rawEditor) { e.preventDefault(); redo(); }
+  }
+});
+
+// Validation
+function validate() {
+  try {
+    JSON.parse(rawEditor.value);
+    validationStatus.className = 'tb-status valid';
+    validationStatus.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Valid JSON';
+    return true;
+  } catch (e) {
+    validationStatus.className = 'tb-status invalid';
+    validationStatus.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> ' + e.message.substring(0, 60);
+    return false;
+  }
+}
+
+// Sync from raw editor to tree
+function syncFromRaw(record = true) {
+  if (syncingFromTree) return;
+  syncingFromRaw = true;
+  try {
+    jsonData = JSON.parse(rawEditor.value);
+    renderTree();
+    if (record) pushUndo(rawEditor.value);
+  } catch (e) { /* invalid, tree stays */ }
+  validate();
+  syncingFromRaw = false;
+}
+
+// Sync from tree to raw editor
+function syncFromTree() {
+  if (syncingFromRaw) return;
+  syncingFromTree = true;
+  const formatted = JSON.stringify(jsonData, null, 2);
+  rawEditor.value = formatted;
+  pushUndo(formatted);
+  validate();
+  syncingFromTree = false;
+}
+
+let rawTimeout;
+rawEditor.addEventListener('input', () => {
+  clearTimeout(rawTimeout);
+  rawTimeout = setTimeout(() => syncFromRaw(), 400);
+});
+
+// Tree rendering
+function renderTree() {
+  treeWrap.innerHTML = '';
+  if (jsonData === null || jsonData === undefined) {
+    treeWrap.innerHTML = '<div style="color:var(--text-muted);padding:1rem;font-size:.85rem">No valid JSON to display</div>';
+    return;
+  }
+  const root = buildTreeNode(jsonData, null, null, true);
+  root.classList.add('tree-root');
+  treeWrap.appendChild(root);
+}
+
+function buildTreeNode(value, key, parent, isRoot) {
+  const type = getType(value);
+  const container = document.createElement('div');
+  container.className = 'tree-node';
+
+  const row = document.createElement('div');
+  row.className = 'tree-row';
+
+  const isExpandable = type === 'object' || type === 'array';
+  const toggle = document.createElement('button');
+  toggle.className = 'tree-toggle' + (isExpandable ? ' open' : ' hidden-toggle');
+  toggle.innerHTML = '&#9654;';
+
+  row.appendChild(toggle);
+
+  // Key
+  if (key !== null) {
+    const keyEl = document.createElement('span');
+    keyEl.className = 'tree-key';
+    keyEl.textContent = type === 'array' && parent ? key : '"' + key + '"';
+    row.appendChild(keyEl);
+    const sep = document.createElement('span');
+    sep.className = 'tree-sep';
+    sep.textContent = ':';
+    row.appendChild(sep);
+  }
+
+  if (isExpandable) {
+    const items = type === 'object' ? Object.keys(value) : value;
+    const count = type === 'object' ? Object.keys(value).length : value.length;
+
+    const typeEl = document.createElement('span');
+    typeEl.className = 'tree-type';
+    typeEl.textContent = type === 'object' ? '{ }' : '[ ]';
+    row.appendChild(typeEl);
+
+    const countEl = document.createElement('span');
+    countEl.className = 'tree-count';
+    countEl.textContent = count + (count === 1 ? ' item' : ' items');
+    row.appendChild(countEl);
+
+    // Actions
+    const actions = document.createElement('div');
+    actions.className = 'tree-actions';
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'tree-action-btn';
+    addBtn.innerHTML = '+';
+    addBtn.title = 'Add property';
+    addBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showAddForm(container, value, type, key, parent);
+    });
+    actions.appendChild(addBtn);
+
+    if (!isRoot && parent !== null) {
+      const delBtn = document.createElement('button');
+      delBtn.className = 'tree-action-btn del';
+      delBtn.innerHTML = '&times;';
+      delBtn.title = 'Delete';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteProperty(parent, key);
+      });
+      actions.appendChild(delBtn);
+    }
+    row.appendChild(actions);
+
+    container.appendChild(row);
+
+    // Children
+    const childrenWrap = document.createElement('div');
+    childrenWrap.className = 'tree-children';
+
+    if (type === 'object') {
+      Object.keys(value).forEach(k => {
+        childrenWrap.appendChild(buildTreeNode(value[k], k, value, false));
+      });
+    } else {
+      value.forEach((item, i) => {
+        childrenWrap.appendChild(buildTreeNode(item, i, value, false));
+      });
+    }
+
+    container.appendChild(childrenWrap);
+
+    // Toggle expand/collapse
+    toggle.addEventListener('click', () => {
+      const isOpen = toggle.classList.toggle('open');
+      childrenWrap.style.display = isOpen ? '' : 'none';
+    });
+
+  } else {
+    // Primitive value
+    const valEl = document.createElement('span');
+    valEl.className = 'tree-value val-' + type;
+    valEl.textContent = formatValue(value, type);
+    valEl.title = 'Click to edit';
+
+    valEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      startInlineEdit(valEl, value, type, key, parent);
+    });
+
+    row.appendChild(valEl);
+
+    const typeEl = document.createElement('span');
+    typeEl.className = 'tree-type';
+    typeEl.textContent = type;
+    row.appendChild(typeEl);
+
+    // Actions
+    if (parent !== null) {
+      const actions = document.createElement('div');
+      actions.className = 'tree-actions';
+      const delBtn = document.createElement('button');
+      delBtn.className = 'tree-action-btn del';
+      delBtn.innerHTML = '&times;';
+      delBtn.title = 'Delete';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteProperty(parent, key);
+      });
+      actions.appendChild(delBtn);
+      row.appendChild(actions);
+    }
+
+    container.appendChild(row);
+  }
+
+  return container;
+}
+
+function getType(value) {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  return typeof value;
+}
+
+function formatValue(value, type) {
+  if (type === 'string') return '"' + value + '"';
+  if (type === 'null') return 'null';
+  return String(value);
+}
+
+// Inline editing
+function startInlineEdit(el, currentValue, type, key, parent) {
+  if (el.classList.contains('editing')) return;
+  el.classList.add('editing');
+  el.contentEditable = true;
+
+  // Show raw value for editing
+  if (type === 'string') el.textContent = currentValue;
+  el.focus();
+
+  // Select all text
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  function commit() {
+    el.classList.remove('editing');
+    el.contentEditable = false;
+    const rawVal = el.textContent.trim();
+    let newValue;
+
+    if (rawVal === 'null') newValue = null;
+    else if (rawVal === 'true') newValue = true;
+    else if (rawVal === 'false') newValue = false;
+    else if (/^-?\d+(\.\d+)?$/.test(rawVal)) newValue = parseFloat(rawVal);
+    else newValue = rawVal;
+
+    if (parent && key !== null) {
+      if (Array.isArray(parent)) parent[key] = newValue;
+      else parent[key] = newValue;
+    } else if (key === null) {
+      jsonData = newValue;
+    }
+    syncFromTree();
+    renderTree();
+  }
+
+  el.addEventListener('blur', commit, { once: true });
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    if (e.key === 'Escape') {
+      el.textContent = formatValue(currentValue, type);
+      el.classList.remove('editing');
+      el.contentEditable = false;
+    }
+  });
+}
+
+// Delete property
+function deleteProperty(parent, key) {
+  if (Array.isArray(parent)) {
+    parent.splice(key, 1);
+  } else {
+    delete parent[key];
+  }
+  syncFromTree();
+  renderTree();
+}
+
+// Add property inline form
+function showAddForm(container, obj, objType, objKey, objParent) {
+  // Remove any existing add forms
+  const existing = container.querySelector('.add-inline');
+  if (existing) { existing.remove(); return; }
+
+  const form = document.createElement('div');
+  form.className = 'add-inline';
+
+  let keyInput = null;
+  if (objType === 'object') {
+    keyInput = document.createElement('input');
+    keyInput.placeholder = 'key';
+    form.appendChild(keyInput);
+  }
+
+  const typeSelect = document.createElement('select');
+  ['string', 'number', 'boolean', 'null', 'object', 'array'].forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = t;
+    typeSelect.appendChild(opt);
+  });
+  form.appendChild(typeSelect);
+
+  const valInput = document.createElement('input');
+  valInput.placeholder = 'value';
+  form.appendChild(valInput);
+
+  typeSelect.addEventListener('change', () => {
+    const t = typeSelect.value;
+    valInput.style.display = (t === 'object' || t === 'array' || t === 'null') ? 'none' : '';
+    if (t === 'boolean') { valInput.value = 'true'; }
+  });
+
+  const okBtn = document.createElement('button');
+  okBtn.className = 'add-confirm';
+  okBtn.textContent = 'Add';
+  okBtn.addEventListener('click', () => {
+    const t = typeSelect.value;
+    let val;
+    if (t === 'string') val = valInput.value;
+    else if (t === 'number') val = parseFloat(valInput.value) || 0;
+    else if (t === 'boolean') val = valInput.value === 'true';
+    else if (t === 'null') val = null;
+    else if (t === 'object') val = {};
+    else if (t === 'array') val = [];
+
+    if (objType === 'object') {
+      const k = (keyInput.value || '').trim();
+      if (!k) { keyInput.focus(); return; }
+      obj[k] = val;
+    } else {
+      obj.push(val);
+    }
+    syncFromTree();
+    renderTree();
+  });
+  form.appendChild(okBtn);
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'add-cancel';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', () => form.remove());
+  form.appendChild(cancelBtn);
+
+  const children = container.querySelector('.tree-children');
+  if (children) children.appendChild(form);
+  else container.appendChild(form);
+
+  if (keyInput) keyInput.focus();
+  else valInput.focus();
+}
+
+// Expand / Collapse all
+expandAllBtn.addEventListener('click', () => {
+  treeWrap.querySelectorAll('.tree-toggle').forEach(t => {
+    if (!t.classList.contains('hidden-toggle')) {
+      t.classList.add('open');
+      const children = t.closest('.tree-node').querySelector('.tree-children');
+      if (children) children.style.display = '';
+    }
+  });
+});
+
+collapseAllBtn.addEventListener('click', () => {
+  treeWrap.querySelectorAll('.tree-toggle').forEach(t => {
+    if (!t.classList.contains('hidden-toggle')) {
+      t.classList.remove('open');
+      const children = t.closest('.tree-node').querySelector('.tree-children');
+      if (children) children.style.display = 'none';
+    }
+  });
+});
+
+// Import / Export
+importBtn.addEventListener('click', () => importFile.click());
+importFile.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    rawEditor.value = ev.target.result;
+    syncFromRaw();
+  };
+  reader.readAsText(file);
+  importFile.value = '';
+});
+
+exportBtn.addEventListener('click', () => {
+  const blob = new Blob([rawEditor.value], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'data.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+});
+
+// Initialize
+init();
+</script>
+<script src="/js/revenue.js" defer></script>
+</body>
+</html>

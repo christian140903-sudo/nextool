@@ -52,6 +52,12 @@ var R=[
 ['character-counter','Character Counter','#textInput',null,'t'],
 ['notepad','Notepad','#editor',null,'t'],
 ['random-generator','Random Generator',null,'#numResults','u'],
+['json-editor','JSON Editor','#rawEditor','#rawEditor','d'],
+['text-to-speech','Text to Speech','#textInput',null,'t'],
+['typing-speed-test','Typing Test',null,null,'t'],
+['text-repeater','Text Repeater','#inputText','#outputText','t'],
+['code-screenshot','Code Screenshot','#codeInput',null,'d'],
+['invoice-generator','Invoice Generator',null,null,'u'],
 ];
 
 var CAT_NAMES={d:'Developer',c:'Converter',t:'Text',u:'Utility'};
