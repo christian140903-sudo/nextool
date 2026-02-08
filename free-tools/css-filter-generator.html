@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Filter Effects Generator — Free Tool | NexTool</title>
+    <meta name="description" content="Generate CSS filter effects visually with live preview. Combine blur, brightness, contrast, grayscale, hue-rotate, and more with one-click presets.">
+    <meta property="og:title" content="CSS Filter Effects Generator — NexTool">
+    <meta property="og:description" content="Free visual CSS filter generator with live preview, presets, and instant code output.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/css-filter-generator.html">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"SoftwareApplication","name":"CSS Filter Effects Generator","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Generate CSS filter effects visually with live preview and presets."}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #050508; --surface: #111118; --surface2: #1a1a24;
+            --primary: #6366f1; --accent: #a855f7; --pink: #ec4899;
+            --text: #e2e8f0; --text-dim: #94a3b8;
+            --gradient: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --radius: 12px; --radius-lg: 20px;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+        a { color: var(--primary); text-decoration: none; } a:hover { color: var(--accent); }
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(5,5,8,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(99,102,241,0.1); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; }
+        .nav-logo-icon { width: 32px; height: 32px; background: var(--gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 20px; }
+        .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; } .nav-links a:hover { color: var(--text); }
+        .nav-badge { background: var(--gradient); color: #fff !important; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        main { max-width: 1040px; margin: 0 auto; padding: 100px 20px 40px; }
+        h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: var(--text-dim); font-size: 1.05rem; margin-bottom: 32px; }
+        .card { background: var(--surface); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+        .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+
+        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .preview-card { position: sticky; top: 84px; }
+        .preview-area { width: 100%; aspect-ratio: 4/3; border-radius: var(--radius); overflow: hidden; background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%); background-size: 200% 200%; position: relative; }
+        .preview-area::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect x='40' y='30' width='120' height='80' rx='12' fill='%23fff3' /%3E%3Ccircle cx='280' cy='80' r='50' fill='%23fff2' /%3E%3Crect x='180' y='160' width='180' height='60' rx='8' fill='%23fff2' /%3E%3Ccircle cx='80' cy='200' r='35' fill='%23fff1' /%3E%3Ctext x='200' y='260' text-anchor='middle' font-family='Inter' font-size='18' font-weight='700' fill='%23fffc'%3ESample Preview%3C/text%3E%3C/svg%3E") center/contain no-repeat; }
+        .preview-label { text-align: center; margin-top: 12px; font-size: 0.85rem; color: var(--text-dim); }
+
+        .slider-group { margin-bottom: 16px; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .slider-name { font-size: 0.85rem; font-weight: 500; }
+        .slider-value { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent); min-width: 60px; text-align: right; }
+        .slider-row { display: flex; gap: 8px; align-items: center; }
+        input[type="range"] { -webkit-appearance: none; flex: 1; height: 6px; border-radius: 3px; background: var(--surface2); outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--gradient); cursor: pointer; border: 2px solid var(--bg); }
+        .reset-one { background: none; border: 1px solid rgba(99,102,241,0.2); border-radius: 6px; padding: 2px 8px; color: var(--text-dim); cursor: pointer; font-size: 0.7rem; }
+        .reset-one:hover { border-color: var(--pink); color: var(--pink); }
+
+        .presets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+        .preset-btn { background: var(--surface2); border: 1px solid rgba(99,102,241,0.15); border-radius: 10px; padding: 10px 8px; color: var(--text); cursor: pointer; font-size: 0.85rem; font-weight: 500; text-align: center; transition: all 0.2s; }
+        .preset-btn:hover { border-color: var(--primary); background: rgba(99,102,241,0.1); }
+        .preset-btn.active { border-color: var(--primary); background: rgba(99,102,241,0.15); }
+
+        .code-output { background: var(--surface2); border-radius: var(--radius); padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; white-space: pre-wrap; word-break: break-all; position: relative; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--surface); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 6px 12px; color: var(--text-dim); cursor: pointer; font-size: 0.75rem; }
+        .copy-btn:hover { background: var(--primary); color: #fff; }
+
+        .actions { display: flex; gap: 12px; margin-top: 16px; }
+        .btn-reset { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 10px 20px; color: #f87171; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+        .btn-reset:hover { background: rgba(239,68,68,0.2); }
+
+        .cta-section { background: var(--surface); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius-lg); padding: 48px 32px; text-align: center; margin: 48px 0; }
+        .cta-section h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; }
+        .cta-section p { color: var(--text-dim); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn-primary { background: var(--gradient); color: #fff; padding: 12px 28px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-secondary { background: var(--surface2); color: var(--text); padding: 12px 28px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; border: 1px solid rgba(99,102,241,0.2); text-decoration: none; display: inline-block; }
+        footer { border-top: 1px solid rgba(99,102,241,0.1); padding: 32px 20px; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+        .footer-links { display: flex; gap: 24px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-dim); }
+        @media (max-width: 600px) { .layout { grid-template-columns: 1fr; } .preview-card { position: static; } .presets-grid { grid-template-columns: repeat(2, 1fr); } h1 { font-size: 1.6rem; } .nav-links a:not(.nav-badge) { display: none; } }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="nav-logo"><span class="nav-logo-icon">N</span> NexTool</a>
+        <div class="nav-links"><a href="/">Home</a><a href="/free-tools/">Free Tools</a><a href="/products/ultimate-bundle.html" class="nav-badge">Get Bundle</a></div>
+    </nav>
+    <main>
+        <h1>CSS Filter Effects Generator</h1>
+        <p class="subtitle">Visually build CSS filter effects with live preview, presets, and instant code output.</p>
+
+        <div class="layout">
+            <div>
+                <div class="card">
+                    <h3>Presets</h3>
+                    <div class="presets-grid" id="presetsGrid"></div>
+                </div>
+                <div class="card" id="slidersCard">
+                    <h3>Filters</h3>
+                    <div id="slidersContainer"></div>
+                    <div class="actions">
+                        <button class="btn-reset" id="resetAll">Reset All</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Generated CSS</h3>
+                    <div class="code-output" id="codeOutput"><button class="copy-btn" id="copyCode">Copy</button></div>
+                </div>
+            </div>
+            <div class="preview-card">
+                <div class="card">
+                    <h3>Live Preview</h3>
+                    <div class="preview-area" id="previewArea"></div>
+                    <div class="preview-label">Gradient + shapes preview</div>
+                </div>
+            </div>
+        </div>
+
+        <section class="cta-section">
+            <h2>Unlock 100+ Premium Tools</h2>
+            <p>Get the NexTool Ultimate Bundle with premium tools, templates, and automations for just $39.</p>
+            <div class="cta-buttons">
+                <a href="/products/ultimate-bundle.html" class="btn-primary">Get Bundle — $39</a>
+                <a href="/free-tools/" class="btn-secondary">Browse 100+ Free Tools &rarr;</a>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="footer-links"><a href="/">Home</a><a href="/free-tools/">Tools</a><a href="/blog/">Blog</a><a href="/products/">Products</a><a href="/#contact">Contact</a></div>
+        <p>&copy; 2026 NexTool. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const filters = [
+            { name: 'blur', unit: 'px', min: 0, max: 20, step: 0.5, def: 0 },
+            { name: 'brightness', unit: '%', min: 0, max: 300, step: 1, def: 100 },
+            { name: 'contrast', unit: '%', min: 0, max: 300, step: 1, def: 100 },
+            { name: 'grayscale', unit: '%', min: 0, max: 100, step: 1, def: 0 },
+            { name: 'hue-rotate', unit: 'deg', min: 0, max: 360, step: 1, def: 0 },
+            { name: 'invert', unit: '%', min: 0, max: 100, step: 1, def: 0 },
+            { name: 'opacity', unit: '%', min: 0, max: 100, step: 1, def: 100 },
+            { name: 'saturate', unit: '%', min: 0, max: 300, step: 1, def: 100 },
+            { name: 'sepia', unit: '%', min: 0, max: 100, step: 1, def: 0 },
+        ];
+
+        const presets = {
+            'None': {},
+            'Vintage': { brightness: 110, contrast: 85, saturate: 75, sepia: 30, 'hue-rotate': 5 },
+            'Noir': { grayscale: 100, contrast: 130, brightness: 90 },
+            'Warm': { sepia: 20, saturate: 140, brightness: 105, 'hue-rotate': 350 },
+            'Cool': { saturate: 80, brightness: 105, 'hue-rotate': 190, contrast: 110 },
+            'Dramatic': { contrast: 160, brightness: 80, saturate: 140 },
+            'Pastel': { brightness: 120, contrast: 80, saturate: 60, sepia: 10 },
+            'High Contrast': { contrast: 200, brightness: 95 },
+            'Dreamy': { blur: 2, brightness: 115, saturate: 130, contrast: 90 },
+        };
+
+        const state = {};
+        filters.forEach(f => state[f.name] = f.def);
+
+        const container = document.getElementById('slidersContainer');
+        const preview = document.getElementById('previewArea');
+        const codeOut = document.getElementById('codeOutput');
+        const presetsGrid = document.getElementById('presetsGrid');
+
+        // Build sliders
+        filters.forEach(f => {
+            const div = document.createElement('div');
+            div.className = 'slider-group';
+            div.innerHTML = `
+                <div class="slider-header">
+                    <span class="slider-name">${f.name}</span>
+                    <span class="slider-value" id="val-${f.name}">${f.def}${f.unit}</span>
+                </div>
+                <div class="slider-row">
+                    <input type="range" id="slider-${f.name}" min="${f.min}" max="${f.max}" step="${f.step}" value="${f.def}">
+                    <button class="reset-one" data-filter="${f.name}">Reset</button>
+                </div>`;
+            container.appendChild(div);
+            const slider = div.querySelector('input[type="range"]');
+            slider.addEventListener('input', () => {
+                state[f.name] = parseFloat(slider.value);
+                update();
+            });
+            div.querySelector('.reset-one').addEventListener('click', () => {
+                state[f.name] = f.def;
+                slider.value = f.def;
+                update();
+            });
+        });
+
+        // Build presets
+        Object.keys(presets).forEach(name => {
+            const btn = document.createElement('button');
+            btn.className = 'preset-btn';
+            btn.textContent = name;
+            btn.addEventListener('click', () => {
+                // Reset all to defaults first
+                filters.forEach(f => { state[f.name] = f.def; });
+                // Apply preset
+                const p = presets[name];
+                Object.keys(p).forEach(k => { state[k] = p[k]; });
+                // Update sliders
+                filters.forEach(f => {
+                    document.getElementById('slider-' + f.name).value = state[f.name];
+                });
+                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                update();
+            });
+            presetsGrid.appendChild(btn);
+        });
+
+        function buildFilterString() {
+            const parts = [];
+            filters.forEach(f => {
+                if (state[f.name] !== f.def) {
+                    if (f.unit === '%') {
+                        parts.push(`${f.name}(${state[f.name]}%)`);
+                    } else {
+                        parts.push(`${f.name}(${state[f.name]}${f.unit})`);
+                    }
+                }
+            });
+            return parts.length ? parts.join(' ') : 'none';
+        }
+
+        function update() {
+            const filterStr = buildFilterString();
+            preview.style.filter = filterStr === 'none' ? '' : filterStr;
+            filters.forEach(f => {
+                document.getElementById('val-' + f.name).textContent = state[f.name] + f.unit;
+            });
+            const code = filterStr === 'none'
+                ? 'filter: none;'
+                : `filter: ${filterStr};\n-webkit-filter: ${filterStr};`;
+            const copyBtn = document.getElementById('copyCode');
+            codeOut.textContent = code;
+            codeOut.appendChild(copyBtn);
+        }
+
+        document.getElementById('resetAll').addEventListener('click', () => {
+            filters.forEach(f => {
+                state[f.name] = f.def;
+                document.getElementById('slider-' + f.name).value = f.def;
+            });
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            update();
+        });
+
+        document.getElementById('copyCode').addEventListener('click', () => {
+            const text = codeOut.textContent.replace('Copy','').trim();
+            navigator.clipboard.writeText(text);
+            const btn = document.getElementById('copyCode');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 1500);
+        });
+
+        update();
+    </script>
+    <script src="/js/revenue.js" defer></script>
+    <script src="/js/lead-capture.js" defer></script>
+    <script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

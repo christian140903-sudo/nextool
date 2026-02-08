@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Shade &amp; Tint Generator — Free Tool | NexTool</title>
+    <meta name="description" content="Generate a full color palette with shades and tints from any base color. Export as CSS variables, Tailwind config, SCSS, or JSON.">
+    <meta property="og:title" content="Color Shade & Tint Generator — NexTool">
+    <meta property="og:description" content="Free color palette generator. Create 11-step shade scales and export for Tailwind, CSS, SCSS, or JSON.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/color-shade-generator.html">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Color Shade & Tint Generator","applicationCategory":"DesignApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Generate full color palettes with shades and tints. Export as CSS variables, Tailwind, SCSS, or JSON."}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #050508; --surface: #111118; --surface2: #1a1a24;
+            --primary: #6366f1; --accent: #a855f7; --pink: #ec4899;
+            --text: #e2e8f0; --text-dim: #94a3b8;
+            --gradient: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --radius: 12px; --radius-lg: 20px;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+        a { color: var(--primary); text-decoration: none; } a:hover { color: var(--accent); }
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(5,5,8,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(99,102,241,0.1); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; }
+        .nav-logo-icon { width: 32px; height: 32px; background: var(--gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 20px; }
+        .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; } .nav-links a:hover { color: var(--text); }
+        .nav-badge { background: var(--gradient); color: #fff !important; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        main { max-width: 960px; margin: 0 auto; padding: 100px 20px 40px; }
+        h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: var(--text-dim); font-size: 1.05rem; margin-bottom: 32px; }
+        .card { background: var(--surface); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+        .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+
+        .input-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .color-picker-wrap { position: relative; width: 52px; height: 52px; border-radius: var(--radius); overflow: hidden; border: 2px solid rgba(99,102,241,0.3); flex-shrink: 0; }
+        .color-picker-wrap input[type="color"] { position: absolute; inset: -8px; width: calc(100% + 16px); height: calc(100% + 16px); border: none; cursor: pointer; }
+        .hex-input { flex: 1; max-width: 200px; background: var(--surface2); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 14px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 1rem; outline: none; }
+        .hex-input:focus { border-color: var(--primary); }
+
+        .algo-toggle { display: flex; gap: 8px; }
+        .algo-btn { background: var(--surface2); border: 1px solid rgba(99,102,241,0.15); border-radius: 10px; padding: 8px 16px; color: var(--text-dim); cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; }
+        .algo-btn.active { border-color: var(--primary); background: rgba(99,102,241,0.15); color: var(--text); }
+
+        .palette-strip { display: flex; border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+        .palette-strip .swatch { flex: 1; height: 64px; cursor: pointer; position: relative; transition: transform 0.15s; }
+        .palette-strip .swatch:hover { transform: scaleY(1.15); z-index: 2; }
+        .palette-strip .swatch .swatch-label { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font-size: 0.6rem; font-weight: 600; opacity: 0.7; white-space: nowrap; }
+
+        .shade-list { display: grid; gap: 8px; }
+        .shade-row { display: flex; align-items: center; gap: 16px; background: var(--surface2); border-radius: var(--radius); padding: 12px 16px; }
+        .shade-swatch { width: 48px; height: 48px; border-radius: 8px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.08); }
+        .shade-name { font-weight: 700; font-size: 0.9rem; min-width: 40px; }
+        .shade-values { flex: 1; display: flex; gap: 12px; flex-wrap: wrap; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-dim); }
+        .shade-values span { cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: background 0.2s; }
+        .shade-values span:hover { background: rgba(99,102,241,0.15); color: var(--text); }
+        .shade-closest { font-size: 0.75rem; color: var(--pink); }
+        .shade-base-badge { background: var(--primary); color: #fff; font-size: 0.65rem; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+        .copy-shade { background: none; border: 1px solid rgba(99,102,241,0.2); border-radius: 6px; padding: 4px 10px; color: var(--text-dim); cursor: pointer; font-size: 0.75rem; flex-shrink: 0; }
+        .copy-shade:hover { border-color: var(--primary); color: var(--primary); }
+
+        .export-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+        .export-tab { background: var(--surface2); border: 1px solid rgba(99,102,241,0.15); border-radius: 8px; padding: 8px 16px; color: var(--text-dim); cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; }
+        .export-tab.active { border-color: var(--primary); background: rgba(99,102,241,0.15); color: var(--text); }
+        .export-code { background: var(--surface2); border-radius: var(--radius); padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; position: relative; line-height: 1.8; }
+        .copy-all { background: var(--gradient); color: #fff; border: none; border-radius: 10px; padding: 10px 24px; font-weight: 600; font-size: 0.9rem; cursor: pointer; margin-top: 12px; }
+
+        .cta-section { background: var(--surface); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius-lg); padding: 48px 32px; text-align: center; margin: 48px 0; }
+        .cta-section h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; }
+        .cta-section p { color: var(--text-dim); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn-primary { background: var(--gradient); color: #fff; padding: 12px 28px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-secondary { background: var(--surface2); color: var(--text); padding: 12px 28px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; border: 1px solid rgba(99,102,241,0.2); text-decoration: none; display: inline-block; }
+        footer { border-top: 1px solid rgba(99,102,241,0.1); padding: 32px 20px; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+        .footer-links { display: flex; gap: 24px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-dim); }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #fff; padding: 10px 24px; border-radius: 10px; font-size: 0.85rem; font-weight: 500; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; }
+        .toast.show { opacity: 1; }
+        @media (max-width: 600px) { h1 { font-size: 1.6rem; } .shade-values { gap: 6px; } .shade-row { flex-wrap: wrap; } .nav-links a:not(.nav-badge) { display: none; } .palette-strip .swatch { height: 48px; } }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="nav-logo"><span class="nav-logo-icon">N</span> NexTool</a>
+        <div class="nav-links"><a href="/">Home</a><a href="/free-tools/">Free Tools</a><a href="/products/ultimate-bundle.html" class="nav-badge">Get Bundle</a></div>
+    </nav>
+    <main>
+        <h1>Color Shade &amp; Tint Generator</h1>
+        <p class="subtitle">Generate a complete Tailwind-style palette from any base color. Export as CSS, SCSS, Tailwind, or JSON.</p>
+
+        <div class="card">
+            <h3>Base Color</h3>
+            <div class="input-row">
+                <div class="color-picker-wrap"><input type="color" id="basePicker" value="#6366f1"></div>
+                <input type="text" class="hex-input" id="baseHex" value="#6366f1" placeholder="#6366f1">
+                <div class="algo-toggle">
+                    <button class="algo-btn active" data-algo="perceptual">Perceptual</button>
+                    <button class="algo-btn" data-algo="linear">Linear</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Palette</h3>
+            <div class="palette-strip" id="paletteStrip"></div>
+            <div class="shade-list" id="shadeList"></div>
+        </div>
+
+        <div class="card">
+            <h3>Export</h3>
+            <div class="export-tabs" id="exportTabs">
+                <button class="export-tab active" data-format="css">CSS Variables</button>
+                <button class="export-tab" data-format="tailwind">Tailwind</button>
+                <button class="export-tab" data-format="scss">SCSS</button>
+                <button class="export-tab" data-format="json">JSON</button>
+            </div>
+            <div class="export-code" id="exportCode"></div>
+            <button class="copy-all" id="copyAll">Copy Entire Palette</button>
+        </div>
+
+        <section class="cta-section">
+            <h2>Unlock 100+ Premium Tools</h2>
+            <p>Get the NexTool Ultimate Bundle with premium tools, templates, and automations for just $39.</p>
+            <div class="cta-buttons">
+                <a href="/products/ultimate-bundle.html" class="btn-primary">Get Bundle — $39</a>
+                <a href="/free-tools/" class="btn-secondary">Browse 100+ Free Tools &rarr;</a>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="footer-links"><a href="/">Home</a><a href="/free-tools/">Tools</a><a href="/blog/">Blog</a><a href="/products/">Products</a><a href="/#contact">Contact</a></div>
+        <p>&copy; 2026 NexTool. All rights reserved.</p>
+    </footer>
+    <div class="toast" id="toast">Copied!</div>
+
+    <script>
+        const steps = [50,100,200,300,400,500,600,700,800,900,950];
+        let algorithm = 'perceptual';
+        let currentFormat = 'css';
+        let palette = [];
+
+        const cssNamedColors = {"f0f8ff":"aliceblue","faebd7":"antiquewhite","00ffff":"aqua","7fffd4":"aquamarine","f0ffff":"azure","f5f5dc":"beige","ffe4c4":"bisque","000000":"black","0000ff":"blue","8a2be2":"blueviolet","a52a2a":"brown","deb887":"burlywood","5f9ea0":"cadetblue","7fff00":"chartreuse","d2691e":"chocolate","ff7f50":"coral","6495ed":"cornflowerblue","fff8dc":"cornsilk","dc143c":"crimson","00008b":"darkblue","008b8b":"darkcyan","b8860b":"darkgoldenrod","a9a9a9":"darkgray","006400":"darkgreen","ff8c00":"darkorange","9932cc":"darkorchid","8b0000":"darkred","2f4f4f":"darkslategray","00ced1":"darkturquoise","9400d3":"darkviolet","ff1493":"deeppink","00bfff":"deepskyblue","696969":"dimgray","1e90ff":"dodgerblue","b22222":"firebrick","228b22":"forestgreen","ff00ff":"fuchsia","dcdcdc":"gainsboro","ffd700":"gold","daa520":"goldenrod","808080":"gray","008000":"green","adff2f":"greenyellow","ff69b4":"hotpink","cd5c5c":"indianred","4b0082":"indigo","f0e68c":"khaki","e6e6fa":"lavender","7cfc00":"lawngreen","add8e6":"lightblue","f08080":"lightcoral","90ee90":"lightgreen","ffb6c1":"lightpink","ffa07a":"lightsalmon","20b2aa":"lightseagreen","87cefa":"lightskyblue","778899":"lightslategray","b0c4de":"lightsteelblue","00ff00":"lime","32cd32":"limegreen","ff00ff":"magenta","800000":"maroon","0000cd":"mediumblue","ba55d3":"mediumorchid","9370db":"mediumpurple","3cb371":"mediumseagreen","7b68ee":"mediumslateblue","00fa9a":"mediumspringgreen","48d1cc":"mediumturquoise","c71585":"mediumvioletred","191970":"midnightblue","000080":"navy","ffa500":"orange","ff4500":"orangered","da70d6":"orchid","98fb98":"palegreen","db7093":"palevioletred","cd853f":"peru","ffc0cb":"pink","dda0dd":"plum","800080":"purple","663399":"rebeccapurple","ff0000":"red","4169e1":"royalblue","8b4513":"saddlebrown","fa8072":"salmon","f4a460":"sandybrown","2e8b57":"seagreen","a0522d":"sienna","c0c0c0":"silver","87ceeb":"skyblue","6a5acd":"slateblue","708090":"slategray","00ff7f":"springgreen","4682b4":"steelblue","d2b48c":"tan","008080":"teal","d8bfd8":"thistle","ff6347":"tomato","40e0d0":"turquoise","ee82ee":"violet","f5deb3":"wheat","ffffff":"white","ffff00":"yellow","9acd32":"yellowgreen"};
+
+        function hexToRGB(hex) {
+            hex = hex.replace('#','');
+            if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+            return { r: parseInt(hex.slice(0,2),16), g: parseInt(hex.slice(2,4),16), b: parseInt(hex.slice(4,6),16) };
+        }
+        function rgbToHex(r,g,b) { return '#' + [r,g,b].map(v => Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join(''); }
+        function rgbToHSL(r,g,b) {
+            r/=255; g/=255; b/=255;
+            const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+            let h=0, s=0, l=(max+min)/2;
+            if (d) {
+                s = l>0.5 ? d/(2-max-min) : d/(max+min);
+                if (max===r) h=((g-b)/d+(g<b?6:0))/6;
+                else if (max===g) h=((b-r)/d+2)/6;
+                else h=((r-g)/d+4)/6;
+            }
+            return { h: Math.round(h*360), s: Math.round(s*100), l: Math.round(l*100) };
+        }
+        function hslToRGB(h,s,l) {
+            h/=360; s/=100; l/=100;
+            let r,g,b;
+            if (s===0) { r=g=b=l; } else {
+                const hue2rgb=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
+                const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+                r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
+            }
+            return { r: Math.round(r*255), g: Math.round(g*255), b: Math.round(b*255) };
+        }
+
+        function closestNamedColor(hex) {
+            const target = hexToRGB(hex);
+            let best = '', bestDist = Infinity;
+            for (const [h, name] of Object.entries(cssNamedColors)) {
+                const c = hexToRGB(h);
+                const dist = Math.sqrt((target.r-c.r)**2 + (target.g-c.g)**2 + (target.b-c.b)**2);
+                if (dist < bestDist) { bestDist = dist; best = name; }
+            }
+            return best;
+        }
+
+        function generatePalette(hex) {
+            const rgb = hexToRGB(hex);
+            const hsl = rgbToHSL(rgb.r, rgb.g, rgb.b);
+            // Target lightness for each step
+            const targetL = { 50: 97, 100: 94, 200: 86, 300: 76, 400: 64, 500: 50, 600: 40, 700: 32, 800: 24, 900: 17, 950: 10 };
+            palette = steps.map(step => {
+                if (step === 500) {
+                    const h = rgbToHex(rgb.r, rgb.g, rgb.b);
+                    return { step, hex: h, rgb, hsl, closest: closestNamedColor(h), isBase: true };
+                }
+                let tL;
+                if (algorithm === 'linear') {
+                    tL = targetL[step];
+                } else {
+                    // Perceptual: shift from base lightness
+                    const baseFraction = (step - 500) / 500;
+                    if (step < 500) {
+                        tL = hsl.l + (100 - hsl.l) * (1 - step / 500) * 0.92;
+                    } else {
+                        tL = hsl.l * (1 - (step - 500) / 500) * 0.95;
+                    }
+                    tL = Math.max(3, Math.min(98, tL));
+                }
+                // Adjust saturation: slightly desaturate extremes
+                let tS = hsl.s;
+                if (step <= 100) tS = Math.max(0, hsl.s * 0.7);
+                else if (step >= 900) tS = Math.max(0, hsl.s * 0.8);
+                const c = hslToRGB(hsl.h, tS, tL);
+                const h = rgbToHex(c.r, c.g, c.b);
+                return { step, hex: h, rgb: c, hsl: { h: hsl.h, s: tS, l: Math.round(tL) }, closest: closestNamedColor(h), isBase: false };
+            });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg || 'Copied!';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+
+        function render() {
+            // Strip
+            const strip = document.getElementById('paletteStrip');
+            strip.innerHTML = palette.map(p => {
+                const textColor = p.hsl.l > 55 ? '#000' : '#fff';
+                return `<div class="swatch" style="background:${p.hex}" onclick="navigator.clipboard.writeText('${p.hex}');showToast('${p.hex} copied!')"><span class="swatch-label" style="color:${textColor}">${p.step}</span></div>`;
+            }).join('');
+
+            // List
+            const list = document.getElementById('shadeList');
+            list.innerHTML = palette.map(p => {
+                const textColor = p.hsl.l > 55 ? '#000' : '#fff';
+                return `<div class="shade-row">
+                    <div class="shade-swatch" style="background:${p.hex}"></div>
+                    <div class="shade-name">${p.step}</div>
+                    ${p.isBase ? '<span class="shade-base-badge">BASE</span>' : ''}
+                    <div class="shade-values">
+                        <span onclick="navigator.clipboard.writeText('${p.hex}');showToast()" title="Copy hex">${p.hex}</span>
+                        <span onclick="navigator.clipboard.writeText('rgb(${p.rgb.r}, ${p.rgb.g}, ${p.rgb.b})');showToast()" title="Copy rgb">rgb(${p.rgb.r}, ${p.rgb.g}, ${p.rgb.b})</span>
+                        <span onclick="navigator.clipboard.writeText('hsl(${p.hsl.h}, ${p.hsl.s}%, ${p.hsl.l}%)');showToast()" title="Copy hsl">hsl(${p.hsl.h}, ${p.hsl.s}%, ${p.hsl.l}%)</span>
+                    </div>
+                    <span class="shade-closest">${p.closest}</span>
+                    <button class="copy-shade" onclick="navigator.clipboard.writeText('${p.hex}');showToast()">Copy</button>
+                </div>`;
+            }).join('');
+
+            renderExport();
+        }
+
+        function getColorName() {
+            const hex = document.getElementById('baseHex').value.replace('#','').toLowerCase();
+            const name = cssNamedColors[hex];
+            return name || 'color';
+        }
+
+        function renderExport() {
+            const name = getColorName();
+            let code = '';
+            switch (currentFormat) {
+                case 'css':
+                    code = `:root {\n${palette.map(p => `  --${name}-${p.step}: ${p.hex};`).join('\n')}\n}`;
+                    break;
+                case 'tailwind':
+                    code = `// tailwind.config.js\nmodule.exports = {\n  theme: {\n    extend: {\n      colors: {\n        '${name}': {\n${palette.map(p => `          ${p.step}: '${p.hex}',`).join('\n')}\n        }\n      }\n    }\n  }\n}`;
+                    break;
+                case 'scss':
+                    code = palette.map(p => `$${name}-${p.step}: ${p.hex};`).join('\n') + '\n\n' +
+                           `$${name}-palette: (\n${palette.map(p => `  ${p.step}: $${name}-${p.step},`).join('\n')}\n);`;
+                    break;
+                case 'json':
+                    const obj = {};
+                    palette.forEach(p => obj[p.step] = p.hex);
+                    code = JSON.stringify({ [name]: obj }, null, 2);
+                    break;
+            }
+            document.getElementById('exportCode').textContent = code;
+        }
+
+        // Events
+        document.getElementById('baseHex').addEventListener('input', e => {
+            const c = hexToRGB(e.target.value.replace('#','') || '000000');
+            if (c) { document.getElementById('basePicker').value = rgbToHex(c.r, c.g, c.b); generatePalette(e.target.value); render(); }
+        });
+        document.getElementById('basePicker').addEventListener('input', e => {
+            document.getElementById('baseHex').value = e.target.value;
+            generatePalette(e.target.value);
+            render();
+        });
+        document.querySelectorAll('.algo-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.algo-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                algorithm = btn.dataset.algo;
+                generatePalette(document.getElementById('baseHex').value);
+                render();
+            });
+        });
+        document.querySelectorAll('.export-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.export-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentFormat = tab.dataset.format;
+                renderExport();
+            });
+        });
+        document.getElementById('copyAll').addEventListener('click', () => {
+            navigator.clipboard.writeText(document.getElementById('exportCode').textContent);
+            const btn = document.getElementById('copyAll');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy Entire Palette', 1500);
+        });
+
+        generatePalette('#6366f1');
+        render();
+    </script>
+    <script src="/js/revenue.js" defer></script>
+    <script src="/js/lead-capture.js" defer></script>
+    <script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

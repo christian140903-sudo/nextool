@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WCAG Color Contrast Checker — Free Tool | NexTool</title>
+    <meta name="description" content="Check WCAG AA and AAA color contrast compliance instantly. Input any two colors and get contrast ratio, accessibility results, and suggested fixes.">
+    <meta property="og:title" content="WCAG Color Contrast Checker — NexTool">
+    <meta property="og:description" content="Free WCAG accessibility contrast checker. Get instant AA/AAA compliance results for any color combination.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/color-contrast-checker.html">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "WCAG Color Contrast Checker",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "description": "Check WCAG AA and AAA color contrast compliance for any color pair. Suggests accessible alternatives."
+    }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #050508;
+            --surface: #111118;
+            --surface2: #1a1a24;
+            --primary: #6366f1;
+            --accent: #a855f7;
+            --pink: #ec4899;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --gradient: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        a { color: var(--primary); text-decoration: none; }
+        a:hover { color: var(--accent); }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(5,5,8,0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99,102,241,0.1);
+            padding: 0 24px; height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-logo {
+            display: flex; align-items: center; gap: 10px;
+            font-weight: 800; font-size: 1.2rem;
+        }
+        .nav-logo-icon {
+            width: 32px; height: 32px;
+            background: var(--gradient); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; color: #fff; font-size: 1rem;
+        }
+        .nav-links { display: flex; align-items: center; gap: 20px; }
+        .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-badge {
+            background: var(--gradient); color: #fff !important;
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 600;
+        }
+
+        /* MAIN */
+        main { max-width: 960px; margin: 0 auto; padding: 100px 20px 40px; }
+        h1 {
+            font-size: 2.2rem; font-weight: 800; margin-bottom: 8px;
+            background: var(--gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle { color: var(--text-dim); font-size: 1.05rem; margin-bottom: 32px; }
+
+        /* COLOR INPUTS */
+        .tool-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 24px; margin-bottom: 16px;
+        }
+        .color-input-card {
+            background: var(--surface);
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: var(--radius-lg); padding: 24px;
+        }
+        .color-input-card h3 {
+            font-size: 0.85rem; font-weight: 600;
+            margin-bottom: 16px; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .color-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+        .color-picker-wrap {
+            position: relative; width: 52px; height: 52px;
+            border-radius: var(--radius); overflow: hidden;
+            border: 2px solid rgba(99,102,241,0.3); flex-shrink: 0;
+        }
+        .color-picker-wrap input[type="color"] {
+            position: absolute; inset: -8px;
+            width: calc(100% + 16px); height: calc(100% + 16px);
+            border: none; cursor: pointer;
+        }
+        .hex-input {
+            flex: 1; background: var(--surface2);
+            border: 1px solid rgba(99,102,241,0.2); border-radius: 8px;
+            padding: 14px 16px; color: var(--text);
+            font-family: 'JetBrains Mono', monospace; font-size: 0.95rem;
+            outline: none; transition: border-color 0.2s;
+        }
+        .hex-input:focus { border-color: var(--primary); }
+        .color-info {
+            font-size: 0.8rem; color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 4px;
+        }
+        .swap-row { text-align: center; margin-bottom: 24px; }
+        .swap-btn {
+            background: var(--surface); border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 10px; padding: 10px 20px; color: var(--text-dim);
+            cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
+        }
+        .swap-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--primary); }
+
+        /* RATIO DISPLAY */
+        .results-card {
+            background: var(--surface);
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: var(--radius-lg); padding: 28px; margin-bottom: 24px;
+        }
+        .ratio-display { text-align: center; margin-bottom: 28px; }
+        .ratio-value {
+            font-size: 4rem; font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.1;
+        }
+        .ratio-label { color: var(--text-dim); font-size: 0.9rem; margin-top: 6px; }
+        .ratio-score {
+            display: inline-block; margin-top: 12px;
+            padding: 6px 20px; border-radius: 20px;
+            font-size: 0.85rem; font-weight: 700;
+        }
+        .score-excellent { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .score-good { background: rgba(234,179,8,0.15); color: #eab308; }
+        .score-poor { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+        /* COMPLIANCE GRID */
+        .compliance-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 12px; margin-bottom: 24px;
+        }
+        .compliance-item {
+            background: var(--surface2); border-radius: var(--radius);
+            padding: 18px; text-align: center;
+            border: 1px solid transparent; transition: border-color 0.2s;
+        }
+        .compliance-item.is-pass { border-color: rgba(34,197,94,0.2); }
+        .compliance-item.is-fail { border-color: rgba(239,68,68,0.1); }
+        .compliance-item .label {
+            font-size: 0.7rem; color: var(--text-dim);
+            margin-bottom: 8px; text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .compliance-item .status { font-size: 1rem; font-weight: 700; }
+        .compliance-item .threshold {
+            font-size: 0.7rem; color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace; margin-top: 4px;
+        }
+        .pass { color: #22c55e; }
+        .fail { color: #ef4444; }
+
+        .copy-results-btn {
+            display: block; margin: 0 auto;
+            background: var(--surface2); border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 10px; padding: 10px 24px;
+            color: var(--text-dim); cursor: pointer;
+            font-size: 0.85rem; font-weight: 500; transition: all 0.2s;
+        }
+        .copy-results-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        /* PREVIEW */
+        .preview-section { margin-bottom: 24px; }
+        .preview-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+        .preview-box {
+            border-radius: var(--radius); padding: 32px;
+            transition: all 0.3s;
+        }
+        .preview-box .p-heading { font-size: 2rem; font-weight: 800; margin-bottom: 12px; }
+        .preview-box .p-large { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+        .preview-box .p-normal { font-size: 1rem; margin-bottom: 8px; line-height: 1.7; }
+        .preview-box .p-small { font-size: 0.75rem; line-height: 1.5; }
+        .preview-box .p-ui {
+            display: inline-flex; gap: 12px; margin-top: 12px;
+        }
+        .preview-box .p-button {
+            padding: 8px 20px; border-radius: 8px; font-size: 0.85rem;
+            font-weight: 600; border: 2px solid currentColor;
+        }
+        .preview-box .p-link { text-decoration: underline; font-size: 0.9rem; }
+
+        /* SUGGESTIONS */
+        .suggestions {
+            background: var(--surface);
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;
+        }
+        .suggestions h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+        .suggestion-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .suggestion-row:last-child { border: none; }
+        .swatch {
+            width: 40px; height: 40px; border-radius: 8px;
+            flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .suggestion-info { flex: 1; }
+        .suggestion-info strong { font-size: 0.9rem; }
+        .suggestion-ratio {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem; color: var(--text-dim);
+        }
+        .suggestion-preview {
+            width: 80px; height: 32px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 600;
+        }
+        .copy-btn {
+            background: var(--surface2); border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 8px; padding: 6px 14px; color: var(--text-dim);
+            cursor: pointer; font-size: 0.8rem; transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .copy-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        /* WCAG INFO */
+        .info-card {
+            background: var(--surface);
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;
+        }
+        .info-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+        .info-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .info-table th {
+            text-align: left; padding: 10px 14px;
+            font-size: 0.75rem; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(99,102,241,0.1);
+        }
+        .info-table td {
+            padding: 10px 14px; font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .info-table td:last-child {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem; color: var(--accent);
+        }
+
+        /* CTA */
+        .cta-section {
+            background: var(--surface);
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: var(--radius-lg);
+            padding: 48px 32px; text-align: center; margin: 48px 0;
+        }
+        .cta-section h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; }
+        .cta-section p {
+            color: var(--text-dim); margin-bottom: 24px;
+            max-width: 500px; margin-left: auto; margin-right: auto;
+        }
+        .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn-primary {
+            background: var(--gradient); color: #fff;
+            padding: 12px 28px; border-radius: 10px;
+            font-weight: 600; font-size: 0.95rem;
+            border: none; cursor: pointer;
+            text-decoration: none; display: inline-block;
+        }
+        .btn-secondary {
+            background: var(--surface2); color: var(--text);
+            padding: 12px 28px; border-radius: 10px;
+            font-weight: 600; font-size: 0.95rem;
+            border: 1px solid rgba(99,102,241,0.2);
+            text-decoration: none; display: inline-block;
+        }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid rgba(99,102,241,0.1);
+            padding: 32px 20px; text-align: center;
+            color: var(--text-dim); font-size: 0.85rem;
+        }
+        .footer-links {
+            display: flex; gap: 24px; justify-content: center;
+            margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .footer-links a { color: var(--text-dim); }
+
+        @media (max-width: 600px) {
+            .tool-grid { grid-template-columns: 1fr; }
+            .compliance-grid { grid-template-columns: 1fr 1fr; }
+            h1 { font-size: 1.6rem; }
+            .ratio-value { font-size: 2.5rem; }
+            .nav-links a:not(.nav-badge) { display: none; }
+            .suggestion-preview { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="nav-logo"><span class="nav-logo-icon">N</span> NexTool</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/free-tools/">Free Tools</a>
+            <a href="/products/ultimate-bundle.html" class="nav-badge">Get Bundle</a>
+        </div>
+    </nav>
+
+    <main>
+        <h1>WCAG Color Contrast Checker</h1>
+        <p class="subtitle">Check accessibility compliance for any color combination. Meet WCAG 2.1 AA and AAA standards instantly.</p>
+
+        <div class="tool-grid">
+            <div class="color-input-card">
+                <h3>Foreground (Text Color)</h3>
+                <div class="color-row">
+                    <div class="color-picker-wrap"><input type="color" id="fgPicker" value="#e2e8f0"></div>
+                    <input type="text" class="hex-input" id="fgHex" value="#e2e8f0" placeholder="#e2e8f0 or color name">
+                </div>
+                <div class="color-info" id="fgInfo">rgb(226, 232, 240) &bull; hsl(215, 28%, 91%)</div>
+            </div>
+            <div class="color-input-card">
+                <h3>Background Color</h3>
+                <div class="color-row">
+                    <div class="color-picker-wrap"><input type="color" id="bgPicker" value="#111118"></div>
+                    <input type="text" class="hex-input" id="bgHex" value="#111118" placeholder="#111118 or color name">
+                </div>
+                <div class="color-info" id="bgInfo">rgb(17, 17, 24) &bull; hsl(240, 17%, 8%)</div>
+            </div>
+        </div>
+        <div class="swap-row">
+            <button class="swap-btn" id="swapBtn">&#8645; Swap Foreground &amp; Background</button>
+        </div>
+
+        <div class="results-card">
+            <div class="ratio-display">
+                <div class="ratio-value" id="ratioValue">&mdash;</div>
+                <div class="ratio-label">Contrast Ratio</div>
+                <div class="ratio-score" id="ratioScore"></div>
+            </div>
+            <div class="compliance-grid">
+                <div class="compliance-item" id="ci-aaNormal">
+                    <div class="label">AA Normal Text</div>
+                    <div class="status" id="aaNormal">&mdash;</div>
+                    <div class="threshold">&ge; 4.5:1</div>
+                </div>
+                <div class="compliance-item" id="ci-aaLarge">
+                    <div class="label">AA Large Text</div>
+                    <div class="status" id="aaLarge">&mdash;</div>
+                    <div class="threshold">&ge; 3:1</div>
+                </div>
+                <div class="compliance-item" id="ci-aaUI">
+                    <div class="label">AA UI Components</div>
+                    <div class="status" id="aaUI">&mdash;</div>
+                    <div class="threshold">&ge; 3:1</div>
+                </div>
+                <div class="compliance-item" id="ci-aaaNormal">
+                    <div class="label">AAA Normal Text</div>
+                    <div class="status" id="aaaNormal">&mdash;</div>
+                    <div class="threshold">&ge; 7:1</div>
+                </div>
+                <div class="compliance-item" id="ci-aaaLarge">
+                    <div class="label">AAA Large Text</div>
+                    <div class="status" id="aaaLarge">&mdash;</div>
+                    <div class="threshold">&ge; 4.5:1</div>
+                </div>
+                <div class="compliance-item" id="ci-aaaUI">
+                    <div class="label">AAA Enhanced</div>
+                    <div class="status" id="aaaUI">&mdash;</div>
+                    <div class="threshold">&ge; 4.5:1</div>
+                </div>
+            </div>
+            <button class="copy-results-btn" id="copyResults">Copy Results to Clipboard</button>
+        </div>
+
+        <div class="results-card preview-section">
+            <h3>Live Preview</h3>
+            <div class="preview-box" id="previewBox">
+                <div class="p-heading">Heading Text</div>
+                <div class="p-large">Large text at 18pt bold (24px)</div>
+                <div class="p-normal">Normal body text at 16px regular weight. This is how most paragraph content will look with your chosen color combination. Good contrast ensures readability for all users.</div>
+                <div class="p-small">Small caption text at 12px for fine print, labels, and metadata.</div>
+                <div class="p-ui">
+                    <span class="p-button">Button</span>
+                    <span class="p-link">Link text</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="suggestions" id="suggestionsBox" style="display:none;">
+            <h3>Suggested Accessible Alternatives</h3>
+            <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:16px;">These colors maintain a similar hue to your foreground while meeting contrast requirements.</p>
+            <div id="suggestionsList"></div>
+        </div>
+
+        <div class="info-card">
+            <h3>WCAG Contrast Requirements</h3>
+            <table class="info-table">
+                <thead>
+                    <tr><th>Level</th><th>Context</th><th>Min Ratio</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>AA</td><td>Normal text (&lt; 18pt / 14pt bold)</td><td>4.5:1</td></tr>
+                    <tr><td>AA</td><td>Large text (&ge; 18pt / 14pt bold)</td><td>3:1</td></tr>
+                    <tr><td>AA</td><td>UI components &amp; graphical objects</td><td>3:1</td></tr>
+                    <tr><td>AAA</td><td>Normal text</td><td>7:1</td></tr>
+                    <tr><td>AAA</td><td>Large text</td><td>4.5:1</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <section class="cta-section">
+            <h2>Unlock 100+ Premium Tools</h2>
+            <p>Get the NexTool Ultimate Bundle with premium tools, templates, and automations for just $39.</p>
+            <div class="cta-buttons">
+                <a href="/products/ultimate-bundle.html" class="btn-primary">Get Bundle &mdash; $39</a>
+                <a href="/free-tools/" class="btn-secondary">Browse 100+ Free Tools &rarr;</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/free-tools/">Tools</a>
+            <a href="/blog/">Blog</a>
+            <a href="/products/">Products</a>
+            <a href="/#contact">Contact</a>
+        </div>
+        <p>&copy; 2026 NexTool. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const namedColors = {"aliceblue":"#f0f8ff","antiquewhite":"#faebd7","aqua":"#00ffff","aquamarine":"#7fffd4","azure":"#f0ffff","beige":"#f5f5dc","bisque":"#ffe4c4","black":"#000000","blanchedalmond":"#ffebcd","blue":"#0000ff","blueviolet":"#8a2be2","brown":"#a52a2a","burlywood":"#deb887","cadetblue":"#5f9ea0","chartreuse":"#7fff00","chocolate":"#d2691e","coral":"#ff7f50","cornflowerblue":"#6495ed","cornsilk":"#fff8dc","crimson":"#dc143c","cyan":"#00ffff","darkblue":"#00008b","darkcyan":"#008b8b","darkgoldenrod":"#b8860b","darkgray":"#a9a9a9","darkgreen":"#006400","darkkhaki":"#bdb76b","darkmagenta":"#8b008b","darkolivegreen":"#556b2f","darkorange":"#ff8c00","darkorchid":"#9932cc","darkred":"#8b0000","darksalmon":"#e9967a","darkseagreen":"#8fbc8f","darkslateblue":"#483d8b","darkslategray":"#2f4f4f","darkturquoise":"#00ced1","darkviolet":"#9400d3","deeppink":"#ff1493","deepskyblue":"#00bfff","dimgray":"#696969","dodgerblue":"#1e90ff","firebrick":"#b22222","floralwhite":"#fffaf0","forestgreen":"#228b22","fuchsia":"#ff00ff","gainsboro":"#dcdcdc","ghostwhite":"#f8f8ff","gold":"#ffd700","goldenrod":"#daa520","gray":"#808080","green":"#008000","greenyellow":"#adff2f","honeydew":"#f0fff0","hotpink":"#ff69b4","indianred":"#cd5c5c","indigo":"#4b0082","ivory":"#fffff0","khaki":"#f0e68c","lavender":"#e6e6fa","lavenderblush":"#fff0f5","lawngreen":"#7cfc00","lemonchiffon":"#fffacd","lightblue":"#add8e6","lightcoral":"#f08080","lightcyan":"#e0ffff","lightgoldenrodyellow":"#fafad2","lightgray":"#d3d3d3","lightgreen":"#90ee90","lightpink":"#ffb6c1","lightsalmon":"#ffa07a","lightseagreen":"#20b2aa","lightskyblue":"#87cefa","lightslategray":"#778899","lightsteelblue":"#b0c4de","lightyellow":"#ffffe0","lime":"#00ff00","limegreen":"#32cd32","linen":"#faf0e6","magenta":"#ff00ff","maroon":"#800000","mediumaquamarine":"#66cdaa","mediumblue":"#0000cd","mediumorchid":"#ba55d3","mediumpurple":"#9370db","mediumseagreen":"#3cb371","mediumslateblue":"#7b68ee","mediumspringgreen":"#00fa9a","mediumturquoise":"#48d1cc","mediumvioletred":"#c71585","midnightblue":"#191970","mintcream":"#f5fffa","mistyrose":"#ffe4e1","moccasin":"#ffe4b5","navajowhite":"#ffdead","navy":"#000080","oldlace":"#fdf5e6","olive":"#808000","olivedrab":"#6b8e23","orange":"#ffa500","orangered":"#ff4500","orchid":"#da70d6","palegoldenrod":"#eee8aa","palegreen":"#98fb98","paleturquoise":"#afeeee","palevioletred":"#db7093","papayawhip":"#ffefd5","peachpuff":"#ffdab9","peru":"#cd853f","pink":"#ffc0cb","plum":"#dda0dd","powderblue":"#b0e0e6","purple":"#800080","rebeccapurple":"#663399","red":"#ff0000","rosybrown":"#bc8f8f","royalblue":"#4169e1","saddlebrown":"#8b4513","salmon":"#fa8072","sandybrown":"#f4a460","seagreen":"#2e8b57","seashell":"#fff5ee","sienna":"#a0522d","silver":"#c0c0c0","skyblue":"#87ceeb","slateblue":"#6a5acd","slategray":"#708090","snow":"#fffafa","springgreen":"#00ff7f","steelblue":"#4682b4","tan":"#d2b48c","teal":"#008080","thistle":"#d8bfd8","tomato":"#ff6347","turquoise":"#40e0d0","violet":"#ee82ee","wheat":"#f5deb3","white":"#ffffff","whitesmoke":"#f5f5f5","yellow":"#ffff00","yellowgreen":"#9acd32"};
+
+        function parseColor(val) {
+            val = val.trim().toLowerCase();
+            if (namedColors[val]) val = namedColors[val];
+            if (/^#?[0-9a-f]{3}$/i.test(val)) {
+                val = val.replace('#', '');
+                val = '#' + val[0]+val[0]+val[1]+val[1]+val[2]+val[2];
+            }
+            if (/^#?[0-9a-f]{6}$/i.test(val)) {
+                val = val.replace('#', '');
+                return {
+                    r: parseInt(val.slice(0,2),16),
+                    g: parseInt(val.slice(2,4),16),
+                    b: parseInt(val.slice(4,6),16)
+                };
+            }
+            return null;
+        }
+
+        function toHex(c) {
+            return '#' + [c.r, c.g, c.b]
+                .map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        function toHSL(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h = 0, s = 0, l = (max + min) / 2;
+            if (max !== min) {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+                else if (max === g) h = ((b - r) / d + 2) / 6;
+                else h = ((r - g) / d + 4) / 6;
+            }
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        function luminance(r, g, b) {
+            const [rs, gs, bs] = [r, g, b].map(v => {
+                v /= 255;
+                return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+        }
+
+        function contrastRatio(c1, c2) {
+            const l1 = luminance(c1.r, c1.g, c1.b);
+            const l2 = luminance(c2.r, c2.g, c2.b);
+            const lighter = Math.max(l1, l2);
+            const darker = Math.min(l1, l2);
+            return (lighter + 0.05) / (darker + 0.05);
+        }
+
+        function statusHTML(pass) {
+            return pass
+                ? '<span class="pass">PASS</span>'
+                : '<span class="fail">FAIL</span>';
+        }
+
+        function rgbToHSL(r, g, b) { return toHSL(r, g, b); }
+
+        function hslToRGB(h, s, l) {
+            h /= 360; s /= 100; l /= 100;
+            let r, g, b;
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        function adjustForContrast(fg, bg, targetRatio) {
+            const fgHSL = rgbToHSL(fg.r, fg.g, fg.b);
+            let best = null, bestDiff = Infinity;
+            for (let l = 0; l <= 100; l++) {
+                const rgb = hslToRGB(fgHSL.h, fgHSL.s, l);
+                const ratio = contrastRatio(rgb, bg);
+                if (ratio >= targetRatio) {
+                    const diff = Math.abs(l - fgHSL.l);
+                    if (diff < bestDiff) {
+                        bestDiff = diff;
+                        best = rgb;
+                    }
+                }
+            }
+            return best;
+        }
+
+        function colorInfo(c) {
+            const hsl = toHSL(c.r, c.g, c.b);
+            return `rgb(${c.r}, ${c.g}, ${c.b}) &bull; hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+        }
+
+        function update() {
+            const fg = parseColor($('fgHex').value);
+            const bg = parseColor($('bgHex').value);
+            if (!fg || !bg) {
+                $('ratioValue').textContent = '\u2014';
+                $('ratioScore').textContent = '';
+                return;
+            }
+            $('fgPicker').value = toHex(fg);
+            $('bgPicker').value = toHex(bg);
+            $('fgInfo').innerHTML = colorInfo(fg);
+            $('bgInfo').innerHTML = colorInfo(bg);
+
+            const ratio = contrastRatio(fg, bg);
+            const r = ratio.toFixed(2);
+            $('ratioValue').textContent = r + ':1';
+
+            // Color the ratio
+            if (ratio >= 7) {
+                $('ratioValue').style.color = '#22c55e';
+                $('ratioScore').className = 'ratio-score score-excellent';
+                $('ratioScore').textContent = 'Excellent';
+            } else if (ratio >= 4.5) {
+                $('ratioValue').style.color = '#22c55e';
+                $('ratioScore').className = 'ratio-score score-good';
+                $('ratioScore').textContent = 'Good';
+            } else if (ratio >= 3) {
+                $('ratioValue').style.color = '#eab308';
+                $('ratioScore').className = 'ratio-score score-good';
+                $('ratioScore').textContent = 'Acceptable for Large Text';
+            } else {
+                $('ratioValue').style.color = '#ef4444';
+                $('ratioScore').className = 'ratio-score score-poor';
+                $('ratioScore').textContent = 'Poor';
+            }
+
+            const tests = [
+                ['aaNormal', 'ci-aaNormal', ratio >= 4.5],
+                ['aaLarge', 'ci-aaLarge', ratio >= 3],
+                ['aaUI', 'ci-aaUI', ratio >= 3],
+                ['aaaNormal', 'ci-aaaNormal', ratio >= 7],
+                ['aaaLarge', 'ci-aaaLarge', ratio >= 4.5],
+                ['aaaUI', 'ci-aaaUI', ratio >= 4.5],
+            ];
+            tests.forEach(([statusId, cardId, pass]) => {
+                $(statusId).innerHTML = statusHTML(pass);
+                $(cardId).className = 'compliance-item ' + (pass ? 'is-pass' : 'is-fail');
+            });
+
+            // Preview
+            const fHex = toHex(fg), bHex = toHex(bg);
+            $('previewBox').style.background = bHex;
+            $('previewBox').style.color = fHex;
+
+            // Suggestions
+            if (ratio < 4.5) {
+                $('suggestionsBox').style.display = 'block';
+                const targets = [
+                    { label: 'AA Normal Text (4.5:1)', ratio: 4.5 },
+                    { label: 'AA Large Text (3:1)', ratio: 3 },
+                    { label: 'AAA Normal Text (7:1)', ratio: 7 },
+                ];
+                let html = '';
+                for (const t of targets) {
+                    const adj = adjustForContrast(fg, bg, t.ratio);
+                    if (adj) {
+                        const hex = toHex(adj);
+                        const cr = contrastRatio(adj, bg).toFixed(2);
+                        html += `<div class="suggestion-row">
+                            <div class="swatch" style="background:${hex}"></div>
+                            <div class="suggestion-info">
+                                <strong>${t.label}</strong><br>
+                                <span class="suggestion-ratio">${hex} &mdash; ratio ${cr}:1</span>
+                            </div>
+                            <div class="suggestion-preview" style="background:${bHex};color:${hex}">Aa</div>
+                            <button class="copy-btn" onclick="navigator.clipboard.writeText('${hex}');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1200)">Copy</button>
+                        </div>`;
+                    }
+                }
+                $('suggestionsList').innerHTML = html || '<p style="color:var(--text-dim)">No suitable alternatives found.</p>';
+            } else {
+                $('suggestionsBox').style.display = 'none';
+            }
+        }
+
+        $('fgHex').addEventListener('input', update);
+        $('bgHex').addEventListener('input', update);
+        $('fgPicker').addEventListener('input', e => { $('fgHex').value = e.target.value; update(); });
+        $('bgPicker').addEventListener('input', e => { $('bgHex').value = e.target.value; update(); });
+
+        $('swapBtn').addEventListener('click', () => {
+            const tmp = $('fgHex').value;
+            $('fgHex').value = $('bgHex').value;
+            $('bgHex').value = tmp;
+            update();
+        });
+
+        $('copyResults').addEventListener('click', () => {
+            const fg = $('fgHex').value, bg = $('bgHex').value;
+            const r = $('ratioValue').textContent;
+            const txt = [
+                `WCAG Contrast Check Results`,
+                `===========================`,
+                `Foreground: ${fg}`,
+                `Background: ${bg}`,
+                `Contrast Ratio: ${r}`,
+                ``,
+                `AA Normal Text:  ${$('aaNormal').textContent}  (>= 4.5:1)`,
+                `AA Large Text:   ${$('aaLarge').textContent}  (>= 3:1)`,
+                `AA UI:           ${$('aaUI').textContent}  (>= 3:1)`,
+                `AAA Normal Text: ${$('aaaNormal').textContent}  (>= 7:1)`,
+                `AAA Large Text:  ${$('aaaLarge').textContent}  (>= 4.5:1)`,
+                ``,
+                `Generated by NexTool — nextool.app/free-tools/color-contrast-checker.html`
+            ].join('\n');
+            navigator.clipboard.writeText(txt);
+            $('copyResults').textContent = 'Copied!';
+            setTimeout(() => $('copyResults').textContent = 'Copy Results to Clipboard', 1500);
+        });
+
+        update();
+    </script>
+    <script src="/js/revenue.js" defer></script>
+    <script src="/js/lead-capture.js" defer></script>
+    <script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nginx Config Generator — NexTool Free Tools</title>
+<meta name="description" content="Generate production-ready nginx configurations. Reverse proxy, SSL, gzip, rate limiting, security headers. 100% free, no signup.">
+<meta property="og:title" content="Nginx Config Generator — NexTool Free Tools">
+<meta property="og:description" content="Generate production-ready nginx configurations for reverse proxy, SSL, static sites, load balancing and more.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/nginx-config-generator.html">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Nginx Config Generator","description":"Generate production-ready nginx server block configurations with SSL, caching, security headers and more.","url":"https://nextool.app/free-tools/nginx-config-generator.html","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"NexTool"}}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text-dim:#94a3b8;--radius:12px;--radius-lg:20px;--gradient:linear-gradient(135deg,#6366f1,#a855f7,#ec4899)}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(99,102,241,.15);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-left{display:flex;align-items:center;gap:24px}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;font-size:1.2rem;color:var(--text)}
+.nav-logo span{background:var(--gradient);color:#fff;font-size:1.4rem;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-weight:800}
+.nav-links{display:flex;gap:16px}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-badge{background:var(--gradient);color:#fff;padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:600;text-decoration:none;transition:opacity .2s}
+.nav-badge:hover{opacity:.85}
+main{max-width:1280px;margin:0 auto;padding:84px 24px 40px}
+h1{font-size:2.4rem;font-weight:800;margin-bottom:8px}
+h1 em{font-style:normal;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--text-dim);font-size:1.1rem;margin-bottom:24px}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.panel{background:var(--surface);border-radius:var(--radius-lg);border:1px solid rgba(99,102,241,.12);padding:24px;display:flex;flex-direction:column;max-height:calc(100vh - 160px);overflow-y:auto}
+.panel::-webkit-scrollbar{width:6px}
+.panel::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;position:sticky;top:0;background:var(--surface);z-index:2;padding-bottom:8px}
+.panel-title{font-size:1rem;font-weight:700}
+.section{margin-bottom:20px}
+.section-title{font-size:.9rem;font-weight:700;color:var(--accent);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(99,102,241,.08)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:.78rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+.form-input{padding:8px 12px;background:var(--surface2);border:1px solid rgba(99,102,241,.15);border-radius:8px;color:var(--text);font-family:inherit;font-size:.85rem;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--primary)}
+select.form-input{cursor:pointer}
+.toggle-row{display:flex;align-items:center;gap:10px;padding:8px 0}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--surface2);border-radius:11px;cursor:pointer;transition:background .2s}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle input:checked+.toggle-slider{background:var(--primary)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px)}
+.toggle-label{font-size:.85rem;font-weight:500}
+.toggle-desc{font-size:.75rem;color:var(--text-dim)}
+.btn-group{display:flex;gap:8px}
+.btn{padding:8px 18px;border-radius:var(--radius);border:none;font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{opacity:.85}
+.btn-outline{background:transparent;border:1px solid rgba(99,102,241,.3);color:var(--text-dim)}
+.btn-outline:hover{border-color:var(--primary);color:var(--text)}
+.config-output{flex:1;background:var(--bg);border-radius:var(--radius);padding:16px;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.7;overflow-y:auto;white-space:pre;min-height:400px;border:1px solid rgba(99,102,241,.08)}
+.ck{color:#c084fc}.cv{color:#6ee7b7}.cc{color:#64748b}.cs{color:#fbbf24}.cd{color:#60a5fa}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--primary);color:#fff;padding:10px 24px;border-radius:var(--radius);font-weight:600;font-size:.9rem;opacity:0;transition:all .3s;z-index:200;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.cta-section{background:var(--surface);border-radius:var(--radius-lg);border:1px solid rgba(99,102,241,.12);padding:48px;text-align:center;margin-top:48px}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:12px}
+.cta-section p{color:var(--text-dim);margin-bottom:24px;max-width:500px;margin-left:auto;margin-right:auto}
+.cta-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.cta-btn{padding:12px 28px;border-radius:var(--radius);text-decoration:none;font-weight:700;font-size:.95rem;transition:all .2s}
+.cta-btn.gradient{background:var(--gradient);color:#fff}
+.cta-btn.gradient:hover{opacity:.85}
+.cta-btn.outline{border:1px solid rgba(99,102,241,.3);color:var(--text-dim)}
+.cta-btn.outline:hover{border-color:var(--primary);color:var(--text)}
+footer{max-width:1280px;margin:0 auto;padding:40px 24px;border-top:1px solid rgba(99,102,241,.08);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+footer a{color:var(--text-dim);text-decoration:none;font-size:.85rem;transition:color .2s}
+footer a:hover{color:var(--text)}
+.footer-links{display:flex;gap:20px}
+.footer-copy{color:var(--text-dim);font-size:.8rem}
+@media(max-width:600px){.layout{grid-template-columns:1fr}h1{font-size:1.6rem}.form-row{grid-template-columns:1fr}.nav-links{display:none}.cta-section{padding:32px 20px}footer{flex-direction:column;text-align:center}.panel{max-height:none}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-left">
+    <a href="/" class="nav-logo"><span>N</span>NexTool</a>
+    <div class="nav-links"><a href="/">Home</a><a href="/free-tools/">Free Tools</a></div>
+  </div>
+  <a href="/products/ultimate-bundle.html" class="nav-badge">Get Bundle</a>
+</nav>
+<main>
+  <h1><em>Nginx Config</em> Generator</h1>
+  <p class="subtitle">Generate production-ready nginx server blocks. SSL, reverse proxy, gzip, rate limiting, security headers — all configured visually.</p>
+  <div class="layout">
+    <div class="panel" id="editorPanel">
+      <div class="panel-header"><div class="panel-title">Configuration</div></div>
+
+      <div class="section">
+        <div class="section-title">Server Basics</div>
+        <div class="form-row">
+          <div class="form-group"><label>Domain</label><input class="form-input" id="cfgDomain" value="example.com" oninput="gen()"></div>
+          <div class="form-group"><label>Listen Port</label><input class="form-input" id="cfgPort" value="80" oninput="gen()"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group full">
+            <label>Server Type</label>
+            <select class="form-input" id="cfgType" onchange="gen()">
+              <option value="static">Static File Server</option>
+              <option value="proxy">Reverse Proxy</option>
+              <option value="loadbalancer">Load Balancer</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" id="staticFields">
+          <div class="form-group full"><label>Root Path</label><input class="form-input" id="cfgRoot" value="/var/www/html" oninput="gen()"></div>
+        </div>
+        <div class="form-row" id="proxyFields" style="display:none">
+          <div class="form-group full"><label>Proxy Target</label><input class="form-input" id="cfgProxy" value="http://127.0.0.1:3000" oninput="gen()"></div>
+        </div>
+        <div class="form-row" id="lbFields" style="display:none">
+          <div class="form-group full"><label>Backend Servers (one per line, host:port)</label><textarea class="form-input" id="cfgBackends" rows="3" oninput="gen()" style="font-family:'JetBrains Mono',monospace;font-size:.82rem;resize:vertical">127.0.0.1:3001
+127.0.0.1:3002
+127.0.0.1:3003</textarea></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">SSL / TLS</div>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="cfgSSL" onchange="gen()"><span class="toggle-slider"></span></label>
+          <div><div class="toggle-label">Enable SSL</div><div class="toggle-desc">HTTPS with TLS certificate</div></div>
+        </div>
+        <div id="sslFields" style="display:none">
+          <div class="form-row">
+            <div class="form-group"><label>Certificate Path</label><input class="form-input" id="cfgCert" value="/etc/letsencrypt/live/example.com/fullchain.pem" oninput="gen()"></div>
+            <div class="form-group"><label>Key Path</label><input class="form-input" id="cfgKey" value="/etc/letsencrypt/live/example.com/privkey.pem" oninput="gen()"></div>
+          </div>
+          <div class="toggle-row">
+            <label class="toggle"><input type="checkbox" id="cfgRedirect" checked onchange="gen()"><span class="toggle-slider"></span></label>
+            <div><div class="toggle-label">HTTP &rarr; HTTPS Redirect</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Performance</div>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="cfgGzip" checked onchange="gen()"><span class="toggle-slider"></span></label>
+          <div><div class="toggle-label">Gzip Compression</div><div class="toggle-desc">Compress text, CSS, JS, JSON, XML</div></div>
+        </div>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="cfgCache" onchange="gen()"><span class="toggle-slider"></span></label>
+          <div><div class="toggle-label">Static Asset Caching</div><div class="toggle-desc">Cache images, CSS, JS for 30 days</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Security</div>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="cfgHSTS" onchange="gen()"><span class="toggle-slider"></span></label>
+          <div><div class="toggle-label">HSTS Header</div><div class="toggle-desc">Strict-Transport-Security</div></div>
+        </div>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="cfgXFrame" checked onchange="gen()"><span class="toggle-slider"></span></label>
+          <div><div class="toggle-label">X-Frame-Options</div><div class="toggle-desc">Prevent clickjacking (SAMEORIGIN)</div></div>
+        </div>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="cfgXContent" checked onchange="gen()"><span class="toggle-slider"></span></label>
+          <div><div class="toggle-label">X-Content-Type-Options</div><div class="toggle-desc">Prevent MIME type sniffing</div></div>
+        </div>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="cfgCSP" onchange="gen()"><span class="toggle-slider"></span></label>
+          <div><div class="toggle-label">Content-Security-Policy</div><div class="toggle-desc">Basic CSP header</div></div>
+        </div>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="cfgReferrer" onchange="gen()"><span class="toggle-slider"></span></label>
+          <div><div class="toggle-label">Referrer-Policy</div><div class="toggle-desc">no-referrer-when-downgrade</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Rate Limiting</div>
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="cfgRate" onchange="gen()"><span class="toggle-slider"></span></label>
+          <div><div class="toggle-label">Enable Rate Limiting</div><div class="toggle-desc">Limit requests per IP</div></div>
+        </div>
+        <div id="rateFields" style="display:none">
+          <div class="form-row">
+            <div class="form-group"><label>Requests/second</label><input class="form-input" id="cfgRateLimit" value="10" oninput="gen()"></div>
+            <div class="form-group"><label>Burst</label><input class="form-input" id="cfgRateBurst" value="20" oninput="gen()"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">nginx.conf</div>
+        <div class="btn-group">
+          <button class="btn btn-outline" onclick="copyOutput()">Copy</button>
+          <button class="btn btn-primary" onclick="downloadOutput()">Download</button>
+        </div>
+      </div>
+      <div class="config-output" id="output"></div>
+    </div>
+  </div>
+  <section class="cta-section">
+    <h2>Deploy With Confidence</h2>
+    <p>Get the NexTool Ultimate Bundle with 100+ premium developer tools, templates, and automations for just $39.</p>
+    <div class="cta-buttons">
+      <a href="/products/ultimate-bundle.html" class="cta-btn gradient">Get Bundle — $39</a>
+      <a href="/free-tools/" class="cta-btn outline">Browse 100+ Free Tools &rarr;</a>
+    </div>
+  </section>
+</main>
+<footer>
+  <div class="footer-links"><a href="/">Home</a><a href="/free-tools/">Tools</a><a href="/blog/">Blog</a><a href="/products/">Products</a><a href="/#contact">Contact</a></div>
+  <div class="footer-copy">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+<div class="toast" id="toast">Copied!</div>
+<script>
+const $ = id => document.getElementById(id);
+const k = t => `<span class="ck">${t}</span>`;
+const v = t => `<span class="cv">${t}</span>`;
+const c = t => `<span class="cc">${t}</span>`;
+const s = t => `<span class="cs">${t}</span>`;
+const d = t => `<span class="cd">${t}</span>`;
+
+$('cfgType').addEventListener('change', () => {
+  const type = $('cfgType').value;
+  $('staticFields').style.display = type==='static'?'':'none';
+  $('proxyFields').style.display = type==='proxy'?'':'none';
+  $('lbFields').style.display = type==='loadbalancer'?'':'none';
+});
+$('cfgSSL').addEventListener('change', () => { $('sslFields').style.display=$('cfgSSL').checked?'':'none'; });
+$('cfgRate').addEventListener('change', () => { $('rateFields').style.display=$('cfgRate').checked?'':'none'; });
+
+let rawConfig = '';
+
+function gen() {
+  const domain = $('cfgDomain').value || 'example.com';
+  const port = $('cfgPort').value || '80';
+  const type = $('cfgType').value;
+  const ssl = $('cfgSSL').checked;
+  const cert = $('cfgCert').value;
+  const key_ = $('cfgKey').value;
+  const redirect = $('cfgRedirect').checked;
+  const gzip = $('cfgGzip').checked;
+  const cache = $('cfgCache').checked;
+  const hsts = $('cfgHSTS').checked;
+  const xframe = $('cfgXFrame').checked;
+  const xcontent = $('cfgXContent').checked;
+  const csp = $('cfgCSP').checked;
+  const referrer = $('cfgReferrer').checked;
+  const rate = $('cfgRate').checked;
+  const rateLimit = $('cfgRateLimit').value || '10';
+  const rateBurst = $('cfgRateBurst').value || '20';
+  const root = $('cfgRoot').value || '/var/www/html';
+  const proxy = $('cfgProxy').value || 'http://127.0.0.1:3000';
+  const backends = ($('cfgBackends').value||'').split('\n').map(x=>x.trim()).filter(Boolean);
+
+  let lines = [];
+  let raw = [];
+  const add = (h, r) => { lines.push(h); raw.push(r); };
+
+  add(c('# Generated by NexTool Nginx Config Generator'), '# Generated by NexTool Nginx Config Generator');
+  add(c('# https://nextool.app/free-tools/nginx-config-generator.html'), '# https://nextool.app/free-tools/nginx-config-generator.html');
+  add('', '');
+
+  if (rate) {
+    add(k('limit_req_zone') + ' ' + v('$binary_remote_addr') + ' ' + k('zone') + '=' + s('ratelimit') + ':' + v('10m') + ' ' + k('rate') + '=' + v(rateLimit + 'r/s') + ';',
+      `limit_req_zone $binary_remote_addr zone=ratelimit:10m rate=${rateLimit}r/s;`);
+    add('', '');
+  }
+
+  if (type === 'loadbalancer' && backends.length > 0) {
+    add(k('upstream') + ' ' + d('backend') + ' {', 'upstream backend {');
+    backends.forEach(b => {
+      add('    ' + k('server') + ' ' + v(b) + ';', `    server ${b};`);
+    });
+    add('}', '}');
+    add('', '');
+  }
+
+  if (ssl && redirect) {
+    add(k('server') + ' {', 'server {');
+    add('    ' + k('listen') + ' ' + v('80') + ';', '    listen 80;');
+    add('    ' + k('server_name') + ' ' + v(domain) + ';', `    server_name ${domain};`);
+    add('    ' + k('return') + ' ' + s('301') + ' ' + v('https://$host$request_uri') + ';', '    return 301 https://$host$request_uri;');
+    add('}', '}');
+    add('', '');
+  }
+
+  add(k('server') + ' {', 'server {');
+  if (ssl) {
+    add('    ' + k('listen') + ' ' + v('443 ssl http2') + ';', '    listen 443 ssl http2;');
+    add('    ' + k('listen') + ' ' + v('[::]:443 ssl http2') + ';', '    listen [::]:443 ssl http2;');
+  } else {
+    add('    ' + k('listen') + ' ' + v(port) + ';', `    listen ${port};`);
+    add('    ' + k('listen') + ' ' + v('[::]:' + port) + ';', `    listen [::]:${port};`);
+  }
+  add('    ' + k('server_name') + ' ' + v(domain) + ';', `    server_name ${domain};`);
+  add('', '');
+
+  if (ssl) {
+    add('    ' + c('# SSL Configuration'), '    # SSL Configuration');
+    add('    ' + k('ssl_certificate') + ' ' + v(cert) + ';', `    ssl_certificate ${cert};`);
+    add('    ' + k('ssl_certificate_key') + ' ' + v(key_) + ';', `    ssl_certificate_key ${key_};`);
+    add('    ' + k('ssl_protocols') + ' ' + v('TLSv1.2 TLSv1.3') + ';', '    ssl_protocols TLSv1.2 TLSv1.3;');
+    add('    ' + k('ssl_ciphers') + ' ' + v('HIGH:!aNULL:!MD5') + ';', '    ssl_ciphers HIGH:!aNULL:!MD5;');
+    add('    ' + k('ssl_prefer_server_ciphers') + ' ' + v('on') + ';', '    ssl_prefer_server_ciphers on;');
+    add('    ' + k('ssl_session_cache') + ' ' + v('shared:SSL:10m') + ';', '    ssl_session_cache shared:SSL:10m;');
+    add('', '');
+  }
+
+  if (type === 'static') {
+    add('    ' + k('root') + ' ' + v(root) + ';', `    root ${root};`);
+    add('    ' + k('index') + ' ' + v('index.html index.htm') + ';', '    index index.html index.htm;');
+    add('', '');
+    add('    ' + k('location') + ' ' + d('/') + ' {', '    location / {');
+    add('        ' + k('try_files') + ' ' + v('$uri $uri/ =404') + ';', '        try_files $uri $uri/ =404;');
+    add('    }', '    }');
+  } else if (type === 'proxy') {
+    add('    ' + k('location') + ' ' + d('/') + ' {', '    location / {');
+    add('        ' + k('proxy_pass') + ' ' + v(proxy) + ';', `        proxy_pass ${proxy};`);
+    add('        ' + k('proxy_http_version') + ' ' + v('1.1') + ';', '        proxy_http_version 1.1;');
+    add('        ' + k('proxy_set_header') + ' ' + s('Upgrade') + ' ' + v('$http_upgrade') + ';', '        proxy_set_header Upgrade $http_upgrade;');
+    add('        ' + k('proxy_set_header') + ' ' + s('Connection') + ' ' + v("'upgrade'") + ';', "        proxy_set_header Connection 'upgrade';");
+    add('        ' + k('proxy_set_header') + ' ' + s('Host') + ' ' + v('$host') + ';', '        proxy_set_header Host $host;');
+    add('        ' + k('proxy_set_header') + ' ' + s('X-Real-IP') + ' ' + v('$remote_addr') + ';', '        proxy_set_header X-Real-IP $remote_addr;');
+    add('        ' + k('proxy_set_header') + ' ' + s('X-Forwarded-For') + ' ' + v('$proxy_add_x_forwarded_for') + ';', '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;');
+    add('        ' + k('proxy_set_header') + ' ' + s('X-Forwarded-Proto') + ' ' + v('$scheme') + ';', '        proxy_set_header X-Forwarded-Proto $scheme;');
+    add('        ' + k('proxy_cache_bypass') + ' ' + v('$http_upgrade') + ';', '        proxy_cache_bypass $http_upgrade;');
+    add('    }', '    }');
+  } else {
+    add('    ' + k('location') + ' ' + d('/') + ' {', '    location / {');
+    add('        ' + k('proxy_pass') + ' ' + v('http://backend') + ';', '        proxy_pass http://backend;');
+    add('        ' + k('proxy_set_header') + ' ' + s('Host') + ' ' + v('$host') + ';', '        proxy_set_header Host $host;');
+    add('        ' + k('proxy_set_header') + ' ' + s('X-Real-IP') + ' ' + v('$remote_addr') + ';', '        proxy_set_header X-Real-IP $remote_addr;');
+    add('        ' + k('proxy_set_header') + ' ' + s('X-Forwarded-For') + ' ' + v('$proxy_add_x_forwarded_for') + ';', '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;');
+    add('    }', '    }');
+  }
+  add('', '');
+
+  if (gzip) {
+    add('    ' + c('# Gzip Compression'), '    # Gzip Compression');
+    add('    ' + k('gzip') + ' ' + v('on') + ';', '    gzip on;');
+    add('    ' + k('gzip_vary') + ' ' + v('on') + ';', '    gzip_vary on;');
+    add('    ' + k('gzip_proxied') + ' ' + v('any') + ';', '    gzip_proxied any;');
+    add('    ' + k('gzip_comp_level') + ' ' + v('6') + ';', '    gzip_comp_level 6;');
+    add('    ' + k('gzip_types') + ' ' + v('text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml') + ';', '    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;');
+    add('', '');
+  }
+
+  if (cache) {
+    add('    ' + c('# Static Asset Caching'), '    # Static Asset Caching');
+    add('    ' + k('location') + ' ' + d('~* \\.(jpg|jpeg|png|gif|ico|css|js|woff2|woff|ttf|svg)$') + ' {', '    location ~* \\.(jpg|jpeg|png|gif|ico|css|js|woff2|woff|ttf|svg)$ {');
+    add('        ' + k('expires') + ' ' + v('30d') + ';', '        expires 30d;');
+    add('        ' + k('add_header') + ' ' + s('Cache-Control') + ' ' + v('"public, immutable"') + ';', '        add_header Cache-Control "public, immutable";');
+    add('    }', '    }');
+    add('', '');
+  }
+
+  const secHeaders = [];
+  if (hsts) secHeaders.push({h:'Strict-Transport-Security',v:'"max-age=31536000; includeSubDomains; preload"'});
+  if (xframe) secHeaders.push({h:'X-Frame-Options',v:'"SAMEORIGIN"'});
+  if (xcontent) secHeaders.push({h:'X-Content-Type-Options',v:'"nosniff"'});
+  if (csp) secHeaders.push({h:'Content-Security-Policy',v:"\"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'\""});
+  if (referrer) secHeaders.push({h:'Referrer-Policy',v:'"no-referrer-when-downgrade"'});
+  if (secHeaders.length > 0) {
+    add('    ' + c('# Security Headers'), '    # Security Headers');
+    secHeaders.forEach(sh => {
+      add('    ' + k('add_header') + ' ' + s(sh.h) + ' ' + v(sh.v) + ';', `    add_header ${sh.h} ${sh.v};`);
+    });
+    add('', '');
+  }
+
+  if (rate) {
+    add('    ' + c('# Rate Limiting'), '    # Rate Limiting');
+    add('    ' + k('limit_req') + ' ' + v(`zone=ratelimit burst=${rateBurst} nodelay`) + ';', `    limit_req zone=ratelimit burst=${rateBurst} nodelay;`);
+    add('', '');
+  }
+
+  add('    ' + c('# Logging'), '    # Logging');
+  add('    ' + k('access_log') + ' ' + v(`/var/log/nginx/${domain}.access.log`) + ';', `    access_log /var/log/nginx/${domain}.access.log;`);
+  add('    ' + k('error_log') + ' ' + v(`/var/log/nginx/${domain}.error.log`) + ';', `    error_log /var/log/nginx/${domain}.error.log;`);
+
+  add('}', '}');
+
+  $('output').innerHTML = lines.join('\n');
+  rawConfig = raw.join('\n');
+}
+
+function copyOutput(){navigator.clipboard.writeText(rawConfig).then(()=>showToast('Copied to clipboard!'))}
+function downloadOutput(){const b=new Blob([rawConfig],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='nginx.conf';a.click();URL.revokeObjectURL(a.href);}
+function showToast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+
+gen();
+</script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

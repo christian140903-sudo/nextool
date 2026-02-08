@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visual JSON Diff Tool - Compare JSON Objects Online | NexTool</title>
+<meta name="description" content="Compare two JSON objects side by side. Highlight added, removed, and changed values with a visual diff tree. Free online JSON comparison tool by NexTool.">
+<meta property="og:title" content="Visual JSON Diff Tool - NexTool">
+<meta property="og:description" content="Compare two JSON objects visually. Spot differences instantly with color-coded highlights.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/json-diff.html">
+<meta property="og:image" content="https://nextool.app/og/json-diff.png">
+<link rel="canonical" href="https://nextool.app/free-tools/json-diff.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Visual JSON Diff Tool",
+  "description": "Compare two JSON objects side by side with visual highlighting of added, removed, and changed values.",
+  "url": "https://nextool.app/free-tools/json-diff.html",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Organization", "name": "NexTool", "url": "https://nextool.app" }
+}
+</script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #050508; --surface: #111118; --surface2: #1a1a24;
+  --primary: #6366f1; --accent: #a855f7; --pink: #ec4899;
+  --text: #e2e8f0; --text-dim: #94a3b8;
+  --green: #22c55e; --red: #ef4444; --yellow: #eab308;
+  --radius: 12px; --radius-lg: 20px;
+}
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; line-height: 1.6;
+}
+
+/* Nav */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(5, 5, 8, 0.85); backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+  padding: 0 24px; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 1.2rem; color: var(--text); text-decoration: none;
+}
+.nav-logo span {
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  font-size: 1.4rem; font-weight: 800;
+}
+.nav-links { display: flex; align-items: center; gap: 20px; }
+.nav-links a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); }
+.nav-badge {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: #fff !important; padding: 6px 14px; border-radius: 20px;
+  font-size: 0.8rem; font-weight: 600;
+}
+
+/* Main */
+main { max-width: 1200px; margin: 0 auto; padding: 80px 20px 40px; }
+h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.subtitle { color: var(--text-dim); margin-bottom: 24px; font-size: 1.05rem; }
+
+/* Buttons */
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center; }
+.btn {
+  background: var(--surface2); color: var(--text);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  padding: 8px 16px; border-radius: var(--radius);
+  cursor: pointer; font-family: inherit; font-size: 0.85rem; transition: all 0.2s;
+}
+.btn:hover { border-color: var(--primary); background: rgba(99, 102, 241, 0.1); }
+.btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn-primary:hover { background: #5558e6; }
+
+/* Options */
+.options { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.option-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.85rem; color: var(--text-dim); cursor: pointer;
+}
+.option-label input { accent-color: var(--primary); }
+
+/* Panels */
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.panel {
+  background: var(--surface);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: var(--radius-lg); overflow: hidden;
+}
+.panel-header {
+  padding: 12px 16px; background: var(--surface2);
+  font-weight: 600; font-size: 0.9rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.panel textarea {
+  width: 100%; min-height: 240px; background: transparent;
+  border: none; color: var(--text);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  padding: 16px; resize: vertical; outline: none;
+}
+.panel textarea::placeholder { color: var(--text-dim); opacity: 0.6; }
+
+/* Stats */
+.stats-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.stat {
+  background: var(--surface); padding: 10px 18px;
+  border-radius: var(--radius); font-size: 0.9rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.stat .dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-green { background: var(--green); }
+.dot-red { background: var(--red); }
+.dot-yellow { background: var(--yellow); }
+.dot-blue { background: var(--primary); }
+
+/* Diff Output */
+.diff-container {
+  background: var(--surface);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: var(--radius-lg); padding: 20px;
+  min-height: 120px; max-height: 520px; overflow: auto;
+}
+.diff-line {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  padding: 4px 10px; margin: 2px 0; border-radius: 4px;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.diff-added {
+  background: rgba(34, 197, 94, 0.08);
+  border-left: 3px solid var(--green);
+}
+.diff-removed {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 3px solid var(--red);
+}
+.diff-changed {
+  background: rgba(234, 179, 8, 0.08);
+  border-left: 3px solid var(--yellow);
+}
+.diff-unchanged {
+  opacity: 0.4; padding: 2px 10px; border-left: 3px solid transparent;
+}
+.diff-path { color: var(--accent); min-width: 200px; word-break: break-all; }
+.diff-value { color: var(--text-dim); flex: 1; word-break: break-all; }
+.diff-arrow { color: var(--text); margin: 0 6px; }
+.empty-state { color: var(--text-dim); text-align: center; padding: 40px 20px; font-size: 0.95rem; }
+.status-text { font-weight: 400; font-size: 0.8rem; color: var(--text-dim); }
+
+/* Filter */
+.filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-btn {
+  padding: 6px 14px; border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: var(--surface2); color: var(--text-dim);
+  cursor: pointer; font-size: 0.83rem; transition: all 0.2s;
+}
+.filter-btn:hover { border-color: var(--primary); }
+.filter-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* Search */
+.search-box {
+  background: var(--surface2); border: 1px solid rgba(99, 102, 241, 0.2);
+  color: var(--text); padding: 8px 14px; border-radius: var(--radius);
+  font-family: inherit; font-size: 0.85rem; outline: none; width: 220px;
+}
+.search-box:focus { border-color: var(--primary); }
+
+/* CTA */
+.cta-section {
+  margin-top: 60px; text-align: center; padding: 48px 24px;
+  background: var(--surface);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: var(--radius-lg);
+}
+.cta-section h2 { font-size: 1.5rem; margin-bottom: 12px; }
+.cta-section p {
+  color: var(--text-dim); margin-bottom: 24px;
+  max-width: 520px; margin-left: auto; margin-right: auto;
+}
+.cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.cta-bundle {
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+  color: #fff; padding: 12px 28px; border-radius: var(--radius);
+  text-decoration: none; font-weight: 600; font-size: 0.95rem;
+}
+.cta-browse {
+  background: var(--surface2); color: var(--text);
+  padding: 12px 28px; border-radius: var(--radius);
+  text-decoration: none; font-weight: 500; font-size: 0.95rem;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* Footer */
+footer {
+  margin-top: 60px; padding: 32px 24px;
+  border-top: 1px solid rgba(99, 102, 241, 0.1); text-align: center;
+}
+.footer-links {
+  display: flex; justify-content: center; gap: 24px;
+  flex-wrap: wrap; margin-bottom: 16px;
+}
+.footer-links a { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; }
+.footer-links a:hover { color: var(--text); }
+.footer-copy { color: var(--text-dim); font-size: 0.8rem; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .panels { grid-template-columns: 1fr; }
+  h1 { font-size: 1.5rem; }
+  .nav-links a:not(.nav-badge) { display: none; }
+  .stats-bar { gap: 8px; }
+  .stat { padding: 8px 12px; font-size: 0.8rem; }
+  .search-box { width: 100%; }
+  .diff-path { min-width: 100px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo"><span>N</span> NexTool</a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/products/ultimate-bundle.html" class="nav-badge">Get Bundle</a>
+  </div>
+</nav>
+
+<main>
+  <h1><span class="gradient-text">Visual JSON Diff</span> Tool</h1>
+  <p class="subtitle">Compare two JSON objects side by side. Instantly spot added, removed, and changed values with color-coded highlights.</p>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="runDiff()">Compare JSON</button>
+    <button class="btn" onclick="swapPanels()">Swap Left / Right</button>
+    <button class="btn" onclick="loadSample()">Load Sample</button>
+    <button class="btn" onclick="copyReport()">Copy Diff Report</button>
+    <button class="btn" onclick="clearAll()">Clear All</button>
+  </div>
+
+  <div class="options">
+    <label class="option-label"><input type="checkbox" id="ignoreOrder" checked> Ignore key order</label>
+    <label class="option-label"><input type="checkbox" id="ignoreWhitespace" checked> Ignore whitespace</label>
+    <label class="option-label"><input type="checkbox" id="ignoreTypes"> Ignore data types (compare as strings)</label>
+    <label class="option-label"><input type="checkbox" id="showUnchanged"> Show unchanged values</label>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-header">
+        <span>Left JSON (Original)</span>
+        <span class="status-text" id="leftStatus"></span>
+      </div>
+      <textarea id="leftInput" placeholder='Paste your first JSON here...&#10;&#10;{&#10;  "name": "example",&#10;  "version": 1&#10;}' spellcheck="false"></textarea>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span>Right JSON (Modified)</span>
+        <span class="status-text" id="rightStatus"></span>
+      </div>
+      <textarea id="rightInput" placeholder='Paste your second JSON here...&#10;&#10;{&#10;  "name": "example",&#10;  "version": 2&#10;}' spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="stats-bar" id="statsBar" style="display: none;">
+    <div class="stat"><div class="dot dot-blue"></div><span id="statTotal">0 differences</span></div>
+    <div class="stat"><div class="dot dot-green"></div><span id="statAdded">0 added</span></div>
+    <div class="stat"><div class="dot dot-red"></div><span id="statRemoved">0 removed</span></div>
+    <div class="stat"><div class="dot dot-yellow"></div><span id="statChanged">0 changed</span></div>
+  </div>
+
+  <div class="filter-row" id="filterRow" style="display: none;">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" data-filter="added" onclick="setFilter('added', this)">Added</button>
+    <button class="filter-btn" data-filter="removed" onclick="setFilter('removed', this)">Removed</button>
+    <button class="filter-btn" data-filter="changed" onclick="setFilter('changed', this)">Changed</button>
+    <input type="text" class="search-box" id="diffSearch" placeholder="Search paths..." oninput="filterDiffs()">
+  </div>
+
+  <div class="diff-container" id="diffOutput">
+    <div class="empty-state">Paste JSON on both sides and click <strong>Compare JSON</strong> to see differences.</div>
+  </div>
+
+  <section class="cta-section">
+    <h2>Love this tool? Get the <span class="gradient-text">Ultimate Bundle</span></h2>
+    <p>Access 100+ premium developer tools, templates, and automations for a one-time payment of $39.</p>
+    <div class="cta-buttons">
+      <a href="/products/ultimate-bundle.html" class="cta-bundle">Get Bundle &mdash; $39</a>
+      <a href="/free-tools/" class="cta-browse">Browse 100+ Free Tools &rarr;</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/products/">Products</a>
+    <a href="/#contact">Contact</a>
+  </div>
+  <div class="footer-copy">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+let allDiffs = [];
+let currentFilter = 'all';
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function parseJSON(str, statusEl) {
+  try {
+    const trimmed = str.trim();
+    if (!trimmed) { statusEl.textContent = ''; return null; }
+    const obj = JSON.parse(trimmed);
+    const keys = typeof obj === 'object' && obj !== null ? Object.keys(obj).length : 0;
+    statusEl.textContent = 'Valid JSON' + (keys ? ' (' + keys + ' keys)' : '');
+    statusEl.style.color = '#22c55e';
+    return obj;
+  } catch (e) {
+    statusEl.textContent = 'Invalid: ' + e.message.split(' at ')[0];
+    statusEl.style.color = '#ef4444';
+    return undefined;
+  }
+}
+
+function deepCompare(left, right, path) {
+  const diffs = [];
+  const ignoreTypes = $('ignoreTypes').checked;
+  const showUnchanged = $('showUnchanged').checked;
+
+  if (left === null && right === null) {
+    if (showUnchanged) diffs.push({ type: 'unchanged', path: path, left: left });
+    return diffs;
+  }
+  if (right === undefined) { diffs.push({ type: 'removed', path: path, left: left }); return diffs; }
+  if (left === undefined) { diffs.push({ type: 'added', path: path, right: right }); return diffs; }
+
+  const tl = Array.isArray(left) ? 'array' : typeof left;
+  const tr = Array.isArray(right) ? 'array' : typeof right;
+
+  if (tl !== tr) {
+    if (ignoreTypes && String(left) === String(right)) {
+      if (showUnchanged) diffs.push({ type: 'unchanged', path: path, left: left });
+      return diffs;
+    }
+    diffs.push({ type: 'changed', path: path, left: left, right: right });
+    return diffs;
+  }
+
+  if (tl === 'object' && left !== null) {
+    const allKeys = new Set([...Object.keys(left), ...Object.keys(right)]);
+    for (const key of allKeys) {
+      const childPath = path ? path + '.' + key : key;
+      diffs.push(...deepCompare(left[key], right[key], childPath));
+    }
+    return diffs;
+  }
+
+  if (tl === 'array') {
+    const maxLen = Math.max(left.length, right.length);
+    for (let i = 0; i < maxLen; i++) {
+      diffs.push(...deepCompare(left[i], right[i], path + '[' + i + ']'));
+    }
+    return diffs;
+  }
+
+  if (left !== right) {
+    if (ignoreTypes && String(left) === String(right)) {
+      if (showUnchanged) diffs.push({ type: 'unchanged', path: path, left: left });
+      return diffs;
+    }
+    diffs.push({ type: 'changed', path: path, left: left, right: right });
+  } else {
+    if (showUnchanged) diffs.push({ type: 'unchanged', path: path, left: left });
+  }
+  return diffs;
+}
+
+function formatValue(v) {
+  if (v === undefined) return 'undefined';
+  if (v === null) return 'null';
+  if (typeof v === 'string') return '"' + esc(v) + '"';
+  if (typeof v === 'object') return esc(JSON.stringify(v));
+  return esc(String(v));
+}
+
+function renderDiffs(diffs) {
+  const container = $('diffOutput');
+  container.innerHTML = '';
+
+  if (diffs.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="color: #22c55e;">No differences found. The JSON objects are identical.</div>';
+    return;
+  }
+
+  const searchTerm = $('diffSearch').value.toLowerCase();
+
+  let visibleCount = 0;
+  diffs.forEach(d => {
+    if (currentFilter !== 'all' && d.type !== currentFilter) return;
+    if (searchTerm && !d.path.toLowerCase().includes(searchTerm)) return;
+
+    const line = document.createElement('div');
+    line.className = 'diff-line';
+    visibleCount++;
+
+    if (d.type === 'added') {
+      line.classList.add('diff-added');
+      line.innerHTML = '<span class="diff-path" style="color:#22c55e;">+ ' + esc(d.path) + '</span>'
+        + '<span class="diff-value">' + formatValue(d.right) + '</span>';
+    } else if (d.type === 'removed') {
+      line.classList.add('diff-removed');
+      line.innerHTML = '<span class="diff-path" style="color:#ef4444;">- ' + esc(d.path) + '</span>'
+        + '<span class="diff-value">' + formatValue(d.left) + '</span>';
+    } else if (d.type === 'changed') {
+      line.classList.add('diff-changed');
+      line.innerHTML = '<span class="diff-path" style="color:#eab308;">~ ' + esc(d.path) + '</span>'
+        + '<span class="diff-value">' + formatValue(d.left)
+        + ' <span class="diff-arrow">&rarr;</span> ' + formatValue(d.right) + '</span>';
+    } else if (d.type === 'unchanged') {
+      line.classList.add('diff-unchanged');
+      line.innerHTML = '<span class="diff-path">&nbsp; ' + esc(d.path) + '</span>'
+        + '<span class="diff-value">' + formatValue(d.left) + '</span>';
+    }
+    container.appendChild(line);
+  });
+
+  if (visibleCount === 0) {
+    container.innerHTML = '<div class="empty-state">No matches for current filter/search.</div>';
+  }
+}
+
+function runDiff() {
+  const left = parseJSON($('leftInput').value, $('leftStatus'));
+  const right = parseJSON($('rightInput').value, $('rightStatus'));
+  if (left === undefined || right === undefined) return;
+  if (left === null || right === null) {
+    $('diffOutput').innerHTML = '<div class="empty-state">Please paste valid JSON on both sides.</div>';
+    return;
+  }
+
+  allDiffs = deepCompare(left, right, '');
+  const realDiffs = allDiffs.filter(d => d.type !== 'unchanged');
+  const added = realDiffs.filter(d => d.type === 'added').length;
+  const removed = realDiffs.filter(d => d.type === 'removed').length;
+  const changed = realDiffs.filter(d => d.type === 'changed').length;
+  const total = realDiffs.length;
+
+  $('statsBar').style.display = 'flex';
+  $('filterRow').style.display = 'flex';
+  $('statTotal').textContent = total + ' difference' + (total !== 1 ? 's' : '');
+  $('statAdded').textContent = added + ' added';
+  $('statRemoved').textContent = removed + ' removed';
+  $('statChanged').textContent = changed + ' changed';
+
+  currentFilter = 'all';
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+  renderDiffs(allDiffs);
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDiffs(allDiffs);
+}
+
+function filterDiffs() {
+  renderDiffs(allDiffs);
+}
+
+function swapPanels() {
+  const l = $('leftInput').value;
+  $('leftInput').value = $('rightInput').value;
+  $('rightInput').value = l;
+  const ls = $('leftStatus').textContent;
+  $('leftStatus').textContent = $('rightStatus').textContent;
+  $('rightStatus').textContent = ls;
+}
+
+function loadSample() {
+  $('leftInput').value = JSON.stringify({
+    name: "NexTool",
+    version: "2.0.0",
+    description: "AI Automation Studio",
+    features: ["json-diff", "regex-builder", "encoder"],
+    config: { theme: "dark", lang: "en", beta: false },
+    pricing: { basic: 5, pro: 49 },
+    deprecated: true,
+    maintainer: "team@nextool.app"
+  }, null, 2);
+  $('rightInput').value = JSON.stringify({
+    name: "NexTool",
+    version: "3.1.0",
+    description: "AI Automation Studio - Next Gen",
+    features: ["json-diff", "regex-builder", "encoder", "git-builder", "xml-converter"],
+    config: { theme: "dark", lang: "de", beta: true, experimental: true },
+    pricing: { basic: 5, pro: 79, enterprise: 299 },
+    maintainer: "team@nextool.app",
+    license: "MIT"
+  }, null, 2);
+  runDiff();
+}
+
+function clearAll() {
+  $('leftInput').value = '';
+  $('rightInput').value = '';
+  $('leftStatus').textContent = '';
+  $('rightStatus').textContent = '';
+  $('statsBar').style.display = 'none';
+  $('filterRow').style.display = 'none';
+  allDiffs = [];
+  $('diffOutput').innerHTML = '<div class="empty-state">Paste JSON on both sides and click <strong>Compare JSON</strong> to see differences.</div>';
+}
+
+function copyReport() {
+  const realDiffs = allDiffs.filter(d => d.type !== 'unchanged');
+  if (!realDiffs.length) { alert('Run a comparison first.'); return; }
+
+  const added = realDiffs.filter(d => d.type === 'added').length;
+  const removed = realDiffs.filter(d => d.type === 'removed').length;
+  const changed = realDiffs.filter(d => d.type === 'changed').length;
+
+  const lines = realDiffs.map(d => {
+    if (d.type === 'added') return '+ ' + d.path + ': ' + JSON.stringify(d.right);
+    if (d.type === 'removed') return '- ' + d.path + ': ' + JSON.stringify(d.left);
+    return '~ ' + d.path + ': ' + JSON.stringify(d.left) + ' -> ' + JSON.stringify(d.right);
+  });
+
+  const report = [
+    'JSON Diff Report',
+    '================',
+    'Generated by NexTool (nextool.app/free-tools/json-diff.html)',
+    '',
+    'Summary: ' + realDiffs.length + ' total differences',
+    '  Added:   ' + added,
+    '  Removed: ' + removed,
+    '  Changed: ' + changed,
+    '',
+    'Details:',
+    '--------',
+    ...lines
+  ].join('\n');
+
+  navigator.clipboard.writeText(report).then(() => {
+    const btn = document.querySelector('.toolbar .btn:nth-child(4)');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+// Live validation
+$('leftInput').addEventListener('input', () => parseJSON($('leftInput').value, $('leftStatus')));
+$('rightInput').addEventListener('input', () => parseJSON($('rightInput').value, $('rightStatus')));
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runDiff(); }
+});
+</script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

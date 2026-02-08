@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Regex Pattern Builder - Test & Build Regex Online | NexTool</title>
+<meta name="description" content="Build and test regular expressions visually. Add pattern components, see real-time matches, get plain English explanations. Free regex builder tool.">
+<meta property="og:title" content="Interactive Regex Pattern Builder - NexTool">
+<meta property="og:description" content="Visual regex builder with live testing, pattern library, and plain English explanations.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/regex-builder.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Interactive Regex Pattern Builder","description":"Build, test, and understand regular expressions with a visual interface.","url":"https://nextool.app/free-tools/regex-builder.html","applicationCategory":"DeveloperApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"NexTool"}}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text-dim:#94a3b8;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--radius:12px;--radius-lg:20px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(99,102,241,.15);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.2rem;color:var(--text);text-decoration:none}
+.nav-logo span{background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.4rem;font-weight:800}
+.nav-links{display:flex;align-items:center;gap:20px}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:.9rem;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-badge{background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff!important;padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:600}
+main{max-width:1100px;margin:0 auto;padding:80px 20px 40px}
+h1{font-size:2rem;font-weight:700;margin-bottom:8px}
+.gradient-text{background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:var(--text-dim);margin-bottom:24px;font-size:1.05rem}
+.section-title{font-size:1.1rem;font-weight:600;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+.card{background:var(--surface);border:1px solid rgba(99,102,241,.12);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px}
+.regex-display{font-family:'JetBrains Mono',monospace;font-size:1.1rem;padding:14px 18px;background:var(--surface2);border:2px solid var(--primary);border-radius:var(--radius);word-break:break-all;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.regex-display code{flex:1;color:var(--pink)}
+.btn{background:var(--surface2);color:var(--text);border:1px solid rgba(99,102,241,.2);padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-family:inherit;font-size:.85rem;transition:all .2s}
+.btn:hover{border-color:var(--primary);background:rgba(99,102,241,.1)}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary:hover{background:#5558e6}
+.btn-sm{padding:5px 12px;font-size:.8rem;border-radius:8px}
+.flags-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.flag-btn{padding:6px 14px;border-radius:8px;border:1px solid rgba(99,102,241,.2);background:var(--surface2);color:var(--text-dim);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.85rem;transition:all .2s}
+.flag-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.components-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.comp-btn{padding:7px 14px;border-radius:8px;border:1px solid rgba(99,102,241,.15);background:var(--surface2);color:var(--text);cursor:pointer;font-size:.83rem;transition:all .2s}
+.comp-btn:hover{border-color:var(--accent);background:rgba(168,85,247,.1)}
+.input-row{display:flex;gap:10px;margin-bottom:12px;align-items:center}
+.input-row input,.input-row textarea{background:var(--surface2);border:1px solid rgba(99,102,241,.2);color:var(--text);padding:10px 14px;border-radius:var(--radius);font-family:'JetBrains Mono',monospace;font-size:.88rem;outline:none;flex:1}
+.input-row input:focus,.input-row textarea:focus{border-color:var(--primary)}
+textarea.test-input{width:100%;min-height:100px;background:var(--surface2);border:1px solid rgba(99,102,241,.2);color:var(--text);padding:14px;border-radius:var(--radius);font-family:'JetBrains Mono',monospace;font-size:.88rem;outline:none;resize:vertical}
+textarea.test-input:focus{border-color:var(--primary)}
+.match-output{background:var(--surface2);border-radius:var(--radius);padding:14px;font-family:'JetBrains Mono',monospace;font-size:.88rem;min-height:50px;white-space:pre-wrap;line-height:1.7}
+.match-output mark{background:rgba(168,85,247,.3);color:#e9d5ff;border-radius:3px;padding:1px 2px}
+.match-count{font-size:.85rem;color:var(--text-dim);margin-bottom:8px}
+.explanation{background:var(--surface2);border-radius:var(--radius);padding:14px;font-size:.9rem;line-height:1.7;color:var(--text-dim)}
+.explanation strong{color:var(--text)}
+.library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.library-item{background:var(--surface2);border:1px solid rgba(99,102,241,.1);border-radius:var(--radius);padding:10px 14px;cursor:pointer;transition:all .2s}
+.library-item:hover{border-color:var(--accent);background:rgba(168,85,247,.08)}
+.library-item .lib-name{font-weight:600;font-size:.85rem;margin-bottom:2px}
+.library-item .lib-pattern{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--pink);word-break:break-all}
+.replace-output{background:var(--surface2);border-radius:var(--radius);padding:14px;font-family:'JetBrains Mono',monospace;font-size:.88rem;min-height:40px;white-space:pre-wrap;color:var(--green)}
+.cta-section{margin-top:60px;text-align:center;padding:48px 24px;background:var(--surface);border:1px solid rgba(99,102,241,.15);border-radius:var(--radius-lg)}
+.cta-section h2{font-size:1.5rem;margin-bottom:12px}
+.cta-section p{color:var(--text-dim);margin-bottom:24px;max-width:520px;margin-left:auto;margin-right:auto}
+.cta-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.cta-bundle{background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;padding:12px 28px;border-radius:var(--radius);text-decoration:none;font-weight:600;font-size:.95rem}
+.cta-browse{background:var(--surface2);color:var(--text);padding:12px 28px;border-radius:var(--radius);text-decoration:none;font-weight:500;font-size:.95rem;border:1px solid rgba(99,102,241,.2)}
+footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1);text-align:center}
+.footer-links{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:16px}
+.footer-links a{color:var(--text-dim);text-decoration:none;font-size:.85rem}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{color:var(--text-dim);font-size:.8rem}
+@media(max-width:600px){
+  h1{font-size:1.5rem}
+  .nav-links a:not(.nav-badge){display:none}
+  .library-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo"><span>N</span> NexTool</a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/products/ultimate-bundle.html" class="nav-badge">Get Bundle</a>
+  </div>
+</nav>
+<main>
+  <h1><span class="gradient-text">Regex Pattern</span> Builder</h1>
+  <p class="subtitle">Build, test, and understand regular expressions with an interactive visual interface.</p>
+
+  <div class="regex-display">
+    <code id="regexPreview">/your pattern here/g</code>
+    <button class="btn btn-sm" onclick="copyRegex()">Copy</button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Pattern Input</div>
+    <div class="input-row">
+      <input type="text" id="patternInput" placeholder="Type or build your regex..." oninput="update()">
+      <button class="btn" onclick="clearPattern()">Clear</button>
+    </div>
+    <div class="section-title">Flags</div>
+    <div class="flags-row">
+      <button class="flag-btn active" data-flag="g" onclick="toggleFlag(this)">g <small>global</small></button>
+      <button class="flag-btn" data-flag="i" onclick="toggleFlag(this)">i <small>insensitive</small></button>
+      <button class="flag-btn" data-flag="m" onclick="toggleFlag(this)">m <small>multiline</small></button>
+      <button class="flag-btn" data-flag="s" onclick="toggleFlag(this)">s <small>dotall</small></button>
+      <button class="flag-btn" data-flag="u" onclick="toggleFlag(this)">u <small>unicode</small></button>
+    </div>
+    <div class="section-title">Quick Add Components</div>
+    <div class="components-grid">
+      <button class="comp-btn" onclick="addComp('.')">. any</button>
+      <button class="comp-btn" onclick="addComp('\\d')">\\d digit</button>
+      <button class="comp-btn" onclick="addComp('\\w')">\\w word</button>
+      <button class="comp-btn" onclick="addComp('\\s')">\\s space</button>
+      <button class="comp-btn" onclick="addComp('\\D')">\\D non-digit</button>
+      <button class="comp-btn" onclick="addComp('\\W')">\\W non-word</button>
+      <button class="comp-btn" onclick="addComp('\\S')">\\S non-space</button>
+      <button class="comp-btn" onclick="addComp('[abc]')">[abc] set</button>
+      <button class="comp-btn" onclick="addComp('[^abc]')">[^abc] negate</button>
+      <button class="comp-btn" onclick="addComp('[a-z]')">[a-z] range</button>
+      <button class="comp-btn" onclick="addComp('+')">+ one+</button>
+      <button class="comp-btn" onclick="addComp('*')">* zero+</button>
+      <button class="comp-btn" onclick="addComp('?')">? optional</button>
+      <button class="comp-btn" onclick="addComp('{n,m}')">{n,m} range</button>
+      <button class="comp-btn" onclick="addComp('()')">(group)</button>
+      <button class="comp-btn" onclick="addComp('(?:)')">(?:) non-cap</button>
+      <button class="comp-btn" onclick="addComp('^')">^ start</button>
+      <button class="comp-btn" onclick="addComp('$')">$ end</button>
+      <button class="comp-btn" onclick="addComp('\\b')">\\b boundary</button>
+      <button class="comp-btn" onclick="addComp('|')">| or</button>
+      <button class="comp-btn" onclick="addComp('(?=)')">(?=) lookahead</button>
+      <button class="comp-btn" onclick="addComp('(?!)')">(?!) neg look</button>
+      <button class="comp-btn" onclick="addComp('(?<=)')">(?<=) lookbehind</button>
+      <button class="comp-btn" onclick="addComp('(?<!)')">(?<!) neg lb</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Test String</div>
+    <textarea class="test-input" id="testInput" placeholder="Type or paste text to test your regex against..." oninput="update()">The quick brown fox jumps over the lazy dog. Contact: user@email.com or call 555-123-4567. Visit https://nextool.app for more info.</textarea>
+    <div class="match-count" id="matchCount"></div>
+    <div class="match-output" id="matchOutput"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Replace</div>
+    <div class="input-row">
+      <input type="text" id="replaceInput" placeholder="Replacement string ($1 for groups)..." oninput="update()">
+    </div>
+    <div class="replace-output" id="replaceOutput"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Pattern Explanation</div>
+    <div class="explanation" id="explanation">Enter a pattern above to see an explanation.</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Common Pattern Library</div>
+    <div class="library-grid" id="libraryGrid"></div>
+  </div>
+
+  <section class="cta-section">
+    <h2>Love this tool? Get the <span class="gradient-text">Ultimate Bundle</span></h2>
+    <p>Access 100+ premium developer tools, templates, and automations for a one-time payment of $39.</p>
+    <div class="cta-buttons">
+      <a href="/products/ultimate-bundle.html" class="cta-bundle">Get Bundle &mdash; $39</a>
+      <a href="/free-tools/" class="cta-browse">Browse 100+ Free Tools &rarr;</a>
+    </div>
+  </section>
+</main>
+<footer>
+  <div class="footer-links">
+    <a href="/">Home</a><a href="/free-tools/">Tools</a><a href="/blog/">Blog</a><a href="/products/">Products</a><a href="/#contact">Contact</a>
+  </div>
+  <div class="footer-copy">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const flags=new Set(['g']);
+const patterns=[
+  {name:'Email',pattern:'[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}'},
+  {name:'URL',pattern:'https?://[\\w.-]+(?:\\.[a-zA-Z]{2,})(?:/[^\\s]*)?'},
+  {name:'Phone (US)',pattern:'\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}'},
+  {name:'IPv4 Address',pattern:'\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b'},
+  {name:'Date (YYYY-MM-DD)',pattern:'\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])'},
+  {name:'Time (HH:MM)',pattern:'(?:[01]\\d|2[0-3]):[0-5]\\d'},
+  {name:'Hex Color',pattern:'#(?:[0-9a-fA-F]{3}){1,2}\\b'},
+  {name:'HTML Tag',pattern:'<([a-zA-Z][a-zA-Z0-9]*)\\b[^>]*>'},
+  {name:'UUID',pattern:'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'},
+  {name:'Credit Card',pattern:'\\b(?:\\d[ -]*?){13,19}\\b'},
+  {name:'ZIP Code (US)',pattern:'\\b\\d{5}(?:-\\d{4})?\\b'},
+  {name:'Username',pattern:'[a-zA-Z][a-zA-Z0-9_]{2,15}'}
+];
+
+function initLibrary(){
+  const grid=$('libraryGrid');
+  patterns.forEach(p=>{
+    const div=document.createElement('div');
+    div.className='library-item';
+    div.innerHTML='<div class="lib-name">'+p.name+'</div><div class="lib-pattern">'+escHtml(p.pattern)+'</div>';
+    div.addEventListener('click',()=>{$('patternInput').value=p.pattern;update();});
+    grid.appendChild(div);
+  });
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function toggleFlag(el){
+  const f=el.dataset.flag;
+  if(flags.has(f)){flags.delete(f);el.classList.remove('active');}
+  else{flags.add(f);el.classList.add('active');}
+  update();
+}
+
+function addComp(c){
+  const input=$('patternInput');
+  const start=input.selectionStart;
+  const end=input.selectionEnd;
+  const val=input.value;
+  input.value=val.slice(0,start)+c+val.slice(end);
+  input.focus();
+  input.selectionStart=input.selectionEnd=start+c.length;
+  update();
+}
+
+function clearPattern(){$('patternInput').value='';update();}
+
+function getFlags(){return Array.from(flags).sort().join('');}
+
+function update(){
+  const pattern=$('patternInput').value;
+  const flagStr=getFlags();
+  $('regexPreview').textContent='/'+pattern+'/'+flagStr;
+
+  const test=$('testInput').value;
+  const matchOut=$('matchOutput');
+  const countEl=$('matchCount');
+  const replaceOut=$('replaceOutput');
+  const replaceStr=$('replaceInput').value;
+
+  if(!pattern){
+    matchOut.innerHTML=escHtml(test);
+    countEl.textContent='';
+    replaceOut.textContent='';
+    $('explanation').innerHTML='Enter a pattern above to see an explanation.';
+    return;
+  }
+
+  try{
+    const regex=new RegExp(pattern,flagStr);
+    // Highlight matches
+    let count=0;
+    if(flagStr.includes('g')){
+      let result;const ranges=[];
+      regex.lastIndex=0;
+      while((result=regex.exec(test))!==null){
+        ranges.push({start:result.index,end:result.index+result[0].length});
+        count++;
+        if(result[0].length===0)regex.lastIndex++;
+        if(count>1000)break;
+      }
+      let html='';let last=0;
+      ranges.forEach(r=>{
+        html+=escHtml(test.slice(last,r.start))+'<mark>'+escHtml(test.slice(r.start,r.end))+'</mark>';
+        last=r.end;
+      });
+      html+=escHtml(test.slice(last));
+      matchOut.innerHTML=html||escHtml(test);
+    }else{
+      const m=regex.exec(test);
+      if(m){
+        count=1;
+        matchOut.innerHTML=escHtml(test.slice(0,m.index))+'<mark>'+escHtml(m[0])+'</mark>'+escHtml(test.slice(m.index+m[0].length));
+      }else{
+        matchOut.innerHTML=escHtml(test);
+      }
+    }
+    countEl.textContent=count+' match'+(count!==1?'es':'')+' found';
+    countEl.style.color=count>0?'#22c55e':'#ef4444';
+
+    // Replacement
+    if(replaceStr){
+      try{replaceOut.textContent=test.replace(regex,replaceStr);}
+      catch(e){replaceOut.textContent='Error: '+e.message;}
+    }else{replaceOut.textContent='';}
+
+    // Explanation
+    $('explanation').innerHTML=explainRegex(pattern);
+  }catch(e){
+    matchOut.innerHTML='<span style="color:#ef4444">Invalid regex: '+escHtml(e.message)+'</span>';
+    countEl.textContent='';
+    replaceOut.textContent='';
+    $('explanation').innerHTML='<span style="color:#ef4444">Cannot parse pattern.</span>';
+  }
+}
+
+function explainRegex(p){
+  const parts=[];
+  let i=0;
+  while(i<p.length){
+    const c=p[i];
+    if(c==='\\'){
+      const next=p[i+1]||'';
+      const map={d:'<strong>\\d</strong> &mdash; any digit (0-9)',D:'<strong>\\D</strong> &mdash; any non-digit',w:'<strong>\\w</strong> &mdash; any word character (a-z, A-Z, 0-9, _)',W:'<strong>\\W</strong> &mdash; any non-word character',s:'<strong>\\s</strong> &mdash; any whitespace',S:'<strong>\\S</strong> &mdash; any non-whitespace',b:'<strong>\\b</strong> &mdash; word boundary',n:'<strong>\\n</strong> &mdash; newline',t:'<strong>\\t</strong> &mdash; tab'};
+      parts.push(map[next]||'<strong>\\'+escHtml(next)+'</strong> &mdash; literal "'+escHtml(next)+'"');
+      i+=2;
+    }else if(c==='['){
+      const end=p.indexOf(']',i);
+      if(end>i){const set=p.slice(i,end+1);parts.push('<strong>'+escHtml(set)+'</strong> &mdash; character set');i=end+1;}
+      else{parts.push('<strong>[</strong> &mdash; literal bracket');i++;}
+    }else if(c==='('){
+      if(p.slice(i,i+3)==='(?:'){parts.push('<strong>(?:...)</strong> &mdash; non-capturing group');i+=3;}
+      else if(p.slice(i,i+3)==='(?='){parts.push('<strong>(?=...)</strong> &mdash; positive lookahead');i+=3;}
+      else if(p.slice(i,i+3)==='(?!'){parts.push('<strong>(?!...)</strong> &mdash; negative lookahead');i+=3;}
+      else if(p.slice(i,i+4)==='(?<='){parts.push('<strong>(?&lt;=...)</strong> &mdash; positive lookbehind');i+=4;}
+      else if(p.slice(i,i+4)==='(?<!'){parts.push('<strong>(?&lt;!...)</strong> &mdash; negative lookbehind');i+=4;}
+      else{parts.push('<strong>(</strong> &mdash; start capturing group');i++;}
+    }else if(c===')'){parts.push('<strong>)</strong> &mdash; end group');i++;}
+    else if(c==='^'){parts.push('<strong>^</strong> &mdash; start of string/line');i++;}
+    else if(c==='$'){parts.push('<strong>$</strong> &mdash; end of string/line');i++;}
+    else if(c==='.'){parts.push('<strong>.</strong> &mdash; any character (except newline)');i++;}
+    else if(c==='+'){parts.push('<strong>+</strong> &mdash; one or more of previous');i++;}
+    else if(c==='*'){parts.push('<strong>*</strong> &mdash; zero or more of previous');i++;}
+    else if(c==='?'){parts.push('<strong>?</strong> &mdash; optional (zero or one)');i++;}
+    else if(c==='|'){parts.push('<strong>|</strong> &mdash; OR / alternation');i++;}
+    else if(c==='{'){
+      const end=p.indexOf('}',i);
+      if(end>i){const q=p.slice(i,end+1);parts.push('<strong>'+escHtml(q)+'</strong> &mdash; quantifier');i=end+1;}
+      else{parts.push('<strong>{</strong> &mdash; literal');i++;}
+    }else{
+      let lit=c;i++;
+      while(i<p.length&&!/[\\[()^$.*+?|{]/.test(p[i])){lit+=p[i];i++;}
+      parts.push('<strong>"'+escHtml(lit)+'"</strong> &mdash; literal text');
+    }
+  }
+  return parts.length?parts.map((p,i)=>'<div style="margin:3px 0">'+(i+1)+'. '+p+'</div>').join(''):'Enter a pattern to see explanation.';
+}
+
+function copyRegex(){
+  const p=$('patternInput').value;
+  const f=getFlags();
+  navigator.clipboard.writeText('/'+p+'/'+f).then(()=>{
+    const btn=document.querySelector('.regex-display .btn');
+    btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);
+  });
+}
+
+initLibrary();
+update();
+</script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

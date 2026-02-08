@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Specificity Calculator — Free Tool | NexTool</title>
+    <meta name="description" content="Calculate and compare CSS selector specificity instantly. Visualize specificity breakdown, rank selectors, and learn CSS specificity rules.">
+    <meta property="og:title" content="CSS Specificity Calculator — NexTool">
+    <meta property="og:description" content="Free CSS specificity calculator with visual breakdown and bulk comparison. Understand selector weight at a glance.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/css-specificity-calculator.html">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"SoftwareApplication","name":"CSS Specificity Calculator","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Calculate and compare CSS selector specificity with visual breakdown."}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #050508; --surface: #111118; --surface2: #1a1a24;
+            --primary: #6366f1; --accent: #a855f7; --pink: #ec4899;
+            --text: #e2e8f0; --text-dim: #94a3b8;
+            --gradient: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --radius: 12px; --radius-lg: 20px;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+        a { color: var(--primary); text-decoration: none; } a:hover { color: var(--accent); }
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(5,5,8,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(99,102,241,0.1); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; }
+        .nav-logo-icon { width: 32px; height: 32px; background: var(--gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 20px; }
+        .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; } .nav-links a:hover { color: var(--text); }
+        .nav-badge { background: var(--gradient); color: #fff !important; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        main { max-width: 960px; margin: 0 auto; padding: 100px 20px 40px; }
+        h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: var(--text-dim); font-size: 1.05rem; margin-bottom: 32px; }
+        .card { background: var(--surface); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+        .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+        .input-area { width: 100%; background: var(--surface2); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius); padding: 14px 16px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; outline: none; resize: vertical; min-height: 48px; }
+        .input-area:focus { border-color: var(--primary); }
+        textarea.input-area { min-height: 120px; }
+        .btn { background: var(--gradient); color: #fff; padding: 10px 24px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; border: none; cursor: pointer; margin-top: 12px; }
+        .btn-sm { background: var(--surface2); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 6px 12px; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; }
+        .btn-sm:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .spec-result { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--surface2); border-radius: var(--radius); margin-bottom: 12px; flex-wrap: wrap; }
+        .spec-selector { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; flex: 1; min-width: 200px; word-break: break-all; }
+        .spec-badges { display: flex; gap: 6px; }
+        .spec-badge { padding: 6px 12px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 600; text-align: center; min-width: 42px; }
+        .spec-inline { background: rgba(239,68,68,0.15); color: #f87171; }
+        .spec-id { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .spec-class { background: rgba(168,85,247,0.15); color: #c084fc; }
+        .spec-element { background: rgba(236,72,153,0.15); color: #f472b6; }
+        .spec-bar-wrap { width: 100%; margin-top: 8px; }
+        .spec-bar { height: 6px; border-radius: 3px; display: flex; overflow: hidden; background: rgba(255,255,255,0.05); }
+        .spec-bar span { height: 100%; transition: width 0.3s; }
+        .bar-id { background: var(--primary); }
+        .bar-class { background: var(--accent); }
+        .bar-element { background: var(--pink); }
+
+        .rank-number { font-size: 1.1rem; font-weight: 800; color: var(--text-dim); width: 28px; text-align: right; flex-shrink: 0; }
+
+        .examples-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .example-item { background: var(--surface2); border-radius: var(--radius); padding: 14px; cursor: pointer; transition: border-color 0.2s; border: 1px solid transparent; }
+        .example-item:hover { border-color: var(--primary); }
+        .example-sel { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; margin-bottom: 4px; }
+        .example-spec { font-size: 0.75rem; color: var(--text-dim); }
+
+        .tip-box { background: rgba(99,102,241,0.08); border-left: 3px solid var(--primary); border-radius: 0 var(--radius) var(--radius) 0; padding: 16px; margin-top: 16px; font-size: 0.9rem; color: var(--text-dim); }
+
+        .cta-section { background: var(--surface); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius-lg); padding: 48px 32px; text-align: center; margin: 48px 0; }
+        .cta-section h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; }
+        .cta-section p { color: var(--text-dim); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn-primary { background: var(--gradient); color: #fff; padding: 12px 28px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; border: none; cursor: pointer; }
+        .btn-secondary { background: var(--surface2); color: var(--text); padding: 12px 28px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; border: 1px solid rgba(99,102,241,0.2); }
+        footer { border-top: 1px solid rgba(99,102,241,0.1); padding: 32px 20px; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+        .footer-links { display: flex; gap: 24px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-dim); }
+        @media (max-width: 600px) { h1 { font-size: 1.6rem; } .examples-grid { grid-template-columns: 1fr; } .spec-result { flex-direction: column; align-items: flex-start; } .nav-links a:not(.nav-badge) { display: none; } }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="nav-logo"><span class="nav-logo-icon">N</span> NexTool</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/free-tools/">Free Tools</a>
+            <a href="/products/ultimate-bundle.html" class="nav-badge">Get Bundle</a>
+        </div>
+    </nav>
+    <main>
+        <h1>CSS Specificity Calculator</h1>
+        <p class="subtitle">Calculate, visualize, and compare CSS selector specificity. Understand which styles win.</p>
+
+        <div class="card">
+            <h3>Single Selector</h3>
+            <input type="text" class="input-area" id="singleInput" placeholder="e.g. #header .nav > a.active:hover" value="#header .nav > a.active:hover">
+            <div id="singleResult" style="margin-top:16px;"></div>
+        </div>
+
+        <div class="card">
+            <h3>Bulk Mode — Paste Multiple Selectors (one per line)</h3>
+            <textarea class="input-area" id="bulkInput" placeholder="div p&#10;#main .content&#10;body > header nav a:hover&#10;.btn.btn-primary::before">.card
+#main .content
+body > header nav a:hover
+.btn.btn-primary::before
+div#app ul > li:first-child a
+* + p
+[data-theme="dark"] .text</textarea>
+            <button class="btn" id="bulkBtn">Calculate &amp; Rank</button>
+            <div id="bulkResults" style="margin-top:16px;"></div>
+        </div>
+
+        <div class="card">
+            <h3>Common Examples</h3>
+            <div class="examples-grid" id="examplesGrid"></div>
+            <div class="tip-box">
+                <strong>Specificity Rules:</strong> Inline styles (1,0,0,0) beat IDs (0,1,0,0), which beat classes/attributes/pseudo-classes (0,0,1,0), which beat elements/pseudo-elements (0,0,0,1). The universal selector (*) and combinators (+, >, ~) have zero specificity. <code>!important</code> overrides everything.
+            </div>
+        </div>
+
+        <section class="cta-section">
+            <h2>Unlock 100+ Premium Tools</h2>
+            <p>Get the NexTool Ultimate Bundle with premium tools, templates, and automations for just $39.</p>
+            <div class="cta-buttons">
+                <a href="/products/ultimate-bundle.html" class="btn-primary">Get Bundle — $39</a>
+                <a href="/free-tools/" class="btn-secondary">Browse 100+ Free Tools &rarr;</a>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="footer-links"><a href="/">Home</a><a href="/free-tools/">Tools</a><a href="/blog/">Blog</a><a href="/products/">Products</a><a href="/#contact">Contact</a></div>
+        <p>&copy; 2026 NexTool. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function calcSpecificity(selector) {
+            let s = selector.trim();
+            if (!s) return [0,0,0,0];
+            let inline = 0, ids = 0, classes = 0, elements = 0;
+            // Remove :not() wrapper but count contents
+            s = s.replace(/:not\(([^)]*)\)/g, (_, inner) => { const r = calcInner(inner); ids+=r[0]; classes+=r[1]; elements+=r[2]; return ''; });
+            const r = calcInner(s);
+            ids += r[0]; classes += r[1]; elements += r[2];
+            return [inline, ids, classes, elements];
+        }
+        function calcInner(s) {
+            let ids=0, classes=0, elements=0;
+            // Remove attribute selectors and count them
+            s = s.replace(/\[[^\]]*\]/g, () => { classes++; return ''; });
+            // IDs
+            const idMatches = s.match(/#[a-zA-Z_][\w-]*/g);
+            if (idMatches) ids += idMatches.length;
+            s = s.replace(/#[a-zA-Z_][\w-]*/g, '');
+            // Pseudo-elements (:: or single-colon legacy)
+            const pseudoEls = s.match(/::?(?:before|after|first-line|first-letter|marker|selection|placeholder|backdrop|cue|grammar-error|spelling-error)/g);
+            if (pseudoEls) elements += pseudoEls.length;
+            s = s.replace(/::?(?:before|after|first-line|first-letter|marker|selection|placeholder|backdrop|cue|grammar-error|spelling-error)/g, '');
+            // Pseudo-classes
+            const pseudoClasses = s.match(/:[\w-]+(?:\([^)]*\))?/g);
+            if (pseudoClasses) classes += pseudoClasses.length;
+            s = s.replace(/:[\w-]+(?:\([^)]*\))?/g, '');
+            // Classes
+            const clsMatches = s.match(/\.[a-zA-Z_][\w-]*/g);
+            if (clsMatches) classes += clsMatches.length;
+            s = s.replace(/\.[a-zA-Z_][\w-]*/g, '');
+            // Remove combinators and universal
+            s = s.replace(/[>+~*]/g, ' ');
+            // Elements
+            const elMatches = s.trim().split(/\s+/).filter(t => /^[a-zA-Z][\w-]*$/.test(t));
+            elements += elMatches.length;
+            return [ids, classes, elements];
+        }
+
+        function specToScore(sp) { return sp[0]*1000000 + sp[1]*10000 + sp[2]*100 + sp[3]; }
+
+        function renderResult(selector, sp, rank) {
+            const maxVal = Math.max(sp[1],sp[2],sp[3],1);
+            const total = (sp[1]+sp[2]+sp[3]) || 1;
+            return `<div class="spec-result">
+                ${rank !== undefined ? `<div class="rank-number">#${rank}</div>` : ''}
+                <div class="spec-selector">${escHTML(selector)}</div>
+                <div class="spec-badges">
+                    <div class="spec-badge spec-inline" title="Inline">${sp[0]}</div>
+                    <div class="spec-badge spec-id" title="IDs">${sp[1]}</div>
+                    <div class="spec-badge spec-class" title="Classes">${sp[2]}</div>
+                    <div class="spec-badge spec-element" title="Elements">${sp[3]}</div>
+                </div>
+                <div class="spec-bar-wrap"><div class="spec-bar">
+                    <span class="bar-id" style="width:${(sp[1]/total*100).toFixed(1)}%"></span>
+                    <span class="bar-class" style="width:${(sp[2]/total*100).toFixed(1)}%"></span>
+                    <span class="bar-element" style="width:${(sp[3]/total*100).toFixed(1)}%"></span>
+                </div></div>
+            </div>`;
+        }
+
+        function escHTML(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        const singleInput = document.getElementById('singleInput');
+        const singleResult = document.getElementById('singleResult');
+        singleInput.addEventListener('input', () => {
+            const sel = singleInput.value.trim();
+            if (!sel) { singleResult.innerHTML = ''; return; }
+            const sp = calcSpecificity(sel);
+            singleResult.innerHTML = renderResult(sel, sp);
+        });
+        singleInput.dispatchEvent(new Event('input'));
+
+        document.getElementById('bulkBtn').addEventListener('click', () => {
+            const lines = document.getElementById('bulkInput').value.split('\n').map(l=>l.trim()).filter(Boolean);
+            if (!lines.length) return;
+            const results = lines.map(sel => ({ sel, sp: calcSpecificity(sel), score: specToScore(calcSpecificity(sel)) }));
+            results.sort((a,b) => b.score - a.score);
+            document.getElementById('bulkResults').innerHTML = results.map((r,i) => renderResult(r.sel, r.sp, i+1)).join('');
+        });
+        document.getElementById('bulkBtn').click();
+
+        const examples = [
+            { sel: '*', desc: 'Universal' },
+            { sel: 'div', desc: 'Element' },
+            { sel: '.card', desc: 'Class' },
+            { sel: '#header', desc: 'ID' },
+            { sel: 'div.card > p', desc: 'Combined' },
+            { sel: '#main .nav a:hover', desc: 'Complex' },
+            { sel: 'body #content .post p::first-line', desc: 'Deep nesting' },
+            { sel: '[type="text"]:focus', desc: 'Attribute + pseudo' },
+        ];
+        const grid = document.getElementById('examplesGrid');
+        examples.forEach(ex => {
+            const sp = calcSpecificity(ex.sel);
+            const div = document.createElement('div');
+            div.className = 'example-item';
+            div.innerHTML = `<div class="example-sel">${escHTML(ex.sel)}</div><div class="example-spec">(${sp.join(', ')}) — ${ex.desc}</div>`;
+            div.addEventListener('click', () => { singleInput.value = ex.sel; singleInput.dispatchEvent(new Event('input')); window.scrollTo({top:0,behavior:'smooth'}); });
+            grid.appendChild(div);
+        });
+    </script>
+    <script src="/js/revenue.js" defer></script>
+    <script src="/js/lead-capture.js" defer></script>
+    <script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

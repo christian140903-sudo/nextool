@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVG Path Editor - Free Visual Tool | NexTool</title>
+<meta name="description" content="Visual SVG path editor with click-to-add points, drag Bezier handles, snap-to-grid, preset shapes, and optimized path export. Free online tool.">
+<meta property="og:title" content="SVG Path Editor - Free Visual Tool | NexTool">
+<meta property="og:description" content="Visual SVG path editor with click-to-add, drag curves, preset shapes, and optimized export.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/svg-path-editor.html">
+<meta property="og:image" content="https://nextool.app/og/svg-path-editor.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SVG Path Editor | NexTool">
+<meta name="twitter:description" content="Visual SVG path editor with click-to-add, drag curves, preset shapes, and optimized export.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"SVG Path Editor","description":"Visual SVG path editor with Bezier curve handles, snap-to-grid, preset shapes, and export.","url":"https://nextool.app/free-tools/svg-path-editor.html","applicationCategory":"DesignApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"NexTool","url":"https://nextool.app"}}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text-dim:#94a3b8;--radius:12px;--radius-lg:20px;--gradient:linear-gradient(135deg,#6366f1,#a855f7,#ec4899)}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(99,102,241,.15);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;font-weight:800;font-size:1.25rem;color:var(--text)}
+.nav-logo span{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.5rem;font-weight:900}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-badge{background:var(--gradient);color:#fff!important;padding:.4rem 1rem;border-radius:20px;font-size:.8rem;font-weight:700;transition:opacity .2s}
+.nav-badge:hover{opacity:.85}
+main{max-width:1100px;margin:0 auto;padding:84px 1.5rem 2rem}
+h1{font-size:2.5rem;font-weight:800;margin-bottom:.5rem;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:var(--text-dim);font-size:1.1rem;margin-bottom:2rem}
+.card{background:var(--surface);border:1px solid rgba(99,102,241,.1);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.card h2{font-size:1.2rem;font-weight:700;margin-bottom:1rem}
+.toolbar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.tool-btn{padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;border:1px solid rgba(99,102,241,.2);background:transparent;color:var(--text-dim);transition:all .2s;font-family:'Inter',sans-serif}
+.tool-btn:hover{border-color:var(--primary);color:var(--text)}
+.tool-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn{background:var(--gradient);color:#fff;border:none;padding:.7rem 1.5rem;border-radius:8px;font-family:'Inter',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-sm{padding:.5rem 1rem;font-size:.8rem}
+.btn-outline{background:transparent;border:1px solid var(--primary);color:var(--primary)}
+.btn-outline:hover{background:rgba(99,102,241,.1);opacity:1}
+.editor-layout{display:grid;grid-template-columns:1fr 300px;gap:1.5rem}
+.canvas-wrap{background:var(--surface);border:1px solid rgba(99,102,241,.1);border-radius:var(--radius);overflow:hidden;position:relative}
+.canvas-wrap svg{display:block;width:100%;cursor:crosshair}
+.sidebar{display:flex;flex-direction:column;gap:1rem}
+.field{display:flex;flex-direction:column;gap:.4rem}
+.field label{font-size:.8rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em}
+.field input,.field textarea,.field select{background:var(--surface2);border:1px solid rgba(99,102,241,.2);border-radius:8px;padding:.6rem 1rem;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;outline:none;transition:border-color .2s;resize:vertical}
+.field input:focus,.field textarea:focus{border-color:var(--primary)}
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem}
+.preset-btn{padding:.5rem;border-radius:8px;border:1px solid rgba(99,102,241,.15);background:var(--surface2);color:var(--text-dim);font-size:.72rem;font-weight:600;cursor:pointer;text-align:center;transition:all .2s}
+.preset-btn:hover{border-color:var(--primary);color:var(--text)}
+.info-row{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-dim);padding:.3rem 0;border-bottom:1px solid rgba(99,102,241,.05)}
+.info-row span:last-child{font-family:'JetBrains Mono',monospace;color:var(--primary)}
+.code-block{background:var(--surface2);border-radius:8px;padding:1rem;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--text-dim);overflow-x:auto;white-space:pre-wrap;word-break:break-all;position:relative;max-height:200px;overflow-y:auto}
+.code-block .copy-btn{position:absolute;top:.4rem;right:.4rem;background:var(--primary);color:#fff;border:none;padding:.25rem .6rem;border-radius:6px;font-size:.65rem;cursor:pointer;font-family:'Inter',sans-serif}
+.zoom-controls{display:flex;gap:.3rem;align-items:center}
+.zoom-controls button{width:32px;height:32px;border-radius:8px;border:1px solid rgba(99,102,241,.2);background:var(--surface2);color:var(--text);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.zoom-controls span{font-size:.8rem;min-width:50px;text-align:center;font-family:'JetBrains Mono',monospace}
+.cta-section{background:var(--surface);border:1px solid rgba(99,102,241,.15);border-radius:var(--radius-lg);padding:3rem 2rem;text-align:center;margin:3rem 0}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.5rem}
+.cta-section p{color:var(--text-dim);margin-bottom:1.5rem;max-width:500px;margin-left:auto;margin-right:auto}
+.cta-buttons{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+footer{border-top:1px solid rgba(99,102,241,.1);padding:2rem 1.5rem;text-align:center;max-width:1100px;margin:0 auto}
+.footer-links{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1rem}
+.footer-links a{color:var(--text-dim);text-decoration:none;font-size:.85rem;transition:color .2s}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{font-size:.8rem;color:var(--text-dim)}
+@media(max-width:600px){h1{font-size:1.7rem}.editor-layout{grid-template-columns:1fr}.sidebar{order:-1}nav{padding:0 1rem}.nav-links{gap:.8rem}.nav-links a:not(.nav-badge){display:none}}
+</style>
+</head>
+<body>
+<nav>
+<a href="/" class="nav-logo"><span>N</span> NexTool</a>
+<div class="nav-links">
+<a href="/">Home</a>
+<a href="/free-tools/">Tools</a>
+<a href="/products/ultimate-bundle.html" class="nav-badge">Get Bundle</a>
+</div>
+</nav>
+<main>
+<h1>SVG Path Editor</h1>
+<p class="subtitle">Click to place points, drag to create curves, or paste path data. Visual editing made simple.</p>
+
+<div class="toolbar">
+<button class="tool-btn active" id="toolMove" onclick="setTool('move')">Move</button>
+<button class="tool-btn" id="toolLine" onclick="setTool('line')">Line (L)</button>
+<button class="tool-btn" id="toolCurve" onclick="setTool('curve')">Curve (C)</button>
+<button class="tool-btn" id="toolQuad" onclick="setTool('quad')">Quad (Q)</button>
+<span style="border-left:1px solid rgba(99,102,241,.2);height:24px;margin:0 .3rem"></span>
+<label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-dim);cursor:pointer">
+<input type="checkbox" id="snapGrid" checked> Snap to Grid
+</label>
+<span style="flex:1"></span>
+<div class="zoom-controls">
+<button onclick="zoomOut()">-</button>
+<span id="zoomLabel">100%</span>
+<button onclick="zoomIn()">+</button>
+</div>
+<button class="tool-btn" onclick="undoAction()">Undo</button>
+<button class="tool-btn" onclick="clearCanvas()">Clear</button>
+</div>
+
+<div class="editor-layout">
+<div class="canvas-wrap">
+<svg id="svgCanvas" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+<path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(99,102,241,0.08)" stroke-width="0.5"/>
+</pattern>
+</defs>
+<rect width="500" height="400" fill="var(--surface2)"/>
+<rect width="500" height="400" fill="url(#grid)" id="gridRect"/>
+<path id="mainPath" d="" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="previewPath" d="" fill="none" stroke="rgba(168,85,247,0.4)" stroke-width="1" stroke-dasharray="4,4"/>
+<g id="controlPoints"></g>
+<g id="handles"></g>
+</svg>
+</div>
+
+<div class="sidebar">
+<div class="card" style="margin:0">
+<h2>Presets</h2>
+<div class="presets">
+<button class="preset-btn" onclick="loadPreset('circle')">Circle</button>
+<button class="preset-btn" onclick="loadPreset('star')">Star</button>
+<button class="preset-btn" onclick="loadPreset('heart')">Heart</button>
+<button class="preset-btn" onclick="loadPreset('arrow')">Arrow</button>
+<button class="preset-btn" onclick="loadPreset('wave')">Wave</button>
+<button class="preset-btn" onclick="loadPreset('check')">Check</button>
+</div>
+</div>
+
+<div class="card" style="margin:0">
+<h2>Path Data</h2>
+<div class="field">
+<textarea id="pathInput" rows="4" placeholder="Paste SVG path data here..." oninput="parsePathInput()"></textarea>
+</div>
+</div>
+
+<div class="card" style="margin:0">
+<h2>Info</h2>
+<div class="info-row"><span>Points</span><span id="infoPoints">0</span></div>
+<div class="info-row"><span>Commands</span><span id="infoCommands">0</span></div>
+<div class="info-row"><span>Path Length</span><span id="infoLength">0</span></div>
+<div class="info-row"><span>Closed</span><span id="infoClosed">No</span></div>
+</div>
+
+<button class="btn" onclick="closePath()" style="width:100%">Close Path (Z)</button>
+<button class="btn btn-outline" onclick="copyPath()" style="width:100%">Copy Path Data</button>
+</div>
+</div>
+
+<div class="card" style="margin-top:1.5rem">
+<h2>Export SVG</h2>
+<div class="code-block" id="exportCode"><button class="copy-btn" onclick="copySVG()">Copy</button></div>
+</div>
+
+<div class="cta-section">
+<h2>Unlock the Full Design Toolkit</h2>
+<p>Get 100+ premium tools, templates, and automation workflows in one bundle.</p>
+<div class="cta-buttons">
+<a href="/products/ultimate-bundle.html" class="btn">Get Ultimate Bundle - $39</a>
+<a href="/free-tools/" class="btn btn-outline">Browse 100+ Free Tools &rarr;</a>
+</div>
+</div>
+</main>
+<footer>
+<div class="footer-links">
+<a href="/">Home</a>
+<a href="/free-tools/">Tools</a>
+<a href="/blog/">Blog</a>
+<a href="/products/">Products</a>
+<a href="/#contact">Contact</a>
+</div>
+<div class="footer-copy">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+<script>
+const svg=document.getElementById('svgCanvas');
+const mainPath=document.getElementById('mainPath');
+const previewPath=document.getElementById('previewPath');
+const controlPts=document.getElementById('controlPoints');
+const handlesG=document.getElementById('handles');
+const pathInput=document.getElementById('pathInput');
+
+let tool='move',commands=[],history=[],zoom=1,dragging=null,dragStart=null;
+
+const PRESETS={
+circle:"M 250 100 C 332.84 100 400 167.16 400 250 C 400 332.84 332.84 400 250 400 C 167.16 400 100 332.84 100 250 C 100 167.16 167.16 100 250 100 Z",
+star:"M 250 80 L 285 180 L 390 180 L 305 240 L 335 340 L 250 280 L 165 340 L 195 240 L 110 180 L 215 180 Z",
+heart:"M 250 320 C 150 260 60 200 60 140 C 60 90 100 60 150 60 C 195 60 230 85 250 120 C 270 85 305 60 350 60 C 400 60 440 90 440 140 C 440 200 350 260 250 320 Z",
+arrow:"M 100 200 L 320 200 L 320 140 L 440 250 L 320 360 L 320 300 L 100 300 Z",
+wave:"M 50 200 C 100 100 150 100 200 200 C 250 300 300 300 350 200 C 400 100 450 100 500 200",
+check:"M 80 220 L 190 330 L 420 100"
+};
+
+function snap(v){return document.getElementById('snapGrid').checked?Math.round(v/20)*20:Math.round(v*10)/10;}
+
+function getSVGPoint(e){
+const rect=svg.getBoundingClientRect();
+const x=snap((e.clientX-rect.left)/rect.width*500/zoom);
+const y=snap((e.clientY-rect.top)/rect.height*400/zoom);
+return{x,y};
+}
+
+function setTool(t){
+tool=t;
+document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+const btn=document.getElementById('tool'+t.charAt(0).toUpperCase()+t.slice(1));
+if(btn)btn.classList.add('active');
+}
+
+function buildPathStr(){
+return commands.map(c=>{
+if(c.type==='M')return`M ${c.x} ${c.y}`;
+if(c.type==='L')return`L ${c.x} ${c.y}`;
+if(c.type==='C')return`C ${c.cx1} ${c.cy1} ${c.cx2} ${c.cy2} ${c.x} ${c.y}`;
+if(c.type==='Q')return`Q ${c.cx} ${c.cy} ${c.x} ${c.y}`;
+if(c.type==='Z')return'Z';
+return'';
+}).join(' ');
+}
+
+function render(){
+const d=buildPathStr();
+mainPath.setAttribute('d',d);
+pathInput.value=d;
+renderPoints();
+updateInfo();
+updateExport();
+}
+
+function renderPoints(){
+controlPts.innerHTML='';
+handlesG.innerHTML='';
+commands.forEach((c,i)=>{
+if(c.type==='Z')return;
+const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+circle.setAttribute('cx',c.x);circle.setAttribute('cy',c.y);
+circle.setAttribute('r','5');circle.setAttribute('fill','#6366f1');
+circle.setAttribute('stroke','#fff');circle.setAttribute('stroke-width','1.5');
+circle.style.cursor='grab';
+circle.dataset.idx=i;circle.dataset.pt='main';
+controlPts.appendChild(circle);
+if(c.type==='C'){
+[['cx1','cy1'],['cx2','cy2']].forEach(([kx,ky],hi)=>{
+const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+const ref=hi===0&&i>0?commands[i-1]:{x:c.cx2,y:c.cy2};
+line.setAttribute('x1',hi===0?(commands[i-1]?commands[i-1].x:0):c.x);
+line.setAttribute('y1',hi===0?(commands[i-1]?commands[i-1].y:0):c.y);
+line.setAttribute('x2',c[kx]);line.setAttribute('y2',c[ky]);
+line.setAttribute('stroke','rgba(168,85,247,0.5)');line.setAttribute('stroke-width','1');
+handlesG.appendChild(line);
+const h=document.createElementNS('http://www.w3.org/2000/svg','circle');
+h.setAttribute('cx',c[kx]);h.setAttribute('cy',c[ky]);
+h.setAttribute('r','4');h.setAttribute('fill','#a855f7');
+h.setAttribute('stroke','#fff');h.setAttribute('stroke-width','1');
+h.style.cursor='grab';h.dataset.idx=i;h.dataset.pt=kx;
+controlPts.appendChild(h);
+});
+}
+if(c.type==='Q'){
+const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+line.setAttribute('x1',i>0?commands[i-1].x:0);
+line.setAttribute('y1',i>0?commands[i-1].y:0);
+line.setAttribute('x2',c.cx);line.setAttribute('y2',c.cy);
+line.setAttribute('stroke','rgba(168,85,247,0.5)');line.setAttribute('stroke-width','1');
+handlesG.appendChild(line);
+const h=document.createElementNS('http://www.w3.org/2000/svg','circle');
+h.setAttribute('cx',c.cx);h.setAttribute('cy',c.cy);
+h.setAttribute('r','4');h.setAttribute('fill','#ec4899');
+h.setAttribute('stroke','#fff');h.setAttribute('stroke-width','1');
+h.style.cursor='grab';h.dataset.idx=i;h.dataset.pt='cx';
+controlPts.appendChild(h);
+}
+});
+}
+
+function updateInfo(){
+const d=mainPath.getAttribute('d');
+document.getElementById('infoPoints').textContent=commands.filter(c=>c.type!=='Z').length;
+document.getElementById('infoCommands').textContent=commands.length;
+document.getElementById('infoClosed').textContent=commands.some(c=>c.type==='Z')?'Yes':'No';
+try{
+const tmp=document.createElementNS('http://www.w3.org/2000/svg','path');
+tmp.setAttribute('d',d);
+document.getElementById('infoLength').textContent=Math.round(tmp.getTotalLength())+'px';
+}catch(e){document.getElementById('infoLength').textContent='--';}
+}
+
+function updateExport(){
+const d=buildPathStr();
+const code=`<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">\n  <path d="${d}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>\n</svg>`;
+document.getElementById('exportCode').innerHTML=`<button class="copy-btn" onclick="copySVG()">Copy</button>${code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}`;
+}
+
+svg.addEventListener('mousedown',e=>{
+const target=e.target;
+if(target.dataset&&target.dataset.idx!==undefined){
+dragging={idx:+target.dataset.idx,pt:target.dataset.pt};
+dragStart=getSVGPoint(e);
+saveHistory();
+e.preventDefault();
+return;
+}
+if(target===svg||target.id==='gridRect'||target===mainPath){
+const p=getSVGPoint(e);
+if(tool==='move')return;
+saveHistory();
+if(commands.length===0){commands.push({type:'M',x:p.x,y:p.y});}
+else if(tool==='line'){commands.push({type:'L',x:p.x,y:p.y});}
+else if(tool==='curve'){
+const prev=commands[commands.length-1];
+const mx=(prev.x+p.x)/2,my=(prev.y+p.y)/2;
+commands.push({type:'C',cx1:prev.x,cy1:prev.y-40,cx2:p.x,cy2:p.y-40,x:p.x,y:p.y});
+}else if(tool==='quad'){
+const prev=commands[commands.length-1];
+commands.push({type:'Q',cx:(prev.x+p.x)/2,cy:Math.min(prev.y,p.y)-40,x:p.x,y:p.y});
+}
+render();
+}
+});
+
+svg.addEventListener('mousemove',e=>{
+if(!dragging)return;
+const p=getSVGPoint(e);
+const c=commands[dragging.idx];
+if(dragging.pt==='main'){c.x=p.x;c.y=p.y;}
+else if(dragging.pt==='cx1'){c.cx1=p.x;c.cy1=p.y;}
+else if(dragging.pt==='cx2'){c.cx2=p.x;c.cy2=p.y;}
+else if(dragging.pt==='cx'){c.cx=p.x;c.cy=p.y;}
+render();
+});
+
+window.addEventListener('mouseup',()=>{dragging=null;});
+
+function closePath(){
+if(commands.length>0&&!commands.some(c=>c.type==='Z')){
+saveHistory();commands.push({type:'Z'});render();
+}
+}
+
+function clearCanvas(){saveHistory();commands=[];render();}
+function saveHistory(){history.push(JSON.stringify(commands));}
+function undoAction(){if(history.length){commands=JSON.parse(history.pop());render();}}
+
+function loadPreset(name){
+saveHistory();
+pathInput.value=PRESETS[name];
+parsePathInput();
+}
+
+function parsePathInput(){
+const d=pathInput.value.trim();
+if(!d){commands=[];render();return;}
+commands=[];
+const tokens=d.match(/[MLCSQTAHVZmlcsqtahvz][^MLCSQTAHVZmlcsqtahvz]*/g);
+if(!tokens){render();return;}
+let cx=0,cy=0;
+tokens.forEach(tok=>{
+const cmd=tok[0];
+const nums=(tok.slice(1).match(/-?[\d.]+/g)||[]).map(Number);
+if(cmd==='M'||cmd==='m'){const x=cmd==='M'?nums[0]:cx+nums[0],y=cmd==='M'?nums[1]:cy+nums[1];commands.push({type:'M',x,y});cx=x;cy=y;}
+else if(cmd==='L'||cmd==='l'){const x=cmd==='L'?nums[0]:cx+nums[0],y=cmd==='L'?nums[1]:cy+nums[1];commands.push({type:'L',x,y});cx=x;cy=y;}
+else if(cmd==='H'||cmd==='h'){const x=cmd==='H'?nums[0]:cx+nums[0];commands.push({type:'L',x,y:cy});cx=x;}
+else if(cmd==='V'||cmd==='v'){const y=cmd==='V'?nums[0]:cy+nums[0];commands.push({type:'L',x:cx,y});cy=y;}
+else if(cmd==='C'||cmd==='c'){
+for(let i=0;i<nums.length;i+=6){
+const abs=cmd==='C';
+const c={type:'C',cx1:abs?nums[i]:cx+nums[i],cy1:abs?nums[i+1]:cy+nums[i+1],cx2:abs?nums[i+2]:cx+nums[i+2],cy2:abs?nums[i+3]:cy+nums[i+3],x:abs?nums[i+4]:cx+nums[i+4],y:abs?nums[i+5]:cy+nums[i+5]};
+commands.push(c);cx=c.x;cy=c.y;
+}}
+else if(cmd==='Q'||cmd==='q'){
+const abs=cmd==='Q';
+const c={type:'Q',cx:abs?nums[0]:cx+nums[0],cy:abs?nums[1]:cy+nums[1],x:abs?nums[2]:cx+nums[2],y:abs?nums[3]:cy+nums[3]};
+commands.push(c);cx=c.x;cy=c.y;
+}
+else if(cmd==='Z'||cmd==='z'){commands.push({type:'Z'});}
+});
+render();
+}
+
+function zoomIn(){zoom=Math.min(3,zoom+0.25);svg.setAttribute('viewBox',`0 0 ${500/zoom} ${400/zoom}`);document.getElementById('zoomLabel').textContent=Math.round(zoom*100)+'%';}
+function zoomOut(){zoom=Math.max(0.5,zoom-0.25);svg.setAttribute('viewBox',`0 0 ${500/zoom} ${400/zoom}`);document.getElementById('zoomLabel').textContent=Math.round(zoom*100)+'%';}
+
+function copyPath(){navigator.clipboard.writeText(buildPathStr());}
+function copySVG(){
+const d=buildPathStr();
+const code=`<svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+navigator.clipboard.writeText(code);
+}
+
+render();
+</script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>
