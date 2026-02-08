@@ -666,15 +666,232 @@
     <!-- MAIN TOOL AREA -->
     <section class="tool-main fade-in">
         <div class="tool-card">
-            <!-- TOOL INTERFACE HERE -->
-            <div class="tool-card-placeholder">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                    <line x1="8" y1="21" x2="16" y2="21"/>
-                    <line x1="12" y1="17" x2="12" y2="21"/>
-                </svg>
-                <p>Tool interface will be built here.</p>
+            <!-- TOOL INTERFACE -->
+            <style>
+                /* Two Column Layout */
+                .bs-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+
+                /* Preview Area */
+                .bs-preview-area {
+                    display: flex; align-items: center; justify-content: center;
+                    min-height: 350px; border-radius: var(--radius-sm);
+                    background: #1a1a2e; position: relative; overflow: hidden;
+                    border: 1px solid var(--glass-border);
+                }
+                .bs-preview-box {
+                    width: 160px; height: 160px; background: #2d2d44;
+                    border-radius: 16px; transition: box-shadow 0.15s ease, background 0.3s, border-radius 0.3s;
+                }
+
+                /* Controls Panel */
+                .bs-controls { display: flex; flex-direction: column; gap: 1.25rem; }
+
+                /* Layers */
+                .bs-layers-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+                .bs-layers-title { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+                .bs-add-layer-btn {
+                    padding: 0.4rem 0.8rem; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3);
+                    border-radius: var(--radius-sm); color: var(--cyan); font-size: 0.8rem; font-weight: 600;
+                    cursor: pointer; transition: all 0.3s;
+                }
+                .bs-add-layer-btn:hover { background: rgba(6, 182, 212, 0.2); border-color: var(--cyan); }
+
+                .bs-layers-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+                .bs-layer-chip {
+                    padding: 0.35rem 0.75rem; background: var(--bg); border: 1px solid var(--glass-border);
+                    border-radius: 100px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
+                    cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.4rem;
+                }
+                .bs-layer-chip.active { background: rgba(6, 182, 212, 0.12); border-color: var(--cyan); color: var(--cyan); }
+                .bs-layer-chip:hover:not(.active) { border-color: rgba(6, 182, 212, 0.3); }
+                .bs-layer-remove {
+                    width: 16px; height: 16px; border-radius: 50%; background: rgba(239, 68, 68, 0.2);
+                    border: none; color: var(--red); font-size: 0.7rem; cursor: pointer; display: flex;
+                    align-items: center; justify-content: center; transition: background 0.2s; line-height: 1;
+                }
+                .bs-layer-remove:hover { background: rgba(239, 68, 68, 0.4); }
+
+                /* Control Groups */
+                .bs-control-group { }
+                .bs-control-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+                .bs-slider-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+                .bs-slider-name { font-size: 0.8rem; color: var(--text-muted); min-width: 55px; }
+                .bs-slider {
+                    flex: 1; -webkit-appearance: none; appearance: none; height: 6px;
+                    background: var(--bg); border-radius: 3px; outline: none;
+                }
+                .bs-slider::-webkit-slider-thumb {
+                    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+                    background: var(--cyan); cursor: pointer; border: 2px solid var(--surface);
+                    box-shadow: 0 0 6px rgba(6, 182, 212, 0.4);
+                }
+                .bs-num-input {
+                    width: 60px; padding: 0.35rem 0.5rem; background: var(--bg); border: 1px solid var(--glass-border);
+                    border-radius: var(--radius-sm); color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace;
+                    font-size: 0.8rem; text-align: center; outline: none;
+                }
+                .bs-num-input:focus { border-color: var(--cyan); }
+
+                /* Color + Inset Row */
+                .bs-color-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+                .bs-color-pick {
+                    width: 40px; height: 40px; border: 2px solid var(--glass-border); border-radius: var(--radius-sm);
+                    cursor: pointer; padding: 0; background: none; overflow: hidden;
+                }
+                .bs-color-pick::-webkit-color-swatch-wrapper { padding: 0; }
+                .bs-color-pick::-webkit-color-swatch { border: none; border-radius: 4px; }
+                .bs-inset-toggle {
+                    padding: 0.4rem 0.85rem; background: var(--bg); border: 1px solid var(--glass-border);
+                    border-radius: var(--radius-sm); color: var(--text-muted); font-size: 0.8rem; font-weight: 600;
+                    cursor: pointer; transition: all 0.3s;
+                }
+                .bs-inset-toggle.active { background: rgba(6, 182, 212, 0.12); border-color: var(--cyan); color: var(--cyan); }
+
+                /* Presets */
+                .bs-presets-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+                .bs-preset-btn {
+                    padding: 0.5rem 0.3rem; background: var(--bg); border: 1px solid var(--glass-border);
+                    border-radius: var(--radius-sm); color: var(--text-muted); font-size: 0.7rem; font-weight: 600;
+                    cursor: pointer; transition: all 0.3s; text-align: center;
+                }
+                .bs-preset-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(6, 182, 212, 0.06); }
+
+                /* Appearance Controls */
+                .bs-appearance-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+                .bs-appearance-item { display: flex; align-items: center; gap: 0.5rem; }
+                .bs-appearance-label { font-size: 0.75rem; color: var(--text-dim); }
+
+                /* CSS Output */
+                .bs-output-section { margin-top: 2rem; border-top: 1px solid var(--glass-border); padding-top: 1.5rem; }
+                .bs-output-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+                .bs-output-title { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+                .bs-copy-btn {
+                    padding: 0.4rem 1rem; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3);
+                    border-radius: var(--radius-sm); color: var(--cyan); font-size: 0.8rem; font-weight: 600;
+                    cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.4rem;
+                }
+                .bs-copy-btn:hover { background: rgba(6, 182, 212, 0.2); border-color: var(--cyan); }
+                .bs-copy-btn svg { width: 14px; height: 14px; }
+                .bs-code-block {
+                    background: var(--bg); border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+                    padding: 1.25rem; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.82rem;
+                    line-height: 1.8; overflow-x: auto; white-space: pre-wrap;
+                }
+                .bs-code-block .prop { color: var(--cyan); }
+                .bs-code-block .val { color: var(--amber); }
+
+                /* Toast */
+                .bs-toast {
+                    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
+                    background: var(--surface); border: 1px solid var(--cyan); border-radius: var(--radius-sm);
+                    padding: 0.85rem 1.5rem; color: var(--text); font-weight: 600; font-size: 0.9rem;
+                    z-index: 9999; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+                }
+                .bs-toast.show { transform: translateX(-50%) translateY(0); }
+
+                @media (max-width: 768px) {
+                    .bs-layout { grid-template-columns: 1fr; }
+                    .bs-preview-area { min-height: 250px; }
+                    .bs-presets-grid { grid-template-columns: repeat(3, 1fr); }
+                }
+            </style>
+
+            <!-- Layout -->
+            <div class="bs-layout">
+                <!-- Preview -->
+                <div class="bs-preview-area" id="previewArea">
+                    <div class="bs-preview-box" id="previewBox"></div>
+                </div>
+
+                <!-- Controls -->
+                <div class="bs-controls">
+                    <!-- Layers -->
+                    <div>
+                        <div class="bs-layers-header">
+                            <span class="bs-layers-title">Shadow Layers</span>
+                            <button class="bs-add-layer-btn" id="addLayerBtn">+ Add Layer</button>
+                        </div>
+                        <div class="bs-layers-list" id="layersList"></div>
+                    </div>
+
+                    <!-- Shadow Sliders -->
+                    <div class="bs-control-group" id="shadowControls">
+                        <div class="bs-slider-row">
+                            <span class="bs-slider-name">X</span>
+                            <input type="range" class="bs-slider" id="sliderX" min="-100" max="100" value="4">
+                            <input type="number" class="bs-num-input" id="numX" value="4">
+                        </div>
+                        <div class="bs-slider-row">
+                            <span class="bs-slider-name">Y</span>
+                            <input type="range" class="bs-slider" id="sliderY" min="-100" max="100" value="4">
+                            <input type="number" class="bs-num-input" id="numY" value="4">
+                        </div>
+                        <div class="bs-slider-row">
+                            <span class="bs-slider-name">Blur</span>
+                            <input type="range" class="bs-slider" id="sliderBlur" min="0" max="200" value="16">
+                            <input type="number" class="bs-num-input" id="numBlur" value="16">
+                        </div>
+                        <div class="bs-slider-row">
+                            <span class="bs-slider-name">Spread</span>
+                            <input type="range" class="bs-slider" id="sliderSpread" min="-100" max="100" value="0">
+                            <input type="number" class="bs-num-input" id="numSpread" value="0">
+                        </div>
+                        <div class="bs-slider-row">
+                            <span class="bs-slider-name">Opacity</span>
+                            <input type="range" class="bs-slider" id="sliderOpacity" min="0" max="100" value="25">
+                            <input type="number" class="bs-num-input" id="numOpacity" value="25">
+                        </div>
+                    </div>
+
+                    <!-- Color + Inset -->
+                    <div class="bs-color-row">
+                        <input type="color" class="bs-color-pick" id="shadowColor" value="#000000">
+                        <button class="bs-inset-toggle" id="insetToggle">Inset</button>
+                    </div>
+
+                    <!-- Presets -->
+                    <div>
+                        <div class="bs-control-label">Presets</div>
+                        <div class="bs-presets-grid" id="presetsGrid"></div>
+                    </div>
+
+                    <!-- Appearance -->
+                    <div>
+                        <div class="bs-control-label">Appearance</div>
+                        <div class="bs-appearance-row">
+                            <div class="bs-appearance-item">
+                                <span class="bs-appearance-label">BG</span>
+                                <input type="color" class="bs-color-pick" id="areaBgColor" value="#1a1a2e" style="width:32px;height:32px">
+                            </div>
+                            <div class="bs-appearance-item">
+                                <span class="bs-appearance-label">Box</span>
+                                <input type="color" class="bs-color-pick" id="boxColor" value="#2d2d44" style="width:32px;height:32px">
+                            </div>
+                            <div class="bs-appearance-item">
+                                <span class="bs-appearance-label">Radius</span>
+                                <input type="range" class="bs-slider" id="boxRadius" min="0" max="80" value="16" style="width:80px">
+                                <span style="font-size:0.8rem;color:var(--text-dim)" id="boxRadiusVal">16px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- CSS Output -->
+            <div class="bs-output-section">
+                <div class="bs-output-header">
+                    <span class="bs-output-title">CSS Output</span>
+                    <button class="bs-copy-btn" id="copyBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                        Copy CSS
+                    </button>
+                </div>
+                <div class="bs-code-block" id="codeOutput"></div>
+            </div>
+
+            <!-- Toast -->
+            <div class="bs-toast" id="bsToast"></div>
             <!-- END TOOL INTERFACE -->
         </div>
     </section>
@@ -793,31 +1010,24 @@
     (function() {
         'use strict';
 
-        // ---- Sticky nav scroll behavior ----
-        const nav = document.getElementById('mainNav');
-        let lastScroll = 0;
-        window.addEventListener('scroll', () => {
-            const current = window.scrollY;
-            if (current > 60) {
-                nav.classList.add('scrolled');
-            } else {
-                nav.classList.remove('scrolled');
-            }
-            lastScroll = current;
+        // ---- Sticky nav ----
+        var nav = document.getElementById('mainNav');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 60) { nav.classList.add('scrolled'); } else { nav.classList.remove('scrolled'); }
         }, { passive: true });
 
-        // ---- Hamburger menu ----
-        const hamburger = document.getElementById('navHamburger');
-        const mobileMenu = document.getElementById('mobileMenu');
+        // ---- Hamburger ----
+        var hamburger = document.getElementById('navHamburger');
+        var mobileMenu = document.getElementById('mobileMenu');
         if (hamburger && mobileMenu) {
-            hamburger.addEventListener('click', () => {
-                const isOpen = hamburger.classList.toggle('open');
+            hamburger.addEventListener('click', function() {
+                var isOpen = hamburger.classList.toggle('open');
                 mobileMenu.classList.toggle('open');
                 hamburger.setAttribute('aria-expanded', isOpen);
                 document.body.style.overflow = isOpen ? 'hidden' : '';
             });
-            mobileMenu.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', () => {
+            mobileMenu.querySelectorAll('a').forEach(function(link) {
+                link.addEventListener('click', function() {
                     hamburger.classList.remove('open');
                     mobileMenu.classList.remove('open');
                     hamburger.setAttribute('aria-expanded', 'false');
@@ -826,30 +1036,268 @@
             });
         }
 
-        // ---- Fade-in on scroll ----
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target);
-                }
+        // ---- Fade-in ----
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
             });
         }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
 
-        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-        // ---- Populate tags ----
-        const tagsContainer = document.querySelector('.tool-tags');
+        // ---- Tags ----
+        var tagsContainer = document.querySelector('.tool-tags');
         if (tagsContainer) {
-            const tags = 'CSS,Shadow,Design'.split(',').map(t => t.trim()).filter(Boolean);
-            tags.forEach(tag => {
-                const span = document.createElement('span');
+            'CSS,Shadow,Design'.split(',').forEach(function(tag) {
+                var span = document.createElement('span');
                 span.className = 'tool-tag';
-                span.textContent = tag;
+                span.textContent = tag.trim();
                 tagsContainer.appendChild(span);
             });
         }
+
+        // ====== BOX SHADOW GENERATOR ======
+
+        // Default layer
+        var layers = [
+            { x: 4, y: 4, blur: 16, spread: 0, color: '#000000', opacity: 25, inset: false }
+        ];
+        var activeLayer = 0;
+
+        // Presets
+        var PRESETS = [
+            { name: 'Subtle', layers: [{ x: 0, y: 1, blur: 3, spread: 0, color: '#000000', opacity: 12, inset: false }] },
+            { name: 'Medium', layers: [{ x: 0, y: 4, blur: 16, spread: 0, color: '#000000', opacity: 20, inset: false }] },
+            { name: 'Large', layers: [{ x: 0, y: 10, blur: 40, spread: -8, color: '#000000', opacity: 30, inset: false }] },
+            { name: 'Sharp', layers: [{ x: 6, y: 6, blur: 0, spread: 0, color: '#000000', opacity: 30, inset: false }] },
+            { name: 'Soft', layers: [{ x: 0, y: 20, blur: 60, spread: -15, color: '#000000', opacity: 25, inset: false }] },
+            { name: 'Neon Blue', layers: [{ x: 0, y: 0, blur: 20, spread: 2, color: '#3b82f6', opacity: 50, inset: false }] },
+            { name: 'Neon Pink', layers: [{ x: 0, y: 0, blur: 20, spread: 2, color: '#ec4899', opacity: 50, inset: false }] },
+            { name: 'Retro', layers: [{ x: 8, y: 8, blur: 0, spread: 0, color: '#000000', opacity: 100, inset: false }] },
+            { name: 'Emboss', layers: [
+                { x: -2, y: -2, blur: 6, spread: 0, color: '#ffffff', opacity: 8, inset: false },
+                { x: 2, y: 2, blur: 6, spread: 0, color: '#000000', opacity: 20, inset: false }
+            ]},
+            { name: 'Layered', layers: [
+                { x: 0, y: 1, blur: 2, spread: 0, color: '#000000', opacity: 10, inset: false },
+                { x: 0, y: 4, blur: 8, spread: 0, color: '#000000', opacity: 8, inset: false },
+                { x: 0, y: 16, blur: 32, spread: 0, color: '#000000', opacity: 6, inset: false }
+            ]},
+            { name: 'Inner', layers: [{ x: 0, y: 4, blur: 12, spread: 0, color: '#000000', opacity: 40, inset: true }] },
+            { name: 'Float', layers: [{ x: 0, y: 30, blur: 60, spread: -20, color: '#000000', opacity: 35, inset: false }] },
+            { name: 'Glass', layers: [
+                { x: 0, y: 4, blur: 30, spread: 0, color: '#ffffff', opacity: 6, inset: true },
+                { x: 0, y: 8, blur: 32, spread: 0, color: '#000000', opacity: 18, inset: false }
+            ]},
+            { name: 'Dreamy', layers: [
+                { x: 0, y: 0, blur: 40, spread: 8, color: '#6366f1', opacity: 20, inset: false },
+                { x: 0, y: 0, blur: 80, spread: 16, color: '#a855f7', opacity: 12, inset: false }
+            ]}
+        ];
+
+        // DOM elements
+        var previewBox = document.getElementById('previewBox');
+        var previewArea = document.getElementById('previewArea');
+        var layersList = document.getElementById('layersList');
+        var codeOutput = document.getElementById('codeOutput');
+
+        var sliderX = document.getElementById('sliderX');
+        var sliderY = document.getElementById('sliderY');
+        var sliderBlur = document.getElementById('sliderBlur');
+        var sliderSpread = document.getElementById('sliderSpread');
+        var sliderOpacity = document.getElementById('sliderOpacity');
+        var numX = document.getElementById('numX');
+        var numY = document.getElementById('numY');
+        var numBlur = document.getElementById('numBlur');
+        var numSpread = document.getElementById('numSpread');
+        var numOpacity = document.getElementById('numOpacity');
+        var shadowColor = document.getElementById('shadowColor');
+        var insetToggle = document.getElementById('insetToggle');
+
+        // Helper: hex to rgba
+        function hexToRgba(hex, opacity) {
+            var r = parseInt(hex.slice(1, 3), 16);
+            var g = parseInt(hex.slice(3, 5), 16);
+            var b = parseInt(hex.slice(5, 7), 16);
+            return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + (opacity / 100).toFixed(2) + ')';
+        }
+
+        // Sync slider <-> number input
+        function syncPair(slider, num, prop) {
+            slider.addEventListener('input', function() {
+                num.value = slider.value;
+                layers[activeLayer][prop] = parseInt(slider.value);
+                update();
+            });
+            num.addEventListener('input', function() {
+                slider.value = num.value;
+                layers[activeLayer][prop] = parseInt(num.value) || 0;
+                update();
+            });
+        }
+        syncPair(sliderX, numX, 'x');
+        syncPair(sliderY, numY, 'y');
+        syncPair(sliderBlur, numBlur, 'blur');
+        syncPair(sliderSpread, numSpread, 'spread');
+        syncPair(sliderOpacity, numOpacity, 'opacity');
+
+        // Color
+        shadowColor.addEventListener('input', function() {
+            layers[activeLayer].color = shadowColor.value;
+            update();
+        });
+
+        // Inset toggle
+        insetToggle.addEventListener('click', function() {
+            layers[activeLayer].inset = !layers[activeLayer].inset;
+            insetToggle.classList.toggle('active', layers[activeLayer].inset);
+            update();
+        });
+
+        // Add layer
+        document.getElementById('addLayerBtn').addEventListener('click', function() {
+            layers.push({ x: 0, y: 4, blur: 12, spread: 0, color: '#000000', opacity: 20, inset: false });
+            activeLayer = layers.length - 1;
+            update();
+        });
+
+        // Render layers list
+        function renderLayers() {
+            layersList.innerHTML = '';
+            layers.forEach(function(layer, i) {
+                var chip = document.createElement('div');
+                chip.className = 'bs-layer-chip' + (i === activeLayer ? ' active' : '');
+                chip.innerHTML = 'Layer ' + (i + 1);
+
+                chip.addEventListener('click', function() {
+                    activeLayer = i;
+                    loadLayerToControls();
+                    renderLayers();
+                });
+
+                if (layers.length > 1) {
+                    var rm = document.createElement('button');
+                    rm.className = 'bs-layer-remove';
+                    rm.innerHTML = '&times;';
+                    rm.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        layers.splice(i, 1);
+                        if (activeLayer >= layers.length) activeLayer = layers.length - 1;
+                        loadLayerToControls();
+                        update();
+                    });
+                    chip.appendChild(rm);
+                }
+
+                layersList.appendChild(chip);
+            });
+        }
+
+        // Load active layer values into controls
+        function loadLayerToControls() {
+            var l = layers[activeLayer];
+            sliderX.value = numX.value = l.x;
+            sliderY.value = numY.value = l.y;
+            sliderBlur.value = numBlur.value = l.blur;
+            sliderSpread.value = numSpread.value = l.spread;
+            sliderOpacity.value = numOpacity.value = l.opacity;
+            shadowColor.value = l.color;
+            insetToggle.classList.toggle('active', l.inset);
+        }
+
+        // Build CSS string
+        function buildCSS() {
+            return layers.map(function(l) {
+                var rgba = hexToRgba(l.color, l.opacity);
+                return (l.inset ? 'inset ' : '') + l.x + 'px ' + l.y + 'px ' + l.blur + 'px ' + l.spread + 'px ' + rgba;
+            }).join(',\n    ');
+        }
+
+        // Update preview + code
+        function update() {
+            renderLayers();
+            var shadow = buildCSS();
+            previewBox.style.boxShadow = shadow.replace(/\n\s*/g, ' ');
+
+            // Syntax highlighted output
+            var lines = layers.map(function(l) {
+                var rgba = hexToRgba(l.color, l.opacity);
+                return '    ' + (l.inset ? '<span class="val">inset</span> ' : '') +
+                    '<span class="val">' + l.x + 'px ' + l.y + 'px ' + l.blur + 'px ' + l.spread + 'px</span> ' +
+                    '<span class="val">' + rgba + '</span>';
+            });
+            codeOutput.innerHTML = '<span class="prop">box-shadow</span>:\n' + lines.join(',\n') + ';';
+        }
+
+        // Presets
+        var presetsGrid = document.getElementById('presetsGrid');
+        PRESETS.forEach(function(preset) {
+            var btn = document.createElement('button');
+            btn.className = 'bs-preset-btn';
+            btn.textContent = preset.name;
+            btn.addEventListener('click', function() {
+                layers = preset.layers.map(function(l) {
+                    return { x: l.x, y: l.y, blur: l.blur, spread: l.spread, color: l.color, opacity: l.opacity, inset: l.inset };
+                });
+                activeLayer = 0;
+                loadLayerToControls();
+                update();
+                showToast('Preset: ' + preset.name);
+            });
+            presetsGrid.appendChild(btn);
+        });
+
+        // Appearance controls
+        document.getElementById('areaBgColor').addEventListener('input', function() {
+            previewArea.style.background = this.value;
+        });
+        document.getElementById('boxColor').addEventListener('input', function() {
+            previewBox.style.background = this.value;
+        });
+        document.getElementById('boxRadius').addEventListener('input', function() {
+            previewBox.style.borderRadius = this.value + 'px';
+            document.getElementById('boxRadiusVal').textContent = this.value + 'px';
+        });
+
+        // Copy CSS
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            var css = 'box-shadow:\n    ' + buildCSS() + ';';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(css).then(function() { showToast('CSS copied!'); }).catch(function() { fallbackCopy(css); });
+            } else {
+                fallbackCopy(css);
+            }
+        });
+
+        function fallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); showToast('CSS copied!'); }
+            catch(e) { showToast('Copy failed'); }
+            document.body.removeChild(ta);
+        }
+
+        // Toast
+        var toastTimer;
+        function showToast(msg) {
+            var toast = document.getElementById('bsToast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function() { toast.classList.remove('show'); }, 2500);
+        }
+
+        // Init
+        loadLayerToControls();
+        update();
+
     })();
     </script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
 </body>
 </html>
