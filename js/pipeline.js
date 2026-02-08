@@ -43,6 +43,15 @@ var R=[
 ['json-path-finder','JSON Path Finder','#jsonInput',null,'d'],
 ['css-unit-converter','CSS Unit Converter',null,null,'d'],
 ['color-converter','Color Converter',null,null,'d'],
+['json-viewer','JSON Viewer','#jsonInput','#treeWrap','d'],
+['html-formatter','HTML Formatter','#input','#output','d'],
+['javascript-formatter','JS Formatter','#input','#output','d'],
+['yaml-formatter','YAML Formatter','#input','#output','d'],
+['csv-formatter','CSV Formatter','#input',null,'c'],
+['morse-code','Morse Code','#inputArea','#outputArea','c'],
+['character-counter','Character Counter','#textInput',null,'t'],
+['notepad','Notepad','#editor',null,'t'],
+['random-generator','Random Generator',null,'#numResults','u'],
 ];
 
 var CAT_NAMES={d:'Developer',c:'Converter',t:'Text',u:'Utility'};
