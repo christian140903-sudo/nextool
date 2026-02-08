@@ -52,6 +52,11 @@ textarea.test-input:focus{border-color:var(--primary)}
 .match-output{background:var(--surface2);border-radius:var(--radius);padding:14px;font-family:'JetBrains Mono',monospace;font-size:.88rem;min-height:50px;white-space:pre-wrap;line-height:1.7}
 .match-output mark{background:rgba(168,85,247,.3);color:#e9d5ff;border-radius:3px;padding:1px 2px}
 .match-count{font-size:.85rem;color:var(--text-dim);margin-bottom:8px}
+.groups-box{background:var(--surface2);border-radius:var(--radius);padding:14px;font-size:.85rem;line-height:1.6;margin-top:12px}
+.groups-box .group-item{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid rgba(99,102,241,.06)}
+.groups-box .group-item:last-child{border-bottom:none}
+.groups-box .group-label{color:var(--accent);font-weight:600;min-width:90px;font-family:'JetBrains Mono',monospace;font-size:.82rem}
+.groups-box .group-value{color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem}
 .explanation{background:var(--surface2);border-radius:var(--radius);padding:14px;font-size:.9rem;line-height:1.7;color:var(--text-dim)}
 .explanation strong{color:var(--text)}
 .library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
@@ -60,6 +65,8 @@ textarea.test-input:focus{border-color:var(--primary)}
 .library-item .lib-name{font-weight:600;font-size:.85rem;margin-bottom:2px}
 .library-item .lib-pattern{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--pink);word-break:break-all}
 .replace-output{background:var(--surface2);border-radius:var(--radius);padding:14px;font-family:'JetBrains Mono',monospace;font-size:.88rem;min-height:40px;white-space:pre-wrap;color:var(--green)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:var(--radius);font-weight:600;font-size:.9rem;opacity:0;transition:all .3s ease;z-index:200;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .cta-section{margin-top:60px;text-align:center;padding:48px 24px;background:var(--surface);border:1px solid rgba(99,102,241,.15);border-radius:var(--radius-lg)}
 .cta-section h2{font-size:1.5rem;margin-bottom:12px}
 .cta-section p{color:var(--text-dim);margin-bottom:24px;max-width:520px;margin-left:auto;margin-right:auto}
@@ -75,6 +82,7 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
   h1{font-size:1.5rem}
   .nav-links a:not(.nav-badge){display:none}
   .library-grid{grid-template-columns:1fr}
+  .groups-box .group-item{flex-direction:column;gap:2px}
 }
 </style>
 </head>
@@ -144,6 +152,10 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
     <textarea class="test-input" id="testInput" placeholder="Type or paste text to test your regex against..." oninput="update()">The quick brown fox jumps over the lazy dog. Contact: user@email.com or call 555-123-4567. Visit https://nextool.app for more info.</textarea>
     <div class="match-count" id="matchCount"></div>
     <div class="match-output" id="matchOutput"></div>
+    <div class="groups-box" id="groupsBox" style="display:none">
+      <div style="font-weight:600;margin-bottom:6px;color:var(--accent)">Captured Groups</div>
+      <div id="groupsList"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -169,7 +181,7 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
     <p>Access 100+ premium developer tools, templates, and automations for a one-time payment of $39.</p>
     <div class="cta-buttons">
       <a href="/products/ultimate-bundle.html" class="cta-bundle">Get Bundle &mdash; $39</a>
-      <a href="/free-tools/" class="cta-browse">Browse 100+ Free Tools &rarr;</a>
+      <a href="/free-tools/" class="cta-browse">Browse 125+ Free Tools &rarr;</a>
     </div>
   </section>
 </main>
@@ -179,178 +191,443 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
   </div>
   <div class="footer-copy">&copy; 2026 NexTool. All rights reserved.</div>
 </footer>
+<div class="toast" id="toast">Copied!</div>
 
 <script>
-const $=id=>document.getElementById(id);
-const flags=new Set(['g']);
-const patterns=[
-  {name:'Email',pattern:'[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}'},
-  {name:'URL',pattern:'https?://[\\w.-]+(?:\\.[a-zA-Z]{2,})(?:/[^\\s]*)?'},
-  {name:'Phone (US)',pattern:'\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}'},
-  {name:'IPv4 Address',pattern:'\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b'},
-  {name:'Date (YYYY-MM-DD)',pattern:'\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])'},
-  {name:'Time (HH:MM)',pattern:'(?:[01]\\d|2[0-3]):[0-5]\\d'},
-  {name:'Hex Color',pattern:'#(?:[0-9a-fA-F]{3}){1,2}\\b'},
-  {name:'HTML Tag',pattern:'<([a-zA-Z][a-zA-Z0-9]*)\\b[^>]*>'},
-  {name:'UUID',pattern:'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'},
-  {name:'Credit Card',pattern:'\\b(?:\\d[ -]*?){13,19}\\b'},
-  {name:'ZIP Code (US)',pattern:'\\b\\d{5}(?:-\\d{4})?\\b'},
-  {name:'Username',pattern:'[a-zA-Z][a-zA-Z0-9_]{2,15}'}
+/* ===== DOM HELPER ===== */
+var $ = function(id) {
+  return document.getElementById(id);
+};
+
+/* ===== STATE ===== */
+var flags = new Set(['g']);
+
+/* ===== TOAST NOTIFICATIONS ===== */
+function showToast(message) {
+  var toastEl = $('toast');
+  toastEl.textContent = message;
+  toastEl.classList.add('show');
+  setTimeout(function() {
+    toastEl.classList.remove('show');
+  }, 1800);
+}
+
+/* ===== PATTERN LIBRARY: 16 common regex patterns ===== */
+var patterns = [
+  {
+    name: 'Email Address',
+    pattern: '[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}'
+  },
+  {
+    name: 'URL (http/https)',
+    pattern: 'https?://[\\w.-]+(?:\\.[a-zA-Z]{2,})(?:/[^\\s]*)?'
+  },
+  {
+    name: 'Phone (US)',
+    pattern: '\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}'
+  },
+  {
+    name: 'IPv4 Address',
+    pattern: '\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b'
+  },
+  {
+    name: 'Date (YYYY-MM-DD)',
+    pattern: '\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])'
+  },
+  {
+    name: 'Time (HH:MM)',
+    pattern: '(?:[01]\\d|2[0-3]):[0-5]\\d'
+  },
+  {
+    name: 'Hex Color',
+    pattern: '#(?:[0-9a-fA-F]{3}){1,2}\\b'
+  },
+  {
+    name: 'HTML Tag',
+    pattern: '<([a-zA-Z][a-zA-Z0-9]*)\\b[^>]*>'
+  },
+  {
+    name: 'UUID',
+    pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  },
+  {
+    name: 'Credit Card',
+    pattern: '\\b(?:\\d[ -]*?){13,19}\\b'
+  },
+  {
+    name: 'ZIP Code (US)',
+    pattern: '\\b\\d{5}(?:-\\d{4})?\\b'
+  },
+  {
+    name: 'Username',
+    pattern: '[a-zA-Z][a-zA-Z0-9_]{2,15}'
+  },
+  {
+    name: 'Strong Password',
+    pattern: '(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}'
+  },
+  {
+    name: 'Slug (URL path)',
+    pattern: '[a-z0-9]+(?:-[a-z0-9]+)*'
+  },
+  {
+    name: 'CSS Class Selector',
+    pattern: '\\.[a-zA-Z_][\\w-]*'
+  },
+  {
+    name: 'JSON Key',
+    pattern: '"([^"]+)"\\s*:'
+  }
 ];
 
-function initLibrary(){
-  const grid=$('libraryGrid');
-  patterns.forEach(p=>{
-    const div=document.createElement('div');
-    div.className='library-item';
-    div.innerHTML='<div class="lib-name">'+p.name+'</div><div class="lib-pattern">'+escHtml(p.pattern)+'</div>';
-    div.addEventListener('click',()=>{$('patternInput').value=p.pattern;update();});
+/* ===== INITIALIZE PATTERN LIBRARY GRID ===== */
+function initLibrary() {
+  var grid = $('libraryGrid');
+  patterns.forEach(function(p) {
+    var div = document.createElement('div');
+    div.className = 'library-item';
+    div.innerHTML = '<div class="lib-name">' + p.name + '</div>'
+      + '<div class="lib-pattern">' + escHtml(p.pattern) + '</div>';
+    div.addEventListener('click', function() {
+      $('patternInput').value = p.pattern;
+      update();
+      showToast('Loaded: ' + p.name);
+    });
     grid.appendChild(div);
   });
 }
 
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+/* ===== HTML ESCAPING ===== */
+function escHtml(s) {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
 
-function toggleFlag(el){
-  const f=el.dataset.flag;
-  if(flags.has(f)){flags.delete(f);el.classList.remove('active');}
-  else{flags.add(f);el.classList.add('active');}
+/* ===== FLAG TOGGLE ===== */
+function toggleFlag(el) {
+  var f = el.dataset.flag;
+  if (flags.has(f)) {
+    flags.delete(f);
+    el.classList.remove('active');
+  } else {
+    flags.add(f);
+    el.classList.add('active');
+  }
   update();
 }
 
-function addComp(c){
-  const input=$('patternInput');
-  const start=input.selectionStart;
-  const end=input.selectionEnd;
-  const val=input.value;
-  input.value=val.slice(0,start)+c+val.slice(end);
+/* ===== ADD PATTERN COMPONENT ===== */
+function addComp(c) {
+  var input = $('patternInput');
+  var start = input.selectionStart;
+  var end = input.selectionEnd;
+  var val = input.value;
+  input.value = val.slice(0, start) + c + val.slice(end);
   input.focus();
-  input.selectionStart=input.selectionEnd=start+c.length;
+  input.selectionStart = start + c.length;
+  input.selectionEnd = start + c.length;
   update();
 }
 
-function clearPattern(){$('patternInput').value='';update();}
+/* ===== CLEAR PATTERN ===== */
+function clearPattern() {
+  $('patternInput').value = '';
+  update();
+}
 
-function getFlags(){return Array.from(flags).sort().join('');}
+/* ===== GET SORTED FLAGS STRING ===== */
+function getFlags() {
+  return Array.from(flags).sort().join('');
+}
 
-function update(){
-  const pattern=$('patternInput').value;
-  const flagStr=getFlags();
-  $('regexPreview').textContent='/'+pattern+'/'+flagStr;
+/* ===== MAIN UPDATE FUNCTION ===== */
+function update() {
+  var pattern = $('patternInput').value;
+  var flagStr = getFlags();
 
-  const test=$('testInput').value;
-  const matchOut=$('matchOutput');
-  const countEl=$('matchCount');
-  const replaceOut=$('replaceOutput');
-  const replaceStr=$('replaceInput').value;
+  /* Update the regex preview display */
+  $('regexPreview').textContent = '/' + pattern + '/' + flagStr;
 
-  if(!pattern){
-    matchOut.innerHTML=escHtml(test);
-    countEl.textContent='';
-    replaceOut.textContent='';
-    $('explanation').innerHTML='Enter a pattern above to see an explanation.';
+  var test = $('testInput').value;
+  var matchOut = $('matchOutput');
+  var countEl = $('matchCount');
+  var replaceOut = $('replaceOutput');
+  var replaceStr = $('replaceInput').value;
+  var groupsBox = $('groupsBox');
+
+  /* Handle empty pattern state */
+  if (!pattern) {
+    matchOut.innerHTML = escHtml(test);
+    countEl.textContent = '';
+    replaceOut.textContent = '';
+    groupsBox.style.display = 'none';
+    $('explanation').innerHTML = 'Enter a pattern above to see an explanation.';
     return;
   }
 
-  try{
-    const regex=new RegExp(pattern,flagStr);
-    // Highlight matches
-    let count=0;
-    if(flagStr.includes('g')){
-      let result;const ranges=[];
-      regex.lastIndex=0;
-      while((result=regex.exec(test))!==null){
-        ranges.push({start:result.index,end:result.index+result[0].length});
+  try {
+    var regex = new RegExp(pattern, flagStr);
+    var count = 0;
+
+    /* Highlight all matches in the test string */
+    if (flagStr.includes('g')) {
+      var result;
+      var ranges = [];
+      regex.lastIndex = 0;
+
+      while ((result = regex.exec(test)) !== null) {
+        ranges.push({
+          start: result.index,
+          end: result.index + result[0].length,
+          groups: result.slice(1)
+        });
         count++;
-        if(result[0].length===0)regex.lastIndex++;
-        if(count>1000)break;
+        /* Prevent infinite loops on zero-length matches */
+        if (result[0].length === 0) {
+          regex.lastIndex++;
+        }
+        if (count > 1000) {
+          break;
+        }
       }
-      let html='';let last=0;
-      ranges.forEach(r=>{
-        html+=escHtml(test.slice(last,r.start))+'<mark>'+escHtml(test.slice(r.start,r.end))+'</mark>';
-        last=r.end;
+
+      /* Build highlighted HTML from match ranges */
+      var html = '';
+      var last = 0;
+      ranges.forEach(function(r) {
+        html += escHtml(test.slice(last, r.start));
+        html += '<mark>' + escHtml(test.slice(r.start, r.end)) + '</mark>';
+        last = r.end;
       });
-      html+=escHtml(test.slice(last));
-      matchOut.innerHTML=html||escHtml(test);
-    }else{
-      const m=regex.exec(test);
-      if(m){
-        count=1;
-        matchOut.innerHTML=escHtml(test.slice(0,m.index))+'<mark>'+escHtml(m[0])+'</mark>'+escHtml(test.slice(m.index+m[0].length));
-      }else{
-        matchOut.innerHTML=escHtml(test);
+      html += escHtml(test.slice(last));
+      matchOut.innerHTML = html || escHtml(test);
+
+      /* Display captured groups from the first match */
+      if (ranges.length > 0 && ranges[0].groups.length > 0) {
+        displayGroups(ranges[0].groups);
+      } else {
+        groupsBox.style.display = 'none';
+      }
+
+    } else {
+      /* Non-global mode: highlight only the first match */
+      var m = regex.exec(test);
+      if (m) {
+        count = 1;
+        matchOut.innerHTML = escHtml(test.slice(0, m.index))
+          + '<mark>' + escHtml(m[0]) + '</mark>'
+          + escHtml(test.slice(m.index + m[0].length));
+
+        /* Display groups if any */
+        if (m.length > 1) {
+          displayGroups(m.slice(1));
+        } else {
+          groupsBox.style.display = 'none';
+        }
+      } else {
+        matchOut.innerHTML = escHtml(test);
+        groupsBox.style.display = 'none';
       }
     }
-    countEl.textContent=count+' match'+(count!==1?'es':'')+' found';
-    countEl.style.color=count>0?'#22c55e':'#ef4444';
 
-    // Replacement
-    if(replaceStr){
-      try{replaceOut.textContent=test.replace(regex,replaceStr);}
-      catch(e){replaceOut.textContent='Error: '+e.message;}
-    }else{replaceOut.textContent='';}
+    /* Update match count display */
+    countEl.textContent = count + ' match' + (count !== 1 ? 'es' : '') + ' found';
+    countEl.style.color = count > 0 ? '#22c55e' : '#ef4444';
 
-    // Explanation
-    $('explanation').innerHTML=explainRegex(pattern);
-  }catch(e){
-    matchOut.innerHTML='<span style="color:#ef4444">Invalid regex: '+escHtml(e.message)+'</span>';
-    countEl.textContent='';
-    replaceOut.textContent='';
-    $('explanation').innerHTML='<span style="color:#ef4444">Cannot parse pattern.</span>';
+    /* Perform replacement if replacement string is provided */
+    if (replaceStr) {
+      try {
+        replaceOut.textContent = test.replace(regex, replaceStr);
+      } catch (e) {
+        replaceOut.textContent = 'Error: ' + e.message;
+      }
+    } else {
+      replaceOut.textContent = '';
+    }
+
+    /* Generate and display regex explanation */
+    $('explanation').innerHTML = explainRegex(pattern);
+
+  } catch (e) {
+    /* Handle invalid regex patterns gracefully */
+    matchOut.innerHTML = '<span style="color:#ef4444">Invalid regex: '
+      + escHtml(e.message) + '</span>';
+    countEl.textContent = '';
+    replaceOut.textContent = '';
+    groupsBox.style.display = 'none';
+    $('explanation').innerHTML = '<span style="color:#ef4444">Cannot parse pattern.</span>';
   }
 }
 
-function explainRegex(p){
-  const parts=[];
-  let i=0;
-  while(i<p.length){
-    const c=p[i];
-    if(c==='\\'){
-      const next=p[i+1]||'';
-      const map={d:'<strong>\\d</strong> &mdash; any digit (0-9)',D:'<strong>\\D</strong> &mdash; any non-digit',w:'<strong>\\w</strong> &mdash; any word character (a-z, A-Z, 0-9, _)',W:'<strong>\\W</strong> &mdash; any non-word character',s:'<strong>\\s</strong> &mdash; any whitespace',S:'<strong>\\S</strong> &mdash; any non-whitespace',b:'<strong>\\b</strong> &mdash; word boundary',n:'<strong>\\n</strong> &mdash; newline',t:'<strong>\\t</strong> &mdash; tab'};
-      parts.push(map[next]||'<strong>\\'+escHtml(next)+'</strong> &mdash; literal "'+escHtml(next)+'"');
-      i+=2;
-    }else if(c==='['){
-      const end=p.indexOf(']',i);
-      if(end>i){const set=p.slice(i,end+1);parts.push('<strong>'+escHtml(set)+'</strong> &mdash; character set');i=end+1;}
-      else{parts.push('<strong>[</strong> &mdash; literal bracket');i++;}
-    }else if(c==='('){
-      if(p.slice(i,i+3)==='(?:'){parts.push('<strong>(?:...)</strong> &mdash; non-capturing group');i+=3;}
-      else if(p.slice(i,i+3)==='(?='){parts.push('<strong>(?=...)</strong> &mdash; positive lookahead');i+=3;}
-      else if(p.slice(i,i+3)==='(?!'){parts.push('<strong>(?!...)</strong> &mdash; negative lookahead');i+=3;}
-      else if(p.slice(i,i+4)==='(?<='){parts.push('<strong>(?&lt;=...)</strong> &mdash; positive lookbehind');i+=4;}
-      else if(p.slice(i,i+4)==='(?<!'){parts.push('<strong>(?&lt;!...)</strong> &mdash; negative lookbehind');i+=4;}
-      else{parts.push('<strong>(</strong> &mdash; start capturing group');i++;}
-    }else if(c===')'){parts.push('<strong>)</strong> &mdash; end group');i++;}
-    else if(c==='^'){parts.push('<strong>^</strong> &mdash; start of string/line');i++;}
-    else if(c==='$'){parts.push('<strong>$</strong> &mdash; end of string/line');i++;}
-    else if(c==='.'){parts.push('<strong>.</strong> &mdash; any character (except newline)');i++;}
-    else if(c==='+'){parts.push('<strong>+</strong> &mdash; one or more of previous');i++;}
-    else if(c==='*'){parts.push('<strong>*</strong> &mdash; zero or more of previous');i++;}
-    else if(c==='?'){parts.push('<strong>?</strong> &mdash; optional (zero or one)');i++;}
-    else if(c==='|'){parts.push('<strong>|</strong> &mdash; OR / alternation');i++;}
-    else if(c==='{'){
-      const end=p.indexOf('}',i);
-      if(end>i){const q=p.slice(i,end+1);parts.push('<strong>'+escHtml(q)+'</strong> &mdash; quantifier');i=end+1;}
-      else{parts.push('<strong>{</strong> &mdash; literal');i++;}
-    }else{
-      let lit=c;i++;
-      while(i<p.length&&!/[\\[()^$.*+?|{]/.test(p[i])){lit+=p[i];i++;}
-      parts.push('<strong>"'+escHtml(lit)+'"</strong> &mdash; literal text');
+/* ===== DISPLAY CAPTURED GROUPS ===== */
+function displayGroups(groups) {
+  var groupsBox = $('groupsBox');
+  var groupsList = $('groupsList');
+
+  /* Filter to only defined groups */
+  var validGroups = groups.filter(function(g) {
+    return g !== undefined;
+  });
+
+  if (validGroups.length === 0) {
+    groupsBox.style.display = 'none';
+    return;
+  }
+
+  groupsBox.style.display = 'block';
+  var html = '';
+  groups.forEach(function(g, i) {
+    var value = g !== undefined ? escHtml(g) : '<em style="color:var(--text-dim)">undefined</em>';
+    html += '<div class="group-item">'
+      + '<span class="group-label">Group $' + (i + 1) + '</span>'
+      + '<span class="group-value">' + value + '</span>'
+      + '</div>';
+  });
+  groupsList.innerHTML = html;
+}
+
+/* ===== REGEX PATTERN EXPLAINER ===== */
+function explainRegex(p) {
+  var parts = [];
+  var i = 0;
+
+  while (i < p.length) {
+    var c = p[i];
+
+    /* Handle escape sequences like \d, \w, \s, etc. */
+    if (c === '\\') {
+      var next = p[i + 1] || '';
+      var escapeMap = {
+        'd': '<strong>\\d</strong> &mdash; any digit (0-9)',
+        'D': '<strong>\\D</strong> &mdash; any non-digit',
+        'w': '<strong>\\w</strong> &mdash; any word character (a-z, A-Z, 0-9, _)',
+        'W': '<strong>\\W</strong> &mdash; any non-word character',
+        's': '<strong>\\s</strong> &mdash; any whitespace',
+        'S': '<strong>\\S</strong> &mdash; any non-whitespace',
+        'b': '<strong>\\b</strong> &mdash; word boundary',
+        'n': '<strong>\\n</strong> &mdash; newline',
+        't': '<strong>\\t</strong> &mdash; tab'
+      };
+      if (escapeMap[next]) {
+        parts.push(escapeMap[next]);
+      } else {
+        parts.push('<strong>\\' + escHtml(next) + '</strong> &mdash; literal "' + escHtml(next) + '"');
+      }
+      i += 2;
+
+    /* Handle character sets like [abc], [a-z], [^abc] */
+    } else if (c === '[') {
+      var endBracket = p.indexOf(']', i);
+      if (endBracket > i) {
+        var set = p.slice(i, endBracket + 1);
+        parts.push('<strong>' + escHtml(set) + '</strong> &mdash; character set');
+        i = endBracket + 1;
+      } else {
+        parts.push('<strong>[</strong> &mdash; literal bracket');
+        i++;
+      }
+
+    /* Handle groups: capturing, non-capturing, lookahead, lookbehind */
+    } else if (c === '(') {
+      if (p.slice(i, i + 3) === '(?:') {
+        parts.push('<strong>(?:...)</strong> &mdash; non-capturing group');
+        i += 3;
+      } else if (p.slice(i, i + 3) === '(?=') {
+        parts.push('<strong>(?=...)</strong> &mdash; positive lookahead');
+        i += 3;
+      } else if (p.slice(i, i + 3) === '(?!') {
+        parts.push('<strong>(?!...)</strong> &mdash; negative lookahead');
+        i += 3;
+      } else if (p.slice(i, i + 4) === '(?<=') {
+        parts.push('<strong>(?&lt;=...)</strong> &mdash; positive lookbehind');
+        i += 4;
+      } else if (p.slice(i, i + 4) === '(?<!') {
+        parts.push('<strong>(?&lt;!...)</strong> &mdash; negative lookbehind');
+        i += 4;
+      } else {
+        parts.push('<strong>(</strong> &mdash; start capturing group');
+        i++;
+      }
+
+    /* Handle closing parenthesis */
+    } else if (c === ')') {
+      parts.push('<strong>)</strong> &mdash; end group');
+      i++;
+
+    /* Handle anchors and metacharacters */
+    } else if (c === '^') {
+      parts.push('<strong>^</strong> &mdash; start of string/line');
+      i++;
+    } else if (c === '$') {
+      parts.push('<strong>$</strong> &mdash; end of string/line');
+      i++;
+    } else if (c === '.') {
+      parts.push('<strong>.</strong> &mdash; any character (except newline)');
+      i++;
+
+    /* Handle quantifiers */
+    } else if (c === '+') {
+      parts.push('<strong>+</strong> &mdash; one or more of previous');
+      i++;
+    } else if (c === '*') {
+      parts.push('<strong>*</strong> &mdash; zero or more of previous');
+      i++;
+    } else if (c === '?') {
+      parts.push('<strong>?</strong> &mdash; optional (zero or one)');
+      i++;
+
+    /* Handle alternation */
+    } else if (c === '|') {
+      parts.push('<strong>|</strong> &mdash; OR / alternation');
+      i++;
+
+    /* Handle range quantifiers like {n,m} */
+    } else if (c === '{') {
+      var endBrace = p.indexOf('}', i);
+      if (endBrace > i) {
+        var quant = p.slice(i, endBrace + 1);
+        parts.push('<strong>' + escHtml(quant) + '</strong> &mdash; quantifier');
+        i = endBrace + 1;
+      } else {
+        parts.push('<strong>{</strong> &mdash; literal');
+        i++;
+      }
+
+    /* Handle literal text sequences */
+    } else {
+      var lit = c;
+      i++;
+      while (i < p.length && !/[\\[()^$.*+?|{]/.test(p[i])) {
+        lit += p[i];
+        i++;
+      }
+      parts.push('<strong>"' + escHtml(lit) + '"</strong> &mdash; literal text');
     }
   }
-  return parts.length?parts.map((p,i)=>'<div style="margin:3px 0">'+(i+1)+'. '+p+'</div>').join(''):'Enter a pattern to see explanation.';
+
+  /* Format as a numbered list */
+  if (parts.length > 0) {
+    return parts.map(function(part, idx) {
+      return '<div style="margin:3px 0">' + (idx + 1) + '. ' + part + '</div>';
+    }).join('');
+  }
+  return 'Enter a pattern to see explanation.';
 }
 
-function copyRegex(){
-  const p=$('patternInput').value;
-  const f=getFlags();
-  navigator.clipboard.writeText('/'+p+'/'+f).then(()=>{
-    const btn=document.querySelector('.regex-display .btn');
-    btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);
+/* ===== COPY REGEX TO CLIPBOARD ===== */
+function copyRegex() {
+  var pattern = $('patternInput').value;
+  var flagStr = getFlags();
+  var fullRegex = '/' + pattern + '/' + flagStr;
+
+  navigator.clipboard.writeText(fullRegex).then(function() {
+    showToast('Regex copied: ' + fullRegex);
   });
 }
 
+/* ===== INITIALIZE AND RUN ===== */
 initLibrary();
 update();
 </script>

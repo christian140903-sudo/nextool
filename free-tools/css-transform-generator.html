@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Transform Playground - Free Tool | NexTool</title>
+    <meta name="description" content="Experiment with CSS transforms in real-time. Translate, rotate, scale, skew with live preview, perspective controls, and animation toggle.">
+    <meta property="og:title" content="CSS Transform Playground - NexTool">
+    <meta property="og:description" content="Experiment with CSS transforms in real-time. Translate, rotate, scale, skew with live preview.">
+    <meta property="og:url" content="https://nextool.app/free-tools/css-transform-generator.html">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"SoftwareApplication","name":"CSS Transform Playground","url":"https://nextool.app/free-tools/css-transform-generator.html","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Experiment with CSS transforms in real-time with live preview, perspective, and animation toggle."}
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050508;
+            --surface: #111118;
+            --surface2: #1a1a24;
+            --primary: #6366f1;
+            --accent: #a855f7;
+            --pink: #ec4899;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --gradient: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: rgba(5,5,8,0.85); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99,102,241,0.15);
+            padding: 0 24px; height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-logo {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: var(--gradient); display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 15px; color: #fff; text-decoration: none;
+        }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        main { padding: 80px 24px 40px; max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 8px;
+            background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .subtitle { text-align: center; color: var(--text-dim); margin-bottom: 36px; font-size: 1.05rem; }
+        .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+        @media (max-width: 860px) { .workspace { grid-template-columns: 1fr; } }
+        .panel {
+            background: var(--surface); border-radius: var(--radius-lg);
+            border: 1px solid rgba(99,102,241,0.12); padding: 28px;
+        }
+        .panel-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .preview-wrapper {
+            min-height: 400px; border-radius: var(--radius);
+            background: var(--surface2);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative;
+        }
+        .preview-grid {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(99,102,241,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99,102,241,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+        .preview-crosshair {
+            position: absolute; pointer-events: none;
+        }
+        .preview-crosshair.h {
+            width: 100%; height: 1px; top: 50%; left: 0;
+            background: rgba(99,102,241,0.15);
+        }
+        .preview-crosshair.v {
+            width: 1px; height: 100%; top: 0; left: 50%;
+            background: rgba(99,102,241,0.15);
+        }
+        #transformBox {
+            width: 140px; height: 140px; border-radius: 16px;
+            background: var(--gradient);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.9rem; color: #fff;
+            position: relative; z-index: 2;
+            transition: transform 0.15s ease-out;
+            box-shadow: 0 8px 32px rgba(99,102,241,0.3);
+        }
+        #transformBox.animating {
+            transition: none;
+            animation: transformLoop 3s ease-in-out infinite alternate;
+        }
+        @keyframes transformLoop {
+            0% { transform: var(--tf-start); }
+            100% { transform: var(--tf-end); }
+        }
+        .ghost-box {
+            width: 140px; height: 140px; border-radius: 16px;
+            border: 1px dashed rgba(99,102,241,0.25);
+            position: absolute; z-index: 1;
+        }
+        .control-group { margin-bottom: 12px; }
+        .control-label {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.82rem; color: var(--text-dim); margin-bottom: 4px; font-weight: 500;
+        }
+        .control-value { font-family: 'JetBrains Mono', monospace; color: var(--primary); font-size: 0.8rem; }
+        input[type="range"] {
+            width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
+            background: var(--surface2); border-radius: 3px; outline: none; cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--gradient); cursor: pointer; border: 2px solid var(--bg);
+        }
+        .section-label {
+            font-size: 0.85rem; font-weight: 700; color: var(--text); margin: 16px 0 8px;
+            padding-bottom: 4px; border-bottom: 1px solid rgba(99,102,241,0.1);
+        }
+        .inline-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-row { display: flex; gap: 8px; margin: 14px 0; }
+        .action-btn {
+            flex: 1; padding: 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; border: 1px solid rgba(99,102,241,0.3);
+            font-family: 'Inter', sans-serif; transition: all 0.2s;
+        }
+        .action-btn.reset { background: var(--surface2); color: var(--text); }
+        .action-btn.reset:hover { background: rgba(239,68,68,0.15); border-color: #ef4444; color: #ef4444; }
+        .action-btn.random { background: var(--surface2); color: var(--text); }
+        .action-btn.random:hover { background: rgba(99,102,241,0.15); border-color: var(--primary); }
+        .action-btn.animate { background: var(--surface2); color: var(--text); }
+        .action-btn.animate:hover, .action-btn.animate.active { background: rgba(168,85,247,0.2); border-color: var(--accent); color: var(--accent); }
+        .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
+        .btn-opt {
+            padding: 7px 4px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.2);
+            background: var(--surface2); color: var(--text); font-size: 0.72rem;
+            cursor: pointer; font-weight: 600; transition: all 0.2s; font-family: 'Inter', sans-serif;
+            text-align: center;
+        }
+        .btn-opt:hover, .btn-opt.active { border-color: var(--primary); background: rgba(99,102,241,0.15); }
+        .code-output {
+            background: var(--bg); border-radius: var(--radius); padding: 20px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+            line-height: 1.7; color: var(--accent); position: relative;
+            border: 1px solid rgba(99,102,241,0.1); white-space: pre-wrap;
+            max-height: 220px; overflow-y: auto; margin-top: 16px;
+        }
+        .copy-btn {
+            position: absolute; top: 10px; right: 10px;
+            padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.3);
+            background: var(--surface); color: var(--text); font-size: 0.75rem;
+            cursor: pointer; font-weight: 600; transition: all 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .copy-btn:hover { background: var(--primary); color: #fff; }
+        .cross-promo {
+            margin-top: 48px; padding: 32px; background: var(--surface);
+            border-radius: var(--radius-lg); text-align: center;
+        }
+        .cross-promo p:first-child { font-size: 1.1rem; margin-bottom: 12px; }
+        .cross-promo .dim { color: var(--text-dim); margin-bottom: 20px; }
+        .cross-promo a {
+            display: inline-block; padding: 12px 28px; background: var(--gradient);
+            color: #fff; border-radius: 20px; font-weight: 600; text-decoration: none;
+        }
+        footer {
+            margin-top: 48px; padding: 24px; text-align: center;
+            border-top: 1px solid rgba(99,102,241,0.1);
+        }
+        footer a { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; margin: 0 12px; }
+        footer a:hover { color: var(--text); }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="nav-logo">NT</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/free-tools/">Free Tools</a>
+        </div>
+    </nav>
+
+    <main>
+        <h1>CSS Transform Playground</h1>
+        <p class="subtitle">Visually experiment with translate, rotate, scale, skew, and perspective in real-time</p>
+
+        <div class="workspace">
+            <div class="panel">
+                <div class="panel-title"><span>&#127912;</span> Live Preview</div>
+                <div class="preview-wrapper" id="previewWrapper" style="perspective: 800px;">
+                    <div class="preview-grid"></div>
+                    <div class="preview-crosshair h"></div>
+                    <div class="preview-crosshair v"></div>
+                    <div class="ghost-box"></div>
+                    <div id="transformBox">Transform</div>
+                </div>
+                <div class="code-output" id="codeOutput">/* Adjust controls */</div>
+                <button class="copy-btn" onclick="copyCSS()" id="copyBtn">Copy CSS</button>
+            </div>
+
+            <div class="panel" style="overflow-y:auto; max-height:calc(100vh - 120px);">
+                <div class="panel-title"><span>&#9881;&#65039;</span> Controls</div>
+
+                <div class="btn-row">
+                    <button class="action-btn reset" onclick="resetAll()">Reset</button>
+                    <button class="action-btn random" onclick="randomize()">Randomize</button>
+                    <button class="action-btn animate" id="animBtn" onclick="toggleAnim()">Animate</button>
+                </div>
+
+                <div class="section-label">Translate</div>
+                <div class="inline-controls">
+                    <div class="control-group">
+                        <div class="control-label">X <span class="control-value" id="txVal">0px</span></div>
+                        <input type="range" id="translateX" min="-200" max="200" value="0" oninput="update()">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Y <span class="control-value" id="tyVal">0px</span></div>
+                        <input type="range" id="translateY" min="-200" max="200" value="0" oninput="update()">
+                    </div>
+                </div>
+
+                <div class="section-label">Rotate</div>
+                <div class="inline-controls">
+                    <div class="control-group">
+                        <div class="control-label">X <span class="control-value" id="rxVal">0deg</span></div>
+                        <input type="range" id="rotateX" min="-180" max="180" value="0" oninput="update()">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Y <span class="control-value" id="ryVal">0deg</span></div>
+                        <input type="range" id="rotateY" min="-180" max="180" value="0" oninput="update()">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="control-label">Z <span class="control-value" id="rzVal">0deg</span></div>
+                    <input type="range" id="rotateZ" min="-180" max="180" value="0" oninput="update()">
+                </div>
+
+                <div class="section-label">Scale</div>
+                <div class="inline-controls">
+                    <div class="control-group">
+                        <div class="control-label">X <span class="control-value" id="sxVal">1.00</span></div>
+                        <input type="range" id="scaleX" min="10" max="300" value="100" oninput="update()">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Y <span class="control-value" id="syVal">1.00</span></div>
+                        <input type="range" id="scaleY" min="10" max="300" value="100" oninput="update()">
+                    </div>
+                </div>
+
+                <div class="section-label">Skew</div>
+                <div class="inline-controls">
+                    <div class="control-group">
+                        <div class="control-label">X <span class="control-value" id="skxVal">0deg</span></div>
+                        <input type="range" id="skewX" min="-60" max="60" value="0" oninput="update()">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Y <span class="control-value" id="skyVal">0deg</span></div>
+                        <input type="range" id="skewY" min="-60" max="60" value="0" oninput="update()">
+                    </div>
+                </div>
+
+                <div class="section-label">Perspective</div>
+                <div class="control-group">
+                    <div class="control-label">Distance <span class="control-value" id="perspVal">800px</span></div>
+                    <input type="range" id="perspective" min="100" max="2000" value="800" oninput="update()">
+                </div>
+
+                <div class="section-label">Transform Origin</div>
+                <div class="btn-group" id="originGroup">
+                    <button class="btn-opt" onclick="setOrigin('top left', this)">Top Left</button>
+                    <button class="btn-opt" onclick="setOrigin('top center', this)">Top</button>
+                    <button class="btn-opt" onclick="setOrigin('top right', this)">Top Right</button>
+                    <button class="btn-opt" onclick="setOrigin('center left', this)">Left</button>
+                    <button class="btn-opt active" onclick="setOrigin('center center', this)">Center</button>
+                    <button class="btn-opt" onclick="setOrigin('center right', this)">Right</button>
+                    <button class="btn-opt" onclick="setOrigin('bottom left', this)">Btm Left</button>
+                    <button class="btn-opt" onclick="setOrigin('bottom center', this)">Bottom</button>
+                    <button class="btn-opt" onclick="setOrigin('bottom right', this)">Btm Right</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="cross-promo">
+            <p><strong>Explore 125+ Free Developer Tools</strong></p>
+            <p class="dim">From CSS generators to JSON formatters — all free, no signup required.</p>
+            <a href="/free-tools/">Browse All Tools &rarr;</a>
+        </div>
+    </main>
+
+    <footer>
+        <a href="/">NexTool Home</a>
+        <a href="/free-tools/">Free Tools</a>
+        <a href="/privacy">Privacy Policy</a>
+    </footer>
+
+    <script>
+        let origin = 'center center';
+        let isAnimating = false;
+
+        function getValues() {
+            return {
+                tx: parseInt(document.getElementById('translateX').value),
+                ty: parseInt(document.getElementById('translateY').value),
+                rx: parseInt(document.getElementById('rotateX').value),
+                ry: parseInt(document.getElementById('rotateY').value),
+                rz: parseInt(document.getElementById('rotateZ').value),
+                sx: parseInt(document.getElementById('scaleX').value) / 100,
+                sy: parseInt(document.getElementById('scaleY').value) / 100,
+                skx: parseInt(document.getElementById('skewX').value),
+                sky: parseInt(document.getElementById('skewY').value),
+                persp: parseInt(document.getElementById('perspective').value)
+            };
+        }
+
+        function buildTransform(v) {
+            const parts = [];
+            if (v.tx !== 0 || v.ty !== 0) parts.push(`translate(${v.tx}px, ${v.ty}px)`);
+            if (v.rx !== 0) parts.push(`rotateX(${v.rx}deg)`);
+            if (v.ry !== 0) parts.push(`rotateY(${v.ry}deg)`);
+            if (v.rz !== 0) parts.push(`rotateZ(${v.rz}deg)`);
+            if (v.sx !== 1 || v.sy !== 1) parts.push(`scale(${v.sx.toFixed(2)}, ${v.sy.toFixed(2)})`);
+            if (v.skx !== 0 || v.sky !== 0) parts.push(`skew(${v.skx}deg, ${v.sky}deg)`);
+            return parts.length ? parts.join(' ') : 'none';
+        }
+
+        function update() {
+            const v = getValues();
+
+            document.getElementById('txVal').textContent = v.tx + 'px';
+            document.getElementById('tyVal').textContent = v.ty + 'px';
+            document.getElementById('rxVal').textContent = v.rx + 'deg';
+            document.getElementById('ryVal').textContent = v.ry + 'deg';
+            document.getElementById('rzVal').textContent = v.rz + 'deg';
+            document.getElementById('sxVal').textContent = v.sx.toFixed(2);
+            document.getElementById('syVal').textContent = v.sy.toFixed(2);
+            document.getElementById('skxVal').textContent = v.skx + 'deg';
+            document.getElementById('skyVal').textContent = v.sky + 'deg';
+            document.getElementById('perspVal').textContent = v.persp + 'px';
+
+            const transform = buildTransform(v);
+            const box = document.getElementById('transformBox');
+            const wrapper = document.getElementById('previewWrapper');
+
+            if (!isAnimating) {
+                box.style.transform = transform;
+            }
+            box.style.transformOrigin = origin;
+            wrapper.style.perspective = v.persp + 'px';
+
+            const transformStr = transform === 'none' ? 'none' : transform;
+            const css = `.element {
+  transform: ${transformStr};
+  transform-origin: ${origin};
+  perspective: ${v.persp}px;
+}`;
+            document.getElementById('codeOutput').textContent = css;
+        }
+
+        function setOrigin(o, btn) {
+            origin = o;
+            document.querySelectorAll('#originGroup .btn-opt').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            update();
+        }
+
+        function resetAll() {
+            document.getElementById('translateX').value = 0;
+            document.getElementById('translateY').value = 0;
+            document.getElementById('rotateX').value = 0;
+            document.getElementById('rotateY').value = 0;
+            document.getElementById('rotateZ').value = 0;
+            document.getElementById('scaleX').value = 100;
+            document.getElementById('scaleY').value = 100;
+            document.getElementById('skewX').value = 0;
+            document.getElementById('skewY').value = 0;
+            document.getElementById('perspective').value = 800;
+            origin = 'center center';
+            document.querySelectorAll('#originGroup .btn-opt').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#originGroup .btn-opt')[4].classList.add('active');
+            stopAnim();
+            update();
+        }
+
+        function randomize() {
+            document.getElementById('translateX').value = Math.round(Math.random() * 160 - 80);
+            document.getElementById('translateY').value = Math.round(Math.random() * 160 - 80);
+            document.getElementById('rotateX').value = Math.round(Math.random() * 90 - 45);
+            document.getElementById('rotateY').value = Math.round(Math.random() * 90 - 45);
+            document.getElementById('rotateZ').value = Math.round(Math.random() * 120 - 60);
+            document.getElementById('scaleX').value = Math.round(50 + Math.random() * 150);
+            document.getElementById('scaleY').value = Math.round(50 + Math.random() * 150);
+            document.getElementById('skewX').value = Math.round(Math.random() * 40 - 20);
+            document.getElementById('skewY').value = Math.round(Math.random() * 40 - 20);
+            update();
+        }
+
+        function toggleAnim() {
+            if (isAnimating) {
+                stopAnim();
+            } else {
+                startAnim();
+            }
+        }
+
+        function startAnim() {
+            isAnimating = true;
+            const box = document.getElementById('transformBox');
+            const v = getValues();
+            const startTransform = 'none';
+            const endTransform = buildTransform(v);
+
+            box.style.setProperty('--tf-start', startTransform);
+            box.style.setProperty('--tf-end', endTransform);
+            box.classList.add('animating');
+            document.getElementById('animBtn').classList.add('active');
+            document.getElementById('animBtn').textContent = 'Stop';
+        }
+
+        function stopAnim() {
+            isAnimating = false;
+            const box = document.getElementById('transformBox');
+            box.classList.remove('animating');
+            document.getElementById('animBtn').classList.remove('active');
+            document.getElementById('animBtn').textContent = 'Animate';
+            update();
+        }
+
+        function copyCSS() {
+            const text = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy CSS', 1500);
+            });
+        }
+
+        update();
+    </script>
+    <script src="/js/revenue.js" defer></script>
+    <script src="/js/lead-capture.js" defer></script>
+    <script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

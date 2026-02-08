@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Resume Builder - Free Online Tool | NexTool</title>
+<meta name="description" content="Build a JSON Resume with a visual form editor. Add work experience, education, skills, projects. Export to jsonresume.org format. Free, no signup.">
+<meta property="og:title" content="JSON Resume Builder - NexTool Free Tools">
+<meta property="og:description" content="Visual JSON Resume builder with live preview. Create, edit, and export resumes in jsonresume.org format. Free online tool.">
+<meta property="og:url" content="https://nextool.app/free-tools/json-resume-builder.html">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"JSON Resume Builder","applicationCategory":"DeveloperApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Visual form-based JSON Resume builder with live preview and export. Follows jsonresume.org specification.","url":"https://nextool.app/free-tools/json-resume-builder.html"}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text-dim:#94a3b8;--gradient:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);--radius:12px;--radius-lg:20px;--font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(99,102,241,.15);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{width:36px;height:36px;background:var(--gradient);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;text-decoration:none}
+.nav-links{display:flex;gap:24px}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+main{max-width:1300px;margin:0 auto;padding:80px 24px 40px}
+h1{font-size:2rem;font-weight:700;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.subtitle{color:var(--text-dim);font-size:1.05rem;margin-bottom:24px}
+.top-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.btn{padding:9px 20px;border:none;border-radius:var(--radius);font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--gradient);color:#fff}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-sm{background:var(--surface2);color:var(--text);border:1px solid rgba(99,102,241,.15);padding:8px 16px;font-size:12px}
+.btn-sm:hover{border-color:var(--primary)}
+.btn-danger{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.15)}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.form-panel{max-height:calc(100vh - 160px);overflow-y:auto;padding-right:8px}
+.form-panel::-webkit-scrollbar{width:6px}
+.form-panel::-webkit-scrollbar-track{background:transparent}
+.form-panel::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+.section{background:var(--surface);border-radius:var(--radius);padding:20px;margin-bottom:16px;border:1px solid rgba(99,102,241,.08)}
+.section-title{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.section-title span{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.field input,.field textarea,.field select{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid rgba(99,102,241,.1);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .2s}
+.field input:focus,.field textarea:focus{border-color:var(--primary)}
+.field textarea{resize:vertical;min-height:60px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.entry{padding:14px;background:var(--surface2);border-radius:10px;margin-bottom:10px;border:1px solid rgba(99,102,241,.06)}
+.entry-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.entry-num{font-size:12px;font-weight:700;color:var(--primary)}
+.remove-btn{background:none;border:none;color:#f87171;cursor:pointer;font-size:18px;padding:2px 6px;border-radius:4px}
+.remove-btn:hover{background:rgba(239,68,68,.1)}
+.output-panel{position:sticky;top:72px}
+.output-tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--surface);border-radius:var(--radius);padding:4px;width:fit-content}
+.out-tab{padding:8px 18px;border:none;background:transparent;color:var(--text-dim);font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer;border-radius:8px;transition:all .2s}
+.out-tab.active{background:var(--surface2);color:var(--text)}
+.json-view{background:var(--surface);border-radius:var(--radius);padding:16px;font-family:var(--mono);font-size:12px;min-height:400px;max-height:calc(100vh - 250px);overflow-y:auto;white-space:pre-wrap;word-break:break-all;border:1px solid rgba(99,102,241,.08);display:block}
+.preview-view{background:#fff;color:#1a1a2e;border-radius:var(--radius);padding:32px;min-height:400px;max-height:calc(100vh - 250px);overflow-y:auto;font-size:14px;display:none}
+.preview-view h2{font-size:1.6rem;margin-bottom:4px;color:#111}
+.preview-view h3{font-size:1rem;color:#6366f1;margin:18px 0 8px;border-bottom:2px solid #6366f1;padding-bottom:4px;text-transform:uppercase;font-size:12px;letter-spacing:1px}
+.preview-view p{margin-bottom:6px;line-height:1.5}
+.preview-view .meta{color:#666;font-size:13px}
+.preview-view .item{margin-bottom:12px}
+.preview-view .item-title{font-weight:700;font-size:14px}
+.preview-view .item-sub{color:#666;font-size:13px}
+.preview-view .skill-tag{display:inline-block;padding:3px 10px;background:#f0f0ff;color:#6366f1;border-radius:12px;font-size:12px;margin:2px 4px 2px 0;font-weight:500}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 24px;background:var(--primary);color:#fff;border-radius:var(--radius);font-weight:500;font-size:14px;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+footer{margin-top:60px;padding:32px 0;border-top:1px solid rgba(99,102,241,.1);text-align:center}
+footer a{color:var(--text-dim);text-decoration:none;font-size:14px;margin:0 16px;transition:color .2s}
+footer a:hover{color:var(--text)}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">NT</a>
+  <div class="nav-links"><a href="/">Home</a><a href="/free-tools/">Free Tools</a></div>
+</nav>
+<main>
+  <h1>JSON Resume Builder</h1>
+  <p class="subtitle">Build your resume visually, export in jsonresume.org format. Everything runs in your browser.</p>
+  <div class="top-actions">
+    <button class="btn btn-primary" onclick="copyJSON()">Copy JSON</button>
+    <button class="btn btn-sm" onclick="downloadJSON()">Download .json</button>
+    <label class="btn btn-sm" style="cursor:pointer"><input type="file" accept=".json" hidden onchange="importJSON(event)">Import JSON</label>
+    <button class="btn btn-sm" onclick="loadSample()">Load Sample</button>
+    <button class="btn btn-sm btn-danger" onclick="resetAll()">Reset</button>
+  </div>
+
+  <div class="layout">
+    <div class="form-panel" id="formPanel">
+      <!-- BASICS -->
+      <div class="section">
+        <div class="section-title"><span>Basics</span></div>
+        <div class="row"><div class="field"><label>Full Name</label><input id="b_name" oninput="update()"></div><div class="field"><label>Label / Title</label><input id="b_label" oninput="update()"></div></div>
+        <div class="row"><div class="field"><label>Email</label><input id="b_email" type="email" oninput="update()"></div><div class="field"><label>Phone</label><input id="b_phone" oninput="update()"></div></div>
+        <div class="row"><div class="field"><label>Website</label><input id="b_url" oninput="update()"></div><div class="field"><label>Location (City)</label><input id="b_city" oninput="update()"></div></div>
+        <div class="field"><label>Summary</label><textarea id="b_summary" rows="3" oninput="update()"></textarea></div>
+      </div>
+
+      <!-- WORK -->
+      <div class="section">
+        <div class="section-title"><span>Work Experience</span><button class="btn btn-sm" onclick="addEntry('work')">+ Add</button></div>
+        <div id="workEntries"></div>
+      </div>
+
+      <!-- EDUCATION -->
+      <div class="section">
+        <div class="section-title"><span>Education</span><button class="btn btn-sm" onclick="addEntry('edu')">+ Add</button></div>
+        <div id="eduEntries"></div>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="section">
+        <div class="section-title"><span>Skills</span><button class="btn btn-sm" onclick="addEntry('skill')">+ Add</button></div>
+        <div id="skillEntries"></div>
+      </div>
+
+      <!-- LANGUAGES -->
+      <div class="section">
+        <div class="section-title"><span>Languages</span><button class="btn btn-sm" onclick="addEntry('lang')">+ Add</button></div>
+        <div id="langEntries"></div>
+      </div>
+
+      <!-- PROJECTS -->
+      <div class="section">
+        <div class="section-title"><span>Projects</span><button class="btn btn-sm" onclick="addEntry('proj')">+ Add</button></div>
+        <div id="projEntries"></div>
+      </div>
+
+      <!-- AWARDS -->
+      <div class="section">
+        <div class="section-title"><span>Awards</span><button class="btn btn-sm" onclick="addEntry('award')">+ Add</button></div>
+        <div id="awardEntries"></div>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <div class="output-tabs">
+        <button class="out-tab active" onclick="showTab('json')">JSON</button>
+        <button class="out-tab" onclick="showTab('preview')">Preview</button>
+      </div>
+      <div class="json-view" id="jsonView"></div>
+      <div class="preview-view" id="previewView"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:48px;padding:32px;background:var(--surface);border-radius:var(--radius-lg);text-align:center;">
+    <p style="font-size:1.1rem;margin-bottom:12px;">&#x1F680; Explore <strong>125+ Free Developer Tools</strong></p>
+    <p style="color:var(--text-dim);margin-bottom:20px;">From CSS generators to JSON formatters — all free, no signup required.</p>
+    <a href="/free-tools/" style="display:inline-block;padding:12px 28px;background:var(--gradient);color:#fff;border-radius:20px;font-weight:600;text-decoration:none;">Browse All Tools &rarr;</a>
+  </div>
+</main>
+<footer>
+  <a href="/">NexTool Home</a>
+  <a href="/free-tools/">Free Tools Hub</a>
+  <a href="/privacy">Privacy Policy</a>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+let counters={work:0,edu:0,skill:0,lang:0,proj:0,award:0};
+
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+
+function showTab(tab){
+  document.querySelectorAll('.out-tab').forEach((t,i)=>t.classList.toggle('active',i===(tab==='json'?0:1)));
+  document.getElementById('jsonView').style.display=tab==='json'?'block':'none';
+  document.getElementById('previewView').style.display=tab==='preview'?'block':'none';
+  update()
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function entryHTML(type,idx){
+  const t={
+    work:`<div class="row"><div class="field"><label>Company</label><input data-f="work_${idx}_company" oninput="update()"></div><div class="field"><label>Position</label><input data-f="work_${idx}_position" oninput="update()"></div></div>
+    <div class="row"><div class="field"><label>Start Date</label><input data-f="work_${idx}_start" placeholder="YYYY-MM-DD" oninput="update()"></div><div class="field"><label>End Date</label><input data-f="work_${idx}_end" placeholder="YYYY-MM-DD or Present" oninput="update()"></div></div>
+    <div class="field"><label>Website</label><input data-f="work_${idx}_url" oninput="update()"></div>
+    <div class="field"><label>Summary</label><textarea data-f="work_${idx}_summary" rows="2" oninput="update()"></textarea></div>
+    <div class="field"><label>Highlights (one per line)</label><textarea data-f="work_${idx}_highlights" rows="2" oninput="update()"></textarea></div>`,
+    edu:`<div class="row"><div class="field"><label>Institution</label><input data-f="edu_${idx}_inst" oninput="update()"></div><div class="field"><label>Area / Major</label><input data-f="edu_${idx}_area" oninput="update()"></div></div>
+    <div class="row"><div class="field"><label>Study Type</label><input data-f="edu_${idx}_type" placeholder="Bachelor, Master, etc." oninput="update()"></div><div class="field"><label>GPA / Score</label><input data-f="edu_${idx}_gpa" oninput="update()"></div></div>
+    <div class="row"><div class="field"><label>Start Date</label><input data-f="edu_${idx}_start" placeholder="YYYY-MM-DD" oninput="update()"></div><div class="field"><label>End Date</label><input data-f="edu_${idx}_end" placeholder="YYYY-MM-DD" oninput="update()"></div></div>`,
+    skill:`<div class="row"><div class="field"><label>Name</label><input data-f="skill_${idx}_name" oninput="update()"></div><div class="field"><label>Level</label><input data-f="skill_${idx}_level" placeholder="Beginner, Intermediate, Advanced, Master" oninput="update()"></div></div>
+    <div class="field"><label>Keywords (comma-separated)</label><input data-f="skill_${idx}_keywords" oninput="update()"></div>`,
+    lang:`<div class="row"><div class="field"><label>Language</label><input data-f="lang_${idx}_name" oninput="update()"></div><div class="field"><label>Fluency</label><input data-f="lang_${idx}_fluency" placeholder="Native, Fluent, Intermediate, Basic" oninput="update()"></div></div>`,
+    proj:`<div class="row"><div class="field"><label>Name</label><input data-f="proj_${idx}_name" oninput="update()"></div><div class="field"><label>URL</label><input data-f="proj_${idx}_url" oninput="update()"></div></div>
+    <div class="field"><label>Description</label><textarea data-f="proj_${idx}_desc" rows="2" oninput="update()"></textarea></div>
+    <div class="field"><label>Keywords (comma-separated)</label><input data-f="proj_${idx}_keywords" oninput="update()"></div>
+    <div class="row"><div class="field"><label>Start Date</label><input data-f="proj_${idx}_start" oninput="update()"></div><div class="field"><label>End Date</label><input data-f="proj_${idx}_end" oninput="update()"></div></div>`,
+    award:`<div class="row"><div class="field"><label>Title</label><input data-f="award_${idx}_title" oninput="update()"></div><div class="field"><label>Awarder</label><input data-f="award_${idx}_awarder" oninput="update()"></div></div>
+    <div class="row"><div class="field"><label>Date</label><input data-f="award_${idx}_date" placeholder="YYYY-MM-DD" oninput="update()"></div><div class="field"><label>Summary</label><input data-f="award_${idx}_summary" oninput="update()"></div></div>`
+  };
+  return `<div class="entry" id="${type}_entry_${idx}"><div class="entry-header"><span class="entry-num">#${idx+1}</span><button class="remove-btn" onclick="removeEntry('${type}',${idx})">&times;</button></div>${t[type]}</div>`
+}
+
+function addEntry(type){
+  const idx=counters[type]++;
+  const container=document.getElementById(type==='edu'?'eduEntries':type==='skill'?'skillEntries':type==='lang'?'langEntries':type==='proj'?'projEntries':type==='award'?'awardEntries':'workEntries');
+  container.insertAdjacentHTML('beforeend',entryHTML(type,idx));
+  update()
+}
+
+function removeEntry(type,idx){
+  const el=document.getElementById(`${type}_entry_${idx}`);
+  if(el)el.remove();update()
+}
+
+function gf(name){const el=document.querySelector(`[data-f="${name}"]`);return el?el.value.trim():''}
+function gid(id){const el=document.getElementById(id);return el?el.value.trim():''}
+
+function buildResume(){
+  const resume={basics:{}};
+  const b=resume.basics;
+  if(gid('b_name'))b.name=gid('b_name');
+  if(gid('b_label'))b.label=gid('b_label');
+  if(gid('b_email'))b.email=gid('b_email');
+  if(gid('b_phone'))b.phone=gid('b_phone');
+  if(gid('b_url'))b.url=gid('b_url');
+  if(gid('b_summary'))b.summary=gid('b_summary');
+  if(gid('b_city'))b.location={city:gid('b_city')};
+
+  const workEls=document.querySelectorAll('[id^="work_entry_"]');
+  if(workEls.length){
+    resume.work=[];
+    workEls.forEach(el=>{
+      const idx=el.id.split('_')[2];
+      const w={};
+      if(gf(`work_${idx}_company`))w.name=gf(`work_${idx}_company`);
+      if(gf(`work_${idx}_position`))w.position=gf(`work_${idx}_position`);
+      if(gf(`work_${idx}_start`))w.startDate=gf(`work_${idx}_start`);
+      if(gf(`work_${idx}_end`))w.endDate=gf(`work_${idx}_end`);
+      if(gf(`work_${idx}_url`))w.url=gf(`work_${idx}_url`);
+      if(gf(`work_${idx}_summary`))w.summary=gf(`work_${idx}_summary`);
+      const hl=gf(`work_${idx}_highlights`);
+      if(hl)w.highlights=hl.split('\n').map(s=>s.trim()).filter(Boolean);
+      if(Object.keys(w).length)resume.work.push(w)
+    })
+  }
+
+  const eduEls=document.querySelectorAll('[id^="edu_entry_"]');
+  if(eduEls.length){
+    resume.education=[];
+    eduEls.forEach(el=>{
+      const idx=el.id.split('_')[2];const e={};
+      if(gf(`edu_${idx}_inst`))e.institution=gf(`edu_${idx}_inst`);
+      if(gf(`edu_${idx}_area`))e.area=gf(`edu_${idx}_area`);
+      if(gf(`edu_${idx}_type`))e.studyType=gf(`edu_${idx}_type`);
+      if(gf(`edu_${idx}_gpa`))e.score=gf(`edu_${idx}_gpa`);
+      if(gf(`edu_${idx}_start`))e.startDate=gf(`edu_${idx}_start`);
+      if(gf(`edu_${idx}_end`))e.endDate=gf(`edu_${idx}_end`);
+      if(Object.keys(e).length)resume.education.push(e)
+    })
+  }
+
+  const skillEls=document.querySelectorAll('[id^="skill_entry_"]');
+  if(skillEls.length){
+    resume.skills=[];
+    skillEls.forEach(el=>{
+      const idx=el.id.split('_')[2];const s={};
+      if(gf(`skill_${idx}_name`))s.name=gf(`skill_${idx}_name`);
+      if(gf(`skill_${idx}_level`))s.level=gf(`skill_${idx}_level`);
+      const kw=gf(`skill_${idx}_keywords`);
+      if(kw)s.keywords=kw.split(',').map(k=>k.trim()).filter(Boolean);
+      if(Object.keys(s).length)resume.skills.push(s)
+    })
+  }
+
+  const langEls=document.querySelectorAll('[id^="lang_entry_"]');
+  if(langEls.length){
+    resume.languages=[];
+    langEls.forEach(el=>{
+      const idx=el.id.split('_')[2];const l={};
+      if(gf(`lang_${idx}_name`))l.language=gf(`lang_${idx}_name`);
+      if(gf(`lang_${idx}_fluency`))l.fluency=gf(`lang_${idx}_fluency`);
+      if(Object.keys(l).length)resume.languages.push(l)
+    })
+  }
+
+  const projEls=document.querySelectorAll('[id^="proj_entry_"]');
+  if(projEls.length){
+    resume.projects=[];
+    projEls.forEach(el=>{
+      const idx=el.id.split('_')[2];const p={};
+      if(gf(`proj_${idx}_name`))p.name=gf(`proj_${idx}_name`);
+      if(gf(`proj_${idx}_desc`))p.description=gf(`proj_${idx}_desc`);
+      if(gf(`proj_${idx}_url`))p.url=gf(`proj_${idx}_url`);
+      if(gf(`proj_${idx}_start`))p.startDate=gf(`proj_${idx}_start`);
+      if(gf(`proj_${idx}_end`))p.endDate=gf(`proj_${idx}_end`);
+      const kw=gf(`proj_${idx}_keywords`);
+      if(kw)p.keywords=kw.split(',').map(k=>k.trim()).filter(Boolean);
+      if(Object.keys(p).length)resume.projects.push(p)
+    })
+  }
+
+  const awardEls=document.querySelectorAll('[id^="award_entry_"]');
+  if(awardEls.length){
+    resume.awards=[];
+    awardEls.forEach(el=>{
+      const idx=el.id.split('_')[2];const a={};
+      if(gf(`award_${idx}_title`))a.title=gf(`award_${idx}_title`);
+      if(gf(`award_${idx}_awarder`))a.awarder=gf(`award_${idx}_awarder`);
+      if(gf(`award_${idx}_date`))a.date=gf(`award_${idx}_date`);
+      if(gf(`award_${idx}_summary`))a.summary=gf(`award_${idx}_summary`);
+      if(Object.keys(a).length)resume.awards.push(a)
+    })
+  }
+
+  return resume
+}
+
+function update(){
+  const resume=buildResume();
+  const json=JSON.stringify(resume,null,2);
+  document.getElementById('jsonView').textContent=json;
+  renderPreview(resume)
+}
+
+function renderPreview(r){
+  const b=r.basics||{};let h='';
+  if(b.name)h+=`<h2>${esc(b.name)}</h2>`;
+  if(b.label)h+=`<p class="meta" style="font-size:1.1rem;color:#6366f1;margin-bottom:8px">${esc(b.label)}</p>`;
+  const contacts=[];
+  if(b.email)contacts.push(esc(b.email));
+  if(b.phone)contacts.push(esc(b.phone));
+  if(b.url)contacts.push(esc(b.url));
+  if(b.location&&b.location.city)contacts.push(esc(b.location.city));
+  if(contacts.length)h+=`<p class="meta">${contacts.join(' &middot; ')}</p>`;
+  if(b.summary)h+=`<p style="margin-top:12px">${esc(b.summary)}</p>`;
+
+  if(r.work&&r.work.length){
+    h+='<h3>Work Experience</h3>';
+    r.work.forEach(w=>{
+      h+='<div class="item">';
+      h+=`<div class="item-title">${esc(w.position||'')}${w.name?' at '+esc(w.name):''}</div>`;
+      const dates=[w.startDate,w.endDate].filter(Boolean).join(' - ');
+      if(dates)h+=`<div class="item-sub">${esc(dates)}</div>`;
+      if(w.summary)h+=`<p>${esc(w.summary)}</p>`;
+      if(w.highlights&&w.highlights.length)h+='<ul>'+w.highlights.map(hl=>`<li>${esc(hl)}</li>`).join('')+'</ul>';
+      h+='</div>'
+    })
+  }
+
+  if(r.education&&r.education.length){
+    h+='<h3>Education</h3>';
+    r.education.forEach(e=>{
+      h+='<div class="item">';
+      h+=`<div class="item-title">${esc(e.studyType||'')} ${esc(e.area||'')}${e.institution?' — '+esc(e.institution):''}</div>`;
+      const dates=[e.startDate,e.endDate].filter(Boolean).join(' - ');
+      if(dates)h+=`<div class="item-sub">${esc(dates)}</div>`;
+      if(e.score)h+=`<p>Score: ${esc(e.score)}</p>`;
+      h+='</div>'
+    })
+  }
+
+  if(r.skills&&r.skills.length){
+    h+='<h3>Skills</h3>';
+    r.skills.forEach(s=>{
+      h+=`<div class="item"><div class="item-title">${esc(s.name||'')}${s.level?' ('+esc(s.level)+')':''}</div>`;
+      if(s.keywords)h+=s.keywords.map(k=>`<span class="skill-tag">${esc(k)}</span>`).join('');
+      h+='</div>'
+    })
+  }
+
+  if(r.languages&&r.languages.length){
+    h+='<h3>Languages</h3>';
+    r.languages.forEach(l=>{h+=`<div class="item"><div class="item-title">${esc(l.language||'')}${l.fluency?' — '+esc(l.fluency):''}</div></div>`})
+  }
+
+  if(r.projects&&r.projects.length){
+    h+='<h3>Projects</h3>';
+    r.projects.forEach(p=>{
+      h+='<div class="item">';
+      h+=`<div class="item-title">${esc(p.name||'')}</div>`;
+      if(p.description)h+=`<p>${esc(p.description)}</p>`;
+      if(p.keywords)h+=p.keywords.map(k=>`<span class="skill-tag">${esc(k)}</span>`).join('');
+      h+='</div>'
+    })
+  }
+
+  if(r.awards&&r.awards.length){
+    h+='<h3>Awards</h3>';
+    r.awards.forEach(a=>{
+      h+=`<div class="item"><div class="item-title">${esc(a.title||'')}${a.awarder?' — '+esc(a.awarder):''}</div>`;
+      if(a.date)h+=`<div class="item-sub">${esc(a.date)}</div>`;
+      if(a.summary)h+=`<p>${esc(a.summary)}</p>`;
+      h+='</div>'
+    })
+  }
+
+  document.getElementById('previewView').innerHTML=h||'<p style="color:#999">Fill in the form to see a live preview...</p>'
+}
+
+function copyJSON(){
+  const json=JSON.stringify(buildResume(),null,2);
+  navigator.clipboard.writeText(json).then(()=>showToast('JSON copied!'))
+}
+
+function downloadJSON(){
+  const json=JSON.stringify(buildResume(),null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='resume.json';a.click();
+  URL.revokeObjectURL(a.href);showToast('Downloaded!')
+}
+
+function importJSON(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{
+    try{
+      const resume=JSON.parse(ev.target.result);populateForm(resume);showToast('Resume imported!')
+    }catch(err){showToast('Invalid JSON file')}
+  };r.readAsText(f)
+}
+
+function populateForm(resume){
+  resetAll();
+  const b=resume.basics||{};
+  if(b.name)document.getElementById('b_name').value=b.name;
+  if(b.label)document.getElementById('b_label').value=b.label;
+  if(b.email)document.getElementById('b_email').value=b.email;
+  if(b.phone)document.getElementById('b_phone').value=b.phone;
+  if(b.url)document.getElementById('b_url').value=b.url;
+  if(b.summary)document.getElementById('b_summary').value=b.summary;
+  if(b.location&&b.location.city)document.getElementById('b_city').value=b.location.city;
+
+  (resume.work||[]).forEach(w=>{addEntry('work');const i=counters.work-1;
+    setF(`work_${i}_company`,w.name);setF(`work_${i}_position`,w.position);setF(`work_${i}_start`,w.startDate);setF(`work_${i}_end`,w.endDate);setF(`work_${i}_url`,w.url);setF(`work_${i}_summary`,w.summary);
+    if(w.highlights)setF(`work_${i}_highlights`,w.highlights.join('\n'))});
+  (resume.education||[]).forEach(e=>{addEntry('edu');const i=counters.edu-1;
+    setF(`edu_${i}_inst`,e.institution);setF(`edu_${i}_area`,e.area);setF(`edu_${i}_type`,e.studyType);setF(`edu_${i}_gpa`,e.score);setF(`edu_${i}_start`,e.startDate);setF(`edu_${i}_end`,e.endDate)});
+  (resume.skills||[]).forEach(s=>{addEntry('skill');const i=counters.skill-1;
+    setF(`skill_${i}_name`,s.name);setF(`skill_${i}_level`,s.level);if(s.keywords)setF(`skill_${i}_keywords`,s.keywords.join(', '))});
+  (resume.languages||[]).forEach(l=>{addEntry('lang');const i=counters.lang-1;
+    setF(`lang_${i}_name`,l.language);setF(`lang_${i}_fluency`,l.fluency)});
+  (resume.projects||[]).forEach(p=>{addEntry('proj');const i=counters.proj-1;
+    setF(`proj_${i}_name`,p.name);setF(`proj_${i}_desc`,p.description);setF(`proj_${i}_url`,p.url);setF(`proj_${i}_start`,p.startDate);setF(`proj_${i}_end`,p.endDate);
+    if(p.keywords)setF(`proj_${i}_keywords`,p.keywords.join(', '))});
+  (resume.awards||[]).forEach(a=>{addEntry('award');const i=counters.award-1;
+    setF(`award_${i}_title`,a.title);setF(`award_${i}_awarder`,a.awarder);setF(`award_${i}_date`,a.date);setF(`award_${i}_summary`,a.summary)});
+  update()
+}
+
+function setF(name,val){const el=document.querySelector(`[data-f="${name}"]`);if(el&&val)el.value=val}
+
+function resetAll(){
+  ['b_name','b_label','b_email','b_phone','b_url','b_city','b_summary'].forEach(id=>{document.getElementById(id).value=''});
+  ['workEntries','eduEntries','skillEntries','langEntries','projEntries','awardEntries'].forEach(id=>{document.getElementById(id).innerHTML=''});
+  counters={work:0,edu:0,skill:0,lang:0,proj:0,award:0};update()
+}
+
+function loadSample(){
+  populateForm({
+    basics:{name:"Jane Developer",label:"Full Stack Engineer",email:"jane@example.com",phone:"+1-555-0123",url:"https://janedeveloper.com",summary:"Passionate full-stack engineer with 5+ years of experience building scalable web applications. Focused on React, Node.js, and cloud architecture.",location:{city:"San Francisco, CA"}},
+    work:[{name:"TechCorp Inc.",position:"Senior Frontend Engineer",startDate:"2022-01",endDate:"Present",summary:"Leading the design system team for a B2B SaaS product.",highlights:["Built component library used by 40+ developers","Reduced bundle size by 35% through code splitting","Mentored 3 junior engineers"]},{name:"StartupXYZ",position:"Full Stack Developer",startDate:"2019-06",endDate:"2021-12",summary:"Core engineer on the founding team.",highlights:["Designed and built REST API serving 10K+ requests/min","Implemented CI/CD pipeline reducing deploy time by 60%"]}],
+    education:[{institution:"MIT",area:"Computer Science",studyType:"Bachelor",score:"3.8 GPA",startDate:"2015-09",endDate:"2019-05"}],
+    skills:[{name:"Frontend",level:"Advanced",keywords:["React","TypeScript","Next.js","Tailwind CSS"]},{name:"Backend",level:"Advanced",keywords:["Node.js","Python","PostgreSQL","Redis"]},{name:"DevOps",level:"Intermediate",keywords:["AWS","Docker","Kubernetes","Terraform"]}],
+    languages:[{language:"English",fluency:"Native"},{language:"Spanish",fluency:"Intermediate"}],
+    projects:[{name:"OpenSource CLI Tool",description:"A CLI tool for automating development workflows, 2K+ GitHub stars.",url:"https://github.com/jane/cli-tool",keywords:["Node.js","TypeScript","CLI"]}],
+    awards:[{title:"Hackathon Winner",awarder:"TechConf 2023",date:"2023-09",summary:"First place for AI-powered accessibility tool"}]
+  })
+}
+
+update()
+</script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

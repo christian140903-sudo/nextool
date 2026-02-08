@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Palette from Image Extractor | NexTool Free Tools</title>
+<meta name="description" content="Extract dominant color palettes from any image using K-means clustering. Get hex, RGB, HSL values. Download as CSS variables or JSON.">
+<meta property="og:title" content="Color Palette from Image Extractor | NexTool">
+<meta property="og:description" content="Upload an image and extract its dominant color palette with hex, RGB, and HSL values. Free, no signup.">
+<meta property="og:url" content="https://nextool.app/free-tools/color-palette-from-image.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Color Palette from Image Extractor","url":"https://nextool.app/free-tools/color-palette-from-image.html","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Extract dominant color palettes from images using K-means clustering algorithm."}</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text-dim:#94a3b8;--gradient:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);--radius:12px;--radius-lg:20px;--font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+a{color:var(--primary);text-decoration:none}a:hover{text-decoration:underline}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(99,102,241,.15);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{width:36px;height:36px;border-radius:10px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;letter-spacing:1px}
+.nav-links{display:flex;gap:24px;font-size:.9rem}.nav-links a{color:var(--text-dim)}.nav-links a:hover{color:var(--text)}
+main{max-width:1100px;margin:0 auto;padding:80px 20px 40px}
+h1{font-size:2.2rem;font-weight:700;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.subtitle{color:var(--text-dim);font-size:1.05rem;margin-bottom:32px}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}}
+.card{background:var(--surface);border-radius:var(--radius);padding:24px;border:1px solid rgba(99,102,241,.1)}
+.card h2{font-size:1.1rem;margin-bottom:16px;font-weight:600}
+.drop-zone{border:2px dashed rgba(99,102,241,.3);border-radius:var(--radius);padding:48px 24px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--primary);background:rgba(99,102,241,.05)}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-zone p{color:var(--text-dim);font-size:.9rem;margin-top:8px}
+.drop-zone .drop-icon{font-size:2.5rem;margin-bottom:8px}
+.img-container{position:relative;margin-top:16px;border-radius:var(--radius);overflow:hidden;cursor:crosshair;display:none;max-height:500px}
+.img-container canvas{width:100%;height:auto;display:block}
+.img-container img{display:none}
+.picked-color{margin-top:12px;padding:12px 16px;background:var(--surface2);border-radius:8px;display:none;font-size:.85rem;font-family:var(--mono)}
+.picked-color .swatch{display:inline-block;width:24px;height:24px;border-radius:6px;vertical-align:middle;margin-right:10px;border:2px solid rgba(255,255,255,.2)}
+.palette-count{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.palette-count label{margin:0;font-size:.85rem}
+.palette-count input[type=range]{flex:1;accent-color:var(--primary)}
+.palette-count span{font-family:var(--mono);font-size:.85rem;min-width:20px;text-align:center}
+.palette-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.color-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface2);border-radius:10px;border:1px solid rgba(99,102,241,.08);cursor:pointer;transition:border-color .2s}
+.color-row:hover{border-color:var(--primary)}
+.color-swatch{width:48px;height:48px;border-radius:10px;flex-shrink:0;border:2px solid rgba(255,255,255,.1)}
+.color-info{flex:1;min-width:0}
+.color-info .hex{font-family:var(--mono);font-size:.95rem;font-weight:600}
+.color-info .vals{font-size:.78rem;color:var(--text-dim);font-family:var(--mono);margin-top:2px}
+.color-pct{font-size:.78rem;color:var(--text-dim);font-family:var(--mono);text-align:right;min-width:40px}
+.dist-bar{height:32px;display:flex;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.dist-bar div{height:100%;transition:width .4s}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;border:none;cursor:pointer;font-weight:600;font-size:.9rem;font-family:var(--font);transition:transform .15s,box-shadow .2s}
+.btn-primary{background:var(--gradient);color:#fff}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(99,102,241,.3)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid rgba(99,102,241,.2)}.btn-secondary:hover{border-color:var(--primary)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.harmony{margin-top:20px}
+.harmony h3{font-size:.95rem;margin-bottom:10px}
+.harmony-row{display:flex;gap:6px;margin-bottom:12px}
+.harmony-row .h-label{font-size:.78rem;color:var(--text-dim);width:100px;flex-shrink:0;padding-top:6px}
+.harmony-row .h-swatches{display:flex;gap:4px;flex-wrap:wrap}
+.harmony-row .h-swatch{width:36px;height:36px;border-radius:8px;border:2px solid rgba(255,255,255,.1);cursor:pointer;transition:transform .15s}
+.harmony-row .h-swatch:hover{transform:scale(1.1)}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-dim)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:12px 24px;border-radius:10px;font-size:.9rem;font-weight:500;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+footer{max-width:1100px;margin:60px auto 0;padding:24px 20px;border-top:1px solid rgba(99,102,241,.1);display:flex;justify-content:center;gap:24px;font-size:.85rem;color:var(--text-dim);flex-wrap:wrap}
+footer a{color:var(--text-dim)}footer a:hover{color:var(--text)}
+</style>
+</head>
+<body>
+<nav><a href="/" class="nav-logo">NT</a><div class="nav-links"><a href="/">Home</a><a href="/free-tools/">Free Tools</a></div></nav>
+<main>
+<h1>Color Palette from Image</h1>
+<p class="subtitle">Upload an image to extract its dominant colors using K-means clustering. Click anywhere on the image to pick specific colors.</p>
+
+<div class="layout">
+  <div>
+    <div class="card">
+      <h2>Image</h2>
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept="image/*">
+        <div class="drop-icon">&#x1F3A8;</div>
+        <p><strong>Drop an image here</strong> or click to browse</p>
+        <p style="font-size:.8rem;margin-top:4px">PNG, JPG, WebP, GIF supported</p>
+      </div>
+      <div class="img-container" id="imgContainer">
+        <canvas id="imgCanvas"></canvas>
+        <img id="imgEl" alt="">
+      </div>
+      <div class="picked-color" id="pickedColor">
+        <span class="swatch" id="pickedSwatch"></span>
+        <span id="pickedVal">Click on the image to pick a color</span>
+      </div>
+      <div class="palette-count" style="margin-top:16px">
+        <label>Colors:</label>
+        <input type="range" id="colorCount" min="3" max="12" value="6" oninput="updateCountLabel();extractIfReady()">
+        <span id="countLabel">6</span>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Extracted Palette</h2>
+      <div class="dist-bar" id="distBar"></div>
+      <div class="palette-grid" id="paletteGrid">
+        <div class="empty-state">Upload an image to extract colors</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="copyCSS()">Copy CSS Vars</button>
+        <button class="btn btn-secondary" onclick="copyJSON()">Copy JSON</button>
+        <button class="btn btn-secondary" onclick="downloadPalette()">Download Palette</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px">
+      <div class="harmony" id="harmonySection">
+        <h3>Color Harmony Suggestions</h3>
+        <div id="harmonyContent"><div class="empty-state" style="padding:16px">Extract colors first</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:48px;padding:32px;background:var(--surface);border-radius:var(--radius-lg);text-align:center;">
+    <p style="font-size:1.1rem;margin-bottom:12px;">&#x1F680; Explore <strong>125+ Free Developer Tools</strong></p>
+    <p style="color:var(--text-dim);margin-bottom:20px;">From CSS generators to JSON formatters — all free, no signup required.</p>
+    <a href="/free-tools/" style="display:inline-block;padding:12px 28px;background:var(--gradient);color:#fff;border-radius:20px;font-weight:600;text-decoration:none;">Browse All Tools &rarr;</a>
+</div>
+</main>
+<footer>
+  <a href="/">NexTool Home</a>
+  <a href="/free-tools/">Free Tools Hub</a>
+  <a href="/privacy">Privacy Policy</a>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+let palette=[];
+let imageData=null;
+const canvas=document.getElementById('imgCanvas');
+const ctx=canvas.getContext('2d',{willReadFrequently:true});
+const imgEl=document.getElementById('imgEl');
+
+const dropZone=document.getElementById('dropZone');
+const fileInput=document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('dragover')});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('dragover');if(e.dataTransfer.files.length)loadImage(e.dataTransfer.files[0])});
+fileInput.addEventListener('change',e=>{if(e.target.files.length)loadImage(e.target.files[0])});
+
+function loadImage(file){
+  if(!file.type.startsWith('image/'))return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    imgEl.src=e.target.result;
+    imgEl.onload=()=>{
+      const maxW=600,maxH=500;
+      let w=imgEl.naturalWidth,h=imgEl.naturalHeight;
+      if(w>maxW){h=h*(maxW/w);w=maxW}
+      if(h>maxH){w=w*(maxH/h);h=maxH}
+      canvas.width=w;canvas.height=h;
+      ctx.drawImage(imgEl,0,0,w,h);
+      imageData=ctx.getImageData(0,0,w,h);
+      document.getElementById('imgContainer').style.display='block';
+      document.getElementById('pickedColor').style.display='block';
+      dropZone.style.display='none';
+      extractColors();
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+canvas.addEventListener('click',e=>{
+  if(!imageData)return;
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=canvas.width/rect.width;
+  const scaleY=canvas.height/rect.height;
+  const x=Math.floor((e.clientX-rect.left)*scaleX);
+  const y=Math.floor((e.clientY-rect.top)*scaleY);
+  const idx=(y*canvas.width+x)*4;
+  const r=imageData.data[idx],g=imageData.data[idx+1],b=imageData.data[idx+2];
+  const hex=rgbToHex(r,g,b);
+  const hsl=rgbToHsl(r,g,b);
+  document.getElementById('pickedSwatch').style.background=hex;
+  document.getElementById('pickedVal').innerHTML=`${hex} &bull; rgb(${r},${g},${b}) &bull; hsl(${hsl[0]},${hsl[1]}%,${hsl[2]}%)`;
+});
+
+function updateCountLabel(){document.getElementById('countLabel').textContent=document.getElementById('colorCount').value}
+function extractIfReady(){if(imageData)extractColors()}
+
+function extractColors(){
+  if(!imageData)return;
+  const k=parseInt(document.getElementById('colorCount').value);
+  const pixels=samplePixels(imageData,2000);
+  palette=kMeans(pixels,k,15);
+  palette.sort((a,b)=>b.count-a.count);
+  const total=palette.reduce((s,c)=>s+c.count,0);
+  palette.forEach(c=>c.pct=Math.round(c.count/total*100));
+  renderPalette();
+  renderHarmony();
+}
+
+function samplePixels(imgData,maxSamples){
+  const d=imgData.data;
+  const total=d.length/4;
+  const step=Math.max(1,Math.floor(total/maxSamples));
+  const pixels=[];
+  for(let i=0;i<d.length;i+=step*4){
+    if(d[i+3]<128)continue;
+    pixels.push([d[i],d[i+1],d[i+2]]);
+  }
+  return pixels;
+}
+
+function kMeans(pixels,k,maxIter){
+  if(!pixels.length)return[];
+  let centroids=[];
+  const used=new Set();
+  while(centroids.length<k&&centroids.length<pixels.length){
+    const idx=Math.floor(Math.random()*pixels.length);
+    const key=pixels[idx].join(',');
+    if(!used.has(key)){used.add(key);centroids.push([...pixels[idx]])}
+  }
+  let assignments=new Array(pixels.length).fill(0);
+  for(let iter=0;iter<maxIter;iter++){
+    let changed=false;
+    for(let i=0;i<pixels.length;i++){
+      let minD=Infinity,minC=0;
+      for(let c=0;c<centroids.length;c++){
+        const d=colorDist(pixels[i],centroids[c]);
+        if(d<minD){minD=d;minC=c}
+      }
+      if(assignments[i]!==minC){assignments[i]=minC;changed=true}
+    }
+    if(!changed)break;
+    const sums=centroids.map(()=>([0,0,0,0]));
+    for(let i=0;i<pixels.length;i++){
+      const c=assignments[i];
+      sums[c][0]+=pixels[i][0];sums[c][1]+=pixels[i][1];sums[c][2]+=pixels[i][2];sums[c][3]++;
+    }
+    for(let c=0;c<centroids.length;c++){
+      if(sums[c][3]>0){
+        centroids[c]=[Math.round(sums[c][0]/sums[c][3]),Math.round(sums[c][1]/sums[c][3]),Math.round(sums[c][2]/sums[c][3])];
+      }
+    }
+  }
+  const counts=new Array(k).fill(0);
+  assignments.forEach(c=>counts[c]++);
+  return centroids.map((c,i)=>({r:c[0],g:c[1],b:c[2],count:counts[i]}));
+}
+
+function colorDist(a,b){return(a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2}
+
+function rgbToHex(r,g,b){return'#'+[r,g,b].map(c=>c.toString(16).padStart(2,'0')).join('')}
+
+function rgbToHsl(r,g,b){
+  r/=255;g/=255;b/=255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b);
+  let h,s,l=(max+min)/2;
+  if(max===min){h=s=0}else{
+    const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);
+    switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break}
+  }
+  return[Math.round(h*360),Math.round(s*100),Math.round(l*100)];
+}
+
+function hslToRgb(h,s,l){
+  h/=360;s/=100;l/=100;
+  let r,g,b;
+  if(s===0){r=g=b=l}else{
+    const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p};
+    const q=l<0.5?l*(1+s):l+s-l*s;const p=2*l-q;
+    r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);
+  }
+  return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+}
+
+function renderPalette(){
+  const grid=document.getElementById('paletteGrid');
+  const bar=document.getElementById('distBar');
+  if(!palette.length){grid.innerHTML='<div class="empty-state">No colors extracted</div>';bar.innerHTML='';return}
+  bar.innerHTML=palette.map(c=>`<div style="width:${c.pct}%;background:${rgbToHex(c.r,c.g,c.b)}" title="${c.pct}%"></div>`).join('');
+  grid.innerHTML=palette.map(c=>{
+    const hex=rgbToHex(c.r,c.g,c.b);
+    const hsl=rgbToHsl(c.r,c.g,c.b);
+    return`<div class="color-row" onclick="copyColor('${hex}')"><div class="color-swatch" style="background:${hex}"></div><div class="color-info"><div class="hex">${hex}</div><div class="vals">rgb(${c.r},${c.g},${c.b}) &bull; hsl(${hsl[0]},${hsl[1]}%,${hsl[2]}%)</div></div><div class="color-pct">${c.pct}%</div></div>`;
+  }).join('');
+}
+
+function renderHarmony(){
+  const el=document.getElementById('harmonyContent');
+  if(!palette.length){el.innerHTML='<div class="empty-state" style="padding:16px">Extract colors first</div>';return}
+  const main=palette[0];
+  const hsl=rgbToHsl(main.r,main.g,main.b);
+  const comp=hslToRgb((hsl[0]+180)%360,hsl[1],hsl[2]);
+  const ana1=hslToRgb((hsl[0]+30)%360,hsl[1],hsl[2]);
+  const ana2=hslToRgb((hsl[0]+330)%360,hsl[1],hsl[2]);
+  const tri1=hslToRgb((hsl[0]+120)%360,hsl[1],hsl[2]);
+  const tri2=hslToRgb((hsl[0]+240)%360,hsl[1],hsl[2]);
+  const split1=hslToRgb((hsl[0]+150)%360,hsl[1],hsl[2]);
+  const split2=hslToRgb((hsl[0]+210)%360,hsl[1],hsl[2]);
+  const mainHex=rgbToHex(main.r,main.g,main.b);
+
+  function sw(rgb){const h=rgbToHex(...rgb);return`<div class="h-swatch" style="background:${h}" title="${h}" onclick="copyColor('${h}')"></div>`}
+
+  el.innerHTML=`
+    <div class="harmony-row"><div class="h-label">Complementary</div><div class="h-swatches"><div class="h-swatch" style="background:${mainHex}" title="${mainHex}" onclick="copyColor('${mainHex}')"></div>${sw(comp)}</div></div>
+    <div class="harmony-row"><div class="h-label">Analogous</div><div class="h-swatches">${sw(ana2)}<div class="h-swatch" style="background:${mainHex}" title="${mainHex}" onclick="copyColor('${mainHex}')"></div>${sw(ana1)}</div></div>
+    <div class="harmony-row"><div class="h-label">Triadic</div><div class="h-swatches"><div class="h-swatch" style="background:${mainHex}" title="${mainHex}" onclick="copyColor('${mainHex}')"></div>${sw(tri1)}${sw(tri2)}</div></div>
+    <div class="harmony-row"><div class="h-label">Split-Compl.</div><div class="h-swatches"><div class="h-swatch" style="background:${mainHex}" title="${mainHex}" onclick="copyColor('${mainHex}')"></div>${sw(split1)}${sw(split2)}</div></div>
+  `;
+}
+
+function copyColor(hex){navigator.clipboard.writeText(hex).then(()=>showToast(`Copied ${hex}`))}
+
+function copyCSS(){
+  if(!palette.length)return;
+  const css=palette.map((c,i)=>`  --color-${i+1}: ${rgbToHex(c.r,c.g,c.b)};`).join('\n');
+  navigator.clipboard.writeText(`:root {\n${css}\n}`).then(()=>showToast('CSS variables copied!'));
+}
+
+function copyJSON(){
+  if(!palette.length)return;
+  const json=palette.map(c=>{const hex=rgbToHex(c.r,c.g,c.b);const hsl=rgbToHsl(c.r,c.g,c.b);return{hex,rgb:`rgb(${c.r},${c.g},${c.b})`,hsl:`hsl(${hsl[0]},${hsl[1]}%,${hsl[2]}%)`,percentage:c.pct+'%'}});
+  navigator.clipboard.writeText(JSON.stringify(json,null,2)).then(()=>showToast('JSON copied!'));
+}
+
+function downloadPalette(){
+  if(!palette.length)return;
+  const data={colors:palette.map(c=>{const hex=rgbToHex(c.r,c.g,c.b);const hsl=rgbToHsl(c.r,c.g,c.b);return{hex,rgb:{r:c.r,g:c.g,b:c.b},hsl:{h:hsl[0],s:hsl[1],l:hsl[2]},percentage:c.pct}}),css:palette.map((c,i)=>`--color-${i+1}: ${rgbToHex(c.r,c.g,c.b)};`).join('\n')};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='color-palette.json';a.click();
+}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+</script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

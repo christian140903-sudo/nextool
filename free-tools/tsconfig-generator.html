@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>tsconfig.json Generator — NexTool Free Tools</title>
-<meta name="description" content="Generate perfect tsconfig.json files for TypeScript projects. Presets for React, Next.js, Node.js, libraries. Interactive options with explanations.">
+<meta name="description" content="Generate perfect tsconfig.json files for TypeScript projects. Presets for React, Next.js, Node.js, Vue, Deno. Interactive options with explanations and gotchas.">
 <meta property="og:title" content="tsconfig.json Generator — NexTool Free Tools">
 <meta property="og:description" content="Generate perfect tsconfig.json files with interactive options, presets, and explanations for every setting.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://nextool.app/free-tools/tsconfig-generator.html">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"tsconfig.json Generator","description":"Generate perfect tsconfig.json files for TypeScript projects with interactive options and presets.","url":"https://nextool.app/free-tools/tsconfig-generator.html","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"NexTool"}}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"tsconfig.json Generator","description":"Generate perfect tsconfig.json files for TypeScript projects with interactive options, presets, and gotcha warnings.","url":"https://nextool.app/free-tools/tsconfig-generator.html","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"NexTool"}}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -30,7 +30,7 @@ main{max-width:1280px;margin:0 auto;padding:84px 24px 40px}
 h1{font-size:2.4rem;font-weight:800;margin-bottom:8px}
 h1 em{font-style:normal;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .subtitle{color:var(--text-dim);font-size:1.1rem;margin-bottom:24px}
-.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
 .preset-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(99,102,241,.25);background:transparent;color:var(--text-dim);font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
 .preset-btn:hover,.preset-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 .layout{display:grid;grid-template-columns:1fr 1fr;gap:24px}
@@ -39,10 +39,14 @@ h1 em{font-style:normal;background:var(--gradient);-webkit-background-clip:text;
 .panel::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
 .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;position:sticky;top:0;background:var(--surface);z-index:2;padding-bottom:8px}
 .panel-title{font-size:1rem;font-weight:700}
-.search-box{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid rgba(99,102,241,.2);border-radius:var(--radius);color:var(--text);font-family:inherit;font-size:.9rem;outline:none;margin-bottom:16px;transition:border-color .2s}
+.search-box{width:100%;padding:10px 14px 10px 38px;background:var(--surface2);border:1px solid rgba(99,102,241,.2);border-radius:var(--radius);color:var(--text);font-family:inherit;font-size:.9rem;outline:none;margin-bottom:16px;transition:border-color .2s}
 .search-box:focus{border-color:var(--primary)}
+.search-wrap{position:relative;margin-bottom:16px}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none}
+.search-wrap .search-box{margin-bottom:0}
 .opt-section{margin-bottom:20px}
-.opt-section-title{font-size:.88rem;font-weight:700;color:var(--accent);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(99,102,241,.08)}
+.opt-section-title{font-size:.88rem;font-weight:700;color:var(--accent);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(99,102,241,.08);display:flex;align-items:center;gap:8px}
+.opt-section-count{font-size:.72rem;color:var(--text-dim);font-weight:500;background:var(--surface2);padding:2px 8px;border-radius:10px}
 .opt-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:8px;transition:background .15s;cursor:pointer}
 .opt-item:hover{background:rgba(99,102,241,.06)}
 .opt-item.hidden{display:none}
@@ -51,8 +55,24 @@ h1 em{font-style:normal;background:var(--gradient);-webkit-background-clip:text;
 .opt-name{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:600;color:var(--text)}
 .opt-desc{font-size:.75rem;color:var(--text-dim);margin-top:2px}
 .opt-gotcha{font-size:.72rem;color:var(--pink);margin-top:3px;padding:3px 8px;background:rgba(236,72,153,.08);border-radius:6px;display:inline-block}
-.opt-select{padding:4px 8px;background:var(--surface2);border:1px solid rgba(99,102,241,.15);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;outline:none;margin-top:4px}
+.opt-select{padding:4px 8px;background:var(--surface2);border:1px solid rgba(99,102,241,.15);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;outline:none;margin-top:4px;cursor:pointer}
 .opt-text{padding:4px 8px;background:var(--surface2);border:1px solid rgba(99,102,241,.15);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;outline:none;margin-top:4px;width:100%}
+.opt-text:focus,.opt-select:focus{border-color:var(--primary)}
+.recs-panel{background:var(--surface2);border-radius:var(--radius);padding:14px 16px;margin-top:16px;border:1px solid rgba(99,102,241,.08)}
+.recs-title{font-size:.82rem;font-weight:700;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.recs-title svg{flex-shrink:0}
+.rec-item{font-size:.78rem;color:var(--text-dim);padding:4px 0;padding-left:16px;position:relative}
+.rec-item::before{content:'';position:absolute;left:0;top:10px;width:6px;height:6px;border-radius:50%}
+.rec-item.warn::before{background:#facc15}
+.rec-item.info::before{background:var(--primary)}
+.rec-item.good::before{background:#4ade80}
+.include-exclude{margin-top:16px}
+.ie-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.ie-field{display:flex;flex-direction:column;gap:4px}
+.ie-field label{font-size:.75rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+.ie-field input{padding:7px 10px;background:var(--bg);border:1px solid rgba(99,102,241,.12);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;outline:none}
+.ie-field input:focus{border-color:var(--primary)}
+.ie-hint{font-size:.7rem;color:var(--text-dim);font-style:italic;opacity:.7}
 .btn-group{display:flex;gap:8px}
 .btn{padding:8px 18px;border-radius:var(--radius);border:none;font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .2s}
 .btn-primary{background:var(--primary);color:#fff}
@@ -61,6 +81,9 @@ h1 em{font-style:normal;background:var(--gradient);-webkit-background-clip:text;
 .btn-outline:hover{border-color:var(--primary);color:var(--text)}
 .json-output{flex:1;background:var(--bg);border-radius:var(--radius);padding:16px;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.7;overflow-y:auto;white-space:pre;min-height:400px;border:1px solid rgba(99,102,241,.08)}
 .jk{color:#c084fc}.jv{color:#6ee7b7}.js_{color:#fbbf24}.jn{color:#f87171}.jb{color:#60a5fa}
+.line-count{font-size:.75rem;color:var(--text-dim);margin-top:8px;text-align:right}
+.stats-row{display:flex;gap:16px;margin-bottom:16px;padding:8px 14px;background:var(--surface);border-radius:var(--radius);border:1px solid rgba(99,102,241,.08);flex-wrap:wrap}
+.stat{font-size:.82rem;color:var(--text-dim)}.stat strong{color:var(--text);font-weight:700}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--primary);color:#fff;padding:10px 24px;border-radius:var(--radius);font-weight:600;font-size:.9rem;opacity:0;transition:all .3s;z-index:200;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .cta-section{background:var(--surface);border-radius:var(--radius-lg);border:1px solid rgba(99,102,241,.12);padding:48px;text-align:center;margin-top:48px}
@@ -77,7 +100,7 @@ footer a{color:var(--text-dim);text-decoration:none;font-size:.85rem;transition:
 footer a:hover{color:var(--text)}
 .footer-links{display:flex;gap:20px}
 .footer-copy{color:var(--text-dim);font-size:.8rem}
-@media(max-width:600px){.layout{grid-template-columns:1fr}h1{font-size:1.6rem}.nav-links{display:none}.cta-section{padding:32px 20px}footer{flex-direction:column;text-align:center}.panel{max-height:none}}
+@media(max-width:768px){.layout{grid-template-columns:1fr}h1{font-size:1.6rem}.nav-links{display:none}.cta-section{padding:32px 20px}footer{flex-direction:column;text-align:center}.panel{max-height:none}.ie-row{grid-template-columns:1fr}.stats-row{gap:8px}}
 </style>
 </head>
 <body>
@@ -90,13 +113,42 @@ footer a:hover{color:var(--text)}
 </nav>
 <main>
   <h1><em>tsconfig.json</em> Generator</h1>
-  <p class="subtitle">Configure TypeScript interactively. Pick a preset or customize every option. Hover for explanations, watch for gotchas.</p>
+  <p class="subtitle">Configure TypeScript interactively. Pick a preset or customize every option. Explanations for each setting, gotcha warnings included.</p>
   <div class="presets" id="presets"></div>
+  <div class="stats-row">
+    <div class="stat">Options set: <strong id="statOptions">0</strong></div>
+    <div class="stat">Strict checks: <strong id="statStrict">0</strong></div>
+    <div class="stat">Output lines: <strong id="statLines">0</strong></div>
+  </div>
   <div class="layout">
     <div class="panel">
       <div class="panel-header"><div class="panel-title">Options</div></div>
-      <input type="text" class="search-box" id="searchInput" placeholder="Search options...">
+      <div class="search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="search-box" id="searchInput" placeholder="Search options... (e.g. strict, module, jsx)">
+      </div>
       <div id="optionsContainer"></div>
+      <div class="include-exclude">
+        <div class="ie-row">
+          <div class="ie-field">
+            <label>Include</label>
+            <input type="text" id="cfgInclude" placeholder="src/**/*" oninput="generate()">
+            <div class="ie-hint">Comma-separated glob patterns to include</div>
+          </div>
+          <div class="ie-field">
+            <label>Exclude</label>
+            <input type="text" id="cfgExclude" value="node_modules, dist, build" oninput="generate()">
+            <div class="ie-hint">Comma-separated paths to exclude</div>
+          </div>
+        </div>
+      </div>
+      <div class="recs-panel" id="recsPanel">
+        <div class="recs-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Recommendations
+        </div>
+        <div id="recsContent"></div>
+      </div>
     </div>
     <div class="panel">
       <div class="panel-header">
@@ -107,6 +159,7 @@ footer a:hover{color:var(--text)}
         </div>
       </div>
       <div class="json-output" id="output"></div>
+      <div class="line-count" id="lineCount"></div>
     </div>
   </div>
   <section class="cta-section">
@@ -114,7 +167,7 @@ footer a:hover{color:var(--text)}
     <p>Get the NexTool Ultimate Bundle with 100+ premium developer tools, templates, and automations for just $39.</p>
     <div class="cta-buttons">
       <a href="/products/ultimate-bundle.html" class="cta-btn gradient">Get Bundle — $39</a>
-      <a href="/free-tools/" class="cta-btn outline">Browse 100+ Free Tools &rarr;</a>
+      <a href="/free-tools/" class="cta-btn outline">Browse 125+ Free Tools &rarr;</a>
     </div>
   </section>
 </main>
@@ -125,56 +178,75 @@ footer a:hover{color:var(--text)}
 <div class="toast" id="toast">Copied!</div>
 <script>
 const OPTIONS = [
+  /* Compiler Target */
   {section:"Compiler Target",id:"target",type:"select",values:["ES5","ES6","ES2016","ES2017","ES2018","ES2019","ES2020","ES2021","ES2022","ES2023","ESNext"],default:"ES2022",desc:"Set the JavaScript language version for emitted JavaScript.",gotcha:"ES5 generates much larger output. Use ES2022+ for modern environments."},
-  {section:"Compiler Target",id:"lib",type:"text",default:"",desc:"Specify library files to include (comma-separated, e.g. ES2022,DOM,DOM.Iterable).",gotcha:"If you target the browser, always include DOM and DOM.Iterable."},
+  {section:"Compiler Target",id:"lib",type:"text",default:"",desc:"Library files to include (comma-separated, e.g. ES2022,DOM,DOM.Iterable).",gotcha:"If targeting the browser, always include DOM and DOM.Iterable."},
+  /* Module System */
   {section:"Module System",id:"module",type:"select",values:["CommonJS","ES6","ES2015","ES2020","ES2022","ESNext","NodeNext","Node16","None","AMD","UMD","System"],default:"ESNext",desc:"Specify the module code generation method.",gotcha:"Use NodeNext/Node16 for Node.js projects. Use ESNext for bundled apps."},
   {section:"Module System",id:"moduleResolution",type:"select",values:["node","node16","nodenext","bundler","classic"],default:"bundler",desc:"Strategy for resolving module specifiers.",gotcha:"Use 'bundler' for Vite/webpack apps, 'nodenext' for Node.js."},
   {section:"Module System",id:"esModuleInterop",type:"bool",default:true,desc:"Emit additional JS to allow importing CommonJS modules with ES syntax.",gotcha:"Almost always should be true. Needed for default imports from CJS packages."},
   {section:"Module System",id:"allowSyntheticDefaultImports",type:"bool",default:true,desc:"Allow default imports from modules with no default export."},
   {section:"Module System",id:"resolveJsonModule",type:"bool",default:true,desc:"Enable importing .json files as modules."},
-  {section:"Module System",id:"isolatedModules",type:"bool",default:true,desc:"Ensure each file can be safely transpiled independently.",gotcha:"Required for tools like Babel, SWC, esbuild. Always enable for modern projects."},
-  {section:"Strict Checks",id:"strict",type:"bool",default:true,desc:"Enable all strict type-checking options at once.",gotcha:"Enabling this turns on 8+ strict flags. Highly recommended for new projects."},
-  {section:"Strict Checks",id:"noUncheckedIndexedAccess",type:"bool",default:false,desc:"Add undefined to any un-declared index signature results.",gotcha:"Very useful for catching bugs with arrays and objects, but can be verbose."},
+  {section:"Module System",id:"isolatedModules",type:"bool",default:true,desc:"Ensure each file can be safely transpiled independently.",gotcha:"Required for Babel, SWC, esbuild. Always enable for modern projects."},
+  {section:"Module System",id:"verbatimModuleSyntax",type:"bool",default:false,desc:"Do not transform import/export statements.",gotcha:"Modern replacement for importsNotUsedAsValues. Use with ESM projects."},
+  /* Strict Type Checking */
+  {section:"Strict Checks",id:"strict",type:"bool",default:true,desc:"Enable all strict type-checking options at once.",gotcha:"Turns on 8+ strict flags. Highly recommended for new projects."},
+  {section:"Strict Checks",id:"noUncheckedIndexedAccess",type:"bool",default:false,desc:"Add undefined to any un-declared index signature results.",gotcha:"Catches bugs with arrays and objects, but can be verbose."},
   {section:"Strict Checks",id:"noImplicitReturns",type:"bool",default:true,desc:"Report errors for functions that don't return in all code paths."},
   {section:"Strict Checks",id:"noFallthroughCasesInSwitch",type:"bool",default:true,desc:"Report errors for fallthrough cases in switch statements."},
   {section:"Strict Checks",id:"noUnusedLocals",type:"bool",default:false,desc:"Report errors on unused local variables.",gotcha:"Can be annoying during development. Consider enabling only in CI."},
   {section:"Strict Checks",id:"noUnusedParameters",type:"bool",default:false,desc:"Report errors on unused function parameters."},
-  {section:"Strict Checks",id:"exactOptionalPropertyTypes",type:"bool",default:false,desc:"Differentiate between undefined and optional for object properties."},
-  {section:"Strict Checks",id:"forceConsistentCasingInFileNames",type:"bool",default:true,desc:"Disallow inconsistently-cased references to the same file.",gotcha:"macOS and Windows are case-insensitive. This prevents nasty CI bugs."},
-  {section:"Output",id:"outDir",type:"text",default:"./dist",desc:"Redirect output structure to the directory."},
+  {section:"Strict Checks",id:"exactOptionalPropertyTypes",type:"bool",default:false,desc:"Differentiate between undefined and optional for object properties.",gotcha:"Stricter than strict. May require code changes to adopt."},
+  {section:"Strict Checks",id:"noPropertyAccessFromIndexSignature",type:"bool",default:false,desc:"Require bracket notation for index signature access.",gotcha:"Enforces explicit access patterns. Good for catching typos."},
+  {section:"Strict Checks",id:"forceConsistentCasingInFileNames",type:"bool",default:true,desc:"Disallow inconsistently-cased references to the same file.",gotcha:"macOS/Windows are case-insensitive. This prevents nasty CI bugs."},
+  /* Output */
+  {section:"Output",id:"outDir",type:"text",default:"./dist",desc:"Redirect output structure to this directory."},
   {section:"Output",id:"rootDir",type:"text",default:"./src",desc:"Specify the root directory of source files."},
   {section:"Output",id:"declaration",type:"bool",default:false,desc:"Generate .d.ts declaration files.",gotcha:"Required when publishing a library to npm."},
   {section:"Output",id:"declarationMap",type:"bool",default:false,desc:"Create sourcemaps for .d.ts files for better IDE experience."},
-  {section:"Output",id:"emitDeclarationOnly",type:"bool",default:false,desc:"Only emit .d.ts files, not JavaScript.",gotcha:"Use this when another tool (SWC, esbuild) handles JS compilation."},
+  {section:"Output",id:"declarationDir",type:"text",default:"",desc:"Output directory for generated declaration files."},
+  {section:"Output",id:"emitDeclarationOnly",type:"bool",default:false,desc:"Only emit .d.ts files, not JavaScript.",gotcha:"Use when SWC, esbuild, or Vite handles JS compilation."},
   {section:"Output",id:"noEmit",type:"bool",default:false,desc:"Disable emitting files. Use TypeScript only for type checking.",gotcha:"Enable when using bundlers like Vite, Turbopack, or Next.js."},
   {section:"Output",id:"removeComments",type:"bool",default:false,desc:"Strip comments from emitted JavaScript."},
+  /* Source Maps */
   {section:"Source Maps",id:"sourceMap",type:"bool",default:true,desc:"Generate source map files (.js.map) for debugging."},
-  {section:"Source Maps",id:"inlineSourceMap",type:"bool",default:false,desc:"Embed source maps directly in JS files instead of separate .map files."},
-  {section:"Source Maps",id:"inlineSources",type:"bool",default:false,desc:"Include source code in the source maps."},
+  {section:"Source Maps",id:"inlineSourceMap",type:"bool",default:false,desc:"Embed source maps directly in JS files instead of separate .map files.",gotcha:"Conflicts with sourceMap. Only use one."},
+  {section:"Source Maps",id:"inlineSources",type:"bool",default:false,desc:"Include original source code in the source maps."},
+  /* JSX */
   {section:"JSX",id:"jsx",type:"select",values:["","react","react-jsx","react-jsxdev","preserve","react-native"],default:"",desc:"Control how JSX is emitted in JavaScript files.",gotcha:"Use 'react-jsx' for React 17+ (automatic runtime). 'preserve' for Next.js."},
+  {section:"JSX",id:"jsxImportSource",type:"text",default:"",desc:"Module specifier for JSX factory functions (e.g. 'react', 'preact').",gotcha:"Only works with jsx: 'react-jsx' or 'react-jsxdev'."},
+  /* Path Aliases */
   {section:"Path Aliases",id:"baseUrl",type:"text",default:"",desc:"Base directory for resolving non-relative module names."},
-  {section:"Path Aliases",id:"paths",type:"text",default:"",desc:"Path aliases (JSON object, e.g. {\"@/*\": [\"./src/*\"]}).",gotcha:"Requires baseUrl to be set. Bundler must also be configured for aliases."},
+  {section:"Path Aliases",id:"paths",type:"text",default:"",desc:"Path aliases (JSON object, e.g. {\"@/*\": [\"./src/*\"]}).",gotcha:"Requires baseUrl to be set. Bundler must also support aliases."},
+  /* Advanced */
   {section:"Advanced",id:"skipLibCheck",type:"bool",default:true,desc:"Skip type checking of declaration files (.d.ts).",gotcha:"Significantly speeds up compilation. Recommended for most projects."},
   {section:"Advanced",id:"allowJs",type:"bool",default:false,desc:"Allow JavaScript files to be compiled alongside TypeScript."},
-  {section:"Advanced",id:"checkJs",type:"bool",default:false,desc:"Report errors in JavaScript files (requires allowJs)."},
-  {section:"Advanced",id:"incremental",type:"bool",default:false,desc:"Save information from prior compilations for faster rebuilds.",gotcha:"Creates a .tsbuildinfo file. Great for large projects."},
-  {section:"Advanced",id:"composite",type:"bool",default:false,desc:"Enable project references for monorepo setups."},
-  {section:"Advanced",id:"verbatimModuleSyntax",type:"bool",default:false,desc:"Do not transform import/export statements.",gotcha:"Modern replacement for importsNotUsedAsValues. Use with ESM projects."}
+  {section:"Advanced",id:"checkJs",type:"bool",default:false,desc:"Report errors in JavaScript files (requires allowJs).",gotcha:"Useful for gradual TypeScript migration."},
+  {section:"Advanced",id:"incremental",type:"bool",default:false,desc:"Save build info for faster subsequent builds.",gotcha:"Creates a .tsbuildinfo file. Great for large projects."},
+  {section:"Advanced",id:"composite",type:"bool",default:false,desc:"Enable project references for monorepo setups.",gotcha:"Requires declaration: true and rootDir to be set."},
+  {section:"Advanced",id:"downlevelIteration",type:"bool",default:false,desc:"Emit more compliant but larger JS for iteration constructs.",gotcha:"Only needed when targeting ES5 with for..of, spread, or destructuring."},
+  {section:"Advanced",id:"useDefineForClassFields",type:"bool",default:true,desc:"Use ES2022 define semantics for class fields.",gotcha:"Default changed to true in TS 4.7+. Matches TC39 spec."},
+  {section:"Advanced",id:"allowImportingTsExtensions",type:"bool",default:false,desc:"Allow imports with .ts/.tsx extensions.",gotcha:"Requires noEmit or emitDeclarationOnly. For Deno-style imports."},
+  {section:"Advanced",id:"moduleDetection",type:"select",values:["","auto","legacy","force"],default:"",desc:"How TypeScript detects whether a file is a module or script."}
 ];
+
 const PRESETS = {
-  "React App":{target:"ES2022",module:"ESNext",moduleResolution:"bundler",lib:"ES2022,DOM,DOM.Iterable",jsx:"react-jsx",strict:true,esModuleInterop:true,isolatedModules:true,noEmit:true,skipLibCheck:true,resolveJsonModule:true,forceConsistentCasingInFileNames:true,allowSyntheticDefaultImports:true,sourceMap:true},
-  "Next.js":{target:"ES2017",module:"ESNext",moduleResolution:"bundler",lib:"ES2022,DOM,DOM.Iterable",jsx:"preserve",strict:true,esModuleInterop:true,isolatedModules:true,noEmit:true,skipLibCheck:true,resolveJsonModule:true,forceConsistentCasingInFileNames:true,incremental:true,allowSyntheticDefaultImports:true,sourceMap:false},
-  "Node.js":{target:"ES2022",module:"NodeNext",moduleResolution:"nodenext",lib:"",jsx:"",strict:true,esModuleInterop:true,isolatedModules:true,skipLibCheck:true,resolveJsonModule:true,forceConsistentCasingInFileNames:true,outDir:"./dist",rootDir:"./src",declaration:true,sourceMap:true,noEmit:false,allowSyntheticDefaultImports:true},
-  "Library":{target:"ES2020",module:"ESNext",moduleResolution:"bundler",lib:"",jsx:"",strict:true,esModuleInterop:true,isolatedModules:true,skipLibCheck:true,declaration:true,declarationMap:true,outDir:"./dist",rootDir:"./src",sourceMap:true,forceConsistentCasingInFileNames:true,resolveJsonModule:true,allowSyntheticDefaultImports:true,noEmit:false},
+  "React App":{target:"ES2022",module:"ESNext",moduleResolution:"bundler",lib:"ES2022,DOM,DOM.Iterable",jsx:"react-jsx",strict:true,esModuleInterop:true,isolatedModules:true,noEmit:true,skipLibCheck:true,resolveJsonModule:true,forceConsistentCasingInFileNames:true,allowSyntheticDefaultImports:true,sourceMap:true,noImplicitReturns:true,noFallthroughCasesInSwitch:true},
+  "Next.js":{target:"ES2017",module:"ESNext",moduleResolution:"bundler",lib:"ES2022,DOM,DOM.Iterable",jsx:"preserve",strict:true,esModuleInterop:true,isolatedModules:true,noEmit:true,skipLibCheck:true,resolveJsonModule:true,forceConsistentCasingInFileNames:true,incremental:true,allowSyntheticDefaultImports:true,sourceMap:false,noImplicitReturns:true},
+  "Node.js":{target:"ES2022",module:"NodeNext",moduleResolution:"nodenext",lib:"",jsx:"",strict:true,esModuleInterop:true,isolatedModules:true,skipLibCheck:true,resolveJsonModule:true,forceConsistentCasingInFileNames:true,outDir:"./dist",rootDir:"./src",declaration:true,sourceMap:true,noEmit:false,allowSyntheticDefaultImports:true,noImplicitReturns:true,noFallthroughCasesInSwitch:true},
+  "Library (npm)":{target:"ES2020",module:"ESNext",moduleResolution:"bundler",lib:"",jsx:"",strict:true,esModuleInterop:true,isolatedModules:true,skipLibCheck:true,declaration:true,declarationMap:true,outDir:"./dist",rootDir:"./src",sourceMap:true,forceConsistentCasingInFileNames:true,resolveJsonModule:true,allowSyntheticDefaultImports:true,noEmit:false,noImplicitReturns:true,noUnusedLocals:true,noUnusedParameters:true},
   "Vue.js":{target:"ESNext",module:"ESNext",moduleResolution:"bundler",lib:"ES2022,DOM,DOM.Iterable",jsx:"preserve",strict:true,esModuleInterop:true,isolatedModules:true,noEmit:true,skipLibCheck:true,resolveJsonModule:true,forceConsistentCasingInFileNames:true,allowSyntheticDefaultImports:true,sourceMap:true},
-  "Deno":{target:"ESNext",module:"ESNext",moduleResolution:"bundler",lib:"ESNext",jsx:"",strict:true,noEmit:true,isolatedModules:true,skipLibCheck:true,forceConsistentCasingInFileNames:true,esModuleInterop:false,allowSyntheticDefaultImports:false,resolveJsonModule:false,sourceMap:false}
+  "Deno":{target:"ESNext",module:"ESNext",moduleResolution:"bundler",lib:"ESNext,DOM",jsx:"",strict:true,noEmit:true,isolatedModules:true,skipLibCheck:true,forceConsistentCasingInFileNames:true,esModuleInterop:false,allowSyntheticDefaultImports:false,resolveJsonModule:false,sourceMap:false,allowImportingTsExtensions:true},
+  "Monorepo Package":{target:"ES2022",module:"ESNext",moduleResolution:"bundler",lib:"",jsx:"",strict:true,esModuleInterop:true,isolatedModules:true,skipLibCheck:true,declaration:true,declarationMap:true,composite:true,outDir:"./dist",rootDir:"./src",sourceMap:true,forceConsistentCasingInFileNames:true,resolveJsonModule:true,allowSyntheticDefaultImports:true,noEmit:false,incremental:true},
+  "Strict Maximum":{target:"ES2022",module:"ESNext",moduleResolution:"bundler",lib:"ES2022,DOM,DOM.Iterable",jsx:"",strict:true,esModuleInterop:true,isolatedModules:true,skipLibCheck:true,forceConsistentCasingInFileNames:true,noEmit:true,noUnusedLocals:true,noUnusedParameters:true,noUncheckedIndexedAccess:true,noImplicitReturns:true,noFallthroughCasesInSwitch:true,exactOptionalPropertyTypes:true,noPropertyAccessFromIndexSignature:true,resolveJsonModule:true,allowSyntheticDefaultImports:true,sourceMap:true,verbatimModuleSyntax:true}
 };
+
 let state = {};
 OPTIONS.forEach(o => {
   if (o.type === 'bool') state[o.id] = o.default;
-  else if (o.type === 'select') state[o.id] = o.default;
   else state[o.id] = o.default;
 });
+
 function renderPresets() {
   const el = document.getElementById('presets');
   Object.keys(PRESETS).forEach(name => {
@@ -196,6 +268,7 @@ function renderPresets() {
     el.appendChild(btn);
   });
 }
+
 function renderOptions(filter='') {
   const container = document.getElementById('optionsContainer');
   container.innerHTML = '';
@@ -209,7 +282,7 @@ function renderOptions(filter='') {
   Object.keys(sections).forEach(sec => {
     const secEl = document.createElement('div');
     secEl.className = 'opt-section';
-    secEl.innerHTML = `<div class="opt-section-title">${sec}</div>`;
+    secEl.innerHTML = `<div class="opt-section-title">${sec}<span class="opt-section-count">${sections[sec].length}</span></div>`;
     sections[sec].forEach(o => {
       const item = document.createElement('div');
       item.className = 'opt-item';
@@ -221,7 +294,8 @@ function renderOptions(filter='') {
       if (o.type === 'select') {
         extra = `<select class="opt-select" data-id="${o.id}">${o.values.map(v=>`<option value="${v}" ${state[o.id]===v?'selected':''}>${v||'(none)'}</option>`).join('')}</select>`;
       } else if (o.type === 'text') {
-        extra = `<input type="text" class="opt-text" data-id="${o.id}" value="${state[o.id]||''}" placeholder="${o.id === 'paths' ? '{"@/*":["./src/*"]}' : o.id === 'lib' ? 'ES2022,DOM,DOM.Iterable' : ''}">`;
+        const placeholder = o.id === 'paths' ? '{"@/*":["./src/*"]}' : o.id === 'lib' ? 'ES2022,DOM,DOM.Iterable' : o.id === 'jsxImportSource' ? 'react' : o.id === 'declarationDir' ? './types' : '';
+        extra = `<input type="text" class="opt-text" data-id="${o.id}" value="${state[o.id]||''}" placeholder="${placeholder}">`;
       }
       item.innerHTML = `${o.type==='bool'?control:''}
         <div class="opt-info">
@@ -244,10 +318,43 @@ function renderOptions(filter='') {
     el.addEventListener('input', () => { state[el.dataset.id] = el.value; generate(); });
   });
 }
+
+function updateRecommendations() {
+  const recs = [];
+  if(!state.strict) recs.push({type:'warn',text:'Consider enabling "strict" for better type safety in new projects.'});
+  if(state.inlineSourceMap && state.sourceMap) recs.push({type:'warn',text:'"inlineSourceMap" and "sourceMap" conflict. Use only one.'});
+  if(state.noEmit && state.declaration) recs.push({type:'warn',text:'"noEmit" is true but "declaration" is also true. Declarations won\'t be emitted.'});
+  if(state.emitDeclarationOnly && !state.declaration) recs.push({type:'warn',text:'"emitDeclarationOnly" requires "declaration" to be true.'});
+  if(state.composite && !state.declaration) recs.push({type:'warn',text:'"composite" requires "declaration" to be true.'});
+  if(state.checkJs && !state.allowJs) recs.push({type:'warn',text:'"checkJs" requires "allowJs" to be enabled.'});
+  if(state.declarationMap && !state.declaration) recs.push({type:'warn',text:'"declarationMap" requires "declaration" to be true.'});
+  if(state.jsxImportSource && state.jsx !== 'react-jsx' && state.jsx !== 'react-jsxdev') recs.push({type:'warn',text:'"jsxImportSource" only works with jsx: "react-jsx" or "react-jsxdev".'});
+  if(state.allowImportingTsExtensions && !state.noEmit && !state.emitDeclarationOnly) recs.push({type:'warn',text:'"allowImportingTsExtensions" requires "noEmit" or "emitDeclarationOnly".'});
+  if(state.downlevelIteration && state.target !== 'ES5' && state.target !== 'ES6') recs.push({type:'info',text:'"downlevelIteration" is mainly needed for ES5/ES6 targets.'});
+  if(state.verbatimModuleSyntax && state.module === 'CommonJS') recs.push({type:'warn',text:'"verbatimModuleSyntax" conflicts with CommonJS module output.'});
+  if(state.isolatedModules) recs.push({type:'good',text:'"isolatedModules" is enabled. Compatible with Babel, SWC, esbuild.'});
+  if(state.strict && state.noUncheckedIndexedAccess) recs.push({type:'good',text:'Maximum strictness with "noUncheckedIndexedAccess". Excellent for robustness.'});
+  if(state.paths && !state.baseUrl) recs.push({type:'warn',text:'"paths" requires "baseUrl" to be set.'});
+  if(state.moduleResolution === 'classic') recs.push({type:'warn',text:'"classic" module resolution is deprecated. Use "bundler" or "nodenext".'});
+
+  const panel = document.getElementById('recsContent');
+  panel.innerHTML = '';
+  if(recs.length === 0) {
+    panel.innerHTML = '<div class="rec-item info">Configuration looks good. No issues detected.</div>';
+    return;
+  }
+  recs.forEach(r => {
+    const d = document.createElement('div');
+    d.className = 'rec-item ' + r.type;
+    d.textContent = r.text;
+    panel.appendChild(d);
+  });
+}
+
 function generate() {
   const co = {};
-  const selectOpts = ['target','module','moduleResolution','jsx'];
-  const textOpts = ['outDir','rootDir','baseUrl','lib','paths'];
+  const selectOpts = ['target','module','moduleResolution','jsx','moduleDetection'];
+  const textOpts = ['outDir','rootDir','baseUrl','lib','paths','jsxImportSource','declarationDir'];
   const boolOpts = OPTIONS.filter(o=>o.type==='bool').map(o=>o.id);
 
   selectOpts.forEach(k => { if (state[k]) co[k] = state[k]; });
@@ -260,17 +367,26 @@ function generate() {
       co[k] = state[k];
     }
   });
-  ['outDir','rootDir','baseUrl'].forEach(k => { if (state[k]) co[k] = state[k]; });
+  ['outDir','rootDir','baseUrl','jsxImportSource','declarationDir'].forEach(k => { if (state[k]) co[k] = state[k]; });
   let pathsObj = null;
   if (state.paths) {
     try { pathsObj = JSON.parse(state.paths); co.paths = pathsObj; } catch(e) {}
   }
 
   const config = { compilerOptions: co };
-  if (state.rootDir) {
+
+  const includeVal = document.getElementById('cfgInclude').value;
+  const excludeVal = document.getElementById('cfgExclude').value;
+
+  if (includeVal) {
+    config.include = includeVal.split(',').map(x=>x.trim()).filter(Boolean);
+  } else if (state.rootDir) {
     config.include = [state.rootDir.replace(/^\.\//,'') + '/**/*'];
   }
-  config.exclude = ['node_modules', 'dist', 'build'];
+
+  if (excludeVal) {
+    config.exclude = excludeVal.split(',').map(x=>x.trim()).filter(Boolean);
+  }
 
   const raw = JSON.stringify(config, null, 2);
   const highlighted = raw
@@ -280,23 +396,44 @@ function generate() {
     .replace(/"([^"]+)"(?=[,\]\n])/g, (m, v) => `<span class="js_">"${v}"</span>`);
 
   document.getElementById('output').innerHTML = highlighted;
+
+  const lines = raw.split('\n').length;
+  document.getElementById('lineCount').textContent = `${lines} lines`;
+  document.getElementById('statLines').textContent = lines;
+
+  let optCount = 0;
+  let strictCount = 0;
+  boolOpts.forEach(k => { if(state[k]) optCount++; });
+  selectOpts.forEach(k => { if(state[k]) optCount++; });
+  const strictBools = ['strict','noUncheckedIndexedAccess','noImplicitReturns','noFallthroughCasesInSwitch','noUnusedLocals','noUnusedParameters','exactOptionalPropertyTypes','noPropertyAccessFromIndexSignature','forceConsistentCasingInFileNames'];
+  strictBools.forEach(k => { if(state[k]) strictCount++; });
+  document.getElementById('statOptions').textContent = optCount;
+  document.getElementById('statStrict').textContent = strictCount + '/' + strictBools.length;
+
+  updateRecommendations();
 }
+
 function getRaw() {
   const co = {};
   const boolOpts = OPTIONS.filter(o=>o.type==='bool').map(o=>o.id);
-  ['target','module','moduleResolution','jsx'].forEach(k=>{if(state[k])co[k]=state[k]});
+  ['target','module','moduleResolution','jsx','moduleDetection'].forEach(k=>{if(state[k])co[k]=state[k]});
   if(state.lib) co.lib=state.lib.split(',').map(x=>x.trim()).filter(Boolean);
   boolOpts.forEach(k=>{const opt=OPTIONS.find(o=>o.id===k);if(state[k]!==opt.default||state[k]===true)co[k]=state[k]});
-  ['outDir','rootDir','baseUrl'].forEach(k=>{if(state[k])co[k]=state[k]});
+  ['outDir','rootDir','baseUrl','jsxImportSource','declarationDir'].forEach(k=>{if(state[k])co[k]=state[k]});
   if(state.paths){try{co.paths=JSON.parse(state.paths)}catch(e){}}
   const config={compilerOptions:co};
-  if(state.rootDir)config.include=[state.rootDir.replace(/^\.\//,'')+'/**/*'];
-  config.exclude=['node_modules','dist','build'];
+  const includeVal=document.getElementById('cfgInclude').value;
+  const excludeVal=document.getElementById('cfgExclude').value;
+  if(includeVal) config.include=includeVal.split(',').map(x=>x.trim()).filter(Boolean);
+  else if(state.rootDir) config.include=[state.rootDir.replace(/^\.\//,'')+'/**/*'];
+  if(excludeVal) config.exclude=excludeVal.split(',').map(x=>x.trim()).filter(Boolean);
   return JSON.stringify(config,null,2);
 }
+
 function copyOutput(){navigator.clipboard.writeText(getRaw()).then(()=>showToast('Copied to clipboard!'))}
-function downloadOutput(){const b=new Blob([getRaw()],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tsconfig.json';a.click();URL.revokeObjectURL(a.href)}
+function downloadOutput(){const b=new Blob([getRaw()],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tsconfig.json';a.click();URL.revokeObjectURL(a.href);showToast('Downloaded tsconfig.json')}
 function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+
 document.getElementById('searchInput').addEventListener('input', (e) => renderOptions(e.target.value));
 renderPresets();
 renderOptions();

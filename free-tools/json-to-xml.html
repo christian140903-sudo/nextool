@@ -52,6 +52,11 @@ label.option-check input{accent-color:var(--primary)}
 .output-area .xml-tag{color:#ec4899}.output-area .xml-attr{color:#a855f7}.output-area .xml-val{color:#22c55e}.output-area .xml-text{color:var(--text)}.output-area .xml-comment{color:var(--text-dim)}
 .error-msg{color:var(--red);padding:16px;font-size:.9rem}
 .status{font-weight:400;font-size:.8rem;color:var(--text-dim)}
+.stats-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:.85rem;color:var(--text-dim)}
+.stats-row span{background:var(--surface);padding:6px 14px;border-radius:8px;display:flex;align-items:center;gap:6px}
+.stats-row strong{color:var(--text)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:var(--radius);font-weight:600;font-size:.9rem;opacity:0;transition:all .3s ease;z-index:200;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .cta-section{margin-top:60px;text-align:center;padding:48px 24px;background:var(--surface);border:1px solid rgba(99,102,241,.15);border-radius:var(--radius-lg)}
 .cta-section h2{font-size:1.5rem;margin-bottom:12px}
 .cta-section p{color:var(--text-dim);margin-bottom:24px;max-width:520px;margin-left:auto;margin-right:auto}
@@ -67,6 +72,7 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
   .panels{grid-template-columns:1fr}
   h1{font-size:1.5rem}
   .nav-links a:not(.nav-badge){display:none}
+  .stats-row{flex-direction:column;gap:6px}
 }
 </style>
 </head>
@@ -95,14 +101,23 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
     </div>
     <label class="option-check"><input type="checkbox" id="prettyPrint" checked> Pretty print</label>
     <label class="option-check"><input type="checkbox" id="cdataWrap"> CDATA for text</label>
+    <label class="option-check"><input type="checkbox" id="xmlDecl" checked> XML declaration</label>
   </div>
 
   <div class="toolbar">
     <button class="btn btn-primary" onclick="convert()">Convert</button>
     <button class="btn" onclick="loadSample()">Load Sample</button>
+    <button class="btn" onclick="swapInputOutput()">Use Output as Input</button>
     <button class="btn" onclick="copyOutput()">Copy Output</button>
     <button class="btn" onclick="downloadOutput()">Download</button>
     <button class="btn" onclick="clearAll()">Clear</button>
+  </div>
+
+  <div class="stats-row" id="statsRow" style="display:none">
+    <span>Input: <strong id="inputChars">0</strong> chars</span>
+    <span>Output: <strong id="outputChars">0</strong> chars</span>
+    <span>Ratio: <strong id="sizeRatio">-</strong></span>
+    <span>Elements: <strong id="elementCount">-</strong></span>
   </div>
 
   <div class="panels">
@@ -121,7 +136,7 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
     <p>Access 100+ premium developer tools, templates, and automations for a one-time payment of $39.</p>
     <div class="cta-buttons">
       <a href="/products/ultimate-bundle.html" class="cta-bundle">Get Bundle &mdash; $39</a>
-      <a href="/free-tools/" class="cta-browse">Browse 100+ Free Tools &rarr;</a>
+      <a href="/free-tools/" class="cta-browse">Browse 125+ Free Tools &rarr;</a>
     </div>
   </section>
 </main>
@@ -131,197 +146,491 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
   </div>
   <div class="footer-copy">&copy; 2026 NexTool. All rights reserved.</div>
 </footer>
+<div class="toast" id="toast">Copied!</div>
 
 <script>
-const $=id=>document.getElementById(id);
-let mode='j2x';
-let rawOutput='';
+/* ===== DOM HELPER ===== */
+const $ = function(id) {
+  return document.getElementById(id);
+};
 
-function setMode(m){
-  mode=m;
-  $('modeJ2X').classList.toggle('active',m==='j2x');
-  $('modeX2J').classList.toggle('active',m==='x2j');
-  $('inputLabel').textContent=m==='j2x'?'Input JSON':'Input XML';
-  $('outputLabel').textContent=m==='j2x'?'Output XML':'Output JSON';
-  $('inputArea').placeholder=m==='j2x'?'Paste your JSON here...':'Paste your XML here...';
-  $('outputArea').innerHTML='';
-  $('inputStatus').textContent='';$('outputStatus').textContent='';
-  rawOutput='';
+/* ===== STATE ===== */
+let mode = 'j2x';
+let rawOutput = '';
+let conversionCount = 0;
+
+/* ===== TOAST NOTIFICATIONS ===== */
+function showToast(message) {
+  const toastEl = $('toast');
+  toastEl.textContent = message;
+  toastEl.classList.add('show');
+  setTimeout(function() {
+    toastEl.classList.remove('show');
+  }, 1800);
 }
 
-function getIndent(){
-  const v=$('indentSize').value;
-  return v==='t'?'\t':' '.repeat(parseInt(v));
+/* ===== MODE SWITCHING ===== */
+function setMode(m) {
+  mode = m;
+  /* Update toggle button states */
+  $('modeJ2X').classList.toggle('active', m === 'j2x');
+  $('modeX2J').classList.toggle('active', m === 'x2j');
+
+  /* Update panel labels based on conversion direction */
+  $('inputLabel').textContent = m === 'j2x' ? 'Input JSON' : 'Input XML';
+  $('outputLabel').textContent = m === 'j2x' ? 'Output XML' : 'Output JSON';
+
+  /* Update placeholder text to guide the user */
+  $('inputArea').placeholder = m === 'j2x'
+    ? 'Paste your JSON here...'
+    : 'Paste your XML here...';
+
+  /* Clear output and status indicators */
+  $('outputArea').innerHTML = '';
+  $('inputStatus').textContent = '';
+  $('outputStatus').textContent = '';
+  $('statsRow').style.display = 'none';
+  rawOutput = '';
 }
 
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+/* ===== INDENTATION HELPER ===== */
+function getIndent() {
+  const value = $('indentSize').value;
+  if (value === 't') {
+    return '\t';
+  }
+  return ' '.repeat(parseInt(value));
+}
 
-function jsonToXml(obj,rootName,indent,depth,useCdata){
-  const pad=indent.repeat(depth);
-  const padInner=indent.repeat(depth+1);
-  let xml='';
+/* ===== XML ESCAPING FUNCTIONS ===== */
+function escapeXml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
-  if(obj===null||obj===undefined){
-    return pad+'<'+rootName+' xsi:nil="true"/>'+'\n';
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* ===== JSON TO XML CONVERSION ENGINE ===== */
+function jsonToXml(obj, rootName, indent, depth, useCdata) {
+  var pad = indent.repeat(depth);
+  var padInner = indent.repeat(depth + 1);
+  var xml = '';
+
+  /* Handle null and undefined values with xsi:nil attribute */
+  if (obj === null || obj === undefined) {
+    return pad + '<' + rootName + ' xsi:nil="true"/>' + '\n';
   }
 
-  if(Array.isArray(obj)){
-    obj.forEach(item=>{
-      xml+=jsonToXml(item,'item',indent,depth,useCdata);
-    });
+  /* Handle arrays by iterating each element as an <item> */
+  if (Array.isArray(obj)) {
+    for (var i = 0; i < obj.length; i++) {
+      xml += jsonToXml(obj[i], 'item', indent, depth, useCdata);
+    }
     return xml;
   }
 
-  if(typeof obj==='object'){
-    xml+=pad+'<'+rootName+'>\n';
-    for(const[key,val]of Object.entries(obj)){
-      const safeName=key.replace(/[^a-zA-Z0-9_-]/g,'_');
-      if(Array.isArray(val)){
-        xml+=padInner+'<'+safeName+'>\n';
-        val.forEach(item=>{
-          xml+=jsonToXml(item,'item',indent,depth+2,useCdata);
-        });
-        xml+=padInner+'</'+safeName+'>\n';
-      }else{
-        xml+=jsonToXml(val,safeName,indent,depth+1,useCdata);
+  /* Handle objects by recursing into each property */
+  if (typeof obj === 'object') {
+    xml += pad + '<' + rootName + '>\n';
+    var entries = Object.entries(obj);
+    for (var e = 0; e < entries.length; e++) {
+      var key = entries[e][0];
+      var val = entries[e][1];
+      /* Sanitize tag names: replace invalid XML characters with underscore */
+      var safeName = key.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+      if (Array.isArray(val)) {
+        /* Wrap arrays in a parent element with the property name */
+        xml += padInner + '<' + safeName + '>\n';
+        for (var a = 0; a < val.length; a++) {
+          xml += jsonToXml(val[a], 'item', indent, depth + 2, useCdata);
+        }
+        xml += padInner + '</' + safeName + '>\n';
+      } else {
+        xml += jsonToXml(val, safeName, indent, depth + 1, useCdata);
       }
     }
-    xml+=pad+'</'+rootName+'>\n';
+    xml += pad + '</' + rootName + '>\n';
     return xml;
   }
 
-  const text=String(obj);
-  if(useCdata&&typeof obj==='string'){
-    xml+=pad+'<'+rootName+'><![CDATA['+text+']]></'+rootName+'>\n';
-  }else{
-    xml+=pad+'<'+rootName+'>'+esc(text)+'</'+rootName+'>\n';
+  /* Handle primitive values (string, number, boolean) */
+  var text = String(obj);
+  if (useCdata && typeof obj === 'string') {
+    /* Wrap string values in CDATA sections to preserve special characters */
+    xml += pad + '<' + rootName + '><![CDATA[' + text + ']]></' + rootName + '>\n';
+  } else {
+    xml += pad + '<' + rootName + '>' + escapeXml(text) + '</' + rootName + '>\n';
   }
   return xml;
 }
 
-function xmlToJson(xmlStr){
-  const parser=new DOMParser();
-  const doc=parser.parseFromString(xmlStr,'text/xml');
-  const err=doc.querySelector('parsererror');
-  if(err)throw new Error('Invalid XML: '+err.textContent.substring(0,100));
+/* ===== XML TO JSON CONVERSION ENGINE ===== */
+function xmlToJson(xmlStr) {
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(xmlStr, 'text/xml');
+
+  /* Check for XML parsing errors */
+  var errorNode = doc.querySelector('parsererror');
+  if (errorNode) {
+    throw new Error('Invalid XML: ' + errorNode.textContent.substring(0, 120));
+  }
+
   return nodeToJson(doc.documentElement);
 }
 
-function nodeToJson(node){
-  if(node.nodeType===3)return node.textContent.trim()||null;
-  if(node.nodeType!==1)return null;
+/* ===== RECURSIVE NODE TO JSON TRANSFORMER ===== */
+function nodeToJson(node) {
+  /* Text nodes return their trimmed content or null */
+  if (node.nodeType === 3) {
+    return node.textContent.trim() || null;
+  }
+  /* Skip non-element nodes (comments, processing instructions, etc.) */
+  if (node.nodeType !== 1) {
+    return null;
+  }
 
-  const children=Array.from(node.childNodes).filter(n=>{
-    if(n.nodeType===3)return n.textContent.trim().length>0;
-    return n.nodeType===1;
+  /* Filter to only meaningful children (elements and non-empty text nodes) */
+  var children = Array.from(node.childNodes).filter(function(n) {
+    if (n.nodeType === 3) {
+      return n.textContent.trim().length > 0;
+    }
+    return n.nodeType === 1;
   });
 
-  if(children.length===0)return node.textContent.trim()||null;
-  if(children.length===1&&children[0].nodeType===3)return children[0].textContent.trim();
+  /* Empty element returns null or its text content */
+  if (children.length === 0) {
+    return node.textContent.trim() || null;
+  }
 
-  const obj={};
-  const elementChildren=children.filter(c=>c.nodeType===1);
-  const tagCounts={};
-  elementChildren.forEach(c=>{tagCounts[c.tagName]=(tagCounts[c.tagName]||0)+1;});
+  /* Single text child returns the text directly */
+  if (children.length === 1 && children[0].nodeType === 3) {
+    return children[0].textContent.trim();
+  }
 
-  elementChildren.forEach(c=>{
-    const val=nodeToJson(c);
-    if(tagCounts[c.tagName]>1){
-      if(!obj[c.tagName])obj[c.tagName]=[];
+  /* Build an object from child elements */
+  var obj = {};
+  var elementChildren = children.filter(function(c) {
+    return c.nodeType === 1;
+  });
+
+  /* Count tag occurrences to detect arrays */
+  var tagCounts = {};
+  elementChildren.forEach(function(c) {
+    tagCounts[c.tagName] = (tagCounts[c.tagName] || 0) + 1;
+  });
+
+  /* Convert children to properties, using arrays for repeated tags */
+  elementChildren.forEach(function(c) {
+    var val = nodeToJson(c);
+    if (tagCounts[c.tagName] > 1) {
+      if (!obj[c.tagName]) {
+        obj[c.tagName] = [];
+      }
       obj[c.tagName].push(val);
-    }else{
-      obj[c.tagName]=val;
+    } else {
+      obj[c.tagName] = val;
     }
   });
 
-  // Attributes
-  if(node.attributes.length>0){
-    for(const attr of node.attributes){
-      obj['@'+attr.name]=attr.value;
+  /* Convert XML attributes to @ prefixed properties */
+  if (node.attributes && node.attributes.length > 0) {
+    for (var i = 0; i < node.attributes.length; i++) {
+      var attr = node.attributes[i];
+      obj['@' + attr.name] = attr.value;
     }
   }
 
   return obj;
 }
 
-function highlightXml(xml){
-  return escHtml(xml)
-    .replace(/(&lt;\/?)([\w:_-]+)/g,'$1<span class="xml-tag">$2</span>')
-    .replace(/([\w:_-]+)(=)(&quot;[^&]*&quot;)/g,'<span class="xml-attr">$1</span>$2<span class="xml-val">$3</span>')
-    .replace(/(&lt;!--.*?--&gt;)/g,'<span class="xml-comment">$1</span>');
+/* ===== COUNT XML ELEMENTS FOR STATISTICS ===== */
+function countElements(xmlStr) {
+  var matches = xmlStr.match(/<[a-zA-Z][^/]*?>/g);
+  return matches ? matches.length : 0;
 }
 
-function convert(){
-  const input=$('inputArea').value.trim();
-  if(!input){$('inputStatus').textContent='Empty input';$('inputStatus').style.color='#ef4444';return;}
+/* ===== UPDATE CONVERSION STATISTICS ===== */
+function updateStats(inputLen, outputLen) {
+  $('statsRow').style.display = 'flex';
+  $('inputChars').textContent = inputLen.toLocaleString();
+  $('outputChars').textContent = outputLen.toLocaleString();
 
-  const indent=getIndent();
-  const pretty=$('prettyPrint').checked;
-  const cdata=$('cdataWrap').checked;
-  const root=$('rootName').value.trim()||'root';
+  /* Calculate size ratio between output and input */
+  if (inputLen > 0) {
+    var ratio = (outputLen / inputLen).toFixed(2);
+    $('sizeRatio').textContent = ratio + 'x';
+  } else {
+    $('sizeRatio').textContent = '-';
+  }
 
-  try{
-    if(mode==='j2x'){
-      const obj=JSON.parse(input);
-      $('inputStatus').textContent='Valid JSON';$('inputStatus').style.color='#22c55e';
-      let xml='<?xml version="1.0" encoding="UTF-8"?>\n';
-      xml+=jsonToXml(obj,root,indent,0,cdata);
-      if(!pretty)xml=xml.replace(/\n\s*/g,'');
-      rawOutput=xml;
-      $('outputArea').innerHTML=highlightXml(xml);
-      $('outputStatus').textContent=xml.length+' chars';$('outputStatus').style.color='var(--text-dim)';
-    }else{
-      const result=xmlToJson(input);
-      $('inputStatus').textContent='Valid XML';$('inputStatus').style.color='#22c55e';
-      const json=pretty?JSON.stringify(result,null,indent==='	'?'\t':parseInt($('indentSize').value)):JSON.stringify(result);
-      rawOutput=json;
-      $('outputArea').textContent=json;
-      $('outputStatus').textContent=json.length+' chars';$('outputStatus').style.color='var(--text-dim)';
+  /* Count XML elements in the output */
+  if (mode === 'j2x' && rawOutput) {
+    $('elementCount').textContent = countElements(rawOutput);
+  } else {
+    $('elementCount').textContent = '-';
+  }
+}
+
+/* ===== XML SYNTAX HIGHLIGHTING ===== */
+function highlightXml(xml) {
+  return escapeHtml(xml)
+    .replace(/(&lt;\/?)([\w:_-]+)/g, '$1<span class="xml-tag">$2</span>')
+    .replace(/([\w:_-]+)(=)(&quot;[^&]*&quot;)/g,
+      '<span class="xml-attr">$1</span>$2<span class="xml-val">$3</span>')
+    .replace(/(&lt;!--.*?--&gt;)/g, '<span class="xml-comment">$1</span>');
+}
+
+/* ===== MAIN CONVERSION FUNCTION ===== */
+function convert() {
+  var input = $('inputArea').value.trim();
+
+  /* Validate that input is not empty */
+  if (!input) {
+    $('inputStatus').textContent = 'Empty input';
+    $('inputStatus').style.color = '#ef4444';
+    return;
+  }
+
+  var indent = getIndent();
+  var pretty = $('prettyPrint').checked;
+  var cdata = $('cdataWrap').checked;
+  var root = $('rootName').value.trim() || 'root';
+  var includeDecl = $('xmlDecl').checked;
+
+  try {
+    if (mode === 'j2x') {
+      /* Parse the JSON input */
+      var obj = JSON.parse(input);
+      $('inputStatus').textContent = 'Valid JSON';
+      $('inputStatus').style.color = '#22c55e';
+
+      /* Build the XML output with optional declaration header */
+      var xml = '';
+      if (includeDecl) {
+        xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      }
+      xml += jsonToXml(obj, root, indent, 0, cdata);
+
+      /* Remove whitespace if pretty print is disabled */
+      if (!pretty) {
+        xml = xml.replace(/\n\s*/g, '');
+      }
+
+      rawOutput = xml;
+      $('outputArea').innerHTML = highlightXml(xml);
+      $('outputStatus').textContent = xml.length + ' chars';
+      $('outputStatus').style.color = 'var(--text-dim)';
+
+      /* Update the stats display */
+      updateStats(input.length, xml.length);
+
+    } else {
+      /* XML to JSON conversion */
+      var result = xmlToJson(input);
+      $('inputStatus').textContent = 'Valid XML';
+      $('inputStatus').style.color = '#22c55e';
+
+      /* Format the JSON output with the selected indentation */
+      var indentStr = indent === '\t' ? '\t' : parseInt($('indentSize').value);
+      var json = pretty
+        ? JSON.stringify(result, null, indentStr)
+        : JSON.stringify(result);
+
+      rawOutput = json;
+      $('outputArea').textContent = json;
+      $('outputStatus').textContent = json.length + ' chars';
+      $('outputStatus').style.color = 'var(--text-dim)';
+
+      /* Update the stats display */
+      updateStats(input.length, json.length);
     }
-  }catch(e){
-    $('inputStatus').textContent='Error';$('inputStatus').style.color='#ef4444';
-    $('outputArea').innerHTML='<div class="error-msg">'+escHtml(e.message)+'</div>';
-    rawOutput='';
+
+    /* Track the number of conversions performed */
+    conversionCount++;
+
+  } catch (e) {
+    $('inputStatus').textContent = 'Error';
+    $('inputStatus').style.color = '#ef4444';
+    $('outputArea').innerHTML = '<div class="error-msg">' + escapeHtml(e.message) + '</div>';
+    $('statsRow').style.display = 'none';
+    rawOutput = '';
   }
 }
 
-function loadSample(){
-  if(mode==='j2x'){
-    $('inputArea').value=JSON.stringify({company:"NexTool",year:2026,services:["websites","chatbots","automation"],pricing:{basic:5,pro:49,enterprise:499},active:true,description:"AI Automation Studio"},null,2);
-  }else{
-    $('inputArea').value='<?xml version="1.0" encoding="UTF-8"?>\n<company>\n  <name>NexTool</name>\n  <year>2026</year>\n  <services>\n    <item>websites</item>\n    <item>chatbots</item>\n    <item>automation</item>\n  </services>\n  <pricing>\n    <basic>5</basic>\n    <pro>49</pro>\n    <enterprise>499</enterprise>\n  </pricing>\n  <active>true</active>\n</company>';
+/* ===== SAMPLE DATA LOADER ===== */
+function loadSample() {
+  if (mode === 'j2x') {
+    /* Load a representative JSON sample with various data types */
+    var sampleObj = {
+      company: "NexTool",
+      year: 2026,
+      tagline: "AI Automation Studio",
+      services: [
+        "websites",
+        "chatbots",
+        "automation",
+        "content",
+        "video",
+        "data"
+      ],
+      pricing: {
+        basic: 5,
+        pro: 49,
+        enterprise: 499
+      },
+      features: {
+        openSource: true,
+        apiAccess: false,
+        customDomain: true
+      },
+      contact: "team@nextool.app",
+      active: true
+    };
+    $('inputArea').value = JSON.stringify(sampleObj, null, 2);
+  } else {
+    /* Load a representative XML sample */
+    var sampleXml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    sampleXml += '<company>\n';
+    sampleXml += '  <name>NexTool</name>\n';
+    sampleXml += '  <year>2026</year>\n';
+    sampleXml += '  <tagline>AI Automation Studio</tagline>\n';
+    sampleXml += '  <services>\n';
+    sampleXml += '    <item>websites</item>\n';
+    sampleXml += '    <item>chatbots</item>\n';
+    sampleXml += '    <item>automation</item>\n';
+    sampleXml += '    <item>content</item>\n';
+    sampleXml += '    <item>video</item>\n';
+    sampleXml += '    <item>data</item>\n';
+    sampleXml += '  </services>\n';
+    sampleXml += '  <pricing>\n';
+    sampleXml += '    <basic>5</basic>\n';
+    sampleXml += '    <pro>49</pro>\n';
+    sampleXml += '    <enterprise>499</enterprise>\n';
+    sampleXml += '  </pricing>\n';
+    sampleXml += '  <active>true</active>\n';
+    sampleXml += '</company>';
+    $('inputArea').value = sampleXml;
   }
+
+  /* Auto-convert after loading sample data */
   convert();
+  showToast('Sample loaded!');
 }
 
-function copyOutput(){
-  if(!rawOutput){alert('Convert something first.');return;}
-  navigator.clipboard.writeText(rawOutput).then(()=>alert('Copied!'));
+/* ===== SWAP INPUT AND OUTPUT ===== */
+function swapInputOutput() {
+  if (!rawOutput) {
+    showToast('Convert something first.');
+    return;
+  }
+
+  /* Move the raw output text into the input area */
+  $('inputArea').value = rawOutput;
+  $('outputArea').innerHTML = '';
+  $('outputStatus').textContent = '';
+  rawOutput = '';
+
+  /* Automatically switch the conversion mode */
+  if (mode === 'j2x') {
+    setMode('x2j');
+  } else {
+    setMode('j2x');
+  }
+
+  /* Re-paste the value since setMode clears things */
+  showToast('Output moved to input!');
 }
 
-function downloadOutput(){
-  if(!rawOutput){alert('Convert something first.');return;}
-  const ext=mode==='j2x'?'xml':'json';
-  const blob=new Blob([rawOutput],{type:'text/'+ext});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='converted.'+ext;a.click();
+/* ===== COPY OUTPUT TO CLIPBOARD ===== */
+function copyOutput() {
+  if (!rawOutput) {
+    showToast('Nothing to copy yet.');
+    return;
+  }
+  navigator.clipboard.writeText(rawOutput).then(function() {
+    showToast('Copied to clipboard!');
+  });
 }
 
-function clearAll(){
-  $('inputArea').value='';$('outputArea').innerHTML='';
-  $('inputStatus').textContent='';$('outputStatus').textContent='';
-  rawOutput='';
+/* ===== DOWNLOAD OUTPUT AS FILE ===== */
+function downloadOutput() {
+  if (!rawOutput) {
+    showToast('Convert something first.');
+    return;
+  }
+
+  /* Determine file extension based on current conversion direction */
+  var ext = (mode === 'j2x') ? 'xml' : 'json';
+  var mimeType = 'text/' + ext;
+
+  var blob = new Blob([rawOutput], { type: mimeType });
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'converted.' + ext;
+  link.click();
+
+  /* Clean up the object URL after download */
+  URL.revokeObjectURL(link.href);
+  showToast('Downloaded as converted.' + ext);
 }
 
-$('inputArea').addEventListener('input',()=>{
-  try{
-    if(mode==='j2x')JSON.parse($('inputArea').value);
-    else{const p=new DOMParser();const d=p.parseFromString($('inputArea').value,'text/xml');if(d.querySelector('parsererror'))throw 0;}
-    $('inputStatus').textContent='Valid';$('inputStatus').style.color='#22c55e';
-  }catch(e){
-    if($('inputArea').value.trim()){$('inputStatus').textContent='Invalid';$('inputStatus').style.color='#ef4444';}
-    else{$('inputStatus').textContent='';}
+/* ===== CLEAR ALL ===== */
+function clearAll() {
+  $('inputArea').value = '';
+  $('outputArea').innerHTML = '';
+  $('inputStatus').textContent = '';
+  $('outputStatus').textContent = '';
+  $('statsRow').style.display = 'none';
+  rawOutput = '';
+  showToast('Cleared!');
+}
+
+/* ===== LIVE INPUT VALIDATION ===== */
+$('inputArea').addEventListener('input', function() {
+  var value = $('inputArea').value.trim();
+
+  /* Skip validation if input is empty */
+  if (!value) {
+    $('inputStatus').textContent = '';
+    return;
+  }
+
+  try {
+    if (mode === 'j2x') {
+      /* Validate JSON syntax */
+      JSON.parse(value);
+      $('inputStatus').textContent = 'Valid JSON';
+      $('inputStatus').style.color = '#22c55e';
+    } else {
+      /* Validate XML syntax using DOMParser */
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(value, 'text/xml');
+      if (doc.querySelector('parsererror')) {
+        throw new Error('parse error');
+      }
+      $('inputStatus').textContent = 'Valid XML';
+      $('inputStatus').style.color = '#22c55e';
+    }
+  } catch (e) {
+    $('inputStatus').textContent = 'Invalid';
+    $('inputStatus').style.color = '#ef4444';
+  }
+});
+
+/* ===== KEYBOARD SHORTCUT: Ctrl/Cmd+Enter to convert ===== */
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    convert();
   }
 });
 </script>

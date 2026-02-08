@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan &amp; Mortgage Calculator — Free Online Tool | NexTool</title>
+<meta name="description" content="Free loan and mortgage calculator. Calculate monthly payments, total interest, amortization schedule, compare scenarios. No signup required.">
+<meta property="og:title" content="Loan & Mortgage Calculator — Free Online Tool | NexTool">
+<meta property="og:description" content="Calculate monthly payments, total interest, view amortization schedules, and compare loan scenarios side by side.">
+<meta property="og:url" content="https://nextool.app/free-tools/loan-calculator.html">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Loan & Mortgage Calculator","description":"Free online loan and mortgage calculator with amortization schedule and comparison.","url":"https://nextool.app/free-tools/loan-calculator.html","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text-dim:#94a3b8;--gradient:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);--radius:12px;--radius-lg:20px;--font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;--green:#22c55e}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(99,102,241,.15);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{width:36px;height:36px;background:var(--gradient);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;text-decoration:none}
+.nav-links{display:flex;gap:24px}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+main{max-width:960px;margin:0 auto;padding:80px 20px 40px}
+h1{font-size:2rem;font-weight:700;margin-bottom:8px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:var(--text-dim);margin-bottom:32px;font-size:1.05rem}
+.tabs{display:flex;gap:4px;background:var(--surface);padding:4px;border-radius:var(--radius);margin-bottom:28px}
+.tab{flex:1;padding:10px 12px;border:none;background:transparent;color:var(--text-dim);font-family:var(--font);font-size:.85rem;font-weight:500;cursor:pointer;border-radius:8px;transition:all .2s;text-align:center}
+.tab.active{background:var(--primary);color:#fff}
+.tab:hover:not(.active){color:var(--text);background:var(--surface2)}
+.card{background:var(--surface);border-radius:var(--radius);padding:28px;margin-bottom:20px;border:1px solid rgba(99,102,241,.1)}
+label{display:block;font-size:.85rem;color:var(--text-dim);margin-bottom:6px;font-weight:500}
+input[type="number"]{width:100%;padding:12px 16px;background:var(--surface2);border:1px solid rgba(99,102,241,.2);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:.95rem;outline:none;transition:border-color .2s}
+input:focus{border-color:var(--primary)}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type="number"]{-moz-appearance:textfield}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.result-card{background:var(--surface2);border-radius:var(--radius);padding:20px;text-align:center}
+.result-card .val{font-size:1.6rem;font-weight:700;font-family:var(--mono);background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-card .lbl{font-size:.8rem;color:var(--text-dim);margin-top:4px}
+.chart-container{margin-top:24px;position:relative}
+canvas{width:100%!important;border-radius:var(--radius)}
+.section-title{font-size:1rem;font-weight:600;margin:28px 0 12px;color:var(--text)}
+.amort-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+.amort-table th{text-align:left;padding:8px 10px;background:var(--surface2);color:var(--text-dim);font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;position:sticky;top:0}
+.amort-table td{padding:8px 10px;border-top:1px solid rgba(99,102,241,.06);font-family:var(--mono);font-size:.8rem}
+.amort-table tr:hover td{background:rgba(99,102,241,.04)}
+.amort-wrap{max-height:400px;overflow-y:auto;border-radius:var(--radius);border:1px solid rgba(99,102,241,.1)}
+.pie-wrap{display:flex;align-items:center;justify-content:center;gap:24px;margin-top:20px;flex-wrap:wrap}
+.pie-legend{display:flex;flex-direction:column;gap:8px}
+.pie-legend .item{display:flex;align-items:center;gap:8px;font-size:.85rem}
+.pie-legend .dot{width:14px;height:14px;border-radius:4px}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.compare-col{background:var(--surface2);border-radius:var(--radius);padding:20px}
+.compare-col h3{font-size:.9rem;color:var(--accent);margin-bottom:16px;text-align:center}
+.panel{display:none}
+.panel.active{display:block}
+.extra-section{margin-top:20px;padding:20px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:var(--radius)}
+.extra-section .savings{font-family:var(--mono);color:var(--green);font-weight:600}
+footer{max-width:960px;margin:60px auto 0;padding:24px 20px 40px;border-top:1px solid rgba(99,102,241,.1);text-align:center;color:var(--text-dim);font-size:.8rem}
+footer a{color:var(--text-dim);text-decoration:none;margin:0 12px}
+footer a:hover{color:var(--text)}
+select{width:100%;padding:12px 16px;background:var(--surface2);border:1px solid rgba(99,102,241,.2);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:.95rem;outline:none;color-scheme:dark}
+</style>
+</head>
+<body>
+<nav>
+    <a href="/" class="nav-logo">NT</a>
+    <div class="nav-links"><a href="/">Home</a><a href="/free-tools/">Free Tools</a></div>
+</nav>
+<main>
+    <h1>Loan &amp; Mortgage Calculator</h1>
+    <p class="subtitle">Calculate payments, view amortization schedules, and compare loan scenarios.</p>
+
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab(0)">Calculator</button>
+        <button class="tab" onclick="switchTab(1)">Compare Scenarios</button>
+    </div>
+
+    <!-- Main Calculator -->
+    <div class="panel active" id="panel-0">
+        <div class="card">
+            <div class="row3">
+                <div><label>Loan Amount ($)</label><input type="number" id="principal" value="250000" min="0" step="1000" oninput="calculate()"></div>
+                <div><label>Interest Rate (%)</label><input type="number" id="rate" value="6.5" min="0" step="0.1" oninput="calculate()"></div>
+                <div><label>Loan Term</label>
+                    <div style="display:flex;gap:8px">
+                        <input type="number" id="term" value="30" min="1" style="flex:1" oninput="calculate()">
+                        <select id="term-unit" style="width:auto;min-width:90px" onchange="calculate()">
+                            <option value="years">Years</option>
+                            <option value="months">Months</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top:8px">
+                <div><label>Extra Monthly Payment ($)</label><input type="number" id="extra" value="0" min="0" step="50" oninput="calculate()"></div>
+                <div><label>Currency Symbol</label><input type="text" id="currency" value="$" style="width:100%;padding:12px 16px;background:var(--surface2);border:1px solid rgba(99,102,241,.2);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:.95rem;outline:none" oninput="calculate()"></div>
+            </div>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <!-- Compare -->
+    <div class="panel" id="panel-1">
+        <div class="compare-grid">
+            <div class="compare-col">
+                <h3>Scenario A</h3>
+                <div style="margin-bottom:12px"><label>Amount ($)</label><input type="number" id="cA-p" value="250000" min="0"></div>
+                <div style="margin-bottom:12px"><label>Rate (%)</label><input type="number" id="cA-r" value="6.5" min="0" step="0.1"></div>
+                <div><label>Term (Years)</label><input type="number" id="cA-t" value="30" min="1"></div>
+            </div>
+            <div class="compare-col">
+                <h3>Scenario B</h3>
+                <div style="margin-bottom:12px"><label>Amount ($)</label><input type="number" id="cB-p" value="250000" min="0"></div>
+                <div style="margin-bottom:12px"><label>Rate (%)</label><input type="number" id="cB-r" value="5.5" min="0" step="0.1"></div>
+                <div><label>Term (Years)</label><input type="number" id="cB-t" value="15" min="1"></div>
+            </div>
+        </div>
+        <button class="tab active" style="margin-top:16px;width:100%;padding:12px;cursor:pointer" onclick="compare()">Compare Scenarios</button>
+        <div id="compare-results"></div>
+    </div>
+
+    <!-- Cross-promo -->
+    <div style="margin-top:48px;padding:32px;background:var(--surface);border-radius:var(--radius-lg);text-align:center;">
+        <p style="font-size:1.1rem;margin-bottom:12px;">🚀 Explore <strong>125+ Free Developer Tools</strong></p>
+        <p style="color:var(--text-dim);margin-bottom:20px;">From CSS generators to JSON formatters — all free, no signup required.</p>
+        <a href="/free-tools/" style="display:inline-block;padding:12px 28px;background:var(--gradient);color:#fff;border-radius:20px;font-weight:600;text-decoration:none;">Browse All Tools &rarr;</a>
+    </div>
+</main>
+<footer>
+    <a href="/">NexTool Home</a><a href="/free-tools/">Free Tools Hub</a><a href="/privacy">Privacy Policy</a>
+    <p style="margin-top:12px">&copy; 2026 NexTool. All rights reserved.</p>
+</footer>
+
+<script>
+function switchTab(i){document.querySelectorAll('.tabs .tab').forEach((t,x)=>t.classList.toggle('active',x===i));document.querySelectorAll('.panel').forEach((p,x)=>p.classList.toggle('active',x===i))}
+
+function loanCalc(P,annualRate,totalMonths,extraPmt){
+    const r=annualRate/100/12;
+    if(r===0){const mp=P/totalMonths;return{monthly:mp,totalPaid:P,totalInterest:0,schedule:[]}}
+    const mp=(P*r*Math.pow(1+r,totalMonths))/(Math.pow(1+r,totalMonths)-1);
+    let balance=P,totalInterest=0,schedule=[];
+    for(let m=1;m<=totalMonths&&balance>0;m++){
+        const intPmt=balance*r;
+        let princPmt=mp-intPmt+extraPmt;
+        if(princPmt>balance)princPmt=balance;
+        balance-=princPmt;if(balance<0)balance=0;
+        totalInterest+=intPmt;
+        schedule.push({month:m,payment:princPmt+intPmt,principal:princPmt,interest:intPmt,balance});
+        if(balance<=0)break;
+    }
+    return{monthly:mp,totalPaid:totalInterest+P,totalInterest,schedule};
+}
+
+function fmt(n){const c=document.getElementById('currency')?.value||'$';return c+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+function calculate(){
+    const P=parseFloat(document.getElementById('principal').value)||0;
+    const rate=parseFloat(document.getElementById('rate').value)||0;
+    let term=parseFloat(document.getElementById('term').value)||0;
+    const unit=document.getElementById('term-unit').value;
+    const extra=parseFloat(document.getElementById('extra').value)||0;
+    const totalMonths=unit==='years'?term*12:term;
+    if(P<=0||totalMonths<=0){document.getElementById('results').innerHTML='';return}
+
+    const loan=loanCalc(P,rate,totalMonths,0);
+    const loanExtra=extra>0?loanCalc(P,rate,totalMonths,extra):null;
+
+    let html=`<div class="result-grid">
+        <div class="result-card"><div class="val">${fmt(loan.monthly)}</div><div class="lbl">Monthly Payment</div></div>
+        <div class="result-card"><div class="val">${fmt(loan.totalPaid)}</div><div class="lbl">Total Paid</div></div>
+        <div class="result-card"><div class="val">${fmt(loan.totalInterest)}</div><div class="lbl">Total Interest</div></div>
+    </div>`;
+
+    // Pie chart
+    const pRatio=P/(P+loan.totalInterest)*100;
+    html+=`<div class="pie-wrap">
+        <canvas id="pieChart" width="200" height="200"></canvas>
+        <div class="pie-legend">
+            <div class="item"><span class="dot" style="background:var(--primary)"></span>Principal: ${fmt(P)} (${pRatio.toFixed(1)}%)</div>
+            <div class="item"><span class="dot" style="background:var(--pink)"></span>Interest: ${fmt(loan.totalInterest)} (${(100-pRatio).toFixed(1)}%)</div>
+        </div>
+    </div>`;
+
+    // Extra payment savings
+    if(loanExtra){
+        const savedInterest=loan.totalInterest-loanExtra.totalInterest;
+        const savedMonths=loan.schedule.length-loanExtra.schedule.length;
+        const savedYears=Math.floor(savedMonths/12);const savedRem=savedMonths%12;
+        html+=`<div class="extra-section">
+            <div style="font-weight:600;margin-bottom:8px">Extra Payment Impact (+${fmt(extra)}/month)</div>
+            <div>Interest saved: <span class="savings">${fmt(savedInterest)}</span></div>
+            <div>Paid off <span class="savings">${savedYears>0?savedYears+' years ':''}${savedRem} months earlier</span> (${loanExtra.schedule.length} vs ${loan.schedule.length} payments)</div>
+        </div>`;
+    }
+
+    // Area chart
+    html+=`<div class="section-title">Principal vs Interest Over Time</div><div class="chart-container"><canvas id="areaChart" width="800" height="280"></canvas></div>`;
+
+    // Amortization table
+    html+=`<div class="section-title">Amortization Schedule</div><div class="amort-wrap"><table class="amort-table"><thead><tr><th>#</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead><tbody>`;
+    const sched=loanExtra?loanExtra.schedule:loan.schedule;
+    sched.forEach(s=>{
+        html+=`<tr><td>${s.month}</td><td>${fmt(s.payment)}</td><td>${fmt(s.principal)}</td><td>${fmt(s.interest)}</td><td>${fmt(s.balance)}</td></tr>`;
+    });
+    html+=`</tbody></table></div>`;
+    document.getElementById('results').innerHTML=html;
+
+    // Draw pie
+    setTimeout(()=>{
+        const pie=document.getElementById('pieChart');
+        if(!pie)return;
+        const ctx=pie.getContext('2d');
+        const cx=100,cy=100,r=80;
+        const pAngle=(P/(P+loan.totalInterest))*Math.PI*2;
+        ctx.clearRect(0,0,200,200);
+        ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+pAngle);ctx.fillStyle='#6366f1';ctx.fill();
+        ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,-Math.PI/2+pAngle,-Math.PI/2+Math.PI*2);ctx.fillStyle='#ec4899';ctx.fill();
+        ctx.beginPath();ctx.arc(cx,cy,45,0,Math.PI*2);ctx.fillStyle='#111118';ctx.fill();
+
+        // Area chart
+        const ac=document.getElementById('areaChart');
+        if(!ac)return;
+        const actx=ac.getContext('2d');
+        const w=ac.width,h=ac.height;
+        actx.clearRect(0,0,w,h);
+        const data=sched;const len=data.length;
+        const pad={l:50,r:20,t:20,b:30};
+        const cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+        const maxPmt=Math.max(...data.map(d=>d.payment));
+        // Draw grid
+        actx.strokeStyle='rgba(99,102,241,.1)';actx.lineWidth=1;
+        for(let i=0;i<=4;i++){const y=pad.t+ch*(i/4);actx.beginPath();actx.moveTo(pad.l,y);actx.lineTo(w-pad.r,y);actx.stroke();
+            actx.fillStyle='#94a3b8';actx.font='11px Inter';actx.textAlign='right';actx.fillText(fmt(maxPmt*(1-i/4)),pad.l-6,y+4)}
+        // Principal area
+        actx.beginPath();actx.moveTo(pad.l,pad.t+ch);
+        data.forEach((d,i)=>{const x=pad.l+(i/len)*cw;const y=pad.t+ch*(1-d.principal/maxPmt);actx.lineTo(x,y)});
+        actx.lineTo(pad.l+cw,pad.t+ch);actx.closePath();actx.fillStyle='rgba(99,102,241,.35)';actx.fill();
+        // Interest area
+        actx.beginPath();actx.moveTo(pad.l,pad.t+ch);
+        data.forEach((d,i)=>{const x=pad.l+(i/len)*cw;const y=pad.t+ch*(1-d.interest/maxPmt);actx.lineTo(x,y)});
+        actx.lineTo(pad.l+cw,pad.t+ch);actx.closePath();actx.fillStyle='rgba(236,72,153,.25)';actx.fill();
+    },50);
+}
+
+function compare(){
+    const calc=(prefix)=>{
+        const P=parseFloat(document.getElementById(prefix+'-p').value)||0;
+        const r=parseFloat(document.getElementById(prefix+'-r').value)||0;
+        const t=(parseFloat(document.getElementById(prefix+'-t').value)||0)*12;
+        return{...loanCalc(P,r,t,0),P,r,t};
+    };
+    const a=calc('cA'),b=calc('cB');
+    const c=document.getElementById('currency')?.value||'$';
+    let html=`<div class="card" style="margin-top:20px"><table class="amort-table"><thead><tr><th></th><th>Scenario A</th><th>Scenario B</th><th>Difference</th></tr></thead><tbody>
+        <tr><td style="color:var(--text-dim)">Monthly Payment</td><td>${fmt(a.monthly)}</td><td>${fmt(b.monthly)}</td><td>${fmt(Math.abs(a.monthly-b.monthly))}</td></tr>
+        <tr><td style="color:var(--text-dim)">Total Paid</td><td>${fmt(a.totalPaid)}</td><td>${fmt(b.totalPaid)}</td><td>${fmt(Math.abs(a.totalPaid-b.totalPaid))}</td></tr>
+        <tr><td style="color:var(--text-dim)">Total Interest</td><td>${fmt(a.totalInterest)}</td><td>${fmt(b.totalInterest)}</td><td style="color:var(--green)">${fmt(Math.abs(a.totalInterest-b.totalInterest))}</td></tr>
+        <tr><td style="color:var(--text-dim)">Payments</td><td>${a.schedule.length}</td><td>${b.schedule.length}</td><td>${Math.abs(a.schedule.length-b.schedule.length)}</td></tr>
+    </tbody></table></div>`;
+    document.getElementById('compare-results').innerHTML=html;
+}
+calculate();
+</script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>

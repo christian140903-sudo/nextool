@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Multi-Format Encoder/Decoder - Base64, URL, Hex, JWT & More | NexTool</title>
-<meta name="description" content="Encode and decode between Base64, URL, HTML entities, Hex, Binary, ROT13, JWT, and more. Generate MD5, SHA-1, SHA-256 hashes. Free online tool.">
+<meta name="description" content="Encode and decode between Base64, URL, HTML entities, Hex, Binary, ROT13, JWT, and more. Generate SHA-1, SHA-256, SHA-512 hashes. Free online tool.">
 <meta property="og:title" content="Multi-Format Encoder/Decoder - NexTool">
 <meta property="og:description" content="Swiss army knife for encoding: Base64, URL, HTML entities, Hex, Binary, ROT13, JWT decode, and hash generation.">
 <meta property="og:type" content="website">
@@ -15,65 +15,411 @@
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Multi-Format Encoder/Decoder","description":"Encode and decode between multiple formats including Base64, URL, Hex, Binary, ROT13, JWT, with hash generation.","url":"https://nextool.app/free-tools/encode-decode-multi.html","applicationCategory":"DeveloperApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"NexTool"}}
 </script>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text-dim:#94a3b8;--green:#22c55e;--red:#ef4444;--radius:12px;--radius-lg:20px}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(99,102,241,.15);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.2rem;color:var(--text);text-decoration:none}
-.nav-logo span{background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.4rem;font-weight:800}
-.nav-links{display:flex;align-items:center;gap:20px}
-.nav-links a{color:var(--text-dim);text-decoration:none;font-size:.9rem;transition:color .2s}
-.nav-links a:hover{color:var(--text)}
-.nav-badge{background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff!important;padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:600}
-main{max-width:1000px;margin:0 auto;padding:80px 20px 40px}
-h1{font-size:2rem;font-weight:700;margin-bottom:8px}
-.gradient-text{background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.subtitle{color:var(--text-dim);margin-bottom:24px;font-size:1.05rem}
-.card{background:var(--surface);border:1px solid rgba(99,102,241,.12);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px}
-.section-title{font-size:1.05rem;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.btn{background:var(--surface2);color:var(--text);border:1px solid rgba(99,102,241,.2);padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-family:inherit;font-size:.85rem;transition:all .2s}
-.btn:hover{border-color:var(--primary);background:rgba(99,102,241,.1)}
-.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
-.btn-primary:hover{background:#5558e6}
-.btn-sm{padding:5px 12px;font-size:.8rem;border-radius:8px}
-textarea.main-input{width:100%;min-height:120px;background:var(--surface2);border:1px solid rgba(99,102,241,.2);color:var(--text);padding:14px;border-radius:var(--radius);font-family:'JetBrains Mono',monospace;font-size:.88rem;outline:none;resize:vertical;margin-bottom:12px}
-textarea.main-input:focus{border-color:var(--primary)}
-.format-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
-.format-tab{padding:7px 14px;border-radius:8px;border:1px solid rgba(99,102,241,.15);background:var(--surface2);color:var(--text-dim);cursor:pointer;font-size:.83rem;transition:all .2s}
-.format-tab:hover{border-color:var(--accent)}
-.format-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
-.direction-row{display:flex;gap:8px;margin-bottom:16px;align-items:center}
-.dir-btn{padding:8px 18px;border-radius:8px;border:1px solid rgba(99,102,241,.2);background:var(--surface2);color:var(--text);cursor:pointer;font-size:.85rem;font-weight:500;transition:all .2s}
-.dir-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.output-box{background:var(--surface2);border:1px solid rgba(99,102,241,.1);border-radius:var(--radius);padding:14px;font-family:'JetBrains Mono',monospace;font-size:.88rem;min-height:80px;white-space:pre-wrap;word-break:break-all;position:relative;max-height:300px;overflow:auto}
-.output-box .copy-btn{position:absolute;top:8px;right:8px}
-.detected{font-size:.85rem;color:var(--accent);margin-bottom:8px}
-.error{color:var(--red)}
-.hash-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
-.hash-row{display:flex;gap:10px;align-items:flex-start;padding:10px;background:var(--surface2);border-radius:8px}
-.hash-label{min-width:80px;font-weight:600;font-size:.85rem;color:var(--accent);padding-top:2px}
-.hash-value{font-family:'JetBrains Mono',monospace;font-size:.82rem;word-break:break-all;flex:1;color:var(--text-dim)}
-.hash-copy{flex-shrink:0}
-.chain-area{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0;align-items:center}
-.chain-tag{padding:5px 12px;border-radius:16px;background:var(--accent);color:#fff;font-size:.8rem;display:flex;align-items:center;gap:4px}
-.chain-tag .remove{cursor:pointer;font-weight:700;margin-left:4px}
-.chain-arrow{color:var(--text-dim);font-size:.85rem}
-.cta-section{margin-top:60px;text-align:center;padding:48px 24px;background:var(--surface);border:1px solid rgba(99,102,241,.15);border-radius:var(--radius-lg)}
-.cta-section h2{font-size:1.5rem;margin-bottom:12px}
-.cta-section p{color:var(--text-dim);margin-bottom:24px;max-width:520px;margin-left:auto;margin-right:auto}
-.cta-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.cta-bundle{background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;padding:12px 28px;border-radius:var(--radius);text-decoration:none;font-weight:600;font-size:.95rem}
-.cta-browse{background:var(--surface2);color:var(--text);padding:12px 28px;border-radius:var(--radius);text-decoration:none;font-weight:500;font-size:.95rem;border:1px solid rgba(99,102,241,.2)}
-footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1);text-align:center}
-.footer-links{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:16px}
-.footer-links a{color:var(--text-dim);text-decoration:none;font-size:.85rem}
-.footer-links a:hover{color:var(--text)}
-.footer-copy{color:var(--text-dim);font-size:.8rem}
-@media(max-width:600px){
-  h1{font-size:1.5rem}
-  .nav-links a:not(.nav-badge){display:none}
-  .hash-row{flex-direction:column;gap:4px}
-  .hash-label{min-width:auto}
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+:root {
+  --bg: #050508;
+  --surface: #111118;
+  --surface2: #1a1a24;
+  --primary: #6366f1;
+  --accent: #a855f7;
+  --pink: #ec4899;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --green: #22c55e;
+  --red: #ef4444;
+  --radius: 12px;
+  --radius-lg: 20px;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(5, 5, 8, .85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(99, 102, 241, .15);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text);
+  text-decoration: none;
+}
+.nav-logo span {
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.nav-links a {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: .9rem;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-badge {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: #fff !important;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: .8rem;
+  font-weight: 600;
+}
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 80px 20px 40px;
+}
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.subtitle {
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  font-size: 1.05rem;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid rgba(99, 102, 241, .12);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid rgba(99, 102, 241, .2);
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .85rem;
+  transition: all .2s;
+}
+.btn:hover {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, .1);
+}
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: #5558e6; }
+.btn-sm {
+  padding: 5px 12px;
+  font-size: .8rem;
+  border-radius: 8px;
+}
+textarea.main-input {
+  width: 100%;
+  min-height: 120px;
+  background: var(--surface2);
+  border: 1px solid rgba(99, 102, 241, .2);
+  color: var(--text);
+  padding: 14px;
+  border-radius: var(--radius);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .88rem;
+  outline: none;
+  resize: vertical;
+  margin-bottom: 8px;
+}
+textarea.main-input:focus { border-color: var(--primary); }
+.info-bar {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: .8rem;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+.info-bar span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.format-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.format-tab {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, .15);
+  background: var(--surface2);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: .83rem;
+  transition: all .2s;
+}
+.format-tab:hover { border-color: var(--accent); }
+.format-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.format-info {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: .83rem;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.direction-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+.dir-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, .2);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 500;
+  transition: all .2s;
+}
+.dir-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.output-area {
+  position: relative;
+}
+.output-box {
+  background: var(--surface2);
+  border: 1px solid rgba(99, 102, 241, .1);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .88rem;
+  min-height: 80px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 300px;
+  overflow: auto;
+}
+.output-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.detected {
+  font-size: .85rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.error { color: var(--red); }
+.hash-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+.hash-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px;
+  background: var(--surface2);
+  border-radius: 8px;
+}
+.hash-label {
+  min-width: 80px;
+  font-weight: 600;
+  font-size: .85rem;
+  color: var(--accent);
+  padding-top: 2px;
+}
+.hash-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .82rem;
+  word-break: break-all;
+  flex: 1;
+  color: var(--text-dim);
+}
+.hash-copy { flex-shrink: 0; }
+.chain-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.chain-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+  align-items: center;
+}
+.chain-tag {
+  padding: 5px 12px;
+  border-radius: 16px;
+  background: var(--accent);
+  color: #fff;
+  font-size: .8rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.chain-tag .remove {
+  cursor: pointer;
+  font-weight: 700;
+  margin-left: 4px;
+}
+.chain-arrow {
+  color: var(--text-dim);
+  font-size: .85rem;
+}
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--green);
+  color: #000;
+  padding: 10px 24px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: .9rem;
+  opacity: 0;
+  transition: all .3s ease;
+  z-index: 200;
+  pointer-events: none;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+.cta-section {
+  margin-top: 60px;
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--surface);
+  border: 1px solid rgba(99, 102, 241, .15);
+  border-radius: var(--radius-lg);
+}
+.cta-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+}
+.cta-section p {
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.cta-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.cta-bundle {
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: .95rem;
+}
+.cta-browse {
+  background: var(--surface2);
+  color: var(--text);
+  padding: 12px 28px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: .95rem;
+  border: 1px solid rgba(99, 102, 241, .2);
+}
+footer {
+  margin-top: 60px;
+  padding: 32px 24px;
+  border-top: 1px solid rgba(99, 102, 241, .1);
+  text-align: center;
+}
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.footer-links a {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: .85rem;
+}
+.footer-links a:hover { color: var(--text); }
+.footer-copy {
+  color: var(--text-dim);
+  font-size: .8rem;
+}
+@media (max-width: 600px) {
+  h1 { font-size: 1.5rem; }
+  .nav-links a:not(.nav-badge) { display: none; }
+  .hash-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .hash-label { min-width: auto; }
+  .output-actions { flex-wrap: wrap; }
+  .info-bar { flex-direction: column; gap: 4px; }
 }
 </style>
 </head>
@@ -93,45 +439,90 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
   <div class="card">
     <div class="section-title">Input</div>
     <textarea class="main-input" id="mainInput" placeholder="Type or paste your text here..." oninput="process()">Hello, World! This is NexTool.</textarea>
+    <div class="info-bar" id="infoBar">
+      <span>Characters: <strong id="charCount">0</strong></span>
+      <span>Bytes (UTF-8): <strong id="byteCount">0</strong></span>
+      <span>Words: <strong id="wordCount">0</strong></span>
+      <span>Lines: <strong id="lineCount">0</strong></span>
+    </div>
     <div class="detected" id="detected"></div>
 
     <div class="section-title">Format</div>
     <div class="format-tabs" id="formatTabs"></div>
+    <div class="format-info" id="formatInfo">Select a format to see its description.</div>
 
     <div class="direction-row">
       <button class="dir-btn active" id="dirEncode" onclick="setDir('encode')">Encode</button>
       <button class="dir-btn" id="dirDecode" onclick="setDir('decode')">Decode</button>
+      <span style="font-size:.8rem;color:var(--text-dim);margin-left:8px" id="dirHint"></span>
     </div>
 
-    <div class="section-title">Output <button class="btn btn-sm" onclick="copyOutput()" style="margin-left:auto">Copy</button></div>
-    <div class="output-box" id="outputBox"></div>
+    <div class="section-title">Output</div>
+    <div class="output-area">
+      <div class="output-box" id="outputBox"></div>
+      <div class="output-actions">
+        <button class="btn btn-sm" onclick="copyOutput()">Copy Output</button>
+        <button class="btn btn-sm" onclick="useOutputAsInput()">Use Output as Input</button>
+        <button class="btn btn-sm" onclick="downloadOutput()">Download</button>
+        <button class="btn btn-sm" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
   </div>
 
   <div class="card">
     <div class="section-title">Batch Chain</div>
-    <p style="font-size:.85rem;color:var(--text-dim);margin-bottom:8px">Chain multiple operations. Each step feeds into the next.</p>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+    <p style="font-size:.85rem;color:var(--text-dim);margin-bottom:8px">
+      Chain multiple operations. Each step feeds its output into the next.
+    </p>
+    <div class="chain-btns">
       <button class="btn btn-sm" onclick="addChain('base64-encode')">Base64 Enc</button>
       <button class="btn btn-sm" onclick="addChain('base64-decode')">Base64 Dec</button>
       <button class="btn btn-sm" onclick="addChain('url-encode')">URL Enc</button>
       <button class="btn btn-sm" onclick="addChain('url-decode')">URL Dec</button>
+      <button class="btn btn-sm" onclick="addChain('uri-encode')">URI Comp Enc</button>
+      <button class="btn btn-sm" onclick="addChain('uri-decode')">URI Comp Dec</button>
       <button class="btn btn-sm" onclick="addChain('hex-encode')">Hex Enc</button>
       <button class="btn btn-sm" onclick="addChain('hex-decode')">Hex Dec</button>
-      <button class="btn btn-sm" onclick="addChain('rot13')">ROT13</button>
+      <button class="btn btn-sm" onclick="addChain('html-encode')">HTML Enc</button>
+      <button class="btn btn-sm" onclick="addChain('html-decode')">HTML Dec</button>
+      <button class="btn btn-sm" onclick="addChain('binary-encode')">Binary Enc</button>
+      <button class="btn btn-sm" onclick="addChain('binary-decode')">Binary Dec</button>
+      <button class="btn btn-sm" onclick="addChain('rot13-encode')">ROT13</button>
       <button class="btn btn-sm" onclick="clearChain()">Clear Chain</button>
     </div>
     <div class="chain-area" id="chainArea"></div>
     <div class="output-box" id="chainOutput" style="margin-top:8px"></div>
+    <div style="margin-top:6px">
+      <button class="btn btn-sm" onclick="copyChainOutput()">Copy Chain Result</button>
+    </div>
   </div>
 
   <div class="card">
-    <div class="section-title">Hash Generation</div>
-    <p style="font-size:.85rem;color:var(--text-dim);margin-bottom:12px">Hashes are one-way and generated from the input text above using the Web Crypto API.</p>
+    <div class="section-title">Hash Generation (SHA via Web Crypto API)</div>
+    <p style="font-size:.85rem;color:var(--text-dim);margin-bottom:12px">
+      Cryptographic hashes are one-way functions generated from the input text. They cannot be reversed.
+    </p>
     <div class="hash-grid" id="hashGrid">
-      <div class="hash-row"><div class="hash-label">SHA-1</div><div class="hash-value" id="hashSha1">-</div><button class="btn btn-sm hash-copy" onclick="copyHash('hashSha1')">Copy</button></div>
-      <div class="hash-row"><div class="hash-label">SHA-256</div><div class="hash-value" id="hashSha256">-</div><button class="btn btn-sm hash-copy" onclick="copyHash('hashSha256')">Copy</button></div>
-      <div class="hash-row"><div class="hash-label">SHA-384</div><div class="hash-value" id="hashSha384">-</div><button class="btn btn-sm hash-copy" onclick="copyHash('hashSha384')">Copy</button></div>
-      <div class="hash-row"><div class="hash-label">SHA-512</div><div class="hash-value" id="hashSha512">-</div><button class="btn btn-sm hash-copy" onclick="copyHash('hashSha512')">Copy</button></div>
+      <div class="hash-row">
+        <div class="hash-label">SHA-1</div>
+        <div class="hash-value" id="hashSha1">-</div>
+        <button class="btn btn-sm hash-copy" onclick="copyHash('hashSha1')">Copy</button>
+      </div>
+      <div class="hash-row">
+        <div class="hash-label">SHA-256</div>
+        <div class="hash-value" id="hashSha256">-</div>
+        <button class="btn btn-sm hash-copy" onclick="copyHash('hashSha256')">Copy</button>
+      </div>
+      <div class="hash-row">
+        <div class="hash-label">SHA-384</div>
+        <div class="hash-value" id="hashSha384">-</div>
+        <button class="btn btn-sm hash-copy" onclick="copyHash('hashSha384')">Copy</button>
+      </div>
+      <div class="hash-row">
+        <div class="hash-label">SHA-512</div>
+        <div class="hash-value" id="hashSha512">-</div>
+        <button class="btn btn-sm hash-copy" onclick="copyHash('hashSha512')">Copy</button>
+      </div>
     </div>
   </div>
 
@@ -140,7 +531,7 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
     <p>Access 100+ premium developer tools, templates, and automations for a one-time payment of $39.</p>
     <div class="cta-buttons">
       <a href="/products/ultimate-bundle.html" class="cta-bundle">Get Bundle &mdash; $39</a>
-      <a href="/free-tools/" class="cta-browse">Browse 100+ Free Tools &rarr;</a>
+      <a href="/free-tools/" class="cta-browse">Browse 125+ Free Tools &rarr;</a>
     </div>
   </section>
 </main>
@@ -150,179 +541,348 @@ footer{margin-top:60px;padding:32px 24px;border-top:1px solid rgba(99,102,241,.1
   </div>
   <div class="footer-copy">&copy; 2026 NexTool. All rights reserved.</div>
 </footer>
+<div class="toast" id="toast">Copied to clipboard!</div>
 
 <script>
-const $=id=>document.getElementById(id);
-let currentFormat='base64';
-let direction='encode';
-let chain=[];
+const $ = id => document.getElementById(id);
+let currentFormat = 'base64';
+let direction = 'encode';
+let chain = [];
 
-const formats=[
-  {id:'base64',label:'Base64'},
-  {id:'url',label:'URL Encode'},
-  {id:'uri',label:'URI Component'},
-  {id:'html',label:'HTML Entities'},
-  {id:'unicode',label:'Unicode Escape'},
-  {id:'hex',label:'Hex'},
-  {id:'binary',label:'Binary'},
-  {id:'rot13',label:'ROT13'},
-  {id:'jwt',label:'JWT Decode'}
+const formats = [
+  {
+    id: 'base64', label: 'Base64',
+    info: 'Base64 encodes binary data into ASCII characters using a 64-character alphabet (A-Z, a-z, 0-9, +, /). Commonly used in email attachments, data URIs, and API tokens.'
+  },
+  {
+    id: 'url', label: 'URL Encode',
+    info: 'URL encoding (percent-encoding) replaces unsafe characters with % followed by hex values. Used for encoding URLs while preserving structure characters like / and ?.'
+  },
+  {
+    id: 'uri', label: 'URI Component',
+    info: 'URI Component encoding is more aggressive than URL encoding. It encodes all special characters including /, ?, &, and =. Used for encoding query parameter values.'
+  },
+  {
+    id: 'html', label: 'HTML Entities',
+    info: 'HTML entity encoding converts special characters like <, >, &, and " into their HTML entity equivalents to prevent XSS and rendering issues.'
+  },
+  {
+    id: 'unicode', label: 'Unicode Escape',
+    info: 'Unicode escape sequences represent non-ASCII characters as \\uXXXX where XXXX is the hexadecimal Unicode code point. Used in JavaScript and JSON strings.'
+  },
+  {
+    id: 'hex', label: 'Hex',
+    info: 'Hexadecimal encoding represents each byte of data as two hex digits (00-FF). Common in debugging, color codes, memory addresses, and cryptographic hashes.'
+  },
+  {
+    id: 'binary', label: 'Binary',
+    info: 'Binary encoding represents each byte as 8 bits (0s and 1s). The most fundamental data representation used by computers.'
+  },
+  {
+    id: 'rot13', label: 'ROT13',
+    info: 'ROT13 is a simple letter substitution cipher that shifts each letter by 13 positions. Applying it twice returns the original text. Not for security, just obfuscation.'
+  },
+  {
+    id: 'jwt', label: 'JWT Decode',
+    info: 'JSON Web Tokens (JWT) consist of three Base64-encoded parts: header, payload, and signature. This tool decodes the header and payload to inspect their contents.'
+  }
 ];
 
-function initTabs(){
-  const container=$('formatTabs');
-  formats.forEach(f=>{
-    const btn=document.createElement('button');
-    btn.className='format-tab'+(f.id===currentFormat?' active':'');
-    btn.textContent=f.label;btn.dataset.fmt=f.id;
-    btn.addEventListener('click',()=>{currentFormat=f.id;document.querySelectorAll('.format-tab').forEach(b=>b.classList.toggle('active',b.dataset.fmt===f.id));process();});
-    container.appendChild(btn);
-  });
+function escH(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function setDir(d){direction=d;$('dirEncode').classList.toggle('active',d==='encode');$('dirDecode').classList.toggle('active',d==='decode');process();}
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg || 'Copied to clipboard!';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
 
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function initTabs() {
+  const container = $('formatTabs');
+  formats.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'format-tab' + (f.id === currentFormat ? ' active' : '');
+    btn.textContent = f.label;
+    btn.dataset.fmt = f.id;
+    btn.addEventListener('click', () => {
+      currentFormat = f.id;
+      document.querySelectorAll('.format-tab').forEach(b =>
+        b.classList.toggle('active', b.dataset.fmt === f.id)
+      );
+      updateFormatInfo();
+      process();
+    });
+    container.appendChild(btn);
+  });
+  updateFormatInfo();
+}
 
-const codecs={
-  base64:{
-    encode:s=>{try{return btoa(unescape(encodeURIComponent(s)));}catch(e){return 'Error: '+e.message;}},
-    decode:s=>{try{return decodeURIComponent(escape(atob(s.trim())));}catch(e){return 'Error: Invalid Base64';}}
+function updateFormatInfo() {
+  const fmt = formats.find(f => f.id === currentFormat);
+  $('formatInfo').textContent = fmt ? fmt.info : '';
+  // Update direction hint
+  if (currentFormat === 'jwt') {
+    $('dirHint').textContent = 'JWT only supports decode mode.';
+  } else if (currentFormat === 'rot13') {
+    $('dirHint').textContent = 'ROT13 is symmetrical: encode = decode.';
+  } else {
+    $('dirHint').textContent = '';
+  }
+}
+
+function setDir(d) {
+  direction = d;
+  $('dirEncode').classList.toggle('active', d === 'encode');
+  $('dirDecode').classList.toggle('active', d === 'decode');
+  process();
+}
+
+function updateInfoBar(text) {
+  $('charCount').textContent = text.length;
+  $('byteCount').textContent = new TextEncoder().encode(text).length;
+  $('wordCount').textContent = text.trim() ? text.trim().split(/\s+/).length : 0;
+  $('lineCount').textContent = text ? text.split('\n').length : 0;
+}
+
+const codecs = {
+  base64: {
+    encode: s => { try { return btoa(unescape(encodeURIComponent(s))); } catch (e) { return 'Error: ' + e.message; } },
+    decode: s => { try { return decodeURIComponent(escape(atob(s.trim()))); } catch (e) { return 'Error: Invalid Base64 input'; } }
   },
-  url:{
-    encode:s=>encodeURI(s),
-    decode:s=>{try{return decodeURI(s);}catch(e){return 'Error: Invalid URL encoding';}}
+  url: {
+    encode: s => encodeURI(s),
+    decode: s => { try { return decodeURI(s); } catch (e) { return 'Error: Invalid URL encoding'; } }
   },
-  uri:{
-    encode:s=>encodeURIComponent(s),
-    decode:s=>{try{return decodeURIComponent(s);}catch(e){return 'Error: Invalid URI component';}}
+  uri: {
+    encode: s => encodeURIComponent(s),
+    decode: s => { try { return decodeURIComponent(s); } catch (e) { return 'Error: Invalid URI component encoding'; } }
   },
-  html:{
-    encode:s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;},
-    decode:s=>{const d=document.createElement('div');d.innerHTML=s;return d.textContent;}
+  html: {
+    encode: s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; },
+    decode: s => { const d = document.createElement('div'); d.innerHTML = s; return d.textContent; }
   },
-  unicode:{
-    encode:s=>[...s].map(c=>{const cp=c.codePointAt(0);return cp>127?'\\u'+cp.toString(16).padStart(4,'0'):c;}).join(''),
-    decode:s=>s.replace(/\\u([0-9a-fA-F]{4,6})/g,(_,h)=>String.fromCodePoint(parseInt(h,16)))
+  unicode: {
+    encode: s => [...s].map(c => {
+      const cp = c.codePointAt(0);
+      return cp > 127 ? '\\u' + cp.toString(16).padStart(4, '0') : c;
+    }).join(''),
+    decode: s => s.replace(/\\u([0-9a-fA-F]{4,6})/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
   },
-  hex:{
-    encode:s=>[...new TextEncoder().encode(s)].map(b=>b.toString(16).padStart(2,'0')).join(' '),
-    decode:s=>{try{const bytes=s.trim().split(/[\s,]+/).map(h=>parseInt(h,16));return new TextDecoder().decode(new Uint8Array(bytes));}catch(e){return 'Error: Invalid hex';}}
+  hex: {
+    encode: s => [...new TextEncoder().encode(s)].map(b => b.toString(16).padStart(2, '0')).join(' '),
+    decode: s => {
+      try {
+        const bytes = s.trim().split(/[\s,]+/).map(h => parseInt(h, 16));
+        return new TextDecoder().decode(new Uint8Array(bytes));
+      } catch (e) { return 'Error: Invalid hex input'; }
+    }
   },
-  binary:{
-    encode:s=>[...new TextEncoder().encode(s)].map(b=>b.toString(2).padStart(8,'0')).join(' '),
-    decode:s=>{try{const bytes=s.trim().split(/[\s,]+/).map(b=>parseInt(b,2));return new TextDecoder().decode(new Uint8Array(bytes));}catch(e){return 'Error: Invalid binary';}}
+  binary: {
+    encode: s => [...new TextEncoder().encode(s)].map(b => b.toString(2).padStart(8, '0')).join(' '),
+    decode: s => {
+      try {
+        const bytes = s.trim().split(/[\s,]+/).map(b => parseInt(b, 2));
+        return new TextDecoder().decode(new Uint8Array(bytes));
+      } catch (e) { return 'Error: Invalid binary input'; }
+    }
   },
-  rot13:{
-    encode:s=>s.replace(/[a-zA-Z]/g,c=>{const base=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-base+13)%26+base);}),
-    decode:s=>s.replace(/[a-zA-Z]/g,c=>{const base=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-base+13)%26+base);})
+  rot13: {
+    encode: s => s.replace(/[a-zA-Z]/g, c => {
+      const base = c <= 'Z' ? 65 : 97;
+      return String.fromCharCode((c.charCodeAt(0) - base + 13) % 26 + base);
+    }),
+    decode: s => s.replace(/[a-zA-Z]/g, c => {
+      const base = c <= 'Z' ? 65 : 97;
+      return String.fromCharCode((c.charCodeAt(0) - base + 13) % 26 + base);
+    })
   },
-  jwt:{
-    encode:s=>'JWT encoding is not supported. Use decode to inspect JWT tokens.',
-    decode:s=>{
-      try{
-        const parts=s.trim().split('.');
-        if(parts.length<2)return 'Error: Not a valid JWT (expected 3 parts separated by dots)';
-        const fix=b=>b.replace(/-/g,'+').replace(/_/g,'/');
-        const header=JSON.parse(atob(fix(parts[0])));
-        const payload=JSON.parse(atob(fix(parts[1])));
-        return 'HEADER:\n'+JSON.stringify(header,null,2)+'\n\nPAYLOAD:\n'+JSON.stringify(payload,null,2)+'\n\nSIGNATURE:\n'+parts[2];
-      }catch(e){return 'Error: Cannot decode JWT - '+e.message;}
+  jwt: {
+    encode: () => 'JWT encoding is not supported. Use decode mode to inspect JWT tokens.',
+    decode: s => {
+      try {
+        const parts = s.trim().split('.');
+        if (parts.length < 2) return 'Error: Not a valid JWT (expected 3 parts separated by dots)';
+        const fix = b => b.replace(/-/g, '+').replace(/_/g, '/');
+        const header = JSON.parse(atob(fix(parts[0])));
+        const payload = JSON.parse(atob(fix(parts[1])));
+        let result = '=== HEADER ===\n' + JSON.stringify(header, null, 2);
+        result += '\n\n=== PAYLOAD ===\n' + JSON.stringify(payload, null, 2);
+        if (payload.exp) {
+          const expDate = new Date(payload.exp * 1000);
+          const isExpired = expDate < new Date();
+          result += '\n\nExpires: ' + expDate.toISOString() + (isExpired ? ' (EXPIRED)' : ' (valid)');
+        }
+        if (payload.iat) {
+          result += '\nIssued: ' + new Date(payload.iat * 1000).toISOString();
+        }
+        result += '\n\n=== SIGNATURE ===\n' + (parts[2] || '(none)');
+        return result;
+      } catch (e) { return 'Error: Cannot decode JWT - ' + e.message; }
     }
   }
 };
 
-function process(){
-  const input=$('mainInput').value;
-  if(!input){$('outputBox').textContent='';$('detected').textContent='';updateHashes('');return;}
+function process() {
+  const input = $('mainInput').value;
+  updateInfoBar(input);
 
-  const codec=codecs[currentFormat];
-  const result=direction==='encode'?codec.encode(input):codec.decode(input);
-  $('outputBox').textContent=result;
+  if (!input) {
+    $('outputBox').textContent = '';
+    $('detected').textContent = '';
+    updateHashes('');
+    return;
+  }
+
+  const codec = codecs[currentFormat];
+  const result = direction === 'encode' ? codec.encode(input) : codec.decode(input);
+  $('outputBox').textContent = result;
 
   // Auto-detect
-  const det=autoDetect(input);
-  $('detected').textContent=det?'Auto-detected: '+det:'';
+  const det = autoDetect(input);
+  $('detected').textContent = det ? 'Auto-detected: ' + det : '';
 
   updateHashes(input);
   processChain();
 }
 
-function autoDetect(s){
-  const trimmed=s.trim();
-  if(/^[A-Za-z0-9+/]+=*$/.test(trimmed)&&trimmed.length>3&&trimmed.length%4===0){
-    try{atob(trimmed);return 'Likely Base64';}catch(e){}
+function autoDetect(s) {
+  const trimmed = s.trim();
+  // JWT check first (most specific)
+  if (trimmed.split('.').length === 3 && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(trimmed)) {
+    return 'Likely JWT token';
   }
-  if(trimmed.split('.').length===3&&/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(trimmed))return 'Likely JWT';
-  if(/%[0-9A-Fa-f]{2}/.test(trimmed))return 'Likely URL-encoded';
-  if(/^([01]{8}\s?)+$/.test(trimmed))return 'Likely Binary';
-  if(/^([0-9a-fA-F]{2}\s?)+$/.test(trimmed)&&trimmed.length>5)return 'Likely Hex';
-  if(/&[#\w]+;/.test(trimmed))return 'Likely HTML entities';
-  if(/\\u[0-9a-fA-F]{4}/.test(trimmed))return 'Likely Unicode escape';
+  // Base64
+  if (/^[A-Za-z0-9+/]+=*$/.test(trimmed) && trimmed.length > 3 && trimmed.length % 4 === 0) {
+    try { atob(trimmed); return 'Likely Base64 encoded'; } catch (e) {}
+  }
+  // URL encoded
+  if (/%[0-9A-Fa-f]{2}/.test(trimmed)) return 'Likely URL-encoded text';
+  // Binary
+  if (/^([01]{8}\s?)+$/.test(trimmed)) return 'Likely Binary data';
+  // Hex
+  if (/^([0-9a-fA-F]{2}\s?)+$/.test(trimmed) && trimmed.length > 5) return 'Likely Hex encoded';
+  // HTML entities
+  if (/&[#\w]+;/.test(trimmed)) return 'Likely HTML entities';
+  // Unicode escape
+  if (/\\u[0-9a-fA-F]{4}/.test(trimmed)) return 'Likely Unicode escape sequences';
   return null;
 }
 
-async function updateHashes(text){
-  if(!text){['hashSha1','hashSha256','hashSha384','hashSha512'].forEach(id=>{$(id).textContent='-';});return;}
-  const enc=new TextEncoder().encode(text);
-  const algos=[['SHA-1','hashSha1'],['SHA-256','hashSha256'],['SHA-384','hashSha384'],['SHA-512','hashSha512']];
-  for(const[algo,id]of algos){
-    try{
-      const buf=await crypto.subtle.digest(algo,enc);
-      const arr=Array.from(new Uint8Array(buf));
-      $(id).textContent=arr.map(b=>b.toString(16).padStart(2,'0')).join('');
-    }catch(e){$(id).textContent='N/A';}
+async function updateHashes(text) {
+  const ids = ['hashSha1', 'hashSha256', 'hashSha384', 'hashSha512'];
+  if (!text) {
+    ids.forEach(id => { $(id).textContent = '-'; });
+    return;
+  }
+  const enc = new TextEncoder().encode(text);
+  const algos = [
+    ['SHA-1', 'hashSha1'],
+    ['SHA-256', 'hashSha256'],
+    ['SHA-384', 'hashSha384'],
+    ['SHA-512', 'hashSha512']
+  ];
+  for (const [algo, id] of algos) {
+    try {
+      const buf = await crypto.subtle.digest(algo, enc);
+      const arr = Array.from(new Uint8Array(buf));
+      $(id).textContent = arr.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      $(id).textContent = 'N/A';
+    }
   }
 }
 
-function copyOutput(){
-  const text=$('outputBox').textContent;
-  if(text)navigator.clipboard.writeText(text).then(()=>{});
+function copyOutput() {
+  const text = $('outputBox').textContent;
+  if (text) navigator.clipboard.writeText(text).then(() => showToast('Output copied!'));
 }
 
-function copyHash(id){
-  const text=$(id).textContent;
-  if(text&&text!=='-')navigator.clipboard.writeText(text);
+function copyChainOutput() {
+  const text = $('chainOutput').textContent;
+  if (text) navigator.clipboard.writeText(text).then(() => showToast('Chain result copied!'));
 }
 
-// Chain
-function addChain(op){
+function copyHash(id) {
+  const text = $(id).textContent;
+  if (text && text !== '-') navigator.clipboard.writeText(text).then(() => showToast('Hash copied!'));
+}
+
+function useOutputAsInput() {
+  const output = $('outputBox').textContent;
+  if (output && !output.startsWith('Error')) {
+    $('mainInput').value = output;
+    process();
+    showToast('Output moved to input!');
+  }
+}
+
+function downloadOutput() {
+  const text = $('outputBox').textContent;
+  if (!text) return;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'encoded-output.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function clearAll() {
+  $('mainInput').value = '';
+  $('outputBox').textContent = '';
+  $('detected').textContent = '';
+  updateInfoBar('');
+  updateHashes('');
+}
+
+// Chain operations
+function addChain(op) {
   chain.push(op);
   renderChain();
   processChain();
 }
 
-function removeChainItem(idx){
-  chain.splice(idx,1);
+function removeChainItem(idx) {
+  chain.splice(idx, 1);
   renderChain();
   processChain();
 }
 
-function clearChain(){
-  chain=[];
+function clearChain() {
+  chain = [];
   renderChain();
-  $('chainOutput').textContent='';
+  $('chainOutput').textContent = '';
 }
 
-function renderChain(){
-  const area=$('chainArea');
-  if(chain.length===0){area.innerHTML='<span style="color:var(--text-dim);font-size:.85rem">No chain steps added.</span>';return;}
-  area.innerHTML=chain.map((op,i)=>'<span class="chain-tag">'+escH(op)+' <span class="remove" onclick="removeChainItem('+i+')">&times;</span></span>'+(i<chain.length-1?'<span class="chain-arrow">&rarr;</span>':'')).join('');
-}
-
-function processChain(){
-  if(chain.length===0)return;
-  let val=$('mainInput').value;
-  for(const op of chain){
-    const[fmt,dir]=op.split('-');
-    const codec=codecs[fmt];
-    if(!codec){val='Error: Unknown format '+fmt;break;}
-    val=dir==='encode'?codec.encode(val):codec.decode(val);
-    if(val.startsWith('Error'))break;
+function renderChain() {
+  const area = $('chainArea');
+  if (chain.length === 0) {
+    area.innerHTML = '<span style="color:var(--text-dim);font-size:.85rem">No chain steps. Add operations above.</span>';
+    return;
   }
-  $('chainOutput').textContent=val;
+  area.innerHTML = chain.map((op, i) =>
+    '<span class="chain-tag">' + escH(op) +
+    ' <span class="remove" onclick="removeChainItem(' + i + ')">&times;</span></span>' +
+    (i < chain.length - 1 ? '<span class="chain-arrow">&rarr;</span>' : '')
+  ).join('');
 }
 
+function processChain() {
+  if (chain.length === 0) return;
+  let val = $('mainInput').value;
+  for (const op of chain) {
+    const [fmt, dir] = op.split('-');
+    const codec = codecs[fmt];
+    if (!codec) { val = 'Error: Unknown format "' + fmt + '"'; break; }
+    val = dir === 'encode' ? codec.encode(val) : codec.decode(val);
+    if (String(val).startsWith('Error')) break;
+  }
+  $('chainOutput').textContent = val;
+}
+
+// Initialize
 initTabs();
 renderChain();
 process();
