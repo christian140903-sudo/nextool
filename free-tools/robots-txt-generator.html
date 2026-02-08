@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>robots.txt Generator — NexTool Free Tools</title>
+<meta name="description" content="Generate, validate, and customize your robots.txt file. Control how search engines crawl your website.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--surface3:#222233;--border:#2a2a3a;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--text:#e2e8f0;--text2:#94a3b8;--radius:12px;--glow:0 0 20px rgba(99,102,241,.15)}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.6}
+a{color:var(--primary);text-decoration:none;transition:color .2s}a:hover{color:var(--accent)}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 2rem}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-brand{font-weight:800;font-size:1.25rem;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:1.5rem;list-style:none}
+.nav-links a{color:var(--text2);font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--text)}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+
+.hero{text-align:center;padding:3rem 1.5rem 2rem}
+.hero h1{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem}
+.hero p{color:var(--text2);font-size:1.1rem;max-width:600px;margin:0 auto}
+
+main{flex:1;max-width:1200px;width:100%;margin:0 auto;padding:0 1.5rem 3rem}
+
+.tabs{display:flex;gap:0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:1.5rem;width:fit-content}
+.tab-btn{padding:.6rem 1.5rem;background:var(--surface);color:var(--text2);border:none;font-family:inherit;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s}
+.tab-btn.active{background:var(--primary);color:#fff}
+.tab-btn:hover:not(.active){background:var(--surface2)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+
+/* BUILDER */
+.builder{display:flex;flex-direction:column;gap:1.25rem}
+.section-title{font-size:.85rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;padding-bottom:.4rem;border-bottom:1px solid var(--border)}
+
+.presets-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
+.preset-chip{padding:.4rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:20px;color:var(--text2);font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s}
+.preset-chip:hover{border-color:var(--primary);color:var(--text)}
+.preset-chip.active{border-color:var(--primary);background:rgba(99,102,241,.15);color:var(--primary)}
+
+.rule-blocks{display:flex;flex-direction:column;gap:1rem;margin-top:.75rem}
+.rule-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;position:relative;transition:border-color .2s}
+.rule-block:hover{border-color:var(--surface3)}
+.rule-header{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}
+.rule-header select,.rule-header input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:.85rem;padding:.4rem .65rem;outline:none}
+.rule-header select:focus,.rule-header input:focus{border-color:var(--primary)}
+.rule-header select{width:160px;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.rule-remove{margin-left:auto;background:none;border:none;color:var(--red);font-size:1.2rem;cursor:pointer;opacity:.6;transition:opacity .2s;padding:0 .25rem}
+.rule-remove:hover{opacity:1}
+.directive-list{display:flex;flex-direction:column;gap:.4rem}
+.directive-row{display:flex;gap:.5rem;align-items:center}
+.directive-row select{width:110px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:.82rem;padding:.35rem .5rem;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .5rem center}
+.directive-row input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:.82rem;padding:.35rem .5rem;outline:none}
+.directive-row input:focus,.directive-row select:focus{border-color:var(--primary)}
+.dir-remove{background:none;border:none;color:var(--text2);font-size:1rem;cursor:pointer;opacity:.5;transition:opacity .2s;padding:0 .15rem}
+.dir-remove:hover{opacity:1;color:var(--red)}
+.add-dir-btn{background:none;border:1px dashed var(--border);border-radius:6px;color:var(--text2);font-family:inherit;font-size:.8rem;padding:.35rem;cursor:pointer;transition:all .2s;margin-top:.25rem}
+.add-dir-btn:hover{border-color:var(--primary);color:var(--primary)}
+.crawl-delay-row{display:flex;gap:.5rem;align-items:center;margin-top:.25rem}
+.crawl-delay-row label{font-size:.82rem;color:var(--text2);font-weight:600}
+.crawl-delay-row input{width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:.82rem;padding:.35rem .5rem;outline:none;text-align:center}
+.crawl-delay-row span{font-size:.78rem;color:var(--text2)}
+
+.sitemap-row{display:flex;flex-direction:column;gap:.35rem;margin-top:.5rem}
+.sitemap-row label{font-size:.82rem;color:var(--text2);font-weight:600}
+.sitemap-row input{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:.88rem;padding:.55rem .8rem;outline:none}
+.sitemap-row input:focus{border-color:var(--primary);box-shadow:var(--glow)}
+
+.btn-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.5rem}
+.btn{padding:.6rem 1.25rem;border:none;border-radius:var(--radius);font-family:inherit;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:.5rem}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;box-shadow:0 4px 15px rgba(99,102,241,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,.4)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--primary)}
+.btn-sm{padding:.4rem .9rem;font-size:.82rem}
+
+/* OUTPUT */
+.output-panel{display:flex;flex-direction:column;gap:1rem}
+.output-area{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;font-family:'Courier New',monospace;font-size:.85rem;color:#a5f3fc;white-space:pre-wrap;min-height:300px;line-height:1.7;position:relative}
+.output-area .comment{color:var(--text2)}.output-area .directive{color:var(--pink)}.output-area .value{color:#a5f3fc}
+
+/* VALIDATOR */
+.validate-area{display:flex;flex-direction:column;gap:1rem}
+.validate-area textarea{width:100%;height:300px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:vertical;outline:none;line-height:1.6}
+.validate-area textarea:focus{border-color:var(--primary);box-shadow:var(--glow)}
+.validation-results{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;min-height:100px}
+.val-item{display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.5rem;font-size:.85rem;line-height:1.5}
+.val-icon{font-size:1rem;flex-shrink:0;margin-top:.1rem}
+.val-ok{color:var(--green)}.val-warn{color:var(--yellow)}.val-err{color:var(--red)}.val-info{color:var(--primary)}
+
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--primary);color:#fff;padding:.75rem 1.5rem;border-radius:var(--radius);font-weight:600;font-size:.9rem;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+
+footer{background:var(--surface);border-top:1px solid var(--border);padding:2rem 1.5rem;text-align:center;color:var(--text2);font-size:.85rem;margin-top:auto}
+
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:rgba(5,5,8,.95);backdrop-filter:blur(16px);padding:1rem 2rem;border-bottom:1px solid var(--border);gap:.75rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.75rem}
+  .layout{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">NexTool</a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/free-tools/" class="active">Free Tools</a></li>
+      <li><a href="/services/">Services</a></li>
+      <li><a href="/products/">Products</a></li>
+      <li><a href="/blog/">Blog</a></li>
+      <li><a href="/pricing.html">Pricing</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>robots.txt Generator</h1>
+  <p>Build, customize, and validate your robots.txt file. Control exactly how search engines crawl your site.</p>
+</section>
+
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('build')">Build</button>
+    <button class="tab-btn" onclick="switchTab('validate')">Validate</button>
+  </div>
+
+  <!-- BUILD TAB -->
+  <div class="tab-panel active" id="tab-build">
+    <div class="layout">
+      <div class="builder">
+        <div>
+          <div class="section-title">Quick Presets</div>
+          <div class="presets-row">
+            <button class="preset-chip" onclick="loadPreset('allow')">Allow All</button>
+            <button class="preset-chip" onclick="loadPreset('block')">Block All</button>
+            <button class="preset-chip" onclick="loadPreset('standard')">Standard</button>
+            <button class="preset-chip" onclick="loadPreset('wordpress')">WordPress</button>
+            <button class="preset-chip" onclick="loadPreset('ecommerce')">E-Commerce</button>
+            <button class="preset-chip" onclick="loadPreset('noai')">Block AI Bots</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-title">User-Agent Rules</div>
+          <div class="rule-blocks" id="ruleBlocks"></div>
+          <button class="btn btn-secondary btn-sm" onclick="addRule()" style="margin-top:.75rem">+ Add User-Agent Rule</button>
+        </div>
+
+        <div class="sitemap-row">
+          <label>Sitemap URL</label>
+          <input type="url" id="sitemapUrl" placeholder="https://example.com/sitemap.xml" oninput="generate()">
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="copyOutput()">&#128203; Copy robots.txt</button>
+          <button class="btn btn-secondary" onclick="downloadFile()">&#11015; Download</button>
+          <button class="btn btn-secondary" onclick="resetAll()">&#8634; Reset</button>
+        </div>
+      </div>
+
+      <div class="output-panel">
+        <div class="section-title">Generated robots.txt</div>
+        <div class="output-area" id="output"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VALIDATE TAB -->
+  <div class="tab-panel" id="tab-validate">
+    <div class="validate-area">
+      <p style="color:var(--text2);font-size:.9rem">Paste your existing robots.txt below to check for issues:</p>
+      <textarea id="validateInput" placeholder="User-agent: *&#10;Disallow: /admin/&#10;Allow: /&#10;&#10;Sitemap: https://example.com/sitemap.xml"></textarea>
+      <button class="btn btn-primary" onclick="validateRobots()">&#9989; Validate</button>
+      <div class="validation-results" id="valResults">
+        <div class="val-item"><span class="val-icon val-info">&#9432;</span><span>Paste your robots.txt above and click Validate.</span></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<footer>&copy; 2026 NexTool. All rights reserved.</footer>
+
+<script>
+let rules = [];
+let ruleIdCounter = 0;
+
+const AGENTS = ['*','Googlebot','Bingbot','Yandex','DuckDuckBot','Baiduspider','Slurp','facebot','ia_archiver','GPTBot','ChatGPT-User','CCBot','Google-Extended','anthropic-ai','ClaudeBot','cohere-ai','Bytespider'];
+
+function addRule(agent, directives, crawlDelay) {
+  const id = ruleIdCounter++;
+  rules.push({
+    id,
+    agent: agent || '*',
+    directives: directives || [{ type: 'Disallow', path: '' }],
+    crawlDelay: crawlDelay || ''
+  });
+  renderRules();
+  generate();
+}
+
+function removeRule(id) {
+  rules = rules.filter(r => r.id !== id);
+  renderRules();
+  generate();
+}
+
+function addDirective(ruleId) {
+  const rule = rules.find(r => r.id === ruleId);
+  if (rule) {
+    rule.directives.push({ type: 'Disallow', path: '/' });
+    renderRules();
+    generate();
+  }
+}
+
+function removeDirective(ruleId, idx) {
+  const rule = rules.find(r => r.id === ruleId);
+  if (rule && rule.directives.length > 1) {
+    rule.directives.splice(idx, 1);
+    renderRules();
+    generate();
+  }
+}
+
+function renderRules() {
+  const container = document.getElementById('ruleBlocks');
+  container.innerHTML = rules.map(rule => {
+    const agentOpts = AGENTS.map(a => `<option value="${a}"${rule.agent === a ? ' selected' : ''}>${a}</option>`).join('');
+    const dirs = rule.directives.map((d, i) => `
+      <div class="directive-row">
+        <select onchange="updateDir(${rule.id},${i},'type',this.value)">
+          <option value="Allow"${d.type==='Allow'?' selected':''}>Allow</option>
+          <option value="Disallow"${d.type==='Disallow'?' selected':''}>Disallow</option>
+        </select>
+        <input type="text" value="${escAttr(d.path)}" placeholder="/path/" oninput="updateDir(${rule.id},${i},'path',this.value)">
+        <button class="dir-remove" onclick="removeDirective(${rule.id},${i})" title="Remove">&times;</button>
+      </div>
+    `).join('');
+    return `
+      <div class="rule-block">
+        <div class="rule-header">
+          <select onchange="updateAgent(${rule.id},this.value)">${agentOpts}</select>
+          <button class="rule-remove" onclick="removeRule(${rule.id})" title="Remove rule">&times;</button>
+        </div>
+        <div class="directive-list">${dirs}</div>
+        <button class="add-dir-btn" onclick="addDirective(${rule.id})">+ Add directive</button>
+        <div class="crawl-delay-row" style="margin-top:.5rem">
+          <label>Crawl-delay:</label>
+          <input type="number" min="0" max="120" value="${rule.crawlDelay}" placeholder="—" oninput="updateCrawlDelay(${rule.id},this.value)">
+          <span>seconds</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function escAttr(s) { return s.replace(/"/g, '&quot;'); }
+
+function updateAgent(id, val) {
+  const rule = rules.find(r => r.id === id);
+  if (rule) { rule.agent = val; generate(); }
+}
+
+function updateDir(ruleId, idx, key, val) {
+  const rule = rules.find(r => r.id === ruleId);
+  if (rule) { rule.directives[idx][key] = val; generate(); }
+}
+
+function updateCrawlDelay(id, val) {
+  const rule = rules.find(r => r.id === id);
+  if (rule) { rule.crawlDelay = val; generate(); }
+}
+
+function generate() {
+  let lines = [];
+  lines.push('# robots.txt generated by NexTool');
+  lines.push('# https://nextool.app/free-tools/robots-txt-generator');
+  lines.push('');
+
+  rules.forEach((rule, i) => {
+    if (i > 0) lines.push('');
+    lines.push(`User-agent: ${rule.agent}`);
+    rule.directives.forEach(d => {
+      lines.push(`${d.type}: ${d.path}`);
+    });
+    if (rule.crawlDelay && parseInt(rule.crawlDelay) > 0) {
+      lines.push(`Crawl-delay: ${rule.crawlDelay}`);
+    }
+  });
+
+  const sitemap = document.getElementById('sitemapUrl').value.trim();
+  if (sitemap) {
+    lines.push('');
+    lines.push(`Sitemap: ${sitemap}`);
+  }
+
+  rawOutput = lines.join('\n');
+
+  // Highlighted output
+  const highlighted = lines.map(line => {
+    if (line.startsWith('#')) return `<span class="comment">${esc(line)}</span>`;
+    if (line.startsWith('User-agent:')) return `<span class="directive">User-agent:</span> <span class="value">${esc(line.slice(12))}</span>`;
+    if (line.startsWith('Allow:')) return `<span class="directive">Allow:</span> <span class="value">${esc(line.slice(7))}</span>`;
+    if (line.startsWith('Disallow:')) return `<span class="directive">Disallow:</span> <span class="value">${esc(line.slice(10))}</span>`;
+    if (line.startsWith('Crawl-delay:')) return `<span class="directive">Crawl-delay:</span> <span class="value">${esc(line.slice(13))}</span>`;
+    if (line.startsWith('Sitemap:')) return `<span class="directive">Sitemap:</span> <span class="value">${esc(line.slice(9))}</span>`;
+    return esc(line);
+  }).join('\n');
+
+  document.getElementById('output').innerHTML = highlighted;
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let rawOutput = '';
+
+function copyOutput() {
+  if (!rawOutput) { showToast('Nothing to copy!'); return; }
+  navigator.clipboard.writeText(rawOutput).then(() => showToast('robots.txt copied!'));
+}
+
+function downloadFile() {
+  if (!rawOutput) { showToast('Nothing to download!'); return; }
+  const blob = new Blob([rawOutput], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'robots.txt'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Downloaded robots.txt!');
+}
+
+function resetAll() {
+  rules = [];
+  ruleIdCounter = 0;
+  document.getElementById('sitemapUrl').value = '';
+  addRule('*', [{ type: 'Allow', path: '/' }], '');
+}
+
+function loadPreset(name) {
+  rules = [];
+  ruleIdCounter = 0;
+  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if (name === 'allow') {
+    addRule('*', [{ type: 'Allow', path: '/' }], '');
+  } else if (name === 'block') {
+    addRule('*', [{ type: 'Disallow', path: '/' }], '');
+  } else if (name === 'standard') {
+    addRule('*', [
+      { type: 'Allow', path: '/' },
+      { type: 'Disallow', path: '/admin/' },
+      { type: 'Disallow', path: '/private/' },
+      { type: 'Disallow', path: '/tmp/' },
+      { type: 'Disallow', path: '/*.json$' }
+    ], '');
+    document.getElementById('sitemapUrl').value = 'https://example.com/sitemap.xml';
+  } else if (name === 'wordpress') {
+    addRule('*', [
+      { type: 'Allow', path: '/' },
+      { type: 'Disallow', path: '/wp-admin/' },
+      { type: 'Allow', path: '/wp-admin/admin-ajax.php' },
+      { type: 'Disallow', path: '/wp-includes/' },
+      { type: 'Disallow', path: '/trackback/' },
+      { type: 'Disallow', path: '/feed/' },
+      { type: 'Disallow', path: '/comments/' },
+      { type: 'Disallow', path: '/?s=' },
+      { type: 'Disallow', path: '/search/' }
+    ], '');
+    document.getElementById('sitemapUrl').value = 'https://example.com/sitemap_index.xml';
+  } else if (name === 'ecommerce') {
+    addRule('*', [
+      { type: 'Allow', path: '/' },
+      { type: 'Disallow', path: '/cart/' },
+      { type: 'Disallow', path: '/checkout/' },
+      { type: 'Disallow', path: '/account/' },
+      { type: 'Disallow', path: '/wishlist/' },
+      { type: 'Disallow', path: '/search/' },
+      { type: 'Disallow', path: '/*?sort=' },
+      { type: 'Disallow', path: '/*?filter=' },
+      { type: 'Disallow', path: '/admin/' }
+    ], '');
+    document.getElementById('sitemapUrl').value = 'https://example.com/sitemap.xml';
+  } else if (name === 'noai') {
+    addRule('*', [{ type: 'Allow', path: '/' }], '');
+    addRule('GPTBot', [{ type: 'Disallow', path: '/' }], '');
+    addRule('ChatGPT-User', [{ type: 'Disallow', path: '/' }], '');
+    addRule('CCBot', [{ type: 'Disallow', path: '/' }], '');
+    addRule('Google-Extended', [{ type: 'Disallow', path: '/' }], '');
+    addRule('anthropic-ai', [{ type: 'Disallow', path: '/' }], '');
+    addRule('ClaudeBot', [{ type: 'Disallow', path: '/' }], '');
+    addRule('cohere-ai', [{ type: 'Disallow', path: '/' }], '');
+    addRule('Bytespider', [{ type: 'Disallow', path: '/' }], '');
+  }
+  generate();
+}
+
+// VALIDATOR
+function validateRobots() {
+  const input = document.getElementById('validateInput').value.trim();
+  const results = document.getElementById('valResults');
+
+  if (!input) {
+    results.innerHTML = '<div class="val-item"><span class="val-icon val-err">&#10060;</span><span>Please paste a robots.txt file to validate.</span></div>';
+    return;
+  }
+
+  const items = [];
+  const lines = input.split('\n');
+  let hasUserAgent = false;
+  let hasSitemap = false;
+  let hasAllow = false;
+  let hasDisallow = false;
+  let lineErrors = 0;
+  let currentAgent = null;
+
+  lines.forEach((line, i) => {
+    const ln = i + 1;
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return;
+
+    if (trimmed.startsWith('User-agent:')) {
+      hasUserAgent = true;
+      const val = trimmed.slice(11).trim();
+      currentAgent = val;
+      if (!val) {
+        items.push({ type: 'err', msg: `Line ${ln}: User-agent has no value.` });
+        lineErrors++;
+      }
+    } else if (trimmed.startsWith('Disallow:')) {
+      hasDisallow = true;
+      if (!currentAgent) {
+        items.push({ type: 'warn', msg: `Line ${ln}: Disallow before any User-agent directive.` });
+      }
+      const val = trimmed.slice(9).trim();
+      if (val && !val.startsWith('/') && !val.startsWith('*')) {
+        items.push({ type: 'warn', msg: `Line ${ln}: Disallow path "${val}" should start with "/".` });
+      }
+    } else if (trimmed.startsWith('Allow:')) {
+      hasAllow = true;
+      if (!currentAgent) {
+        items.push({ type: 'warn', msg: `Line ${ln}: Allow before any User-agent directive.` });
+      }
+      const val = trimmed.slice(6).trim();
+      if (val && !val.startsWith('/') && !val.startsWith('*')) {
+        items.push({ type: 'warn', msg: `Line ${ln}: Allow path "${val}" should start with "/".` });
+      }
+    } else if (trimmed.startsWith('Sitemap:')) {
+      hasSitemap = true;
+      const val = trimmed.slice(8).trim();
+      if (!val.startsWith('http://') && !val.startsWith('https://')) {
+        items.push({ type: 'err', msg: `Line ${ln}: Sitemap URL must be a full URL starting with http(s)://` });
+        lineErrors++;
+      }
+    } else if (trimmed.startsWith('Crawl-delay:')) {
+      const val = trimmed.slice(12).trim();
+      if (isNaN(parseInt(val))) {
+        items.push({ type: 'err', msg: `Line ${ln}: Crawl-delay must be a number.` });
+        lineErrors++;
+      }
+    } else if (trimmed.startsWith('Host:')) {
+      items.push({ type: 'info', msg: `Line ${ln}: Host directive is non-standard (only used by Yandex).` });
+    } else {
+      items.push({ type: 'err', msg: `Line ${ln}: Unrecognized directive: "${trimmed.split(':')[0]}"` });
+      lineErrors++;
+    }
+  });
+
+  // Summary checks
+  if (!hasUserAgent) {
+    items.unshift({ type: 'err', msg: 'No User-agent directive found. At least one is required.' });
+  }
+  if (!hasSitemap) {
+    items.push({ type: 'warn', msg: 'No Sitemap directive found. Consider adding one for better crawling.' });
+  }
+  if (!hasDisallow && !hasAllow) {
+    items.push({ type: 'warn', msg: 'No Allow or Disallow directives found.' });
+  }
+
+  if (lineErrors === 0 && items.filter(i => i.type === 'err').length === 0) {
+    items.unshift({ type: 'ok', msg: 'robots.txt is valid! No errors found.' });
+  } else {
+    items.unshift({ type: 'err', msg: `Found ${items.filter(i=>i.type==='err').length} error(s) and ${items.filter(i=>i.type==='warn').length} warning(s).` });
+  }
+
+  const iconMap = { ok: '<span class="val-icon val-ok">&#10004;</span>', err: '<span class="val-icon val-err">&#10060;</span>', warn: '<span class="val-icon val-warn">&#9888;</span>', info: '<span class="val-icon val-info">&#9432;</span>' };
+  results.innerHTML = items.map(it => `<div class="val-item">${iconMap[it.type]}<span>${it.msg}</span></div>`).join('');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Init with default rule
+addRule('*', [{ type: 'Allow', path: '/' }], '');
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>
