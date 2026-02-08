@@ -1,0 +1,2027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST API Design Best Practices: A Developer's Complete Guide | NexTool Blog</title>
+    <meta name="description" content="A complete guide to REST API design best practices. URL structure, HTTP methods, status codes, pagination, authentication, rate limiting, versioning, error handling, and OpenAPI documentation.">
+    <meta name="keywords" content="REST API, API design, best practices, HTTP methods, status codes, pagination, authentication, rate limiting, versioning, OpenAPI, Swagger">
+    <meta name="author" content="NexTool Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/api-design-best-practices.html">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="REST API Design Best Practices: A Developer's Complete Guide">
+    <meta property="og:description" content="A complete guide to REST API design. URL structure, HTTP methods, status codes, pagination, authentication, rate limiting, versioning, and more.">
+    <meta property="og:url" content="https://nextool.app/blog/api-design-best-practices.html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/images/blog/api-design-best-practices-og.png">
+    <meta property="article:published_time" content="2026-02-08T08:00:00Z">
+    <meta property="article:author" content="NexTool Team">
+    <meta property="article:section" content="Backend Development">
+    <meta property="article:tag" content="REST API">
+    <meta property="article:tag" content="Backend">
+    <meta property="article:tag" content="API Design">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="REST API Design Best Practices: A Developer's Complete Guide">
+    <meta name="twitter:description" content="A complete guide to REST API design. URL structure, HTTP methods, status codes, pagination, authentication, and more.">
+
+    <!-- JSON-LD Article Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "REST API Design Best Practices: A Developer's Complete Guide",
+        "description": "A complete guide to REST API design best practices covering URL structure, HTTP methods, status codes, pagination, authentication, rate limiting, versioning, error handling, and OpenAPI documentation.",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool Team"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-08T08:00:00Z",
+        "dateModified": "2026-02-08T08:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/api-design-best-practices.html"
+        },
+        "image": "https://nextool.app/images/blog/api-design-best-practices-og.png",
+        "articleSection": "Backend Development",
+        "keywords": ["REST API", "API design", "best practices", "HTTP methods", "status codes", "pagination"]
+    }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           CSS VARIABLES — NexTool Design System
+           ============================================ */
+        :root {
+            --bg: #050508;
+            --surface: #111118;
+            --surface2: #1a1a24;
+            --primary: #6366f1;
+            --accent: #a855f7;
+            --pink: #ec4899;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --gradient: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 800px;
+            --nav-height: 64px;
+            --green: #22c55e;
+            --red: #ef4444;
+            --yellow: #eab308;
+            --blue: #3b82f6;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        ::selection {
+            background: rgba(99, 102, 241, 0.4);
+            color: #fff;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--accent);
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+        }
+
+        /* ============================================
+           ARTICLE LAYOUT
+           ============================================ */
+        .article-wrapper {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: calc(var(--nav-height) + 48px) 24px 80px;
+        }
+
+        /* ============================================
+           ARTICLE HERO
+           ============================================ */
+        .article-hero {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .article-category {
+            display: inline-block;
+            padding: 4px 14px;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .article-date {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .article-read-time {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .article-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .article-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            max-width: 640px;
+        }
+
+        /* ============================================
+           TABLE OF CONTENTS
+           ============================================ */
+        .toc {
+            background: var(--surface);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: var(--radius-lg);
+            padding: 28px 32px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toc ol {
+            counter-reset: toc-counter;
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc li {
+            counter-increment: toc-counter;
+            margin-bottom: 8px;
+        }
+
+        .toc li::before {
+            content: counter(toc-counter) ".";
+            color: var(--primary);
+            font-weight: 600;
+            margin-right: 8px;
+            font-size: 0.9rem;
+        }
+
+        .toc a {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--primary);
+        }
+
+        /* ============================================
+           ARTICLE CONTENT
+           ============================================ */
+        .article-content h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 56px;
+            margin-bottom: 20px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            line-height: 1.3;
+        }
+
+        .article-content h2:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .article-content h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-top: 36px;
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+
+        .article-content h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-top: 28px;
+            margin-bottom: 12px;
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+            color: var(--text-dim);
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+
+        .article-content strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 20px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 10px;
+            color: var(--text-dim);
+            font-size: 1.02rem;
+            line-height: 1.7;
+        }
+
+        .article-content li strong {
+            color: var(--text);
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid var(--primary);
+            padding: 16px 24px;
+            margin: 28px 0;
+            background: rgba(99, 102, 241, 0.06);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        }
+
+        .article-content blockquote p {
+            color: var(--text);
+            font-style: italic;
+            margin-bottom: 0;
+        }
+
+        /* ============================================
+           CODE BLOCKS
+           ============================================ */
+        .code-block {
+            background: var(--surface);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: var(--radius-md);
+            margin: 24px 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(99, 102, 241, 0.08);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        .code-lang {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .code-copy {
+            background: none;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            transition: all 0.2s;
+        }
+
+        .code-copy:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .code-block pre {
+            padding: 20px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .code-block code {
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            line-height: 1.7;
+            color: var(--text);
+            tab-size: 2;
+        }
+
+        /* Inline code */
+        .article-content p code,
+        .article-content li code,
+        .article-content h3 code,
+        .article-content td code {
+            font-family: var(--font-mono);
+            font-size: 0.88em;
+            background: rgba(99, 102, 241, 0.12);
+            padding: 2px 7px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        /* ============================================
+           COMPARISON TABLE
+           ============================================ */
+        .comparison-table-wrapper {
+            overflow-x: auto;
+            margin: 24px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            min-width: 500px;
+        }
+
+        .comparison-table th {
+            text-align: left;
+            padding: 12px 16px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+            white-space: nowrap;
+        }
+
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.08);
+            color: var(--text-dim);
+            vertical-align: top;
+        }
+
+        .comparison-table tr:hover td {
+            background: rgba(99, 102, 241, 0.04);
+        }
+
+        /* ============================================
+           HTTP METHOD BADGES
+           ============================================ */
+        .method-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .method-get { background: var(--green); }
+        .method-post { background: var(--blue); }
+        .method-put { background: var(--yellow); color: #000; }
+        .method-patch { background: #f97316; }
+        .method-delete { background: var(--red); }
+
+        /* ============================================
+           STATUS CODE BADGES
+           ============================================ */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-2xx { background: rgba(34, 197, 94, 0.15); color: var(--green); }
+        .status-3xx { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+        .status-4xx { background: rgba(234, 179, 8, 0.15); color: var(--yellow); }
+        .status-5xx { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+
+        /* ============================================
+           INFO / TIP / WARNING BOXES
+           ============================================ */
+        .info-box {
+            padding: 20px 24px;
+            border-radius: var(--radius-md);
+            margin: 28px 0;
+            border-left: 4px solid;
+        }
+
+        .info-box.tip {
+            background: rgba(99, 102, 241, 0.08);
+            border-color: var(--primary);
+        }
+
+        .info-box.warning {
+            background: rgba(234, 179, 8, 0.08);
+            border-color: #eab308;
+        }
+
+        .info-box.success {
+            background: rgba(34, 197, 94, 0.08);
+            border-color: #22c55e;
+        }
+
+        .info-box.danger {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: #ef4444;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .info-box p {
+            margin-bottom: 0;
+            font-size: 0.95rem;
+        }
+
+        /* ============================================
+           KEY TAKEAWAY BOX
+           ============================================ */
+        .key-takeaway {
+            background: var(--surface);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin: 36px 0;
+        }
+
+        .key-takeaway h4 {
+            color: var(--accent);
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .key-takeaway ul {
+            margin-bottom: 0;
+        }
+
+        /* ============================================
+           DO / DON'T
+           ============================================ */
+        .do-dont {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        @media (min-width: 600px) {
+            .do-dont {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .do-box, .dont-box {
+            padding: 20px;
+            border-radius: var(--radius-md);
+        }
+
+        .do-box {
+            background: rgba(34, 197, 94, 0.06);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .dont-box {
+            background: rgba(239, 68, 68, 0.06);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .do-box h4, .dont-box h4 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .do-box h4 { color: var(--green); }
+        .dont-box h4 { color: var(--red); }
+
+        .do-box code, .dont-box code {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        /* ============================================
+           CROSS-PROMO
+           ============================================ */
+        .cross-promo {
+            margin-top: 48px;
+            padding: 32px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            text-align: center;
+        }
+
+        .cross-promo .cta-btn {
+            display: inline-block;
+            padding: 12px 28px;
+            background: var(--gradient);
+            color: #fff;
+            border-radius: 20px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cross-promo .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        footer {
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            padding: 48px 24px;
+            margin-top: 80px;
+        }
+
+        .footer-inner {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        .footer-copy {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 16px;
+            }
+
+            .nav-links a {
+                font-size: 0.82rem;
+            }
+
+            .article-wrapper {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .article-title {
+                font-size: 1.8rem;
+            }
+
+            .article-content h2 {
+                font-size: 1.4rem;
+            }
+
+            .article-content h3 {
+                font-size: 1.15rem;
+            }
+
+            .toc {
+                padding: 20px;
+            }
+
+            .code-block pre {
+                padding: 14px;
+            }
+
+            .code-block code {
+                font-size: 0.82rem;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .article-meta {
+                gap: 10px;
+            }
+
+            .nav-links {
+                gap: 12px;
+            }
+        }
+
+        /* ============================================
+           SYNTAX HIGHLIGHTING (minimal)
+           ============================================ */
+        .token-keyword { color: #c084fc; }
+        .token-string { color: #34d399; }
+        .token-comment { color: #64748b; font-style: italic; }
+        .token-function { color: #60a5fa; }
+        .token-property { color: #f472b6; }
+        .token-number { color: #fb923c; }
+        .token-operator { color: #94a3b8; }
+        .token-class { color: #fbbf24; }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+         NAVIGATION
+         ========================================== -->
+    <nav>
+        <a href="/" class="nav-logo">
+            <span class="nav-logo-icon">NT</span>
+            NexTool
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/free-tools/">Free Tools</a></li>
+            <li><a href="/blog/" class="active">Blog</a></li>
+        </ul>
+    </nav>
+
+    <!-- ==========================================
+         ARTICLE
+         ========================================== -->
+    <article class="article-wrapper">
+
+        <!-- Hero -->
+        <header class="article-hero">
+            <div class="article-meta">
+                <span class="article-category">Backend &amp; APIs</span>
+                <span class="article-date">February 8, 2026</span>
+                <span class="article-read-time">25 min read</span>
+            </div>
+            <h1 class="article-title">REST API Design Best Practices: A Developer's Complete Guide</h1>
+            <p class="article-subtitle">
+                A comprehensive reference for designing REST APIs that are intuitive, consistent, and
+                maintainable. From URL structure and HTTP methods to authentication, versioning, and
+                documentation.
+            </p>
+        </header>
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <div class="toc-title">Table of Contents</div>
+            <ol>
+                <li><a href="#url-structure">URL Structure and Naming Conventions</a></li>
+                <li><a href="#http-methods">HTTP Methods: Proper Usage</a></li>
+                <li><a href="#status-codes">Status Codes Guide</a></li>
+                <li><a href="#pagination">Pagination, Filtering, and Sorting</a></li>
+                <li><a href="#authentication">Authentication Strategies</a></li>
+                <li><a href="#rate-limiting">Rate Limiting</a></li>
+                <li><a href="#versioning">Versioning Strategies</a></li>
+                <li><a href="#error-handling">Error Response Format</a></li>
+                <li><a href="#documentation">Documentation with OpenAPI</a></li>
+                <li><a href="#checklist">API Design Checklist</a></li>
+            </ol>
+        </div>
+
+        <!-- Content -->
+        <div class="article-content">
+
+            <p>
+                A well-designed API is a joy to work with. A poorly designed one generates support tickets,
+                slows down integration, and creates technical debt that compounds over years. The difference
+                between the two is usually not technical complexity but <strong>consistency and predictability</strong>.
+            </p>
+
+            <p>
+                This guide covers every aspect of REST API design that matters in practice. Whether you are
+                building an API for internal use, a public developer platform, or a microservices architecture,
+                these principles apply. Every recommendation includes concrete examples and the reasoning behind it.
+            </p>
+
+            <!-- Section 1 -->
+            <h2 id="url-structure">1. URL Structure and Naming Conventions</h2>
+
+            <p>
+                URLs are the most visible part of your API. They should be predictable enough that a developer
+                can guess endpoints after seeing a few examples. Consistency here pays for itself in reduced
+                documentation needs and fewer support questions.
+            </p>
+
+            <h3>Use Nouns, Not Verbs</h3>
+
+            <p>
+                Resources are nouns. The HTTP method provides the verb. Do not repeat the action in the URL:
+            </p>
+
+            <div class="do-dont">
+                <div class="do-box">
+                    <h4>Do</h4>
+                    <code>GET /users</code>
+                    <code>POST /users</code>
+                    <code>GET /users/42</code>
+                    <code>PUT /users/42</code>
+                    <code>DELETE /users/42</code>
+                    <code>GET /users/42/orders</code>
+                </div>
+                <div class="dont-box">
+                    <h4>Don't</h4>
+                    <code>GET /getUsers</code>
+                    <code>POST /createUser</code>
+                    <code>GET /getUserById/42</code>
+                    <code>POST /updateUser/42</code>
+                    <code>POST /deleteUser/42</code>
+                    <code>GET /getOrdersForUser/42</code>
+                </div>
+            </div>
+
+            <h3>Pluralize Resource Names</h3>
+
+            <p>
+                Use plural nouns consistently. Even when retrieving a single resource, the collection is plural
+                and the individual item is identified by its ID:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">URL Pattern</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Collection</span>
+GET /api/v1/<span class="token-string">articles</span>
+
+<span class="token-comment"># Individual item</span>
+GET /api/v1/<span class="token-string">articles</span>/42
+
+<span class="token-comment"># Nested resource (sub-collection)</span>
+GET /api/v1/<span class="token-string">articles</span>/42/<span class="token-string">comments</span>
+
+<span class="token-comment"># Specific nested item</span>
+GET /api/v1/<span class="token-string">articles</span>/42/<span class="token-string">comments</span>/7</code></pre>
+            </div>
+
+            <h3>Use Kebab-Case</h3>
+
+            <p>
+                URLs are case-insensitive by convention. Use kebab-case (hyphens) for multi-word resource names:
+            </p>
+
+            <div class="do-dont">
+                <div class="do-box">
+                    <h4>Do</h4>
+                    <code>/api/v1/blog-posts</code>
+                    <code>/api/v1/user-profiles</code>
+                    <code>/api/v1/order-items</code>
+                </div>
+                <div class="dont-box">
+                    <h4>Don't</h4>
+                    <code>/api/v1/blogPosts</code>
+                    <code>/api/v1/user_profiles</code>
+                    <code>/api/v1/OrderItems</code>
+                </div>
+            </div>
+
+            <h3>Keep Nesting Shallow</h3>
+
+            <p>
+                Deeply nested URLs become unmanageable. Limit nesting to one level. If you need deeper
+                relationships, use query parameters or flatten the URL:
+            </p>
+
+            <div class="do-dont">
+                <div class="do-box">
+                    <h4>Do (shallow)</h4>
+                    <code>GET /comments?article_id=42</code>
+                    <code>GET /articles/42/comments</code>
+                    <code>GET /orders?user_id=7</code>
+                </div>
+                <div class="dont-box">
+                    <h4>Don't (deeply nested)</h4>
+                    <code>GET /users/7/orders/12/items/3/reviews</code>
+                    <code>GET /orgs/5/teams/2/members/9/tasks</code>
+                </div>
+            </div>
+
+            <h3>Actions on Resources</h3>
+
+            <p>
+                Some operations do not map cleanly to CRUD. For actions like "archive", "publish", or
+                "send", there are two accepted patterns:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">URL Pattern</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Option A: Sub-resource representing the action</span>
+POST /api/v1/articles/42/publish
+POST /api/v1/orders/99/cancel
+POST /api/v1/users/7/verify-email
+
+<span class="token-comment"># Option B: Treat the state as a field (PATCH the resource)</span>
+PATCH /api/v1/articles/42
+{
+    "status": "published"
+}
+
+<span class="token-comment"># Option A is clearer for complex actions with side effects</span>
+<span class="token-comment"># Option B is better for simple state transitions</span></code></pre>
+            </div>
+
+            <!-- Section 2 -->
+            <h2 id="http-methods">2. HTTP Methods: Proper Usage</h2>
+
+            <p>
+                HTTP methods have well-defined semantics. Using them correctly makes your API predictable and
+                enables caching, retry logic, and tooling that rely on these semantics.
+            </p>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Purpose</th>
+                            <th>Idempotent</th>
+                            <th>Safe</th>
+                            <th>Request Body</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td>Retrieve a resource or collection</td>
+                            <td>Yes</td>
+                            <td>Yes</td>
+                            <td>No</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-post">POST</span></td>
+                            <td>Create a new resource</td>
+                            <td>No</td>
+                            <td>No</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-put">PUT</span></td>
+                            <td>Replace a resource entirely</td>
+                            <td>Yes</td>
+                            <td>No</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-patch">PATCH</span></td>
+                            <td>Partially update a resource</td>
+                            <td>No*</td>
+                            <td>No</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-delete">DELETE</span></td>
+                            <td>Remove a resource</td>
+                            <td>Yes</td>
+                            <td>No</td>
+                            <td>Optional</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>
+                <strong>Idempotent</strong> means making the same request multiple times produces the same
+                result. GET, PUT, and DELETE are idempotent. POST is not (calling POST /users twice creates two users).
+                PATCH can be idempotent if you send the target state ("set name to X") rather than a delta ("append Y to name").
+            </p>
+
+            <p>
+                <strong>Safe</strong> means the request does not modify server state. Only GET (and HEAD/OPTIONS)
+                are safe. This distinction matters because proxies and browsers feel free to retry safe requests.
+            </p>
+
+            <h3>PUT vs PATCH</h3>
+
+            <p>
+                This distinction confuses many developers. The rule is simple:
+            </p>
+
+            <ul>
+                <li><strong>PUT</strong> replaces the entire resource. If you omit a field, it gets cleared. You send the complete new state.</li>
+                <li><strong>PATCH</strong> updates only the fields you include. Omitted fields remain unchanged.</li>
+            </ul>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Current resource state:</span>
+<span class="token-comment"># { "id": 42, "name": "Alice", "email": "alice@ex.com", "role": "admin" }</span>
+
+<span class="token-comment"># PUT — replaces the entire resource</span>
+<span class="token-keyword">PUT</span> /api/v1/users/42
+{
+    <span class="token-property">"name"</span>: <span class="token-string">"Alice Smith"</span>,
+    <span class="token-property">"email"</span>: <span class="token-string">"alice@ex.com"</span>
+}
+<span class="token-comment"># Result: { "id": 42, "name": "Alice Smith", "email": "alice@ex.com" }</span>
+<span class="token-comment"># "role" field is GONE because it was not included</span>
+
+<span class="token-comment"># PATCH — updates only included fields</span>
+<span class="token-keyword">PATCH</span> /api/v1/users/42
+{
+    <span class="token-property">"name"</span>: <span class="token-string">"Alice Smith"</span>
+}
+<span class="token-comment"># Result: { "id": 42, "name": "Alice Smith", "email": "alice@ex.com", "role": "admin" }</span>
+<span class="token-comment"># Only "name" changed, everything else preserved</span></code></pre>
+            </div>
+
+            <div class="info-box tip">
+                <div class="info-box-title">Practical Advice</div>
+                <p>
+                    Most APIs should use PATCH for updates. PUT is technically more correct for full replacements
+                    but is rarely what clients actually want. Accidentally clearing a field because the client
+                    did not send it is a common source of bugs with PUT.
+                </p>
+            </div>
+
+            <!-- Section 3 -->
+            <h2 id="status-codes">3. Status Codes Guide</h2>
+
+            <p>
+                HTTP status codes communicate what happened with the request. Using the right code enables
+                clients to handle responses programmatically without parsing error messages. Here are the
+                codes every API should use:
+            </p>
+
+            <h3>Success Codes (2xx)</h3>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Meaning</th>
+                            <th>When to Use</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="status-badge status-2xx">200</span></td>
+                            <td>OK</td>
+                            <td>Successful GET, PUT, PATCH, or DELETE with a response body</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-2xx">201</span></td>
+                            <td>Created</td>
+                            <td>Successful POST that created a new resource. Include a <code>Location</code> header pointing to the new resource.</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-2xx">204</span></td>
+                            <td>No Content</td>
+                            <td>Successful DELETE or action with no response body</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Client Error Codes (4xx)</h3>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Meaning</th>
+                            <th>When to Use</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="status-badge status-4xx">400</span></td>
+                            <td>Bad Request</td>
+                            <td>Malformed JSON, missing required fields, validation errors</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-4xx">401</span></td>
+                            <td>Unauthorized</td>
+                            <td>Missing or invalid authentication credentials</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-4xx">403</span></td>
+                            <td>Forbidden</td>
+                            <td>Authenticated but not authorized for this resource</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-4xx">404</span></td>
+                            <td>Not Found</td>
+                            <td>Resource does not exist at the given URL</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-4xx">409</span></td>
+                            <td>Conflict</td>
+                            <td>Creating a resource that already exists, or concurrent modification conflict</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-4xx">422</span></td>
+                            <td>Unprocessable Entity</td>
+                            <td>Valid JSON, but the data fails business logic validation</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-4xx">429</span></td>
+                            <td>Too Many Requests</td>
+                            <td>Rate limit exceeded. Include <code>Retry-After</code> header.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Server Error Codes (5xx)</h3>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Meaning</th>
+                            <th>When to Use</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="status-badge status-5xx">500</span></td>
+                            <td>Internal Server Error</td>
+                            <td>Unexpected server failure. Never expose stack traces in production.</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-5xx">502</span></td>
+                            <td>Bad Gateway</td>
+                            <td>Upstream service failed (when your API proxies to another service)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-5xx">503</span></td>
+                            <td>Service Unavailable</td>
+                            <td>Server is temporarily down (maintenance, overloaded). Include <code>Retry-After</code>.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-box warning">
+                <div class="info-box-title">The 401 vs 403 Distinction</div>
+                <p>
+                    <strong>401 Unauthorized</strong> means "I do not know who you are." The request needs
+                    authentication. <strong>403 Forbidden</strong> means "I know who you are, but you are not
+                    allowed." Reauthenticating will not help.
+                </p>
+            </div>
+
+            <!-- Section 4 -->
+            <h2 id="pagination">4. Pagination, Filtering, and Sorting</h2>
+
+            <p>
+                Any endpoint that returns a collection must support pagination. Without it, a growing
+                database will eventually make the endpoint unusable.
+            </p>
+
+            <h3>Offset-Based Pagination</h3>
+
+            <p>
+                The simplest approach. Good for most use cases. Allow clients to specify <code>page</code>
+                and <code>per_page</code> (or <code>limit</code> and <code>offset</code>):
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Request</span>
+<span class="token-keyword">GET</span> /api/v1/articles?page=3&per_page=20&sort=-created_at
+
+<span class="token-comment"># Response</span>
+{
+    <span class="token-property">"data"</span>: [
+        { <span class="token-property">"id"</span>: <span class="token-number">41</span>, <span class="token-property">"title"</span>: <span class="token-string">"Article 41"</span>, ... },
+        { <span class="token-property">"id"</span>: <span class="token-number">42</span>, <span class="token-property">"title"</span>: <span class="token-string">"Article 42"</span>, ... },
+        ...
+    ],
+    <span class="token-property">"meta"</span>: {
+        <span class="token-property">"page"</span>: <span class="token-number">3</span>,
+        <span class="token-property">"per_page"</span>: <span class="token-number">20</span>,
+        <span class="token-property">"total"</span>: <span class="token-number">156</span>,
+        <span class="token-property">"total_pages"</span>: <span class="token-number">8</span>
+    },
+    <span class="token-property">"links"</span>: {
+        <span class="token-property">"self"</span>:  <span class="token-string">"/api/v1/articles?page=3&per_page=20"</span>,
+        <span class="token-property">"first"</span>: <span class="token-string">"/api/v1/articles?page=1&per_page=20"</span>,
+        <span class="token-property">"prev"</span>:  <span class="token-string">"/api/v1/articles?page=2&per_page=20"</span>,
+        <span class="token-property">"next"</span>:  <span class="token-string">"/api/v1/articles?page=4&per_page=20"</span>,
+        <span class="token-property">"last"</span>:  <span class="token-string">"/api/v1/articles?page=8&per_page=20"</span>
+    }
+}</code></pre>
+            </div>
+
+            <h3>Cursor-Based Pagination</h3>
+
+            <p>
+                For large datasets or real-time data, cursor-based pagination is more reliable. It avoids
+                the "page drift" problem where items shift between pages as new items are inserted:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Request — first page</span>
+<span class="token-keyword">GET</span> /api/v1/events?limit=50
+
+<span class="token-comment"># Response</span>
+{
+    <span class="token-property">"data"</span>: [ ... ],
+    <span class="token-property">"meta"</span>: {
+        <span class="token-property">"has_more"</span>: <span class="token-keyword">true</span>,
+        <span class="token-property">"next_cursor"</span>: <span class="token-string">"eyJpZCI6MTAwfQ=="</span>
+    }
+}
+
+<span class="token-comment"># Request — next page (use the cursor from the previous response)</span>
+<span class="token-keyword">GET</span> /api/v1/events?limit=50&cursor=eyJpZCI6MTAwfQ==</code></pre>
+            </div>
+
+            <h3>Filtering</h3>
+
+            <p>
+                Use query parameters for filtering. Keep the syntax simple and consistent:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Exact match</span>
+GET /api/v1/users?role=admin
+
+<span class="token-comment"># Multiple values (OR)</span>
+GET /api/v1/users?role=admin,editor
+
+<span class="token-comment"># Range (for dates and numbers)</span>
+GET /api/v1/orders?created_after=2026-01-01&created_before=2026-02-01
+GET /api/v1/products?price_min=10&price_max=50
+
+<span class="token-comment"># Search (text)</span>
+GET /api/v1/articles?search=javascript+performance
+
+<span class="token-comment"># Combined filters</span>
+GET /api/v1/orders?status=shipped&customer_id=42&sort=-total&per_page=10</code></pre>
+            </div>
+
+            <h3>Sorting</h3>
+
+            <p>
+                Use a <code>sort</code> parameter. Prefix with <code>-</code> for descending order:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Sort by created_at descending (newest first)</span>
+GET /api/v1/articles?sort=-created_at
+
+<span class="token-comment"># Sort by multiple fields: first by status, then by name</span>
+GET /api/v1/users?sort=status,-name
+
+<span class="token-comment"># Default sort should always be defined and documented</span></code></pre>
+            </div>
+
+            <!-- Section 5 -->
+            <h2 id="authentication">5. Authentication Strategies</h2>
+
+            <p>
+                Choose the right authentication strategy based on who will consume your API and what
+                security level you need.
+            </p>
+
+            <h3>API Keys</h3>
+
+            <p>
+                Simple, suitable for server-to-server communication. Send in a header, never in the URL:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># API Key in header (recommended)</span>
+<span class="token-keyword">GET</span> /api/v1/data
+<span class="token-property">X-API-Key</span>: sk_live_abc123def456
+
+<span class="token-comment"># Or using Authorization header with custom scheme</span>
+<span class="token-keyword">GET</span> /api/v1/data
+<span class="token-property">Authorization</span>: ApiKey sk_live_abc123def456
+
+<span class="token-comment"># NEVER in the URL — URLs are logged and cached</span>
+<span class="token-comment"># GET /api/v1/data?api_key=sk_live_abc123def456  ← DON'T</span></code></pre>
+            </div>
+
+            <h3>JWT (JSON Web Tokens)</h3>
+
+            <p>
+                Best for user-facing APIs where clients authenticate with credentials and receive a token.
+                Stateless and scalable:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Step 1: Authenticate and get tokens</span>
+<span class="token-keyword">POST</span> /api/v1/auth/login
+{
+    <span class="token-property">"email"</span>: <span class="token-string">"user@example.com"</span>,
+    <span class="token-property">"password"</span>: <span class="token-string">"correct-horse-battery-staple"</span>
+}
+
+<span class="token-comment"># Response</span>
+{
+    <span class="token-property">"access_token"</span>: <span class="token-string">"eyJhbGciOiJSUzI1NiIs..."</span>,
+    <span class="token-property">"refresh_token"</span>: <span class="token-string">"dGhpcyBpcyBhIHJlZnJl..."</span>,
+    <span class="token-property">"token_type"</span>: <span class="token-string">"Bearer"</span>,
+    <span class="token-property">"expires_in"</span>: <span class="token-number">3600</span>
+}
+
+<span class="token-comment"># Step 2: Use the access token</span>
+<span class="token-keyword">GET</span> /api/v1/users/me
+<span class="token-property">Authorization</span>: Bearer eyJhbGciOiJSUzI1NiIs...
+
+<span class="token-comment"># Step 3: Refresh when expired</span>
+<span class="token-keyword">POST</span> /api/v1/auth/refresh
+{
+    <span class="token-property">"refresh_token"</span>: <span class="token-string">"dGhpcyBpcyBhIHJlZnJl..."</span>
+}</code></pre>
+            </div>
+
+            <h3>OAuth 2.0</h3>
+
+            <p>
+                For third-party integrations where users grant your API access to another service.
+                Use standard flows like Authorization Code with PKCE for SPAs and mobile apps:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Step 1: Redirect to authorization endpoint</span>
+GET https://auth.example.com/authorize?
+    response_type=code&
+    client_id=your_client_id&
+    redirect_uri=https://yourapp.com/callback&
+    scope=read+write&
+    state=random_csrf_token&
+    code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&
+    code_challenge_method=S256
+
+<span class="token-comment"># Step 2: Exchange code for token</span>
+<span class="token-keyword">POST</span> https://auth.example.com/token
+{
+    <span class="token-property">"grant_type"</span>: <span class="token-string">"authorization_code"</span>,
+    <span class="token-property">"code"</span>: <span class="token-string">"the_auth_code"</span>,
+    <span class="token-property">"redirect_uri"</span>: <span class="token-string">"https://yourapp.com/callback"</span>,
+    <span class="token-property">"client_id"</span>: <span class="token-string">"your_client_id"</span>,
+    <span class="token-property">"code_verifier"</span>: <span class="token-string">"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"</span>
+}</code></pre>
+            </div>
+
+            <div class="key-takeaway">
+                <h4>Authentication Decision Guide</h4>
+                <ul>
+                    <li><strong>Server-to-server only:</strong> API Keys (simple, effective).</li>
+                    <li><strong>User-facing SPA or mobile:</strong> JWT with short-lived access tokens and refresh tokens.</li>
+                    <li><strong>Third-party integrations:</strong> OAuth 2.0 with PKCE.</li>
+                    <li><strong>All of the above:</strong> Always use HTTPS. No exceptions.</li>
+                </ul>
+            </div>
+
+            <!-- Section 6 -->
+            <h2 id="rate-limiting">6. Rate Limiting</h2>
+
+            <p>
+                Rate limiting protects your API from abuse and ensures fair usage. Every public API needs it.
+                Internal APIs benefit from it too, as a safeguard against runaway scripts and cascading failures.
+            </p>
+
+            <h3>Rate Limit Headers</h3>
+
+            <p>
+                Always include rate limit information in response headers so clients can self-regulate:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP Response Headers</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-property">X-RateLimit-Limit</span>: 1000          <span class="token-comment"># Max requests per window</span>
+<span class="token-property">X-RateLimit-Remaining</span>: 847       <span class="token-comment"># Requests remaining in current window</span>
+<span class="token-property">X-RateLimit-Reset</span>: 1738972800    <span class="token-comment"># Unix timestamp when window resets</span>
+
+<span class="token-comment"># When rate limit is exceeded:</span>
+<span class="token-keyword">HTTP/1.1 429 Too Many Requests</span>
+<span class="token-property">Retry-After</span>: 30                   <span class="token-comment"># Seconds until client can retry</span>
+<span class="token-property">X-RateLimit-Limit</span>: 1000
+<span class="token-property">X-RateLimit-Remaining</span>: 0
+<span class="token-property">X-RateLimit-Reset</span>: 1738972800</code></pre>
+            </div>
+
+            <h3>Common Rate Limiting Strategies</h3>
+
+            <ul>
+                <li><strong>Fixed window:</strong> 1000 requests per hour. Simple but allows burst traffic at window boundaries.</li>
+                <li><strong>Sliding window:</strong> Smooths out the boundary issue by tracking requests in a rolling window.</li>
+                <li><strong>Token bucket:</strong> Allows short bursts while maintaining an average rate. Most flexible approach.</li>
+                <li><strong>Per-endpoint limits:</strong> More granular; expensive operations (search, exports) get lower limits than cheap reads.</li>
+            </ul>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Node.js (Express)</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// Token bucket rate limiter with Redis</span>
+<span class="token-keyword">import</span> { <span class="token-class">RateLimiterRedis</span> } <span class="token-keyword">from</span> <span class="token-string">'rate-limiter-flexible'</span>;
+<span class="token-keyword">import</span> Redis <span class="token-keyword">from</span> <span class="token-string">'ioredis'</span>;
+
+<span class="token-keyword">const</span> redis = <span class="token-keyword">new</span> <span class="token-class">Redis</span>(<span class="token-string">'redis://localhost:6379'</span>);
+
+<span class="token-keyword">const</span> limiter = <span class="token-keyword">new</span> <span class="token-class">RateLimiterRedis</span>({
+    <span class="token-property">storeClient</span>: redis,
+    <span class="token-property">keyPrefix</span>: <span class="token-string">'rl'</span>,
+    <span class="token-property">points</span>: <span class="token-number">100</span>,       <span class="token-comment">// 100 requests</span>
+    <span class="token-property">duration</span>: <span class="token-number">60</span>,      <span class="token-comment">// per 60 seconds</span>
+    <span class="token-property">blockDuration</span>: <span class="token-number">60</span>, <span class="token-comment">// block for 60s when exceeded</span>
+});
+
+<span class="token-keyword">async function</span> <span class="token-function">rateLimitMiddleware</span>(req, res, next) {
+    <span class="token-keyword">try</span> {
+        <span class="token-keyword">const</span> key = req.headers[<span class="token-string">'x-api-key'</span>] || req.ip;
+        <span class="token-keyword">const</span> result = <span class="token-keyword">await</span> limiter.<span class="token-function">consume</span>(key);
+
+        res.<span class="token-function">set</span>({
+            <span class="token-string">'X-RateLimit-Limit'</span>: <span class="token-number">100</span>,
+            <span class="token-string">'X-RateLimit-Remaining'</span>: result.remainingPoints,
+            <span class="token-string">'X-RateLimit-Reset'</span>: <span class="token-keyword">new</span> <span class="token-class">Date</span>(Date.<span class="token-function">now</span>() + result.msBeforeNext)
+        });
+        <span class="token-function">next</span>();
+    } <span class="token-keyword">catch</span> (err) {
+        res.<span class="token-function">status</span>(<span class="token-number">429</span>).<span class="token-function">json</span>({
+            <span class="token-property">error</span>: {
+                <span class="token-property">code</span>: <span class="token-string">'RATE_LIMIT_EXCEEDED'</span>,
+                <span class="token-property">message</span>: <span class="token-string">'Too many requests. Please retry later.'</span>,
+                <span class="token-property">retry_after</span>: Math.<span class="token-function">ceil</span>(err.msBeforeNext / <span class="token-number">1000</span>)
+            }
+        });
+    }
+}</code></pre>
+            </div>
+
+            <!-- Section 7 -->
+            <h2 id="versioning">7. Versioning Strategies</h2>
+
+            <p>
+                APIs evolve. Versioning lets you make breaking changes without disrupting existing clients.
+                There are three common approaches, each with tradeoffs.
+            </p>
+
+            <h3>URL Path Versioning (Recommended)</h3>
+
+            <p>
+                The most common and most practical approach. The version is part of the URL path:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>GET /api/<span class="token-keyword">v1</span>/users/42
+GET /api/<span class="token-keyword">v2</span>/users/42
+
+<span class="token-comment"># Advantages:</span>
+<span class="token-comment"># - Extremely clear which version a request uses</span>
+<span class="token-comment"># - Easy to route at the load balancer level</span>
+<span class="token-comment"># - Works with every HTTP client, including curl and browsers</span>
+<span class="token-comment"># - Easy to deprecate (redirect v1 → v2 with 301)</span></code></pre>
+            </div>
+
+            <h3>Header Versioning</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Custom header</span>
+GET /api/users/42
+<span class="token-property">X-API-Version</span>: 2
+
+<span class="token-comment"># Or via Accept header (content negotiation)</span>
+GET /api/users/42
+<span class="token-property">Accept</span>: application/vnd.myapi.v2+json
+
+<span class="token-comment"># Advantage: cleaner URLs</span>
+<span class="token-comment"># Disadvantage: harder to discover, test, and share</span></code></pre>
+            </div>
+
+            <h3>Query Parameter Versioning</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>GET /api/users/42?<span class="token-keyword">version=2</span>
+
+<span class="token-comment"># Simple but easy to forget. Can cause caching issues.</span>
+<span class="token-comment"># Generally not recommended for new APIs.</span></code></pre>
+            </div>
+
+            <h3>Version Lifecycle</h3>
+
+            <p>
+                Document a clear deprecation policy:
+            </p>
+
+            <ul>
+                <li><strong>Announce deprecation</strong> at least 6 months before sunset. Use a <code>Sunset</code> header and a <code>Deprecation</code> header on responses from deprecated versions.</li>
+                <li><strong>Provide migration guides</strong> for every breaking change between versions.</li>
+                <li><strong>Monitor usage</strong> of deprecated versions. Do not sunset until traffic is negligible.</li>
+                <li><strong>Minimize breaking changes.</strong> Adding fields is not breaking. Removing or renaming fields is.</li>
+            </ul>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP Response Headers</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment"># Signal deprecation on v1 responses</span>
+<span class="token-property">Deprecation</span>: true
+<span class="token-property">Sunset</span>: Sat, 01 Aug 2026 00:00:00 GMT
+<span class="token-property">Link</span>: &lt;https://api.example.com/docs/migration-v1-to-v2&gt;; rel="deprecation"</code></pre>
+            </div>
+
+            <!-- Section 8 -->
+            <h2 id="error-handling">8. Error Response Format</h2>
+
+            <p>
+                Error responses should be as structured and predictable as success responses. A well-designed
+                error format lets clients handle errors programmatically and gives developers useful debugging
+                information.
+            </p>
+
+            <h3>Standard Error Format</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>{
+    <span class="token-property">"error"</span>: {
+        <span class="token-property">"code"</span>: <span class="token-string">"VALIDATION_ERROR"</span>,
+        <span class="token-property">"message"</span>: <span class="token-string">"The request body contains invalid data."</span>,
+        <span class="token-property">"details"</span>: [
+            {
+                <span class="token-property">"field"</span>: <span class="token-string">"email"</span>,
+                <span class="token-property">"message"</span>: <span class="token-string">"Must be a valid email address."</span>,
+                <span class="token-property">"code"</span>: <span class="token-string">"INVALID_FORMAT"</span>
+            },
+            {
+                <span class="token-property">"field"</span>: <span class="token-string">"age"</span>,
+                <span class="token-property">"message"</span>: <span class="token-string">"Must be between 13 and 150."</span>,
+                <span class="token-property">"code"</span>: <span class="token-string">"OUT_OF_RANGE"</span>
+            }
+        ],
+        <span class="token-property">"request_id"</span>: <span class="token-string">"req_abc123xyz"</span>,
+        <span class="token-property">"documentation_url"</span>: <span class="token-string">"https://api.example.com/docs/errors#VALIDATION_ERROR"</span>
+    }
+}</code></pre>
+            </div>
+
+            <h3>Error Format Principles</h3>
+
+            <ul>
+                <li><strong>Machine-readable code:</strong> Use a constant string like <code>VALIDATION_ERROR</code> or <code>NOT_FOUND</code> that clients can switch on. Do not rely on HTTP status codes alone, as 400 could mean many things.</li>
+                <li><strong>Human-readable message:</strong> A clear English sentence describing the error. This is for developers reading logs, not for end users.</li>
+                <li><strong>Field-level details:</strong> For validation errors, specify which fields failed and why. This lets clients highlight specific form fields.</li>
+                <li><strong>Request ID:</strong> Include a unique request ID that appears in both the response and your server logs. This is essential for debugging.</li>
+                <li><strong>Documentation link:</strong> Point developers to the relevant error documentation. This dramatically reduces support burden.</li>
+            </ul>
+
+            <h3>Error Handling Implementation</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Node.js (Express)</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// Custom error classes</span>
+<span class="token-keyword">class</span> <span class="token-class">ApiError</span> <span class="token-keyword">extends</span> <span class="token-class">Error</span> {
+    <span class="token-function">constructor</span>(statusCode, code, message, details = []) {
+        <span class="token-keyword">super</span>(message);
+        <span class="token-keyword">this</span>.statusCode = statusCode;
+        <span class="token-keyword">this</span>.code = code;
+        <span class="token-keyword">this</span>.details = details;
+    }
+}
+
+<span class="token-keyword">class</span> <span class="token-class">NotFoundError</span> <span class="token-keyword">extends</span> <span class="token-class">ApiError</span> {
+    <span class="token-function">constructor</span>(resource, id) {
+        <span class="token-keyword">super</span>(<span class="token-number">404</span>, <span class="token-string">'NOT_FOUND'</span>,
+            <span class="token-string">`${resource} with id '${id}' was not found.`</span>);
+    }
+}
+
+<span class="token-keyword">class</span> <span class="token-class">ValidationError</span> <span class="token-keyword">extends</span> <span class="token-class">ApiError</span> {
+    <span class="token-function">constructor</span>(details) {
+        <span class="token-keyword">super</span>(<span class="token-number">422</span>, <span class="token-string">'VALIDATION_ERROR'</span>,
+            <span class="token-string">'The request body contains invalid data.'</span>, details);
+    }
+}
+
+<span class="token-comment">// Global error handler middleware</span>
+<span class="token-keyword">function</span> <span class="token-function">errorHandler</span>(err, req, res, next) {
+    <span class="token-keyword">const</span> statusCode = err.statusCode || <span class="token-number">500</span>;
+    <span class="token-keyword">const</span> code = err.code || <span class="token-string">'INTERNAL_ERROR'</span>;
+    <span class="token-keyword">const</span> message = statusCode === <span class="token-number">500</span>
+        ? <span class="token-string">'An unexpected error occurred.'</span>
+        : err.message;
+
+    <span class="token-comment">// Log the full error internally</span>
+    logger.<span class="token-function">error</span>({
+        <span class="token-property">request_id</span>: req.id,
+        <span class="token-property">status</span>: statusCode,
+        <span class="token-property">code</span>: code,
+        <span class="token-property">message</span>: err.message,
+        <span class="token-property">stack</span>: err.stack,
+        <span class="token-property">path</span>: req.path,
+        <span class="token-property">method</span>: req.method,
+    });
+
+    res.<span class="token-function">status</span>(statusCode).<span class="token-function">json</span>({
+        <span class="token-property">error</span>: {
+            <span class="token-property">code</span>,
+            <span class="token-property">message</span>,
+            <span class="token-property">details</span>: err.details || [],
+            <span class="token-property">request_id</span>: req.id,
+            <span class="token-property">documentation_url</span>:
+                <span class="token-string">`https://api.example.com/docs/errors#${code}`</span>
+        }
+    });
+}
+
+<span class="token-comment">// Usage in a route</span>
+app.<span class="token-function">get</span>(<span class="token-string">'/api/v1/users/:id'</span>, <span class="token-keyword">async</span> (req, res) => {
+    <span class="token-keyword">const</span> user = <span class="token-keyword">await</span> db.<span class="token-function">findUser</span>(req.params.id);
+    <span class="token-keyword">if</span> (!user) <span class="token-keyword">throw new</span> <span class="token-class">NotFoundError</span>(<span class="token-string">'User'</span>, req.params.id);
+    res.<span class="token-function">json</span>({ <span class="token-property">data</span>: user });
+});</code></pre>
+            </div>
+
+            <div class="info-box danger">
+                <div class="info-box-title">Security Warning</div>
+                <p>
+                    Never expose stack traces, internal error messages, or database details in production API
+                    responses. Log them server-side for debugging but return a generic message to clients.
+                    Internal details can reveal your technology stack and potential attack vectors.
+                </p>
+            </div>
+
+            <!-- Section 9 -->
+            <h2 id="documentation">9. Documentation with OpenAPI</h2>
+
+            <p>
+                Good documentation is the difference between an API that developers love and one they dread.
+                The OpenAPI Specification (formerly Swagger) is the industry standard for describing REST APIs
+                in a machine-readable format that also generates human-readable docs.
+            </p>
+
+            <h3>OpenAPI Specification Example</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">YAML (OpenAPI 3.1)</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-property">openapi</span>: <span class="token-string">"3.1.0"</span>
+<span class="token-property">info</span>:
+  <span class="token-property">title</span>: <span class="token-string">"NexTool API"</span>
+  <span class="token-property">description</span>: <span class="token-string">"API for the NexTool AI Automation Studio"</span>
+  <span class="token-property">version</span>: <span class="token-string">"1.0.0"</span>
+  <span class="token-property">contact</span>:
+    <span class="token-property">email</span>: <span class="token-string">"api@nextool.app"</span>
+
+<span class="token-property">servers</span>:
+  - <span class="token-property">url</span>: <span class="token-string">"https://api.nextool.app/v1"</span>
+    <span class="token-property">description</span>: <span class="token-string">"Production"</span>
+  - <span class="token-property">url</span>: <span class="token-string">"https://staging-api.nextool.app/v1"</span>
+    <span class="token-property">description</span>: <span class="token-string">"Staging"</span>
+
+<span class="token-property">paths</span>:
+  <span class="token-property">/users</span>:
+    <span class="token-property">get</span>:
+      <span class="token-property">summary</span>: <span class="token-string">"List all users"</span>
+      <span class="token-property">operationId</span>: <span class="token-string">"listUsers"</span>
+      <span class="token-property">tags</span>: [<span class="token-string">"Users"</span>]
+      <span class="token-property">parameters</span>:
+        - <span class="token-property">name</span>: <span class="token-string">"page"</span>
+          <span class="token-property">in</span>: <span class="token-string">"query"</span>
+          <span class="token-property">schema</span>:
+            <span class="token-property">type</span>: <span class="token-string">"integer"</span>
+            <span class="token-property">default</span>: <span class="token-number">1</span>
+            <span class="token-property">minimum</span>: <span class="token-number">1</span>
+        - <span class="token-property">name</span>: <span class="token-string">"per_page"</span>
+          <span class="token-property">in</span>: <span class="token-string">"query"</span>
+          <span class="token-property">schema</span>:
+            <span class="token-property">type</span>: <span class="token-string">"integer"</span>
+            <span class="token-property">default</span>: <span class="token-number">20</span>
+            <span class="token-property">minimum</span>: <span class="token-number">1</span>
+            <span class="token-property">maximum</span>: <span class="token-number">100</span>
+      <span class="token-property">responses</span>:
+        <span class="token-string">"200"</span>:
+          <span class="token-property">description</span>: <span class="token-string">"A paginated list of users"</span>
+          <span class="token-property">content</span>:
+            <span class="token-property">application/json</span>:
+              <span class="token-property">schema</span>:
+                <span class="token-property">$ref</span>: <span class="token-string">"#/components/schemas/UserList"</span>
+
+    <span class="token-property">post</span>:
+      <span class="token-property">summary</span>: <span class="token-string">"Create a new user"</span>
+      <span class="token-property">operationId</span>: <span class="token-string">"createUser"</span>
+      <span class="token-property">tags</span>: [<span class="token-string">"Users"</span>]
+      <span class="token-property">requestBody</span>:
+        <span class="token-property">required</span>: <span class="token-keyword">true</span>
+        <span class="token-property">content</span>:
+          <span class="token-property">application/json</span>:
+            <span class="token-property">schema</span>:
+              <span class="token-property">$ref</span>: <span class="token-string">"#/components/schemas/CreateUser"</span>
+      <span class="token-property">responses</span>:
+        <span class="token-string">"201"</span>:
+          <span class="token-property">description</span>: <span class="token-string">"User created"</span>
+        <span class="token-string">"422"</span>:
+          <span class="token-property">description</span>: <span class="token-string">"Validation error"</span>
+          <span class="token-property">content</span>:
+            <span class="token-property">application/json</span>:
+              <span class="token-property">schema</span>:
+                <span class="token-property">$ref</span>: <span class="token-string">"#/components/schemas/Error"</span></code></pre>
+            </div>
+
+            <h3>Documentation Best Practices</h3>
+
+            <ul>
+                <li><strong>Include examples</strong> for every request and response. Developers learn from examples more than descriptions.</li>
+                <li><strong>Document error codes</strong> with explanations and suggested fixes for each one.</li>
+                <li><strong>Provide a quickstart guide</strong> that gets developers to their first successful request in under 5 minutes.</li>
+                <li><strong>Show authentication setup</strong> step by step, with code samples in multiple languages.</li>
+                <li><strong>Maintain a changelog</strong> so developers can see what changed between versions.</li>
+                <li><strong>Include rate limit information</strong> prominently so developers design their integrations accordingly.</li>
+            </ul>
+
+            <h3>Tools for API Documentation</h3>
+
+            <ul>
+                <li><strong>Swagger UI / Redoc:</strong> Generate interactive docs from your OpenAPI spec. Developers can test endpoints directly in the browser.</li>
+                <li><strong>Stoplight Studio:</strong> Visual editor for designing and documenting APIs with OpenAPI.</li>
+                <li><strong>Postman Collections:</strong> Export your API as a Postman collection so developers can import and test immediately.</li>
+                <li><strong>API Blueprint / RAML:</strong> Alternative spec formats if OpenAPI does not fit your needs.</li>
+            </ul>
+
+            <!-- Section 10 -->
+            <h2 id="checklist">10. API Design Checklist</h2>
+
+            <p>
+                Use this checklist when designing or reviewing a REST API. It summarizes every principle
+                covered in this guide:
+            </p>
+
+            <h3>URL Design</h3>
+            <ul>
+                <li>Resources use plural nouns (<code>/users</code>, not <code>/user</code>)</li>
+                <li>URLs use kebab-case (<code>/blog-posts</code>, not <code>/blogPosts</code>)</li>
+                <li>Nesting is limited to one level</li>
+                <li>No verbs in URLs (HTTP methods provide the action)</li>
+                <li>Base URL includes API version (<code>/api/v1/</code>)</li>
+            </ul>
+
+            <h3>HTTP Methods</h3>
+            <ul>
+                <li>GET for retrieval (never modifies state)</li>
+                <li>POST for creation</li>
+                <li>PATCH for partial updates (not PUT, unless you truly need full replacement)</li>
+                <li>DELETE for removal</li>
+                <li>Idempotency is respected for GET, PUT, DELETE</li>
+            </ul>
+
+            <h3>Status Codes</h3>
+            <ul>
+                <li>200 for successful operations with a body</li>
+                <li>201 for successful creation (with Location header)</li>
+                <li>204 for successful operations with no body</li>
+                <li>400 for malformed requests</li>
+                <li>401 for missing authentication</li>
+                <li>403 for insufficient permissions</li>
+                <li>404 for missing resources</li>
+                <li>422 for validation errors</li>
+                <li>429 for rate limiting (with Retry-After header)</li>
+                <li>500 never exposes internal details</li>
+            </ul>
+
+            <h3>Data Format</h3>
+            <ul>
+                <li>JSON responses use camelCase or snake_case consistently</li>
+                <li>Dates use ISO 8601 format (<code>2026-02-08T12:00:00Z</code>)</li>
+                <li>Collections are wrapped in a <code>data</code> key with pagination metadata</li>
+                <li>Null values are explicit (not omitted)</li>
+            </ul>
+
+            <h3>Security</h3>
+            <ul>
+                <li>HTTPS only (no exceptions)</li>
+                <li>Authentication tokens in headers, never in URLs</li>
+                <li>Rate limiting with clear headers</li>
+                <li>CORS configured correctly for browser clients</li>
+                <li>Input validation on all endpoints</li>
+                <li>No sensitive data in error responses</li>
+            </ul>
+
+            <h3>Developer Experience</h3>
+            <ul>
+                <li>Consistent error format with machine-readable codes</li>
+                <li>Request IDs for debugging</li>
+                <li>Comprehensive documentation with examples</li>
+                <li>Deprecation headers with sunset dates</li>
+                <li>Pagination on all collection endpoints</li>
+                <li>Filtering and sorting support</li>
+            </ul>
+
+            <blockquote>
+                <p>
+                    A great API is not one that does everything. It is one where a developer can predict what
+                    the next endpoint looks like after learning the first three.
+                </p>
+            </blockquote>
+
+        </div>
+        <!-- End article-content -->
+
+        <!-- Cross-Promo -->
+        <div style="margin-top:48px;padding:32px;background:var(--surface);border-radius:var(--radius-lg);text-align:center;">
+            <p style="font-size:1.1rem;margin-bottom:12px;">🚀 Explore <strong>125+ Free Developer Tools</strong></p>
+            <p style="color:var(--text-dim);margin-bottom:20px;">All built with the techniques discussed in this article.</p>
+            <a href="/free-tools/" style="display:inline-block;padding:12px 28px;background:var(--gradient);color:#fff;border-radius:20px;font-weight:600;text-decoration:none;">Browse All Tools →</a>
+        </div>
+
+    </article>
+
+    <!-- ==========================================
+         FOOTER
+         ========================================== -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="/">NexTool Home</a>
+                <a href="/free-tools/">Free Tools Hub</a>
+                <a href="/blog/">Blog</a>
+                <a href="/privacy/">Privacy Policy</a>
+            </div>
+            <div class="footer-copy">
+                &copy; 2026 NexTool. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==========================================
+         SCRIPTS
+         ========================================== -->
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+            }).catch(() => {
+                button.textContent = 'Failed';
+                setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+            });
+        }
+
+        document.querySelectorAll('.toc a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    const offset = 80;
+                    const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                }
+            });
+        });
+
+        (function() {
+            const progress = document.createElement('div');
+            progress.style.cssText = 'position:fixed;top:64px;left:0;height:3px;background:var(--gradient);z-index:999;transition:width 0.1s;width:0';
+            document.body.appendChild(progress);
+
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const scrollPercent = (scrollTop / docHeight) * 100;
+                progress.style.width = scrollPercent + '%';
+            });
+        })();
+    </script>
+    <script src="/js/revenue.js" defer></script>
+    <script src="/js/lead-capture.js" defer></script>
+    <script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>
