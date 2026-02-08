@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Performance Optimization: 15 Techniques That Actually Work | NexTool Blog</title>
+    <meta name="description" content="Learn 15 proven JavaScript performance optimization techniques with before/after code examples. Bundle splitting, lazy loading, Web Workers, memory leak prevention, and more.">
+    <meta name="keywords" content="JavaScript performance, optimization, bundle splitting, tree shaking, lazy loading, Web Workers, memory leaks, DOM optimization, event delegation, debounce throttle">
+    <meta name="author" content="NexTool Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/javascript-performance-optimization.html">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="JavaScript Performance Optimization: 15 Techniques That Actually Work">
+    <meta property="og:description" content="Learn 15 proven JavaScript performance optimization techniques with before/after code examples. Bundle splitting, lazy loading, Web Workers, and more.">
+    <meta property="og:url" content="https://nextool.app/blog/javascript-performance-optimization.html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/images/blog/javascript-performance-optimization-og.png">
+    <meta property="article:published_time" content="2026-02-08T08:00:00Z">
+    <meta property="article:author" content="NexTool Team">
+    <meta property="article:section" content="JavaScript">
+    <meta property="article:tag" content="JavaScript">
+    <meta property="article:tag" content="Performance">
+    <meta property="article:tag" content="Optimization">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="JavaScript Performance Optimization: 15 Techniques That Actually Work">
+    <meta name="twitter:description" content="Learn 15 proven JavaScript performance optimization techniques with before/after code examples.">
+
+    <!-- JSON-LD Article Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "JavaScript Performance Optimization: 15 Techniques That Actually Work",
+        "description": "Learn 15 proven JavaScript performance optimization techniques with before/after code examples. Bundle splitting, lazy loading, Web Workers, memory leak prevention, and more.",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool Team"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-08T08:00:00Z",
+        "dateModified": "2026-02-08T08:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/javascript-performance-optimization.html"
+        },
+        "image": "https://nextool.app/images/blog/javascript-performance-optimization-og.png",
+        "articleSection": "JavaScript",
+        "keywords": ["JavaScript", "performance optimization", "bundle splitting", "lazy loading", "Web Workers"]
+    }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           CSS VARIABLES — NexTool Design System
+           ============================================ */
+        :root {
+            --bg: #050508;
+            --surface: #111118;
+            --surface2: #1a1a24;
+            --primary: #6366f1;
+            --accent: #a855f7;
+            --pink: #ec4899;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --gradient: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 800px;
+            --nav-height: 64px;
+            --green: #22c55e;
+            --red: #ef4444;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        ::selection {
+            background: rgba(99, 102, 241, 0.4);
+            color: #fff;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--accent);
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+        }
+
+        /* ============================================
+           ARTICLE LAYOUT
+           ============================================ */
+        .article-wrapper {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: calc(var(--nav-height) + 48px) 24px 80px;
+        }
+
+        /* ============================================
+           ARTICLE HERO
+           ============================================ */
+        .article-hero {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .article-category {
+            display: inline-block;
+            padding: 4px 14px;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .article-date {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .article-read-time {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .article-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .article-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            max-width: 640px;
+        }
+
+        /* ============================================
+           TABLE OF CONTENTS
+           ============================================ */
+        .toc {
+            background: var(--surface);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: var(--radius-lg);
+            padding: 28px 32px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toc ol {
+            counter-reset: toc-counter;
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc li {
+            counter-increment: toc-counter;
+            margin-bottom: 8px;
+        }
+
+        .toc li::before {
+            content: counter(toc-counter) ".";
+            color: var(--primary);
+            font-weight: 600;
+            margin-right: 8px;
+            font-size: 0.9rem;
+        }
+
+        .toc a {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--primary);
+        }
+
+        /* ============================================
+           ARTICLE CONTENT
+           ============================================ */
+        .article-content h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 56px;
+            margin-bottom: 20px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            line-height: 1.3;
+        }
+
+        .article-content h2:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .article-content h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-top: 36px;
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+
+        .article-content h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-top: 28px;
+            margin-bottom: 12px;
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+            color: var(--text-dim);
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+
+        .article-content strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 20px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 10px;
+            color: var(--text-dim);
+            font-size: 1.02rem;
+            line-height: 1.7;
+        }
+
+        .article-content li strong {
+            color: var(--text);
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid var(--primary);
+            padding: 16px 24px;
+            margin: 28px 0;
+            background: rgba(99, 102, 241, 0.06);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        }
+
+        .article-content blockquote p {
+            color: var(--text);
+            font-style: italic;
+            margin-bottom: 0;
+        }
+
+        /* ============================================
+           CODE BLOCKS
+           ============================================ */
+        .code-block {
+            background: var(--surface);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: var(--radius-md);
+            margin: 24px 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(99, 102, 241, 0.08);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        .code-lang {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .code-copy {
+            background: none;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            transition: all 0.2s;
+        }
+
+        .code-copy:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .code-block pre {
+            padding: 20px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .code-block code {
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            line-height: 1.7;
+            color: var(--text);
+            tab-size: 2;
+        }
+
+        /* Inline code */
+        .article-content p code,
+        .article-content li code,
+        .article-content h3 code {
+            font-family: var(--font-mono);
+            font-size: 0.88em;
+            background: rgba(99, 102, 241, 0.12);
+            padding: 2px 7px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        /* ============================================
+           BEFORE/AFTER CODE BLOCKS
+           ============================================ */
+        .code-comparison {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        @media (min-width: 640px) {
+            .code-comparison {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .code-comparison .code-block {
+            margin: 0;
+        }
+
+        .code-label-bad {
+            color: var(--red);
+        }
+
+        .code-label-good {
+            color: var(--green);
+        }
+
+        /* ============================================
+           INFO / TIP / WARNING BOXES
+           ============================================ */
+        .info-box {
+            padding: 20px 24px;
+            border-radius: var(--radius-md);
+            margin: 28px 0;
+            border-left: 4px solid;
+        }
+
+        .info-box.tip {
+            background: rgba(99, 102, 241, 0.08);
+            border-color: var(--primary);
+        }
+
+        .info-box.warning {
+            background: rgba(234, 179, 8, 0.08);
+            border-color: #eab308;
+        }
+
+        .info-box.success {
+            background: rgba(34, 197, 94, 0.08);
+            border-color: #22c55e;
+        }
+
+        .info-box.danger {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: #ef4444;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .info-box p {
+            margin-bottom: 0;
+            font-size: 0.95rem;
+        }
+
+        /* ============================================
+           TECHNIQUE HEADER
+           ============================================ */
+        .technique-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--gradient);
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #fff;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        /* ============================================
+           KEY TAKEAWAY BOX
+           ============================================ */
+        .key-takeaway {
+            background: var(--surface);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin: 36px 0;
+        }
+
+        .key-takeaway h4 {
+            color: var(--accent);
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .key-takeaway ul {
+            margin-bottom: 0;
+        }
+
+        /* ============================================
+           IMPACT METER
+           ============================================ */
+        .impact-meter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .impact-bar {
+            display: flex;
+            gap: 3px;
+        }
+
+        .impact-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            background: var(--surface2);
+        }
+
+        .impact-dot.filled {
+            background: var(--green);
+        }
+
+        .impact-dot.filled.high {
+            background: var(--primary);
+        }
+
+        /* ============================================
+           CROSS-PROMO
+           ============================================ */
+        .cross-promo {
+            margin-top: 48px;
+            padding: 32px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            text-align: center;
+        }
+
+        .cross-promo .cta-btn {
+            display: inline-block;
+            padding: 12px 28px;
+            background: var(--gradient);
+            color: #fff;
+            border-radius: 20px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cross-promo .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        footer {
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            padding: 48px 24px;
+            margin-top: 80px;
+        }
+
+        .footer-inner {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        .footer-copy {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 16px;
+            }
+
+            .nav-links a {
+                font-size: 0.82rem;
+            }
+
+            .article-wrapper {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .article-title {
+                font-size: 1.8rem;
+            }
+
+            .article-content h2 {
+                font-size: 1.4rem;
+            }
+
+            .article-content h3 {
+                font-size: 1.15rem;
+            }
+
+            .toc {
+                padding: 20px;
+            }
+
+            .code-block pre {
+                padding: 14px;
+            }
+
+            .code-block code {
+                font-size: 0.82rem;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .article-meta {
+                gap: 10px;
+            }
+
+            .nav-links {
+                gap: 12px;
+            }
+        }
+
+        /* ============================================
+           SYNTAX HIGHLIGHTING (minimal)
+           ============================================ */
+        .token-keyword { color: #c084fc; }
+        .token-string { color: #34d399; }
+        .token-comment { color: #64748b; font-style: italic; }
+        .token-function { color: #60a5fa; }
+        .token-property { color: #f472b6; }
+        .token-number { color: #fb923c; }
+        .token-operator { color: #94a3b8; }
+        .token-class { color: #fbbf24; }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+         NAVIGATION
+         ========================================== -->
+    <nav>
+        <a href="/" class="nav-logo">
+            <span class="nav-logo-icon">NT</span>
+            NexTool
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/free-tools/">Free Tools</a></li>
+            <li><a href="/blog/" class="active">Blog</a></li>
+        </ul>
+    </nav>
+
+    <!-- ==========================================
+         ARTICLE
+         ========================================== -->
+    <article class="article-wrapper">
+
+        <!-- Hero -->
+        <header class="article-hero">
+            <div class="article-meta">
+                <span class="article-category">JavaScript</span>
+                <span class="article-date">February 8, 2026</span>
+                <span class="article-read-time">28 min read</span>
+            </div>
+            <h1 class="article-title">JavaScript Performance Optimization: 15 Techniques That Actually Work</h1>
+            <p class="article-subtitle">
+                Practical, measurable techniques for making your JavaScript faster. Every technique includes
+                before-and-after code examples and real-world impact assessments.
+            </p>
+        </header>
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <div class="toc-title">The 15 Techniques</div>
+            <ol>
+                <li><a href="#t1">Bundle Splitting and Tree Shaking</a></li>
+                <li><a href="#t2">Lazy Loading and Code Splitting</a></li>
+                <li><a href="#t3">Web Workers for Heavy Computation</a></li>
+                <li><a href="#t4">requestAnimationFrame Best Practices</a></li>
+                <li><a href="#t5">Memory Leak Prevention</a></li>
+                <li><a href="#t6">DOM Manipulation Optimization</a></li>
+                <li><a href="#t7">Event Delegation Patterns</a></li>
+                <li><a href="#t8">Debouncing and Throttling</a></li>
+                <li><a href="#t9">Efficient Data Structures</a></li>
+                <li><a href="#t10">Virtual Scrolling for Large Lists</a></li>
+                <li><a href="#t11">Image and Asset Loading Strategies</a></li>
+                <li><a href="#t12">Caching with Service Workers</a></li>
+                <li><a href="#t13">Avoiding Layout Thrashing</a></li>
+                <li><a href="#t14">String and Array Method Optimization</a></li>
+                <li><a href="#t15">Measuring and Profiling</a></li>
+            </ol>
+        </div>
+
+        <!-- Content -->
+        <div class="article-content">
+
+            <p>
+                Performance optimization is one of those topics where the internet is flooded with advice, but much of
+                it is outdated, marginal, or flat-out wrong. This article focuses on 15 techniques that produce
+                <strong>measurable, meaningful improvements</strong> in real-world applications. Each technique
+                includes before-and-after code examples so you can apply them immediately.
+            </p>
+
+            <p>
+                We are not talking about micro-benchmarks or premature optimization. These are techniques that affect
+                user-facing metrics: Time to Interactive, Largest Contentful Paint, Total Blocking Time, and runtime
+                responsiveness. Let us begin.
+            </p>
+
+            <!-- Technique 1 -->
+            <h2 id="t1"><span class="technique-number">1</span> Bundle Splitting and Tree Shaking</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                </div>
+                <span>Critical</span>
+            </div>
+
+            <p>
+                The fastest JavaScript is JavaScript you never ship. Bundle splitting separates your code into
+                smaller chunks that load on demand. Tree shaking removes unused exports from your final bundle.
+                Together, they can reduce initial load by 40-70%.
+            </p>
+
+            <h3>Tree Shaking: Use Named Exports</h3>
+
+            <p>
+                Tree shaking relies on static analysis of ES module <code>import</code> and <code>export</code>
+                statements. It cannot work with CommonJS <code>require()</code> because those are dynamic.
+            </p>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-bad">Before (not tree-shakeable)</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// Imports the ENTIRE library</span>
+<span class="token-keyword">import</span> _ <span class="token-keyword">from</span> <span class="token-string">'lodash'</span>;
+
+<span class="token-comment">// Only uses one function</span>
+<span class="token-keyword">const</span> result = _.<span class="token-function">debounce</span>(fn, <span class="token-number">300</span>);
+
+<span class="token-comment">// Bundle: +71KB minified</span></code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-good">After (tree-shakeable)</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// Import only what you need</span>
+<span class="token-keyword">import</span> { debounce } <span class="token-keyword">from</span> <span class="token-string">'lodash-es'</span>;
+
+<span class="token-comment">// Or import the specific module</span>
+<span class="token-keyword">import</span> debounce <span class="token-keyword">from</span> <span class="token-string">'lodash/debounce'</span>;
+
+<span class="token-keyword">const</span> result = <span class="token-function">debounce</span>(fn, <span class="token-number">300</span>);
+
+<span class="token-comment">// Bundle: ~1KB minified</span></code></pre>
+                </div>
+            </div>
+
+            <h3>Vendor Splitting</h3>
+
+            <p>
+                Separate your vendor libraries from your application code. Vendor code changes less frequently,
+                so users can cache it independently:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Vite Config</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// vite.config.js</span>
+<span class="token-keyword">export default</span> {
+  <span class="token-property">build</span>: {
+    <span class="token-property">rollupOptions</span>: {
+      <span class="token-property">output</span>: {
+        <span class="token-function">manualChunks</span>(id) {
+          <span class="token-keyword">if</span> (id.<span class="token-function">includes</span>(<span class="token-string">'node_modules'</span>)) {
+            <span class="token-comment">// Split large libraries into their own chunks</span>
+            <span class="token-keyword">if</span> (id.<span class="token-function">includes</span>(<span class="token-string">'react'</span>)) <span class="token-keyword">return</span> <span class="token-string">'vendor-react'</span>;
+            <span class="token-keyword">if</span> (id.<span class="token-function">includes</span>(<span class="token-string">'chart.js'</span>)) <span class="token-keyword">return</span> <span class="token-string">'vendor-charts'</span>;
+            <span class="token-keyword">if</span> (id.<span class="token-function">includes</span>(<span class="token-string">'d3'</span>)) <span class="token-keyword">return</span> <span class="token-string">'vendor-d3'</span>;
+            <span class="token-keyword">return</span> <span class="token-string">'vendor'</span>; <span class="token-comment">// everything else</span>
+          }
+        }
+      }
+    }
+  }
+};</code></pre>
+            </div>
+
+            <!-- Technique 2 -->
+            <h2 id="t2"><span class="technique-number">2</span> Lazy Loading and Code Splitting</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                </div>
+                <span>Critical</span>
+            </div>
+
+            <p>
+                Code splitting defers loading code until it is actually needed. For a single-page application
+                with many routes, this means users download only the code for the page they are viewing.
+            </p>
+
+            <h3>Route-Based Code Splitting (React)</h3>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-bad">Before</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// All routes in one bundle</span>
+<span class="token-keyword">import</span> Home <span class="token-keyword">from</span> <span class="token-string">'./pages/Home'</span>;
+<span class="token-keyword">import</span> Dashboard <span class="token-keyword">from</span> <span class="token-string">'./pages/Dashboard'</span>;
+<span class="token-keyword">import</span> Settings <span class="token-keyword">from</span> <span class="token-string">'./pages/Settings'</span>;
+<span class="token-keyword">import</span> Reports <span class="token-keyword">from</span> <span class="token-string">'./pages/Reports'</span>;
+<span class="token-keyword">import</span> Admin <span class="token-keyword">from</span> <span class="token-string">'./pages/Admin'</span>;
+
+<span class="token-comment">// Users download ALL pages
+// even if they only visit Home</span></code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-good">After</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-keyword">import</span> { lazy, Suspense } <span class="token-keyword">from</span> <span class="token-string">'react'</span>;
+
+<span class="token-keyword">const</span> Home = <span class="token-function">lazy</span>(()
+  => <span class="token-keyword">import</span>(<span class="token-string">'./pages/Home'</span>));
+<span class="token-keyword">const</span> Dashboard = <span class="token-function">lazy</span>(()
+  => <span class="token-keyword">import</span>(<span class="token-string">'./pages/Dashboard'</span>));
+<span class="token-keyword">const</span> Settings = <span class="token-function">lazy</span>(()
+  => <span class="token-keyword">import</span>(<span class="token-string">'./pages/Settings'</span>));
+<span class="token-keyword">const</span> Reports = <span class="token-function">lazy</span>(()
+  => <span class="token-keyword">import</span>(<span class="token-string">'./pages/Reports'</span>));
+
+<span class="token-comment">// Each page loads only when
+// the user navigates to it</span></code></pre>
+                </div>
+            </div>
+
+            <h3>Prefetching for Perceived Performance</h3>
+
+            <p>
+                Lazy loading can introduce a delay when users navigate. Prefetching eliminates this by loading
+                chunks in the background when the user is likely to need them:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// Prefetch on hover — the user is likely about to click</span>
+<span class="token-keyword">function</span> <span class="token-function">NavLink</span>({ to, children, importFn }) {
+    <span class="token-keyword">const</span> <span class="token-function">handleMouseEnter</span> = () => {
+        <span class="token-comment">// Start loading the chunk when user hovers</span>
+        <span class="token-function">importFn</span>();
+    };
+
+    <span class="token-keyword">return</span> (
+        &lt;<span class="token-function">Link</span>
+            <span class="token-property">to</span>={to}
+            <span class="token-property">onMouseEnter</span>={handleMouseEnter}
+            <span class="token-property">onFocus</span>={handleMouseEnter}
+        &gt;
+            {children}
+        &lt;/<span class="token-function">Link</span>&gt;
+    );
+}
+
+<span class="token-comment">// Usage</span>
+&lt;<span class="token-function">NavLink</span>
+    <span class="token-property">to</span>=<span class="token-string">"/dashboard"</span>
+    <span class="token-property">importFn</span>={() => <span class="token-keyword">import</span>(<span class="token-string">'./pages/Dashboard'</span>)}
+&gt;
+    Dashboard
+&lt;/<span class="token-function">NavLink</span>&gt;</code></pre>
+            </div>
+
+            <!-- Technique 3 -->
+            <h2 id="t3"><span class="technique-number">3</span> Web Workers for Heavy Computation</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot"></div>
+                </div>
+                <span>High</span>
+            </div>
+
+            <p>
+                JavaScript runs on a single main thread that also handles rendering. Any computation that takes
+                longer than 50ms will cause noticeable jank. Web Workers run JavaScript on a separate thread,
+                keeping the UI responsive.
+            </p>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-bad">Before (blocks main thread)</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// Blocks UI for 2+ seconds</span>
+<span class="token-keyword">function</span> <span class="token-function">processData</span>(data) {
+  <span class="token-keyword">const</span> results = [];
+  <span class="token-keyword">for</span> (<span class="token-keyword">let</span> i = <span class="token-number">0</span>;
+       i < data.length; i++) {
+    results.<span class="token-function">push</span>(
+      <span class="token-function">heavyCalculation</span>(data[i])
+    );
+  }
+  <span class="token-keyword">return</span> results;
+}
+
+<span class="token-comment">// UI freezes during execution</span>
+<span class="token-keyword">const</span> result =
+  <span class="token-function">processData</span>(bigArray);</code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-good">After (offloaded to Worker)</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// worker.js</span>
+self.<span class="token-function">addEventListener</span>(
+  <span class="token-string">'message'</span>, (e) => {
+  <span class="token-keyword">const</span> results =
+    e.data.<span class="token-function">map</span>(heavyCalculation);
+  self.<span class="token-function">postMessage</span>(results);
+});
+
+<span class="token-comment">// main.js — UI stays responsive</span>
+<span class="token-keyword">const</span> worker = <span class="token-keyword">new</span> <span class="token-class">Worker</span>(
+  <span class="token-string">'./worker.js'</span>
+);
+worker.<span class="token-function">postMessage</span>(bigArray);
+worker.<span class="token-property">onmessage</span> = (e) => {
+  <span class="token-function">displayResults</span>(e.data);
+};</code></pre>
+                </div>
+            </div>
+
+            <h3>Modern Worker Pattern with Comlink</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// worker.js — expose functions like a normal module</span>
+<span class="token-keyword">import</span> { expose } <span class="token-keyword">from</span> <span class="token-string">'comlink'</span>;
+
+<span class="token-keyword">const</span> api = {
+    <span class="token-function">processCSV</span>(csvText) {
+        <span class="token-keyword">const</span> rows = csvText.<span class="token-function">split</span>(<span class="token-string">'\n'</span>).<span class="token-function">map</span>(r => r.<span class="token-function">split</span>(<span class="token-string">','</span>));
+        <span class="token-comment">// ... heavy processing ...</span>
+        <span class="token-keyword">return</span> processedData;
+    },
+    <span class="token-function">generateReport</span>(data) {
+        <span class="token-comment">// ... complex aggregation ...</span>
+        <span class="token-keyword">return</span> report;
+    }
+};
+
+<span class="token-function">expose</span>(api);
+
+<span class="token-comment">// main.js — use it like a normal async module</span>
+<span class="token-keyword">import</span> { wrap } <span class="token-keyword">from</span> <span class="token-string">'comlink'</span>;
+
+<span class="token-keyword">const</span> worker = <span class="token-function">wrap</span>(<span class="token-keyword">new</span> <span class="token-class">Worker</span>(<span class="token-string">'./worker.js'</span>, { <span class="token-property">type</span>: <span class="token-string">'module'</span> }));
+
+<span class="token-comment">// Looks like a normal function call — runs in a Worker</span>
+<span class="token-keyword">const</span> data = <span class="token-keyword">await</span> worker.<span class="token-function">processCSV</span>(csvContent);
+<span class="token-keyword">const</span> report = <span class="token-keyword">await</span> worker.<span class="token-function">generateReport</span>(data);</code></pre>
+            </div>
+
+            <!-- Technique 4 -->
+            <h2 id="t4"><span class="technique-number">4</span> requestAnimationFrame Best Practices</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot"></div>
+                    <div class="impact-dot"></div>
+                </div>
+                <span>Medium</span>
+            </div>
+
+            <p>
+                Any visual update that occurs outside the browser's render cycle wastes work or produces
+                janky animations. <code>requestAnimationFrame</code> (rAF) synchronizes your updates with
+                the browser's paint cycle.
+            </p>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-bad">Before</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// setInterval is NOT synced
+// with the render cycle</span>
+<span class="token-function">setInterval</span>(() => {
+  element.style.transform =
+    <span class="token-string">`translateX(${x++}px)`</span>;
+}, <span class="token-number">16</span>); <span class="token-comment">// ~60fps... maybe</span>
+
+<span class="token-comment">// On scroll — fires 100+
+// times per second</span>
+window.<span class="token-function">addEventListener</span>(
+  <span class="token-string">'scroll'</span>, () => {
+  header.style.opacity =
+    <span class="token-number">1</span> - scrollY / <span class="token-number">200</span>;
+});</code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-good">After</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// rAF syncs with display
+// refresh rate</span>
+<span class="token-keyword">function</span> <span class="token-function">animate</span>() {
+  element.style.transform =
+    <span class="token-string">`translateX(${x++}px)`</span>;
+  <span class="token-function">requestAnimationFrame</span>(animate);
+}
+<span class="token-function">requestAnimationFrame</span>(animate);
+
+<span class="token-comment">// Throttle scroll to rAF</span>
+<span class="token-keyword">let</span> ticking = <span class="token-keyword">false</span>;
+window.<span class="token-function">addEventListener</span>(
+  <span class="token-string">'scroll'</span>, () => {
+  <span class="token-keyword">if</span> (!ticking) {
+    <span class="token-function">requestAnimationFrame</span>(() => {
+      header.style.opacity =
+        <span class="token-number">1</span> - scrollY / <span class="token-number">200</span>;
+      ticking = <span class="token-keyword">false</span>;
+    });
+    ticking = <span class="token-keyword">true</span>;
+  }
+});</code></pre>
+                </div>
+            </div>
+
+            <!-- Technique 5 -->
+            <h2 id="t5"><span class="technique-number">5</span> Memory Leak Prevention</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot"></div>
+                </div>
+                <span>High</span>
+            </div>
+
+            <p>
+                Memory leaks cause applications to slow down over time and eventually crash. In single-page
+                applications that run for hours, even small leaks compound into major problems. Here are the
+                most common patterns and how to fix them.
+            </p>
+
+            <h3>Event Listener Leaks</h3>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-bad">Memory Leak</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// Component mounts — adds
+// listener. Never removes it.</span>
+<span class="token-keyword">function</span> <span class="token-function">setupWidget</span>(el) {
+  window.<span class="token-function">addEventListener</span>(
+    <span class="token-string">'resize'</span>,
+    () => <span class="token-function">updateSize</span>(el)
+  );
+  <span class="token-comment">// el is now retained in the
+  // closure FOREVER, even after
+  // the widget is destroyed</span>
+}</code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-good">Fixed</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-keyword">function</span> <span class="token-function">setupWidget</span>(el) {
+  <span class="token-keyword">const</span> controller =
+    <span class="token-keyword">new</span> <span class="token-class">AbortController</span>();
+
+  window.<span class="token-function">addEventListener</span>(
+    <span class="token-string">'resize'</span>,
+    () => <span class="token-function">updateSize</span>(el),
+    { <span class="token-property">signal</span>: controller.signal }
+  );
+
+  <span class="token-comment">// Cleanup: one call removes
+  // ALL listeners on this signal</span>
+  <span class="token-keyword">return</span> () =>
+    controller.<span class="token-function">abort</span>();
+}</code></pre>
+                </div>
+            </div>
+
+            <h3>Closure Leaks</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// LEAK: huge data retained by closure even though only 'summary' is needed</span>
+<span class="token-keyword">function</span> <span class="token-function">processData</span>(hugeDataset) {
+    <span class="token-keyword">const</span> summary = <span class="token-function">computeSummary</span>(hugeDataset);
+
+    <span class="token-comment">// This closure retains 'hugeDataset' in scope</span>
+    <span class="token-keyword">return</span> () => {
+        <span class="token-function">console</span>.<span class="token-function">log</span>(<span class="token-string">'Summary:'</span>, summary);
+    };
+}
+
+<span class="token-comment">// FIXED: Extract what you need before creating the closure</span>
+<span class="token-keyword">function</span> <span class="token-function">processData</span>(hugeDataset) {
+    <span class="token-keyword">const</span> summary = <span class="token-function">computeSummary</span>(hugeDataset);
+    <span class="token-comment">// hugeDataset is no longer referenced after this function returns</span>
+
+    <span class="token-keyword">return</span> <span class="token-function">createLogger</span>(summary); <span class="token-comment">// separate function, no closure over hugeDataset</span>
+}
+
+<span class="token-keyword">function</span> <span class="token-function">createLogger</span>(summary) {
+    <span class="token-keyword">return</span> () => <span class="token-function">console</span>.<span class="token-function">log</span>(<span class="token-string">'Summary:'</span>, summary);
+}</code></pre>
+            </div>
+
+            <h3>WeakRef and FinalizationRegistry</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// Cache that does not prevent garbage collection</span>
+<span class="token-keyword">class</span> <span class="token-class">WeakCache</span> {
+    #cache = <span class="token-keyword">new</span> <span class="token-class">Map</span>();
+    #registry = <span class="token-keyword">new</span> <span class="token-class">FinalizationRegistry</span>((key) => {
+        <span class="token-keyword">this</span>.#cache.<span class="token-function">delete</span>(key);
+    });
+
+    <span class="token-function">set</span>(key, value) {
+        <span class="token-keyword">const</span> ref = <span class="token-keyword">new</span> <span class="token-class">WeakRef</span>(value);
+        <span class="token-keyword">this</span>.#cache.<span class="token-function">set</span>(key, ref);
+        <span class="token-keyword">this</span>.#registry.<span class="token-function">register</span>(value, key);
+    }
+
+    <span class="token-function">get</span>(key) {
+        <span class="token-keyword">const</span> ref = <span class="token-keyword">this</span>.#cache.<span class="token-function">get</span>(key);
+        <span class="token-keyword">if</span> (!ref) <span class="token-keyword">return</span> <span class="token-keyword">undefined</span>;
+        <span class="token-keyword">const</span> value = ref.<span class="token-function">deref</span>();
+        <span class="token-keyword">if</span> (!value) { <span class="token-keyword">this</span>.#cache.<span class="token-function">delete</span>(key); }
+        <span class="token-keyword">return</span> value;
+    }
+}</code></pre>
+            </div>
+
+            <!-- Technique 6 -->
+            <h2 id="t6"><span class="technique-number">6</span> DOM Manipulation Optimization</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot"></div>
+                </div>
+                <span>High</span>
+            </div>
+
+            <p>
+                The DOM is the biggest bottleneck in most web applications. Every DOM modification can trigger
+                style recalculation, layout (reflow), and paint. Minimizing and batching DOM operations is critical.
+            </p>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-bad">Before (1000 reflows)</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// Each appendChild triggers
+// a reflow</span>
+<span class="token-keyword">for</span> (<span class="token-keyword">const</span> item <span class="token-keyword">of</span> items) {
+  <span class="token-keyword">const</span> li =
+    document.<span class="token-function">createElement</span>(<span class="token-string">'li'</span>);
+  li.textContent = item.name;
+  list.<span class="token-function">appendChild</span>(li);
+}
+<span class="token-comment">// 1000 items = 1000 reflows</span></code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-good">After (1 reflow)</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// DocumentFragment: build
+// off-DOM, insert once</span>
+<span class="token-keyword">const</span> fragment =
+  document.<span class="token-function">createDocumentFragment</span>();
+
+<span class="token-keyword">for</span> (<span class="token-keyword">const</span> item <span class="token-keyword">of</span> items) {
+  <span class="token-keyword">const</span> li =
+    document.<span class="token-function">createElement</span>(<span class="token-string">'li'</span>);
+  li.textContent = item.name;
+  fragment.<span class="token-function">appendChild</span>(li);
+}
+list.<span class="token-function">appendChild</span>(fragment);
+<span class="token-comment">// 1000 items = 1 reflow</span></code></pre>
+                </div>
+            </div>
+
+            <h3>innerHTML vs DOM API</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// For large batch inserts, innerHTML is actually faster than DOM API</span>
+<span class="token-comment">// because the browser's HTML parser is highly optimized</span>
+<span class="token-keyword">const</span> html = items.<span class="token-function">map</span>(item =>
+    <span class="token-string">`&lt;li class="item"&gt;
+        &lt;span class="name"&gt;${<span class="token-function">escapeHTML</span>(item.name)}&lt;/span&gt;
+        &lt;span class="price"&gt;$${item.price}&lt;/span&gt;
+    &lt;/li&gt;`</span>
+).<span class="token-function">join</span>(<span class="token-string">''</span>);
+
+list.innerHTML = html; <span class="token-comment">// Single parse + single reflow</span>
+
+<span class="token-comment">// IMPORTANT: always sanitize user-generated content</span>
+<span class="token-keyword">function</span> <span class="token-function">escapeHTML</span>(str) {
+    <span class="token-keyword">const</span> div = document.<span class="token-function">createElement</span>(<span class="token-string">'div'</span>);
+    div.<span class="token-function">appendChild</span>(document.<span class="token-function">createTextNode</span>(str));
+    <span class="token-keyword">return</span> div.innerHTML;
+}</code></pre>
+            </div>
+
+            <!-- Technique 7 -->
+            <h2 id="t7"><span class="technique-number">7</span> Event Delegation Patterns</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot"></div>
+                    <div class="impact-dot"></div>
+                </div>
+                <span>Medium</span>
+            </div>
+
+            <p>
+                Instead of attaching event listeners to every element, attach one listener to a parent and use event
+                bubbling. This reduces memory usage and setup time, especially for dynamic lists.
+            </p>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-bad">Before (1000 listeners)</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// One listener per button</span>
+document.<span class="token-function">querySelectorAll</span>(
+  <span class="token-string">'.delete-btn'</span>
+).<span class="token-function">forEach</span>(btn => {
+  btn.<span class="token-function">addEventListener</span>(
+    <span class="token-string">'click'</span>,
+    () => <span class="token-function">deleteItem</span>(
+      btn.dataset.id
+    )
+  );
+});
+
+<span class="token-comment">// Problem: new items added
+// dynamically need manual
+// listener attachment</span></code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-good">After (1 listener)</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// One listener on the parent</span>
+list.<span class="token-function">addEventListener</span>(
+  <span class="token-string">'click'</span>,
+  (e) => {
+    <span class="token-keyword">const</span> btn = e.target
+      .<span class="token-function">closest</span>(<span class="token-string">'.delete-btn'</span>);
+    <span class="token-keyword">if</span> (!btn) <span class="token-keyword">return</span>;
+
+    <span class="token-function">deleteItem</span>(btn.dataset.id);
+  }
+);
+
+<span class="token-comment">// Works automatically for
+// dynamically added items</span></code></pre>
+                </div>
+            </div>
+
+            <!-- Technique 8 -->
+            <h2 id="t8"><span class="technique-number">8</span> Debouncing and Throttling</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot"></div>
+                </div>
+                <span>High</span>
+            </div>
+
+            <p>
+                High-frequency events like scroll, resize, input, and mousemove can fire hundreds of times per
+                second. Debouncing and throttling limit how often your handlers run.
+            </p>
+
+            <h3>Debounce: Wait Until the User Stops</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// Production-grade debounce with cancel and flush</span>
+<span class="token-keyword">function</span> <span class="token-function">debounce</span>(fn, delay, { <span class="token-property">leading</span> = <span class="token-keyword">false</span> } = {}) {
+    <span class="token-keyword">let</span> timer = <span class="token-keyword">null</span>;
+    <span class="token-keyword">let</span> lastArgs = <span class="token-keyword">null</span>;
+
+    <span class="token-keyword">function</span> <span class="token-function">debounced</span>(...args) {
+        lastArgs = args;
+        <span class="token-keyword">const</span> callNow = leading && !timer;
+
+        <span class="token-function">clearTimeout</span>(timer);
+        timer = <span class="token-function">setTimeout</span>(() => {
+            timer = <span class="token-keyword">null</span>;
+            <span class="token-keyword">if</span> (!leading) fn.<span class="token-function">apply</span>(<span class="token-keyword">this</span>, lastArgs);
+        }, delay);
+
+        <span class="token-keyword">if</span> (callNow) fn.<span class="token-function">apply</span>(<span class="token-keyword">this</span>, args);
+    }
+
+    debounced.<span class="token-function">cancel</span> = () => {
+        <span class="token-function">clearTimeout</span>(timer);
+        timer = <span class="token-keyword">null</span>;
+    };
+
+    debounced.<span class="token-function">flush</span> = () => {
+        <span class="token-keyword">if</span> (timer) {
+            <span class="token-function">clearTimeout</span>(timer);
+            timer = <span class="token-keyword">null</span>;
+            fn.<span class="token-function">apply</span>(<span class="token-keyword">this</span>, lastArgs);
+        }
+    };
+
+    <span class="token-keyword">return</span> debounced;
+}
+
+<span class="token-comment">// Usage: search input — only fire after user stops typing for 300ms</span>
+<span class="token-keyword">const</span> search = <span class="token-function">debounce</span>(<span class="token-keyword">async</span> (query) => {
+    <span class="token-keyword">const</span> results = <span class="token-keyword">await</span> <span class="token-function">fetch</span>(<span class="token-string">`/api/search?q=${query}`</span>);
+    <span class="token-function">displayResults</span>(<span class="token-keyword">await</span> results.<span class="token-function">json</span>());
+}, <span class="token-number">300</span>);
+
+input.<span class="token-function">addEventListener</span>(<span class="token-string">'input'</span>, (e) => <span class="token-function">search</span>(e.target.value));</code></pre>
+            </div>
+
+            <h3>Throttle: Limit Execution Rate</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// Throttle: execute at most once per interval</span>
+<span class="token-keyword">function</span> <span class="token-function">throttle</span>(fn, interval) {
+    <span class="token-keyword">let</span> lastTime = <span class="token-number">0</span>;
+    <span class="token-keyword">let</span> timer = <span class="token-keyword">null</span>;
+
+    <span class="token-keyword">return</span> <span class="token-keyword">function</span>(...args) {
+        <span class="token-keyword">const</span> now = Date.<span class="token-function">now</span>();
+        <span class="token-keyword">const</span> remaining = interval - (now - lastTime);
+
+        <span class="token-keyword">if</span> (remaining <= <span class="token-number">0</span>) {
+            <span class="token-function">clearTimeout</span>(timer);
+            timer = <span class="token-keyword">null</span>;
+            lastTime = now;
+            fn.<span class="token-function">apply</span>(<span class="token-keyword">this</span>, args);
+        } <span class="token-keyword">else if</span> (!timer) {
+            timer = <span class="token-function">setTimeout</span>(() => {
+                lastTime = Date.<span class="token-function">now</span>();
+                timer = <span class="token-keyword">null</span>;
+                fn.<span class="token-function">apply</span>(<span class="token-keyword">this</span>, args);
+            }, remaining);
+        }
+    };
+}
+
+<span class="token-comment">// Usage: scroll position tracking — max 60fps</span>
+<span class="token-keyword">const</span> onScroll = <span class="token-function">throttle</span>(() => {
+    <span class="token-function">updateScrollIndicator</span>(window.scrollY);
+}, <span class="token-number">16</span>); <span class="token-comment">// ~60fps</span>
+
+window.<span class="token-function">addEventListener</span>(<span class="token-string">'scroll'</span>, onScroll, { <span class="token-property">passive</span>: <span class="token-keyword">true</span> });</code></pre>
+            </div>
+
+            <!-- Technique 9 -->
+            <h2 id="t9"><span class="technique-number">9</span> Efficient Data Structures</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot"></div>
+                    <div class="impact-dot"></div>
+                </div>
+                <span>Medium</span>
+            </div>
+
+            <p>
+                Choosing the right data structure can turn an O(n) operation into O(1). JavaScript provides
+                Map, Set, and typed arrays that outperform plain objects and arrays for specific use cases.
+            </p>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-bad">Before (O(n) lookup)</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// Searching an array: O(n)</span>
+<span class="token-keyword">const</span> users = [
+  { <span class="token-property">id</span>: <span class="token-number">1</span>, <span class="token-property">name</span>: <span class="token-string">'Alice'</span> },
+  { <span class="token-property">id</span>: <span class="token-number">2</span>, <span class="token-property">name</span>: <span class="token-string">'Bob'</span> },
+  <span class="token-comment">// ... 10,000 more</span>
+];
+
+<span class="token-comment">// Every lookup scans the
+// entire array</span>
+<span class="token-keyword">function</span> <span class="token-function">findUser</span>(id) {
+  <span class="token-keyword">return</span> users.<span class="token-function">find</span>(
+    u => u.id === id
+  );
+}</code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-good">After (O(1) lookup)</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// Index with Map: O(1)</span>
+<span class="token-keyword">const</span> userMap = <span class="token-keyword">new</span> <span class="token-class">Map</span>(
+  users.<span class="token-function">map</span>(u => [u.id, u])
+);
+
+<span class="token-comment">// Instant lookup regardless
+// of collection size</span>
+<span class="token-keyword">function</span> <span class="token-function">findUser</span>(id) {
+  <span class="token-keyword">return</span> userMap.<span class="token-function">get</span>(id);
+}
+
+<span class="token-comment">// Set for fast membership test</span>
+<span class="token-keyword">const</span> activeIds = <span class="token-keyword">new</span> <span class="token-class">Set</span>(
+  activeUsers.<span class="token-function">map</span>(u => u.id)
+);
+activeIds.<span class="token-function">has</span>(<span class="token-number">42</span>); <span class="token-comment">// O(1)</span></code></pre>
+                </div>
+            </div>
+
+            <!-- Technique 10 -->
+            <h2 id="t10"><span class="technique-number">10</span> Virtual Scrolling for Large Lists</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                </div>
+                <span>Critical (for large lists)</span>
+            </div>
+
+            <p>
+                Rendering 10,000 DOM nodes will make any browser crawl. Virtual scrolling renders only the visible
+                items plus a small buffer, swapping DOM nodes as the user scrolls. This keeps the DOM small regardless
+                of list size.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// Minimal virtual scroll implementation</span>
+<span class="token-keyword">class</span> <span class="token-class">VirtualList</span> {
+    <span class="token-function">constructor</span>(container, items, { <span class="token-property">itemHeight</span> = <span class="token-number">50</span>, <span class="token-property">buffer</span> = <span class="token-number">5</span> }) {
+        <span class="token-keyword">this</span>.container = container;
+        <span class="token-keyword">this</span>.items = items;
+        <span class="token-keyword">this</span>.itemHeight = itemHeight;
+        <span class="token-keyword">this</span>.buffer = buffer;
+
+        <span class="token-comment">// Create the scrollable viewport</span>
+        <span class="token-keyword">this</span>.viewport = document.<span class="token-function">createElement</span>(<span class="token-string">'div'</span>);
+        <span class="token-keyword">this</span>.viewport.style.cssText =
+            <span class="token-string">`overflow-y:auto;height:100%;position:relative;`</span>;
+
+        <span class="token-comment">// Spacer maintains the full scrollable height</span>
+        <span class="token-keyword">this</span>.spacer = document.<span class="token-function">createElement</span>(<span class="token-string">'div'</span>);
+        <span class="token-keyword">this</span>.spacer.style.height = <span class="token-string">`${items.length * itemHeight}px`</span>;
+
+        <span class="token-keyword">this</span>.content = document.<span class="token-function">createElement</span>(<span class="token-string">'div'</span>);
+        <span class="token-keyword">this</span>.content.style.cssText = <span class="token-string">`position:absolute;left:0;right:0;`</span>;
+
+        <span class="token-keyword">this</span>.viewport.<span class="token-function">appendChild</span>(<span class="token-keyword">this</span>.spacer);
+        <span class="token-keyword">this</span>.viewport.<span class="token-function">appendChild</span>(<span class="token-keyword">this</span>.content);
+        container.<span class="token-function">appendChild</span>(<span class="token-keyword">this</span>.viewport);
+
+        <span class="token-keyword">this</span>.viewport.<span class="token-function">addEventListener</span>(<span class="token-string">'scroll'</span>,
+            <span class="token-function">throttle</span>(() => <span class="token-keyword">this</span>.<span class="token-function">render</span>(), <span class="token-number">16</span>), { <span class="token-property">passive</span>: <span class="token-keyword">true</span> });
+
+        <span class="token-keyword">this</span>.<span class="token-function">render</span>();
+    }
+
+    <span class="token-function">render</span>() {
+        <span class="token-keyword">const</span> scrollTop = <span class="token-keyword">this</span>.viewport.scrollTop;
+        <span class="token-keyword">const</span> viewportHeight = <span class="token-keyword">this</span>.viewport.clientHeight;
+
+        <span class="token-keyword">const</span> startIndex = Math.<span class="token-function">max</span>(<span class="token-number">0</span>,
+            Math.<span class="token-function">floor</span>(scrollTop / <span class="token-keyword">this</span>.itemHeight) - <span class="token-keyword">this</span>.buffer);
+        <span class="token-keyword">const</span> endIndex = Math.<span class="token-function">min</span>(<span class="token-keyword">this</span>.items.length,
+            Math.<span class="token-function">ceil</span>((scrollTop + viewportHeight) / <span class="token-keyword">this</span>.itemHeight) + <span class="token-keyword">this</span>.buffer);
+
+        <span class="token-keyword">this</span>.content.style.top = <span class="token-string">`${startIndex * <span class="token-keyword">this</span>.itemHeight}px`</span>;
+        <span class="token-keyword">this</span>.content.innerHTML = <span class="token-keyword">this</span>.items
+            .<span class="token-function">slice</span>(startIndex, endIndex)
+            .<span class="token-function">map</span>((item, i) =>
+                <span class="token-string">`&lt;div style="height:${<span class="token-keyword">this</span>.itemHeight}px"&gt;${item}&lt;/div&gt;`</span>
+            ).<span class="token-function">join</span>(<span class="token-string">''</span>);
+    }
+}</code></pre>
+            </div>
+
+            <!-- Technique 11 -->
+            <h2 id="t11"><span class="technique-number">11</span> Image and Asset Loading Strategies</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot"></div>
+                </div>
+                <span>High</span>
+            </div>
+
+            <p>
+                Images typically account for over 50% of a web page's total weight. Smart loading strategies
+                can dramatically improve perceived and actual performance.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// Intersection Observer for lazy loading images</span>
+<span class="token-keyword">const</span> imageObserver = <span class="token-keyword">new</span> <span class="token-class">IntersectionObserver</span>((entries) => {
+    entries.<span class="token-function">forEach</span>(entry => {
+        <span class="token-keyword">if</span> (entry.isIntersecting) {
+            <span class="token-keyword">const</span> img = entry.target;
+            img.src = img.dataset.src;
+            <span class="token-keyword">if</span> (img.dataset.srcset) img.srcset = img.dataset.srcset;
+            img.classList.<span class="token-function">add</span>(<span class="token-string">'loaded'</span>);
+            imageObserver.<span class="token-function">unobserve</span>(img);
+        }
+    });
+}, {
+    <span class="token-property">rootMargin</span>: <span class="token-string">'200px'</span>,  <span class="token-comment">// Start loading 200px before visible</span>
+    <span class="token-property">threshold</span>: <span class="token-number">0.01</span>
+});
+
+<span class="token-comment">// Observe all lazy images</span>
+document.<span class="token-function">querySelectorAll</span>(<span class="token-string">'img[data-src]'</span>).<span class="token-function">forEach</span>(img => {
+    imageObserver.<span class="token-function">observe</span>(img);
+});</code></pre>
+            </div>
+
+            <!-- Technique 12 -->
+            <h2 id="t12"><span class="technique-number">12</span> Caching with Service Workers</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot"></div>
+                </div>
+                <span>High</span>
+            </div>
+
+            <p>
+                Service Workers enable sophisticated caching strategies that make repeat visits near-instantaneous
+                and enable offline functionality.
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// sw.js — Stale-while-revalidate strategy</span>
+<span class="token-keyword">const</span> CACHE_NAME = <span class="token-string">'app-v1'</span>;
+<span class="token-keyword">const</span> PRECACHE_URLS = [<span class="token-string">'/'</span>, <span class="token-string">'/index.html'</span>, <span class="token-string">'/app.js'</span>, <span class="token-string">'/styles.css'</span>];
+
+self.<span class="token-function">addEventListener</span>(<span class="token-string">'install'</span>, (event) => {
+    event.<span class="token-function">waitUntil</span>(
+        caches.<span class="token-function">open</span>(CACHE_NAME)
+            .<span class="token-function">then</span>(cache => cache.<span class="token-function">addAll</span>(PRECACHE_URLS))
+    );
+});
+
+self.<span class="token-function">addEventListener</span>(<span class="token-string">'fetch'</span>, (event) => {
+    event.<span class="token-function">respondWith</span>(
+        caches.<span class="token-function">match</span>(event.request).<span class="token-function">then</span>(cached => {
+            <span class="token-comment">// Return cached version immediately</span>
+            <span class="token-keyword">const</span> fetchPromise = <span class="token-function">fetch</span>(event.request)
+                .<span class="token-function">then</span>(response => {
+                    <span class="token-comment">// Update cache in background</span>
+                    <span class="token-keyword">const</span> clone = response.<span class="token-function">clone</span>();
+                    caches.<span class="token-function">open</span>(CACHE_NAME)
+                        .<span class="token-function">then</span>(cache => cache.<span class="token-function">put</span>(event.request, clone));
+                    <span class="token-keyword">return</span> response;
+                });
+            <span class="token-keyword">return</span> cached || fetchPromise;
+        })
+    );
+});</code></pre>
+            </div>
+
+            <!-- Technique 13 -->
+            <h2 id="t13"><span class="technique-number">13</span> Avoiding Layout Thrashing</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                </div>
+                <span>Critical</span>
+            </div>
+
+            <p>
+                Layout thrashing occurs when you read a layout property, then write to the DOM, then read again,
+                forcing the browser to recalculate layout multiple times in a single frame. This is one of the
+                most common performance killers.
+            </p>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-bad">Layout Thrashing</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// Each iteration: read
+// → write → read → write
+// Forces synchronous layout</span>
+elements.<span class="token-function">forEach</span>(el => {
+  <span class="token-keyword">const</span> h = el.offsetHeight;
+  el.style.height =
+    (h * <span class="token-number">2</span>) + <span class="token-string">'px'</span>;
+  <span class="token-keyword">const</span> w = el.offsetWidth;
+  el.style.width =
+    (w * <span class="token-number">2</span>) + <span class="token-string">'px'</span>;
+});
+<span class="token-comment">// N elements = N forced
+// layout recalculations</span></code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-good">Batch Read, Then Write</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// Phase 1: read all values</span>
+<span class="token-keyword">const</span> measurements =
+  elements.<span class="token-function">map</span>(el => ({
+    <span class="token-property">h</span>: el.offsetHeight,
+    <span class="token-property">w</span>: el.offsetWidth,
+  }));
+
+<span class="token-comment">// Phase 2: write all values</span>
+elements.<span class="token-function">forEach</span>((el, i) => {
+  el.style.height =
+    (measurements[i].h * <span class="token-number">2</span>)
+    + <span class="token-string">'px'</span>;
+  el.style.width =
+    (measurements[i].w * <span class="token-number">2</span>)
+    + <span class="token-string">'px'</span>;
+});
+<span class="token-comment">// 1 layout recalculation
+// regardless of N</span></code></pre>
+                </div>
+            </div>
+
+            <div class="info-box warning">
+                <div class="info-box-title">Properties That Trigger Layout</div>
+                <p>
+                    Reading these properties forces a synchronous layout: <code>offsetWidth</code>,
+                    <code>offsetHeight</code>, <code>offsetTop</code>, <code>scrollTop</code>,
+                    <code>clientWidth</code>, <code>clientHeight</code>, <code>getComputedStyle()</code>,
+                    <code>getBoundingClientRect()</code>. Always batch reads before writes.
+                </p>
+            </div>
+
+            <!-- Technique 14 -->
+            <h2 id="t14"><span class="technique-number">14</span> String and Array Method Optimization</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot"></div>
+                    <div class="impact-dot"></div>
+                    <div class="impact-dot"></div>
+                </div>
+                <span>Low-Medium</span>
+            </div>
+
+            <p>
+                When processing large datasets, the choice of array method matters. Chaining multiple array
+                methods creates intermediate arrays. A single <code>reduce</code> or a for loop avoids this.
+            </p>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-bad">3 intermediate arrays</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// 100K items: creates 3
+// temporary arrays</span>
+<span class="token-keyword">const</span> result = data
+  .<span class="token-function">filter</span>(x => x.active)
+  .<span class="token-function">map</span>(x => x.value)
+  .<span class="token-function">filter</span>(v => v > <span class="token-number">100</span>)
+  .<span class="token-function">reduce</span>((sum, v) =>
+    sum + v, <span class="token-number">0</span>);
+
+<span class="token-comment">// Memory: 3 extra arrays
+// Iterations: ~3 full passes</span></code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang code-label-good">Single pass, no allocations</span>
+                        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <pre><code><span class="token-comment">// Single pass: no
+// intermediate arrays</span>
+<span class="token-keyword">let</span> result = <span class="token-number">0</span>;
+<span class="token-keyword">for</span> (<span class="token-keyword">const</span> item <span class="token-keyword">of</span> data) {
+  <span class="token-keyword">if</span> (item.active
+      && item.value > <span class="token-number">100</span>) {
+    result += item.value;
+  }
+}
+
+<span class="token-comment">// Memory: zero allocations
+// Iterations: 1 pass</span></code></pre>
+                </div>
+            </div>
+
+            <div class="info-box tip">
+                <div class="info-box-title">When This Matters</div>
+                <p>
+                    For small arrays (under 1000 items), chained methods are fine and more readable. Optimize
+                    only when processing large datasets or in hot loops. Readability matters more than saving
+                    microseconds.
+                </p>
+            </div>
+
+            <!-- Technique 15 -->
+            <h2 id="t15"><span class="technique-number">15</span> Measuring and Profiling</h2>
+
+            <div class="impact-meter">
+                <span>Impact:</span>
+                <div class="impact-bar">
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                    <div class="impact-dot filled high"></div>
+                </div>
+                <span>Foundational</span>
+            </div>
+
+            <p>
+                You cannot optimize what you do not measure. Before applying any optimization, establish a
+                baseline measurement. After applying it, measure again. If it did not help, revert it.
+            </p>
+
+            <h3>Performance API</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="token-comment">// Measure a function's execution time</span>
+performance.<span class="token-function">mark</span>(<span class="token-string">'process-start'</span>);
+<span class="token-function">processData</span>(largeDataset);
+performance.<span class="token-function">mark</span>(<span class="token-string">'process-end'</span>);
+performance.<span class="token-function">measure</span>(<span class="token-string">'Data Processing'</span>, <span class="token-string">'process-start'</span>, <span class="token-string">'process-end'</span>);
+
+<span class="token-keyword">const</span> [measure] = performance.<span class="token-function">getEntriesByName</span>(<span class="token-string">'Data Processing'</span>);
+console.<span class="token-function">log</span>(<span class="token-string">`Processing took: ${measure.duration.toFixed(2)}ms`</span>);
+
+<span class="token-comment">// Monitor Core Web Vitals</span>
+<span class="token-keyword">new</span> <span class="token-class">PerformanceObserver</span>((list) => {
+    <span class="token-keyword">for</span> (<span class="token-keyword">const</span> entry <span class="token-keyword">of</span> list.<span class="token-function">getEntries</span>()) {
+        console.<span class="token-function">log</span>(<span class="token-string">`${entry.name}: ${entry.value || entry.duration}ms`</span>);
+    }
+}).<span class="token-function">observe</span>({ <span class="token-property">type</span>: <span class="token-string">'largest-contentful-paint'</span>, <span class="token-property">buffered</span>: <span class="token-keyword">true</span> });
+
+<span class="token-keyword">new</span> <span class="token-class">PerformanceObserver</span>((list) => {
+    <span class="token-keyword">for</span> (<span class="token-keyword">const</span> entry <span class="token-keyword">of</span> list.<span class="token-function">getEntries</span>()) {
+        <span class="token-keyword">if</span> (!entry.hadRecentInput) {
+            console.<span class="token-function">log</span>(<span class="token-string">`CLS: ${entry.value}`</span>);
+        }
+    }
+}).<span class="token-function">observe</span>({ <span class="token-property">type</span>: <span class="token-string">'layout-shift'</span>, <span class="token-property">buffered</span>: <span class="token-keyword">true</span> });</code></pre>
+            </div>
+
+            <h3>Chrome DevTools Performance Panel</h3>
+
+            <p>
+                The Performance panel is your most powerful profiling tool. Key workflow:
+            </p>
+
+            <ol>
+                <li><strong>Record</strong> — Click the record button, perform the action you want to profile, then stop.</li>
+                <li><strong>Analyze the flame chart</strong> — Long yellow bars are JavaScript. Long purple bars are layout. Long green bars are painting.</li>
+                <li><strong>Look for long tasks</strong> — Any task over 50ms is a "long task" that blocks the main thread.</li>
+                <li><strong>Check the summary tab</strong> — Shows time breakdown: Scripting, Rendering, Painting, Idle.</li>
+                <li><strong>Use the Bottom-Up tab</strong> — Shows which functions consumed the most time.</li>
+            </ol>
+
+            <div class="key-takeaway">
+                <h4>The Performance Optimization Workflow</h4>
+                <ul>
+                    <li><strong>Measure first.</strong> Use Lighthouse, WebPageTest, or the Performance panel to establish a baseline.</li>
+                    <li><strong>Identify the bottleneck.</strong> Is it network (too much JavaScript shipped)? Is it main thread (too much computation)? Is it rendering (too many DOM operations)?</li>
+                    <li><strong>Apply the right technique.</strong> Network bottleneck? Use techniques 1-2. Main thread? Use 3-4, 8. Rendering? Use 6, 13.</li>
+                    <li><strong>Measure again.</strong> Verify the improvement. If it did not help, revert and try something else.</li>
+                    <li><strong>Ship and monitor.</strong> Use real user monitoring (RUM) to track performance in production.</li>
+                </ul>
+            </div>
+
+        </div>
+        <!-- End article-content -->
+
+        <!-- Cross-Promo -->
+        <div style="margin-top:48px;padding:32px;background:var(--surface);border-radius:var(--radius-lg);text-align:center;">
+            <p style="font-size:1.1rem;margin-bottom:12px;">🚀 Explore <strong>125+ Free Developer Tools</strong></p>
+            <p style="color:var(--text-dim);margin-bottom:20px;">All built with the techniques discussed in this article.</p>
+            <a href="/free-tools/" style="display:inline-block;padding:12px 28px;background:var(--gradient);color:#fff;border-radius:20px;font-weight:600;text-decoration:none;">Browse All Tools →</a>
+        </div>
+
+    </article>
+
+    <!-- ==========================================
+         FOOTER
+         ========================================== -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="/">NexTool Home</a>
+                <a href="/free-tools/">Free Tools Hub</a>
+                <a href="/blog/">Blog</a>
+                <a href="/privacy/">Privacy Policy</a>
+            </div>
+            <div class="footer-copy">
+                &copy; 2026 NexTool. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==========================================
+         SCRIPTS
+         ========================================== -->
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+            }).catch(() => {
+                button.textContent = 'Failed';
+                setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+            });
+        }
+
+        document.querySelectorAll('.toc a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    const offset = 80;
+                    const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                }
+            });
+        });
+
+        (function() {
+            const progress = document.createElement('div');
+            progress.style.cssText = 'position:fixed;top:64px;left:0;height:3px;background:var(--gradient);z-index:999;transition:width 0.1s;width:0';
+            document.body.appendChild(progress);
+
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const scrollPercent = (scrollTop / docHeight) * 100;
+                progress.style.width = scrollPercent + '%';
+            });
+        })();
+    </script>
+    <script src="/js/revenue.js" defer></script>
+    <script src="/js/lead-capture.js" defer></script>
+    <script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>
