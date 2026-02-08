@@ -78,6 +78,33 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filte
 .stat-item .val{font-size:1.3rem;font-weight:700;color:var(--primary)}
 .stat-item .lbl{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-top:.15rem}
 @media(max-width:600px){.stats-bar{flex-wrap:wrap;gap:1rem}.stat-item{min-width:80px}}
+/* HISTORY */
+.history-section{background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:1.5rem;margin-top:2rem}
+.history-section h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center}
+.history-section h3 button{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.7rem;font-family:'Inter',sans-serif}
+.history-section h3 button:hover{color:var(--text)}
+.history-item{display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:.8rem}
+.history-item:last-child{border-bottom:none}
+.history-item .hi-name{color:var(--primary);font-weight:600;min-width:100px}
+.history-item .hi-info{color:var(--text2);flex:1}
+.history-item .hi-btn{background:rgba(99,102,241,0.1);border:none;color:var(--primary);padding:.25rem .5rem;border-radius:6px;cursor:pointer;font-size:.7rem;font-family:'Inter',sans-serif}
+.history-item .hi-btn:hover{background:rgba(99,102,241,0.2)}
+.history-empty{color:var(--text2);font-size:.85rem;text-align:center;padding:1rem}
+/* TYPE MAP */
+.typemap-section{background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:1.5rem;margin-top:1.5rem}
+.typemap-section h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:.75rem}
+.typemap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem}
+.typemap-item{display:flex;justify-content:space-between;padding:.4rem .75rem;background:var(--surface2);border-radius:8px;font-size:.8rem}
+.typemap-item .tm-from{color:var(--text2)}
+.typemap-item .tm-to{color:var(--primary);font-family:'Menlo',monospace;font-weight:600}
+/* TIPS */
+.tips-section{background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:1.5rem;margin-top:1.5rem}
+.tips-section h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:.75rem}
+.tip-item{padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:.85rem;color:var(--text2);line-height:1.5}
+.tip-item:last-child{border-bottom:none}
+.tip-item code{background:var(--surface2);padding:.15rem .4rem;border-radius:4px;color:var(--primary);font-size:.8rem;font-family:'Menlo',monospace}
+/* DOWNLOAD */
+.download-actions{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap}
 /* MORE TOOLS */
 .more-tools{margin-top:4rem;padding:3rem 0;border-top:1px solid rgba(255,255,255,0.06)}
 .more-tools h2{text-align:center;font-size:1.5rem;margin-bottom:2rem}
@@ -173,6 +200,42 @@ footer .brand{font-weight:700;background:linear-gradient(135deg,var(--primary),v
     <div class="stat-item"><div class="val" id="statProperties">0</div><div class="lbl">Properties</div></div>
     <div class="stat-item"><div class="val" id="statNested">0</div><div class="lbl">Nested Types</div></div>
     <div class="stat-item"><div class="val" id="statLines">0</div><div class="lbl">Lines</div></div>
+  </div>
+
+  <div class="download-actions">
+    <button class="btn btn-ghost" onclick="downloadOutput()">Download .ts File</button>
+    <button class="btn btn-ghost" onclick="downloadJSON()">Download Formatted JSON</button>
+  </div>
+
+  <div class="history-section">
+    <h3>Conversion History <button onclick="clearHistory()">Clear</button></h3>
+    <div id="historyList"><p class="history-empty">No conversions yet</p></div>
+  </div>
+
+  <div class="typemap-section">
+    <h3>JSON to TypeScript Type Mapping</h3>
+    <div class="typemap-grid">
+      <div class="typemap-item"><span class="tm-from">string</span><span class="tm-to">string</span></div>
+      <div class="typemap-item"><span class="tm-from">number (int)</span><span class="tm-to">number</span></div>
+      <div class="typemap-item"><span class="tm-from">number (float)</span><span class="tm-to">number</span></div>
+      <div class="typemap-item"><span class="tm-from">boolean</span><span class="tm-to">boolean</span></div>
+      <div class="typemap-item"><span class="tm-from">null</span><span class="tm-to">null</span></div>
+      <div class="typemap-item"><span class="tm-from">array</span><span class="tm-to">T[]</span></div>
+      <div class="typemap-item"><span class="tm-from">object</span><span class="tm-to">interface</span></div>
+      <div class="typemap-item"><span class="tm-from">mixed array</span><span class="tm-to">(A | B)[]</span></div>
+      <div class="typemap-item"><span class="tm-from">empty array</span><span class="tm-to">unknown[]</span></div>
+      <div class="typemap-item"><span class="tm-from">nested object</span><span class="tm-to">NestedInterface</span></div>
+    </div>
+  </div>
+
+  <div class="tips-section">
+    <h3>Tips &amp; Best Practices</h3>
+    <div class="tip-item">Use <code>interface</code> for object shapes that may be extended; use <code>type</code> for unions, intersections, or computed types.</div>
+    <div class="tip-item">Enable <code>readonly</code> for immutable data structures like API responses to prevent accidental mutations.</div>
+    <div class="tip-item">Use <code>optional</code> properties when some fields may not be present in every response variant.</div>
+    <div class="tip-item">Name your root interface after the API endpoint or domain concept (e.g., <code>UserProfile</code>, <code>OrderResponse</code>).</div>
+    <div class="tip-item">For arrays of objects, the converter automatically creates a separate interface with <code>Item</code> suffix.</div>
+    <div class="tip-item">Properties with special characters are automatically quoted (e.g., <code>'content-type'</code>).</div>
   </div>
 
   <section class="more-tools">
@@ -347,6 +410,7 @@ function convert() {
   const output = interfaces.join('\n\n');
   document.getElementById('tsOutput').textContent = output;
   updateStats(interfaceCount, propertyCount, nestedCount, output.split('\n').length);
+  addToHistory(rootName, interfaceCount, propertyCount);
 }
 
 function updateStats(ifaces, props, nested, lines) {
@@ -418,6 +482,77 @@ function copyOutput() {
     setTimeout(() => btn.textContent = orig, 1500);
   });
 }
+
+// History management
+let conversionHistory = JSON.parse(localStorage.getItem('json-ts-history') || '[]');
+
+function addToHistory(rootName, ifaceCount, propCount) {
+  const entry = {
+    name: rootName,
+    interfaces: ifaceCount,
+    properties: propCount,
+    time: Date.now()
+  };
+  conversionHistory.unshift(entry);
+  if (conversionHistory.length > 20) conversionHistory = conversionHistory.slice(0, 20);
+  localStorage.setItem('json-ts-history', JSON.stringify(conversionHistory));
+  renderHistory();
+}
+
+function renderHistory() {
+  if (conversionHistory.length === 0) {
+    document.getElementById('historyList').innerHTML = '<p class="history-empty">No conversions yet</p>';
+    return;
+  }
+  let html = '';
+  conversionHistory.slice(0, 10).forEach((h, i) => {
+    const date = new Date(h.time);
+    const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    html += `<div class="history-item">
+      <span class="hi-name">${h.name}</span>
+      <span class="hi-info">${h.interfaces} interface(s), ${h.properties} properties - ${timeStr}</span>
+    </div>`;
+  });
+  document.getElementById('historyList').innerHTML = html;
+}
+
+function clearHistory() {
+  conversionHistory = [];
+  localStorage.removeItem('json-ts-history');
+  renderHistory();
+}
+
+function downloadOutput() {
+  const text = document.getElementById('tsOutput').textContent;
+  if (!text || text.startsWith('//')) { alert('Convert JSON first.'); return; }
+  const blob = new Blob([text], { type: 'text/typescript' });
+  const a = document.createElement('a');
+  const rootName = document.getElementById('rootName').value || 'types';
+  a.href = URL.createObjectURL(blob);
+  a.download = rootName.toLowerCase() + '.d.ts';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadJSON() {
+  const input = document.getElementById('jsonInput').value.trim();
+  if (!input) { alert('Enter JSON first.'); return; }
+  try {
+    const parsed = JSON.parse(input);
+    const formatted = JSON.stringify(parsed, null, 2);
+    const blob = new Blob([formatted], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'data.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch(e) {
+    alert('Invalid JSON: ' + e.message);
+  }
+}
+
+// Init history on load
+renderHistory();
 
 // Auto-convert on input with debounce
 let debounceTimer;

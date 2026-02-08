@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Request Builder - Free Tool | NexTool</title>
+    <meta name="description" content="Build and test HTTP API requests visually. Support for GET, POST, PUT, DELETE, PATCH with headers, auth, body editors and response viewer with timing.">
+    <meta name="keywords" content="api tester, http request builder, rest api, postman alternative, api client">
+    <meta property="og:title" content="API Request Builder - NexTool Free Tools">
+    <meta property="og:description" content="Build and test HTTP requests visually with auth and response viewer. Free online tool.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/api-request-builder.html">
+    <meta property="og:image" content="https://nextool.app/og/api-request-builder.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://nextool.app/free-tools/api-request-builder.html">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app/"},
+            {"@type": "ListItem", "position": 2, "name": "Free Tools", "item": "https://nextool.app/free-tools/"},
+            {"@type": "ListItem", "position": 3, "name": "API Request Builder", "item": "https://nextool.app/free-tools/api-request-builder.html"}
+        ]
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #050508; --surface: #111118; --surface2: #1a1a24; --surface3: #22222e;
+            --primary: #6366f1; --accent: #a855f7; --pink: #ec4899;
+            --tool: #6366f1; --tool-dim: rgba(99, 102, 241, 0.12);
+            --text: #e2e8f0; --text2: #94a3b8; --radius: 16px;
+            --green: #22c55e; --red: #ef4444; --amber: #f59e0b; --cyan: #06b6d4;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        a { color: inherit; text-decoration: none; }
+
+        /* NAV */
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(5,5,8,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(99,102,241,0.1); }
+        .nav-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 28px; align-items: center; }
+        .nav-links a { font-size: 14px; color: var(--text2); transition: color 0.2s; font-weight: 500; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+        .nav-hamburger span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: 0.3s; }
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; background: rgba(5,5,8,0.97); flex-direction: column; padding: 20px 24px; gap: 16px; border-bottom: 1px solid rgba(99,102,241,0.1); }
+            .nav-links.open { display: flex; }
+            .nav-hamburger { display: flex; }
+        }
+
+        /* HERO */
+        .hero { padding: 120px 24px 50px; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; background: radial-gradient(ellipse, rgba(99,102,241,0.08), transparent 70%); pointer-events: none; }
+        .breadcrumb { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+        .breadcrumb a:hover { color: var(--tool); }
+        .breadcrumb .sep { opacity: 0.4; }
+        .hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+        .hero h1 .grad { background: linear-gradient(135deg, var(--tool), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 18px; color: var(--text2); max-width: 620px; margin: 0 auto; line-height: 1.6; }
+
+        /* TOOL */
+        .tool-wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+        .tool-card { background: var(--surface); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius); overflow: hidden; }
+
+        /* REQUEST BAR */
+        .request-bar { padding: 16px 20px; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; }
+        .method-select { background: var(--surface2); color: var(--green); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 12px; font-size: 14px; font-weight: 700; font-family: 'Inter', sans-serif; outline: none; cursor: pointer; min-width: 100px; }
+        .method-select option { background: var(--surface); }
+        .url-input { flex: 1; background: var(--surface2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; font-size: 14px; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text); outline: none; min-width: 200px; transition: border-color 0.2s; }
+        .url-input:focus { border-color: var(--tool); }
+        .url-input::placeholder { color: rgba(148,163,184,0.4); }
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+        .btn-send { background: var(--tool); color: #fff; min-width: 80px; }
+        .btn-send:hover { filter: brightness(1.15); transform: translateY(-1px); }
+        .btn-send.loading { opacity: 0.7; cursor: wait; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-ghost { background: rgba(99,102,241,0.1); color: var(--tool); border: 1px solid rgba(99,102,241,0.2); }
+        .btn-ghost:hover { background: rgba(99,102,241,0.2); }
+
+        /* TABS */
+        .req-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.05); overflow-x: auto; }
+        .req-tab { padding: 12px 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text2); font-family: 'Inter', sans-serif; transition: 0.2s; border-bottom: 2px solid transparent; white-space: nowrap; }
+        .req-tab:hover { color: var(--text); }
+        .req-tab.active { color: var(--tool); border-bottom-color: var(--tool); }
+        .req-tab .badge { background: var(--tool); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 6px; }
+
+        /* TAB CONTENT */
+        .tab-content { display: none; padding: 16px 20px; }
+        .tab-content.active { display: block; }
+
+        /* KEY-VALUE EDITOR */
+        .kv-list { display: flex; flex-direction: column; gap: 8px; }
+        .kv-row { display: flex; gap: 8px; align-items: center; }
+        .kv-input { flex: 1; background: var(--surface2); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text); outline: none; }
+        .kv-input::placeholder { color: rgba(148,163,184,0.3); }
+        .kv-input:focus { border-color: var(--tool); }
+        .kv-checkbox { accent-color: var(--tool); width: 16px; height: 16px; cursor: pointer; }
+        .kv-delete { width: 28px; height: 28px; border-radius: 6px; border: none; background: transparent; color: var(--red); cursor: pointer; font-size: 16px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .kv-delete:hover { background: rgba(239,68,68,0.1); }
+        .kv-add { margin-top: 8px; }
+
+        /* BODY EDITOR */
+        .body-type-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+        .body-type-btn { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: var(--text2); font-family: 'Inter', sans-serif; transition: 0.2s; }
+        .body-type-btn.active { background: var(--tool); color: #fff; border-color: var(--tool); }
+        textarea.body-input { width: 100%; min-height: 200px; background: var(--surface2); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text); outline: none; resize: vertical; line-height: 1.6; }
+        textarea.body-input:focus { border-color: var(--tool); }
+
+        /* AUTH */
+        .auth-type-select { background: var(--surface2); color: var(--text); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; margin-bottom: 12px; width: 100%; max-width: 300px; }
+        .auth-field { margin-bottom: 10px; }
+        .auth-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+        .auth-field input { width: 100%; max-width: 500px; background: var(--surface2); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text); outline: none; }
+        .auth-field input:focus { border-color: var(--tool); }
+
+        /* RESPONSE */
+        .response-section { border-top: 2px solid rgba(99,102,241,0.15); }
+        .response-header { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: var(--surface2); }
+        .response-header h3 { font-size: 14px; font-weight: 700; }
+        .response-meta { display: flex; gap: 16px; font-size: 12px; font-weight: 600; }
+        .meta-status { padding: 3px 8px; border-radius: 4px; }
+        .meta-status.s2xx { background: rgba(34,197,94,0.15); color: var(--green); }
+        .meta-status.s3xx { background: rgba(6,182,212,0.15); color: var(--cyan); }
+        .meta-status.s4xx { background: rgba(245,158,11,0.15); color: var(--amber); }
+        .meta-status.s5xx { background: rgba(239,68,68,0.15); color: var(--red); }
+        .meta-time { color: var(--text2); }
+        .meta-size { color: var(--text2); }
+
+        .response-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .resp-tab { padding: 10px 16px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text2); font-family: 'Inter', sans-serif; transition: 0.2s; border-bottom: 2px solid transparent; }
+        .resp-tab.active { color: var(--tool); border-bottom-color: var(--tool); }
+        .resp-content { display: none; padding: 16px 20px; max-height: 400px; overflow: auto; }
+        .resp-content.active { display: block; }
+        .resp-body { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+        .resp-body .str { color: var(--green); }
+        .resp-body .num { color: var(--amber); }
+        .resp-body .bool { color: var(--pink); }
+        .resp-body .null { color: var(--text2); }
+        .resp-body .key { color: var(--cyan); }
+        .resp-body .punc { color: var(--text2); }
+
+        .resp-headers-list { font-size: 13px; }
+        .resp-hdr-row { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 12px; }
+        .resp-hdr-name { font-weight: 700; color: var(--cyan); min-width: 180px; font-family: 'SF Mono', monospace; font-size: 12px; }
+        .resp-hdr-val { color: var(--text2); font-family: 'SF Mono', monospace; font-size: 12px; word-break: break-all; }
+
+        /* EMPTY STATE */
+        .empty-response { padding: 60px 20px; text-align: center; color: var(--text2); }
+        .empty-response .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+        .empty-response p { font-size: 14px; }
+
+        /* HISTORY */
+        .history-section { margin-top: 20px; background: var(--surface); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius); overflow: hidden; }
+        .history-header { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; background: var(--surface2); }
+        .history-header h3 { font-size: 13px; font-weight: 700; color: var(--text2); }
+        .history-list { max-height: 200px; overflow: auto; }
+        .history-item { padding: 10px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: 0.2s; font-size: 12px; }
+        .history-item:hover { background: var(--surface2); }
+        .history-method { font-weight: 800; min-width: 50px; }
+        .history-method.GET { color: var(--green); }
+        .history-method.POST { color: var(--amber); }
+        .history-method.PUT { color: var(--cyan); }
+        .history-method.DELETE { color: var(--red); }
+        .history-method.PATCH { color: var(--accent); }
+        .history-url { color: var(--text2); font-family: 'SF Mono', monospace; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .history-status { font-weight: 700; min-width: 30px; text-align: right; }
+
+        /* MORE TOOLS */
+        .more-tools { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+        .more-tools h2 { font-size: 28px; font-weight: 800; margin-bottom: 32px; text-align: center; }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+        .tool-link { background: var(--surface); border: 1px solid rgba(99,102,241,0.1); border-radius: var(--radius); padding: 24px; transition: all 0.3s; display: block; }
+        .tool-link:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(99,102,241,0.1); }
+        .tool-link .tl-icon { font-size: 28px; margin-bottom: 12px; }
+        .tool-link h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .tool-link p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+        /* FOOTER */
+        .footer { border-top: 1px solid rgba(99,102,241,0.1); padding: 40px 24px; text-align: center; }
+        .footer-brand { font-size: 18px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .footer p { font-size: 13px; color: var(--text2); }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--tool); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all 0.3s; z-index: 999; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-logo">NexTool</a>
+        <div class="nav-links" id="navLinks">
+            <a href="/">Home</a>
+            <a href="/free-tools/">Tools</a>
+            <a href="/services/">Services</a>
+            <a href="/blog/">Blog</a>
+            <a href="/products/">Products</a>
+            <a href="/pricing/">Pricing</a>
+            <a href="/extension.html">Extension</a>
+        </div>
+        <button class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="breadcrumb">
+        <a href="/">Home</a><span class="sep">/</span>
+        <a href="/free-tools/">Free Tools</a><span class="sep">/</span>
+        <span>API Request Builder</span>
+    </div>
+    <h1><span class="grad">API Request</span> Builder</h1>
+    <p>Build and test HTTP requests visually. Configure methods, headers, auth, and body. View responses with syntax highlighting, timing, and status codes.</p>
+</section>
+
+<!-- TOOL -->
+<div class="tool-wrap">
+    <div class="tool-card">
+        <!-- Request Bar -->
+        <div class="request-bar">
+            <select class="method-select" id="methodSelect" onchange="updateMethodColor()">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+                <option value="PATCH">PATCH</option>
+                <option value="HEAD">HEAD</option>
+                <option value="OPTIONS">OPTIONS</option>
+            </select>
+            <input class="url-input" id="urlInput" type="text" placeholder="https://api.example.com/endpoint" value="https://jsonplaceholder.typicode.com/posts/1">
+            <button class="btn btn-send" id="sendBtn" onclick="sendRequest()">Send</button>
+        </div>
+
+        <!-- Request Tabs -->
+        <div class="req-tabs">
+            <button class="req-tab active" onclick="setReqTab('params', this)">Params</button>
+            <button class="req-tab" onclick="setReqTab('headers', this)">Headers <span class="badge" id="headerBadge">1</span></button>
+            <button class="req-tab" onclick="setReqTab('body', this)">Body</button>
+            <button class="req-tab" onclick="setReqTab('auth', this)">Auth</button>
+        </div>
+
+        <!-- Params -->
+        <div class="tab-content active" id="tab-params">
+            <div class="kv-list" id="paramsList">
+                <div class="kv-row">
+                    <input type="checkbox" class="kv-checkbox" checked>
+                    <input class="kv-input" placeholder="Key" value="">
+                    <input class="kv-input" placeholder="Value" value="">
+                    <button class="kv-delete" onclick="removeKVRow(this)">&times;</button>
+                </div>
+            </div>
+            <button class="btn btn-ghost btn-sm kv-add" onclick="addKVRow('paramsList')">+ Add Parameter</button>
+        </div>
+
+        <!-- Headers -->
+        <div class="tab-content" id="tab-headers">
+            <div class="kv-list" id="headersList">
+                <div class="kv-row">
+                    <input type="checkbox" class="kv-checkbox" checked>
+                    <input class="kv-input" placeholder="Key" value="Content-Type">
+                    <input class="kv-input" placeholder="Value" value="application/json">
+                    <button class="kv-delete" onclick="removeKVRow(this)">&times;</button>
+                </div>
+                <div class="kv-row">
+                    <input type="checkbox" class="kv-checkbox" checked>
+                    <input class="kv-input" placeholder="Key" value="Accept">
+                    <input class="kv-input" placeholder="Value" value="application/json">
+                    <button class="kv-delete" onclick="removeKVRow(this)">&times;</button>
+                </div>
+            </div>
+            <button class="btn btn-ghost btn-sm kv-add" onclick="addKVRow('headersList')">+ Add Header</button>
+        </div>
+
+        <!-- Body -->
+        <div class="tab-content" id="tab-body">
+            <div class="body-type-bar">
+                <button class="body-type-btn active" onclick="setBodyType('json', this)">JSON</button>
+                <button class="body-type-btn" onclick="setBodyType('form', this)">Form Data</button>
+                <button class="body-type-btn" onclick="setBodyType('raw', this)">Raw</button>
+                <button class="body-type-btn" onclick="setBodyType('none', this)">None</button>
+            </div>
+            <div id="bodyJsonWrap">
+                <textarea class="body-input" id="bodyInput" placeholder='{"key": "value"}'>{
+  "title": "Hello World",
+  "body": "This is a test post",
+  "userId": 1
+}</textarea>
+            </div>
+            <div id="bodyFormWrap" style="display:none">
+                <div class="kv-list" id="formDataList">
+                    <div class="kv-row">
+                        <input type="checkbox" class="kv-checkbox" checked>
+                        <input class="kv-input" placeholder="Key" value="">
+                        <input class="kv-input" placeholder="Value" value="">
+                        <button class="kv-delete" onclick="removeKVRow(this)">&times;</button>
+                    </div>
+                </div>
+                <button class="btn btn-ghost btn-sm kv-add" onclick="addKVRow('formDataList')">+ Add Field</button>
+            </div>
+        </div>
+
+        <!-- Auth -->
+        <div class="tab-content" id="tab-auth">
+            <select class="auth-type-select" id="authType" onchange="updateAuthFields()">
+                <option value="none">No Auth</option>
+                <option value="bearer">Bearer Token</option>
+                <option value="basic">Basic Auth</option>
+                <option value="apikey">API Key</option>
+            </select>
+            <div id="authFields"></div>
+        </div>
+
+        <!-- Response -->
+        <div class="response-section" id="responseSection">
+            <div class="empty-response" id="emptyResponse">
+                <div class="icon">&#x2197;</div>
+                <p>Click <strong>Send</strong> to make a request and see the response here.</p>
+            </div>
+            <div id="responseContent" style="display:none">
+                <div class="response-header">
+                    <h3>Response</h3>
+                    <div class="response-meta">
+                        <span class="meta-status" id="respStatus"></span>
+                        <span class="meta-time" id="respTime"></span>
+                        <span class="meta-size" id="respSize"></span>
+                    </div>
+                </div>
+                <div class="response-tabs">
+                    <button class="resp-tab active" onclick="setRespTab('body', this)">Body</button>
+                    <button class="resp-tab" onclick="setRespTab('headers', this)">Headers</button>
+                </div>
+                <div class="resp-content active" id="resp-body">
+                    <div class="resp-body" id="respBodyContent"></div>
+                </div>
+                <div class="resp-content" id="resp-headers">
+                    <div class="resp-headers-list" id="respHeadersList"></div>
+                </div>
+                <div style="padding: 10px 20px; display: flex; gap: 8px;">
+                    <button class="btn btn-ghost btn-sm" onclick="copyResponse()">Copy Response</button>
+                    <button class="btn btn-ghost btn-sm" onclick="copyCurl()">Copy as cURL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History -->
+    <div class="history-section" id="historySection" style="display:none">
+        <div class="history-header">
+            <h3>Request History</h3>
+            <button class="btn btn-ghost btn-sm" onclick="clearHistory()">Clear</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+    </div>
+</div>
+
+<!-- MORE TOOLS -->
+<section class="more-tools">
+    <h2>More Free Tools</h2>
+    <div class="tools-grid">
+        <a href="/free-tools/tailwind-converter.html" class="tool-link">
+            <div class="tl-icon">🎨</div>
+            <h3>Tailwind CSS Converter</h3>
+            <p>Convert vanilla CSS to Tailwind utility classes instantly.</p>
+        </a>
+        <a href="/free-tools/flexbox-playground.html" class="tool-link">
+            <div class="tl-icon">📐</div>
+            <h3>Flexbox Playground</h3>
+            <p>Visual flexbox CSS builder with live preview and code export.</p>
+        </a>
+        <a href="/free-tools/markdown-to-html.html" class="tool-link">
+            <div class="tl-icon">📝</div>
+            <h3>Markdown to HTML</h3>
+            <p>Convert Markdown to clean HTML with GFM support and live preview.</p>
+        </a>
+        <a href="/free-tools/json-formatter.html" class="tool-link">
+            <div class="tl-icon">🔧</div>
+            <h3>JSON Formatter</h3>
+            <p>Format, validate, and minify JSON data with syntax highlighting.</p>
+        </a>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-brand">NexTool</div>
+    <p>AI-powered tools for modern developers. &copy; 2026 NexTool. All rights reserved.</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentBodyType = 'json';
+let history = [];
+let lastResponse = '';
+
+const METHOD_COLORS = { GET: '#22c55e', POST: '#f59e0b', PUT: '#06b6d4', DELETE: '#ef4444', PATCH: '#a855f7', HEAD: '#94a3b8', OPTIONS: '#94a3b8' };
+
+function updateMethodColor() {
+    const sel = document.getElementById('methodSelect');
+    sel.style.color = METHOD_COLORS[sel.value] || '#94a3b8';
+}
+
+function setReqTab(name, btn) {
+    document.querySelectorAll('.req-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+}
+
+function setRespTab(name, btn) {
+    document.querySelectorAll('.resp-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.resp-content').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('resp-' + name).classList.add('active');
+}
+
+function addKVRow(listId) {
+    const list = document.getElementById(listId);
+    const row = document.createElement('div');
+    row.className = 'kv-row';
+    row.innerHTML = `
+        <input type="checkbox" class="kv-checkbox" checked>
+        <input class="kv-input" placeholder="Key">
+        <input class="kv-input" placeholder="Value">
+        <button class="kv-delete" onclick="removeKVRow(this)">&times;</button>
+    `;
+    list.appendChild(row);
+    updateBadges();
+}
+
+function removeKVRow(btn) {
+    const row = btn.parentElement;
+    const list = row.parentElement;
+    if (list.children.length > 1) {
+        row.remove();
+    } else {
+        row.querySelectorAll('.kv-input').forEach(i => i.value = '');
+    }
+    updateBadges();
+}
+
+function getKVPairs(listId) {
+    const pairs = [];
+    document.querySelectorAll(`#${listId} .kv-row`).forEach(row => {
+        const checked = row.querySelector('.kv-checkbox').checked;
+        const inputs = row.querySelectorAll('.kv-input');
+        const key = inputs[0].value.trim();
+        const val = inputs[1].value.trim();
+        if (checked && key) pairs.push([key, val]);
+    });
+    return pairs;
+}
+
+function updateBadges() {
+    const hdrCount = getKVPairs('headersList').length;
+    document.getElementById('headerBadge').textContent = hdrCount;
+}
+
+function setBodyType(type, btn) {
+    currentBodyType = type;
+    document.querySelectorAll('.body-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('bodyJsonWrap').style.display = (type === 'json' || type === 'raw') ? 'block' : 'none';
+    document.getElementById('bodyFormWrap').style.display = type === 'form' ? 'block' : 'none';
+    if (type === 'none') {
+        document.getElementById('bodyJsonWrap').style.display = 'none';
+        document.getElementById('bodyFormWrap').style.display = 'none';
+    }
+}
+
+function updateAuthFields() {
+    const type = document.getElementById('authType').value;
+    const container = document.getElementById('authFields');
+    container.innerHTML = '';
+    if (type === 'bearer') {
+        container.innerHTML = `<div class="auth-field"><label>Token</label><input id="authToken" placeholder="Enter bearer token"></div>`;
+    } else if (type === 'basic') {
+        container.innerHTML = `<div class="auth-field"><label>Username</label><input id="authUser" placeholder="Username"></div><div class="auth-field"><label>Password</label><input id="authPass" type="password" placeholder="Password"></div>`;
+    } else if (type === 'apikey') {
+        container.innerHTML = `<div class="auth-field"><label>Header Name</label><input id="authKeyName" placeholder="X-API-Key" value="X-API-Key"></div><div class="auth-field"><label>Value</label><input id="authKeyValue" placeholder="Your API key"></div>`;
+    }
+}
+
+function buildHeaders() {
+    const headers = {};
+    getKVPairs('headersList').forEach(([k, v]) => { headers[k] = v; });
+
+    const authType = document.getElementById('authType').value;
+    if (authType === 'bearer') {
+        const token = document.getElementById('authToken')?.value;
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+    } else if (authType === 'basic') {
+        const user = document.getElementById('authUser')?.value || '';
+        const pass = document.getElementById('authPass')?.value || '';
+        if (user) headers['Authorization'] = `Basic ${btoa(user + ':' + pass)}`;
+    } else if (authType === 'apikey') {
+        const name = document.getElementById('authKeyName')?.value;
+        const val = document.getElementById('authKeyValue')?.value;
+        if (name && val) headers[name] = val;
+    }
+
+    return headers;
+}
+
+function buildURL() {
+    let url = document.getElementById('urlInput').value.trim();
+    const params = getKVPairs('paramsList');
+    if (params.length > 0) {
+        const sp = new URLSearchParams();
+        params.forEach(([k, v]) => sp.append(k, v));
+        url += (url.includes('?') ? '&' : '?') + sp.toString();
+    }
+    return url;
+}
+
+function syntaxHighlightJSON(json) {
+    if (typeof json !== 'string') json = JSON.stringify(json, null, 2);
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+        let cls = 'num';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'key';
+                match = match.replace(/:$/, '');
+                return `<span class="${cls}">${match}</span>:`;
+            } else {
+                cls = 'str';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'bool';
+        } else if (/null/.test(match)) {
+            cls = 'null';
+        }
+        return `<span class="${cls}">${match}</span>`;
+    });
+}
+
+async function sendRequest() {
+    const method = document.getElementById('methodSelect').value;
+    const url = buildURL();
+    if (!url) { showToast('Please enter a URL'); return; }
+
+    const headers = buildHeaders();
+    const btn = document.getElementById('sendBtn');
+    btn.classList.add('loading');
+    btn.textContent = '...';
+
+    const options = { method, headers, mode: 'cors' };
+
+    if (!['GET', 'HEAD'].includes(method)) {
+        if (currentBodyType === 'json' || currentBodyType === 'raw') {
+            options.body = document.getElementById('bodyInput').value;
+        } else if (currentBodyType === 'form') {
+            const fd = new FormData();
+            getKVPairs('formDataList').forEach(([k, v]) => fd.append(k, v));
+            options.body = fd;
+            delete headers['Content-Type']; // Let browser set it
+        }
+    }
+
+    const startTime = performance.now();
+
+    try {
+        const response = await fetch(url, options);
+        const endTime = performance.now();
+        const duration = Math.round(endTime - startTime);
+
+        let bodyText = '';
+        try { bodyText = await response.text(); } catch(e) {}
+        lastResponse = bodyText;
+
+        const size = new Blob([bodyText]).size;
+        const statusCode = response.status;
+        const statusText = response.statusText;
+
+        // Show response
+        document.getElementById('emptyResponse').style.display = 'none';
+        document.getElementById('responseContent').style.display = 'block';
+
+        // Status
+        const statusEl = document.getElementById('respStatus');
+        statusEl.textContent = `${statusCode} ${statusText}`;
+        statusEl.className = 'meta-status';
+        if (statusCode >= 200 && statusCode < 300) statusEl.classList.add('s2xx');
+        else if (statusCode >= 300 && statusCode < 400) statusEl.classList.add('s3xx');
+        else if (statusCode >= 400 && statusCode < 500) statusEl.classList.add('s4xx');
+        else statusEl.classList.add('s5xx');
+
+        document.getElementById('respTime').textContent = `${duration}ms`;
+        document.getElementById('respSize').textContent = size > 1024 ? `${(size/1024).toFixed(1)} KB` : `${size} B`;
+
+        // Body
+        const bodyEl = document.getElementById('respBodyContent');
+        try {
+            const parsed = JSON.parse(bodyText);
+            bodyEl.innerHTML = syntaxHighlightJSON(JSON.stringify(parsed, null, 2));
+        } catch {
+            bodyEl.textContent = bodyText;
+        }
+
+        // Response headers
+        const hdrList = document.getElementById('respHeadersList');
+        hdrList.innerHTML = '';
+        response.headers.forEach((val, key) => {
+            hdrList.innerHTML += `<div class="resp-hdr-row"><span class="resp-hdr-name">${key}</span><span class="resp-hdr-val">${val}</span></div>`;
+        });
+
+        // History
+        addToHistory(method, url, statusCode, duration);
+
+    } catch (err) {
+        document.getElementById('emptyResponse').style.display = 'none';
+        document.getElementById('responseContent').style.display = 'block';
+        document.getElementById('respStatus').textContent = 'Error';
+        document.getElementById('respStatus').className = 'meta-status s5xx';
+        document.getElementById('respTime').textContent = '';
+        document.getElementById('respSize').textContent = '';
+        document.getElementById('respBodyContent').textContent = `Request failed: ${err.message}\n\nThis may be due to CORS restrictions. Try a CORS-enabled API or use a proxy.`;
+        document.getElementById('respHeadersList').innerHTML = '';
+    }
+
+    btn.classList.remove('loading');
+    btn.textContent = 'Send';
+}
+
+function addToHistory(method, url, status, time) {
+    history.unshift({ method, url, status, time });
+    if (history.length > 20) history.pop();
+    renderHistory();
+}
+
+function renderHistory() {
+    const section = document.getElementById('historySection');
+    const list = document.getElementById('historyList');
+    if (history.length === 0) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    list.innerHTML = history.map((h, i) => `
+        <div class="history-item" onclick="loadFromHistory(${i})">
+            <span class="history-method ${h.method}">${h.method}</span>
+            <span class="history-url">${h.url}</span>
+            <span class="history-status" style="color:${h.status < 300 ? 'var(--green)' : h.status < 400 ? 'var(--cyan)' : h.status < 500 ? 'var(--amber)' : 'var(--red)'}">${h.status}</span>
+            <span style="color:var(--text2);font-size:11px">${h.time}ms</span>
+        </div>
+    `).join('');
+}
+
+function loadFromHistory(idx) {
+    const h = history[idx];
+    const urlParts = h.url.split('?');
+    document.getElementById('urlInput').value = urlParts[0];
+    document.getElementById('methodSelect').value = h.method;
+    updateMethodColor();
+}
+
+function clearHistory() {
+    history = [];
+    renderHistory();
+}
+
+function copyResponse() {
+    navigator.clipboard.writeText(lastResponse).then(() => showToast('Response copied!'));
+}
+
+function copyCurl() {
+    const method = document.getElementById('methodSelect').value;
+    const url = buildURL();
+    const headers = buildHeaders();
+    let curl = `curl -X ${method}`;
+    Object.entries(headers).forEach(([k, v]) => { curl += ` \\\n  -H '${k}: ${v}'`; });
+    if (!['GET', 'HEAD'].includes(method) && currentBodyType !== 'none') {
+        const body = document.getElementById('bodyInput').value;
+        if (body) curl += ` \\\n  -d '${body.replace(/'/g, "\\'")}'`;
+    }
+    curl += ` \\\n  '${url}'`;
+    navigator.clipboard.writeText(curl).then(() => showToast('cURL copied!'));
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Handle Enter key in URL input
+document.getElementById('urlInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendRequest();
+});
+
+// Init
+updateMethodColor();
+updateBadges();
+updateAuthFields();
+</script>
+<script defer src="/free-tools/js/revenue.js"></script>
+<script defer src="/free-tools/js/lead-capture.js"></script>
+<script defer src="/free-tools/js/analytics-lite.js"></script>
+</body>
+</html>
