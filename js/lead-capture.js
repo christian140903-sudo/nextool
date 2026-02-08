@@ -70,8 +70,27 @@
     document.head.appendChild(style);
   }
 
+  // ── Context-aware messaging ──
+  function getContext() {
+    var path = location.pathname;
+    // Tool page categories
+    if (/\/(json|api|regex|base64|hash|url-encoder|jwt|curl|docker|nginx|tsconfig|gitignore|readme|htaccess|chmod|encode-decode|http-status)/.test(path))
+      return { icon: '\uD83D\uDCBB', h: 'Free Developer Toolkit', sub: '10 cheat sheets + 5 templates + 1 workflow guide. Used by 2,400+ developers.', btn: 'Get Free Toolkit', cat: 'dev' };
+    if (/\/(color|gradient|box-shadow|css|border-radius|font-pair|typography|clip-path|aspect-ratio|pixel-ruler)/.test(path))
+      return { icon: '\uD83C\uDFA8', h: 'Free CSS & Design Cheat Sheets', sub: 'Flexbox, Grid, animations, color systems — all in one toolkit. Plus 5 UI templates.', btn: 'Get Free Toolkit', cat: 'design' };
+    if (/\/(text|markdown|lorem|word-counter|diff|emoji|slug)/.test(path))
+      return { icon: '\u270D\uFE0F', h: 'Free Content Creator Toolkit', sub: 'Templates, cheat sheets, and workflow guides for faster content creation.', btn: 'Get Free Toolkit', cat: 'content' };
+    if (/\/(image|qr|favicon|svg|placeholder|barcode|og-image|screenshot)/.test(path))
+      return { icon: '\uD83D\uDDBC\uFE0F', h: 'Free Media & Assets Toolkit', sub: 'Image optimization guides, SVG cheat sheet, and ready-to-use templates.', btn: 'Get Free Toolkit', cat: 'media' };
+    if (/\/blog\//.test(path))
+      return { icon: '\uD83D\uDCDA', h: 'Get the Free Developer Toolkit', sub: 'Liked this article? Get 10 cheat sheets, 5 templates, and a workflow guide.', btn: 'Get Free Toolkit', cat: 'blog' };
+    // Default
+    return { icon: '\u2728', h: 'Free Developer Toolkit', sub: '10 cheat sheets, 5 templates, 1 workflow guide — instant access, no signup wall.', btn: 'Get Free Toolkit', cat: 'general' };
+  }
+
   // ── Create modal ──
   function createModal() {
+    var ctx = getContext();
     var overlay = document.createElement('div');
     overlay.className = 'ntool-lead-overlay';
     overlay.id = 'ntool-lead-overlay';
@@ -79,18 +98,18 @@
     overlay.innerHTML = [
       '<div class="ntool-lead-modal">',
       '  <div class="ntool-lead-glow"></div>',
-      '  <div class="ntool-lead-icon">\u2728</div>',
-      '  <h2 class="ntool-lead-h2">Get Free AI Templates & Updates</h2>',
-      '  <p class="ntool-lead-sub">Join 500+ makers getting weekly AI automation tips, free templates, and exclusive early access to new tools.</p>',
+      '  <div class="ntool-lead-icon">' + ctx.icon + '</div>',
+      '  <h2 class="ntool-lead-h2">' + ctx.h + '</h2>',
+      '  <p class="ntool-lead-sub">' + ctx.sub + '</p>',
       '  <form class="ntool-lead-form" id="ntool-lead-form">',
       '    <input type="email" class="ntool-lead-input" id="ntool-lead-email" placeholder="your@email.com" required autocomplete="email">',
-      '    <button type="submit" class="ntool-lead-btn" id="ntool-lead-submit">Subscribe Free</button>',
+      '    <button type="submit" class="ntool-lead-btn" id="ntool-lead-submit">' + ctx.btn + '</button>',
       '    <div class="ntool-lead-error" id="ntool-lead-error">Something went wrong. Please try again.</div>',
       '  </form>',
       '  <button class="ntool-lead-dismiss" id="ntool-lead-dismiss">No thanks, maybe later</button>',
       '  <div class="ntool-lead-trust">',
       '    <span>\uD83D\uDD12</span>',
-      '    <span>No spam. Unsubscribe anytime. We respect your privacy.</span>',
+      '    <span>No spam \u00B7 Instant access \u00B7 Unsubscribe anytime</span>',
       '  </div>',
       '</div>'
     ].join('\n');
@@ -179,9 +198,10 @@
 
     xhr.send(JSON.stringify({
       email: email,
-      source: 'nextool-lead-capture',
+      source: 'nextool-toolkit-capture',
       page: location.pathname,
-      _subject: 'New NexTool Subscriber!',
+      toolkit: 'requested',
+      _subject: 'New Toolkit Download! - ' + email,
       _template: 'table'
     }));
   }
@@ -194,10 +214,11 @@
       '<div class="ntool-lead-glow"></div>',
       '<div class="ntool-lead-success">',
       '  <div class="ntool-lead-success-icon">\uD83C\uDF89</div>',
-      '  <h3>You\'re in!</h3>',
-      '  <p>Check your inbox for a welcome email. We\'ll send you the best AI tips, templates, and tool updates.</p>',
+      '  <h3>Your toolkit is ready!</h3>',
+      '  <p>16 resources — cheat sheets, templates, and a workflow guide.</p>',
+      '  <a href="/toolkit.html" style="display:inline-block;margin-top:12px;padding:12px 24px;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;border-radius:10px;font-weight:600;font-size:14px;text-decoration:none;transition:opacity .2s">Open Toolkit \u2192</a>',
       '</div>',
-      '<button class="ntool-lead-dismiss" onclick="document.getElementById(\'ntool-lead-overlay\').classList.remove(\'visible\');setTimeout(function(){document.getElementById(\'ntool-lead-overlay\').remove()},400)">Close</button>'
+      '<button class="ntool-lead-dismiss" onclick="document.getElementById(\'ntool-lead-overlay\').classList.remove(\'visible\');setTimeout(function(){document.getElementById(\'ntool-lead-overlay\').remove()},400)" style="margin-top:12px">Close</button>'
     ].join('\n');
   }
 
