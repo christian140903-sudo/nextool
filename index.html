@@ -117,6 +117,74 @@
             color: var(--white);
         }
 
+        /* ====== COMMAND PALETTE ====== */
+        .cmd-palette-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 9999; display: flex; align-items: flex-start; justify-content: center;
+            padding-top: min(20vh, 160px); opacity: 0; pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .cmd-palette-overlay.open { opacity: 1; pointer-events: all; }
+        .cmd-palette {
+            width: 90%; max-width: 600px;
+            background: var(--surface); border: 1px solid rgba(99,102,241,0.15);
+            border-radius: var(--radius); overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.08);
+            transform: translateY(-10px) scale(0.98); transition: transform 0.2s ease;
+        }
+        .cmd-palette-overlay.open .cmd-palette { transform: translateY(0) scale(1); }
+        .cmd-search-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .cmd-search-icon { width: 20px; height: 20px; stroke: var(--text-muted); flex-shrink: 0; }
+        .cmd-input {
+            flex: 1; background: none; border: none; outline: none;
+            color: var(--white); font-size: 16px; font-family: inherit; font-weight: 400;
+        }
+        .cmd-input::placeholder { color: var(--text-dim); }
+        .cmd-esc {
+            font-size: 11px; padding: 2px 6px; background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
+            color: var(--text-dim); font-family: inherit;
+        }
+        .cmd-results {
+            max-height: 320px; overflow-y: auto; padding: 8px;
+            scrollbar-width: thin; scrollbar-color: rgba(99,102,241,0.3) transparent;
+        }
+        .cmd-results::-webkit-scrollbar { width: 4px; }
+        .cmd-results::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 2px; }
+        .cmd-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; border-radius: var(--radius-sm);
+            cursor: pointer; transition: background 0.1s;
+        }
+        .cmd-item:hover, .cmd-item.active { background: rgba(99,102,241,0.1); }
+        .cmd-item-icon {
+            width: 36px; height: 36px; border-radius: 10px; display: flex;
+            align-items: center; justify-content: center; font-size: 18px;
+            background: rgba(99,102,241,0.08); flex-shrink: 0;
+        }
+        .cmd-item-text { flex: 1; min-width: 0; }
+        .cmd-item-title { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cmd-item-desc { font-size: 12px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cmd-item-badge {
+            font-size: 10px; padding: 2px 8px; border-radius: 999px;
+            background: rgba(99,102,241,0.12); color: var(--primary-light); white-space: nowrap;
+        }
+        .cmd-footer {
+            display: flex; gap: 16px; padding: 10px 20px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            font-size: 11px; color: var(--text-dim);
+        }
+        .cmd-footer kbd {
+            font-size: 10px; padding: 1px 4px; background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 3px;
+            font-family: inherit; margin: 0 2px;
+        }
+        .cmd-empty { text-align: center; padding: 24px; color: var(--text-dim); font-size: 14px; }
+
         /* ====== PRELOADER ====== */
         #preloader {
             position: fixed;
@@ -6549,6 +6617,23 @@
         </svg>
     </button>
 
+    <!-- COMMAND PALETTE (Cmd+K / Ctrl+K) -->
+    <div class="cmd-palette-overlay" id="cmdPalette" role="dialog" aria-label="Command palette" aria-modal="true">
+        <div class="cmd-palette">
+            <div class="cmd-search-row">
+                <svg class="cmd-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <input type="text" class="cmd-input" id="cmdInput" placeholder="Search sections, services, actions..." autocomplete="off" spellcheck="false" aria-label="Search command palette">
+                <kbd class="cmd-esc">ESC</kbd>
+            </div>
+            <div class="cmd-results" id="cmdResults" role="listbox"></div>
+            <div class="cmd-footer">
+                <span><kbd>&#x2191;</kbd><kbd>&#x2193;</kbd> navigate</span>
+                <span><kbd>&#x21B5;</kbd> select</span>
+                <span><kbd>esc</kbd> close</span>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPTS -->
     <!-- Particle system uses Canvas 2D — no external dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -9834,7 +9919,6 @@
             initKeyboardNav();
             initFloatingChat();
             /* Particle system replaces enhanced hero — no Three.js needed */
-            initAuroraGlow();
             initClickRipples();
             initSectionColorJourney();
         }
@@ -9846,45 +9930,154 @@
         }
 
 
-        /* === MOUSE-REACTIVE AURORA GLOW === */
-        function initAuroraGlow() {
-            var aurora = document.getElementById('heroAurora');
-            if (!aurora || isTouch) return;
+        /* === COMMAND PALETTE === */
+        (function initCommandPalette() {
+            var overlay = document.getElementById('cmdPalette');
+            var input = document.getElementById('cmdInput');
+            var results = document.getElementById('cmdResults');
+            if (!overlay || !input || !results) return;
 
-            var layers = aurora.querySelectorAll('.hero-aurora-layer');
-            var targetX = 0, targetY = 0, currentX = 0, currentY = 0;
+            var items = [
+                { title: 'Services', desc: 'View all 6 AI services', icon: '\u2699\uFE0F', target: '#services', type: 'section' },
+                { title: 'Automations', desc: 'Explore 53+ automation templates', icon: '\u26A1', target: '#automation-explorer', type: 'section' },
+                { title: 'Live Build Demo', desc: 'Watch AI build a project live', icon: '\uD83C\uDFAC', target: '#live-build', type: 'section' },
+                { title: 'Website Generator', desc: 'Interactive live code preview', icon: '\uD83D\uDCBB', target: '#demo', type: 'section' },
+                { title: 'AI Systems', desc: 'Revenue, Intelligence, Memory, Workflow', icon: '\uD83E\uDDE0', target: '#ai-systems', type: 'section' },
+                { title: 'AI Playground', desc: 'Interactive demos and knowledge graph', icon: '\uD83C\uDFAE', target: '/ai-playground.html', type: 'page' },
+                { title: 'Pricing', desc: 'Plans starting at $5', icon: '\uD83D\uDCB0', target: '#pricing', type: 'section' },
+                { title: 'How It Works', desc: '4-step process from idea to delivery', icon: '\uD83D\uDCA1', target: '#process', type: 'section' },
+                { title: 'Project Configurator', desc: 'Build your custom project', icon: '\uD83D\uDD27', target: '#configurator', type: 'section' },
+                { title: 'About NexTool', desc: 'Our story and mission', icon: '\uD83D\uDCD6', target: '#about-story', type: 'section' },
+                { title: 'FAQ', desc: 'Frequently asked questions', icon: '\u2753', target: '#faq', type: 'section' },
+                { title: 'Contact', desc: 'Send us a project brief', icon: '\uD83D\uDCE9', target: '#contact', type: 'section' },
+                { title: 'Start a Project', desc: 'Open checkout modal', icon: '\uD83D\uDE80', target: 'checkout', type: 'action' },
+                { title: 'Custom Website', desc: 'From $5 — responsive sites', icon: '\uD83C\uDF10', target: '#services', type: 'service' },
+                { title: 'AI Chatbot', desc: 'From $5 — intelligent bots', icon: '\uD83E\uDD16', target: '#services', type: 'service' },
+                { title: 'Automation Workflow', desc: 'From $5 — n8n, Zapier alternatives', icon: '\u2699\uFE0F', target: '#services', type: 'service' },
+                { title: 'Content Creation', desc: 'From $5 — AI-powered content', icon: '\u270D\uFE0F', target: '#services', type: 'service' },
+                { title: 'Video Production', desc: 'From $49 — AI video editing', icon: '\uD83C\uDFA5', target: '#services', type: 'service' },
+                { title: 'Data Solutions', desc: 'From $5 — scraping, analysis', icon: '\uD83D\uDCCA', target: '#services', type: 'service' },
+                { title: 'Testimonials', desc: 'What people are saying', icon: '\u2B50', target: '#testimonials', type: 'section' },
+                { title: 'Use Cases', desc: 'Real-world examples', icon: '\uD83D\uDCCB', target: '#use-cases', type: 'section' },
+            ];
 
-            document.addEventListener('mousemove', function(e) {
-                var cx = (e.clientX / window.innerWidth - 0.5) * 2;
-                var cy = (e.clientY / window.innerHeight - 0.5) * 2;
-                targetX = cx * 30;
-                targetY = cy * 20;
-            });
+            var activeIdx = 0;
+            var filtered = items;
 
-            var heroVisible = true;
-            var heroSection = document.getElementById('hero');
-            if (heroSection) {
-                var obs = new IntersectionObserver(function(entries) {
-                    heroVisible = entries[0].isIntersecting;
-                }, { threshold: 0 });
-                obs.observe(heroSection);
-            }
-
-            function animate() {
-                requestAnimationFrame(animate);
-                if (!heroVisible) return;
-
-                currentX += (targetX - currentX) * 0.02;
-                currentY += (targetY - currentY) * 0.02;
-
-                layers.forEach(function(layer, i) {
-                    var factor = 0.3 + i * 0.15;
-                    layer.style.marginLeft = (currentX * factor) + 'px';
-                    layer.style.marginTop = (currentY * factor) + 'px';
+            function renderResults(list) {
+                if (list.length === 0) {
+                    results.innerHTML = '<div class="cmd-empty">No results found</div>';
+                    return;
+                }
+                results.innerHTML = '';
+                list.forEach(function(item, i) {
+                    var div = document.createElement('div');
+                    div.className = 'cmd-item' + (i === activeIdx ? ' active' : '');
+                    div.setAttribute('role', 'option');
+                    div.innerHTML = '<div class="cmd-item-icon">' + item.icon + '</div>' +
+                        '<div class="cmd-item-text"><div class="cmd-item-title">' + item.title + '</div>' +
+                        '<div class="cmd-item-desc">' + item.desc + '</div></div>' +
+                        '<span class="cmd-item-badge">' + item.type + '</span>';
+                    div.addEventListener('click', function() { selectItem(item); });
+                    div.addEventListener('mouseenter', function() {
+                        activeIdx = i;
+                        updateActive();
+                    });
+                    results.appendChild(div);
                 });
             }
-            animate();
-        }
+
+            function updateActive() {
+                var items = results.querySelectorAll('.cmd-item');
+                items.forEach(function(el, i) {
+                    el.classList.toggle('active', i === activeIdx);
+                    if (i === activeIdx) el.scrollIntoView({ block: 'nearest' });
+                });
+            }
+
+            function selectItem(item) {
+                closePalette();
+                if (item.type === 'action') {
+                    if (item.target === 'checkout' && window.NTCheckout) {
+                        window.NTCheckout.open('Custom Project', 'from $5', 'automation');
+                    }
+                } else if (item.type === 'page') {
+                    window.location.href = item.target;
+                } else {
+                    var el = document.querySelector(item.target);
+                    if (el) {
+                        if (typeof lenis !== 'undefined' && lenis) {
+                            lenis.scrollTo(el, { offset: -80 });
+                        } else {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                }
+            }
+
+            function openPalette() {
+                overlay.classList.add('open');
+                input.value = '';
+                activeIdx = 0;
+                filtered = items;
+                renderResults(filtered);
+                setTimeout(function() { input.focus(); }, 50);
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closePalette() {
+                overlay.classList.remove('open');
+                input.value = '';
+                document.body.style.overflow = '';
+            }
+
+            function fuzzyMatch(query, text) {
+                var q = query.toLowerCase();
+                var t = text.toLowerCase();
+                return t.indexOf(q) !== -1;
+            }
+
+            input.addEventListener('input', function() {
+                var q = input.value.trim();
+                if (!q) { filtered = items; } else {
+                    filtered = items.filter(function(item) {
+                        return fuzzyMatch(q, item.title) || fuzzyMatch(q, item.desc) || fuzzyMatch(q, item.type);
+                    });
+                }
+                activeIdx = 0;
+                renderResults(filtered);
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeIdx = Math.min(activeIdx + 1, filtered.length - 1);
+                    updateActive();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeIdx = Math.max(activeIdx - 1, 0);
+                    updateActive();
+                } else if (e.key === 'Enter' && filtered[activeIdx]) {
+                    e.preventDefault();
+                    selectItem(filtered[activeIdx]);
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                    e.preventDefault();
+                    if (overlay.classList.contains('open')) closePalette();
+                    else openPalette();
+                }
+                if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                    closePalette();
+                }
+            });
+
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) closePalette();
+            });
+        })();
 
 
         /* === CLICK RIPPLE EFFECT === */
