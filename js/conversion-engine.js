@@ -13,7 +13,7 @@
 var P = 'ntce_';
 var CITIES = ['Berlin','Munich','London','New York','San Francisco','Tokyo','Paris','Sydney','Toronto','Amsterdam','Stockholm','Dubai','Singapore','Barcelona','Vienna','Zurich','Copenhagen','Milan','Dublin','Austin','Seoul','Los Angeles','Chicago','Denver','Portland'];
 var TOOL_NAMES = ['JSON Formatter','Color Palette Generator','QR Code Generator','Password Generator','Regex Tester','Image Compressor','CSS Gradient Generator','Markdown Preview','Unit Converter','Hash Generator','Base64 Encoder','Text Analyzer','Box Shadow Generator','SVG Optimizer','Diff Checker','Lorem Ipsum Generator','Crontab Generator','Favicon Generator','Aspect Ratio Calculator','Color Converter'];
-var BUNDLE_URL = '/products/ultimate-bundle.html';
+var BUNDLE_URL = '/pro.html';
 var CONTACT_URL = '/#contact';
 
 function st(k,v){try{localStorage.setItem(P+k,JSON.stringify(v))}catch(e){}}
@@ -33,9 +33,9 @@ function stickyBar() {
   bar.id = 'ntce-bar';
   bar.innerHTML = '<div class="ntce-bi">' +
     '<span class="ntce-bic">\u26A1</span>' +
-    '<span class="ntce-bit"><strong>NexTool Ultimate Bundle</strong> \u2014 Website Kit + Automation + Content Toolkit</span>' +
+    '<span class="ntce-bit"><strong>NexTool Pro</strong> \u2014 Templates + Workflows + AI Prompts</span>' +
     '<span class="ntce-bis"><s style="color:#666">$62</s></span>' +
-    '<a href="' + BUNDLE_URL + '" class="ntce-bib">$39 \u2014 Save 37%</a>' +
+    '<a href="' + BUNDLE_URL + '" class="ntce-bib">$29 \u2014 Save 53%</a>' +
     '<button class="ntce-bix" aria-label="Close">\u00D7</button>' +
     '</div>';
   document.body.appendChild(bar);
