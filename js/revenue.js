@@ -60,4 +60,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 setTimeout(banner,BD);
 window.addEventListener('beforeunload',trackTime)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+/* Load conversion engine */
+var ce=document.createElement('script');ce.src='/js/conversion-engine.js';ce.defer=true;document.head.appendChild(ce);
 })();
