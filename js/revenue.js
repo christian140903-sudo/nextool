@@ -6,6 +6,8 @@
  */
 (function(){
 'use strict';
+// Pro users get a clean experience — skip all upgrade UI
+if(window.NexToolPro&&window.NexToolPro.active)return;
 var P='ntool_rev_',D=864e5,BD=3e4,PU=3,EU='/pro.html',UU='/pro.html';
 // Compact catalog: [slug,displayName,category] — category: d=dev,g=design,t=text,m=media,c=converter,u=utility
 var T='qr-generator:QR Code Generator:m,password-generator:Password Generator:u,json-formatter:JSON Formatter:d,color-palette:Color Palette Generator:g,gradient-generator:CSS Gradient Generator:g,text-analyzer:Text Analyzer:t,base64:Base64 Encoder/Decoder:d,regex-tester:Regex Tester:d,markdown-preview:Markdown Preview:t,image-compressor:Image Compressor:m,unit-converter:Unit Converter:c,lorem-generator:Lorem Ipsum Generator:t,css-formatter:CSS Beautifier:d,hash-generator:Hash Generator:d,timestamp-converter:Timestamp Converter:c,diff-checker:Diff Checker:d,emoji-picker:Emoji Picker:t,meta-tag-generator:Meta Tag Generator:d,favicon-generator:Favicon Generator:m,box-shadow-generator:Box Shadow Generator:g,pomodoro-timer:Pomodoro Timer:u,markdown-table:Markdown Table Generator:t,color-converter:Color Converter:g,placeholder-image:Placeholder Image:m,svg-optimizer:SVG Optimizer:m,aspect-ratio-calculator:Aspect Ratio Calculator:g,crontab-generator:Crontab Generator:d,json-to-csv:JSON to CSV:c,html-to-markdown:HTML to Markdown:c,chmod-calculator:chmod Calculator:d,ip-info:IP Address Info:u,noise-generator:Noise Generator:u,url-encoder:URL Encoder/Decoder:d,text-diff-merger:Text Diff & Merger:t,yaml-json:YAML/JSON Converter:c,pixel-ruler:Pixel Ruler:g'.split(',').map(function(s){var p=s.split(':');return{s:p[0],n:p[1],c:p[2]};});
@@ -25,8 +27,8 @@ var pw=vc()>=PU,bt=pw?'power':'std';
 if(dd(bt))return;
 var b=document.createElement('div');b.className='nrb'+(pw?' nrp':'');b.id='nrb';
 var h='<div class="nrbi"><div class="ni">'+(pw?'\u26A1':'\u2728')+'</div><div class="nt">';
-if(pw)h+='<div class="nb">Power User</div><strong>You\'ve explored '+vc()+' tools!</strong> Get website templates, automation workflows &amp; 100+ AI prompts \u2014 <strong>$29 one-time</strong>';
-else h+='Love this tool? Get <strong>templates, workflows &amp; AI prompts</strong> \u2014 <strong>NexTool Pro $29</strong>';
+if(pw)h+='<div class="nb">Power User</div><strong>You\'ve explored '+vc()+' tools!</strong> Go Pro \u2014 no banners, clean output, enhanced features \u2014 <strong>$29 one-time</strong>';
+else h+='Love this tool? <strong>NexTool Pro</strong> \u2014 distraction-free, enhanced features \u2014 <strong>$29</strong>';
 h+='</div><a href="'+EU+'" class="nc">'+(pw?'See NexTool Pro':'Get Pro \u2014 $29')+'</a><button class="nx" aria-label="Dismiss">\u00D7</button></div>';
 b.innerHTML=h;document.body.appendChild(b);
 requestAnimationFrame(function(){requestAnimationFrame(function(){b.classList.add('v')})});
@@ -60,7 +62,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 setTimeout(banner,BD);
 window.addEventListener('beforeunload',trackTime)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-/* Load conversion engine + pro mode + pro features */
+/* Load pro-check first (sync), then conversion engine + pro mode + pro features */
+var pc=document.createElement('script');pc.src='/js/pro-check.js';document.head.appendChild(pc);
 var ce=document.createElement('script');ce.src='/js/conversion-engine.js';ce.defer=true;document.head.appendChild(ce);
 var pm=document.createElement('script');pm.src='/js/pro-mode.js';pm.defer=true;document.head.appendChild(pm);
 var pf=document.createElement('script');pf.src='/js/pro-features.js';pf.defer=true;document.head.appendChild(pf);

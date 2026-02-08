@@ -10,6 +10,9 @@
 (function(){
 'use strict';
 
+// Pro users: skip all upgrade prompts entirely
+if(window.NexToolPro&&window.NexToolPro.active)return;
+
 var P = 'ntpm_';
 var PRO_URL = '/pro.html';
 var DAY_MS = 864e5;
@@ -65,7 +68,7 @@ function showGentlePrompt() {
   bar.innerHTML =
     '<div class="ntpm-gi">' +
     '<span class="ntpm-ic">\u2728</span>' +
-    '<span class="ntpm-gt">Enjoying this tool? <strong>NexTool Pro</strong> gives you website templates, automation workflows &amp; 100+ AI prompts &mdash; <strong>$29 one-time</strong></span>' +
+    '<span class="ntpm-gt">Enjoying this tool? <strong>NexTool Pro</strong> removes all banners, unlocks enhanced features &amp; clean output &mdash; <strong>$29 one-time</strong></span>' +
     '<a href="' + PRO_URL + '" class="ntpm-gb">Learn More</a>' +
     '<button class="ntpm-gx" aria-label="Dismiss">\u00D7</button>' +
     '</div>';
@@ -94,8 +97,8 @@ function showStrongPrompt() {
     '<button class="ntpm-sx" aria-label="Close">\u00D7</button>' +
     '<div class="ntpm-sic">\uD83D\uDE80</div>' +
     '<div class="ntpm-st">You\'ve used NexTool <strong>' + total + ' times</strong></div>' +
-    '<div class="ntpm-sd">You clearly love our tools. NexTool Pro unlocks templates, workflows &amp; prompts to 10x your productivity.</div>' +
-    '<div class="ntpm-sp"><s style="color:#666">$62</s> <strong style="color:#fff;font-size:24px">$29</strong> <span style="color:#22c55e;font-size:13px">save 53%</span></div>' +
+    '<div class="ntpm-sd">You clearly love our tools. NexTool Pro gives you a distraction-free experience with enhanced features and clean output.</div>' +
+    '<div class="ntpm-sp"><s style="color:#666">$49</s> <strong style="color:#fff;font-size:24px">$29</strong> <span style="color:#22c55e;font-size:13px">Founding Member Price</span></div>' +
     '<a href="' + PRO_URL + '" class="ntpm-sb">See What\'s Included \u2192</a>' +
     '<button class="ntpm-sn">Maybe later</button>' +
     '</div>';

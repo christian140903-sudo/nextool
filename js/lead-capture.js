@@ -8,6 +8,9 @@
 (function () {
   'use strict';
 
+  // Pro users: skip lead capture entirely
+  if(window.NexToolPro&&window.NexToolPro.active)return;
+
   var STORAGE_PREFIX = 'ntool_lead_';
   var SHOW_DELAY = 60000; // 60 seconds
   var FORM_ENDPOINT = 'https://formsubmit.co/ajax/christianjunbucher@gmail.com';

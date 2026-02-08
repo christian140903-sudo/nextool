@@ -197,7 +197,7 @@
       '  </div>',
       '  <div class="ntpf-cta">',
       '    <a href="' + PRO_URL + '" class="ntpf-btn">Get NexTool Pro \u2192</a>',
-      '    <p class="ntpf-price"><s>$62</s> <strong>$29</strong> \u2014 one-time payment</p>',
+      '    <p class="ntpf-price"><s>$49</s> <strong>$29</strong> \u2014 Founding Member Price</p>',
       '  </div>',
       '</div>'
     ].join('\n');
@@ -206,6 +206,8 @@
   }
 
   function inject() {
+    // Pro users don't see locked feature teasers
+    if(window.NexToolPro&&window.NexToolPro.active)return;
     var slug = getSlug();
     if (!slug || !FEATURES[slug]) return;
 
