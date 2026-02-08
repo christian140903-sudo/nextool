@@ -9954,6 +9954,59 @@
             });
         }
 
+        /* === TEXT SCRAMBLE EFFECT FOR SECTION TITLES === */
+        function initTextScramble() {
+            if (prefersReducedMotion) return;
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&';
+            var titles = document.querySelectorAll('.section-title[id]');
+
+            if (!('IntersectionObserver' in window) || !titles.length) return;
+
+            titles.forEach(function(title) {
+                title.setAttribute('data-original', title.textContent);
+            });
+
+            var scrambleObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting) return;
+                    var el = entry.target;
+                    if (el.getAttribute('data-scrambled')) return;
+                    el.setAttribute('data-scrambled', '1');
+                    scrambleObserver.unobserve(el);
+
+                    var original = el.getAttribute('data-original');
+                    var length = original.length;
+                    var duration = 600;
+                    var startTime = performance.now();
+
+                    function step(now) {
+                        var elapsed = now - startTime;
+                        var progress = Math.min(elapsed / duration, 1);
+                        var revealed = Math.floor(progress * length);
+                        var result = '';
+                        for (var i = 0; i < length; i++) {
+                            if (i < revealed) {
+                                result += original[i];
+                            } else if (original[i] === ' ') {
+                                result += ' ';
+                            } else {
+                                result += chars[Math.floor(Math.random() * chars.length)];
+                            }
+                        }
+                        el.textContent = result;
+                        if (progress < 1) {
+                            requestAnimationFrame(step);
+                        } else {
+                            el.textContent = original;
+                        }
+                    }
+                    requestAnimationFrame(step);
+                });
+            }, { threshold: 0.5 });
+
+            titles.forEach(function(title) { scrambleObserver.observe(title); });
+        }
+
         /* === SCROLL REVEAL SYSTEM === */
         function initScrollReveal() {
             if (prefersReducedMotion) return;
@@ -9987,6 +10040,7 @@
 
         function initNewFeatures() {
             initScrollReveal();
+            initTextScramble();
             initPricingCalculator();
             initTestimonialCarousel();
             initSoundSystem();
