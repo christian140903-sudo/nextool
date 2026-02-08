@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flexbox Playground - Free Tool | NexTool</title>
+    <meta name="description" content="Visual flexbox CSS playground. Configure container and item properties with live preview. Generate clean CSS code instantly.">
+    <meta name="keywords" content="flexbox playground, css flexbox, flexbox generator, css layout, flex container">
+    <meta property="og:title" content="Flexbox Playground - NexTool Free Tools">
+    <meta property="og:description" content="Visual flexbox CSS playground with live preview. Free online tool.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/flexbox-playground.html">
+    <meta property="og:image" content="https://nextool.app/og/flexbox-playground.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://nextool.app/free-tools/flexbox-playground.html">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app/"},
+            {"@type": "ListItem", "position": 2, "name": "Free Tools", "item": "https://nextool.app/free-tools/"},
+            {"@type": "ListItem", "position": 3, "name": "Flexbox Playground", "item": "https://nextool.app/free-tools/flexbox-playground.html"}
+        ]
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #050508; --surface: #111118; --surface2: #1a1a24; --surface3: #22222e;
+            --primary: #6366f1; --accent: #a855f7; --pink: #ec4899;
+            --tool: #f59e0b; --tool-dim: rgba(245, 158, 11, 0.12); --tool-glow: rgba(245, 158, 11, 0.25);
+            --text: #e2e8f0; --text2: #94a3b8; --radius: 16px;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        a { color: inherit; text-decoration: none; }
+
+        /* NAV */
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(5,5,8,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(99,102,241,0.1); }
+        .nav-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 28px; align-items: center; }
+        .nav-links a { font-size: 14px; color: var(--text2); transition: color 0.2s; font-weight: 500; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+        .nav-hamburger span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: 0.3s; }
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; background: rgba(5,5,8,0.97); flex-direction: column; padding: 20px 24px; gap: 16px; border-bottom: 1px solid rgba(99,102,241,0.1); }
+            .nav-links.open { display: flex; }
+            .nav-hamburger { display: flex; }
+        }
+
+        /* HERO */
+        .hero { padding: 120px 24px 50px; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; background: radial-gradient(ellipse, rgba(245,158,11,0.08), transparent 70%); pointer-events: none; }
+        .breadcrumb { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+        .breadcrumb a:hover { color: var(--tool); }
+        .breadcrumb .sep { opacity: 0.4; }
+        .hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+        .hero h1 .grad { background: linear-gradient(135deg, var(--tool), #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 18px; color: var(--text2); max-width: 600px; margin: 0 auto; line-height: 1.6; }
+
+        /* TOOL LAYOUT */
+        .tool-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
+        .tool-grid { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+        @media (max-width: 900px) { .tool-grid { grid-template-columns: 1fr; } }
+
+        /* CONTROLS PANEL */
+        .controls { background: var(--surface); border: 1px solid rgba(245,158,11,0.15); border-radius: var(--radius); overflow: hidden; }
+        .ctrl-section { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .ctrl-section:last-child { border-bottom: none; }
+        .ctrl-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--tool); margin-bottom: 14px; }
+        .ctrl-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+        .ctrl-row:last-child { margin-bottom: 0; }
+        .ctrl-label { font-size: 12px; color: var(--text2); font-weight: 600; }
+        .ctrl-select { background: var(--surface2); color: var(--text); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 10px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; width: 100%; transition: border-color 0.2s; cursor: pointer; }
+        .ctrl-select:focus { border-color: var(--tool); }
+        .ctrl-range-wrap { display: flex; align-items: center; gap: 10px; }
+        .ctrl-range { flex: 1; -webkit-appearance: none; background: var(--surface2); height: 6px; border-radius: 3px; outline: none; }
+        .ctrl-range::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--tool); cursor: pointer; border: 2px solid var(--bg); }
+        .ctrl-range-val { font-size: 12px; color: var(--tool); font-weight: 700; min-width: 28px; text-align: right; }
+
+        /* PREVIEW PANEL */
+        .preview-panel { background: var(--surface); border: 1px solid rgba(245,158,11,0.15); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+        .preview-header { padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; background: var(--surface2); }
+        .preview-header h2 { font-size: 14px; font-weight: 700; color: var(--tool); }
+        .preview-actions { display: flex; gap: 8px; }
+        .btn { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+        .btn-primary { background: var(--tool); color: #000; }
+        .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+        .btn-ghost { background: rgba(245,158,11,0.1); color: var(--tool); border: 1px solid rgba(245,158,11,0.2); }
+        .btn-ghost:hover { background: rgba(245,158,11,0.2); }
+        .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 6px; }
+
+        .preview-area { flex: 1; padding: 24px; min-height: 350px; display: flex; align-items: stretch; }
+        .flex-container { width: 100%; min-height: 300px; background: var(--surface2); border: 2px dashed rgba(245,158,11,0.3); border-radius: 12px; padding: 12px; transition: all 0.3s; position: relative; }
+        .flex-item { border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #000; min-width: 50px; min-height: 50px; cursor: pointer; transition: all 0.2s; position: relative; user-select: none; }
+        .flex-item:hover { filter: brightness(1.1); transform: scale(1.03); }
+        .flex-item.selected { outline: 3px solid #fff; outline-offset: 2px; }
+        .item-colors { --c1: #f59e0b; --c2: #6366f1; --c3: #ec4899; --c4: #22c55e; --c5: #06b6d4; --c6: #ef4444; }
+
+        /* CODE OUTPUT */
+        .code-panel { margin-top: 20px; background: var(--surface); border: 1px solid rgba(245,158,11,0.15); border-radius: var(--radius); overflow: hidden; }
+        .code-header { padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; background: var(--surface2); }
+        .code-header h3 { font-size: 13px; font-weight: 700; color: var(--text2); }
+        .code-tabs { display: flex; gap: 4px; }
+        .code-tab { padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text2); font-family: 'Inter', sans-serif; transition: 0.2s; }
+        .code-tab.active { background: var(--tool); color: #000; }
+        .code-output { padding: 20px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.7; color: var(--tool); white-space: pre-wrap; max-height: 250px; overflow: auto; }
+        .code-output .keyword { color: var(--accent); }
+        .code-output .prop { color: var(--text2); }
+        .code-output .val { color: var(--tool); }
+
+        /* ITEM EDITOR */
+        .item-editor { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.05); display: none; }
+        .item-editor.show { display: block; }
+        .item-editor-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--pink); margin-bottom: 12px; }
+        .item-ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 500px) { .item-ctrl-grid { grid-template-columns: 1fr; } }
+
+        /* MORE TOOLS */
+        .more-tools { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
+        .more-tools h2 { font-size: 28px; font-weight: 800; margin-bottom: 32px; text-align: center; }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+        .tool-link { background: var(--surface); border: 1px solid rgba(99,102,241,0.1); border-radius: var(--radius); padding: 24px; transition: all 0.3s; display: block; }
+        .tool-link:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(99,102,241,0.1); }
+        .tool-link .icon { font-size: 28px; margin-bottom: 12px; }
+        .tool-link h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .tool-link p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+        /* FOOTER */
+        .footer { border-top: 1px solid rgba(99,102,241,0.1); padding: 40px 24px; text-align: center; }
+        .footer-brand { font-size: 18px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .footer p { font-size: 13px; color: var(--text2); }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--tool); color: #000; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all 0.3s; z-index: 999; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-logo">NexTool</a>
+        <div class="nav-links" id="navLinks">
+            <a href="/">Home</a>
+            <a href="/free-tools/">Tools</a>
+            <a href="/services/">Services</a>
+            <a href="/blog/">Blog</a>
+            <a href="/products/">Products</a>
+            <a href="/pricing/">Pricing</a>
+            <a href="/extension.html">Extension</a>
+        </div>
+        <button class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="breadcrumb">
+        <a href="/">Home</a><span class="sep">/</span>
+        <a href="/free-tools/">Free Tools</a><span class="sep">/</span>
+        <span>Flexbox Playground</span>
+    </div>
+    <h1><span class="grad">Flexbox</span> Playground</h1>
+    <p>Visually build flexbox layouts. Adjust container and item properties with instant live preview and clean CSS output.</p>
+</section>
+
+<!-- TOOL -->
+<div class="tool-wrap">
+    <div class="tool-grid">
+        <!-- Controls -->
+        <div class="controls">
+            <div class="ctrl-section">
+                <div class="ctrl-title">Container</div>
+                <div class="ctrl-row">
+                    <span class="ctrl-label">flex-direction</span>
+                    <select class="ctrl-select" id="flexDirection" onchange="update()">
+                        <option value="row">row</option>
+                        <option value="row-reverse">row-reverse</option>
+                        <option value="column">column</option>
+                        <option value="column-reverse">column-reverse</option>
+                    </select>
+                </div>
+                <div class="ctrl-row">
+                    <span class="ctrl-label">flex-wrap</span>
+                    <select class="ctrl-select" id="flexWrap" onchange="update()">
+                        <option value="nowrap">nowrap</option>
+                        <option value="wrap">wrap</option>
+                        <option value="wrap-reverse">wrap-reverse</option>
+                    </select>
+                </div>
+                <div class="ctrl-row">
+                    <span class="ctrl-label">justify-content</span>
+                    <select class="ctrl-select" id="justifyContent" onchange="update()">
+                        <option value="flex-start">flex-start</option>
+                        <option value="flex-end">flex-end</option>
+                        <option value="center">center</option>
+                        <option value="space-between">space-between</option>
+                        <option value="space-around">space-around</option>
+                        <option value="space-evenly">space-evenly</option>
+                    </select>
+                </div>
+                <div class="ctrl-row">
+                    <span class="ctrl-label">align-items</span>
+                    <select class="ctrl-select" id="alignItems" onchange="update()">
+                        <option value="stretch">stretch</option>
+                        <option value="flex-start">flex-start</option>
+                        <option value="flex-end">flex-end</option>
+                        <option value="center">center</option>
+                        <option value="baseline">baseline</option>
+                    </select>
+                </div>
+                <div class="ctrl-row">
+                    <span class="ctrl-label">align-content</span>
+                    <select class="ctrl-select" id="alignContent" onchange="update()">
+                        <option value="stretch">stretch</option>
+                        <option value="flex-start">flex-start</option>
+                        <option value="flex-end">flex-end</option>
+                        <option value="center">center</option>
+                        <option value="space-between">space-between</option>
+                        <option value="space-around">space-around</option>
+                    </select>
+                </div>
+                <div class="ctrl-row">
+                    <span class="ctrl-label">gap</span>
+                    <div class="ctrl-range-wrap">
+                        <input type="range" class="ctrl-range" id="gap" min="0" max="40" value="10" oninput="update()">
+                        <span class="ctrl-range-val" id="gapVal">10px</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ctrl-section">
+                <div class="ctrl-title">Items (<span id="itemCountLabel">4</span>)</div>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <button class="btn btn-ghost btn-sm" onclick="addItem()" style="flex:1">+ Add Item</button>
+                    <button class="btn btn-ghost btn-sm" onclick="removeItem()" style="flex:1">- Remove</button>
+                </div>
+                <div class="ctrl-row">
+                    <span class="ctrl-label">Click an item to edit its individual properties</span>
+                </div>
+            </div>
+            <div class="ctrl-section item-editor" id="itemEditor">
+                <div class="item-editor-title">Item <span id="editItemLabel">1</span></div>
+                <div class="item-ctrl-grid">
+                    <div class="ctrl-row">
+                        <span class="ctrl-label">flex-grow</span>
+                        <div class="ctrl-range-wrap">
+                            <input type="range" class="ctrl-range" id="itemGrow" min="0" max="5" value="0" oninput="updateItem()">
+                            <span class="ctrl-range-val" id="itemGrowVal">0</span>
+                        </div>
+                    </div>
+                    <div class="ctrl-row">
+                        <span class="ctrl-label">flex-shrink</span>
+                        <div class="ctrl-range-wrap">
+                            <input type="range" class="ctrl-range" id="itemShrink" min="0" max="5" value="1" oninput="updateItem()">
+                            <span class="ctrl-range-val" id="itemShrinkVal">1</span>
+                        </div>
+                    </div>
+                    <div class="ctrl-row">
+                        <span class="ctrl-label">flex-basis</span>
+                        <select class="ctrl-select" id="itemBasis" onchange="updateItem()">
+                            <option value="auto">auto</option>
+                            <option value="0">0</option>
+                            <option value="50px">50px</option>
+                            <option value="100px">100px</option>
+                            <option value="150px">150px</option>
+                            <option value="200px">200px</option>
+                            <option value="25%">25%</option>
+                            <option value="33.33%">33.33%</option>
+                            <option value="50%">50%</option>
+                        </select>
+                    </div>
+                    <div class="ctrl-row">
+                        <span class="ctrl-label">order</span>
+                        <div class="ctrl-range-wrap">
+                            <input type="range" class="ctrl-range" id="itemOrder" min="-2" max="10" value="0" oninput="updateItem()">
+                            <span class="ctrl-range-val" id="itemOrderVal">0</span>
+                        </div>
+                    </div>
+                    <div class="ctrl-row">
+                        <span class="ctrl-label">align-self</span>
+                        <select class="ctrl-select" id="itemAlignSelf" onchange="updateItem()">
+                            <option value="auto">auto</option>
+                            <option value="flex-start">flex-start</option>
+                            <option value="flex-end">flex-end</option>
+                            <option value="center">center</option>
+                            <option value="baseline">baseline</option>
+                            <option value="stretch">stretch</option>
+                        </select>
+                    </div>
+                    <div class="ctrl-row">
+                        <span class="ctrl-label">width</span>
+                        <div class="ctrl-range-wrap">
+                            <input type="range" class="ctrl-range" id="itemWidth" min="30" max="200" value="80" oninput="updateItem()">
+                            <span class="ctrl-range-val" id="itemWidthVal">80px</span>
+                        </div>
+                    </div>
+                    <div class="ctrl-row">
+                        <span class="ctrl-label">height</span>
+                        <div class="ctrl-range-wrap">
+                            <input type="range" class="ctrl-range" id="itemHeight" min="30" max="200" value="80" oninput="updateItem()">
+                            <span class="ctrl-range-val" id="itemHeightVal">80px</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <div>
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h2>Live Preview</h2>
+                    <div class="preview-actions">
+                        <button class="btn btn-ghost btn-sm" onclick="resetAll()">Reset</button>
+                        <button class="btn btn-primary btn-sm" onclick="copyCSS()">Copy CSS</button>
+                    </div>
+                </div>
+                <div class="preview-area">
+                    <div class="flex-container" id="flexContainer"></div>
+                </div>
+            </div>
+
+            <!-- Code -->
+            <div class="code-panel">
+                <div class="code-header">
+                    <h3>Generated CSS</h3>
+                    <div class="code-tabs">
+                        <button class="code-tab active" onclick="setCodeTab('css', this)">CSS</button>
+                        <button class="code-tab" onclick="setCodeTab('tailwind', this)">Tailwind</button>
+                        <button class="code-tab" onclick="setCodeTab('html', this)">HTML</button>
+                    </div>
+                </div>
+                <div class="code-output" id="codeOutput"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MORE TOOLS -->
+<section class="more-tools">
+    <h2>More Free Tools</h2>
+    <div class="tools-grid">
+        <a href="/free-tools/tailwind-converter.html" class="tool-link">
+            <div class="icon">🎨</div>
+            <h3>Tailwind CSS Converter</h3>
+            <p>Convert vanilla CSS to Tailwind utility classes instantly.</p>
+        </a>
+        <a href="/free-tools/markdown-to-html.html" class="tool-link">
+            <div class="icon">📝</div>
+            <h3>Markdown to HTML</h3>
+            <p>Convert Markdown to clean HTML with GFM support and live preview.</p>
+        </a>
+        <a href="/free-tools/api-request-builder.html" class="tool-link">
+            <div class="icon">🔗</div>
+            <h3>API Request Builder</h3>
+            <p>Build and test HTTP requests visually with auth and response viewer.</p>
+        </a>
+        <a href="/free-tools/color-palette.html" class="tool-link">
+            <div class="icon">🎯</div>
+            <h3>Color Palette Generator</h3>
+            <p>Generate beautiful color palettes with harmony rules and export.</p>
+        </a>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-brand">NexTool</div>
+    <p>AI-powered tools for modern developers. &copy; 2026 NexTool. All rights reserved.</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const COLORS = ['#f59e0b','#6366f1','#ec4899','#22c55e','#06b6d4','#ef4444','#a855f7','#f97316','#14b8a6','#e11d48'];
+let items = [];
+let selectedItem = -1;
+let currentCodeTab = 'css';
+
+function initItems() {
+    items = [
+        { grow: 0, shrink: 1, basis: 'auto', order: 0, alignSelf: 'auto', width: 80, height: 80 },
+        { grow: 0, shrink: 1, basis: 'auto', order: 0, alignSelf: 'auto', width: 80, height: 80 },
+        { grow: 0, shrink: 1, basis: 'auto', order: 0, alignSelf: 'auto', width: 80, height: 80 },
+        { grow: 0, shrink: 1, basis: 'auto', order: 0, alignSelf: 'auto', width: 80, height: 80 },
+    ];
+}
+
+function addItem() {
+    if (items.length >= 12) return;
+    items.push({ grow: 0, shrink: 1, basis: 'auto', order: 0, alignSelf: 'auto', width: 80, height: 80 });
+    update();
+}
+
+function removeItem() {
+    if (items.length <= 1) return;
+    if (selectedItem === items.length - 1) selectedItem = -1;
+    items.pop();
+    update();
+}
+
+function selectItem(idx) {
+    selectedItem = selectedItem === idx ? -1 : idx;
+    if (selectedItem >= 0) {
+        const item = items[selectedItem];
+        document.getElementById('itemGrow').value = item.grow;
+        document.getElementById('itemGrowVal').textContent = item.grow;
+        document.getElementById('itemShrink').value = item.shrink;
+        document.getElementById('itemShrinkVal').textContent = item.shrink;
+        document.getElementById('itemBasis').value = item.basis;
+        document.getElementById('itemOrder').value = item.order;
+        document.getElementById('itemOrderVal').textContent = item.order;
+        document.getElementById('itemAlignSelf').value = item.alignSelf;
+        document.getElementById('itemWidth').value = item.width;
+        document.getElementById('itemWidthVal').textContent = item.width + 'px';
+        document.getElementById('itemHeight').value = item.height;
+        document.getElementById('itemHeightVal').textContent = item.height + 'px';
+        document.getElementById('editItemLabel').textContent = selectedItem + 1;
+        document.getElementById('itemEditor').classList.add('show');
+    } else {
+        document.getElementById('itemEditor').classList.remove('show');
+    }
+    renderItems();
+}
+
+function updateItem() {
+    if (selectedItem < 0) return;
+    const item = items[selectedItem];
+    item.grow = parseInt(document.getElementById('itemGrow').value);
+    item.shrink = parseInt(document.getElementById('itemShrink').value);
+    item.basis = document.getElementById('itemBasis').value;
+    item.order = parseInt(document.getElementById('itemOrder').value);
+    item.alignSelf = document.getElementById('itemAlignSelf').value;
+    item.width = parseInt(document.getElementById('itemWidth').value);
+    item.height = parseInt(document.getElementById('itemHeight').value);
+    document.getElementById('itemGrowVal').textContent = item.grow;
+    document.getElementById('itemShrinkVal').textContent = item.shrink;
+    document.getElementById('itemOrderVal').textContent = item.order;
+    document.getElementById('itemWidthVal').textContent = item.width + 'px';
+    document.getElementById('itemHeightVal').textContent = item.height + 'px';
+    update();
+}
+
+function getContainerStyles() {
+    return {
+        flexDirection: document.getElementById('flexDirection').value,
+        flexWrap: document.getElementById('flexWrap').value,
+        justifyContent: document.getElementById('justifyContent').value,
+        alignItems: document.getElementById('alignItems').value,
+        alignContent: document.getElementById('alignContent').value,
+        gap: parseInt(document.getElementById('gap').value),
+    };
+}
+
+function renderItems() {
+    const container = document.getElementById('flexContainer');
+    container.innerHTML = '';
+    items.forEach((item, i) => {
+        const el = document.createElement('div');
+        el.className = 'flex-item' + (i === selectedItem ? ' selected' : '');
+        el.style.backgroundColor = COLORS[i % COLORS.length];
+        el.style.width = item.basis !== 'auto' ? item.basis : item.width + 'px';
+        el.style.height = item.height + 'px';
+        el.style.flexGrow = item.grow;
+        el.style.flexShrink = item.shrink;
+        el.style.flexBasis = item.basis;
+        el.style.order = item.order;
+        el.style.alignSelf = item.alignSelf;
+        el.textContent = i + 1;
+        el.onclick = () => selectItem(i);
+        container.appendChild(el);
+    });
+}
+
+function update() {
+    const s = getContainerStyles();
+    const container = document.getElementById('flexContainer');
+    container.style.display = 'flex';
+    container.style.flexDirection = s.flexDirection;
+    container.style.flexWrap = s.flexWrap;
+    container.style.justifyContent = s.justifyContent;
+    container.style.alignItems = s.alignItems;
+    container.style.alignContent = s.alignContent;
+    container.style.gap = s.gap + 'px';
+    document.getElementById('gapVal').textContent = s.gap + 'px';
+    document.getElementById('itemCountLabel').textContent = items.length;
+    renderItems();
+    generateCode();
+}
+
+function generateCode() {
+    const s = getContainerStyles();
+    const out = document.getElementById('codeOutput');
+
+    if (currentCodeTab === 'css') {
+        let code = `.container {\n`;
+        code += `  display: flex;\n`;
+        if (s.flexDirection !== 'row') code += `  flex-direction: ${s.flexDirection};\n`;
+        if (s.flexWrap !== 'nowrap') code += `  flex-wrap: ${s.flexWrap};\n`;
+        if (s.justifyContent !== 'flex-start') code += `  justify-content: ${s.justifyContent};\n`;
+        if (s.alignItems !== 'stretch') code += `  align-items: ${s.alignItems};\n`;
+        if (s.alignContent !== 'stretch') code += `  align-content: ${s.alignContent};\n`;
+        if (s.gap > 0) code += `  gap: ${s.gap}px;\n`;
+        code += `}\n`;
+
+        items.forEach((item, i) => {
+            const hasCustom = item.grow !== 0 || item.shrink !== 1 || item.basis !== 'auto' || item.order !== 0 || item.alignSelf !== 'auto';
+            if (hasCustom) {
+                code += `\n.item-${i + 1} {\n`;
+                if (item.grow !== 0) code += `  flex-grow: ${item.grow};\n`;
+                if (item.shrink !== 1) code += `  flex-shrink: ${item.shrink};\n`;
+                if (item.basis !== 'auto') code += `  flex-basis: ${item.basis};\n`;
+                if (item.order !== 0) code += `  order: ${item.order};\n`;
+                if (item.alignSelf !== 'auto') code += `  align-self: ${item.alignSelf};\n`;
+                code += `}\n`;
+            }
+        });
+
+        out.textContent = code;
+    } else if (currentCodeTab === 'tailwind') {
+        const dirMap = {'row':'','row-reverse':'flex-row-reverse','column':'flex-col','column-reverse':'flex-col-reverse'};
+        const wrapMap = {'nowrap':'','wrap':'flex-wrap','wrap-reverse':'flex-wrap-reverse'};
+        const jcMap = {'flex-start':'','flex-end':'justify-end','center':'justify-center','space-between':'justify-between','space-around':'justify-around','space-evenly':'justify-evenly'};
+        const aiMap = {'stretch':'','flex-start':'items-start','flex-end':'items-end','center':'items-center','baseline':'items-baseline'};
+        const gapMap = {0:'',4:'gap-1',8:'gap-2',10:'gap-2.5',12:'gap-3',16:'gap-4',20:'gap-5',24:'gap-6',32:'gap-8',40:'gap-10'};
+
+        let cls = ['flex'];
+        if (dirMap[s.flexDirection]) cls.push(dirMap[s.flexDirection]);
+        if (wrapMap[s.flexWrap]) cls.push(wrapMap[s.flexWrap]);
+        if (jcMap[s.justifyContent]) cls.push(jcMap[s.justifyContent]);
+        if (aiMap[s.alignItems]) cls.push(aiMap[s.alignItems]);
+        if (gapMap[s.gap] !== undefined && gapMap[s.gap]) cls.push(gapMap[s.gap]);
+        else if (s.gap > 0) cls.push(`gap-[${s.gap}px]`);
+
+        let code = `<!-- Container -->\n<div class="${cls.join(' ')}">\n`;
+        items.forEach((item, i) => {
+            let icls = [];
+            if (item.grow > 0) icls.push(item.grow === 1 ? 'grow' : `grow-[${item.grow}]`);
+            if (item.shrink === 0) icls.push('shrink-0');
+            if (item.order !== 0) icls.push(`order-${item.order}`);
+            const asMap = {'auto':'','flex-start':'self-start','flex-end':'self-end','center':'self-center','baseline':'self-baseline','stretch':'self-stretch'};
+            if (asMap[item.alignSelf]) icls.push(asMap[item.alignSelf]);
+            code += `  <div${icls.length ? ` class="${icls.join(' ')}"` : ''}>Item ${i + 1}</div>\n`;
+        });
+        code += `</div>`;
+        out.textContent = code;
+    } else {
+        let code = `<div class="container">\n`;
+        items.forEach((item, i) => {
+            const hasClass = item.grow !== 0 || item.shrink !== 1 || item.basis !== 'auto' || item.order !== 0 || item.alignSelf !== 'auto';
+            code += `  <div${hasClass ? ` class="item-${i + 1}"` : ''}>Item ${i + 1}</div>\n`;
+        });
+        code += `</div>`;
+        out.textContent = code;
+    }
+}
+
+function setCodeTab(tab, btn) {
+    currentCodeTab = tab;
+    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    generateCode();
+}
+
+function copyCSS() {
+    const text = document.getElementById('codeOutput').textContent;
+    navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!'));
+}
+
+function resetAll() {
+    document.getElementById('flexDirection').value = 'row';
+    document.getElementById('flexWrap').value = 'nowrap';
+    document.getElementById('justifyContent').value = 'flex-start';
+    document.getElementById('alignItems').value = 'stretch';
+    document.getElementById('alignContent').value = 'stretch';
+    document.getElementById('gap').value = 10;
+    selectedItem = -1;
+    document.getElementById('itemEditor').classList.remove('show');
+    initItems();
+    update();
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Init
+initItems();
+update();
+</script>
+<script defer src="/free-tools/js/revenue.js"></script>
+<script defer src="/free-tools/js/lead-capture.js"></script>
+<script defer src="/free-tools/js/analytics-lite.js"></script>
+</body>
+</html>
