@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS to Tailwind Converter - Free Tool | NexTool</title>
+    <meta name="description" content="Convert vanilla CSS to Tailwind CSS utility classes instantly. Paste your CSS and get clean Tailwind equivalents with responsive prefixes and hover states.">
+    <meta name="keywords" content="css to tailwind, tailwind converter, css converter, tailwind css, utility classes">
+    <meta property="og:title" content="CSS to Tailwind Converter - NexTool Free Tools">
+    <meta property="og:description" content="Convert vanilla CSS to Tailwind CSS utility classes instantly. Free online tool.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/tailwind-converter.html">
+    <meta property="og:image" content="https://nextool.app/og/tailwind-converter.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://nextool.app/free-tools/tailwind-converter.html">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app/"},
+            {"@type": "ListItem", "position": 2, "name": "Free Tools", "item": "https://nextool.app/free-tools/"},
+            {"@type": "ListItem", "position": 3, "name": "Tailwind CSS Converter", "item": "https://nextool.app/free-tools/tailwind-converter.html"}
+        ]
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #050508; --surface: #111118; --surface2: #1a1a24;
+            --primary: #6366f1; --accent: #a855f7; --pink: #ec4899;
+            --tool: #06b6d4; --tool-dim: rgba(6, 182, 212, 0.12);
+            --text: #e2e8f0; --text2: #94a3b8; --radius: 16px;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        a { color: inherit; text-decoration: none; }
+
+        /* NAV */
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(5,5,8,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(99,102,241,0.1); }
+        .nav-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 28px; align-items: center; }
+        .nav-links a { font-size: 14px; color: var(--text2); transition: color 0.2s; font-weight: 500; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+        .nav-hamburger span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: 0.3s; }
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; background: rgba(5,5,8,0.97); flex-direction: column; padding: 20px 24px; gap: 16px; border-bottom: 1px solid rgba(99,102,241,0.1); }
+            .nav-links.open { display: flex; }
+            .nav-hamburger { display: flex; }
+        }
+
+        /* HERO */
+        .hero { padding: 120px 24px 60px; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; background: radial-gradient(ellipse, rgba(6,182,212,0.1), transparent 70%); pointer-events: none; }
+        .breadcrumb { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+        .breadcrumb a:hover { color: var(--tool); }
+        .breadcrumb .sep { opacity: 0.4; }
+        .hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+        .hero h1 .grad { background: linear-gradient(135deg, var(--tool), #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 18px; color: var(--text2); max-width: 600px; margin: 0 auto; line-height: 1.6; }
+
+        /* TOOL CONTAINER */
+        .tool-wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+        .tool-card { background: var(--surface); border: 1px solid rgba(6,182,212,0.15); border-radius: var(--radius); overflow: hidden; }
+        .tool-header { padding: 20px 24px; border-bottom: 1px solid rgba(6,182,212,0.1); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .tool-header h2 { font-size: 16px; font-weight: 700; color: var(--tool); }
+        .tool-actions { display: flex; gap: 8px; }
+        .btn { padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+        .btn-primary { background: var(--tool); color: #fff; }
+        .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+        .btn-ghost { background: rgba(6,182,212,0.1); color: var(--tool); border: 1px solid rgba(6,182,212,0.2); }
+        .btn-ghost:hover { background: rgba(6,182,212,0.2); }
+
+        .tool-body { display: grid; grid-template-columns: 1fr 1fr; min-height: 450px; }
+        @media (max-width: 768px) { .tool-body { grid-template-columns: 1fr; } }
+        .panel { display: flex; flex-direction: column; }
+        .panel-header { padding: 12px 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); background: var(--surface2); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .panel:first-child { border-right: 1px solid rgba(255,255,255,0.05); }
+        textarea.code-input { flex: 1; background: transparent; border: none; color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.7; padding: 20px; resize: none; outline: none; min-height: 350px; }
+        textarea.code-input::placeholder { color: rgba(148,163,184,0.4); }
+        .output-area { flex: 1; padding: 20px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.7; color: var(--tool); overflow: auto; min-height: 350px; white-space: pre-wrap; word-break: break-all; }
+        .output-area .prop { color: var(--text2); }
+        .output-area .cls { color: var(--tool); font-weight: 600; }
+        .output-area .unknown { color: var(--pink); }
+        .output-area .comment { color: rgba(148,163,184,0.5); font-style: italic; }
+
+        /* STATS BAR */
+        .stats-bar { padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 24px; flex-wrap: wrap; font-size: 12px; color: var(--text2); }
+        .stat-item span { color: var(--tool); font-weight: 700; }
+
+        /* OPTIONS */
+        .options-bar { padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+        .option-group { display: flex; align-items: center; gap: 8px; }
+        .option-group label { font-size: 12px; color: var(--text2); font-weight: 600; }
+        .toggle { position: relative; width: 36px; height: 20px; cursor: pointer; }
+        .toggle input { display: none; }
+        .toggle-track { position: absolute; inset: 0; background: var(--surface2); border-radius: 10px; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); }
+        .toggle input:checked + .toggle-track { background: var(--tool); border-color: var(--tool); }
+        .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; background: #fff; border-radius: 50%; transition: 0.3s; z-index: 1; }
+        .toggle input:checked ~ .toggle-thumb { left: 19px; }
+        select.opt-select { background: var(--surface2); color: var(--text); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 4px 8px; font-size: 12px; font-family: 'Inter', sans-serif; outline: none; }
+
+        /* MORE TOOLS */
+        .more-tools { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+        .more-tools h2 { font-size: 28px; font-weight: 800; margin-bottom: 32px; text-align: center; }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+        .tool-link { background: var(--surface); border: 1px solid rgba(99,102,241,0.1); border-radius: var(--radius); padding: 24px; transition: all 0.3s; display: block; }
+        .tool-link:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(99,102,241,0.1); }
+        .tool-link .icon { font-size: 28px; margin-bottom: 12px; }
+        .tool-link h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .tool-link p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+        /* FOOTER */
+        .footer { border-top: 1px solid rgba(99,102,241,0.1); padding: 40px 24px; text-align: center; }
+        .footer-brand { font-size: 18px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .footer p { font-size: 13px; color: var(--text2); }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--tool); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all 0.3s; z-index: 999; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-logo">NexTool</a>
+        <div class="nav-links" id="navLinks">
+            <a href="/">Home</a>
+            <a href="/free-tools/">Tools</a>
+            <a href="/services/">Services</a>
+            <a href="/blog/">Blog</a>
+            <a href="/products/">Products</a>
+            <a href="/pricing/">Pricing</a>
+            <a href="/extension.html">Extension</a>
+        </div>
+        <button class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="breadcrumb">
+        <a href="/">Home</a><span class="sep">/</span>
+        <a href="/free-tools/">Free Tools</a><span class="sep">/</span>
+        <span>Tailwind Converter</span>
+    </div>
+    <h1>CSS to <span class="grad">Tailwind</span> Converter</h1>
+    <p>Paste vanilla CSS and instantly get clean Tailwind CSS utility classes. Supports responsive prefixes, hover states, and 200+ CSS properties.</p>
+</section>
+
+<!-- TOOL -->
+<div class="tool-wrap">
+    <div class="tool-card">
+        <div class="tool-header">
+            <h2>Converter</h2>
+            <div class="tool-actions">
+                <button class="btn btn-ghost" onclick="loadExample()">Load Example</button>
+                <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+                <button class="btn btn-primary" onclick="copyOutput()">Copy Output</button>
+            </div>
+        </div>
+        <div class="options-bar">
+            <div class="option-group">
+                <label>Prefix:</label>
+                <select class="opt-select" id="prefixSelect" onchange="convert()">
+                    <option value="">None</option>
+                    <option value="sm:">sm:</option>
+                    <option value="md:">md:</option>
+                    <option value="lg:">lg:</option>
+                    <option value="xl:">xl:</option>
+                    <option value="2xl:">2xl:</option>
+                    <option value="hover:">hover:</option>
+                    <option value="focus:">focus:</option>
+                    <option value="dark:">dark:</option>
+                </select>
+            </div>
+            <div class="option-group">
+                <label>Group classes</label>
+                <label class="toggle"><input type="checkbox" id="groupToggle" checked onchange="convert()"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="option-group">
+                <label>Show comments</label>
+                <label class="toggle"><input type="checkbox" id="commentToggle" onchange="convert()"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+        </div>
+        <div class="tool-body">
+            <div class="panel">
+                <div class="panel-header">CSS Input</div>
+                <textarea class="code-input" id="cssInput" placeholder="Paste your CSS here...
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  margin: 8px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}" oninput="convert()"></textarea>
+            </div>
+            <div class="panel">
+                <div class="panel-header">Tailwind Output</div>
+                <div class="output-area" id="outputArea">
+                    <span class="comment">/* Paste CSS on the left to see Tailwind classes */</span>
+                </div>
+            </div>
+        </div>
+        <div class="stats-bar">
+            <div class="stat-item">Properties: <span id="statProps">0</span></div>
+            <div class="stat-item">Converted: <span id="statConverted">0</span></div>
+            <div class="stat-item">Unsupported: <span id="statUnsupported">0</span></div>
+            <div class="stat-item">Classes: <span id="statClasses">0</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- MORE TOOLS -->
+<section class="more-tools">
+    <h2>More Free Tools</h2>
+    <div class="tools-grid">
+        <a href="/free-tools/flexbox-playground.html" class="tool-link">
+            <div class="icon">📐</div>
+            <h3>Flexbox Playground</h3>
+            <p>Visual flexbox CSS builder with live preview and code export.</p>
+        </a>
+        <a href="/free-tools/markdown-to-html.html" class="tool-link">
+            <div class="icon">📝</div>
+            <h3>Markdown to HTML</h3>
+            <p>Convert Markdown to clean HTML with GFM support and live preview.</p>
+        </a>
+        <a href="/free-tools/api-request-builder.html" class="tool-link">
+            <div class="icon">🔗</div>
+            <h3>API Request Builder</h3>
+            <p>Build and test HTTP requests visually with auth and response viewer.</p>
+        </a>
+        <a href="/free-tools/json-formatter.html" class="tool-link">
+            <div class="icon">🔧</div>
+            <h3>JSON Formatter</h3>
+            <p>Format, validate, and minify JSON data with syntax highlighting.</p>
+        </a>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-brand">NexTool</div>
+    <p>AI-powered tools for modern developers. &copy; 2026 NexTool. All rights reserved.</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// CSS to Tailwind mapping
+const CSS_MAP = {
+    // Display
+    'display: flex': 'flex', 'display: inline-flex': 'inline-flex',
+    'display: grid': 'grid', 'display: inline-grid': 'inline-grid',
+    'display: block': 'block', 'display: inline-block': 'inline-block',
+    'display: inline': 'inline', 'display: none': 'hidden',
+    'display: table': 'table', 'display: contents': 'contents',
+    // Position
+    'position: relative': 'relative', 'position: absolute': 'absolute',
+    'position: fixed': 'fixed', 'position: sticky': 'sticky', 'position: static': 'static',
+    // Flex Direction
+    'flex-direction: row': 'flex-row', 'flex-direction: row-reverse': 'flex-row-reverse',
+    'flex-direction: column': 'flex-col', 'flex-direction: column-reverse': 'flex-col-reverse',
+    // Flex Wrap
+    'flex-wrap: wrap': 'flex-wrap', 'flex-wrap: wrap-reverse': 'flex-wrap-reverse',
+    'flex-wrap: nowrap': 'flex-nowrap',
+    // Justify Content
+    'justify-content: flex-start': 'justify-start', 'justify-content: flex-end': 'justify-end',
+    'justify-content: center': 'justify-center', 'justify-content: space-between': 'justify-between',
+    'justify-content: space-around': 'justify-around', 'justify-content: space-evenly': 'justify-evenly',
+    // Align Items
+    'align-items: flex-start': 'items-start', 'align-items: flex-end': 'items-end',
+    'align-items: center': 'items-center', 'align-items: baseline': 'items-baseline',
+    'align-items: stretch': 'items-stretch',
+    // Align Self
+    'align-self: auto': 'self-auto', 'align-self: flex-start': 'self-start',
+    'align-self: flex-end': 'self-end', 'align-self: center': 'self-center',
+    'align-self: stretch': 'self-stretch',
+    // Text Align
+    'text-align: left': 'text-left', 'text-align: center': 'text-center',
+    'text-align: right': 'text-right', 'text-align: justify': 'text-justify',
+    // Font Weight
+    'font-weight: 100': 'font-thin', 'font-weight: 200': 'font-extralight',
+    'font-weight: 300': 'font-light', 'font-weight: 400': 'font-normal',
+    'font-weight: 500': 'font-medium', 'font-weight: 600': 'font-semibold',
+    'font-weight: 700': 'font-bold', 'font-weight: 800': 'font-extrabold',
+    'font-weight: 900': 'font-black', 'font-weight: bold': 'font-bold',
+    'font-weight: normal': 'font-normal',
+    // Font Style
+    'font-style: italic': 'italic', 'font-style: normal': 'not-italic',
+    // Text Decoration
+    'text-decoration: underline': 'underline', 'text-decoration: line-through': 'line-through',
+    'text-decoration: none': 'no-underline', 'text-decoration: overline': 'overline',
+    // Text Transform
+    'text-transform: uppercase': 'uppercase', 'text-transform: lowercase': 'lowercase',
+    'text-transform: capitalize': 'capitalize', 'text-transform: none': 'normal-case',
+    // Overflow
+    'overflow: hidden': 'overflow-hidden', 'overflow: auto': 'overflow-auto',
+    'overflow: scroll': 'overflow-scroll', 'overflow: visible': 'overflow-visible',
+    'overflow-x: hidden': 'overflow-x-hidden', 'overflow-x: auto': 'overflow-x-auto',
+    'overflow-y: hidden': 'overflow-y-hidden', 'overflow-y: auto': 'overflow-y-auto',
+    // Visibility
+    'visibility: hidden': 'invisible', 'visibility: visible': 'visible',
+    // Whitespace
+    'white-space: nowrap': 'whitespace-nowrap', 'white-space: pre': 'whitespace-pre',
+    'white-space: pre-line': 'whitespace-pre-line', 'white-space: pre-wrap': 'whitespace-pre-wrap',
+    'white-space: normal': 'whitespace-normal',
+    // Word break
+    'word-break: break-all': 'break-all', 'overflow-wrap: break-word': 'break-words',
+    // Cursor
+    'cursor: pointer': 'cursor-pointer', 'cursor: default': 'cursor-default',
+    'cursor: wait': 'cursor-wait', 'cursor: text': 'cursor-text',
+    'cursor: move': 'cursor-move', 'cursor: not-allowed': 'cursor-not-allowed',
+    // Pointer Events
+    'pointer-events: none': 'pointer-events-none', 'pointer-events: auto': 'pointer-events-auto',
+    // User Select
+    'user-select: none': 'select-none', 'user-select: text': 'select-text',
+    'user-select: all': 'select-all', 'user-select: auto': 'select-auto',
+    // List Style
+    'list-style-type: none': 'list-none', 'list-style-type: disc': 'list-disc',
+    'list-style-type: decimal': 'list-decimal',
+    // Object Fit
+    'object-fit: contain': 'object-contain', 'object-fit: cover': 'object-cover',
+    'object-fit: fill': 'object-fill', 'object-fit: none': 'object-none',
+    // Resize
+    'resize: none': 'resize-none', 'resize: both': 'resize',
+    'resize: vertical': 'resize-y', 'resize: horizontal': 'resize-x',
+    // Border Style
+    'border-style: solid': 'border-solid', 'border-style: dashed': 'border-dashed',
+    'border-style: dotted': 'border-dotted', 'border-style: none': 'border-none',
+    // Box sizing
+    'box-sizing: border-box': 'box-border', 'box-sizing: content-box': 'box-content',
+    // Flex
+    'flex: 1': 'flex-1', 'flex: auto': 'flex-auto', 'flex: none': 'flex-none',
+    'flex-grow: 0': 'grow-0', 'flex-grow: 1': 'grow',
+    'flex-shrink: 0': 'shrink-0', 'flex-shrink: 1': 'shrink',
+    // Grid
+    'grid-template-columns: none': 'grid-cols-none',
+    // Gap
+    'gap: 0': 'gap-0', 'gap: 0px': 'gap-0',
+    // Appearance
+    'appearance: none': 'appearance-none',
+    // Outline
+    'outline: none': 'outline-none', 'outline: 0': 'outline-none',
+};
+
+const SPACING_SCALE = {
+    '0': '0', '0px': '0', '1px': 'px', '0.125rem': '0.5', '2px': '0.5',
+    '0.25rem': '1', '4px': '1', '0.375rem': '1.5', '6px': '1.5',
+    '0.5rem': '2', '8px': '2', '0.625rem': '2.5', '10px': '2.5',
+    '0.75rem': '3', '12px': '3', '0.875rem': '3.5', '14px': '3.5',
+    '1rem': '4', '16px': '4', '1.25rem': '5', '20px': '5',
+    '1.5rem': '6', '24px': '6', '1.75rem': '7', '28px': '7',
+    '2rem': '8', '32px': '8', '2.25rem': '9', '36px': '9',
+    '2.5rem': '10', '40px': '10', '2.75rem': '11', '44px': '11',
+    '3rem': '12', '48px': '12', '3.5rem': '14', '56px': '14',
+    '4rem': '16', '64px': '16', '5rem': '20', '80px': '20',
+    '6rem': '24', '96px': '24', '7rem': '28', '8rem': '32',
+    '9rem': '36', '10rem': '40', '11rem': '44', '12rem': '48',
+    '13rem': '52', '14rem': '56', '15rem': '60', '16rem': '64',
+    '18rem': '72', '20rem': '80', '24rem': '96',
+    '50%': '1/2', '100%': 'full', 'auto': 'auto',
+};
+
+const FONT_SIZE_MAP = {
+    '12px': 'text-xs', '0.75rem': 'text-xs', '14px': 'text-sm', '0.875rem': 'text-sm',
+    '16px': 'text-base', '1rem': 'text-base', '18px': 'text-lg', '1.125rem': 'text-lg',
+    '20px': 'text-xl', '1.25rem': 'text-xl', '24px': 'text-2xl', '1.5rem': 'text-2xl',
+    '30px': 'text-3xl', '1.875rem': 'text-3xl', '36px': 'text-4xl', '2.25rem': 'text-4xl',
+    '48px': 'text-5xl', '3rem': 'text-5xl', '60px': 'text-6xl', '3.75rem': 'text-6xl',
+    '72px': 'text-7xl', '4.5rem': 'text-7xl', '96px': 'text-8xl', '6rem': 'text-8xl',
+    '128px': 'text-9xl', '8rem': 'text-9xl',
+};
+
+const BORDER_RADIUS_MAP = {
+    '0': 'rounded-none', '0px': 'rounded-none',
+    '2px': 'rounded-sm', '0.125rem': 'rounded-sm',
+    '4px': 'rounded', '0.25rem': 'rounded',
+    '6px': 'rounded-md', '0.375rem': 'rounded-md',
+    '8px': 'rounded-lg', '0.5rem': 'rounded-lg',
+    '12px': 'rounded-xl', '0.75rem': 'rounded-xl',
+    '16px': 'rounded-2xl', '1rem': 'rounded-2xl',
+    '24px': 'rounded-3xl', '1.5rem': 'rounded-3xl',
+    '9999px': 'rounded-full', '50%': 'rounded-full',
+};
+
+const COLOR_MAP = {
+    '#ffffff': 'white', '#fff': 'white', 'white': 'white',
+    '#000000': 'black', '#000': 'black', 'black': 'black',
+    'transparent': 'transparent', 'inherit': 'inherit', 'currentColor': 'current',
+    '#f8fafc': 'slate-50', '#f1f5f9': 'slate-100', '#e2e8f0': 'slate-200',
+    '#cbd5e1': 'slate-300', '#94a3b8': 'slate-400', '#64748b': 'slate-500',
+    '#475569': 'slate-600', '#334155': 'slate-700', '#1e293b': 'slate-800',
+    '#0f172a': 'slate-900',
+    '#ef4444': 'red-500', '#f97316': 'orange-500', '#eab308': 'yellow-500',
+    '#22c55e': 'green-500', '#3b82f6': 'blue-500', '#6366f1': 'indigo-500',
+    '#a855f7': 'purple-500', '#ec4899': 'pink-500',
+};
+
+const SHADOW_MAP = {
+    'none': 'shadow-none',
+    '0 1px 2px 0 rgba(0, 0, 0, 0.05)': 'shadow-sm',
+    '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)': 'shadow',
+    '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)': 'shadow-md',
+    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)': 'shadow-lg',
+    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)': 'shadow-xl',
+    '0 25px 50px -12px rgba(0, 0, 0, 0.25)': 'shadow-2xl',
+};
+
+const LINE_HEIGHT_MAP = {
+    '1': 'leading-none', '1.25': 'leading-tight', '1.375': 'leading-snug',
+    '1.5': 'leading-normal', '1.625': 'leading-relaxed', '2': 'leading-loose',
+    '16px': 'leading-4', '1rem': 'leading-4', '20px': 'leading-5',
+    '24px': 'leading-6', '28px': 'leading-7', '32px': 'leading-8',
+    '36px': 'leading-9', '40px': 'leading-10',
+};
+
+const OPACITY_MAP = {
+    '0': 'opacity-0', '0.05': 'opacity-5', '0.1': 'opacity-10',
+    '0.2': 'opacity-20', '0.25': 'opacity-25', '0.3': 'opacity-30',
+    '0.4': 'opacity-40', '0.5': 'opacity-50', '0.6': 'opacity-60',
+    '0.7': 'opacity-70', '0.75': 'opacity-75', '0.8': 'opacity-80',
+    '0.9': 'opacity-90', '0.95': 'opacity-95', '1': 'opacity-100',
+};
+
+const Z_INDEX_MAP = {
+    '0': 'z-0', '10': 'z-10', '20': 'z-20', '30': 'z-30',
+    '40': 'z-40', '50': 'z-50', 'auto': 'z-auto',
+};
+
+function convertProperty(prop, val) {
+    prop = prop.trim();
+    val = val.trim().replace(/;$/, '').trim();
+    const key = `${prop}: ${val}`;
+
+    // Direct mapping
+    if (CSS_MAP[key]) return CSS_MAP[key];
+
+    // Spacing properties
+    const spacingProps = {
+        'padding': 'p', 'padding-top': 'pt', 'padding-right': 'pr',
+        'padding-bottom': 'pb', 'padding-left': 'pl',
+        'padding-inline': 'px', 'padding-block': 'py',
+        'margin': 'm', 'margin-top': 'mt', 'margin-right': 'mr',
+        'margin-bottom': 'mb', 'margin-left': 'ml',
+        'margin-inline': 'mx', 'margin-block': 'my',
+        'top': 'top', 'right': 'right', 'bottom': 'bottom', 'left': 'left',
+        'inset': 'inset', 'gap': 'gap', 'column-gap': 'gap-x', 'row-gap': 'gap-y',
+        'width': 'w', 'height': 'h', 'min-width': 'min-w', 'min-height': 'min-h',
+        'max-width': 'max-w', 'max-height': 'max-h',
+    };
+
+    if (spacingProps[prop]) {
+        const prefix = spacingProps[prop];
+        if (val.startsWith('-')) {
+            const posVal = val.substring(1);
+            if (SPACING_SCALE[posVal]) return `-${prefix}-${SPACING_SCALE[posVal]}`;
+        }
+        if (SPACING_SCALE[val]) return `${prefix}-${SPACING_SCALE[val]}`;
+        // Arbitrary value
+        return `${prefix}-[${val}]`;
+    }
+
+    // Font size
+    if (prop === 'font-size') {
+        if (FONT_SIZE_MAP[val]) return FONT_SIZE_MAP[val];
+        return `text-[${val}]`;
+    }
+
+    // Line height
+    if (prop === 'line-height') {
+        if (LINE_HEIGHT_MAP[val]) return LINE_HEIGHT_MAP[val];
+        return `leading-[${val}]`;
+    }
+
+    // Letter spacing
+    if (prop === 'letter-spacing') return `tracking-[${val}]`;
+
+    // Border radius
+    if (prop === 'border-radius') {
+        if (BORDER_RADIUS_MAP[val]) return BORDER_RADIUS_MAP[val];
+        return `rounded-[${val}]`;
+    }
+
+    // Border width
+    if (prop === 'border-width' || prop === 'border') {
+        if (val === '0' || val === '0px' || val === 'none') return 'border-0';
+        if (val === '1px') return 'border';
+        if (val === '2px') return 'border-2';
+        if (val === '4px') return 'border-4';
+        if (val === '8px') return 'border-8';
+        return `border-[${val}]`;
+    }
+
+    // Colors
+    const colorProps = {
+        'color': 'text', 'background-color': 'bg', 'background': 'bg',
+        'border-color': 'border', 'fill': 'fill', 'stroke': 'stroke',
+    };
+    if (colorProps[prop]) {
+        const cpfx = colorProps[prop];
+        if (COLOR_MAP[val.toLowerCase()]) return `${cpfx}-${COLOR_MAP[val.toLowerCase()]}`;
+        if (val.startsWith('#') || val.startsWith('rgb')) return `${cpfx}-[${val}]`;
+    }
+
+    // Opacity
+    if (prop === 'opacity') {
+        if (OPACITY_MAP[val]) return OPACITY_MAP[val];
+        return `opacity-[${val}]`;
+    }
+
+    // Z-index
+    if (prop === 'z-index') {
+        if (Z_INDEX_MAP[val]) return Z_INDEX_MAP[val];
+        return `z-[${val}]`;
+    }
+
+    // Box shadow
+    if (prop === 'box-shadow') {
+        const normalized = val.replace(/\s+/g, ' ').trim();
+        if (SHADOW_MAP[normalized]) return SHADOW_MAP[normalized];
+        if (val === 'none') return 'shadow-none';
+        return `shadow-[${val.replace(/\s/g, '_')}]`;
+    }
+
+    // Transition
+    if (prop === 'transition') {
+        if (val === 'all') return 'transition-all';
+        if (val === 'none') return 'transition-none';
+        if (val.includes('color')) return 'transition-colors';
+        if (val.includes('opacity')) return 'transition-opacity';
+        if (val.includes('transform')) return 'transition-transform';
+        return 'transition';
+    }
+    if (prop === 'transition-duration') return `duration-[${val}]`;
+    if (prop === 'transition-timing-function') {
+        if (val === 'ease-in-out') return 'ease-in-out';
+        if (val === 'ease-in') return 'ease-in';
+        if (val === 'ease-out') return 'ease-out';
+        if (val === 'linear') return 'ease-linear';
+    }
+
+    // Transform
+    if (prop === 'transform') {
+        if (val === 'none') return 'transform-none';
+        return `transform [${val}]`;
+    }
+
+    // Flex basis
+    if (prop === 'flex-basis') {
+        if (SPACING_SCALE[val]) return `basis-${SPACING_SCALE[val]}`;
+        return `basis-[${val}]`;
+    }
+
+    // Order
+    if (prop === 'order') {
+        if (val === '-1') return '-order-1';
+        if (val === '0') return 'order-none';
+        return `order-${val}`;
+    }
+
+    return null;
+}
+
+function parseCSS(css) {
+    const blocks = [];
+    const ruleRegex = /([^{]+)\{([^}]*)\}/g;
+    let match;
+    while ((match = ruleRegex.exec(css)) !== null) {
+        const selector = match[1].trim();
+        const body = match[2].trim();
+        const declarations = body.split(';').filter(d => d.trim());
+        blocks.push({ selector, declarations });
+    }
+    // If no blocks, treat as raw properties
+    if (blocks.length === 0 && css.trim()) {
+        const declarations = css.split(';').filter(d => d.trim() && d.includes(':'));
+        if (declarations.length > 0) {
+            blocks.push({ selector: '.element', declarations });
+        }
+    }
+    return blocks;
+}
+
+function convert() {
+    const css = document.getElementById('cssInput').value;
+    const prefix = document.getElementById('prefixSelect').value;
+    const grouped = document.getElementById('groupToggle').checked;
+    const showComments = document.getElementById('commentToggle').checked;
+
+    if (!css.trim()) {
+        document.getElementById('outputArea').innerHTML = '<span class="comment">/* Paste CSS on the left to see Tailwind classes */</span>';
+        updateStats(0, 0, 0, 0);
+        return;
+    }
+
+    const blocks = parseCSS(css);
+    let totalProps = 0, converted = 0, unsupported = 0, totalClasses = 0;
+    let output = '';
+
+    for (const block of blocks) {
+        const classes = [];
+        const unknowns = [];
+
+        for (const decl of block.declarations) {
+            const colonIdx = decl.indexOf(':');
+            if (colonIdx === -1) continue;
+            const prop = decl.substring(0, colonIdx).trim();
+            const val = decl.substring(colonIdx + 1).trim().replace(/;$/, '').trim();
+            if (!prop || !val) continue;
+            totalProps++;
+
+            const tw = convertProperty(prop, val);
+            if (tw) {
+                classes.push(prefix + tw);
+                converted++;
+            } else {
+                unknowns.push({ prop, val });
+                unsupported++;
+            }
+        }
+
+        totalClasses += classes.length;
+        output += `<span class="prop">/* ${block.selector} */</span>\n`;
+
+        if (grouped) {
+            output += `<span class="cls">${classes.join(' ')}</span>\n`;
+        } else {
+            for (const cls of classes) {
+                output += `<span class="cls">${cls}</span>\n`;
+            }
+        }
+
+        if (showComments && unknowns.length > 0) {
+            for (const u of unknowns) {
+                output += `<span class="unknown">/* unsupported: ${u.prop}: ${u.val} */</span>\n`;
+            }
+        }
+
+        output += '\n';
+    }
+
+    document.getElementById('outputArea').innerHTML = output || '<span class="comment">/* No convertible CSS found */</span>';
+    updateStats(totalProps, converted, unsupported, totalClasses);
+}
+
+function updateStats(props, conv, unsup, cls) {
+    document.getElementById('statProps').textContent = props;
+    document.getElementById('statConverted').textContent = conv;
+    document.getElementById('statUnsupported').textContent = unsup;
+    document.getElementById('statClasses').textContent = cls;
+}
+
+function copyOutput() {
+    const el = document.getElementById('outputArea');
+    const text = el.innerText || el.textContent;
+    navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!'));
+}
+
+function clearAll() {
+    document.getElementById('cssInput').value = '';
+    convert();
+}
+
+function loadExample() {
+    document.getElementById('cssInput').value = `.card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  margin: 16px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.card-body {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.625;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-style: solid;
+  border-width: 1px;
+}`;
+    convert();
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+<script defer src="/free-tools/js/revenue.js"></script>
+<script defer src="/free-tools/js/lead-capture.js"></script>
+<script defer src="/free-tools/js/analytics-lite.js"></script>
+</body>
+</html>
