@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TypeScript Type Playground — Learn &amp; Explore TS Types | NexTool</title>
+<meta name="description" content="Interactive TypeScript type playground. Explore utility types, learn type patterns, solve type challenges, and understand complex TypeScript types visually.">
+<meta name="keywords" content="TypeScript playground, TypeScript types, utility types, TypeScript learning, type challenges, mapped types">
+<link rel="canonical" href="https://nextool.app/free-tools/typescript-playground.html">
+<meta property="og:title" content="TypeScript Type Playground — NexTool">
+<meta property="og:description" content="Interactive TypeScript type learning tool. Explore utility types, solve challenges, understand complex types.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/typescript-playground.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"Home","item":"https://nextool.app/"},
+    {"@type":"ListItem","position":2,"name":"Free Tools","item":"https://nextool.app/free-tools/"},
+    {"@type":"ListItem","position":3,"name":"TypeScript Playground","item":"https://nextool.app/free-tools/typescript-playground.html"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity":[
+    {"@type":"Question","name":"What are TypeScript utility types?","acceptedAnswer":{"@type":"Answer","text":"TypeScript utility types are built-in generic types that transform other types. Common ones include Partial<T> (makes all properties optional), Required<T> (makes all required), Pick<T,K> (selects specific properties), Omit<T,K> (removes properties), Record<K,V> (creates object type), and ReturnType<T> (extracts function return type)."}},
+    {"@type":"Question","name":"What are mapped types in TypeScript?","acceptedAnswer":{"@type":"Answer","text":"Mapped types create new types by transforming each property of an existing type. They use the syntax { [K in keyof T]: NewType }. For example, you can make all properties readonly, optional, or change their types. Built-in utility types like Partial and Required are implemented as mapped types."}},
+    {"@type":"Question","name":"What are conditional types in TypeScript?","acceptedAnswer":{"@type":"Answer","text":"Conditional types select one of two types based on a condition, using the syntax T extends U ? X : Y. They enable type-level if/else logic. Combined with 'infer', they can extract types from complex structures. Examples include Extract, Exclude, and ReturnType utility types."}},
+    {"@type":"Question","name":"How do template literal types work?","acceptedAnswer":{"@type":"Answer","text":"Template literal types use backtick syntax to create string types from combinations. For example, type Color = 'red' | 'blue'; type Size = 'sm' | 'lg'; type Combo = `${Size}-${Color}` creates 'sm-red' | 'sm-blue' | 'lg-red' | 'lg-blue'. They enable precise string pattern matching at the type level."}}
+  ]
+}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--text:#e2e8f0;--text2:#94a3b8;--border:rgba(255,255,255,0.06);--radius:16px;
+--kw:#c084fc;--type:#38bdf8;--str:#22c55e;--num:#f59e0b;--comment:#64748b;--fn:#818cf8;--op:#e2e8f0;--prop:#93c5fd}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+a{color:var(--primary);text-decoration:none}
+a:hover{color:var(--accent)}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.nav-logo span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{color:var(--text2);font-size:14px;font-weight:500;transition:color 0.2s}
+.nav-links a:hover{color:#fff}
+
+.hero{max-width:900px;margin:0 auto;padding:48px 24px 32px;text-align:center}
+.hero-badge{display:inline-block;padding:6px 16px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:100px;font-size:12px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}
+.hero h1{font-size:clamp(26px,4.5vw,44px);font-weight:900;color:#fff;line-height:1.1;margin-bottom:12px}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:17px;color:var(--text2);max-width:620px;margin:0 auto}
+
+/* Tabs */
+.tabs{max-width:1400px;margin:0 auto;padding:0 24px 16px;display:flex;gap:8px;flex-wrap:wrap}
+.tab-btn{padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-radius:100px;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:inherit}
+.tab-btn:hover,.tab-btn.active{color:#fff;border-color:var(--primary);background:rgba(99,102,241,0.1)}
+
+/* Editor layout */
+.editor-layout{max-width:1400px;margin:0 auto;padding:0 24px 20px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.panel-title{font-size:14px;font-weight:700;color:#fff}
+.panel-actions{display:flex;gap:6px;flex-wrap:wrap}
+.panel-btn{padding:6px 12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;font-family:inherit}
+.panel-btn:hover{color:#fff;border-color:rgba(255,255,255,0.15)}
+.panel-btn.active{color:var(--primary);border-color:var(--primary)}
+
+/* Code editor */
+.code-editor{position:relative;flex:1;min-height:420px}
+.code-textarea{position:absolute;top:0;left:0;width:100%;height:100%;padding:16px 20px;background:transparent;border:none;color:transparent;caret-color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;resize:none;outline:none;z-index:2;white-space:pre;overflow:auto;-webkit-text-fill-color:transparent}
+.code-highlight{position:absolute;top:0;left:0;width:100%;height:100%;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;white-space:pre;overflow:auto;z-index:1;pointer-events:none;color:var(--text)}
+
+/* Explanation panel */
+.explanation{flex:1;padding:20px;overflow-y:auto;min-height:420px;font-size:14px;line-height:1.8}
+.expl-section{margin-bottom:24px}
+.expl-title{font-size:16px;font-weight:800;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.expl-badge{font-size:10px;padding:3px 8px;border-radius:100px;font-weight:700;text-transform:uppercase}
+.badge-utility{background:rgba(56,189,248,0.1);color:var(--type)}
+.badge-pattern{background:rgba(192,132,252,0.1);color:var(--kw)}
+.badge-challenge{background:rgba(245,158,11,0.1);color:var(--num)}
+.expl-text{color:var(--text2);margin-bottom:12px}
+.expl-code{background:rgba(0,0,0,0.3);border-radius:8px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;overflow-x:auto;margin-bottom:12px;color:var(--text)}
+.expl-note{background:rgba(99,102,241,0.06);border-left:3px solid var(--primary);padding:10px 14px;border-radius:0 8px 8px 0;font-size:13px;color:var(--text2);margin-bottom:12px}
+.expl-table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:13px}
+.expl-table th{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text2);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.5px}
+.expl-table td{padding:8px 12px;border-bottom:1px solid var(--border)}
+.expl-table td:first-child{font-family:'JetBrains Mono',monospace;color:var(--type);white-space:nowrap}
+
+/* Examples sidebar */
+.examples-area{max-width:1400px;margin:0 auto;padding:0 24px 20px}
+.examples-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.example-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;cursor:pointer;transition:all 0.2s}
+.example-card:hover{border-color:var(--primary);transform:translateY(-2px)}
+.example-card.active{border-color:var(--primary);background:rgba(99,102,241,0.05)}
+.example-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px}
+.example-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.example-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;margin-top:6px;text-transform:uppercase;letter-spacing:0.5px}
+.tag-utility{background:rgba(56,189,248,0.1);color:var(--type)}
+.tag-pattern{background:rgba(192,132,252,0.1);color:var(--kw)}
+.tag-challenge{background:rgba(245,158,11,0.1);color:var(--num)}
+.tag-advanced{background:rgba(239,68,68,0.1);color:#ef4444}
+
+/* Utility reference */
+.util-grid{max-width:1400px;margin:0 auto;padding:0 24px 32px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.util-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all 0.2s}
+.util-card:hover{border-color:var(--primary)}
+.util-name{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--type);margin-bottom:4px}
+.util-desc{font-size:12px;color:var(--text2)}
+
+.section-title{max-width:1400px;margin:0 auto;padding:0 24px 12px;font-size:18px;font-weight:800;color:#fff}
+
+.footer{border-top:1px solid var(--border);padding:40px 24px;text-align:center}
+.footer-links{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:16px}
+.footer-links a{color:var(--text2);font-size:14px;font-weight:500}
+.footer-links a:hover{color:#fff}
+.footer-copy{color:var(--text2);font-size:13px;opacity:0.6}
+
+@media(max-width:900px){
+  .editor-layout{grid-template-columns:1fr}
+  .nav-links a:not(:last-child){display:none}
+  .util-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:500px){
+  .util-grid{grid-template-columns:1fr}
+  .examples-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+<div class="nav-inner">
+<a href="/" class="nav-logo">Nex<span>Tool</span></a>
+<div class="nav-links">
+<a href="/free-tools/">Free Tools</a>
+<a href="/products/">Products</a>
+<a href="/blog/">Blog</a>
+</div>
+</div>
+</nav>
+
+<section class="hero">
+<div class="hero-badge">Learning Tool</div>
+<h1>TypeScript <span>Type Playground</span></h1>
+<p>Explore utility types, learn type patterns, solve challenges, and understand how complex TypeScript types work — visually.</p>
+</section>
+
+<div class="tabs">
+<button class="tab-btn active" onclick="switchTab('explore')">Explore Types</button>
+<button class="tab-btn" onclick="switchTab('reference')">Utility Reference</button>
+<button class="tab-btn" onclick="switchTab('challenges')">Type Challenges</button>
+</div>
+
+<div id="tabExplore">
+<h3 class="section-title">Load an Example</h3>
+<div class="examples-area">
+<div class="examples-grid" id="examplesGrid"></div>
+</div>
+
+<div class="editor-layout">
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Type Editor</span>
+<div class="panel-actions">
+<button class="panel-btn" onclick="clearEditor()">Clear</button>
+</div>
+</div>
+<div class="code-editor">
+<div class="code-highlight" id="codeHighlight"></div>
+<textarea class="code-textarea" id="codeInput" spellcheck="false" placeholder="// Write TypeScript type definitions here...
+
+type MyType = Partial<{ name: string; age: number }>;
+
+// Click an example below to load it"></textarea>
+</div>
+</div>
+
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Type Explanation</span>
+</div>
+<div class="explanation" id="explanation">
+<div class="expl-section">
+<div class="expl-title">Welcome to the Type Playground</div>
+<div class="expl-text">Write TypeScript type definitions on the left, or click an example below to load it. The tool will break down and explain the types you write.</div>
+<div class="expl-note">This is a learning and reference tool. It explains types conceptually rather than compiling TypeScript. Load an example to get started!</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="tabReference" style="display:none">
+<h3 class="section-title">Built-in Utility Types</h3>
+<div class="util-grid" id="utilGrid"></div>
+</div>
+
+<div id="tabChallenges" style="display:none">
+<h3 class="section-title">Type Challenges</h3>
+<div class="examples-area">
+<div class="examples-grid" id="challengesGrid"></div>
+</div>
+<div class="editor-layout">
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Your Solution</span>
+</div>
+<div class="code-editor">
+<div class="code-highlight" id="challengeHighlight"></div>
+<textarea class="code-textarea" id="challengeInput" spellcheck="false" placeholder="// Select a challenge to begin..."></textarea>
+</div>
+</div>
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Challenge Description</span>
+</div>
+<div class="explanation" id="challengeExpl">
+<div class="expl-section">
+<div class="expl-title">Select a Challenge</div>
+<div class="expl-text">Pick a type challenge from the cards above. You will be given a starting type and a target — build the type to match!</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Bundle Cross-Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Save 37%</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get the Ultimate Bundle</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">Website Kit + Automation Bundle + Content Toolkit — everything you need to launch.</p>
+<a href="/products/ultimate-bundle.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;text-decoration:none;border-radius:12px;font-weight:700;font-size:15px;">$39 — Get Bundle</a>
+<a href="/free-tools/" style="display:inline-block;margin-left:12px;color:#818cf8;text-decoration:none;font-size:14px;">Browse 59+ Free Tools &rarr;</a>
+</div>
+</section>
+
+<footer class="footer">
+<div class="footer-links">
+<a href="/">Home</a>
+<a href="/free-tools/">Free Tools</a>
+<a href="/products/">Products</a>
+<a href="/blog/">Blog</a>
+</div>
+<div class="footer-copy">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+/* ===================== DATA ===================== */
+const EXAMPLES=[
+{id:'partial',name:'Partial<T>',desc:'Make all properties optional',tag:'utility',
+code:`interface User {
+  name: string;
+  email: string;
+  age: number;
+}
+
+// Partial makes every property optional
+type PartialUser = Partial<User>;
+
+// Result:
+// {
+//   name?: string | undefined;
+//   email?: string | undefined;
+//   age?: number | undefined;
+// }
+
+// Use case: update functions
+function updateUser(id: number, fields: Partial<User>) {
+  // Can pass any subset of User properties
+}
+
+updateUser(1, { name: "Alice" }); // OK - only name
+updateUser(2, { age: 30, email: "b@b.com" }); // OK - subset`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-utility">Utility Type</span> Partial&lt;T&gt;</div>
+<div class="expl-text">Partial&lt;T&gt; constructs a type with all properties of T set to optional. It wraps each property with <code>?</code>.</div>
+<div class="expl-code">// How Partial is implemented internally:
+type Partial&lt;T&gt; = {
+  [P in keyof T]?: T[P];
+};</div>
+<div class="expl-note">This is a <strong>mapped type</strong>. It iterates over every key P in T and makes it optional with <code>?</code>.</div>
+<div class="expl-text"><strong>Type Breakdown:</strong></div>
+<table class="expl-table">
+<tr><th>Property</th><th>Before</th><th>After Partial</th></tr>
+<tr><td>name</td><td>string (required)</td><td>string | undefined (optional)</td></tr>
+<tr><td>email</td><td>string (required)</td><td>string | undefined (optional)</td></tr>
+<tr><td>age</td><td>number (required)</td><td>number | undefined (optional)</td></tr>
+</table>
+<div class="expl-text"><strong>Common use cases:</strong> Update/patch functions, optional configuration objects, form state with incomplete data.</div>
+</div>`},
+
+{id:'pick-omit',name:'Pick & Omit',desc:'Select or remove specific properties',tag:'utility',
+code:`interface Product {
+  id: number;
+  name: string;
+  price: number;
+  description: string;
+  category: string;
+  inStock: boolean;
+}
+
+// Pick: select only specific keys
+type ProductCard = Pick<Product, "id" | "name" | "price">;
+// Result: { id: number; name: string; price: number }
+
+// Omit: remove specific keys
+type ProductInput = Omit<Product, "id">;
+// Result: { name: string; price: number; description: string;
+//           category: string; inStock: boolean }
+
+// Combine them!
+type ProductSummary = Pick<Product, "name" | "price"> & {
+  discountedPrice?: number;
+};`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-utility">Utility Type</span> Pick&lt;T, K&gt; &amp; Omit&lt;T, K&gt;</div>
+<div class="expl-text"><strong>Pick</strong> creates a type by selecting specific keys from T. <strong>Omit</strong> creates a type by removing specific keys.</div>
+<div class="expl-code">// Pick implementation:
+type Pick&lt;T, K extends keyof T&gt; = {
+  [P in K]: T[P];
+};
+
+// Omit implementation:
+type Omit&lt;T, K extends keyof any&gt; = Pick&lt;T, Exclude&lt;keyof T, K&gt;&gt;;</div>
+<div class="expl-note">Pick and Omit are inverses. Pick says "give me only these", Omit says "give me everything except these".</div>
+<table class="expl-table">
+<tr><th>Type</th><th>Result</th></tr>
+<tr><td>Pick&lt;Product, "id" | "name"&gt;</td><td>{ id: number; name: string }</td></tr>
+<tr><td>Omit&lt;Product, "id"&gt;</td><td>All properties except id</td></tr>
+</table>
+<div class="expl-text"><strong>Pro tip:</strong> Use Pick for API responses (select what to expose) and Omit for creation types (remove auto-generated fields like id).</div>
+</div>`},
+
+{id:'record',name:'Record<K,V>',desc:'Create object types with known keys',tag:'utility',
+code:`// Record creates an object type with keys K and values V
+type StatusMap = Record<"loading" | "success" | "error", boolean>;
+// Result: {
+//   loading: boolean;
+//   success: boolean;
+//   error: boolean;
+// }
+
+// Great for lookup maps
+type UserRoles = Record<string, "admin" | "user" | "guest">;
+
+// Type-safe dictionaries
+interface Config {
+  theme: string;
+  language: string;
+}
+type FeatureFlags = Record<string, Config>;
+
+// Enum-based records
+type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+type RouteHandlers = Record<HttpMethod, (req: Request) => Response>;`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-utility">Utility Type</span> Record&lt;K, V&gt;</div>
+<div class="expl-text">Record&lt;K, V&gt; constructs an object type whose property keys are K and whose property values are V.</div>
+<div class="expl-code">// Implementation:
+type Record&lt;K extends keyof any, T&gt; = {
+  [P in K]: T;
+};</div>
+<div class="expl-note">Record is perfect for creating type-safe dictionaries, lookup maps, and objects where all values share the same type.</div>
+<table class="expl-table">
+<tr><th>Usage</th><th>Result</th></tr>
+<tr><td>Record&lt;"a"|"b", number&gt;</td><td>{ a: number; b: number }</td></tr>
+<tr><td>Record&lt;string, boolean&gt;</td><td>{ [key: string]: boolean }</td></tr>
+<tr><td>Record&lt;number, string&gt;</td><td>{ [key: number]: string }</td></tr>
+</table>
+</div>`},
+
+{id:'conditional',name:'Conditional Types',desc:'Type-level if/else with extends',tag:'pattern',
+code:`// Basic conditional type: T extends U ? X : Y
+type IsString<T> = T extends string ? true : false;
+
+type A = IsString<"hello">;  // true
+type B = IsString<42>;       // false
+
+// Extracting types with infer
+type ReturnOf<T> = T extends (...args: any[]) => infer R ? R : never;
+
+type C = ReturnOf<() => string>;           // string
+type D = ReturnOf<(x: number) => boolean>; // boolean
+
+// Distributive conditional types
+type ToArray<T> = T extends any ? T[] : never;
+type E = ToArray<string | number>; // string[] | number[]
+
+// Non-distributive (wrapped in tuple)
+type ToArrayND<T> = [T] extends [any] ? T[] : never;
+type F = ToArrayND<string | number>; // (string | number)[]`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-pattern">Pattern</span> Conditional Types</div>
+<div class="expl-text">Conditional types add if/else logic to the type system. The syntax <code>T extends U ? X : Y</code> means: if T is assignable to U, resolve to X, otherwise Y.</div>
+<div class="expl-code">// The "infer" keyword lets you extract types:
+type UnpackPromise&lt;T&gt; = T extends Promise&lt;infer U&gt; ? U : T;
+
+type G = UnpackPromise&lt;Promise&lt;string&gt;&gt;; // string
+type H = UnpackPromise&lt;number&gt;;            // number</div>
+<div class="expl-note"><strong>Distributive behavior:</strong> When T is a union and is a "naked" type parameter, the conditional distributes over each member. Wrap in [T] to prevent this.</div>
+<div class="expl-text"><strong>Key concepts:</strong></div>
+<table class="expl-table">
+<tr><th>Concept</th><th>Description</th></tr>
+<tr><td>extends</td><td>Checks type assignability (is T a subtype of U?)</td></tr>
+<tr><td>infer</td><td>Declares a type variable to extract from a pattern</td></tr>
+<tr><td>never</td><td>The "impossible" type, filtered out from unions</td></tr>
+<tr><td>Distributive</td><td>Unions are split and checked individually</td></tr>
+</table>
+</div>`},
+
+{id:'mapped',name:'Mapped Types',desc:'Transform types by iterating over keys',tag:'pattern',
+code:`interface User {
+  name: string;
+  email: string;
+  age: number;
+}
+
+// Make all properties readonly
+type ReadonlyUser = {
+  readonly [K in keyof User]: User[K];
+};
+
+// Make all properties nullable
+type NullableUser = {
+  [K in keyof User]: User[K] | null;
+};
+
+// Getters for each property
+type Getters<T> = {
+  [K in keyof T as \`get\${Capitalize<string & K>}\`]: () => T[K];
+};
+
+type UserGetters = Getters<User>;
+// {
+//   getName: () => string;
+//   getEmail: () => string;
+//   getAge: () => number;
+// }`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-pattern">Pattern</span> Mapped Types</div>
+<div class="expl-text">Mapped types iterate over keys to create new types. The syntax <code>{ [K in Keys]: Type }</code> creates a property for each key.</div>
+<div class="expl-code">// Syntax:
+{ [K in keyof T]: NewType }
+
+// With key remapping (TS 4.1+):
+{ [K in keyof T as NewKey]: NewType }
+
+// With modifiers:
+{ readonly [K in keyof T]?: T[K] }
+{ -readonly [K in keyof T]-?: T[K] }</div>
+<div class="expl-note">The <code>-</code> modifier removes readonly or optional. The <code>+</code> (default) adds them. <code>as</code> enables key remapping using template literal types.</div>
+<div class="expl-text"><strong>All built-in utility types using mapped types:</strong> Partial, Required, Readonly, Pick, Record</div>
+</div>`},
+
+{id:'template-literal',name:'Template Literal Types',desc:'Create string types from combinations',tag:'pattern',
+code:`// Template literal types build strings at the type level
+type Color = "red" | "green" | "blue";
+type Size = "sm" | "md" | "lg";
+
+type ColorSize = \`\${Size}-\${Color}\`;
+// "sm-red" | "sm-green" | "sm-blue" |
+// "md-red" | "md-green" | "md-blue" |
+// "lg-red" | "lg-green" | "lg-blue"
+
+// Built-in string manipulation types
+type Upper = Uppercase<"hello">;     // "HELLO"
+type Lower = Lowercase<"HELLO">;     // "hello"
+type Cap = Capitalize<"hello">;      // "Hello"
+type Uncap = Uncapitalize<"Hello">;  // "hello"
+
+// Event handler pattern
+type EventName = "click" | "focus" | "blur";
+type Handler = \`on\${Capitalize<EventName>}\`;
+// "onClick" | "onFocus" | "onBlur"
+
+// CSS-like pattern
+type CSSProperty = \`\${Size}-\${"width" | "height"}\`;
+// "sm-width" | "sm-height" | "md-width" | ...`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-pattern">Pattern</span> Template Literal Types</div>
+<div class="expl-text">Template literal types use the backtick syntax to create new string literal types from combinations of other types. When unions are used, they produce all possible combinations.</div>
+<div class="expl-code">// Cartesian product of unions:
+type A = "a" | "b";
+type B = "1" | "2";
+type AB = \`\${A}\${B}\`; // "a1" | "a2" | "b1" | "b2"</div>
+<div class="expl-note">Template literal types are incredibly powerful combined with mapped types and key remapping. They enable patterns like auto-generating getter/setter names, event handlers, and CSS utility classes at the type level.</div>
+<table class="expl-table">
+<tr><th>Intrinsic Type</th><th>Effect</th></tr>
+<tr><td>Uppercase&lt;S&gt;</td><td>"hello" → "HELLO"</td></tr>
+<tr><td>Lowercase&lt;S&gt;</td><td>"HELLO" → "hello"</td></tr>
+<tr><td>Capitalize&lt;S&gt;</td><td>"hello" → "Hello"</td></tr>
+<tr><td>Uncapitalize&lt;S&gt;</td><td>"Hello" → "hello"</td></tr>
+</table>
+</div>`},
+
+{id:'discriminated',name:'Discriminated Unions',desc:'Type-safe tagged unions with exhaustive checks',tag:'pattern',
+code:`// Each variant has a shared "kind" discriminant
+type Shape =
+  | { kind: "circle"; radius: number }
+  | { kind: "rectangle"; width: number; height: number }
+  | { kind: "triangle"; base: number; height: number };
+
+function area(shape: Shape): number {
+  switch (shape.kind) {
+    case "circle":
+      return Math.PI * shape.radius ** 2;
+    case "rectangle":
+      return shape.width * shape.height;
+    case "triangle":
+      return (shape.base * shape.height) / 2;
+  }
+}
+
+// Exhaustive check pattern
+function assertNever(x: never): never {
+  throw new Error("Unexpected: " + x);
+}
+
+// API response pattern
+type ApiResponse<T> =
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: string };`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-pattern">Pattern</span> Discriminated Unions</div>
+<div class="expl-text">Discriminated unions (aka tagged unions) use a shared property — the discriminant — to narrow the type. TypeScript uses control flow analysis to narrow the type in each branch.</div>
+<div class="expl-code">// The discriminant must be a literal type:
+type Result =
+  | { ok: true; value: string }   // discriminant: ok
+  | { ok: false; error: Error };  // discriminant: ok
+
+function handle(r: Result) {
+  if (r.ok) {
+    r.value; // TypeScript knows this exists
+  } else {
+    r.error; // TypeScript knows this exists
+  }
+}</div>
+<div class="expl-note">Use the <code>assertNever</code> pattern at the end of switch statements. If you add a new variant and forget a case, TypeScript will give a compile error because the new variant can't be assigned to <code>never</code>.</div>
+</div>`},
+
+{id:'extract-exclude',name:'Extract & Exclude',desc:'Filter union types by condition',tag:'utility',
+code:`type AllTypes = string | number | boolean | null | undefined;
+
+// Exclude: remove types from a union
+type NonNullable2 = Exclude<AllTypes, null | undefined>;
+// string | number | boolean
+
+// Extract: keep only matching types
+type Primitives = Extract<AllTypes, string | number>;
+// string | number
+
+// With object unions
+type Event =
+  | { type: "click"; x: number; y: number }
+  | { type: "keydown"; key: string }
+  | { type: "scroll"; offset: number };
+
+type ClickEvent = Extract<Event, { type: "click" }>;
+// { type: "click"; x: number; y: number }
+
+type NonClickEvents = Exclude<Event, { type: "click" }>;
+// { type: "keydown"; ... } | { type: "scroll"; ... }`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-utility">Utility Type</span> Extract &amp; Exclude</div>
+<div class="expl-text"><strong>Exclude&lt;T, U&gt;</strong> removes from T all types assignable to U. <strong>Extract&lt;T, U&gt;</strong> keeps from T only types assignable to U.</div>
+<div class="expl-code">// Implementations (using distributive conditional types):
+type Exclude&lt;T, U&gt; = T extends U ? never : T;
+type Extract&lt;T, U&gt; = T extends U ? T : never;</div>
+<div class="expl-note">These work because conditional types <strong>distribute</strong> over unions. Each member of the union is checked individually against the condition.</div>
+<div class="expl-text"><strong>How distribution works step by step:</strong></div>
+<div class="expl-code">Exclude&lt;string | number | boolean, string&gt;
+= (string extends string ? never : string)
+  | (number extends string ? never : number)
+  | (boolean extends string ? never : boolean)
+= never | number | boolean
+= number | boolean</div>
+</div>`},
+
+{id:'returntype',name:'ReturnType & Parameters',desc:'Extract function type information',tag:'utility',
+code:`function createUser(name: string, age: number) {
+  return { id: Math.random(), name, age, createdAt: new Date() };
+}
+
+// Extract the return type
+type User = ReturnType<typeof createUser>;
+// { id: number; name: string; age: number; createdAt: Date }
+
+// Extract the parameter types
+type CreateUserParams = Parameters<typeof createUser>;
+// [name: string, age: number]
+
+// Works with generics too
+type PromiseType<T> = T extends Promise<infer U> ? U : T;
+type Resolved = PromiseType<Promise<string>>; // string
+
+// ConstructorParameters
+class UserService {
+  constructor(private apiUrl: string, private timeout: number) {}
+}
+type ServiceArgs = ConstructorParameters<typeof UserService>;
+// [apiUrl: string, timeout: number]`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-utility">Utility Type</span> ReturnType &amp; Parameters</div>
+<div class="expl-text">These utility types extract information from function types using conditional types with <code>infer</code>.</div>
+<div class="expl-code">// Implementations:
+type ReturnType&lt;T extends (...args: any) =&gt; any&gt; =
+  T extends (...args: any) =&gt; infer R ? R : any;
+
+type Parameters&lt;T extends (...args: any) =&gt; any&gt; =
+  T extends (...args: infer P) =&gt; any ? P : never;</div>
+<div class="expl-note">Use <code>typeof functionName</code> to get the type of a function value. These are great for keeping types in sync with implementation — change the function, and the type updates automatically.</div>
+<table class="expl-table">
+<tr><th>Utility</th><th>Extracts</th></tr>
+<tr><td>ReturnType&lt;T&gt;</td><td>The return type of a function</td></tr>
+<tr><td>Parameters&lt;T&gt;</td><td>Tuple of parameter types</td></tr>
+<tr><td>ConstructorParameters&lt;T&gt;</td><td>Constructor parameter types</td></tr>
+<tr><td>InstanceType&lt;T&gt;</td><td>Instance type of a constructor</td></tr>
+</table>
+</div>`},
+
+{id:'readonly-required',name:'Readonly & Required',desc:'Toggle property modifiers',tag:'utility',
+code:`interface Config {
+  host?: string;
+  port?: number;
+  debug?: boolean;
+}
+
+// Required: make all optional properties required
+type StrictConfig = Required<Config>;
+// { host: string; port: number; debug: boolean }
+
+// Readonly: prevent property mutation
+type FrozenConfig = Readonly<Config>;
+// { readonly host?: string; readonly port?: number; ... }
+
+// Deep Readonly (custom)
+type DeepReadonly<T> = {
+  readonly [K in keyof T]: T[K] extends object
+    ? DeepReadonly<T[K]>
+    : T[K];
+};
+
+// Combine: required AND readonly (immutable config)
+type ImmutableConfig = Readonly<Required<Config>>;
+// { readonly host: string; readonly port: number; ... }`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-utility">Utility Type</span> Readonly &amp; Required</div>
+<div class="expl-text"><strong>Readonly&lt;T&gt;</strong> adds <code>readonly</code> to all properties. <strong>Required&lt;T&gt;</strong> removes the optional <code>?</code> modifier.</div>
+<div class="expl-code">// Implementations:
+type Readonly&lt;T&gt; = {
+  readonly [P in keyof T]: T[P];
+};
+
+type Required&lt;T&gt; = {
+  [P in keyof T]-?: T[P];
+};
+// The -? removes the optional modifier</div>
+<div class="expl-note">The <code>-</code> prefix on a modifier removes it. So <code>-?</code> makes optional properties required, and <code>-readonly</code> makes readonly properties mutable. The <code>+</code> prefix (default) adds the modifier.</div>
+</div>`},
+
+{id:'infer-patterns',name:'Advanced infer Patterns',desc:'Extract deeply nested types with infer',tag:'advanced',
+code:`// Extract array element type
+type ElementOf<T> = T extends (infer E)[] ? E : never;
+type Nums = ElementOf<number[]>; // number
+
+// Extract Promise value type
+type Awaited2<T> = T extends Promise<infer U>
+  ? U extends Promise<any> ? Awaited2<U> : U
+  : T;
+
+// Extract function first argument
+type FirstArg<T> = T extends (first: infer F, ...args: any[]) => any
+  ? F : never;
+
+// Pattern match on strings
+type ParseRoute<T> = T extends \`/\${infer Segment}/\${infer Rest}\`
+  ? [Segment, ...ParseRoute<\`/\${Rest}\`>]
+  : T extends \`/\${infer Segment}\`
+  ? [Segment]
+  : [];
+
+type Route = ParseRoute<"/api/users/settings">;
+// ["api", "users", "settings"]
+
+// Extract object value types
+type ValueOf<T> = T[keyof T];`,
+explanation:`<div class="expl-section">
+<div class="expl-title"><span class="expl-badge badge-pattern">Advanced</span> Infer Patterns</div>
+<div class="expl-text">The <code>infer</code> keyword declares a type variable inside a conditional type, allowing you to "capture" part of a type structure. This enables powerful pattern matching at the type level.</div>
+<div class="expl-code">// infer works in these positions:
+T extends (infer U)[]           // Array element
+T extends Promise&lt;infer U&gt;      // Promise value
+T extends (...args: infer P) =&gt; infer R  // Function parts
+T extends { key: infer V }      // Object property
+T extends \`\${infer A}.\${infer B}\`  // String template</div>
+<div class="expl-note"><strong>Recursive types</strong> are possible in TypeScript 4.1+. The <code>ParseRoute</code> example shows recursion: it keeps extracting segments until the string is consumed. This is how libraries like tRPC and Hono achieve type-safe routing.</div>
+</div>`}
+];
+
+const UTILITY_TYPES=[
+{name:'Partial<T>',desc:'Makes all properties optional'},
+{name:'Required<T>',desc:'Makes all properties required'},
+{name:'Readonly<T>',desc:'Makes all properties readonly'},
+{name:'Record<K,V>',desc:'Object with keys K and values V'},
+{name:'Pick<T,K>',desc:'Select specific properties from T'},
+{name:'Omit<T,K>',desc:'Remove specific properties from T'},
+{name:'Exclude<T,U>',desc:'Remove types from union T assignable to U'},
+{name:'Extract<T,U>',desc:'Keep types from union T assignable to U'},
+{name:'NonNullable<T>',desc:'Remove null and undefined from T'},
+{name:'ReturnType<T>',desc:'Extract return type of function T'},
+{name:'Parameters<T>',desc:'Extract parameter types of function T'},
+{name:'ConstructorParameters<T>',desc:'Extract constructor parameter types'},
+{name:'InstanceType<T>',desc:'Extract instance type of constructor'},
+{name:'ThisParameterType<T>',desc:'Extract "this" parameter type'},
+{name:'OmitThisParameter<T>',desc:'Remove "this" parameter from function'},
+{name:'Uppercase<S>',desc:'Convert string literal to uppercase'},
+{name:'Lowercase<S>',desc:'Convert string literal to lowercase'},
+{name:'Capitalize<S>',desc:'Capitalize first letter of string'},
+{name:'Uncapitalize<S>',desc:'Lowercase first letter of string'},
+{name:'Awaited<T>',desc:'Recursively unwrap Promise types (TS 4.5+)'},
+{name:'NoInfer<T>',desc:'Block inference on a type parameter (TS 5.4+)'}
+];
+
+const CHALLENGES=[
+{id:'c1',name:'MyPick',desc:'Implement Pick from scratch',difficulty:'Easy',
+code:`// Implement MyPick<T, K> without using the built-in Pick
+
+interface Todo {
+  title: string;
+  description: string;
+  completed: boolean;
+}
+
+// Your implementation here:
+type MyPick<T, K> = any; // Replace this!
+
+// Test:
+type Expected = {
+  title: string;
+  completed: boolean;
+};
+type Result = MyPick<Todo, "title" | "completed">;`,
+answer:`type MyPick<T, K extends keyof T> = {
+  [P in K]: T[P];
+};`,
+hint:'Use a mapped type: iterate over K (constrained to keyof T) and map each key to its type in T.'},
+
+{id:'c2',name:'MyReadonly',desc:'Implement Readonly from scratch',difficulty:'Easy',
+code:`// Implement MyReadonly<T> without using the built-in Readonly
+
+interface Todo {
+  title: string;
+  description: string;
+}
+
+// Your implementation here:
+type MyReadonly<T> = any; // Replace this!
+
+// Test:
+type ReadonlyTodo = MyReadonly<Todo>;
+// { readonly title: string; readonly description: string }`,
+answer:`type MyReadonly<T> = {
+  readonly [K in keyof T]: T[K];
+};`,
+hint:'Use a mapped type with the readonly modifier on each property.'},
+
+{id:'c3',name:'TupleToObject',desc:'Convert tuple to object type',difficulty:'Medium',
+code:`// Convert a tuple type to an object where keys and values are the tuple elements
+
+const tuple = ["tesla", "model 3", "model X"] as const;
+
+// Your implementation here:
+type TupleToObject<T extends readonly any[]> = any; // Replace!
+
+// Test:
+type Result = TupleToObject<typeof tuple>;
+// { tesla: "tesla"; "model 3": "model 3"; "model X": "model X" }`,
+answer:`type TupleToObject<T extends readonly any[]> = {
+  [K in T[number]]: K;
+};`,
+hint:'T[number] gives you a union of all tuple elements. Use that as both key and value in a mapped type.'},
+
+{id:'c4',name:'MyExclude',desc:'Implement Exclude from scratch',difficulty:'Medium',
+code:`// Implement MyExclude<T, U> without using the built-in Exclude
+
+// Your implementation here:
+type MyExclude<T, U> = any; // Replace this!
+
+// Tests:
+type A = MyExclude<"a" | "b" | "c", "a">;      // "b" | "c"
+type B = MyExclude<string | number, string>;      // number
+type C = MyExclude<"a" | "b" | "c", "a" | "b">; // "c"`,
+answer:`type MyExclude<T, U> = T extends U ? never : T;`,
+hint:'Use a distributive conditional type. If T extends U, return never (which disappears from unions), otherwise return T.'},
+
+{id:'c5',name:'DeepPartial',desc:'Make all properties optional, deeply',difficulty:'Hard',
+code:`// Make ALL properties optional at every nesting level
+
+interface Config {
+  database: {
+    host: string;
+    port: number;
+    credentials: {
+      user: string;
+      password: string;
+    };
+  };
+  features: string[];
+  debug: boolean;
+}
+
+// Your implementation here:
+type DeepPartial<T> = any; // Replace this!
+
+// Test: should make database.credentials.user optional too
+type PartialConfig = DeepPartial<Config>;`,
+answer:`type DeepPartial<T> = T extends object
+  ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : T;`,
+hint:'Use a recursive conditional: if T is an object, map over keys making them optional and recurse. Otherwise return T as-is.'}
+];
+
+/* ===================== RENDERING ===================== */
+
+function renderExamples(){
+  const grid=document.getElementById('examplesGrid');
+  grid.innerHTML=EXAMPLES.map(ex=>`
+    <div class="example-card" data-id="${ex.id}" onclick="loadExample('${ex.id}')">
+      <div class="example-name">${escHtml(ex.name)}</div>
+      <div class="example-desc">${escHtml(ex.desc)}</div>
+      <span class="example-tag tag-${ex.tag}">${ex.tag}</span>
+    </div>
+  `).join('');
+}
+
+function renderUtilGrid(){
+  const grid=document.getElementById('utilGrid');
+  grid.innerHTML=UTILITY_TYPES.map(u=>`
+    <div class="util-card">
+      <div class="util-name">${escHtml(u.name)}</div>
+      <div class="util-desc">${escHtml(u.desc)}</div>
+    </div>
+  `).join('');
+}
+
+function renderChallenges(){
+  const grid=document.getElementById('challengesGrid');
+  grid.innerHTML=CHALLENGES.map(c=>`
+    <div class="example-card" data-id="${c.id}" onclick="loadChallenge('${c.id}')">
+      <div class="example-name">${escHtml(c.name)}</div>
+      <div class="example-desc">${escHtml(c.desc)}</div>
+      <span class="example-tag tag-${c.difficulty==='Easy'?'utility':c.difficulty==='Medium'?'pattern':'advanced'}">${c.difficulty}</span>
+    </div>
+  `).join('');
+}
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+/* ===================== SYNTAX HIGHLIGHTING ===================== */
+function highlight(code){
+  let html=escHtml(code);
+  /* Keywords */
+  html=html.replace(/\b(type|interface|extends|infer|keyof|typeof|readonly|in|as|const|function|return|class|private|new|switch|case|throw|if|else|any|never|void|unknown|true|false|null|undefined)\b/g,'<span style="color:var(--kw)">$1</span>');
+  /* Types */
+  html=html.replace(/\b(string|number|boolean|object|Date|Error|Promise|Request|Response|Math|Array)\b/g,'<span style="color:var(--type)">$1</span>');
+  /* Utility types */
+  html=html.replace(/\b(Partial|Required|Readonly|Record|Pick|Omit|Exclude|Extract|NonNullable|ReturnType|Parameters|ConstructorParameters|InstanceType|Uppercase|Lowercase|Capitalize|Uncapitalize|Awaited)\b/g,'<span style="color:var(--fn)">$1</span>');
+  /* Strings */
+  html=html.replace(/"([^"\\]*(\\.[^"\\]*)*)"/g,'<span style="color:var(--str)">"$1"</span>');
+  /* Numbers */
+  html=html.replace(/\b(\d+\.?\d*)\b/g,'<span style="color:var(--num)">$1</span>');
+  /* Comments */
+  html=html.replace(/(\/\/[^\n]*)/g,'<span style="color:var(--comment)">$1</span>');
+  /* Template literals - basic */
+  html=html.replace(/`([^`]*)`/g,'<span style="color:var(--str)">`$1`</span>');
+  return html;
+}
+
+function updateHighlight(inputId,highlightId){
+  const code=document.getElementById(inputId).value;
+  document.getElementById(highlightId).innerHTML=highlight(code)+'\n';
+}
+
+/* ===================== ACTIONS ===================== */
+
+function loadExample(id){
+  const ex=EXAMPLES.find(e=>e.id===id);
+  if(!ex)return;
+  document.getElementById('codeInput').value=ex.code;
+  document.getElementById('explanation').innerHTML=ex.explanation;
+  updateHighlight('codeInput','codeHighlight');
+  document.querySelectorAll('#examplesGrid .example-card').forEach(c=>c.classList.remove('active'));
+  document.querySelector(`#examplesGrid .example-card[data-id="${id}"]`)?.classList.add('active');
+}
+
+function loadChallenge(id){
+  const ch=CHALLENGES.find(c=>c.id===id);
+  if(!ch)return;
+  document.getElementById('challengeInput').value=ch.code;
+  updateHighlight('challengeInput','challengeHighlight');
+  document.getElementById('challengeExpl').innerHTML=`
+    <div class="expl-section">
+      <div class="expl-title"><span class="expl-badge badge-challenge">${ch.difficulty}</span> ${escHtml(ch.name)}</div>
+      <div class="expl-text">${escHtml(ch.desc)}</div>
+      <div class="expl-note"><strong>Hint:</strong> ${escHtml(ch.hint)}</div>
+      <div style="margin-top:16px">
+        <button class="panel-btn" onclick="showAnswer('${ch.id}')" style="padding:10px 18px;font-size:13px">Show Answer</button>
+      </div>
+      <div id="answer-${ch.id}" style="display:none;margin-top:16px">
+        <div class="expl-code">${escHtml(ch.answer)}</div>
+      </div>
+    </div>`;
+  document.querySelectorAll('#challengesGrid .example-card').forEach(c=>c.classList.remove('active'));
+  document.querySelector(`#challengesGrid .example-card[data-id="${id}"]`)?.classList.add('active');
+}
+
+function showAnswer(id){
+  const el=document.getElementById('answer-'+id);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function clearEditor(){
+  document.getElementById('codeInput').value='';
+  updateHighlight('codeInput','codeHighlight');
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    if((tab==='explore'&&b.textContent.includes('Explore'))||(tab==='reference'&&b.textContent.includes('Reference'))||(tab==='challenges'&&b.textContent.includes('Challenge')))b.classList.add('active');
+  });
+  document.getElementById('tabExplore').style.display=tab==='explore'?'':'none';
+  document.getElementById('tabReference').style.display=tab==='reference'?'':'none';
+  document.getElementById('tabChallenges').style.display=tab==='challenges'?'':'none';
+}
+
+/* ===================== SYNC SCROLL + INPUT ===================== */
+document.getElementById('codeInput').addEventListener('input',()=>updateHighlight('codeInput','codeHighlight'));
+document.getElementById('codeInput').addEventListener('scroll',function(){
+  document.getElementById('codeHighlight').scrollTop=this.scrollTop;
+  document.getElementById('codeHighlight').scrollLeft=this.scrollLeft;
+});
+
+document.getElementById('challengeInput').addEventListener('input',()=>updateHighlight('challengeInput','challengeHighlight'));
+document.getElementById('challengeInput').addEventListener('scroll',function(){
+  document.getElementById('challengeHighlight').scrollTop=this.scrollTop;
+  document.getElementById('challengeHighlight').scrollLeft=this.scrollLeft;
+});
+
+/* Handle tab key in textareas */
+document.querySelectorAll('.code-textarea').forEach(ta=>{
+  ta.addEventListener('keydown',function(e){
+    if(e.key==='Tab'){
+      e.preventDefault();
+      const start=this.selectionStart;
+      const end=this.selectionEnd;
+      this.value=this.value.substring(0,start)+'  '+this.value.substring(end);
+      this.selectionStart=this.selectionEnd=start+2;
+      this.dispatchEvent(new Event('input'));
+    }
+  });
+});
+
+/* ===================== INIT ===================== */
+renderExamples();
+renderUtilGrid();
+renderChallenges();
+updateHighlight('codeInput','codeHighlight');
+</script>
+
+<script defer src="/js/revenue.js"></script>
+<script defer src="/js/lead-capture.js"></script>
+<script defer src="/js/analytics-lite.js"></script>
+</body>
+</html>
