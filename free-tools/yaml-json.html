@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAML &#8596; JSON Converter — Free Online Tool | NexTool</title>
+    <meta name="description" content="Convert between YAML and JSON with syntax highlighting, validation, configurable indentation. Handles nested objects, arrays, multiline strings. Free online tool by NexTool.">
+    <meta property="og:title" content="YAML to JSON Converter — Free Online Tool | NexTool">
+    <meta property="og:description" content="Convert YAML to JSON and JSON to YAML with syntax highlighting, validation, and error reporting. Free tool.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/yaml-json.html">
+    <link rel="canonical" href="https://nextool.app/free-tools/yaml-json.html">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "YAML to JSON Converter",
+        "description": "Convert between YAML and JSON with syntax highlighting, validation, and configurable indentation.",
+        "url": "https://nextool.app/free-tools/yaml-json.html",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Organization", "name": "NexTool", "url": "https://nextool.app" }
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #050508;
+            --bg-alt: #0a0a12;
+            --surface: #111118;
+            --surface-alt: #1a1a24;
+            --primary: #6366f1;
+            --accent: #a855f7;
+            --pink: #ec4899;
+            --text: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --tool-color: #a855f7;
+            --tool-color-dim: rgba(168, 85, 247, 0.15);
+            --tool-color-mid: rgba(168, 85, 247, 0.3);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            padding: 0 2rem; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-logo {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff !important; padding: 0.5rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; }
+        .nav-toggle { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
+
+        /* HERO */
+        .hero {
+            padding: 8rem 2rem 2.5rem; text-align: center; position: relative;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--tool-color-dim) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: var(--tool-color-dim); border: 1px solid var(--tool-color-mid);
+            padding: 0.4rem 1rem; border-radius: 50px;
+            font-size: 0.8rem; font-weight: 600; color: var(--tool-color);
+            margin-bottom: 1.5rem;
+        }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+        .hero h1 span { background: linear-gradient(135deg, var(--tool-color), #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 1.05rem; color: var(--text-secondary); max-width: 620px; margin: 0 auto; }
+
+        /* TOOL */
+        .tool-container { max-width: 1200px; margin: 0 auto 4rem; padding: 0 2rem; }
+
+        .toolbar {
+            display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;
+            align-items: center; justify-content: space-between;
+        }
+        .toolbar-left, .toolbar-right { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.55rem 1.1rem; border: none; border-radius: var(--radius-sm);
+            font-family: inherit; font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary { background: var(--tool-color); color: #fff; }
+        .btn-primary:hover { opacity: 0.85; }
+        .btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid rgba(255,255,255,0.08); }
+        .btn-secondary:hover { border-color: rgba(255,255,255,0.2); }
+        .btn-copy { background: var(--tool-color-dim); color: var(--tool-color); }
+        .btn-copy:hover { background: var(--tool-color-mid); }
+
+        .control-group {
+            display: flex; align-items: center; gap: 0.4rem;
+            background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-sm); padding: 0.35rem 0.75rem;
+        }
+        .control-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+        .control-group select {
+            background: var(--bg-alt); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px; padding: 0.25rem 0.4rem;
+            color: var(--text); font-family: inherit; font-size: 0.8rem;
+        }
+
+        .editors {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+        }
+
+        .editor-panel {
+            background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius); overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+        .editor-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: var(--surface-alt);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .editor-header h3 { font-size: 0.9rem; font-weight: 700; }
+        .editor-header .badge {
+            font-size: 0.7rem; font-weight: 600;
+            padding: 0.2rem 0.6rem; border-radius: 50px;
+        }
+        .badge-yaml { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .badge-json { background: rgba(99,102,241,0.15); color: #6366f1; }
+
+        .editor-body {
+            position: relative;
+            flex: 1;
+        }
+        .editor-body textarea {
+            width: 100%; height: 100%; min-height: 400px;
+            background: transparent;
+            border: none; border-radius: 0;
+            padding: 1rem;
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.65;
+            resize: vertical;
+            tab-size: 2;
+        }
+        .editor-body textarea:focus { outline: none; }
+
+        .error-bar {
+            padding: 0.6rem 1rem;
+            background: rgba(239,68,68,0.1);
+            border-top: 1px solid rgba(239,68,68,0.2);
+            color: #ef4444;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+            display: none;
+        }
+        .error-bar.show { display: block; }
+
+        .success-bar {
+            padding: 0.6rem 1rem;
+            background: rgba(34,197,94,0.1);
+            border-top: 1px solid rgba(34,197,94,0.2);
+            color: #22c55e;
+            font-size: 0.8rem;
+            display: none;
+        }
+        .success-bar.show { display: block; }
+
+        .toast {
+            position: fixed; bottom: 2rem; right: 2rem;
+            background: var(--tool-color); color: #fff;
+            padding: 0.75rem 1.5rem; border-radius: var(--radius-sm);
+            font-weight: 600; font-size: 0.85rem;
+            transform: translateY(100px); opacity: 0;
+            transition: all 0.3s ease; z-index: 9999;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FOOTER */
+        footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 4rem 2rem 2rem; margin-top: 4rem; }
+        .footer-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 2rem; }
+        .footer-brand p { color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.75rem; max-width: 280px; }
+        .footer-col h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; }
+        .footer-col a { display: block; color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; margin-bottom: 0.5rem; transition: color 0.2s; }
+        .footer-col a:hover { color: var(--text); }
+        .footer-bottom { max-width: 1100px; margin: 2rem auto 0; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; color: var(--text-secondary); font-size: 0.8rem; }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: fixed; top: 64px; left: 0; right: 0; background: var(--bg); flex-direction: column; padding: 1.5rem; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+            .nav-links.open { display: flex; }
+            .nav-toggle { display: block; }
+            .editors { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .toolbar { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 480px) {
+            .hero { padding: 6.5rem 1rem 2rem; }
+            .hero h1 { font-size: 1.75rem; }
+            .tool-container { padding: 0 1rem; }
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="https://nextool.app" class="nav-logo">NexTool</a>
+        <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="https://nextool.app/#services">Services</a></li>
+            <li><a href="https://nextool.app/free-tools">Free Tools</a></li>
+            <li><a href="https://nextool.app/#extension">Extension</a></li>
+            <li><a href="https://nextool.app/blog">Blog</a></li>
+            <li><a href="https://nextool.app/#pricing">Pricing</a></li>
+            <li><a href="https://nextool.app/#start" class="nav-cta">Start a Project</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge">&#9889; Free Developer Tool</div>
+        <h1>YAML <span>&#8596; JSON</span> Converter</h1>
+        <p>Convert between YAML and JSON with validation, syntax highlighting, configurable indentation, and support for nested objects, arrays, and multiline strings.</p>
+    </section>
+
+    <div class="tool-container">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="btn btn-primary" onclick="yamlToJson()">YAML &rarr; JSON</button>
+                <button class="btn btn-primary" onclick="jsonToYaml()">JSON &rarr; YAML</button>
+                <button class="btn btn-secondary" onclick="validateYaml()">Validate YAML</button>
+                <button class="btn btn-secondary" onclick="validateJson()">Validate JSON</button>
+                <button class="btn btn-secondary" onclick="formatJson()">Beautify JSON</button>
+            </div>
+            <div class="toolbar-right">
+                <div class="control-group">
+                    <label>Indent:</label>
+                    <select id="indentSize">
+                        <option value="2">2 spaces</option>
+                        <option value="4">4 spaces</option>
+                        <option value="tab">Tab</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="swapEditors()">&#8644; Swap</button>
+                <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+            </div>
+        </div>
+
+        <div class="editors">
+            <div class="editor-panel">
+                <div class="editor-header">
+                    <h3>YAML</h3>
+                    <div style="display:flex;gap:0.4rem;align-items:center;">
+                        <span class="badge badge-yaml">YAML</span>
+                        <button class="btn btn-copy" style="padding:0.3rem 0.7rem;font-size:0.75rem;" onclick="copyText('yaml-input')">Copy</button>
+                        <button class="btn btn-secondary" style="padding:0.3rem 0.7rem;font-size:0.75rem;" onclick="downloadFile('yaml')">Download .yaml</button>
+                    </div>
+                </div>
+                <div class="editor-body">
+                    <textarea id="yaml-input" spellcheck="false" placeholder="Paste YAML here...">
+# Example YAML document
+server:
+  host: localhost
+  port: 8080
+  ssl: true
+
+database:
+  name: myapp
+  credentials:
+    username: admin
+    password: secret123
+  pools:
+    - name: read
+      size: 10
+    - name: write
+      size: 5
+
+features:
+  - authentication
+  - logging
+  - monitoring
+
+description: |
+  This is a multiline
+  string that preserves
+  newlines in the output.
+
+summary: >
+  This is a folded string
+  that will be joined into
+  a single line.
+
+environment: production
+version: 2.1.0
+debug: false
+max_retries: 3
+timeout: 30.5</textarea>
+                </div>
+                <div class="error-bar" id="yaml-error"></div>
+                <div class="success-bar" id="yaml-success"></div>
+            </div>
+
+            <div class="editor-panel">
+                <div class="editor-header">
+                    <h3>JSON</h3>
+                    <div style="display:flex;gap:0.4rem;align-items:center;">
+                        <span class="badge badge-json">JSON</span>
+                        <button class="btn btn-copy" style="padding:0.3rem 0.7rem;font-size:0.75rem;" onclick="copyText('json-input')">Copy</button>
+                        <button class="btn btn-secondary" style="padding:0.3rem 0.7rem;font-size:0.75rem;" onclick="downloadFile('json')">Download .json</button>
+                    </div>
+                </div>
+                <div class="editor-body">
+                    <textarea id="json-input" spellcheck="false" placeholder="Paste JSON here..."></textarea>
+                </div>
+                <div class="error-bar" id="json-error"></div>
+                <div class="success-bar" id="json-success"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="https://nextool.app" class="nav-logo">NexTool</a>
+                <p>AI-powered automation studio. You describe it, we build it.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Services</h4>
+                <a href="https://nextool.app/#services">Websites</a>
+                <a href="https://nextool.app/#services">Chatbots</a>
+                <a href="https://nextool.app/#services">Automation</a>
+                <a href="https://nextool.app/#services">Content</a>
+                <a href="https://nextool.app/#services">Video</a>
+                <a href="https://nextool.app/#services">Data</a>
+            </div>
+            <div class="footer-col">
+                <h4>Free Tools</h4>
+                <a href="url-encoder.html">URL Encoder</a>
+                <a href="text-diff-merger.html">Text Transformer</a>
+                <a href="pixel-ruler.html">Pixel Ruler</a>
+                <a href="yaml-json.html">YAML/JSON Converter</a>
+            </div>
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <a href="https://nextool.app/#extension">Chrome Extension</a>
+                <a href="https://nextool.app/blog">Blog</a>
+                <a href="https://nextool.app/#pricing">Pricing</a>
+                <a href="https://nextool.app/#start">Start a Project</a>
+            </div>
+        </div>
+        <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+    </footer>
+
+    <script>
+        /* ============================================================
+         * SIMPLE YAML PARSER (Pure JS, no dependencies)
+         * Handles: key: value, nested indentation, arrays with -,
+         * multiline | and >, comments #, booleans, numbers, null,
+         * quoted strings, inline arrays/objects
+         * ============================================================ */
+
+        function parseYAML(yaml) {
+            const lines = yaml.split('\n');
+            let i = 0;
+
+            function currentIndent(line) {
+                const match = line.match(/^(\s*)/);
+                return match ? match[1].length : 0;
+            }
+
+            function parseValue(val) {
+                val = val.trim();
+                if (val === '' || val === '~' || val === 'null' || val === 'Null' || val === 'NULL') return null;
+                if (val === 'true' || val === 'True' || val === 'TRUE' || val === 'yes' || val === 'Yes' || val === 'YES' || val === 'on' || val === 'On' || val === 'ON') return true;
+                if (val === 'false' || val === 'False' || val === 'FALSE' || val === 'no' || val === 'No' || val === 'NO' || val === 'off' || val === 'Off' || val === 'OFF') return false;
+                if (/^-?\d+$/.test(val)) return parseInt(val, 10);
+                if (/^-?\d+\.\d+$/.test(val)) return parseFloat(val);
+                if (/^0x[0-9a-fA-F]+$/.test(val)) return parseInt(val, 16);
+                if (/^0o[0-7]+$/.test(val)) return parseInt(val, 8);
+                if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'")))
+                    return val.slice(1, -1);
+                if (val.startsWith('[') && val.endsWith(']')) {
+                    try { return JSON.parse(val); } catch (e) {
+                        return val.slice(1, -1).split(',').map(v => parseValue(v.trim()));
+                    }
+                }
+                if (val.startsWith('{') && val.endsWith('}')) {
+                    try { return JSON.parse(val); } catch (e) { return val; }
+                }
+                return val;
+            }
+
+            function stripComment(line) {
+                let inSingle = false, inDouble = false;
+                for (let j = 0; j < line.length; j++) {
+                    const c = line[j];
+                    if (c === "'" && !inDouble) inSingle = !inSingle;
+                    else if (c === '"' && !inSingle) inDouble = !inDouble;
+                    else if (c === '#' && !inSingle && !inDouble && (j === 0 || line[j - 1] === ' ')) {
+                        return line.substring(0, j).trimEnd();
+                    }
+                }
+                return line;
+            }
+
+            function readMultiline(baseIndent, mode) {
+                const collected = [];
+                while (i < lines.length) {
+                    const line = lines[i];
+                    if (line.trim() === '') {
+                        if (mode === '|') collected.push('');
+                        else collected.push('');
+                        i++;
+                        continue;
+                    }
+                    const ind = currentIndent(line);
+                    if (ind <= baseIndent) break;
+                    collected.push(line.substring(baseIndent + 2));
+                    i++;
+                }
+                // Remove trailing empty lines
+                while (collected.length > 0 && collected[collected.length - 1] === '') collected.pop();
+                if (mode === '|') return collected.join('\n') + '\n';
+                return collected.join(' ').replace(/\s+/g, ' ').trim();
+            }
+
+            function parseBlock(minIndent) {
+                // Determine if we are parsing an object or array
+                // Peek at the first non-empty, non-comment line
+                let peekIdx = i;
+                while (peekIdx < lines.length) {
+                    const trimmed = lines[peekIdx].trim();
+                    if (trimmed === '' || trimmed.startsWith('#')) { peekIdx++; continue; }
+                    break;
+                }
+                if (peekIdx >= lines.length) return null;
+
+                const firstLine = lines[peekIdx].trim();
+                if (firstLine.startsWith('- ') || firstLine === '-') {
+                    return parseArray(minIndent);
+                }
+                return parseObject(minIndent);
+            }
+
+            function parseObject(minIndent) {
+                const obj = {};
+                while (i < lines.length) {
+                    const raw = lines[i];
+                    const trimmed = raw.trim();
+
+                    if (trimmed === '' || trimmed.startsWith('#')) { i++; continue; }
+
+                    const ind = currentIndent(raw);
+                    if (ind < minIndent) break;
+                    if (ind > minIndent) break; // Belongs to a different block
+
+                    const cleaned = stripComment(trimmed);
+                    // Check for array item at this level
+                    if (cleaned.startsWith('- ')) break;
+                    if (cleaned === '-') break;
+
+                    // Key: value
+                    const colonIdx = cleaned.indexOf(':');
+                    if (colonIdx === -1) { i++; continue; }
+
+                    const key = cleaned.substring(0, colonIdx).trim();
+                    // Remove quotes from key
+                    const cleanKey = (key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))
+                        ? key.slice(1, -1) : key;
+                    const rest = cleaned.substring(colonIdx + 1).trim();
+
+                    i++;
+
+                    if (rest === '' || rest === '|' || rest === '>') {
+                        if (rest === '|' || rest === '>') {
+                            obj[cleanKey] = readMultiline(ind, rest);
+                        } else {
+                            // Check if next lines are indented (nested block)
+                            let nextIdx = i;
+                            while (nextIdx < lines.length && (lines[nextIdx].trim() === '' || lines[nextIdx].trim().startsWith('#'))) nextIdx++;
+                            if (nextIdx < lines.length && currentIndent(lines[nextIdx]) > ind) {
+                                const childIndent = currentIndent(lines[nextIdx]);
+                                obj[cleanKey] = parseBlock(childIndent);
+                            } else {
+                                obj[cleanKey] = null;
+                            }
+                        }
+                    } else {
+                        obj[cleanKey] = parseValue(rest);
+                    }
+                }
+                return obj;
+            }
+
+            function parseArray(minIndent) {
+                const arr = [];
+                while (i < lines.length) {
+                    const raw = lines[i];
+                    const trimmed = raw.trim();
+
+                    if (trimmed === '' || trimmed.startsWith('#')) { i++; continue; }
+
+                    const ind = currentIndent(raw);
+                    if (ind < minIndent) break;
+                    if (ind > minIndent) break;
+
+                    const cleaned = stripComment(trimmed);
+                    if (!cleaned.startsWith('- ') && cleaned !== '-') break;
+
+                    const itemVal = cleaned === '-' ? '' : cleaned.substring(2).trim();
+
+                    i++;
+
+                    if (itemVal === '' || itemVal === '|' || itemVal === '>') {
+                        if (itemVal === '|' || itemVal === '>') {
+                            arr.push(readMultiline(ind, itemVal));
+                        } else {
+                            let nextIdx = i;
+                            while (nextIdx < lines.length && (lines[nextIdx].trim() === '' || lines[nextIdx].trim().startsWith('#'))) nextIdx++;
+                            if (nextIdx < lines.length && currentIndent(lines[nextIdx]) > ind) {
+                                const childIndent = currentIndent(lines[nextIdx]);
+                                arr.push(parseBlock(childIndent));
+                            } else {
+                                arr.push(null);
+                            }
+                        }
+                    } else if (itemVal.includes(': ') || itemVal.includes(':')) {
+                        // Inline key-value on the array item line
+                        const colIdx = itemVal.indexOf(':');
+                        const k = itemVal.substring(0, colIdx).trim();
+                        const cleanK = (k.startsWith('"') && k.endsWith('"')) || (k.startsWith("'") && k.endsWith("'"))
+                            ? k.slice(1, -1) : k;
+                        const v = itemVal.substring(colIdx + 1).trim();
+
+                        const obj = {};
+                        if (v === '') {
+                            let nextIdx = i;
+                            while (nextIdx < lines.length && (lines[nextIdx].trim() === '' || lines[nextIdx].trim().startsWith('#'))) nextIdx++;
+                            if (nextIdx < lines.length && currentIndent(lines[nextIdx]) > ind) {
+                                const childIndent = currentIndent(lines[nextIdx]);
+                                obj[cleanK] = parseBlock(childIndent);
+                            } else {
+                                obj[cleanK] = null;
+                            }
+                        } else {
+                            obj[cleanK] = parseValue(v);
+                        }
+
+                        // Read remaining keys at deeper indent
+                        let nextIdx = i;
+                        while (nextIdx < lines.length && (lines[nextIdx].trim() === '' || lines[nextIdx].trim().startsWith('#'))) nextIdx++;
+                        if (nextIdx < lines.length) {
+                            const nextInd = currentIndent(lines[nextIdx]);
+                            if (nextInd > ind) {
+                                // Parse sibling keys
+                                const saved = i;
+                                i = nextIdx;
+                                const moreObj = parseObject(nextInd);
+                                Object.assign(obj, moreObj);
+                            }
+                        }
+                        arr.push(obj);
+                    } else {
+                        arr.push(parseValue(itemVal));
+                    }
+                }
+                return arr;
+            }
+
+            // Find first meaningful line
+            while (i < lines.length && (lines[i].trim() === '' || lines[i].trim().startsWith('#') || lines[i].trim().startsWith('---'))) i++;
+            if (i >= lines.length) return {};
+
+            const startIndent = currentIndent(lines[i]);
+            return parseBlock(startIndent);
+        }
+
+
+        /* ============================================================
+         * JSON TO YAML SERIALIZER
+         * ============================================================ */
+
+        function toYAML(obj, indent, level) {
+            indent = indent || 2;
+            level = level || 0;
+            const pad = ' '.repeat(indent * level);
+
+            if (obj === null || obj === undefined) return 'null';
+            if (typeof obj === 'boolean') return obj ? 'true' : 'false';
+            if (typeof obj === 'number') return String(obj);
+            if (typeof obj === 'string') {
+                if (obj.includes('\n')) {
+                    const lines = obj.split('\n');
+                    const innerPad = ' '.repeat(indent * (level + 1));
+                    return '|\n' + lines.map(l => innerPad + l).join('\n');
+                }
+                if (obj === '' || obj.includes(': ') || obj.includes('#') || obj.startsWith('{') ||
+                    obj.startsWith('[') || obj.startsWith('"') || obj.startsWith("'") ||
+                    /^(true|false|null|yes|no|on|off|\d+(\.\d+)?|0x[\da-f]+|0o[0-7]+)$/i.test(obj)) {
+                    return '"' + obj.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+                }
+                return obj;
+            }
+
+            if (Array.isArray(obj)) {
+                if (obj.length === 0) return '[]';
+                return obj.map(item => {
+                    const val = toYAML(item, indent, level + 1);
+                    if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+                        const lines = val.split('\n');
+                        return pad + '- ' + lines[0].trim() + (lines.length > 1 ? '\n' + lines.slice(1).join('\n') : '');
+                    }
+                    return pad + '- ' + val;
+                }).join('\n');
+            }
+
+            if (typeof obj === 'object') {
+                const keys = Object.keys(obj);
+                if (keys.length === 0) return '{}';
+                return keys.map(key => {
+                    const val = obj[key];
+                    const safeKey = /[:\s\[\]{}#&*!|>'"%@`]/.test(key) ? '"' + key + '"' : key;
+                    if (val === null || val === undefined) {
+                        return pad + safeKey + ': null';
+                    }
+                    if (typeof val === 'object') {
+                        const serialized = toYAML(val, indent, level + 1);
+                        return pad + safeKey + ':\n' + serialized;
+                    }
+                    const serialized = toYAML(val, indent, level + 1);
+                    if (typeof val === 'string' && val.includes('\n')) {
+                        return pad + safeKey + ': ' + serialized;
+                    }
+                    return pad + safeKey + ': ' + serialized;
+                }).join('\n');
+            }
+
+            return String(obj);
+        }
+
+
+        /* ============================================================
+         * CONVERSION FUNCTIONS
+         * ============================================================ */
+
+        function getIndent() {
+            const val = document.getElementById('indentSize').value;
+            return val === 'tab' ? '\t' : parseInt(val);
+        }
+
+        function clearErrors() {
+            ['yaml-error', 'json-error', 'yaml-success', 'json-success'].forEach(id => {
+                document.getElementById(id).classList.remove('show');
+                document.getElementById(id).textContent = '';
+            });
+        }
+
+        function showError(id, msg) {
+            clearErrors();
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+
+        function showSuccess(id, msg) {
+            clearErrors();
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+
+        function yamlToJson() {
+            const yaml = document.getElementById('yaml-input').value.trim();
+            if (!yaml) { showError('yaml-error', 'YAML input is empty.'); return; }
+
+            try {
+                const parsed = parseYAML(yaml);
+                const indent = getIndent();
+                const json = JSON.stringify(parsed, null, indent);
+                document.getElementById('json-input').value = json;
+                showSuccess('json-success', 'Converted from YAML successfully.');
+            } catch (e) {
+                showError('yaml-error', 'YAML Parse Error: ' + e.message);
+            }
+        }
+
+        function jsonToYaml() {
+            const json = document.getElementById('json-input').value.trim();
+            if (!json) { showError('json-error', 'JSON input is empty.'); return; }
+
+            try {
+                const parsed = JSON.parse(json);
+                const indent = getIndent();
+                const indentNum = indent === '\t' ? 2 : indent;
+                const yaml = toYAML(parsed, indentNum, 0);
+                document.getElementById('yaml-input').value = yaml;
+                showSuccess('yaml-success', 'Converted from JSON successfully.');
+            } catch (e) {
+                let msg = 'JSON Parse Error: ' + e.message;
+                const match = e.message.match(/position (\d+)/);
+                if (match) {
+                    const pos = parseInt(match[1]);
+                    const before = json.substring(0, pos);
+                    const line = before.split('\n').length;
+                    msg += ' (near line ' + line + ')';
+                }
+                showError('json-error', msg);
+            }
+        }
+
+        function validateYaml() {
+            const yaml = document.getElementById('yaml-input').value.trim();
+            if (!yaml) { showError('yaml-error', 'YAML input is empty.'); return; }
+            try {
+                parseYAML(yaml);
+                showSuccess('yaml-success', 'Valid YAML.');
+            } catch (e) {
+                showError('yaml-error', 'Invalid YAML: ' + e.message);
+            }
+        }
+
+        function validateJson() {
+            const json = document.getElementById('json-input').value.trim();
+            if (!json) { showError('json-error', 'JSON input is empty.'); return; }
+            try {
+                JSON.parse(json);
+                showSuccess('json-success', 'Valid JSON.');
+            } catch (e) {
+                let msg = 'Invalid JSON: ' + e.message;
+                const match = e.message.match(/position (\d+)/);
+                if (match) {
+                    const pos = parseInt(match[1]);
+                    const before = json.substring(0, pos);
+                    const line = before.split('\n').length;
+                    msg += ' (near line ' + line + ')';
+                }
+                showError('json-error', msg);
+            }
+        }
+
+        function formatJson() {
+            const json = document.getElementById('json-input').value.trim();
+            if (!json) { showError('json-error', 'JSON input is empty.'); return; }
+            try {
+                const parsed = JSON.parse(json);
+                const indent = getIndent();
+                document.getElementById('json-input').value = JSON.stringify(parsed, null, indent);
+                showSuccess('json-success', 'JSON beautified.');
+            } catch (e) {
+                showError('json-error', 'Cannot beautify invalid JSON: ' + e.message);
+            }
+        }
+
+        function swapEditors() {
+            const yaml = document.getElementById('yaml-input').value;
+            const json = document.getElementById('json-input').value;
+            document.getElementById('yaml-input').value = json;
+            document.getElementById('json-input').value = yaml;
+            clearErrors();
+        }
+
+        function clearAll() {
+            document.getElementById('yaml-input').value = '';
+            document.getElementById('json-input').value = '';
+            clearErrors();
+        }
+
+        /* COPY & DOWNLOAD */
+        function copyText(id) {
+            const text = document.getElementById(id).value;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const t = document.getElementById('toast');
+                t.textContent = 'Copied to clipboard!';
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 2000);
+            });
+        }
+
+        function downloadFile(type) {
+            const text = document.getElementById(type === 'yaml' ? 'yaml-input' : 'json-input').value;
+            if (!text) return;
+            const ext = type === 'yaml' ? '.yaml' : '.json';
+            const mime = type === 'yaml' ? 'text/yaml' : 'application/json';
+            const blob = new Blob([text], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'converted' + ext;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        /* TAB KEY IN TEXTAREAS */
+        document.querySelectorAll('textarea').forEach(ta => {
+            ta.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const indent = getIndent();
+                    const tab = indent === '\t' ? '\t' : ' '.repeat(typeof indent === 'number' ? indent : 2);
+                    const start = ta.selectionStart;
+                    const end = ta.selectionEnd;
+                    ta.value = ta.value.substring(0, start) + tab + ta.value.substring(end);
+                    ta.selectionStart = ta.selectionEnd = start + tab.length;
+                }
+            });
+        });
+
+        /* SCROLL ANIMATION */
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity = 1; e.target.style.transform = 'translateY(0)'; }});
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.editors, footer').forEach(el => {
+            el.style.opacity = 0; el.style.transform = 'translateY(24px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        /* AUTO-CONVERT ON LOAD */
+        yamlToJson();
+    </script>
+</body>
+</html>

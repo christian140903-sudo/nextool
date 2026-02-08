@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Case Converter &amp; Transformer — Free Online Tool | NexTool</title>
+    <meta name="description" content="Convert text between UPPERCASE, lowercase, Title Case, camelCase, snake_case, kebab-case and more. Strip HTML, sort lines, find and replace with regex. Free online tool by NexTool.">
+    <meta property="og:title" content="Text Case Converter & Transformer — Free Online Tool | NexTool">
+    <meta property="og:description" content="Convert text between 11+ case formats, sort lines, strip HTML, find and replace with regex. Free tool.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/text-diff-merger.html">
+    <link rel="canonical" href="https://nextool.app/free-tools/text-diff-merger.html">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Text Case Converter & Transformer",
+        "description": "Convert text between 11+ case formats, sort lines, strip HTML, find and replace with regex.",
+        "url": "https://nextool.app/free-tools/text-diff-merger.html",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Organization", "name": "NexTool", "url": "https://nextool.app" }
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #050508;
+            --bg-alt: #0a0a12;
+            --surface: #111118;
+            --surface-alt: #1a1a24;
+            --primary: #6366f1;
+            --accent: #a855f7;
+            --pink: #ec4899;
+            --text: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --tool-color: #f59e0b;
+            --tool-color-dim: rgba(245, 158, 11, 0.15);
+            --tool-color-mid: rgba(245, 158, 11, 0.3);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            padding: 0 2rem; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-logo {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff !important; padding: 0.5rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; }
+        .nav-toggle { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
+
+        /* HERO */
+        .hero {
+            padding: 8rem 2rem 3rem; text-align: center; position: relative;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--tool-color-dim) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: var(--tool-color-dim); border: 1px solid var(--tool-color-mid);
+            padding: 0.4rem 1rem; border-radius: 50px;
+            font-size: 0.8rem; font-weight: 600; color: var(--tool-color);
+            margin-bottom: 1.5rem;
+        }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+        .hero h1 span { background: linear-gradient(135deg, var(--tool-color), #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 1.1rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+
+        /* TOOL */
+        .tool-container { max-width: 1100px; margin: 0 auto 4rem; padding: 0 2rem; }
+
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .tab-btn {
+            background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
+            color: var(--text-secondary); padding: 0.6rem 1.2rem;
+            border-radius: var(--radius-sm); cursor: pointer;
+            font-family: inherit; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;
+        }
+        .tab-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.12); }
+        .tab-btn.active { background: var(--tool-color-dim); color: var(--tool-color); border-color: var(--tool-color-mid); }
+
+        .tool-card {
+            background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius); padding: 2rem;
+            animation: fadeUp 0.4s ease;
+        }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+
+        textarea, input[type="text"], input[type="number"], select {
+            width: 100%; background: var(--bg-alt);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius-sm); padding: 0.75rem 1rem;
+            color: var(--text); font-family: 'Inter', monospace;
+            font-size: 0.9rem; resize: vertical; transition: border-color 0.2s;
+        }
+        textarea:focus, input:focus, select:focus { outline: none; border-color: var(--tool-color); }
+        textarea { min-height: 150px; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.55rem 1.1rem; border: none; border-radius: var(--radius-sm);
+            font-family: inherit; font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary { background: var(--tool-color); color: #000; }
+        .btn-primary:hover { opacity: 0.85; }
+        .btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid rgba(255,255,255,0.08); }
+        .btn-secondary:hover { border-color: rgba(255,255,255,0.2); }
+        .btn-copy { background: var(--tool-color-dim); color: var(--tool-color); }
+        .btn-copy:hover { background: var(--tool-color-mid); }
+
+        .btn-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.4rem; margin-top: 1rem; }
+
+        .output-area {
+            background: var(--bg); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-sm); padding: 1rem;
+            margin-top: 1rem; font-family: 'Courier New', monospace;
+            font-size: 0.85rem; color: var(--text);
+            min-height: 100px; white-space: pre-wrap; word-break: break-word;
+        }
+        .output-area:empty::before { content: 'Result will appear here...'; color: var(--text-secondary); opacity: 0.5; }
+
+        .stats {
+            display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;
+            padding: 1rem; background: var(--bg-alt);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-sm);
+        }
+        .stat-item { text-align: center; }
+        .stat-val { font-size: 1.5rem; font-weight: 700; color: var(--tool-color); }
+        .stat-label { font-size: 0.75rem; color: var(--text-secondary); }
+
+        /* Find & Replace */
+        .fr-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.5rem; align-items: end; margin-top: 0.5rem; }
+        .fr-row .btn { align-self: end; }
+        .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+        .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--tool-color); }
+        .checkbox-row label { margin-bottom: 0; font-weight: 400; color: var(--text); }
+
+        .toast {
+            position: fixed; bottom: 2rem; right: 2rem;
+            background: var(--tool-color); color: #000;
+            padding: 0.75rem 1.5rem; border-radius: var(--radius-sm);
+            font-weight: 600; font-size: 0.85rem;
+            transform: translateY(100px); opacity: 0;
+            transition: all 0.3s ease; z-index: 9999;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* FOOTER */
+        footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 4rem 2rem 2rem; margin-top: 4rem; }
+        .footer-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 2rem; }
+        .footer-brand p { color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.75rem; max-width: 280px; }
+        .footer-col h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; }
+        .footer-col a { display: block; color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; margin-bottom: 0.5rem; transition: color 0.2s; }
+        .footer-col a:hover { color: var(--text); }
+        .footer-bottom { max-width: 1100px; margin: 2rem auto 0; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; color: var(--text-secondary); font-size: 0.8rem; }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: fixed; top: 64px; left: 0; right: 0; background: var(--bg); flex-direction: column; padding: 1.5rem; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+            .nav-links.open { display: flex; }
+            .nav-toggle { display: block; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .tool-card { padding: 1.25rem; }
+            .btn-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+            .fr-row { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .hero { padding: 6.5rem 1rem 2rem; }
+            .hero h1 { font-size: 1.75rem; }
+            .tool-container { padding: 0 1rem; }
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="https://nextool.app" class="nav-logo">NexTool</a>
+        <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="https://nextool.app/#services">Services</a></li>
+            <li><a href="https://nextool.app/free-tools">Free Tools</a></li>
+            <li><a href="https://nextool.app/#extension">Extension</a></li>
+            <li><a href="https://nextool.app/blog">Blog</a></li>
+            <li><a href="https://nextool.app/#pricing">Pricing</a></li>
+            <li><a href="https://nextool.app/#start" class="nav-cta">Start a Project</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge">&#9889; Free Text Tool</div>
+        <h1>Text <span>Case Converter</span> &amp; Transformer</h1>
+        <p>Convert between 11+ case formats, sort lines, strip HTML, find and replace with regex, remove duplicates, and more.</p>
+    </section>
+
+    <div class="tool-container">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="convert">Case Convert</button>
+            <button class="tab-btn" data-tab="transform">Transform</button>
+            <button class="tab-btn" data-tab="findreplace">Find &amp; Replace</button>
+            <button class="tab-btn" data-tab="stats">Statistics</button>
+        </div>
+
+        <div class="tool-card">
+            <!-- CASE CONVERT -->
+            <div class="panel active" id="panel-convert">
+                <label for="conv-input">Input Text</label>
+                <textarea id="conv-input" placeholder="Type or paste your text here...">the quick brown fox jumps over the lazy dog. hello world!</textarea>
+                <label style="margin-top:1rem;">Choose Conversion</label>
+                <div class="btn-grid">
+                    <button class="btn btn-primary" onclick="convert('upper')">UPPERCASE</button>
+                    <button class="btn btn-primary" onclick="convert('lower')">lowercase</button>
+                    <button class="btn btn-primary" onclick="convert('title')">Title Case</button>
+                    <button class="btn btn-primary" onclick="convert('sentence')">Sentence case</button>
+                    <button class="btn btn-primary" onclick="convert('camel')">camelCase</button>
+                    <button class="btn btn-primary" onclick="convert('pascal')">PascalCase</button>
+                    <button class="btn btn-primary" onclick="convert('snake')">snake_case</button>
+                    <button class="btn btn-primary" onclick="convert('kebab')">kebab-case</button>
+                    <button class="btn btn-primary" onclick="convert('constant')">CONSTANT_CASE</button>
+                    <button class="btn btn-primary" onclick="convert('dot')">dot.case</button>
+                    <button class="btn btn-primary" onclick="convert('path')">path/case</button>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-copy" onclick="copyEl('conv-output')">Copy Result</button>
+                    <button class="btn btn-secondary" onclick="swapConv()">&#8645; Swap to Input</button>
+                </div>
+                <div class="output-area" id="conv-output"></div>
+            </div>
+
+            <!-- TRANSFORM -->
+            <div class="panel" id="panel-transform">
+                <label for="trans-input">Input Text</label>
+                <textarea id="trans-input" placeholder="Paste text to transform...">banana
+apple
+cherry
+apple
+date
+banana
+elderberry</textarea>
+                <div class="btn-grid" style="margin-top:1rem;">
+                    <button class="btn btn-primary" onclick="transform('reverse')">Reverse Text</button>
+                    <button class="btn btn-primary" onclick="transform('reverseWords')">Reverse Words</button>
+                    <button class="btn btn-primary" onclick="transform('shuffle')">Shuffle Words</button>
+                    <button class="btn btn-primary" onclick="transform('dedupe')">Remove Duplicates</button>
+                    <button class="btn btn-primary" onclick="transform('sortAsc')">Sort A-Z</button>
+                    <button class="btn btn-primary" onclick="transform('sortDesc')">Sort Z-A</button>
+                    <button class="btn btn-primary" onclick="transform('stripHTML')">Strip HTML</button>
+                    <button class="btn btn-primary" onclick="transform('trimLines')">Trim Lines</button>
+                    <button class="btn btn-primary" onclick="transform('extraWS')">Remove Extra Whitespace</button>
+                    <button class="btn btn-primary" onclick="transform('numberLines')">Number Lines</button>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-copy" onclick="copyEl('trans-output')">Copy Result</button>
+                </div>
+                <div class="output-area" id="trans-output"></div>
+            </div>
+
+            <!-- FIND & REPLACE -->
+            <div class="panel" id="panel-findreplace">
+                <label for="fr-input">Input Text</label>
+                <textarea id="fr-input" placeholder="Paste text here...">The cat sat on the mat. The cat wore a hat.</textarea>
+                <div class="fr-row">
+                    <div>
+                        <label for="fr-find">Find</label>
+                        <input type="text" id="fr-find" placeholder="Search term or regex..." value="cat">
+                    </div>
+                    <div>
+                        <label for="fr-replace">Replace with</label>
+                        <input type="text" id="fr-replace" placeholder="Replacement..." value="dog">
+                    </div>
+                    <button class="btn btn-primary" onclick="findReplace()" style="margin-bottom:2px;">Replace All</button>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="fr-regex">
+                    <label for="fr-regex">Use Regular Expression</label>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="fr-case">
+                    <label for="fr-case">Case Sensitive</label>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-copy" onclick="copyEl('fr-output')">Copy Result</button>
+                </div>
+                <div class="output-area" id="fr-output"></div>
+            </div>
+
+            <!-- STATS -->
+            <div class="panel" id="panel-stats">
+                <label for="stats-input">Input Text</label>
+                <textarea id="stats-input" placeholder="Paste text to analyze..." oninput="calcStats()">The quick brown fox jumps over the lazy dog. Hello World!
+
+This is a second paragraph with multiple sentences. It has some words. And more words here.</textarea>
+                <div class="stats" id="stats-grid">
+                    <div class="stat-item"><div class="stat-val" id="s-chars">0</div><div class="stat-label">Characters</div></div>
+                    <div class="stat-item"><div class="stat-val" id="s-charsns">0</div><div class="stat-label">Chars (no spaces)</div></div>
+                    <div class="stat-item"><div class="stat-val" id="s-words">0</div><div class="stat-label">Words</div></div>
+                    <div class="stat-item"><div class="stat-val" id="s-sentences">0</div><div class="stat-label">Sentences</div></div>
+                    <div class="stat-item"><div class="stat-val" id="s-paragraphs">0</div><div class="stat-label">Paragraphs</div></div>
+                    <div class="stat-item"><div class="stat-val" id="s-lines">0</div><div class="stat-label">Lines</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="https://nextool.app" class="nav-logo">NexTool</a>
+                <p>AI-powered automation studio. You describe it, we build it.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Services</h4>
+                <a href="https://nextool.app/#services">Websites</a>
+                <a href="https://nextool.app/#services">Chatbots</a>
+                <a href="https://nextool.app/#services">Automation</a>
+                <a href="https://nextool.app/#services">Content</a>
+                <a href="https://nextool.app/#services">Video</a>
+                <a href="https://nextool.app/#services">Data</a>
+            </div>
+            <div class="footer-col">
+                <h4>Free Tools</h4>
+                <a href="url-encoder.html">URL Encoder</a>
+                <a href="text-diff-merger.html">Text Transformer</a>
+                <a href="pixel-ruler.html">Pixel Ruler</a>
+                <a href="yaml-json.html">YAML/JSON Converter</a>
+            </div>
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <a href="https://nextool.app/#extension">Chrome Extension</a>
+                <a href="https://nextool.app/blog">Blog</a>
+                <a href="https://nextool.app/#pricing">Pricing</a>
+                <a href="https://nextool.app/#start">Start a Project</a>
+            </div>
+        </div>
+        <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+    </footer>
+
+    <script>
+        /* TABS */
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        /* CASE CONVERTERS */
+        function toWords(str) {
+            return str
+                .replace(/([a-z])([A-Z])/g, '$1 $2')
+                .replace(/[_\-./\\]+/g, ' ')
+                .trim()
+                .split(/\s+/)
+                .filter(Boolean);
+        }
+
+        function convert(type) {
+            const input = document.getElementById('conv-input').value;
+            let result = '';
+            const words = toWords(input);
+
+            switch (type) {
+                case 'upper': result = input.toUpperCase(); break;
+                case 'lower': result = input.toLowerCase(); break;
+                case 'title':
+                    result = input.replace(/\b\w/g, c => c.toUpperCase());
+                    break;
+                case 'sentence':
+                    result = input.toLowerCase().replace(/(^\s*|[.!?]\s+)(\w)/g, (m, p, c) => p + c.toUpperCase());
+                    break;
+                case 'camel':
+                    result = words.map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+                    break;
+                case 'pascal':
+                    result = words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+                    break;
+                case 'snake':
+                    result = words.map(w => w.toLowerCase()).join('_');
+                    break;
+                case 'kebab':
+                    result = words.map(w => w.toLowerCase()).join('-');
+                    break;
+                case 'constant':
+                    result = words.map(w => w.toUpperCase()).join('_');
+                    break;
+                case 'dot':
+                    result = words.map(w => w.toLowerCase()).join('.');
+                    break;
+                case 'path':
+                    result = words.map(w => w.toLowerCase()).join('/');
+                    break;
+            }
+            document.getElementById('conv-output').textContent = result;
+        }
+
+        function swapConv() {
+            const out = document.getElementById('conv-output').textContent;
+            if (out) {
+                document.getElementById('conv-input').value = out;
+                document.getElementById('conv-output').textContent = '';
+            }
+        }
+
+        /* TRANSFORMS */
+        function transform(type) {
+            const input = document.getElementById('trans-input').value;
+            let result = '';
+            const lines = input.split('\n');
+
+            switch (type) {
+                case 'reverse':
+                    result = input.split('').reverse().join('');
+                    break;
+                case 'reverseWords':
+                    result = input.split(/\s+/).reverse().join(' ');
+                    break;
+                case 'shuffle':
+                    const words = input.split(/\s+/);
+                    for (let i = words.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [words[i], words[j]] = [words[j], words[i]];
+                    }
+                    result = words.join(' ');
+                    break;
+                case 'dedupe':
+                    result = [...new Set(lines)].join('\n');
+                    break;
+                case 'sortAsc':
+                    result = [...lines].sort((a, b) => a.localeCompare(b)).join('\n');
+                    break;
+                case 'sortDesc':
+                    result = [...lines].sort((a, b) => b.localeCompare(a)).join('\n');
+                    break;
+                case 'stripHTML':
+                    result = input.replace(/<[^>]*>/g, '');
+                    break;
+                case 'trimLines':
+                    result = lines.map(l => l.trim()).join('\n');
+                    break;
+                case 'extraWS':
+                    result = lines.map(l => l.replace(/\s+/g, ' ').trim()).join('\n');
+                    break;
+                case 'numberLines':
+                    result = lines.map((l, i) => (i + 1) + '. ' + l).join('\n');
+                    break;
+            }
+            document.getElementById('trans-output').textContent = result;
+        }
+
+        /* FIND & REPLACE */
+        function findReplace() {
+            const input = document.getElementById('fr-input').value;
+            const find = document.getElementById('fr-find').value;
+            const replace = document.getElementById('fr-replace').value;
+            const useRegex = document.getElementById('fr-regex').checked;
+            const caseSensitive = document.getElementById('fr-case').checked;
+
+            try {
+                let result;
+                if (useRegex) {
+                    const flags = caseSensitive ? 'g' : 'gi';
+                    const regex = new RegExp(find, flags);
+                    result = input.replace(regex, replace);
+                } else {
+                    if (caseSensitive) {
+                        result = input.split(find).join(replace);
+                    } else {
+                        const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                        result = input.replace(regex, replace);
+                    }
+                }
+                document.getElementById('fr-output').textContent = result;
+            } catch (e) {
+                document.getElementById('fr-output').textContent = 'Regex error: ' + e.message;
+            }
+        }
+
+        /* STATS */
+        function calcStats() {
+            const text = document.getElementById('stats-input').value;
+            document.getElementById('s-chars').textContent = text.length;
+            document.getElementById('s-charsns').textContent = text.replace(/\s/g, '').length;
+            document.getElementById('s-words').textContent = text.trim() ? text.trim().split(/\s+/).length : 0;
+            document.getElementById('s-sentences').textContent = text.trim() ? (text.match(/[.!?]+/g) || []).length || (text.trim() ? 1 : 0) : 0;
+            document.getElementById('s-paragraphs').textContent = text.trim() ? text.split(/\n\s*\n/).filter(p => p.trim()).length : 0;
+            document.getElementById('s-lines').textContent = text ? text.split('\n').length : 0;
+        }
+
+        /* UTILS */
+        function copyEl(id) {
+            const text = document.getElementById(id).textContent;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const t = document.getElementById('toast');
+                t.textContent = 'Copied to clipboard!';
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 2000);
+            });
+        }
+
+        /* SCROLL ANIMATION */
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity = 1; e.target.style.transform = 'translateY(0)'; }});
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.tool-card, footer').forEach(el => {
+            el.style.opacity = 0; el.style.transform = 'translateY(24px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        /* INIT */
+        calcStats();
+    </script>
+</body>
+</html>

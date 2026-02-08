@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crontab Expression Generator — Free Online Tool | NexTool</title>
+    <meta name="description" content="Generate and validate crontab expressions visually. Quick presets, natural language descriptions, next 5 runs preview, and cron syntax reference.">
+    <meta property="og:title" content="Crontab Expression Generator — NexTool Free Tools">
+    <meta property="og:description" content="Generate and validate crontab expressions visually. Quick presets, human-readable descriptions, and next 5 runs preview.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/crontab-generator">
+    <link rel="canonical" href="https://nextool.app/free-tools/crontab-generator">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Crontab Expression Generator",
+        "description": "Generate and validate crontab expressions visually with presets, human-readable descriptions, and next 5 runs preview.",
+        "url": "https://nextool.app/free-tools/crontab-generator",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Organization", "name": "NexTool", "url": "https://nextool.app" }
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #050508; --bg-alt: #0a0a12; --surface: #111118; --surface-alt: #1a1a24;
+            --primary: #6366f1; --accent: #a855f7; --pink: #ec4899;
+            --text: #e2e8f0; --text-secondary: #94a3b8;
+            --tool-color: #a855f7; --tool-color-dim: rgba(168,85,247,0.15);
+            --tool-gradient: linear-gradient(135deg, #a855f7, #c084fc);
+            --radius: 12px; --radius-lg: 20px;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+        a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+        a:hover { color: var(--accent); }
+        button { cursor: pointer; font-family: inherit; }
+
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 1rem 2rem; background: rgba(5,5,8,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(99,102,241,0.1); }
+        .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: var(--primary); color: #fff !important; padding: 0.5rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; transition: transform 0.2s, box-shadow 0.2s; }
+        .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+        .nav-mobile-toggle { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; }
+        @media (max-width: 768px) {
+            .nav-links { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); padding: 1rem 2rem; gap: 1rem; border-bottom: 1px solid rgba(99,102,241,0.1); }
+            .nav-links.active { display: flex; }
+            .nav-mobile-toggle { display: block; }
+        }
+
+        .hero { padding: 8rem 2rem 4rem; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, var(--tool-color-dim) 0%, transparent 70%); pointer-events: none; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; background: var(--tool-color-dim); border: 1px solid rgba(168,85,247,0.3); border-radius: 50px; font-size: 0.8rem; color: var(--tool-color); font-weight: 600; margin-bottom: 1.5rem; }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 1rem; }
+        .hero h1 span { background: var(--tool-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero p { font-size: 1.15rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+
+        .tool-section { max-width: 1100px; margin: 0 auto; padding: 0 2rem 4rem; }
+        .tool-card { background: var(--surface); border: 1px solid rgba(168,85,247,0.15); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; }
+        .tool-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+        .tool-card h3 .icon { color: var(--tool-color); }
+
+        /* Cron expression display */
+        .cron-display { background: var(--bg-alt); border: 2px solid var(--tool-color); border-radius: var(--radius); padding: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
+        .cron-value { font-size: 2.2rem; font-weight: 800; font-family: 'Courier New', monospace; color: var(--tool-color); letter-spacing: 0.1em; word-spacing: 0.3em; }
+        .cron-labels { display: flex; justify-content: center; gap: 0; margin-top: 0.75rem; }
+        .cron-label-item { flex: 0 0 auto; text-align: center; padding: 0 0.75rem; }
+        .cron-label-item span { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        .cron-description { font-size: 1rem; color: var(--text); margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(168,85,247,0.1); border-radius: 8px; }
+
+        /* Presets */
+        .presets-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .preset-btn { padding: 0.45rem 1rem; background: var(--surface-alt); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; transition: all 0.2s; font-family: inherit; cursor: pointer; }
+        .preset-btn:hover, .preset-btn.active { background: var(--tool-color-dim); border-color: var(--tool-color); color: var(--tool-color); }
+
+        /* Picker grid */
+        .picker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        @media (max-width: 768px) { .picker-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .picker-grid { grid-template-columns: 1fr; } }
+        .picker-col { display: flex; flex-direction: column; gap: 0.4rem; }
+        .picker-col label { font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .picker-col select, .picker-col input { padding: 0.55rem 0.7rem; background: var(--bg-alt); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text); font-size: 0.9rem; font-family: inherit; }
+        .picker-col select:focus, .picker-col input:focus { outline: none; border-color: var(--tool-color); }
+        .picker-col .hint { font-size: 0.65rem; color: var(--text-secondary); margin-top: 0.2rem; }
+
+        /* Validate input */
+        .validate-row { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+        .validate-row input { flex: 1; padding: 0.65rem 1rem; background: var(--bg-alt); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text); font-family: 'Courier New', monospace; font-size: 1rem; }
+        .validate-row input:focus { outline: none; border-color: var(--tool-color); }
+
+        /* Next runs */
+        .runs-list { list-style: none; }
+        .runs-list li { padding: 0.6rem 1rem; background: var(--bg-alt); border-radius: 8px; margin-bottom: 0.4rem; font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; border: 1px solid rgba(255,255,255,0.05); }
+        .runs-list li .run-num { background: var(--tool-color-dim); color: var(--tool-color); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; font-family: 'Inter', sans-serif; flex-shrink: 0; }
+
+        /* Reference table */
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .ref-table th { text-align: left; padding: 0.6rem 1rem; background: var(--bg-alt); color: var(--tool-color); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .ref-table td { padding: 0.6rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-secondary); }
+        .ref-table td:first-child { font-family: 'Courier New', monospace; color: var(--text); font-weight: 600; }
+        .ref-table tr:hover td { background: rgba(168,85,247,0.05); }
+
+        .btn-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
+        .btn { padding: 0.65rem 1.4rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: var(--tool-gradient); color: #fff; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(168,85,247,0.35); }
+        .btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { border-color: var(--tool-color); color: var(--tool-color); }
+
+        .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--tool-color); color: #fff; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 200; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        .footer { margin-top: 4rem; padding: 4rem 2rem 2rem; border-top: 1px solid rgba(99,102,241,0.1); background: var(--bg-alt); }
+        .footer-grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; }
+        @media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; } }
+        @media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+        .footer-brand .nav-logo { font-size: 1.3rem; }
+        .footer-brand p { color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.75rem; max-width: 280px; }
+        .footer-col h4 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; color: var(--text); }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 0.5rem; }
+        .footer-col a { color: var(--text-secondary); font-size: 0.85rem; }
+        .footer-col a:hover { color: var(--text); }
+        .footer-bottom { max-width: 1200px; margin: 3rem auto 0; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .footer-bottom p { color: var(--text-secondary); font-size: 0.8rem; }
+
+        .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s, transform 0.6s; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="https://nextool.app" class="nav-logo">NexTool</a>
+        <button class="nav-mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('active')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="https://nextool.app/#services">Services</a></li>
+            <li><a href="https://nextool.app/free-tools">Free Tools</a></li>
+            <li><a href="https://nextool.app/#extension">Extension</a></li>
+            <li><a href="https://nextool.app/blog">Blog</a></li>
+            <li><a href="https://nextool.app/#pricing">Pricing</a></li>
+            <li><a href="https://nextool.app/#start" class="nav-cta">Start a Project</a></li>
+        </ul>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-badge">&#9889; Free Tool</div>
+    <h1>Crontab <span>Expression Generator</span></h1>
+    <p>Build cron expressions visually with presets, human-readable descriptions, and a preview of the next 5 scheduled runs.</p>
+</section>
+
+<section class="tool-section">
+    <!-- Expression Display -->
+    <div class="tool-card fade-in">
+        <h3><span class="icon">&#9200;</span> Your Cron Expression</h3>
+        <div class="cron-display">
+            <div class="cron-value" id="cronValue">* * * * *</div>
+            <div class="cron-labels">
+                <div class="cron-label-item"><span>Minute</span></div>
+                <div class="cron-label-item"><span>Hour</span></div>
+                <div class="cron-label-item"><span>Day</span></div>
+                <div class="cron-label-item"><span>Month</span></div>
+                <div class="cron-label-item"><span>Weekday</span></div>
+            </div>
+            <div class="cron-description" id="cronDescription">Runs every minute</div>
+        </div>
+        <div class="btn-row" style="justify-content:center;">
+            <button class="btn btn-primary" onclick="copyExpression()">&#128203; Copy Expression</button>
+        </div>
+    </div>
+
+    <!-- Quick Presets -->
+    <div class="tool-card fade-in">
+        <h3><span class="icon">&#9889;</span> Quick Presets</h3>
+        <div class="presets-grid">
+            <button class="preset-btn active" onclick="setPreset('*','*','*','*','*',this)">Every Minute</button>
+            <button class="preset-btn" onclick="setPreset('*/5','*','*','*','*',this)">Every 5 Min</button>
+            <button class="preset-btn" onclick="setPreset('*/15','*','*','*','*',this)">Every 15 Min</button>
+            <button class="preset-btn" onclick="setPreset('*/30','*','*','*','*',this)">Every 30 Min</button>
+            <button class="preset-btn" onclick="setPreset('0','*','*','*','*',this)">Every Hour</button>
+            <button class="preset-btn" onclick="setPreset('0','*/6','*','*','*',this)">Every 6 Hours</button>
+            <button class="preset-btn" onclick="setPreset('0','*/12','*','*','*',this)">Every 12 Hours</button>
+            <button class="preset-btn" onclick="setPreset('0','0','*','*','*',this)">Daily (Midnight)</button>
+            <button class="preset-btn" onclick="setPreset('0','9','*','*','*',this)">Daily (9 AM)</button>
+            <button class="preset-btn" onclick="setPreset('0','0','*','*','1',this)">Weekly (Mon)</button>
+            <button class="preset-btn" onclick="setPreset('0','0','1','*','*',this)">Monthly</button>
+            <button class="preset-btn" onclick="setPreset('0','0','1','1','*',this)">Yearly</button>
+            <button class="preset-btn" onclick="setPreset('0','0','*','*','1-5',this)">Weekdays Only</button>
+            <button class="preset-btn" onclick="setPreset('0','0','*','*','0,6',this)">Weekends Only</button>
+        </div>
+    </div>
+
+    <!-- Visual Picker -->
+    <div class="tool-card fade-in">
+        <h3><span class="icon">&#9881;</span> Visual Builder</h3>
+        <div class="picker-grid">
+            <div class="picker-col">
+                <label for="pickMinute">Minute</label>
+                <input type="text" id="pickMinute" value="*" placeholder="0-59">
+                <div class="hint">0-59, *, */n, n,n</div>
+            </div>
+            <div class="picker-col">
+                <label for="pickHour">Hour</label>
+                <input type="text" id="pickHour" value="*" placeholder="0-23">
+                <div class="hint">0-23, *, */n, n,n</div>
+            </div>
+            <div class="picker-col">
+                <label for="pickDom">Day of Month</label>
+                <input type="text" id="pickDom" value="*" placeholder="1-31">
+                <div class="hint">1-31, *, */n, n,n</div>
+            </div>
+            <div class="picker-col">
+                <label for="pickMonth">Month</label>
+                <select id="pickMonth">
+                    <option value="*">* (Every)</option>
+                    <option value="1">1 (Jan)</option><option value="2">2 (Feb)</option>
+                    <option value="3">3 (Mar)</option><option value="4">4 (Apr)</option>
+                    <option value="5">5 (May)</option><option value="6">6 (Jun)</option>
+                    <option value="7">7 (Jul)</option><option value="8">8 (Aug)</option>
+                    <option value="9">9 (Sep)</option><option value="10">10 (Oct)</option>
+                    <option value="11">11 (Nov)</option><option value="12">12 (Dec)</option>
+                </select>
+            </div>
+            <div class="picker-col">
+                <label for="pickDow">Day of Week</label>
+                <select id="pickDow">
+                    <option value="*">* (Every)</option>
+                    <option value="0">0 (Sun)</option><option value="1">1 (Mon)</option>
+                    <option value="2">2 (Tue)</option><option value="3">3 (Wed)</option>
+                    <option value="4">4 (Thu)</option><option value="5">5 (Fri)</option>
+                    <option value="6">6 (Sat)</option>
+                    <option value="1-5">1-5 (Mon-Fri)</option>
+                    <option value="0,6">0,6 (Sat-Sun)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validate Existing -->
+    <div class="tool-card fade-in">
+        <h3><span class="icon">&#10003;</span> Validate Expression</h3>
+        <div class="validate-row">
+            <input type="text" id="validateInput" placeholder="Paste a cron expression to validate, e.g. 0 */6 * * 1-5">
+            <button class="btn btn-primary" onclick="validateExpression()">Validate</button>
+        </div>
+        <div id="validateResult" style="display:none;"></div>
+    </div>
+
+    <!-- Next 5 Runs -->
+    <div class="tool-card fade-in">
+        <h3><span class="icon">&#128197;</span> Next 5 Scheduled Runs</h3>
+        <ul class="runs-list" id="nextRuns"></ul>
+    </div>
+
+    <!-- Reference Table -->
+    <div class="tool-card fade-in">
+        <h3><span class="icon">&#128214;</span> Cron Syntax Reference</h3>
+        <div style="overflow-x:auto;">
+        <table class="ref-table">
+            <thead>
+                <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>*</td><td>Any value (every)</td><td>* in minute = every minute</td></tr>
+                <tr><td>,</td><td>Value list separator</td><td>1,15 in day = 1st and 15th</td></tr>
+                <tr><td>-</td><td>Range of values</td><td>1-5 in DOW = Monday to Friday</td></tr>
+                <tr><td>/</td><td>Step values</td><td>*/15 in minute = every 15 minutes</td></tr>
+                <tr><td>0-59</td><td>Minute</td><td>Field 1</td></tr>
+                <tr><td>0-23</td><td>Hour</td><td>Field 2</td></tr>
+                <tr><td>1-31</td><td>Day of Month</td><td>Field 3</td></tr>
+                <tr><td>1-12</td><td>Month</td><td>Field 4</td></tr>
+                <tr><td>0-6</td><td>Day of Week (0=Sun)</td><td>Field 5</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <div class="nav-logo">NexTool</div>
+            <p>AI-powered automation studio. You describe it, we build it.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Services</h4>
+            <ul>
+                <li><a href="https://nextool.app/#services">Websites</a></li>
+                <li><a href="https://nextool.app/#services">Chatbots</a></li>
+                <li><a href="https://nextool.app/#services">Automations</a></li>
+                <li><a href="https://nextool.app/#services">Content</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Free Tools</h4>
+            <ul>
+                <li><a href="./svg-optimizer.html">SVG Optimizer</a></li>
+                <li><a href="./aspect-ratio-calculator.html">Aspect Ratio Calc</a></li>
+                <li><a href="./crontab-generator.html">Crontab Generator</a></li>
+                <li><a href="./json-to-csv.html">JSON to CSV</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Explore</h4>
+            <ul>
+                <li><a href="https://nextool.app/#extension">Chrome Extension</a></li>
+                <li><a href="https://nextool.app/blog">Blog</a></li>
+                <li><a href="https://nextool.app/#pricing">Pricing</a></li>
+                <li><a href="https://nextool.app/#start">Start a Project</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 NexTool. All rights reserved.</p>
+        <p>Built with AI. Powered by Opus.</p>
+    </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const fields = ['pickMinute','pickHour','pickDom','pickMonth','pickDow'];
+const monthNames = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+fields.forEach(id => {
+    document.getElementById(id).addEventListener('input', updateFromPicker);
+    document.getElementById(id).addEventListener('change', updateFromPicker);
+});
+
+function getExpression() {
+    return fields.map(id => document.getElementById(id).value.trim() || '*').join(' ');
+}
+
+function setPreset(min, hr, dom, mon, dow, btn) {
+    document.getElementById('pickMinute').value = min;
+    document.getElementById('pickHour').value = hr;
+    document.getElementById('pickDom').value = dom;
+    document.getElementById('pickMonth').value = mon;
+    document.getElementById('pickDow').value = dow;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    updateDisplay();
+}
+
+function updateFromPicker() {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    updateDisplay();
+}
+
+function updateDisplay() {
+    const expr = getExpression();
+    document.getElementById('cronValue').textContent = expr;
+    document.getElementById('cronDescription').textContent = describeCron(expr);
+    computeNextRuns(expr);
+}
+
+function describeCron(expr) {
+    const parts = expr.split(/\s+/);
+    if (parts.length !== 5) return 'Invalid expression';
+    const [min, hr, dom, mon, dow] = parts;
+
+    let desc = 'Runs ';
+
+    // Every minute
+    if (min === '*' && hr === '*' && dom === '*' && mon === '*' && dow === '*') return 'Runs every minute';
+
+    // Step minutes
+    if (min.startsWith('*/')) {
+        desc += 'every ' + min.slice(2) + ' minutes';
+    } else if (min === '0') {
+        desc += 'at minute 0';
+    } else if (min !== '*') {
+        desc += 'at minute ' + min;
+    } else {
+        desc += 'every minute';
+    }
+
+    // Hour
+    if (hr.startsWith('*/')) {
+        desc += ', every ' + hr.slice(2) + ' hours';
+    } else if (hr !== '*') {
+        const h = parseInt(hr);
+        if (!isNaN(h)) {
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+            desc += ', at ' + h12 + ':' + (min === '*' || min.includes('/') || min.includes(',') ? '00' : min.padStart(2, '0')) + ' ' + ampm;
+        } else {
+            desc += ', hour ' + hr;
+        }
+    }
+
+    // Day of month
+    if (dom !== '*') {
+        if (dom.startsWith('*/')) {
+            desc += ', every ' + dom.slice(2) + ' days';
+        } else {
+            desc += ', on day ' + dom + ' of the month';
+        }
+    }
+
+    // Month
+    if (mon !== '*') {
+        const m = parseInt(mon);
+        if (m >= 1 && m <= 12) {
+            desc += ', in ' + monthNames[m];
+        } else {
+            desc += ', month ' + mon;
+        }
+    }
+
+    // Day of week
+    if (dow !== '*') {
+        if (dow === '1-5') desc += ', Monday through Friday';
+        else if (dow === '0,6') desc += ', on weekends';
+        else {
+            const d = parseInt(dow);
+            if (d >= 0 && d <= 6) desc += ', on ' + dayNames[d];
+            else desc += ', weekday ' + dow;
+        }
+    }
+
+    return desc;
+}
+
+// Parse a cron field into a set of matching values
+function parseField(field, min, max) {
+    const values = new Set();
+    const parts = field.split(',');
+    for (const part of parts) {
+        if (part === '*') {
+            for (let i = min; i <= max; i++) values.add(i);
+        } else if (part.includes('/')) {
+            const [range, stepStr] = part.split('/');
+            const step = parseInt(stepStr);
+            let start = min, end = max;
+            if (range !== '*') {
+                if (range.includes('-')) {
+                    [start, end] = range.split('-').map(Number);
+                } else {
+                    start = parseInt(range);
+                }
+            }
+            for (let i = start; i <= end; i += step) values.add(i);
+        } else if (part.includes('-')) {
+            const [a, b] = part.split('-').map(Number);
+            for (let i = a; i <= b; i++) values.add(i);
+        } else {
+            values.add(parseInt(part));
+        }
+    }
+    return values;
+}
+
+function computeNextRuns(expr) {
+    const parts = expr.split(/\s+/);
+    if (parts.length !== 5) {
+        document.getElementById('nextRuns').innerHTML = '<li>Invalid expression</li>';
+        return;
+    }
+
+    const [minF, hrF, domF, monF, dowF] = parts;
+    let minutes, hours, doms, months, dows;
+    try {
+        minutes = parseField(minF, 0, 59);
+        hours = parseField(hrF, 0, 23);
+        doms = parseField(domF, 1, 31);
+        months = parseField(monF, 1, 12);
+        dows = parseField(dowF, 0, 6);
+    } catch (e) {
+        document.getElementById('nextRuns').innerHTML = '<li>Could not parse expression</li>';
+        return;
+    }
+
+    const runs = [];
+    const now = new Date();
+    const check = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes() + 1, 0);
+
+    const maxIterations = 525600; // 1 year of minutes
+    let iter = 0;
+
+    while (runs.length < 5 && iter < maxIterations) {
+        const m = check.getMinutes();
+        const h = check.getHours();
+        const d = check.getDate();
+        const mo = check.getMonth() + 1;
+        const dw = check.getDay();
+
+        if (minutes.has(m) && hours.has(h) && doms.has(d) && months.has(mo) && dows.has(dw)) {
+            runs.push(new Date(check));
+        }
+
+        check.setMinutes(check.getMinutes() + 1);
+        iter++;
+    }
+
+    const list = document.getElementById('nextRuns');
+    if (runs.length === 0) {
+        list.innerHTML = '<li>No upcoming runs found within the next year</li>';
+        return;
+    }
+    list.innerHTML = runs.map((r, i) => {
+        const opts = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
+        return `<li><span class="run-num">${i + 1}</span>${r.toLocaleDateString('en-US', opts)}</li>`;
+    }).join('');
+}
+
+function validateExpression() {
+    const input = document.getElementById('validateInput').value.trim();
+    const result = document.getElementById('validateResult');
+    result.style.display = 'block';
+
+    if (!input) {
+        result.innerHTML = '<p style="color:#ef4444;margin-top:0.5rem;">Please enter a cron expression.</p>';
+        return;
+    }
+
+    const parts = input.split(/\s+/);
+    if (parts.length !== 5) {
+        result.innerHTML = '<p style="color:#ef4444;margin-top:0.5rem;">Invalid: Expected 5 fields (minute hour day month weekday), got ' + parts.length + '.</p>';
+        return;
+    }
+
+    const ranges = [[0,59],[0,23],[1,31],[1,12],[0,6]];
+    const names = ['Minute','Hour','Day of Month','Month','Day of Week'];
+    const cronRegex = /^(\*|\d+(-\d+)?(,\d+(-\d+)?)*)(\/([\d]+))?$/;
+
+    for (let i = 0; i < 5; i++) {
+        if (!cronRegex.test(parts[i]) && parts[i] !== '*') {
+            result.innerHTML = `<p style="color:#ef4444;margin-top:0.5rem;">Invalid ${names[i]} field: "${parts[i]}"</p>`;
+            return;
+        }
+    }
+
+    // Valid — load it
+    result.innerHTML = `<p style="color:#22c55e;margin-top:0.5rem;">Valid expression. Description: ${describeCron(input)}</p>`;
+    // Also set it in the builder
+    document.getElementById('pickMinute').value = parts[0];
+    document.getElementById('pickHour').value = parts[1];
+    document.getElementById('pickDom').value = parts[2];
+    document.getElementById('pickMonth').value = parts[3];
+    document.getElementById('pickDow').value = parts[4];
+    updateDisplay();
+}
+
+function copyExpression() {
+    const expr = getExpression();
+    navigator.clipboard.writeText(expr).then(() => showToast('Cron expression copied!'));
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Init
+updateDisplay();
+
+// Scroll animations
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aspect Ratio Calculator — Free Online Tool | NexTool</title>
+    <meta name="description" content="Calculate aspect ratios, scale dimensions, convert between pixels, inches, and cm. Visual preview and CSS aspect-ratio generator. Free online tool.">
+    <meta property="og:title" content="Aspect Ratio Calculator — NexTool Free Tools">
+    <meta property="og:description" content="Calculate aspect ratios, scale dimensions, convert units. Visual preview and CSS generator included.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/aspect-ratio-calculator">
+    <link rel="canonical" href="https://nextool.app/free-tools/aspect-ratio-calculator">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Aspect Ratio Calculator",
+        "description": "Calculate aspect ratios, scale dimensions, convert between pixels, inches, and cm with visual preview.",
+        "url": "https://nextool.app/free-tools/aspect-ratio-calculator",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Organization", "name": "NexTool", "url": "https://nextool.app" }
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #050508; --bg-alt: #0a0a12; --surface: #111118; --surface-alt: #1a1a24;
+            --primary: #6366f1; --accent: #a855f7; --pink: #ec4899;
+            --text: #e2e8f0; --text-secondary: #94a3b8;
+            --tool-color: #06b6d4; --tool-color-dim: rgba(6,182,212,0.15);
+            --tool-gradient: linear-gradient(135deg, #06b6d4, #22d3ee);
+            --radius: 12px; --radius-lg: 20px;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+        a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+        a:hover { color: var(--accent); }
+        button { cursor: pointer; font-family: inherit; }
+
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 1rem 2rem; background: rgba(5,5,8,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(99,102,241,0.1); }
+        .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: var(--primary); color: #fff !important; padding: 0.5rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; transition: transform 0.2s, box-shadow 0.2s; }
+        .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+        .nav-mobile-toggle { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; }
+        @media (max-width: 768px) {
+            .nav-links { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); padding: 1rem 2rem; gap: 1rem; border-bottom: 1px solid rgba(99,102,241,0.1); }
+            .nav-links.active { display: flex; }
+            .nav-mobile-toggle { display: block; }
+        }
+
+        .hero { padding: 8rem 2rem 4rem; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, var(--tool-color-dim) 0%, transparent 70%); pointer-events: none; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; background: var(--tool-color-dim); border: 1px solid rgba(6,182,212,0.3); border-radius: 50px; font-size: 0.8rem; color: var(--tool-color); font-weight: 600; margin-bottom: 1.5rem; }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 1rem; }
+        .hero h1 span { background: var(--tool-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero p { font-size: 1.15rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+
+        .tool-section { max-width: 1100px; margin: 0 auto; padding: 0 2rem 4rem; }
+        .tool-card { background: var(--surface); border: 1px solid rgba(6,182,212,0.15); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; }
+        .tool-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+        .tool-card h3 .icon { color: var(--tool-color); }
+
+        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        @media (max-width: 768px) { .calc-grid { grid-template-columns: 1fr; } }
+
+        .input-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+        .input-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .input-group input, .input-group select { padding: 0.6rem 0.8rem; background: var(--bg-alt); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text); font-size: 0.95rem; font-family: inherit; transition: border-color 0.2s; }
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--tool-color); }
+        .input-row { display: flex; gap: 1rem; align-items: flex-end; }
+        .input-row .input-group { flex: 1; }
+        .input-row .separator { font-size: 1.5rem; font-weight: 700; color: var(--text-secondary); padding-bottom: 0.6rem; }
+
+        .presets-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .preset-btn { padding: 0.45rem 1rem; background: var(--surface-alt); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; transition: all 0.2s; font-family: inherit; cursor: pointer; }
+        .preset-btn:hover, .preset-btn.active { background: var(--tool-color-dim); border-color: var(--tool-color); color: var(--tool-color); }
+
+        .result-box { background: var(--bg-alt); border: 1px solid rgba(6,182,212,0.2); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+        .result-label { font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+        .result-value { font-size: 1.6rem; font-weight: 800; color: var(--tool-color); }
+        .result-sub { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+        .preview-container { display: flex; align-items: center; justify-content: center; min-height: 250px; padding: 1.5rem; }
+        .preview-rect { border: 2px solid var(--tool-color); background: var(--tool-color-dim); border-radius: 4px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--tool-color); font-weight: 600; max-width: 100%; max-height: 250px; }
+
+        .css-output { width: 100%; padding: 1rem; background: var(--bg-alt); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: var(--tool-color); font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.5; min-height: 60px; resize: none; }
+
+        .btn-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
+        .btn { padding: 0.65rem 1.4rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: var(--tool-gradient); color: #fff; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(6,182,212,0.35); }
+        .btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { border-color: var(--tool-color); color: var(--tool-color); }
+
+        .conversion-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+        @media (max-width: 768px) { .conversion-grid { grid-template-columns: 1fr; } }
+        .conv-card { background: var(--bg-alt); border-radius: var(--radius); padding: 1rem; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .conv-card .conv-value { font-size: 1.2rem; font-weight: 700; color: var(--text); margin-top: 0.25rem; }
+        .conv-card .conv-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--tool-color); color: #fff; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 200; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        .footer { margin-top: 4rem; padding: 4rem 2rem 2rem; border-top: 1px solid rgba(99,102,241,0.1); background: var(--bg-alt); }
+        .footer-grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; }
+        @media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; } }
+        @media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+        .footer-brand .nav-logo { font-size: 1.3rem; }
+        .footer-brand p { color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.75rem; max-width: 280px; }
+        .footer-col h4 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; color: var(--text); }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 0.5rem; }
+        .footer-col a { color: var(--text-secondary); font-size: 0.85rem; }
+        .footer-col a:hover { color: var(--text); }
+        .footer-bottom { max-width: 1200px; margin: 3rem auto 0; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .footer-bottom p { color: var(--text-secondary); font-size: 0.8rem; }
+
+        .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s, transform 0.6s; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="https://nextool.app" class="nav-logo">NexTool</a>
+        <button class="nav-mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('active')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="https://nextool.app/#services">Services</a></li>
+            <li><a href="https://nextool.app/free-tools">Free Tools</a></li>
+            <li><a href="https://nextool.app/#extension">Extension</a></li>
+            <li><a href="https://nextool.app/blog">Blog</a></li>
+            <li><a href="https://nextool.app/#pricing">Pricing</a></li>
+            <li><a href="https://nextool.app/#start" class="nav-cta">Start a Project</a></li>
+        </ul>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-badge">&#9889; Free Tool</div>
+    <h1>Aspect Ratio <span>Calculator</span></h1>
+    <p>Calculate aspect ratios, scale dimensions proportionally, convert between units, and generate CSS. Visual preview updates in real-time.</p>
+</section>
+
+<section class="tool-section">
+    <!-- Main Calculator -->
+    <div class="tool-card fade-in">
+        <h3><span class="icon">&#9634;</span> Calculate Aspect Ratio</h3>
+        <div class="presets-grid">
+            <button class="preset-btn" onclick="setPreset(16,9)">16:9</button>
+            <button class="preset-btn" onclick="setPreset(4,3)">4:3</button>
+            <button class="preset-btn" onclick="setPreset(1,1)">1:1</button>
+            <button class="preset-btn" onclick="setPreset(21,9)">21:9</button>
+            <button class="preset-btn" onclick="setPreset(9,16)">9:16</button>
+            <button class="preset-btn" onclick="setPreset(3,2)">3:2</button>
+            <button class="preset-btn" onclick="setPreset(2,3)">2:3</button>
+            <button class="preset-btn" onclick="setPreset(5,4)">5:4</button>
+            <button class="preset-btn" onclick="setPreset(1920,1080)">1920x1080</button>
+            <button class="preset-btn" onclick="setPreset(1280,720)">1280x720</button>
+            <button class="preset-btn" onclick="setPreset(3840,2160)">4K</button>
+            <button class="preset-btn" onclick="setPreset(1080,1920)">1080x1920</button>
+        </div>
+        <div class="calc-grid">
+            <div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="inputW">Width (px)</label>
+                        <input type="number" id="inputW" value="1920" min="1">
+                    </div>
+                    <div class="separator">&times;</div>
+                    <div class="input-group">
+                        <label for="inputH">Height (px)</label>
+                        <input type="number" id="inputH" value="1080" min="1">
+                    </div>
+                </div>
+                <div class="result-box">
+                    <div class="result-label">Aspect Ratio</div>
+                    <div class="result-value" id="ratioDisplay">16:9</div>
+                    <div class="result-sub" id="ratioDecimal">Decimal: 1.7778</div>
+                </div>
+                <div class="result-box">
+                    <div class="result-label">Orientation</div>
+                    <div class="result-value" id="orientationDisplay" style="font-size:1.1rem;">Landscape</div>
+                </div>
+            </div>
+            <div>
+                <div class="preview-container">
+                    <div class="preview-rect" id="previewRect" style="width:240px;height:135px;">
+                        1920 &times; 1080
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scale Calculator -->
+    <div class="tool-card fade-in">
+        <h3><span class="icon">&#8596;</span> Scale Dimensions</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.25rem;">Enter a new width or height and the other dimension will scale proportionally.</p>
+        <div class="calc-grid">
+            <div>
+                <div class="input-group">
+                    <label for="scaleW">New Width (px)</label>
+                    <input type="number" id="scaleW" placeholder="Enter width...">
+                </div>
+                <div class="result-box">
+                    <div class="result-label">Calculated Height</div>
+                    <div class="result-value" id="scaleResultH">—</div>
+                </div>
+            </div>
+            <div>
+                <div class="input-group">
+                    <label for="scaleH">New Height (px)</label>
+                    <input type="number" id="scaleH" placeholder="Enter height...">
+                </div>
+                <div class="result-box">
+                    <div class="result-label">Calculated Width</div>
+                    <div class="result-value" id="scaleResultW">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unit Conversion -->
+    <div class="tool-card fade-in">
+        <h3><span class="icon">&#128207;</span> Unit Conversion</h3>
+        <div class="input-row" style="margin-bottom:1.25rem;">
+            <div class="input-group">
+                <label for="dpiInput">DPI / PPI</label>
+                <input type="number" id="dpiInput" value="72" min="1">
+            </div>
+        </div>
+        <div class="conversion-grid">
+            <div class="conv-card">
+                <div class="conv-label">Pixels</div>
+                <div class="conv-value" id="convPx">1920 &times; 1080 px</div>
+            </div>
+            <div class="conv-card">
+                <div class="conv-label">Inches</div>
+                <div class="conv-value" id="convIn">26.67 &times; 15.00 in</div>
+            </div>
+            <div class="conv-card">
+                <div class="conv-label">Centimeters</div>
+                <div class="conv-value" id="convCm">67.73 &times; 38.10 cm</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSS Generator -->
+    <div class="tool-card fade-in">
+        <h3><span class="icon">&lt;/&gt;</span> CSS Output</h3>
+        <textarea class="css-output" id="cssOutput" readonly></textarea>
+        <div class="btn-row">
+            <button class="btn btn-primary" onclick="copyCss()">&#128203; Copy CSS</button>
+            <button class="btn btn-secondary" onclick="copyRatio()">&#128203; Copy Ratio</button>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <div class="nav-logo">NexTool</div>
+            <p>AI-powered automation studio. You describe it, we build it.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Services</h4>
+            <ul>
+                <li><a href="https://nextool.app/#services">Websites</a></li>
+                <li><a href="https://nextool.app/#services">Chatbots</a></li>
+                <li><a href="https://nextool.app/#services">Automations</a></li>
+                <li><a href="https://nextool.app/#services">Content</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Free Tools</h4>
+            <ul>
+                <li><a href="./svg-optimizer.html">SVG Optimizer</a></li>
+                <li><a href="./aspect-ratio-calculator.html">Aspect Ratio Calc</a></li>
+                <li><a href="./crontab-generator.html">Crontab Generator</a></li>
+                <li><a href="./json-to-csv.html">JSON to CSV</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Explore</h4>
+            <ul>
+                <li><a href="https://nextool.app/#extension">Chrome Extension</a></li>
+                <li><a href="https://nextool.app/blog">Blog</a></li>
+                <li><a href="https://nextool.app/#pricing">Pricing</a></li>
+                <li><a href="https://nextool.app/#start">Start a Project</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 NexTool. All rights reserved.</p>
+        <p>Built with AI. Powered by Opus.</p>
+    </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const inputW = document.getElementById('inputW');
+const inputH = document.getElementById('inputH');
+const scaleW = document.getElementById('scaleW');
+const scaleH = document.getElementById('scaleH');
+const dpiInput = document.getElementById('dpiInput');
+
+function gcd(a, b) { a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b)); while(b) { [a, b] = [b, a % b]; } return a; }
+
+function calculate() {
+    const w = parseFloat(inputW.value) || 1;
+    const h = parseFloat(inputH.value) || 1;
+    const g = gcd(w, h);
+    const rw = w / g;
+    const rh = h / g;
+    const decimal = (w / h).toFixed(4);
+
+    document.getElementById('ratioDisplay').textContent = rw + ':' + rh;
+    document.getElementById('ratioDecimal').textContent = 'Decimal: ' + decimal;
+
+    // Orientation
+    let orient = 'Square';
+    if (w > h) orient = 'Landscape';
+    else if (h > w) orient = 'Portrait';
+    document.getElementById('orientationDisplay').textContent = orient;
+
+    // Preview rect
+    const maxPreviewW = 240;
+    const maxPreviewH = 250;
+    let pw, ph;
+    if (w / h > maxPreviewW / maxPreviewH) {
+        pw = maxPreviewW;
+        ph = Math.round(maxPreviewW * h / w);
+    } else {
+        ph = maxPreviewH;
+        pw = Math.round(maxPreviewH * w / h);
+    }
+    const rect = document.getElementById('previewRect');
+    rect.style.width = pw + 'px';
+    rect.style.height = ph + 'px';
+    rect.innerHTML = Math.round(w) + ' &times; ' + Math.round(h);
+
+    // Unit conversion
+    const dpi = parseFloat(dpiInput.value) || 72;
+    const inW = (w / dpi).toFixed(2);
+    const inH = (h / dpi).toFixed(2);
+    const cmW = (w / dpi * 2.54).toFixed(2);
+    const cmH = (h / dpi * 2.54).toFixed(2);
+    document.getElementById('convPx').innerHTML = Math.round(w) + ' &times; ' + Math.round(h) + ' px';
+    document.getElementById('convIn').innerHTML = inW + ' &times; ' + inH + ' in';
+    document.getElementById('convCm').innerHTML = cmW + ' &times; ' + cmH + ' cm';
+
+    // CSS
+    const css = `.element {\n  width: ${Math.round(w)}px;\n  height: ${Math.round(h)}px;\n  aspect-ratio: ${rw} / ${rh};\n}`;
+    document.getElementById('cssOutput').value = css;
+
+    // Highlight preset
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+}
+
+function setPreset(w, h) {
+    inputW.value = w;
+    inputH.value = h;
+    calculate();
+    // Highlight matching preset
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        const g = gcd(w, h);
+        const label = btn.textContent;
+        if (label === (w/g) + ':' + (h/g) || label === w + 'x' + h) {
+            btn.classList.add('active');
+        }
+        if (label === '4K' && w === 3840 && h === 2160) btn.classList.add('active');
+    });
+}
+
+function calcScaleW() {
+    const w = parseFloat(inputW.value) || 1;
+    const h = parseFloat(inputH.value) || 1;
+    const newW = parseFloat(scaleW.value);
+    if (!newW || newW <= 0) { document.getElementById('scaleResultH').textContent = '—'; return; }
+    const newH = Math.round(newW * h / w);
+    document.getElementById('scaleResultH').textContent = newH + ' px';
+}
+
+function calcScaleH() {
+    const w = parseFloat(inputW.value) || 1;
+    const h = parseFloat(inputH.value) || 1;
+    const newH = parseFloat(scaleH.value);
+    if (!newH || newH <= 0) { document.getElementById('scaleResultW').textContent = '—'; return; }
+    const newW = Math.round(newH * w / h);
+    document.getElementById('scaleResultW').textContent = newW + ' px';
+}
+
+inputW.addEventListener('input', () => { calculate(); calcScaleW(); calcScaleH(); });
+inputH.addEventListener('input', () => { calculate(); calcScaleW(); calcScaleH(); });
+scaleW.addEventListener('input', calcScaleW);
+scaleH.addEventListener('input', calcScaleH);
+dpiInput.addEventListener('input', calculate);
+
+function copyCss() {
+    const css = document.getElementById('cssOutput').value;
+    navigator.clipboard.writeText(css).then(() => showToast('CSS copied to clipboard!'));
+}
+function copyRatio() {
+    const ratio = document.getElementById('ratioDisplay').textContent;
+    navigator.clipboard.writeText(ratio).then(() => showToast('Ratio "' + ratio + '" copied!'));
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Init
+calculate();
+
+// Scroll animations
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

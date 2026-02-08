@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>On-Screen Pixel Ruler &amp; Measure — Free Online Tool | NexTool</title>
+    <meta name="description" content="Canvas-based pixel ruler for measuring distances on screen. Horizontal and vertical rulers, grid overlay, crosshair cursor, DPI-aware, px/em/rem units. Free tool by NexTool.">
+    <meta property="og:title" content="On-Screen Pixel Ruler & Measure — Free Online Tool | NexTool">
+    <meta property="og:description" content="Measure pixels on screen with horizontal/vertical rulers, grid overlay, crosshair cursor, and DPI-aware measurements.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nextool.app/free-tools/pixel-ruler.html">
+    <link rel="canonical" href="https://nextool.app/free-tools/pixel-ruler.html">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "On-Screen Pixel Ruler & Measure",
+        "description": "Canvas-based pixel ruler for measuring distances on screen with grid overlay, crosshair, and DPI-aware units.",
+        "url": "https://nextool.app/free-tools/pixel-ruler.html",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Organization", "name": "NexTool", "url": "https://nextool.app" }
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #050508;
+            --bg-alt: #0a0a12;
+            --surface: #111118;
+            --surface-alt: #1a1a24;
+            --primary: #6366f1;
+            --accent: #a855f7;
+            --pink: #ec4899;
+            --text: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --tool-color: #06b6d4;
+            --tool-color-dim: rgba(6, 182, 212, 0.15);
+            --tool-color-mid: rgba(6, 182, 212, 0.3);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            padding: 0 2rem; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-logo {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff !important; padding: 0.5rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; }
+        .nav-toggle { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
+
+        /* HERO */
+        .hero {
+            padding: 8rem 2rem 2rem; text-align: center; position: relative;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--tool-color-dim) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: var(--tool-color-dim); border: 1px solid var(--tool-color-mid);
+            padding: 0.4rem 1rem; border-radius: 50px;
+            font-size: 0.8rem; font-weight: 600; color: var(--tool-color);
+            margin-bottom: 1.5rem;
+        }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+        .hero h1 span { background: linear-gradient(135deg, var(--tool-color), #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 1.05rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+
+        /* TOOL */
+        .tool-container { max-width: 1200px; margin: 0 auto 4rem; padding: 0 2rem; }
+
+        .controls {
+            display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex; align-items: center; gap: 0.4rem;
+            background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-sm); padding: 0.4rem 0.75rem;
+        }
+        .control-group label {
+            font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .control-group input, .control-group select {
+            background: var(--bg-alt); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px; padding: 0.3rem 0.5rem;
+            color: var(--text); font-family: inherit; font-size: 0.8rem;
+            width: 70px;
+        }
+        .control-group select { width: auto; }
+        .control-group input:focus, .control-group select:focus { outline: none; border-color: var(--tool-color); }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.5rem 1rem; border: none; border-radius: var(--radius-sm);
+            font-family: inherit; font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary { background: var(--tool-color); color: #000; }
+        .btn-primary:hover { opacity: 0.85; }
+        .btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid rgba(255,255,255,0.08); }
+        .btn-secondary:hover { border-color: rgba(255,255,255,0.2); }
+        .btn-active { background: var(--tool-color-dim) !important; color: var(--tool-color) !important; border-color: var(--tool-color-mid) !important; }
+
+        .canvas-wrap {
+            position: relative;
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+            width: 100%;
+        }
+
+        .info-bar {
+            display: flex; flex-wrap: wrap; gap: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: var(--surface-alt);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            font-size: 0.82rem;
+        }
+        .info-item { display: flex; align-items: center; gap: 0.4rem; }
+        .info-label { color: var(--text-secondary); font-weight: 500; }
+        .info-val { color: var(--tool-color); font-weight: 700; font-family: 'Courier New', monospace; }
+
+        .measurements {
+            margin-top: 1.5rem;
+        }
+        .measurements h3 {
+            font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;
+            color: var(--text);
+        }
+        .measure-list {
+            display: flex; flex-direction: column; gap: 0.4rem;
+        }
+        .measure-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-sm); padding: 0.6rem 1rem;
+            font-size: 0.82rem;
+        }
+        .measure-item .coords { color: var(--text-secondary); font-family: 'Courier New', monospace; }
+        .measure-item .dist { color: var(--tool-color); font-weight: 700; }
+        .measure-item button {
+            background: rgba(239,68,68,0.15); color: #ef4444;
+            border: none; border-radius: 6px; padding: 0.25rem 0.5rem;
+            cursor: pointer; font-size: 0.75rem;
+        }
+
+        .toast {
+            position: fixed; bottom: 2rem; right: 2rem;
+            background: var(--tool-color); color: #000;
+            padding: 0.75rem 1.5rem; border-radius: var(--radius-sm);
+            font-weight: 600; font-size: 0.85rem;
+            transform: translateY(100px); opacity: 0;
+            transition: all 0.3s ease; z-index: 9999;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* FOOTER */
+        footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 4rem 2rem 2rem; margin-top: 4rem; }
+        .footer-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 2rem; }
+        .footer-brand p { color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.75rem; max-width: 280px; }
+        .footer-col h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; }
+        .footer-col a { display: block; color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; margin-bottom: 0.5rem; transition: color 0.2s; }
+        .footer-col a:hover { color: var(--text); }
+        .footer-bottom { max-width: 1100px; margin: 2rem auto 0; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; color: var(--text-secondary); font-size: 0.8rem; }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: fixed; top: 64px; left: 0; right: 0; background: var(--bg); flex-direction: column; padding: 1.5rem; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+            .nav-links.open { display: flex; }
+            .nav-toggle { display: block; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .controls { gap: 0.5rem; }
+        }
+        @media (max-width: 480px) {
+            .hero { padding: 6.5rem 1rem 1.5rem; }
+            .hero h1 { font-size: 1.75rem; }
+            .tool-container { padding: 0 1rem; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .info-bar { gap: 0.75rem; padding: 0.75rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="https://nextool.app" class="nav-logo">NexTool</a>
+        <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="https://nextool.app/#services">Services</a></li>
+            <li><a href="https://nextool.app/free-tools">Free Tools</a></li>
+            <li><a href="https://nextool.app/#extension">Extension</a></li>
+            <li><a href="https://nextool.app/blog">Blog</a></li>
+            <li><a href="https://nextool.app/#pricing">Pricing</a></li>
+            <li><a href="https://nextool.app/#start" class="nav-cta">Start a Project</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge">&#9889; Free Design Tool</div>
+        <h1>Pixel <span>Ruler &amp; Measure</span></h1>
+        <p>Canvas-based ruler overlay. Click and drag to measure distances in px, em, or rem. Toggle grid overlay, snap-to-grid, and DPI-aware measurements.</p>
+    </section>
+
+    <div class="tool-container">
+        <div class="controls">
+            <div class="control-group">
+                <label>Unit:</label>
+                <select id="unit" onchange="redraw()">
+                    <option value="px">px</option>
+                    <option value="em">em</option>
+                    <option value="rem">rem</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Base Font:</label>
+                <input type="number" id="baseFontSize" value="16" min="1" max="100" onchange="redraw()">
+                <label>px</label>
+            </div>
+            <div class="control-group">
+                <label>Grid:</label>
+                <input type="number" id="gridSize" value="20" min="5" max="200" onchange="redraw()">
+                <label>px</label>
+            </div>
+            <button class="btn btn-secondary" id="btnGrid" onclick="toggleGrid()">Grid: OFF</button>
+            <button class="btn btn-secondary" id="btnSnap" onclick="toggleSnap()">Snap: OFF</button>
+            <button class="btn btn-secondary" id="btnRulers" onclick="toggleRulers()">Rulers: ON</button>
+            <button class="btn btn-primary" onclick="clearMeasurements()">Clear All</button>
+        </div>
+
+        <div class="canvas-wrap">
+            <canvas id="ruler-canvas"></canvas>
+            <div class="info-bar">
+                <div class="info-item">
+                    <span class="info-label">Cursor:</span>
+                    <span class="info-val" id="cursorPos">0, 0</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">DPI:</span>
+                    <span class="info-val" id="dpiVal">96</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Device Pixel Ratio:</span>
+                    <span class="info-val" id="dprVal">1</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Canvas:</span>
+                    <span class="info-val" id="canvasSize">0 x 0</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Active Measure:</span>
+                    <span class="info-val" id="activeMeasure">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="measurements">
+            <h3>Measurements</h3>
+            <div class="measure-list" id="measureList">
+                <div class="measure-item" style="color:var(--text-secondary); justify-content:center;">
+                    Click and drag on the canvas to create measurements.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Cleared!</div>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="https://nextool.app" class="nav-logo">NexTool</a>
+                <p>AI-powered automation studio. You describe it, we build it.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Services</h4>
+                <a href="https://nextool.app/#services">Websites</a>
+                <a href="https://nextool.app/#services">Chatbots</a>
+                <a href="https://nextool.app/#services">Automation</a>
+                <a href="https://nextool.app/#services">Content</a>
+                <a href="https://nextool.app/#services">Video</a>
+                <a href="https://nextool.app/#services">Data</a>
+            </div>
+            <div class="footer-col">
+                <h4>Free Tools</h4>
+                <a href="url-encoder.html">URL Encoder</a>
+                <a href="text-diff-merger.html">Text Transformer</a>
+                <a href="pixel-ruler.html">Pixel Ruler</a>
+                <a href="yaml-json.html">YAML/JSON Converter</a>
+            </div>
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <a href="https://nextool.app/#extension">Chrome Extension</a>
+                <a href="https://nextool.app/blog">Blog</a>
+                <a href="https://nextool.app/#pricing">Pricing</a>
+                <a href="https://nextool.app/#start">Start a Project</a>
+            </div>
+        </div>
+        <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('ruler-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let showGrid = false;
+        let snapToGrid = false;
+        let showRulers = true;
+        let measurements = [];
+        let isDragging = false;
+        let dragStart = null;
+        let mousePos = { x: 0, y: 0 };
+        let canvasW = 0, canvasH = 0;
+
+        const RULER_SIZE = 30;
+        const dpr = window.devicePixelRatio || 1;
+
+        document.getElementById('dprVal').textContent = dpr.toFixed(1);
+        document.getElementById('dpiVal').textContent = Math.round(96 * dpr);
+
+        function resizeCanvas() {
+            const wrap = canvas.parentElement;
+            const w = wrap.clientWidth;
+            const h = Math.max(500, Math.min(700, window.innerHeight - 380));
+            canvasW = w;
+            canvasH = h;
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            document.getElementById('canvasSize').textContent = w + ' x ' + h;
+            redraw();
+        }
+
+        function getGridSize() { return parseInt(document.getElementById('gridSize').value) || 20; }
+        function getBaseFontSize() { return parseFloat(document.getElementById('baseFontSize').value) || 16; }
+        function getUnit() { return document.getElementById('unit').value; }
+
+        function snap(v) {
+            if (!snapToGrid) return v;
+            const g = getGridSize();
+            return Math.round(v / g) * g;
+        }
+
+        function pxToUnit(px) {
+            const unit = getUnit();
+            const base = getBaseFontSize();
+            if (unit === 'em' || unit === 'rem') return (px / base).toFixed(2) + unit;
+            return Math.round(px) + 'px';
+        }
+
+        function redraw() {
+            ctx.clearRect(0, 0, canvasW, canvasH);
+
+            // Background
+            ctx.fillStyle = '#0a0a12';
+            ctx.fillRect(0, 0, canvasW, canvasH);
+
+            const gs = getGridSize();
+            const offsetX = showRulers ? RULER_SIZE : 0;
+            const offsetY = showRulers ? RULER_SIZE : 0;
+
+            // Grid
+            if (showGrid) {
+                ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)';
+                ctx.lineWidth = 0.5;
+                for (let x = offsetX; x <= canvasW; x += gs) {
+                    ctx.beginPath(); ctx.moveTo(x, offsetY); ctx.lineTo(x, canvasH); ctx.stroke();
+                }
+                for (let y = offsetY; y <= canvasH; y += gs) {
+                    ctx.beginPath(); ctx.moveTo(offsetX, y); ctx.lineTo(canvasW, y); ctx.stroke();
+                }
+            }
+
+            // Rulers
+            if (showRulers) {
+                // Ruler backgrounds
+                ctx.fillStyle = '#111118';
+                ctx.fillRect(0, 0, canvasW, RULER_SIZE);
+                ctx.fillRect(0, 0, RULER_SIZE, canvasH);
+                ctx.fillStyle = '#1a1a24';
+                ctx.fillRect(0, 0, RULER_SIZE, RULER_SIZE);
+
+                ctx.font = '9px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+
+                // Horizontal
+                const hStep = gs < 15 ? gs * 2 : gs;
+                for (let x = offsetX; x <= canvasW; x += hStep) {
+                    const px = x - offsetX;
+                    const isMajor = px % (hStep * 5) === 0 || px === 0;
+                    ctx.strokeStyle = isMajor ? 'rgba(226,232,240,0.5)' : 'rgba(226,232,240,0.2)';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(x, isMajor ? 10 : 20);
+                    ctx.lineTo(x, RULER_SIZE);
+                    ctx.stroke();
+                    if (isMajor) {
+                        ctx.fillStyle = 'rgba(226,232,240,0.6)';
+                        ctx.fillText(px, x, 2);
+                    }
+                }
+
+                // Vertical
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                for (let y = offsetY; y <= canvasH; y += hStep) {
+                    const py = y - offsetY;
+                    const isMajor = py % (hStep * 5) === 0 || py === 0;
+                    ctx.strokeStyle = isMajor ? 'rgba(226,232,240,0.5)' : 'rgba(226,232,240,0.2)';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(isMajor ? 10 : 20, y);
+                    ctx.lineTo(RULER_SIZE, y);
+                    ctx.stroke();
+                    if (isMajor) {
+                        ctx.fillStyle = 'rgba(226,232,240,0.6)';
+                        ctx.save();
+                        ctx.translate(13, y);
+                        ctx.rotate(-Math.PI / 2);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(py, 0, 0);
+                        ctx.restore();
+                    }
+                }
+            }
+
+            // Saved measurements
+            measurements.forEach((m, i) => drawMeasurement(m, i));
+
+            // Active drag
+            if (isDragging && dragStart) {
+                drawMeasureLine(dragStart.x, dragStart.y, mousePos.x, mousePos.y, 'rgba(6, 182, 212, 0.9)', true);
+            }
+
+            // Crosshair
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = 'rgba(6, 182, 212, 0.35)';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(mousePos.x, showRulers ? RULER_SIZE : 0);
+            ctx.lineTo(mousePos.x, canvasH);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(showRulers ? RULER_SIZE : 0, mousePos.y);
+            ctx.lineTo(canvasW, mousePos.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Cursor position markers on rulers
+            if (showRulers) {
+                ctx.fillStyle = 'var(--tool-color)';
+                ctx.fillStyle = '#06b6d4';
+                // Horizontal marker
+                ctx.fillRect(mousePos.x - 1, RULER_SIZE - 6, 2, 6);
+                // Vertical marker
+                ctx.fillRect(RULER_SIZE - 6, mousePos.y - 1, 6, 2);
+            }
+        }
+
+        function drawMeasureLine(x1, y1, x2, y2, color, showLabel) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            // Line
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // End points
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(x1, y1, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x2, y2, 4, 0, Math.PI * 2); ctx.fill();
+
+            // Dimension lines
+            ctx.strokeStyle = color.replace('0.9', '0.4');
+            ctx.lineWidth = 0.5;
+            ctx.setLineDash([3, 3]);
+            // Horizontal dimension
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y1); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x2, y1); ctx.lineTo(x2, y2); ctx.stroke();
+            ctx.setLineDash([]);
+
+            if (showLabel && dist > 5) {
+                const offR = showRulers ? RULER_SIZE : 0;
+                const ox1 = x1 - offR, oy1 = y1 - offR;
+                const ox2 = x2 - offR, oy2 = y2 - offR;
+                const w = Math.abs(ox2 - ox1);
+                const h = Math.abs(oy2 - oy1);
+                const diagDist = Math.sqrt(w * w + h * h);
+
+                const label = pxToUnit(diagDist);
+                const wLabel = 'W: ' + pxToUnit(w);
+                const hLabel = 'H: ' + pxToUnit(h);
+
+                const mx = (x1 + x2) / 2;
+                const my = (y1 + y2) / 2;
+
+                ctx.font = '600 11px Inter, sans-serif';
+                const tw = Math.max(ctx.measureText(label).width, ctx.measureText(wLabel).width, ctx.measureText(hLabel).width) + 16;
+
+                ctx.fillStyle = 'rgba(5,5,8,0.9)';
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+                const bx = mx - tw / 2, by = my - 28;
+                roundRect(ctx, bx, by, tw, 52, 6);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(label, mx, by + 5);
+                ctx.fillStyle = 'rgba(226,232,240,0.6)';
+                ctx.font = '500 10px Inter, sans-serif';
+                ctx.fillText(wLabel, mx, by + 20);
+                ctx.fillText(hLabel, mx, by + 34);
+            }
+        }
+
+        function drawMeasurement(m, idx) {
+            const colors = ['#06b6d4', '#a855f7', '#ec4899', '#f59e0b', '#22c55e', '#ef4444'];
+            const color = colors[idx % colors.length];
+            drawMeasureLine(m.x1, m.y1, m.x2, m.y2, color, true);
+        }
+
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        /* EVENTS */
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+            return { x: snap(x), y: snap(y) };
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            mousePos = getCanvasPos(e);
+            const offR = showRulers ? RULER_SIZE : 0;
+            const ox = mousePos.x - offR;
+            const oy = mousePos.y - offR;
+            document.getElementById('cursorPos').textContent = Math.max(0, Math.round(ox)) + ', ' + Math.max(0, Math.round(oy));
+
+            if (isDragging && dragStart) {
+                const dx = mousePos.x - dragStart.x;
+                const dy = mousePos.y - dragStart.y;
+                const offR2 = showRulers ? RULER_SIZE : 0;
+                const w = Math.abs(dx);
+                const h = Math.abs(dy);
+                const dist = Math.sqrt(w * w + h * h);
+                document.getElementById('activeMeasure').textContent = pxToUnit(dist) + ' (W:' + pxToUnit(w) + ' H:' + pxToUnit(h) + ')';
+            }
+            redraw();
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getCanvasPos(e);
+            isDragging = true;
+            dragStart = pos;
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (isDragging && dragStart) {
+                const pos = getCanvasPos(e);
+                const dx = pos.x - dragStart.x;
+                const dy = pos.y - dragStart.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > 5) {
+                    measurements.push({ x1: dragStart.x, y1: dragStart.y, x2: pos.x, y2: pos.y });
+                    updateMeasurementList();
+                }
+            }
+            isDragging = false;
+            dragStart = null;
+            document.getElementById('activeMeasure').textContent = '--';
+            redraw();
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            dragStart = null;
+            redraw();
+        });
+
+        /* TOUCH SUPPORT */
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const pos = { x: snap(touch.clientX - rect.left), y: snap(touch.clientY - rect.top) };
+            isDragging = true;
+            dragStart = pos;
+            mousePos = pos;
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            mousePos = { x: snap(touch.clientX - rect.left), y: snap(touch.clientY - rect.top) };
+            redraw();
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (isDragging && dragStart) {
+                const dx = mousePos.x - dragStart.x;
+                const dy = mousePos.y - dragStart.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > 5) {
+                    measurements.push({ x1: dragStart.x, y1: dragStart.y, x2: mousePos.x, y2: mousePos.y });
+                    updateMeasurementList();
+                }
+            }
+            isDragging = false;
+            dragStart = null;
+            redraw();
+        });
+
+        /* CONTROLS */
+        function toggleGrid() {
+            showGrid = !showGrid;
+            document.getElementById('btnGrid').textContent = 'Grid: ' + (showGrid ? 'ON' : 'OFF');
+            document.getElementById('btnGrid').classList.toggle('btn-active', showGrid);
+            redraw();
+        }
+        function toggleSnap() {
+            snapToGrid = !snapToGrid;
+            document.getElementById('btnSnap').textContent = 'Snap: ' + (snapToGrid ? 'ON' : 'OFF');
+            document.getElementById('btnSnap').classList.toggle('btn-active', snapToGrid);
+        }
+        function toggleRulers() {
+            showRulers = !showRulers;
+            document.getElementById('btnRulers').textContent = 'Rulers: ' + (showRulers ? 'ON' : 'OFF');
+            document.getElementById('btnRulers').classList.toggle('btn-active', showRulers);
+            redraw();
+        }
+        document.getElementById('btnRulers').classList.add('btn-active');
+
+        function clearMeasurements() {
+            measurements = [];
+            updateMeasurementList();
+            redraw();
+            const t = document.getElementById('toast');
+            t.textContent = 'All measurements cleared';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function removeMeasurement(i) {
+            measurements.splice(i, 1);
+            updateMeasurementList();
+            redraw();
+        }
+
+        function updateMeasurementList() {
+            const list = document.getElementById('measureList');
+            if (measurements.length === 0) {
+                list.innerHTML = '<div class="measure-item" style="color:var(--text-secondary);justify-content:center;">Click and drag on the canvas to create measurements.</div>';
+                return;
+            }
+            const offR = showRulers ? RULER_SIZE : 0;
+            list.innerHTML = measurements.map((m, i) => {
+                const x1 = Math.round(m.x1 - offR), y1 = Math.round(m.y1 - offR);
+                const x2 = Math.round(m.x2 - offR), y2 = Math.round(m.y2 - offR);
+                const w = Math.abs(x2 - x1), h = Math.abs(y2 - y1);
+                const dist = Math.sqrt(w * w + h * h);
+                return '<div class="measure-item">' +
+                    '<span class="coords">(' + x1 + ',' + y1 + ') &rarr; (' + x2 + ',' + y2 + ')</span>' +
+                    '<span class="dist">' + pxToUnit(dist) + ' &nbsp;|&nbsp; W:' + pxToUnit(w) + ' H:' + pxToUnit(h) + '</span>' +
+                    '<button onclick="removeMeasurement(' + i + ')">&#215;</button>' +
+                    '</div>';
+            }).join('');
+        }
+
+        /* INIT */
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        /* SCROLL ANIMATION */
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity = 1; e.target.style.transform = 'translateY(0)'; }});
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.canvas-wrap, .measurements, footer').forEach(el => {
+            el.style.opacity = 0; el.style.transform = 'translateY(24px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
