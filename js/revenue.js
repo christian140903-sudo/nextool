@@ -60,7 +60,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 setTimeout(banner,BD);
 window.addEventListener('beforeunload',trackTime)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-/* Load conversion engine + pro mode */
+/* Load conversion engine + pro mode + pro features */
 var ce=document.createElement('script');ce.src='/js/conversion-engine.js';ce.defer=true;document.head.appendChild(ce);
 var pm=document.createElement('script');pm.src='/js/pro-mode.js';pm.defer=true;document.head.appendChild(pm);
+var pf=document.createElement('script');pf.src='/js/pro-features.js';pf.defer=true;document.head.appendChild(pf);
 })();
