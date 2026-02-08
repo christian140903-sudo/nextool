@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Viewer &amp; Formatter | NexTool Free Tools</title>
+<meta name="description" content="Paste JSON to see a collapsible tree view with syntax highlighting, search, path copying, format/minify toggle, and size stats. Free online tool by NexTool.">
+<meta name="keywords" content="json viewer, json formatter, json tree, json beautify, json minify, json validator, json parser">
+<meta property="og:title" content="JSON Viewer & Formatter | NexTool Free Tools">
+<meta property="og:description" content="Paste JSON, get a beautiful collapsible tree with syntax highlighting, search, and path copying.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/json-viewer.html">
+<meta property="og:image" content="https://nextool.app/free-tools/og/json-viewer.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="JSON Viewer & Formatter | NexTool Free Tools">
+<meta name="twitter:description" content="Paste JSON, get a beautiful collapsible tree with syntax highlighting, search, and path copying.">
+<link rel="canonical" href="https://nextool.app/free-tools/json-viewer.html">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://nextool.app/"},{"@type":"ListItem","position":2,"name":"Free Tools","item":"https://nextool.app/free-tools/"},{"@type":"ListItem","position":3,"name":"JSON Viewer","item":"https://nextool.app/free-tools/json-viewer.html"}]}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--cyan:#06b6d4;--text:#e2e8f0;--text2:#94a3b8;--radius:16px;--glow:0 0 30px rgba(236,72,153,0.15)}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.35rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-links a{font-size:.875rem;color:var(--text2);transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px}
+.nav-hamburger span{width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
+@media(max-width:768px){.nav-links{display:none;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:var(--surface);padding:1.5rem;gap:1rem;border-bottom:1px solid rgba(255,255,255,0.06)}.nav-links.open{display:flex}.nav-hamburger{display:flex}}
+.hero{text-align:center;padding:4rem 2rem 2rem}
+.breadcrumb{font-size:.8rem;color:var(--text2);margin-bottom:1.5rem}
+.breadcrumb a:hover{color:var(--pink)}
+.breadcrumb span{margin:0 .5rem;opacity:.4}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;line-height:1.15;margin-bottom:1rem}
+.hero h1 .grad{background:linear-gradient(135deg,var(--pink),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);max-width:600px;margin:0 auto;font-size:1.05rem}
+.container{max-width:1100px;margin:0 auto;padding:2rem}
+.actions{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.btn{padding:.65rem 1.25rem;border-radius:10px;border:none;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--pink),var(--accent));color:#fff}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,0.04);color:var(--text2);border:1px solid rgba(255,255,255,0.08)}
+.btn-ghost:hover{background:rgba(255,255,255,0.08);color:var(--text)}
+.btn-sm{padding:.4rem .85rem;font-size:.75rem;border-radius:8px}
+textarea{width:100%;min-height:200px;background:var(--surface);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius);padding:1.25rem;color:var(--text);font-family:'SF Mono',Monaco,Consolas,monospace;font-size:.85rem;resize:vertical;line-height:1.7;transition:border-color .3s}
+textarea:focus{outline:none;border-color:var(--pink);box-shadow:var(--glow)}
+textarea::placeholder{color:var(--text2);opacity:.5}
+/* STATS BAR */
+.stats-bar{display:flex;gap:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap;padding:.75rem 1.25rem;background:var(--surface);border-radius:12px;border:1px solid rgba(255,255,255,0.06)}
+.stat-item{display:flex;gap:.4rem;align-items:center;font-size:.8rem}
+.stat-item .s-label{color:var(--text2)}
+.stat-item .s-val{color:var(--pink);font-weight:700}
+/* SEARCH */
+.search-wrap{display:flex;gap:.75rem;margin-bottom:1.5rem;align-items:center}
+.search-input{flex:1;background:var(--surface);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:.6rem 1rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--pink)}
+.search-count{font-size:.8rem;color:var(--text2);min-width:80px;text-align:right}
+/* ERROR */
+.error-msg{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:1rem 1.25rem;color:#f87171;font-size:.85rem;margin-bottom:1.5rem;display:none}
+.error-msg.show{display:block}
+/* TREE */
+.tree-wrap{background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:1.25rem;min-height:200px;overflow-x:auto;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:.82rem;line-height:1.9}
+.tree-node{padding-left:1.5rem;position:relative}
+.tree-key{color:var(--accent);cursor:pointer}
+.tree-key:hover{text-decoration:underline}
+.tree-string{color:#4ade80}
+.tree-number{color:var(--cyan)}
+.tree-boolean{color:var(--pink)}
+.tree-null{color:var(--text2);font-style:italic}
+.tree-bracket{color:var(--text2)}
+.tree-comma{color:var(--text2)}
+.tree-toggle{cursor:pointer;user-select:none;display:inline-block;width:1rem;text-align:center;color:var(--text2);margin-right:.25rem;transition:transform .15s}
+.tree-toggle.collapsed{transform:rotate(-90deg)}
+.tree-children{overflow:hidden;transition:max-height .2s ease}
+.tree-children.collapsed{display:none}
+.tree-copy-path{opacity:0;cursor:pointer;font-size:.65rem;color:var(--text2);margin-left:.5rem;padding:.15rem .4rem;background:var(--surface2);border-radius:4px;border:1px solid rgba(255,255,255,0.06);transition:all .15s}
+.tree-line:hover .tree-copy-path{opacity:1}
+.tree-copy-path:hover{color:var(--pink);border-color:var(--pink)}
+.tree-line{white-space:nowrap}
+.tree-highlight{background:rgba(236,72,153,0.2);border-radius:3px;padding:0 2px}
+.tree-placeholder{color:var(--text2);font-family:'Inter',sans-serif;font-size:.9rem;padding:2rem;text-align:center}
+/* MODE TOGGLE */
+.mode-toggle{display:flex;background:var(--surface2);border-radius:10px;padding:3px;border:1px solid rgba(255,255,255,0.06)}
+.mode-toggle button{background:none;border:none;padding:.4rem 1rem;border-radius:8px;color:var(--text2);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s}
+.mode-toggle button.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--pink);border-radius:10px;padding:.6rem 1.25rem;font-size:.85rem;color:var(--text);opacity:0;transition:all .3s;z-index:300;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* MORE TOOLS */
+.more-tools{margin-top:4rem;padding:3rem 0;border-top:1px solid rgba(255,255,255,0.06)}
+.more-tools h2{text-align:center;font-size:1.5rem;margin-bottom:2rem}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+.tool-card{background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:1.5rem;transition:all .3s}
+.tool-card:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:0 8px 30px rgba(99,102,241,0.1)}
+.tool-card .icon{font-size:1.5rem;margin-bottom:.75rem}
+.tool-card h3{font-size:1rem;margin-bottom:.4rem}
+.tool-card p{font-size:.8rem;color:var(--text2)}
+.cross-promo{text-align:center;padding:3rem 2rem;margin-top:2rem;background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius)}
+.cross-promo h2{font-size:1.3rem;margin-bottom:.5rem}
+.cross-promo p{color:var(--text2);font-size:.95rem;margin-bottom:1.25rem}
+footer{margin-top:4rem;padding:2rem;text-align:center;border-top:1px solid rgba(255,255,255,0.06);color:var(--text2);font-size:.8rem}
+footer .brand{font-weight:700;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+footer .foot-links{display:flex;gap:1.5rem;justify-content:center;margin-bottom:.75rem;flex-wrap:wrap}
+footer .foot-links a{color:var(--text2);transition:color .2s}
+footer .foot-links a:hover{color:var(--text)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">NexTool</a>
+  <div class="nav-links" id="navLinks">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/pro.html">Pro</a>
+  </div>
+  <div class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="breadcrumb"><a href="/">Home</a><span>/</span><a href="/free-tools/">Free Tools</a><span>/</span>JSON Viewer</div>
+  <h1><span class="grad">JSON Viewer</span> &amp; Formatter</h1>
+  <p>Paste JSON to explore a collapsible tree with syntax highlighting, search, path copying, and format/minify toggle.</p>
+</section>
+
+<div class="container">
+  <div class="actions">
+    <button class="btn btn-primary" onclick="parseJSON()">Parse JSON</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <button class="btn btn-ghost" onclick="pasteClipboard()">Paste</button>
+    <button class="btn btn-ghost" onclick="loadSample()">Load Sample</button>
+    <div class="mode-toggle">
+      <button class="active" id="btnTree" onclick="setMode('tree')">Tree</button>
+      <button id="btnFormatted" onclick="setMode('formatted')">Formatted</button>
+      <button id="btnMinified" onclick="setMode('minified')">Minified</button>
+    </div>
+    <button class="btn btn-ghost" onclick="copyOutput()">Copy Output</button>
+  </div>
+
+  <textarea id="jsonInput" placeholder='Paste your JSON here, e.g. {"name": "NexTool", "tools": 126}'></textarea>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="stats-bar" id="statsBar" style="display:none">
+    <div class="stat-item"><span class="s-label">Size:</span><span class="s-val" id="statSize">0 B</span></div>
+    <div class="stat-item"><span class="s-label">Lines:</span><span class="s-val" id="statLines">0</span></div>
+    <div class="stat-item"><span class="s-label">Keys:</span><span class="s-val" id="statKeys">0</span></div>
+    <div class="stat-item"><span class="s-label">Depth:</span><span class="s-val" id="statDepth">0</span></div>
+    <div class="stat-item"><span class="s-label">Arrays:</span><span class="s-val" id="statArrays">0</span></div>
+    <div class="stat-item"><span class="s-label">Objects:</span><span class="s-val" id="statObjects">0</span></div>
+  </div>
+
+  <div class="search-wrap" id="searchWrap" style="display:none">
+    <input type="text" class="search-input" id="searchInput" placeholder="Search keys or values..." oninput="searchTree()">
+    <span class="search-count" id="searchCount"></span>
+  </div>
+
+  <div class="tree-wrap" id="treeWrap">
+    <div class="tree-placeholder">Paste JSON above and click Parse to visualize it</div>
+  </div>
+
+  <section class="cross-promo">
+    <h2>Explore 126+ Free Tools at NexTool</h2>
+    <p>Your all-in-one developer toolkit</p>
+    <a href="/free-tools/" class="btn btn-primary">Browse All Tools</a>
+  </section>
+
+  <section class="more-tools">
+    <h2>More Free Tools</h2>
+    <div class="tools-grid">
+      <a href="/free-tools/color-picker.html" class="tool-card"><div class="icon">&#127912;</div><h3>Color Picker</h3><p>Pick colors in HSL, RGB, or HEX with harmonies and CSS output.</p></a>
+      <a href="/free-tools/word-counter.html" class="tool-card"><div class="icon">W</div><h3>Word Counter</h3><p>Count words, characters, sentences with readability analysis.</p></a>
+      <a href="/free-tools/character-counter.html" class="tool-card"><div class="icon">Aa</div><h3>Character Counter</h3><p>Live character and word counts with social media limit tracking.</p></a>
+      <a href="/free-tools/random-generator.html" class="tool-card"><div class="icon">&#x1f3b2;</div><h3>Random Generator</h3><p>Generate random numbers, strings, UUIDs, colors, and pick from lists.</p></a>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="foot-links">
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/pro.html">Pro</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+  </div>
+  <p><span class="brand">NexTool</span> &mdash; AI Automation Studio &copy; 2026. All rights reserved.</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let parsedData = null;
+let currentMode = 'tree';
+
+function parseJSON() {
+  const raw = document.getElementById('jsonInput').value.trim();
+  const errEl = document.getElementById('errorMsg');
+  errEl.classList.remove('show');
+
+  if (!raw) { errEl.textContent = 'Please paste some JSON first.'; errEl.classList.add('show'); return; }
+
+  try {
+    parsedData = JSON.parse(raw);
+  } catch (e) {
+    errEl.textContent = 'Invalid JSON: ' + e.message;
+    errEl.classList.add('show');
+    document.getElementById('treeWrap').innerHTML = '<div class="tree-placeholder">Fix the JSON errors above and try again</div>';
+    document.getElementById('statsBar').style.display = 'none';
+    document.getElementById('searchWrap').style.display = 'none';
+    return;
+  }
+
+  computeStats(raw, parsedData);
+  document.getElementById('statsBar').style.display = 'flex';
+  document.getElementById('searchWrap').style.display = 'flex';
+  renderCurrentMode();
+}
+
+function computeStats(raw, data) {
+  const size = new Blob([raw]).size;
+  const formatted = JSON.stringify(data, null, 2);
+  const lines = formatted.split('\n').length;
+
+  let keys = 0, arrays = 0, objects = 0, maxDepth = 0;
+  function walk(node, depth) {
+    if (depth > maxDepth) maxDepth = depth;
+    if (Array.isArray(node)) { arrays++; node.forEach(v => walk(v, depth + 1)); }
+    else if (node && typeof node === 'object') { objects++; const k = Object.keys(node); keys += k.length; k.forEach(key => walk(node[key], depth + 1)); }
+  }
+  walk(data, 0);
+
+  const fmt = size < 1024 ? size + ' B' : size < 1048576 ? (size / 1024).toFixed(1) + ' KB' : (size / 1048576).toFixed(2) + ' MB';
+  document.getElementById('statSize').textContent = fmt;
+  document.getElementById('statLines').textContent = lines.toLocaleString();
+  document.getElementById('statKeys').textContent = keys.toLocaleString();
+  document.getElementById('statDepth').textContent = maxDepth;
+  document.getElementById('statArrays').textContent = arrays;
+  document.getElementById('statObjects').textContent = objects;
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active'));
+  document.getElementById(mode === 'tree' ? 'btnTree' : mode === 'formatted' ? 'btnFormatted' : 'btnMinified').classList.add('active');
+  if (parsedData !== null) renderCurrentMode();
+}
+
+function renderCurrentMode() {
+  const wrap = document.getElementById('treeWrap');
+  if (currentMode === 'tree') {
+    wrap.innerHTML = '';
+    wrap.appendChild(buildTree(parsedData, ''));
+    document.getElementById('searchWrap').style.display = 'flex';
+  } else if (currentMode === 'formatted') {
+    const formatted = JSON.stringify(parsedData, null, 2);
+    wrap.innerHTML = '<pre style="margin:0;white-space:pre-wrap;word-break:break-all">' + syntaxHighlight(escHtml(formatted)) + '</pre>';
+    document.getElementById('searchWrap').style.display = 'none';
+  } else {
+    const minified = JSON.stringify(parsedData);
+    wrap.innerHTML = '<pre style="margin:0;white-space:pre-wrap;word-break:break-all;color:var(--text2)">' + escHtml(minified) + '</pre>';
+    document.getElementById('searchWrap').style.display = 'none';
+  }
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function syntaxHighlight(json) {
+  return json.replace(/"([^"]+)"(\s*:)/g, '<span class="tree-key">"$1"</span>$2')
+    .replace(/"([^"]*)"/g, '<span class="tree-string">"$1"</span>')
+    .replace(/\b(\d+\.?\d*)\b/g, '<span class="tree-number">$1</span>')
+    .replace(/\b(true|false)\b/g, '<span class="tree-boolean">$1</span>')
+    .replace(/\bnull\b/g, '<span class="tree-null">null</span>');
+}
+
+// --- Tree Builder ---
+function buildTree(data, path) {
+  const frag = document.createDocumentFragment();
+
+  if (Array.isArray(data)) {
+    data.forEach((item, i) => {
+      const itemPath = path + '[' + i + ']';
+      const line = createLine(String(i), item, itemPath, true);
+      frag.appendChild(line);
+    });
+  } else if (data && typeof data === 'object') {
+    const keys = Object.keys(data);
+    keys.forEach(key => {
+      const itemPath = path ? path + '.' + key : key;
+      const line = createLine(key, data[key], itemPath, false);
+      frag.appendChild(line);
+    });
+  } else {
+    const line = document.createElement('div');
+    line.className = 'tree-line';
+    line.innerHTML = renderValue(data);
+    frag.appendChild(line);
+  }
+
+  return frag;
+}
+
+function createLine(key, value, path, isIndex) {
+  const wrap = document.createElement('div');
+  wrap.className = 'tree-node';
+
+  const line = document.createElement('div');
+  line.className = 'tree-line';
+
+  const isExpandable = (value && typeof value === 'object');
+  const uid = 'n' + Math.random().toString(36).substr(2, 8);
+
+  let html = '';
+  if (isExpandable) {
+    const len = Array.isArray(value) ? value.length : Object.keys(value).length;
+    const bracket = Array.isArray(value) ? '[]' : '{}';
+    html += `<span class="tree-toggle" data-target="${uid}">&#9660;</span>`;
+    html += `<span class="tree-key" onclick="toggleNode('${uid}', this.previousElementSibling)">${escHtml(key)}</span>`;
+    html += `<span class="tree-bracket"> ${bracket} </span>`;
+    html += `<span style="color:var(--text2);font-size:.7rem">${len} item${len !== 1 ? 's' : ''}</span>`;
+  } else {
+    html += `<span style="display:inline-block;width:1rem;margin-right:.25rem"></span>`;
+    html += `<span class="tree-key">${escHtml(key)}</span><span class="tree-bracket">: </span>`;
+    html += renderValue(value);
+  }
+
+  html += `<span class="tree-copy-path" onclick="copyPath('${escAttr(path)}')" title="Copy path">copy path</span>`;
+  line.innerHTML = html;
+  wrap.appendChild(line);
+
+  if (isExpandable) {
+    const children = document.createElement('div');
+    children.className = 'tree-children';
+    children.id = uid;
+    children.appendChild(buildTree(value, path));
+    wrap.appendChild(children);
+  }
+
+  return wrap;
+}
+
+function renderValue(v) {
+  if (v === null) return '<span class="tree-null">null</span>';
+  if (typeof v === 'string') return `<span class="tree-string">"${escHtml(v)}"</span>`;
+  if (typeof v === 'number') return `<span class="tree-number">${v}</span>`;
+  if (typeof v === 'boolean') return `<span class="tree-boolean">${v}</span>`;
+  return `<span class="tree-null">${escHtml(String(v))}</span>`;
+}
+
+function escAttr(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+function toggleNode(uid, toggleEl) {
+  const el = document.getElementById(uid);
+  if (!el) return;
+  el.classList.toggle('collapsed');
+  if (toggleEl) toggleEl.classList.toggle('collapsed');
+}
+
+window.toggleNode = toggleNode;
+
+function copyPath(path) {
+  navigator.clipboard.writeText(path).then(() => showToast('Path copied: ' + path));
+}
+
+// --- Search ---
+function searchTree() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const countEl = document.getElementById('searchCount');
+
+  // Remove old highlights
+  document.querySelectorAll('.tree-highlight').forEach(el => {
+    const parent = el.parentNode;
+    parent.replaceChild(document.createTextNode(el.textContent), el);
+    parent.normalize();
+  });
+
+  if (!query) { countEl.textContent = ''; return; }
+
+  let count = 0;
+  const walk = (el) => {
+    if (el.nodeType === Node.TEXT_NODE) {
+      const idx = el.textContent.toLowerCase().indexOf(query);
+      if (idx !== -1) {
+        const before = el.textContent.substring(0, idx);
+        const match = el.textContent.substring(idx, idx + query.length);
+        const after = el.textContent.substring(idx + query.length);
+        const span = document.createElement('span');
+        span.className = 'tree-highlight';
+        span.textContent = match;
+        const frag = document.createDocumentFragment();
+        if (before) frag.appendChild(document.createTextNode(before));
+        frag.appendChild(span);
+        if (after) frag.appendChild(document.createTextNode(after));
+        el.parentNode.replaceChild(frag, el);
+        count++;
+
+        // Expand parent nodes
+        let p = span.closest('.tree-children.collapsed');
+        while (p) {
+          p.classList.remove('collapsed');
+          const toggle = p.previousElementSibling?.querySelector('.tree-toggle');
+          if (toggle) toggle.classList.remove('collapsed');
+          p = p.parentElement?.closest('.tree-children.collapsed');
+        }
+      }
+    } else if (el.nodeType === Node.ELEMENT_NODE && !el.classList?.contains('tree-copy-path')) {
+      Array.from(el.childNodes).forEach(walk);
+    }
+  };
+
+  walk(document.getElementById('treeWrap'));
+  countEl.textContent = count + ' match' + (count !== 1 ? 'es' : '');
+}
+
+// --- Actions ---
+function clearAll() {
+  document.getElementById('jsonInput').value = '';
+  document.getElementById('treeWrap').innerHTML = '<div class="tree-placeholder">Paste JSON above and click Parse to visualize it</div>';
+  document.getElementById('statsBar').style.display = 'none';
+  document.getElementById('searchWrap').style.display = 'none';
+  document.getElementById('errorMsg').classList.remove('show');
+  document.getElementById('searchInput').value = '';
+  parsedData = null;
+}
+
+async function pasteClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    document.getElementById('jsonInput').value = text;
+    parseJSON();
+  } catch (e) { alert('Clipboard access denied. Please paste manually.'); }
+}
+
+function loadSample() {
+  const sample = {
+    "name": "NexTool",
+    "version": "2.0.0",
+    "description": "AI Automation Studio with 126+ free developer tools",
+    "tools": 126,
+    "isPro": true,
+    "categories": ["Developer", "Design", "Content", "SEO", "Data"],
+    "pricing": { "free": 0, "pro": 29, "business": 99 },
+    "features": [
+      { "name": "Color Picker", "type": "design", "free": true },
+      { "name": "JSON Viewer", "type": "developer", "free": true },
+      { "name": "Word Counter", "type": "content", "free": true },
+      { "name": "API Testing", "type": "developer", "free": false }
+    ],
+    "metadata": { "createdAt": "2026-01-15T10:30:00Z", "updatedAt": null, "stars": 4.9 }
+  };
+  document.getElementById('jsonInput').value = JSON.stringify(sample, null, 2);
+  parseJSON();
+}
+
+function copyOutput() {
+  if (!parsedData) { showToast('Parse JSON first'); return; }
+  let text;
+  if (currentMode === 'minified') text = JSON.stringify(parsedData);
+  else text = JSON.stringify(parsedData, null, 2);
+  navigator.clipboard.writeText(text).then(() => showToast('JSON copied to clipboard!'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Auto-parse on paste into textarea
+document.getElementById('jsonInput').addEventListener('paste', () => {
+  setTimeout(parseJSON, 50);
+});
+</script>
+<script src="/js/revenue.js" defer></script>
+</body>
+</html>
