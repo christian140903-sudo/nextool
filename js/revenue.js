@@ -86,4 +86,5 @@ var ce=document.createElement('script');ce.src='/js/conversion-engine.js';ce.def
 var pm=document.createElement('script');pm.src='/js/pro-mode.js';pm.defer=true;document.head.appendChild(pm);
 var pf=document.createElement('script');pf.src='/js/pro-features.js';pf.defer=true;document.head.appendChild(pf);
 var bo=document.createElement('script');bo.src='/js/branded-output.js';bo.defer=true;document.head.appendChild(bo);
+var ws=document.createElement('script');ws.src='/js/workspace.js';ws.defer=true;document.head.appendChild(ws);
 })();
