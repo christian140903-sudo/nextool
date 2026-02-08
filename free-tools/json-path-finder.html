@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JSON Path Finder &amp; Query Tool — Navigate JSON Visually | NexTool</title>
+<meta name="description" content="Paste JSON, click any value to get its path. Navigate tree structures visually, query with JSONPath syntax, copy paths and values instantly.">
+<meta name="keywords" content="JSON path finder, JSONPath query, JSON tree viewer, JSON navigator, JSON path extractor">
+<link rel="canonical" href="https://nextool.app/free-tools/json-path-finder.html">
+<meta property="og:title" content="JSON Path Finder & Query Tool — NexTool">
+<meta property="og:description" content="Navigate JSON structures visually. Click values to get paths, query with JSONPath.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/json-path-finder.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"Home","item":"https://nextool.app/"},
+    {"@type":"ListItem","position":2,"name":"Free Tools","item":"https://nextool.app/free-tools/"},
+    {"@type":"ListItem","position":3,"name":"JSON Path Finder","item":"https://nextool.app/free-tools/json-path-finder.html"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity":[
+    {"@type":"Question","name":"What is a JSON path?","acceptedAnswer":{"@type":"Answer","text":"A JSON path is a string expression that identifies a specific value within a JSON document. For example, $.store.book[0].title selects the title of the first book in the store object. It uses dot notation for object properties and bracket notation for array indices."}},
+    {"@type":"Question","name":"What is JSONPath syntax?","acceptedAnswer":{"@type":"Answer","text":"JSONPath is a query language for JSON, similar to XPath for XML. Key operators include $ (root), . (child), .. (recursive descent), [n] (array index), [*] (wildcard), and [?(@.price<10)] (filter expressions). It was introduced by Stefan Goessner in 2007."}},
+    {"@type":"Question","name":"How do I get the path to a value in JSON?","acceptedAnswer":{"@type":"Answer","text":"Paste your JSON into the tool, then click on any value in the tree view. The tool will instantly show both dot notation ($.store.book[0].title) and bracket notation ($['store']['book'][0]['title']) paths that you can copy with one click."}}
+  ]
+}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--primary:#6366f1;--accent:#a855f7;--text:#e2e8f0;--text2:#94a3b8;--border:rgba(255,255,255,0.06);--radius:16px;--string:#22c55e;--number:#38bdf8;--bool:#eab308;--null:#ef4444;--key:#c4b5fd}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+a{color:var(--primary);text-decoration:none}
+a:hover{color:var(--accent)}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.nav-logo span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{color:var(--text2);font-size:14px;font-weight:500;transition:color 0.2s}
+.nav-links a:hover{color:#fff}
+
+.hero{max-width:900px;margin:0 auto;padding:48px 24px 32px;text-align:center}
+.hero-badge{display:inline-block;padding:6px 16px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:100px;font-size:12px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}
+.hero h1{font-size:clamp(26px,4.5vw,44px);font-weight:900;color:#fff;line-height:1.1;margin-bottom:12px}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:17px;color:var(--text2);max-width:600px;margin:0 auto}
+
+/* Layout */
+.tool-layout{max-width:1400px;margin:0 auto;padding:0 24px 40px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);gap:8px;flex-wrap:wrap}
+.panel-title{font-size:14px;font-weight:700;color:#fff}
+.panel-actions{display:flex;gap:6px}
+.panel-btn{padding:6px 12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;font-family:inherit}
+.panel-btn:hover{color:#fff;border-color:rgba(255,255,255,0.15)}
+.panel-btn.active{color:var(--primary);border-color:var(--primary);background:rgba(99,102,241,0.08)}
+
+/* Input */
+.json-input{flex:1;width:100%;padding:16px 20px;background:transparent;border:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;resize:none;outline:none;min-height:400px}
+.json-input::placeholder{color:var(--text2)}
+
+/* Path bar */
+.path-bar{max-width:1400px;margin:0 auto 16px;padding:0 24px}
+.path-display{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.path-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;flex:1;min-width:200px;display:flex;align-items:center;gap:10px}
+.path-card-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2);white-space:nowrap}
+.path-card-value{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--primary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.path-card-copy{padding:4px 10px;background:rgba(99,102,241,0.1);border:none;border-radius:6px;color:var(--primary);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s}
+.path-card-copy:hover{background:rgba(99,102,241,0.2)}
+
+/* Query */
+.query-bar{max-width:1400px;margin:0 auto 16px;padding:0 24px}
+.query-row{display:flex;gap:10px}
+.query-input{flex:1;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color 0.2s}
+.query-input:focus{border-color:var(--primary)}
+.query-input::placeholder{color:var(--text2)}
+.query-btn{padding:12px 20px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap}
+
+.query-results{max-width:1400px;margin:0 auto 20px;padding:0 24px;display:none}
+.query-results.visible{display:block}
+.query-results-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;max-height:200px;overflow-y:auto}
+.query-results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.query-results-title{font-size:13px;font-weight:700;color:#fff}
+.query-results-count{font-size:12px;color:var(--text2)}
+.query-results-content{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--string);white-space:pre-wrap;line-height:1.6}
+
+/* Tree view */
+.tree-view{flex:1;padding:16px 20px;overflow:auto;min-height:400px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8}
+.tree-node{padding-left:20px;position:relative}
+.tree-node::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:var(--border)}
+.tree-toggle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;cursor:pointer;color:var(--text2);font-size:10px;transition:transform 0.15s;user-select:none;border:none;background:none;font-family:inherit;vertical-align:middle;margin-right:4px}
+.tree-toggle.open{transform:rotate(90deg)}
+.tree-key{color:var(--key);cursor:pointer}
+.tree-key:hover{text-decoration:underline}
+.tree-colon{color:var(--text2)}
+.tree-string{color:var(--string);cursor:pointer}
+.tree-string:hover{opacity:0.8}
+.tree-number{color:var(--number);cursor:pointer}
+.tree-number:hover{opacity:0.8}
+.tree-boolean{color:var(--bool);cursor:pointer}
+.tree-boolean:hover{opacity:0.8}
+.tree-null{color:var(--null);cursor:pointer}
+.tree-null:hover{opacity:0.8}
+.tree-bracket{color:var(--text2)}
+.tree-type{display:inline-block;font-size:9px;padding:1px 5px;border-radius:4px;margin-left:6px;font-weight:600;vertical-align:middle;opacity:0.6}
+.type-object{background:rgba(196,181,253,0.1);color:var(--key)}
+.type-array{background:rgba(168,85,247,0.1);color:var(--accent)}
+.type-string{background:rgba(34,197,94,0.08);color:var(--string)}
+.type-number{background:rgba(56,189,248,0.08);color:var(--number)}
+.type-boolean{background:rgba(234,179,8,0.08);color:var(--bool)}
+.type-null{background:rgba(239,68,68,0.08);color:var(--null)}
+.tree-highlight{background:rgba(99,102,241,0.15);border-radius:4px;outline:2px solid rgba(99,102,241,0.3)}
+.tree-children{display:block}
+.tree-children.collapsed{display:none}
+.tree-count{color:var(--text2);font-size:11px;opacity:0.5}
+.tree-line{min-height:26px;display:flex;align-items:center;padding:0 4px;border-radius:4px;transition:background 0.1s}
+.tree-line:hover{background:rgba(255,255,255,0.02)}
+.tree-line.selected{background:rgba(99,102,241,0.1)}
+
+/* Error */
+.error-box{padding:16px 20px;color:var(--null);font-size:13px}
+
+/* Samples */
+.samples-bar{max-width:1400px;margin:0 auto 16px;padding:0 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.samples-label{font-size:12px;font-weight:600;color:var(--text2)}
+.sample-btn{padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;font-family:inherit}
+.sample-btn:hover{color:#fff;border-color:var(--primary)}
+
+.footer{border-top:1px solid var(--border);padding:40px 24px;text-align:center}
+.footer-links{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:16px}
+.footer-links a{color:var(--text2);font-size:14px;font-weight:500}
+.footer-links a:hover{color:#fff}
+.footer-copy{color:var(--text2);font-size:13px;opacity:0.6}
+
+@media(max-width:900px){
+  .tool-layout{grid-template-columns:1fr}
+  .path-display{flex-direction:column}
+  .path-card{min-width:100%}
+  .nav-links a:not(:last-child){display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+<div class="nav-inner">
+<a href="/" class="nav-logo">Nex<span>Tool</span></a>
+<div class="nav-links">
+<a href="/free-tools/">Free Tools</a>
+<a href="/products/">Products</a>
+<a href="/blog/">Blog</a>
+</div>
+</div>
+</nav>
+
+<section class="hero">
+<div class="hero-badge">Developer Tool</div>
+<h1>JSON <span>Path Finder</span> &amp; Query</h1>
+<p>Paste JSON, navigate the tree visually, click any value to get its path. Query with JSONPath syntax.</p>
+</section>
+
+<div class="samples-bar">
+<span class="samples-label">Load sample:</span>
+<button class="sample-btn" onclick="loadSample('store')">Bookstore</button>
+<button class="sample-btn" onclick="loadSample('api')">API Response</button>
+<button class="sample-btn" onclick="loadSample('config')">App Config</button>
+<button class="sample-btn" onclick="loadSample('nested')">Deep Nested</button>
+</div>
+
+<div class="path-bar">
+<div class="path-display">
+<div class="path-card">
+<span class="path-card-label">Dot</span>
+<span class="path-card-value" id="dotPath">Click a value in the tree</span>
+<button class="path-card-copy" onclick="copyText('dotPath')">Copy</button>
+</div>
+<div class="path-card">
+<span class="path-card-label">Bracket</span>
+<span class="path-card-value" id="bracketPath">Click a value in the tree</span>
+<button class="path-card-copy" onclick="copyText('bracketPath')">Copy</button>
+</div>
+</div>
+</div>
+
+<div class="query-bar">
+<div class="query-row">
+<input type="text" class="query-input" id="queryInput" placeholder="JSONPath query (e.g. $.store.book[0].title or $..author)">
+<button class="query-btn" onclick="runQuery()">Query</button>
+</div>
+</div>
+
+<div class="query-results" id="queryResults">
+<div class="query-results-box">
+<div class="query-results-header">
+<span class="query-results-title">Query Results</span>
+<span class="query-results-count" id="queryCount"></span>
+</div>
+<div class="query-results-content" id="queryContent"></div>
+</div>
+</div>
+
+<div class="tool-layout">
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">JSON Input</span>
+<div class="panel-actions">
+<button class="panel-btn" onclick="formatJson()">Format</button>
+<button class="panel-btn" onclick="minifyJson()">Minify</button>
+<button class="panel-btn" onclick="clearInput()">Clear</button>
+</div>
+</div>
+<textarea class="json-input" id="jsonInput" placeholder='Paste your JSON here...
+
+{
+  "store": {
+    "book": [
+      { "title": "The Great Gatsby", "price": 12.99 }
+    ]
+  }
+}'></textarea>
+</div>
+
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Tree View</span>
+<div class="panel-actions">
+<button class="panel-btn" onclick="expandAll()">Expand All</button>
+<button class="panel-btn" onclick="collapseAll()">Collapse All</button>
+<button class="panel-btn" onclick="copyValue()">Copy Value</button>
+</div>
+</div>
+<div class="tree-view" id="treeView">
+<div style="color:var(--text2);padding:20px;text-align:center;">Paste JSON on the left to see the tree view</div>
+</div>
+</div>
+</div>
+
+<!-- Bundle Cross-Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Save 37%</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get the Ultimate Bundle</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">Website Kit + Automation Bundle + Content Toolkit — everything you need to launch.</p>
+<a href="/products/ultimate-bundle.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;text-decoration:none;border-radius:12px;font-weight:700;font-size:15px;">$39 — Get Bundle</a>
+<a href="/free-tools/" style="display:inline-block;margin-left:12px;color:#818cf8;text-decoration:none;font-size:14px;">Browse 59+ Free Tools &rarr;</a>
+</div>
+</section>
+
+<footer class="footer">
+<div class="footer-links">
+<a href="/">Home</a>
+<a href="/free-tools/">Free Tools</a>
+<a href="/products/">Products</a>
+<a href="/blog/">Blog</a>
+</div>
+<div class="footer-copy">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+const SAMPLES={
+store:`{
+  "store": {
+    "book": [
+      { "category": "reference", "author": "Nigel Rees", "title": "Sayings of the Century", "price": 8.95 },
+      { "category": "fiction", "author": "Evelyn Waugh", "title": "Sword of Honour", "price": 12.99 },
+      { "category": "fiction", "author": "Herman Melville", "title": "Moby Dick", "isbn": "0-553-21311-3", "price": 8.99 },
+      { "category": "fiction", "author": "J. R. R. Tolkien", "title": "The Lord of the Rings", "isbn": "0-395-19395-8", "price": 22.99 }
+    ],
+    "bicycle": { "color": "red", "price": 19.95 }
+  }
+}`,
+api:`{
+  "status": "success",
+  "data": {
+    "users": [
+      { "id": 1, "name": "Alice", "email": "alice@example.com", "role": "admin", "active": true },
+      { "id": 2, "name": "Bob", "email": "bob@example.com", "role": "user", "active": true },
+      { "id": 3, "name": "Charlie", "email": "charlie@example.com", "role": "user", "active": false }
+    ],
+    "pagination": { "page": 1, "perPage": 20, "total": 3 }
+  },
+  "meta": { "requestId": "req_abc123", "timestamp": "2026-01-15T10:30:00Z" }
+}`,
+config:`{
+  "app": {
+    "name": "MyApp",
+    "version": "2.1.0",
+    "debug": false
+  },
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "myapp_db",
+    "pool": { "min": 2, "max": 10 }
+  },
+  "features": {
+    "darkMode": true,
+    "notifications": { "email": true, "push": false, "sms": null },
+    "limits": { "maxUpload": 10485760, "rateLimit": 100 }
+  },
+  "allowedOrigins": ["https://myapp.com", "https://staging.myapp.com"]
+}`,
+nested:`{
+  "level1": {
+    "level2": {
+      "level3": {
+        "level4": {
+          "level5": {
+            "deepValue": "You found me!",
+            "array": [1, [2, [3, [4, [5]]]]]
+          }
+        },
+        "siblings": ["a", "b", "c"]
+      },
+      "meta": { "depth": 2, "tags": ["nested", "deep", "test"] }
+    },
+    "flat": "surface level"
+  },
+  "nullVal": null,
+  "boolTrue": true,
+  "boolFalse": false,
+  "number": 42,
+  "float": 3.14159,
+  "emptyObj": {},
+  "emptyArr": []
+}`
+};
+
+let parsedData=null;
+let selectedPath='';
+let selectedValue=null;
+let nodeIdCounter=0;
+
+function loadSample(name){
+  document.getElementById('jsonInput').value=SAMPLES[name];
+  parseAndRender();
+}
+
+function parseAndRender(){
+  const input=document.getElementById('jsonInput').value.trim();
+  const tree=document.getElementById('treeView');
+  if(!input){
+    tree.innerHTML='<div style="color:var(--text2);padding:20px;text-align:center;">Paste JSON on the left to see the tree view</div>';
+    parsedData=null;
+    return;
+  }
+  try{
+    parsedData=JSON.parse(input);
+    nodeIdCounter=0;
+    tree.innerHTML=renderNode(parsedData,'$','$');
+  }catch(e){
+    tree.innerHTML=`<div class="error-box">Parse Error: ${escHtml(e.message)}</div>`;
+    parsedData=null;
+  }
+}
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function getType(v){
+  if(v===null)return'null';
+  if(Array.isArray(v))return'array';
+  return typeof v;
+}
+
+function typeIcon(t){
+  const m={'object':'{}','array':'[]','string':'""','number':'#','boolean':'T/F','null':'0'};
+  return`<span class="tree-type type-${t}">${m[t]||t}</span>`;
+}
+
+function renderNode(val,dotP,brackP,key,isLast){
+  const t=getType(val);
+  const id='n'+(nodeIdCounter++);
+  let html='';
+
+  if(t==='object'||t==='array'){
+    const entries=t==='object'?Object.entries(val):val.map((v,i)=>[i,v]);
+    const open=t==='object'?'{':'[';
+    const close=t==='object'?'}':']';
+    const count=entries.length;
+
+    html+=`<div class="tree-line" id="${id}">`;
+    html+=`<button class="tree-toggle open" onclick="toggleNode(this)">&#9654;</button>`;
+    if(key!==undefined){
+      if(typeof key==='string'){
+        html+=`<span class="tree-key" onclick="selectPath('${escAttr(dotP)}','${escAttr(brackP)}',this)">"${escHtml(key)}"</span><span class="tree-colon">: </span>`;
+      }else{
+        html+=`<span class="tree-key" onclick="selectPath('${escAttr(dotP)}','${escAttr(brackP)}',this)">${key}</span><span class="tree-colon">: </span>`;
+      }
+    }
+    html+=`<span class="tree-bracket">${open}</span>${typeIcon(t)}<span class="tree-count"> ${count} ${count===1?'item':'items'}</span>`;
+    html+=`</div>`;
+    html+=`<div class="tree-children tree-node">`;
+    entries.forEach(([k,v],i)=>{
+      const isL=i===entries.length-1;
+      let newDot,newBrack;
+      if(t==='object'){
+        const safeKey=/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k)?`.${k}`:`["${k}"]`;
+        newDot=dotP+safeKey;
+        newBrack=brackP+`['${k}']`;
+      }else{
+        newDot=dotP+`[${k}]`;
+        newBrack=brackP+`[${k}]`;
+      }
+      html+=renderNode(v,newDot,newBrack,k,isL);
+    });
+    html+=`<div class="tree-line"><span class="tree-bracket">${close}</span>${!isLast&&isLast!==undefined?'<span class="tree-colon">,</span>':''}</div>`;
+    html+=`</div>`;
+  } else {
+    html+=`<div class="tree-line" id="${id}">`;
+    if(key!==undefined){
+      if(typeof key==='string'){
+        html+=`<span class="tree-key" onclick="selectPath('${escAttr(dotP)}','${escAttr(brackP)}',this)">"${escHtml(key)}"</span><span class="tree-colon">: </span>`;
+      }else{
+        html+=`<span class="tree-key" onclick="selectPath('${escAttr(dotP)}','${escAttr(brackP)}',this)">${key}</span><span class="tree-colon">: </span>`;
+      }
+    }
+    if(t==='string'){
+      html+=`<span class="tree-string" onclick="selectPath('${escAttr(dotP)}','${escAttr(brackP)}',this)">"${escHtml(val)}"</span>`;
+    }else if(t==='number'){
+      html+=`<span class="tree-number" onclick="selectPath('${escAttr(dotP)}','${escAttr(brackP)}',this)">${val}</span>`;
+    }else if(t==='boolean'){
+      html+=`<span class="tree-boolean" onclick="selectPath('${escAttr(dotP)}','${escAttr(brackP)}',this)">${val}</span>`;
+    }else{
+      html+=`<span class="tree-null" onclick="selectPath('${escAttr(dotP)}','${escAttr(brackP)}',this)">null</span>`;
+    }
+    html+=typeIcon(t);
+    if(!isLast&&isLast!==undefined)html+='<span class="tree-colon">,</span>';
+    html+=`</div>`;
+  }
+  return html;
+}
+
+function escAttr(s){return s.replace(/'/g,"\\'").replace(/"/g,'&quot;')}
+
+function toggleNode(btn){
+  btn.classList.toggle('open');
+  const children=btn.closest('.tree-line').nextElementSibling;
+  if(children&&children.classList.contains('tree-children')){
+    children.classList.toggle('collapsed');
+  }
+}
+
+function selectPath(dot,brack,el){
+  document.querySelectorAll('.tree-line.selected').forEach(l=>l.classList.remove('selected'));
+  el.closest('.tree-line').classList.add('selected');
+  selectedPath=dot;
+  document.getElementById('dotPath').textContent=dot;
+  document.getElementById('bracketPath').textContent=brack;
+  try{
+    selectedValue=resolvePath(parsedData,dot);
+  }catch(e){selectedValue=null}
+}
+
+function resolvePath(obj,path){
+  if(path==='$')return obj;
+  const parts=path.replace(/^\$/,'').replace(/\[(\d+)\]/g,'.$1').split('.').filter(Boolean);
+  let cur=obj;
+  for(const p of parts){
+    if(cur==null)return undefined;
+    cur=cur[p];
+  }
+  return cur;
+}
+
+function copyText(id){
+  const text=document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById(id).nextElementSibling;
+    const orig=btn.textContent;
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent=orig,1200);
+  });
+}
+
+function copyValue(){
+  if(selectedValue!==null&&selectedValue!==undefined){
+    const text=typeof selectedValue==='object'?JSON.stringify(selectedValue,null,2):String(selectedValue);
+    navigator.clipboard.writeText(text);
+  }
+}
+
+function expandAll(){
+  document.querySelectorAll('.tree-toggle').forEach(t=>t.classList.add('open'));
+  document.querySelectorAll('.tree-children').forEach(c=>c.classList.remove('collapsed'));
+}
+
+function collapseAll(){
+  document.querySelectorAll('.tree-toggle').forEach(t=>t.classList.remove('open'));
+  document.querySelectorAll('.tree-children').forEach(c=>c.classList.add('collapsed'));
+}
+
+function formatJson(){
+  try{
+    const obj=JSON.parse(document.getElementById('jsonInput').value);
+    document.getElementById('jsonInput').value=JSON.stringify(obj,null,2);
+  }catch(e){}
+}
+
+function minifyJson(){
+  try{
+    const obj=JSON.parse(document.getElementById('jsonInput').value);
+    document.getElementById('jsonInput').value=JSON.stringify(obj);
+  }catch(e){}
+}
+
+function clearInput(){
+  document.getElementById('jsonInput').value='';
+  parseAndRender();
+}
+
+/* Simple JSONPath engine */
+function queryJsonPath(obj,expr){
+  const results=[];
+  if(!expr.startsWith('$'))return results;
+  const rest=expr.slice(1);
+
+  if(rest===''||rest==='.'){ results.push(obj); return results; }
+
+  /* Recursive descent $..key */
+  if(rest.startsWith('..')){
+    const key=rest.slice(2).replace(/\[.*$/,'');
+    const arrMatch=rest.match(/\[(\d+)\]$/);
+    recurse(obj,key,arrMatch?parseInt(arrMatch[1]):null,results);
+    return results;
+  }
+
+  /* Direct path with filter support */
+  const tokens=tokenize(rest);
+  resolve(obj,tokens,results);
+  return results;
+}
+
+function recurse(obj,key,idx,results){
+  if(obj==null||typeof obj!=='object')return;
+  if(Array.isArray(obj)){
+    obj.forEach(item=>recurse(item,key,idx,results));
+  } else {
+    for(const [k,v] of Object.entries(obj)){
+      if(k===key){
+        if(idx!==null&&Array.isArray(v)){
+          if(v[idx]!==undefined)results.push(v[idx]);
+        } else {
+          results.push(v);
+        }
+      }
+      if(typeof v==='object'&&v!==null)recurse(v,key,idx,results);
+    }
+  }
+}
+
+function tokenize(path){
+  const tokens=[];
+  const re=/\.([a-zA-Z_$][\w$]*)|\.?\[(\d+)\]|\.?\[\??\(([^)]+)\)\]|\.?\[(['"*])([^'"\]]*)['"*]?\]/g;
+  let m;
+  while((m=re.exec(path))!==null){
+    if(m[1]!==undefined)tokens.push({type:'key',value:m[1]});
+    else if(m[2]!==undefined)tokens.push({type:'index',value:parseInt(m[2])});
+    else if(m[3]!==undefined)tokens.push({type:'filter',value:m[3]});
+    else if(m[4]==='*')tokens.push({type:'wildcard'});
+    else if(m[5]!==undefined)tokens.push({type:'key',value:m[5]});
+  }
+  return tokens;
+}
+
+function resolve(obj,tokens,results){
+  if(tokens.length===0){results.push(obj);return;}
+  const [tok,...rest]=tokens;
+  if(obj==null)return;
+  if(tok.type==='key'){
+    if(typeof obj==='object'&&!Array.isArray(obj)&&tok.value in obj){
+      resolve(obj[tok.value],rest,results);
+    }
+  } else if(tok.type==='index'){
+    if(Array.isArray(obj)&&tok.value<obj.length){
+      resolve(obj[tok.value],rest,results);
+    }
+  } else if(tok.type==='wildcard'){
+    const items=Array.isArray(obj)?obj:Object.values(obj);
+    items.forEach(v=>resolve(v,rest,results));
+  } else if(tok.type==='filter'){
+    if(Array.isArray(obj)){
+      const expr=tok.value.replace(/@/g,'item');
+      obj.forEach(item=>{
+        try{if(eval(expr))resolve(item,rest,results);}catch(e){}
+      });
+    }
+  }
+}
+
+function runQuery(){
+  const expr=document.getElementById('queryInput').value.trim();
+  const qr=document.getElementById('queryResults');
+  if(!expr||!parsedData){qr.classList.remove('visible');return;}
+  try{
+    const res=queryJsonPath(parsedData,expr);
+    document.getElementById('queryCount').textContent=`${res.length} match${res.length!==1?'es':''}`;
+    document.getElementById('queryContent').textContent=JSON.stringify(res,null,2);
+    qr.classList.add('visible');
+  }catch(e){
+    document.getElementById('queryCount').textContent='Error';
+    document.getElementById('queryContent').textContent=e.message;
+    qr.classList.add('visible');
+  }
+}
+
+/* Auto-parse on input */
+let parseTimer;
+document.getElementById('jsonInput').addEventListener('input',()=>{
+  clearTimeout(parseTimer);
+  parseTimer=setTimeout(parseAndRender,300);
+});
+
+document.getElementById('queryInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter')runQuery();
+});
+</script>
+
+<script defer src="/js/revenue.js"></script>
+<script defer src="/js/lead-capture.js"></script>
+<script defer src="/js/analytics-lite.js"></script>
+</body>
+</html>

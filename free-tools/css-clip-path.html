@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CSS Clip Path Generator — Free Online Tool | NexTool</title>
+<meta name="description" content="Create CSS clip-path shapes visually. Drag points, choose presets, and generate production-ready CSS with browser fallbacks. Free, no signup.">
+<meta name="keywords" content="css clip-path, clip path generator, css shapes, polygon editor, css mask">
+<meta property="og:title" content="CSS Clip Path Generator — NexTool">
+<meta property="og:description" content="Visual CSS clip-path editor with draggable polygon points, preset shapes, and code generation.">
+<meta property="og:image" content="https://nextool.app/assets/og/css-clip-path.png">
+<meta property="og:url" content="https://nextool.app/free-tools/css-clip-path.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CSS Clip Path Generator — NexTool">
+<meta name="twitter:description" content="Visual CSS clip-path editor with draggable polygon points, preset shapes, and code generation.">
+<meta name="twitter:image" content="https://nextool.app/assets/og/css-clip-path.png">
+<link rel="canonical" href="https://nextool.app/free-tools/css-clip-path.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"Home","item":"https://nextool.app/"},
+    {"@type":"ListItem","position":2,"name":"Free Tools","item":"https://nextool.app/free-tools/"},
+    {"@type":"ListItem","position":3,"name":"CSS Clip Path Generator","item":"https://nextool.app/free-tools/css-clip-path.html"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity":[
+    {"@type":"Question","name":"What is CSS clip-path?","acceptedAnswer":{"@type":"Answer","text":"CSS clip-path is a property that lets you define a visible region of an element. Content outside the clipping region is hidden. It supports shapes like circle(), ellipse(), inset(), and polygon()."}},
+    {"@type":"Question","name":"Does clip-path work in all browsers?","acceptedAnswer":{"@type":"Answer","text":"clip-path with basic shapes is supported in all modern browsers including Chrome, Firefox, Safari, and Edge. The -webkit-clip-path prefix is recommended for older Safari versions."}},
+    {"@type":"Question","name":"Can I create custom polygon shapes?","acceptedAnswer":{"@type":"Answer","text":"Yes. Use the polygon() function with a list of x,y coordinate pairs. This generator lets you drag points on a canvas to visually create any polygon shape."}},
+    {"@type":"Question","name":"How do I animate clip-path?","acceptedAnswer":{"@type":"Answer","text":"clip-path can be animated with CSS transitions or keyframes as long as both states use the same shape function with the same number of points. The browser interpolates between coordinate values."}}
+  ]
+}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--primary:#6366f1;--accent:#a855f7;--text:#e2e8f0;--text2:#94a3b8;--border:rgba(255,255,255,0.06);--radius:16px}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--primary);text-decoration:none}
+a:hover{color:#818cf8}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.nav-logo span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{color:var(--text2);font-size:14px;font-weight:500;transition:color 0.2s}
+.nav-links a:hover{color:#fff}
+
+/* HERO */
+.hero{text-align:center;padding:56px 24px 32px;max-width:700px;margin:0 auto}
+.hero-badge{display:inline-block;padding:6px 14px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:20px;font-size:12px;font-weight:600;color:#818cf8;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px}
+.hero h1{font-size:clamp(28px,5vw,42px);font-weight:900;line-height:1.15;margin-bottom:12px;color:#fff}
+.hero p{font-size:17px;color:var(--text2);max-width:520px;margin:0 auto}
+
+/* MAIN */
+.tool-container{max-width:1100px;margin:0 auto;padding:0 24px 40px}
+.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.editor-grid{grid-template-columns:1fr}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:14px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.5px}
+.panel-body{padding:20px}
+
+/* CONTROLS */
+.control-group{margin-bottom:20px}
+.control-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+.shape-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.shape-btn{padding:10px 6px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;text-align:center}
+.shape-btn:hover{background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.3);color:#fff}
+.shape-btn.active{background:rgba(99,102,241,0.15);border-color:var(--primary);color:#fff}
+
+.input-row{display:flex;gap:12px;margin-bottom:12px}
+.input-group{flex:1}
+.input-group label{display:block;font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.input-group input,.input-group select{width:100%;padding:8px 12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:13px;font-family:inherit;outline:none;transition:border-color 0.2s}
+.input-group input:focus,.input-group select:focus{border-color:var(--primary)}
+
+/* CANVAS */
+.canvas-wrapper{position:relative;width:100%;padding-bottom:100%;background:repeating-conic-gradient(rgba(255,255,255,0.03) 0% 25%,transparent 0% 50%) 0 0 / 20px 20px;border-radius:12px;overflow:hidden}
+.canvas-inner{position:absolute;inset:0}
+#clipCanvas{width:100%;height:100%;cursor:crosshair;display:block}
+.preview-shape{position:absolute;inset:10%;background:linear-gradient(135deg,var(--primary),var(--accent));transition:clip-path 0.15s ease}
+.canvas-hint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--text2);background:rgba(0,0,0,0.6);padding:4px 10px;border-radius:6px;pointer-events:none}
+
+/* CODE */
+.code-block{background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:12px;padding:16px;font-family:'SF Mono','Fira Code',monospace;font-size:13px;color:#c4b5fd;line-height:1.7;word-break:break-all;position:relative;white-space:pre-wrap}
+.copy-btn{position:absolute;top:8px;right:8px;padding:6px 14px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);border-radius:8px;color:#818cf8;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:inherit}
+.copy-btn:hover{background:rgba(99,102,241,0.25)}
+.copy-btn.copied{background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.3);color:#4ade80}
+
+.browser-support{margin-top:16px;padding:14px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px}
+.browser-support h4{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+.browser-list{display:flex;gap:16px;flex-wrap:wrap}
+.browser-item{font-size:12px;color:var(--text2)}
+.browser-item .yes{color:#4ade80}
+
+.inset-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.inset-controls .input-group input{text-align:center}
+
+/* FOOTER */
+.site-footer{border-top:1px solid var(--border);padding:40px 24px;text-align:center}
+.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:16px;flex-wrap:wrap}
+.footer-links a{color:var(--text2);font-size:13px;font-weight:500}
+.footer-links a:hover{color:#fff}
+.footer-copy{font-size:12px;color:rgba(148,163,184,0.5)}
+</style>
+</head>
+<body>
+
+<nav class="nav"><div class="nav-inner">
+<a href="/" class="nav-logo"><span>NexTool</span></a>
+<div class="nav-links">
+<a href="/free-tools/">Free Tools</a>
+<a href="/products/">Products</a>
+<a href="/blog/">Blog</a>
+</div>
+</div></nav>
+
+<section class="hero">
+<div class="hero-badge">Free Tool</div>
+<h1>CSS Clip Path Generator</h1>
+<p>Create complex CSS clip-path shapes visually. Drag points, pick presets, and export production-ready CSS with fallbacks.</p>
+</section>
+
+<div class="tool-container">
+<div class="editor-grid">
+
+<!-- LEFT PANEL: Controls -->
+<div class="panel">
+<div class="panel-header"><span class="panel-title">Shape Editor</span></div>
+<div class="panel-body">
+
+<div class="control-group">
+<span class="control-label">Shape Type</span>
+<div id="shapeType" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+<button class="shape-btn active" data-type="polygon">Polygon</button>
+<button class="shape-btn" data-type="circle">Circle</button>
+<button class="shape-btn" data-type="ellipse">Ellipse</button>
+<button class="shape-btn" data-type="inset">Inset</button>
+</div>
+</div>
+
+<div class="control-group" id="presetGroup">
+<span class="control-label">Presets</span>
+<div class="shape-grid" id="presets">
+<button class="shape-btn" data-preset="triangle">Triangle</button>
+<button class="shape-btn" data-preset="pentagon">Pentagon</button>
+<button class="shape-btn" data-preset="hexagon">Hexagon</button>
+<button class="shape-btn" data-preset="star">Star</button>
+<button class="shape-btn" data-preset="cross">Cross</button>
+<button class="shape-btn" data-preset="arrow">Arrow</button>
+<button class="shape-btn" data-preset="diamond">Diamond</button>
+<button class="shape-btn" data-preset="trapezoid">Trapezoid</button>
+</div>
+</div>
+
+<div class="control-group" id="circleControls" style="display:none">
+<span class="control-label">Circle Settings</span>
+<div class="input-row">
+<div class="input-group"><label>Radius (%)</label><input type="range" id="circleRadius" min="5" max="50" value="40" oninput="this.nextElementSibling.textContent=this.value+'%';updateShape()"><span style="font-size:11px;color:var(--text2)">40%</span></div>
+</div>
+<div class="input-row">
+<div class="input-group"><label>Center X (%)</label><input type="range" id="circleCX" min="0" max="100" value="50" oninput="this.nextElementSibling.textContent=this.value+'%';updateShape()"><span style="font-size:11px;color:var(--text2)">50%</span></div>
+<div class="input-group"><label>Center Y (%)</label><input type="range" id="circleCY" min="0" max="100" value="50" oninput="this.nextElementSibling.textContent=this.value+'%';updateShape()"><span style="font-size:11px;color:var(--text2)">50%</span></div>
+</div>
+</div>
+
+<div class="control-group" id="ellipseControls" style="display:none">
+<span class="control-label">Ellipse Settings</span>
+<div class="input-row">
+<div class="input-group"><label>Radius X (%)</label><input type="range" id="ellipseRX" min="5" max="50" value="40" oninput="this.nextElementSibling.textContent=this.value+'%';updateShape()"><span style="font-size:11px;color:var(--text2)">40%</span></div>
+<div class="input-group"><label>Radius Y (%)</label><input type="range" id="ellipseRY" min="5" max="50" value="30" oninput="this.nextElementSibling.textContent=this.value+'%';updateShape()"><span style="font-size:11px;color:var(--text2)">30%</span></div>
+</div>
+<div class="input-row">
+<div class="input-group"><label>Center X (%)</label><input type="range" id="ellipseCX" min="0" max="100" value="50" oninput="this.nextElementSibling.textContent=this.value+'%';updateShape()"><span style="font-size:11px;color:var(--text2)">50%</span></div>
+<div class="input-group"><label>Center Y (%)</label><input type="range" id="ellipseCY" min="0" max="100" value="50" oninput="this.nextElementSibling.textContent=this.value+'%';updateShape()"><span style="font-size:11px;color:var(--text2)">50%</span></div>
+</div>
+</div>
+
+<div class="control-group" id="insetControls" style="display:none">
+<span class="control-label">Inset Settings</span>
+<div class="inset-controls">
+<div class="input-group"><label>Top (%)</label><input type="number" id="insetTop" value="10" min="0" max="50" onchange="updateShape()"></div>
+<div class="input-group"><label>Right (%)</label><input type="number" id="insetRight" value="10" min="0" max="50" onchange="updateShape()"></div>
+<div class="input-group"><label>Bottom (%)</label><input type="number" id="insetBottom" value="10" min="0" max="50" onchange="updateShape()"></div>
+<div class="input-group"><label>Left (%)</label><input type="number" id="insetLeft" value="10" min="0" max="50" onchange="updateShape()"></div>
+</div>
+<div class="input-row" style="margin-top:12px">
+<div class="input-group"><label>Border Radius (px)</label><input type="number" id="insetRound" value="0" min="0" max="50" onchange="updateShape()"></div>
+</div>
+</div>
+
+<div style="margin-top:16px;display:flex;gap:8px" id="polygonActions">
+<button onclick="resetPoints()" class="shape-btn" style="flex:1;padding:10px">Reset Points</button>
+<button onclick="removeLastPoint()" class="shape-btn" style="flex:1;padding:10px">Remove Last</button>
+</div>
+</div>
+</div>
+
+<!-- RIGHT PANEL: Preview + Code -->
+<div>
+<div class="panel" style="margin-bottom:24px">
+<div class="panel-header"><span class="panel-title">Preview</span></div>
+<div class="panel-body">
+<div class="canvas-wrapper">
+<div class="canvas-inner">
+<div class="preview-shape" id="previewShape"></div>
+<canvas id="clipCanvas"></canvas>
+</div>
+<div class="canvas-hint" id="canvasHint">Click to add points, drag to move</div>
+</div>
+</div>
+</div>
+
+<div class="panel">
+<div class="panel-header"><span class="panel-title">Generated CSS</span></div>
+<div class="panel-body">
+<div class="code-block" id="codeOutput">clip-path: polygon(50% 0%, 0% 100%, 100% 100%);</div>
+<button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<div class="browser-support">
+<h4>Browser Support</h4>
+<div class="browser-list">
+<span class="browser-item"><span class="yes">&#10003;</span> Chrome 55+</span>
+<span class="browser-item"><span class="yes">&#10003;</span> Firefox 54+</span>
+<span class="browser-item"><span class="yes">&#10003;</span> Safari 13.1+</span>
+<span class="browser-item"><span class="yes">&#10003;</span> Edge 79+</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- BUNDLE CROSS-PROMO -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Save 37%</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get the Ultimate Bundle</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">Website Kit + Automation Bundle + Content Toolkit — everything you need to launch.</p>
+<a href="/products/ultimate-bundle.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;text-decoration:none;border-radius:12px;font-weight:700;font-size:15px;">$39 — Get Bundle</a>
+<a href="/free-tools/" style="display:inline-block;margin-left:12px;color:#818cf8;text-decoration:none;font-size:14px;">Browse 59+ Free Tools &rarr;</a>
+</div>
+</section>
+
+<!-- FAQ -->
+<section style="max-width:700px;margin:0 auto 40px;padding:0 24px">
+<h2 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:20px;text-align:center">Frequently Asked Questions</h2>
+<details style="background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;padding:16px 20px">
+<summary style="font-weight:600;color:#fff;cursor:pointer;font-size:14px">What is CSS clip-path?</summary>
+<p style="margin-top:10px;font-size:13px;color:var(--text2)">CSS clip-path defines a clipping region that determines which parts of an element are visible. It supports circle(), ellipse(), inset(), polygon(), and path() functions.</p>
+</details>
+<details style="background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;padding:16px 20px">
+<summary style="font-weight:600;color:#fff;cursor:pointer;font-size:14px">Does clip-path work in all browsers?</summary>
+<p style="margin-top:10px;font-size:13px;color:var(--text2)">Yes, all modern browsers support clip-path with basic shapes. The -webkit-clip-path prefix is included in the generated code for older Safari support.</p>
+</details>
+<details style="background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;padding:16px 20px">
+<summary style="font-weight:600;color:#fff;cursor:pointer;font-size:14px">Can I animate clip-path transitions?</summary>
+<p style="margin-top:10px;font-size:13px;color:var(--text2)">Yes, clip-path can be animated with CSS transitions or keyframes, as long as both states use the same shape function with the same number of coordinate points.</p>
+</details>
+</section>
+
+<footer class="site-footer">
+<div class="footer-links">
+<a href="/">Home</a>
+<a href="/free-tools/">Free Tools</a>
+<a href="/products/">Products</a>
+<a href="/blog/">Blog</a>
+</div>
+<div class="footer-copy">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+(function(){
+  const canvas = document.getElementById('clipCanvas');
+  const ctx = canvas.getContext('2d');
+  const preview = document.getElementById('previewShape');
+  const codeOut = document.getElementById('codeOutput');
+  const hint = document.getElementById('canvasHint');
+
+  let shapeType = 'polygon';
+  let points = [{x:50,y:0},{x:0,y:100},{x:100,y:100}];
+  let dragging = -1;
+  let canvasRect;
+  const POINT_RADIUS = 7;
+
+  function resizeCanvas(){
+    const wrapper = canvas.parentElement;
+    canvas.width = wrapper.clientWidth;
+    canvas.height = wrapper.clientHeight;
+    canvasRect = canvas.getBoundingClientRect();
+    draw();
+  }
+
+  /* Shape type switching */
+  document.getElementById('shapeType').addEventListener('click',function(e){
+    const btn = e.target.closest('.shape-btn');
+    if(!btn) return;
+    this.querySelectorAll('.shape-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    shapeType = btn.dataset.type;
+
+    document.getElementById('presetGroup').style.display = shapeType==='polygon'?'':'none';
+    document.getElementById('circleControls').style.display = shapeType==='circle'?'':'none';
+    document.getElementById('ellipseControls').style.display = shapeType==='ellipse'?'':'none';
+    document.getElementById('insetControls').style.display = shapeType==='inset'?'':'none';
+    document.getElementById('polygonActions').style.display = shapeType==='polygon'?'flex':'none';
+    hint.style.display = shapeType==='polygon'?'':'none';
+    updateShape();
+  });
+
+  /* Presets */
+  const presets = {
+    triangle: [{x:50,y:0},{x:0,y:100},{x:100,y:100}],
+    pentagon: (function(){ const p=[]; for(let i=0;i<5;i++){const a=Math.PI*2*i/5-Math.PI/2;p.push({x:50+45*Math.cos(a),y:50+45*Math.sin(a)});} return p; })(),
+    hexagon: (function(){ const p=[]; for(let i=0;i<6;i++){const a=Math.PI*2*i/6-Math.PI/2;p.push({x:50+45*Math.cos(a),y:50+45*Math.sin(a)});} return p; })(),
+    star: (function(){ const p=[]; for(let i=0;i<10;i++){const a=Math.PI*2*i/10-Math.PI/2;const r=i%2===0?45:20;p.push({x:50+r*Math.cos(a),y:50+r*Math.sin(a)});} return p; })(),
+    cross: [{x:35,y:0},{x:65,y:0},{x:65,y:35},{x:100,y:35},{x:100,y:65},{x:65,y:65},{x:65,y:100},{x:35,y:100},{x:35,y:65},{x:0,y:65},{x:0,y:35},{x:35,y:35}],
+    arrow: [{x:40,y:0},{x:100,y:50},{x:40,y:100},{x:40,y:70},{x:0,y:70},{x:0,y:30},{x:40,y:30}],
+    diamond: [{x:50,y:0},{x:100,y:50},{x:50,y:100},{x:0,y:50}],
+    trapezoid: [{x:20,y:0},{x:80,y:0},{x:100,y:100},{x:0,y:100}]
+  };
+  document.getElementById('presets').addEventListener('click',function(e){
+    const btn = e.target.closest('.shape-btn');
+    if(!btn||!btn.dataset.preset) return;
+    points = presets[btn.dataset.preset].map(p=>({...p}));
+    updateShape();
+  });
+
+  /* Canvas interactions for polygon */
+  function getCanvasCoords(e){
+    const r = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: ((clientX - r.left) / r.width) * 100,
+      y: ((clientY - r.top) / r.height) * 100
+    };
+  }
+
+  function findPoint(cx,cy){
+    for(let i=0;i<points.length;i++){
+      const dx = points[i].x - cx;
+      const dy = points[i].y - cy;
+      if(Math.sqrt(dx*dx+dy*dy)<4) return i;
+    }
+    return -1;
+  }
+
+  canvas.addEventListener('mousedown',function(e){
+    if(shapeType!=='polygon') return;
+    const c = getCanvasCoords(e);
+    const idx = findPoint(c.x,c.y);
+    if(idx>=0){ dragging=idx; return; }
+    points.push({x:c.x,y:c.y});
+    updateShape();
+  });
+  canvas.addEventListener('mousemove',function(e){
+    if(dragging<0) return;
+    const c = getCanvasCoords(e);
+    points[dragging].x = Math.max(0,Math.min(100,c.x));
+    points[dragging].y = Math.max(0,Math.min(100,c.y));
+    updateShape();
+  });
+  canvas.addEventListener('mouseup',()=>dragging=-1);
+  canvas.addEventListener('mouseleave',()=>dragging=-1);
+
+  /* Touch support */
+  canvas.addEventListener('touchstart',function(e){
+    if(shapeType!=='polygon') return;
+    e.preventDefault();
+    const c = getCanvasCoords(e);
+    const idx = findPoint(c.x,c.y);
+    if(idx>=0){ dragging=idx; return; }
+    points.push({x:c.x,y:c.y});
+    updateShape();
+  },{passive:false});
+  canvas.addEventListener('touchmove',function(e){
+    if(dragging<0) return;
+    e.preventDefault();
+    const c = getCanvasCoords(e);
+    points[dragging].x = Math.max(0,Math.min(100,c.x));
+    points[dragging].y = Math.max(0,Math.min(100,c.y));
+    updateShape();
+  },{passive:false});
+  canvas.addEventListener('touchend',()=>dragging=-1);
+
+  /* Draw canvas overlay */
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(shapeType!=='polygon'||points.length===0) return;
+    const w=canvas.width, h=canvas.height;
+
+    /* Lines */
+    ctx.strokeStyle='rgba(99,102,241,0.5)';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x/100*w, points[0].y/100*h);
+    for(let i=1;i<points.length;i++){
+      ctx.lineTo(points[i].x/100*w, points[i].y/100*h);
+    }
+    ctx.closePath();
+    ctx.stroke();
+
+    /* Points */
+    points.forEach((p,i)=>{
+      ctx.beginPath();
+      ctx.arc(p.x/100*w, p.y/100*h, POINT_RADIUS, 0, Math.PI*2);
+      ctx.fillStyle = i===dragging ? '#a855f7' : '#6366f1';
+      ctx.fill();
+      ctx.strokeStyle='#fff';
+      ctx.lineWidth=2;
+      ctx.stroke();
+      /* Index label */
+      ctx.fillStyle='#fff';
+      ctx.font='bold 9px Inter';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(i+1, p.x/100*w, p.y/100*h);
+    });
+  }
+
+  /* Generate clip-path value */
+  function getClipPath(){
+    switch(shapeType){
+      case 'polygon': {
+        if(points.length<3) return 'polygon(50% 0%, 0% 100%, 100% 100%)';
+        const coords = points.map(p=>`${Math.round(p.x*10)/10}% ${Math.round(p.y*10)/10}%`).join(', ');
+        return `polygon(${coords})`;
+      }
+      case 'circle': {
+        const r = document.getElementById('circleRadius').value;
+        const cx = document.getElementById('circleCX').value;
+        const cy = document.getElementById('circleCY').value;
+        return `circle(${r}% at ${cx}% ${cy}%)`;
+      }
+      case 'ellipse': {
+        const rx = document.getElementById('ellipseRX').value;
+        const ry = document.getElementById('ellipseRY').value;
+        const cx = document.getElementById('ellipseCX').value;
+        const cy = document.getElementById('ellipseCY').value;
+        return `ellipse(${rx}% ${ry}% at ${cx}% ${cy}%)`;
+      }
+      case 'inset': {
+        const t = document.getElementById('insetTop').value;
+        const r = document.getElementById('insetRight').value;
+        const b = document.getElementById('insetBottom').value;
+        const l = document.getElementById('insetLeft').value;
+        const round = document.getElementById('insetRound').value;
+        let val = `inset(${t}% ${r}% ${b}% ${l}%`;
+        if(parseInt(round)>0) val += ` round ${round}px`;
+        return val + ')';
+      }
+    }
+  }
+
+  window.updateShape = function(){
+    const cp = getClipPath();
+    preview.style.clipPath = cp;
+    preview.style.webkitClipPath = cp;
+    const css = `-webkit-clip-path: ${cp};\nclip-path: ${cp};`;
+    codeOut.textContent = css;
+    draw();
+  };
+
+  window.resetPoints = function(){
+    points = [{x:50,y:0},{x:0,y:100},{x:100,y:100}];
+    updateShape();
+  };
+
+  window.removeLastPoint = function(){
+    if(points.length>3) points.pop();
+    updateShape();
+  };
+
+  window.copyCode = function(btn){
+    navigator.clipboard.writeText(codeOut.textContent).then(()=>{
+      btn.textContent='Copied!';
+      btn.classList.add('copied');
+      setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);
+    });
+  };
+
+  /* Init */
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  updateShape();
+})();
+</script>
+<script defer src="/js/revenue.js"></script>
+<script defer src="/js/lead-capture.js"></script>
+<script defer src="/js/analytics-lite.js"></script>
+</body>
+</html>
