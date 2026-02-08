@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cron Expression Builder — NexTool Free Tools</title>
+<meta name="description" content="Build and validate cron expressions visually. See next execution times and human-readable descriptions. Free tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text2:#94a3b8;--green:#34d399;--red:#f87171;--yellow:#fbbf24;--radius:12px;--font:'Inter',sans-serif}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.6}
+a{color:var(--primary);text-decoration:none;transition:color .2s}a:hover{color:var(--accent)}
+
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-brand{font-weight:700;font-size:1.25rem;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:24px;list-style:none}
+.nav-links a{color:var(--text2);font-size:.9rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+
+.hero{text-align:center;padding:48px 24px 32px}
+.hero h1{font-size:2.2rem;font-weight:700;margin-bottom:8px;background:linear-gradient(135deg,var(--primary),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1.05rem;max-width:600px;margin:0 auto}
+
+.container{max-width:960px;margin:0 auto;padding:0 24px 48px;flex:1;width:100%}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.panel-title{font-weight:600;font-size:.95rem}
+.panel-body{padding:18px}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:#818cf8;transform:translateY(-1px)}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-ghost{background:transparent;color:var(--text2);padding:6px 10px}.btn-ghost:hover{color:var(--text);background:var(--surface2)}
+
+/* Expression display */
+.cron-display{display:flex;align-items:center;justify-content:center;gap:8px;padding:24px;background:var(--bg);border-radius:10px;margin-bottom:20px;flex-wrap:wrap}
+.cron-field{display:flex;flex-direction:column;align-items:center;gap:4px}
+.cron-value{font-family:'Courier New',monospace;font-size:2rem;font-weight:700;color:var(--primary);background:var(--surface);padding:8px 16px;border-radius:8px;border:2px solid var(--border);min-width:64px;text-align:center;cursor:pointer;transition:all .2s}
+.cron-value:hover,.cron-value.active{border-color:var(--primary);box-shadow:0 0 12px rgba(99,102,241,.3)}
+.cron-label{font-size:.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.cron-sep{font-size:2rem;color:var(--text2);font-weight:300;margin-top:-18px}
+
+/* Builder Fields */
+.field-section{padding:16px 0;border-bottom:1px solid var(--border)}
+.field-section:last-child{border-bottom:none}
+.field-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.field-name{font-weight:600;font-size:.92rem}
+.field-hint{font-size:.8rem;color:var(--text2)}
+
+.field-options{display:flex;flex-wrap:wrap;gap:6px}
+.field-opt{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:var(--font);font-size:.82rem;cursor:pointer;transition:all .15s}
+.field-opt:hover{border-color:var(--primary);color:var(--text)}
+.field-opt.selected{background:var(--primary);border-color:var(--primary);color:#fff}
+
+.mode-select{display:flex;gap:6px;margin-bottom:10px}
+.mode-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:var(--font);font-size:.78rem;cursor:pointer;transition:all .15s}
+.mode-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+input[type="number"]{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:var(--font);font-size:.85rem;width:60px;outline:none}
+input[type="number"]:focus{border-color:var(--primary)}
+input[type="text"]{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:'Courier New',monospace;font-size:.9rem;width:100%;outline:none}
+input[type="text"]:focus{border-color:var(--primary)}
+
+/* Presets */
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.preset{padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:.82rem;color:var(--text2);cursor:pointer;transition:all .2s}
+.preset:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Description */
+.description-box{background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(168,85,247,.08));border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:16px 20px;margin-bottom:20px;font-size:1rem;color:var(--text);font-weight:500;text-align:center}
+
+/* Next runs */
+.next-runs{list-style:none;display:flex;flex-direction:column;gap:6px}
+.next-runs li{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:6px;font-family:'Courier New',monospace;font-size:.88rem}
+.run-num{color:var(--accent);font-weight:700;min-width:20px}
+.run-date{color:var(--text)}
+.run-relative{color:var(--text2);font-size:.8rem;margin-left:auto;font-family:var(--font)}
+
+/* Validation */
+.validation{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:.88rem;font-weight:500}
+.validation.valid{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.2)}
+.validation.invalid{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;font-weight:500;transform:translateY(80px);opacity:0;transition:all .3s;z-index:200}
+.toast.show{transform:translateY(0);opacity:1}
+
+footer{background:var(--surface);border-top:1px solid var(--border);text-align:center;padding:20px 24px;color:var(--text2);font-size:.85rem;margin-top:auto}
+
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:60px;left:0;right:0;background:var(--surface);flex-direction:column;padding:16px 24px;border-bottom:1px solid var(--border)}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.7rem}
+  .cron-value{font-size:1.4rem;padding:6px 12px;min-width:48px}
+  .cron-sep{font-size:1.4rem}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">NexTool</a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/free-tools/">Free Tools</a></li>
+      <li><a href="/services/">Services</a></li>
+      <li><a href="/products/">Products</a></li>
+      <li><a href="/blog/">Blog</a></li>
+      <li><a href="/pricing.html">Pricing</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>Cron Expression Builder</h1>
+  <p>Build, validate, and understand cron expressions visually. See human-readable descriptions and preview the next execution times.</p>
+</div>
+
+<div class="container">
+  <!-- Expression Display -->
+  <div class="cron-display" id="cronDisplay">
+    <div class="cron-field"><div class="cron-value" id="dispMin" title="Minute">*</div><div class="cron-label">Minute</div></div>
+    <span class="cron-sep">&nbsp;</span>
+    <div class="cron-field"><div class="cron-value" id="dispHour" title="Hour">*</div><div class="cron-label">Hour</div></div>
+    <span class="cron-sep">&nbsp;</span>
+    <div class="cron-field"><div class="cron-value" id="dispDom" title="Day of Month">*</div><div class="cron-label">Day (M)</div></div>
+    <span class="cron-sep">&nbsp;</span>
+    <div class="cron-field"><div class="cron-value" id="dispMonth" title="Month">*</div><div class="cron-label">Month</div></div>
+    <span class="cron-sep">&nbsp;</span>
+    <div class="cron-field"><div class="cron-value" id="dispDow" title="Day of Week">*</div><div class="cron-label">Day (W)</div></div>
+  </div>
+
+  <!-- Manual input -->
+  <div style="display:flex;gap:10px;margin-bottom:20px;align-items:center">
+    <input type="text" id="cronInput" value="* * * * *" placeholder="* * * * *" style="flex:1">
+    <button class="btn btn-primary" onclick="parseManualInput()">Parse</button>
+    <button class="btn btn-outline btn-sm" onclick="copyCron()">Copy</button>
+  </div>
+
+  <!-- Description -->
+  <div class="description-box" id="cronDescription">Runs every minute</div>
+
+  <!-- Validation -->
+  <div class="validation valid" id="validationBox">Valid cron expression</div>
+
+  <!-- Presets -->
+  <div class="panel" style="margin-top:20px">
+    <div class="panel-header"><span class="panel-title">Common Presets</span></div>
+    <div class="panel-body">
+      <div class="presets">
+        <div class="preset" onclick="setPreset('* * * * *')">Every Minute</div>
+        <div class="preset" onclick="setPreset('*/5 * * * *')">Every 5 Min</div>
+        <div class="preset" onclick="setPreset('*/15 * * * *')">Every 15 Min</div>
+        <div class="preset" onclick="setPreset('0 * * * *')">Every Hour</div>
+        <div class="preset" onclick="setPreset('0 */6 * * *')">Every 6 Hours</div>
+        <div class="preset" onclick="setPreset('0 0 * * *')">Daily (Midnight)</div>
+        <div class="preset" onclick="setPreset('0 9 * * *')">Daily at 9 AM</div>
+        <div class="preset" onclick="setPreset('0 9 * * 1-5')">Weekdays 9 AM</div>
+        <div class="preset" onclick="setPreset('0 0 * * 0')">Weekly (Sunday)</div>
+        <div class="preset" onclick="setPreset('0 0 * * 1')">Weekly (Monday)</div>
+        <div class="preset" onclick="setPreset('0 0 1 * *')">Monthly (1st)</div>
+        <div class="preset" onclick="setPreset('0 0 1 1 *')">Yearly (Jan 1)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Builder -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Visual Builder</span></div>
+    <div class="panel-body" id="builderBody">
+      <!-- Minute -->
+      <div class="field-section">
+        <div class="field-header">
+          <span class="field-name">Minute</span>
+          <span class="field-hint">0-59</span>
+        </div>
+        <div class="mode-select">
+          <button class="mode-btn active" data-field="min" data-mode="every" onclick="setMode('min','every')">Every</button>
+          <button class="mode-btn" data-field="min" data-mode="interval" onclick="setMode('min','interval')">Interval</button>
+          <button class="mode-btn" data-field="min" data-mode="specific" onclick="setMode('min','specific')">Specific</button>
+        </div>
+        <div id="minConfig"></div>
+      </div>
+      <!-- Hour -->
+      <div class="field-section">
+        <div class="field-header">
+          <span class="field-name">Hour</span>
+          <span class="field-hint">0-23</span>
+        </div>
+        <div class="mode-select">
+          <button class="mode-btn active" data-field="hour" data-mode="every" onclick="setMode('hour','every')">Every</button>
+          <button class="mode-btn" data-field="hour" data-mode="interval" onclick="setMode('hour','interval')">Interval</button>
+          <button class="mode-btn" data-field="hour" data-mode="specific" onclick="setMode('hour','specific')">Specific</button>
+        </div>
+        <div id="hourConfig"></div>
+      </div>
+      <!-- Day of Month -->
+      <div class="field-section">
+        <div class="field-header">
+          <span class="field-name">Day of Month</span>
+          <span class="field-hint">1-31</span>
+        </div>
+        <div class="mode-select">
+          <button class="mode-btn active" data-field="dom" data-mode="every" onclick="setMode('dom','every')">Every</button>
+          <button class="mode-btn" data-field="dom" data-mode="interval" onclick="setMode('dom','interval')">Interval</button>
+          <button class="mode-btn" data-field="dom" data-mode="specific" onclick="setMode('dom','specific')">Specific</button>
+        </div>
+        <div id="domConfig"></div>
+      </div>
+      <!-- Month -->
+      <div class="field-section">
+        <div class="field-header">
+          <span class="field-name">Month</span>
+          <span class="field-hint">1-12</span>
+        </div>
+        <div class="mode-select">
+          <button class="mode-btn active" data-field="month" data-mode="every" onclick="setMode('month','every')">Every</button>
+          <button class="mode-btn" data-field="month" data-mode="specific" onclick="setMode('month','specific')">Specific</button>
+        </div>
+        <div id="monthConfig"></div>
+      </div>
+      <!-- Day of Week -->
+      <div class="field-section">
+        <div class="field-header">
+          <span class="field-name">Day of Week</span>
+          <span class="field-hint">0=Sun, 6=Sat</span>
+        </div>
+        <div class="mode-select">
+          <button class="mode-btn active" data-field="dow" data-mode="every" onclick="setMode('dow','every')">Every</button>
+          <button class="mode-btn" data-field="dow" data-mode="specific" onclick="setMode('dow','specific')">Specific</button>
+        </div>
+        <div id="dowConfig"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next Runs -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Next 5 Execution Times</span></div>
+    <div class="panel-body">
+      <ul class="next-runs" id="nextRuns"></ul>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>&copy; 2026 NexTool. All rights reserved.</footer>
+
+<script>
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+const state = {
+  min: { mode: 'every', value: '*', selected: [] },
+  hour: { mode: 'every', value: '*', selected: [] },
+  dom: { mode: 'every', value: '*', selected: [] },
+  month: { mode: 'every', value: '*', selected: [] },
+  dow: { mode: 'every', value: '*', selected: [] }
+};
+
+function setMode(field, mode) {
+  state[field].mode = mode;
+  state[field].selected = [];
+  // Update mode buttons
+  document.querySelectorAll(`.mode-btn[data-field="${field}"]`).forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  renderFieldConfig(field);
+  updateExpression();
+}
+
+function renderFieldConfig(field) {
+  const el = document.getElementById(field === 'min' ? 'minConfig' : field === 'hour' ? 'hourConfig' : field === 'dom' ? 'domConfig' : field === 'month' ? 'monthConfig' : 'dowConfig');
+  const m = state[field].mode;
+
+  if (m === 'every') {
+    el.innerHTML = '<span style="color:var(--text2);font-size:.85rem">Runs every ' + fieldName(field) + '</span>';
+    state[field].value = '*';
+  } else if (m === 'interval') {
+    const max = field === 'min' ? 59 : field === 'hour' ? 23 : 31;
+    const def = field === 'min' ? 5 : field === 'hour' ? 2 : 5;
+    el.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><span style="color:var(--text2);font-size:.85rem">Every</span><input type="number" id="' + field + 'Interval" value="' + def + '" min="1" max="' + max + '" onchange="updateInterval(\'' + field + '\')"><span style="color:var(--text2);font-size:.85rem">' + fieldName(field) + '(s)</span></div>';
+    state[field].value = '*/' + def;
+  } else if (m === 'specific') {
+    let opts = '';
+    if (field === 'min') {
+      for (let i = 0; i < 60; i++) opts += `<button class="field-opt" data-val="${i}" onclick="toggleSpecific('min',${i},this)">${String(i).padStart(2,'0')}</button>`;
+    } else if (field === 'hour') {
+      for (let i = 0; i < 24; i++) opts += `<button class="field-opt" data-val="${i}" onclick="toggleSpecific('hour',${i},this)">${String(i).padStart(2,'0')}</button>`;
+    } else if (field === 'dom') {
+      for (let i = 1; i <= 31; i++) opts += `<button class="field-opt" data-val="${i}" onclick="toggleSpecific('dom',${i},this)">${i}</button>`;
+    } else if (field === 'month') {
+      MONTHS.forEach((m,i) => { opts += `<button class="field-opt" data-val="${i+1}" onclick="toggleSpecific('month',${i+1},this)">${m}</button>`; });
+    } else if (field === 'dow') {
+      DAYS.forEach((d,i) => { opts += `<button class="field-opt" data-val="${i}" onclick="toggleSpecific('dow',${i},this)">${d}</button>`; });
+    }
+    el.innerHTML = '<div class="field-options">' + opts + '</div>';
+    state[field].value = '*';
+  }
+}
+
+function fieldName(f) {
+  return { min:'minute', hour:'hour', dom:'day', month:'month', dow:'day of week' }[f];
+}
+
+function toggleSpecific(field, val, btn) {
+  const idx = state[field].selected.indexOf(val);
+  if (idx > -1) {
+    state[field].selected.splice(idx, 1);
+    btn.classList.remove('selected');
+  } else {
+    state[field].selected.push(val);
+    btn.classList.add('selected');
+  }
+  state[field].selected.sort((a,b) => a - b);
+  state[field].value = state[field].selected.length > 0 ? state[field].selected.join(',') : '*';
+  updateExpression();
+}
+
+function updateInterval(field) {
+  const v = document.getElementById(field + 'Interval').value;
+  state[field].value = '*/' + (parseInt(v) || 1);
+  updateExpression();
+}
+
+function updateExpression() {
+  const expr = `${state.min.value} ${state.hour.value} ${state.dom.value} ${state.month.value} ${state.dow.value}`;
+  document.getElementById('cronInput').value = expr;
+  document.getElementById('dispMin').textContent = state.min.value;
+  document.getElementById('dispHour').textContent = state.hour.value;
+  document.getElementById('dispDom').textContent = state.dom.value;
+  document.getElementById('dispMonth').textContent = state.month.value;
+  document.getElementById('dispDow').textContent = state.dow.value;
+
+  const desc = describeExpression(expr);
+  document.getElementById('cronDescription').textContent = desc;
+
+  const valid = validateExpression(expr);
+  const vBox = document.getElementById('validationBox');
+  if (valid) {
+    vBox.className = 'validation valid';
+    vBox.textContent = 'Valid cron expression';
+    computeNextRuns(expr);
+  } else {
+    vBox.className = 'validation invalid';
+    vBox.textContent = 'Invalid cron expression';
+    document.getElementById('nextRuns').innerHTML = '<li style="color:var(--text2)">Fix the expression to see next runs</li>';
+  }
+}
+
+function parseManualInput() {
+  const expr = document.getElementById('cronInput').value.trim();
+  const parts = expr.split(/\s+/);
+  if (parts.length !== 5) {
+    document.getElementById('validationBox').className = 'validation invalid';
+    document.getElementById('validationBox').textContent = 'Expected 5 fields, got ' + parts.length;
+    return;
+  }
+  const fields = ['min','hour','dom','month','dow'];
+  fields.forEach((f,i) => {
+    state[f].value = parts[i];
+    state[f].mode = parts[i] === '*' ? 'every' : parts[i].includes('/') ? 'interval' : 'specific';
+    state[f].selected = [];
+    if (state[f].mode === 'specific' && parts[i] !== '*') {
+      state[f].selected = parts[i].split(',').map(Number).filter(n => !isNaN(n));
+    }
+    // Update mode buttons
+    document.querySelectorAll(`.mode-btn[data-field="${f}"]`).forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === state[f].mode);
+    });
+    renderFieldConfig(f);
+    // Re-select buttons for specific mode
+    if (state[f].mode === 'specific') {
+      const container = document.getElementById(f === 'min' ? 'minConfig' : f === 'hour' ? 'hourConfig' : f === 'dom' ? 'domConfig' : f === 'month' ? 'monthConfig' : 'dowConfig');
+      state[f].selected.forEach(v => {
+        const btn = container.querySelector(`[data-val="${v}"]`);
+        if (btn) btn.classList.add('selected');
+      });
+    }
+  });
+  updateExpression();
+}
+
+function validateExpression(expr) {
+  const parts = expr.split(/\s+/);
+  if (parts.length !== 5) return false;
+  const ranges = [[0,59],[0,23],[1,31],[1,12],[0,7]];
+  for (let i = 0; i < 5; i++) {
+    if (!validateField(parts[i], ranges[i][0], ranges[i][1])) return false;
+  }
+  return true;
+}
+
+function validateField(field, min, max) {
+  if (field === '*') return true;
+  // */n
+  if (/^\*\/\d+$/.test(field)) {
+    const n = parseInt(field.split('/')[1]);
+    return n >= 1 && n <= max;
+  }
+  // range n-m
+  if (/^\d+-\d+$/.test(field)) {
+    const [a,b] = field.split('-').map(Number);
+    return a >= min && b <= max && a <= b;
+  }
+  // list
+  const parts = field.split(',');
+  return parts.every(p => {
+    const n = parseInt(p);
+    return !isNaN(n) && n >= min && n <= max;
+  });
+}
+
+function describeExpression(expr) {
+  const [min, hour, dom, month, dow] = expr.split(/\s+/);
+
+  let desc = 'Runs ';
+
+  // Minute
+  if (min === '*') desc += 'every minute';
+  else if (min.startsWith('*/')) desc += 'every ' + min.slice(2) + ' minutes';
+  else if (min === '0') desc += 'at minute 0';
+  else desc += 'at minute ' + min;
+
+  // Hour
+  if (hour === '*') desc += ', every hour';
+  else if (hour.startsWith('*/')) desc += ', every ' + hour.slice(2) + ' hours';
+  else {
+    const hours = hour.split(',').map(Number);
+    const formatted = hours.map(h => (h % 12 || 12) + (h < 12 ? ' AM' : ' PM'));
+    desc += ' at ' + formatted.join(', ');
+  }
+
+  // DOM
+  if (dom !== '*') {
+    if (dom.startsWith('*/')) desc += ', every ' + dom.slice(2) + ' days';
+    else desc += ', on day ' + dom + ' of the month';
+  }
+
+  // Month
+  if (month !== '*') {
+    const months = month.split(',').map(m => MONTHS[parseInt(m)-1] || m);
+    desc += ', in ' + months.join(', ');
+  }
+
+  // DOW
+  if (dow !== '*') {
+    if (dow.includes('-')) {
+      const [a,b] = dow.split('-').map(Number);
+      desc += ', ' + DAYS[a] + ' through ' + DAYS[b];
+    } else {
+      const days = dow.split(',').map(d => DAYS[parseInt(d)] || d);
+      desc += ', on ' + days.join(', ');
+    }
+  }
+
+  return desc;
+}
+
+function computeNextRuns(expr) {
+  const [minF, hourF, domF, monthF, dowF] = expr.split(/\s+/);
+  const runs = [];
+  const now = new Date();
+  let d = new Date(now.getTime() + 60000); // start from next minute
+  d.setSeconds(0, 0);
+
+  const maxIter = 525600; // max 1 year of minutes
+  for (let i = 0; i < maxIter && runs.length < 5; i++) {
+    if (matchesField(d.getMonth() + 1, monthF) &&
+        matchesField(d.getDate(), domF) &&
+        matchesField(d.getDay(), dowF) &&
+        matchesField(d.getHours(), hourF) &&
+        matchesField(d.getMinutes(), minF)) {
+      runs.push(new Date(d));
+    }
+    d = new Date(d.getTime() + 60000);
+  }
+
+  const list = document.getElementById('nextRuns');
+  if (runs.length === 0) {
+    list.innerHTML = '<li style="color:var(--text2)">No upcoming executions found within the next year</li>';
+    return;
+  }
+
+  list.innerHTML = runs.map((r, i) => {
+    const rel = relativeTime(r - now);
+    return `<li><span class="run-num">#${i+1}</span><span class="run-date">${r.toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'})} ${r.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</span><span class="run-relative">${rel}</span></li>`;
+  }).join('');
+}
+
+function matchesField(value, field) {
+  if (field === '*') return true;
+  if (field.startsWith('*/')) return value % parseInt(field.slice(2)) === 0;
+  if (field.includes('-')) {
+    const [a,b] = field.split('-').map(Number);
+    return value >= a && value <= b;
+  }
+  return field.split(',').map(Number).includes(value);
+}
+
+function relativeTime(ms) {
+  const m = Math.floor(ms / 60000);
+  if (m < 60) return 'in ' + m + ' min';
+  const h = Math.floor(m / 60);
+  if (h < 24) return 'in ' + h + 'h ' + (m%60) + 'm';
+  const d = Math.floor(h / 24);
+  return 'in ' + d + 'd ' + (h%24) + 'h';
+}
+
+function setPreset(expr) {
+  document.getElementById('cronInput').value = expr;
+  parseManualInput();
+}
+
+function copyCron() {
+  navigator.clipboard.writeText(document.getElementById('cronInput').value).then(() => showToast('Copied!'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Initialize
+['min','hour','dom','month','dow'].forEach(renderFieldConfig);
+updateExpression();
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>

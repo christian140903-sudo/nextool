@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Border Radius Generator — NexTool Free Tools</title>
+<meta name="description" content="Visual CSS border-radius generator with draggable corners, presets, and live preview. Copy the CSS instantly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--surface3:#222233;--border:#2a2a3a;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text2:#94a3b8;--radius:12px;--glow:0 0 20px rgba(99,102,241,.15)}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.6}
+a{color:var(--primary);text-decoration:none;transition:color .2s}a:hover{color:var(--accent)}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 2rem}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-brand{font-weight:800;font-size:1.25rem;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:1.5rem;list-style:none}
+.nav-links a{color:var(--text2);font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--text)}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+
+.hero{text-align:center;padding:3rem 1.5rem 2rem}
+.hero h1{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem}
+.hero p{color:var(--text2);font-size:1.1rem;max-width:580px;margin:0 auto}
+
+main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:0 1.5rem 3rem}
+.layout{display:grid;grid-template-columns:1fr 360px;gap:2.5rem;align-items:start}
+
+/* PREVIEW AREA */
+.preview-area{display:flex;flex-direction:column;align-items:center;gap:1.5rem}
+.canvas-wrap{position:relative;width:100%;max-width:500px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:visible;padding:40px}
+.shape-box{width:100%;height:100%;transition:border-radius .15s,background .3s;position:relative}
+.handle{position:absolute;width:22px;height:22px;background:var(--primary);border:2px solid #fff;border-radius:50%;cursor:grab;z-index:10;transform:translate(-50%,-50%);transition:background .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(99,102,241,.4)}
+.handle:hover,.handle.active{background:var(--pink);box-shadow:0 2px 12px rgba(236,72,153,.5)}
+.handle-label{position:absolute;font-size:.7rem;font-weight:700;color:var(--text2);pointer-events:none;white-space:nowrap}
+.handle-label.tl{top:-22px;left:0}.handle-label.tr{top:-22px;right:0}.handle-label.bl{bottom:-22px;left:0}.handle-label.br{bottom:-22px;right:0}
+.css-output-bar{width:100%;max-width:500px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;font-family:'Courier New',monospace;font-size:.9rem;color:#a5f3fc;text-align:center;word-break:break-all;cursor:pointer;transition:border-color .2s}
+.css-output-bar:hover{border-color:var(--primary)}
+.css-output-bar .prop{color:var(--pink)}.css-output-bar .val{color:#a5f3fc}
+
+/* CONTROLS */
+.controls{display:flex;flex-direction:column;gap:1.5rem}
+.section-title{font-size:.85rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;padding-bottom:.4rem;border-bottom:1px solid var(--border)}
+.slider-group{display:flex;flex-direction:column;gap:1rem}
+.slider-row{display:flex;align-items:center;gap:.75rem}
+.slider-row label{font-size:.82rem;color:var(--text2);min-width:90px;font-weight:600}
+.slider-row input[type=range]{flex:1;accent-color:var(--primary);height:6px}
+.slider-row .val-display{min-width:42px;text-align:right;font-size:.85rem;font-weight:700;color:var(--primary);font-variant-numeric:tabular-nums}
+.slider-row input[type=range]::-webkit-slider-thumb{width:18px;height:18px}
+.link-toggle{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--text2);cursor:pointer;user-select:none;margin-top:-.25rem}
+.link-toggle input{accent-color:var(--primary);width:16px;height:16px}
+
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.preset-btn{padding:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:inherit;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+.preset-btn:hover{border-color:var(--primary);color:var(--text);background:var(--surface2)}
+.preset-btn.active{border-color:var(--primary);background:rgba(99,102,241,.15);color:var(--primary)}
+
+.color-row{display:flex;gap:.75rem;align-items:center}
+.color-row label{font-size:.82rem;color:var(--text2);font-weight:600;min-width:70px}
+.color-row input[type=color]{width:40px;height:32px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;padding:2px}
+.color-row input[type=text]{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:.85rem;padding:.4rem .6rem;outline:none}
+.color-row input[type=text]:focus{border-color:var(--primary)}
+
+.size-row{display:flex;gap:.75rem;align-items:center}
+.size-row label{font-size:.82rem;color:var(--text2);font-weight:600;min-width:70px}
+.size-row input[type=number]{width:70px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:.85rem;padding:.4rem .6rem;outline:none;text-align:center}
+.size-row span{color:var(--text2);font-size:.82rem}
+
+.btn-row{display:flex;gap:.75rem;flex-wrap:wrap}
+.btn{padding:.65rem 1.25rem;border:none;border-radius:var(--radius);font-family:inherit;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:.5rem}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;box-shadow:0 4px 15px rgba(99,102,241,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,.4)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--primary)}
+
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--primary);color:#fff;padding:.75rem 1.5rem;border-radius:var(--radius);font-weight:600;font-size:.9rem;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+
+footer{background:var(--surface);border-top:1px solid var(--border);padding:2rem 1.5rem;text-align:center;color:var(--text2);font-size:.85rem;margin-top:auto}
+
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:rgba(5,5,8,.95);backdrop-filter:blur(16px);padding:1rem 2rem;border-bottom:1px solid var(--border);gap:.75rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.75rem}
+  .layout{grid-template-columns:1fr}
+  .presets{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">NexTool</a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/free-tools/" class="active">Free Tools</a></li>
+      <li><a href="/services/">Services</a></li>
+      <li><a href="/products/">Products</a></li>
+      <li><a href="/blog/">Blog</a></li>
+      <li><a href="/pricing.html">Pricing</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>Border Radius Generator</h1>
+  <p>Drag the corners, pick a preset, or fine-tune each value. Copy the CSS in one click.</p>
+</section>
+
+<main>
+  <div class="layout">
+    <div class="preview-area">
+      <div class="canvas-wrap" id="canvasWrap">
+        <div class="shape-box" id="shapeBox">
+          <div class="handle" id="handleTL" data-corner="tl"></div>
+          <div class="handle" id="handleTR" data-corner="tr"></div>
+          <div class="handle" id="handleBL" data-corner="bl"></div>
+          <div class="handle" id="handleBR" data-corner="br"></div>
+          <span class="handle-label tl" id="labelTL">0px</span>
+          <span class="handle-label tr" id="labelTR">0px</span>
+          <span class="handle-label bl" id="labelBL">0px</span>
+          <span class="handle-label br" id="labelBR">0px</span>
+        </div>
+      </div>
+      <div class="css-output-bar" id="cssBar" onclick="copyCss()" title="Click to copy">
+        <span class="prop">border-radius:</span> <span class="val" id="cssVal">0px</span>;
+      </div>
+    </div>
+
+    <div class="controls">
+      <div>
+        <div class="section-title">Corner Radii</div>
+        <div class="slider-group" style="margin-top:.75rem">
+          <label class="link-toggle"><input type="checkbox" id="linkCorners" checked onchange="onLinkChange()"> Link all corners</label>
+          <div class="slider-row">
+            <label>Top Left</label>
+            <input type="range" id="slTL" min="0" max="200" value="20" oninput="onSlider('tl',this.value)">
+            <span class="val-display" id="vTL">20</span>
+          </div>
+          <div class="slider-row">
+            <label>Top Right</label>
+            <input type="range" id="slTR" min="0" max="200" value="20" oninput="onSlider('tr',this.value)">
+            <span class="val-display" id="vTR">20</span>
+          </div>
+          <div class="slider-row">
+            <label>Bottom Left</label>
+            <input type="range" id="slBL" min="0" max="200" value="20" oninput="onSlider('bl',this.value)">
+            <span class="val-display" id="vBL">20</span>
+          </div>
+          <div class="slider-row">
+            <label>Bottom Right</label>
+            <input type="range" id="slBR" min="0" max="200" value="20" oninput="onSlider('br',this.value)">
+            <span class="val-display" id="vBR">20</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Presets</div>
+        <div class="presets" style="margin-top:.75rem">
+          <button class="preset-btn" onclick="applyPreset(0,0,0,0)">Square</button>
+          <button class="preset-btn" onclick="applyPreset(8,8,8,8)">Subtle</button>
+          <button class="preset-btn" onclick="applyPreset(16,16,16,16)">Rounded</button>
+          <button class="preset-btn" onclick="applyPreset(50,50,50,50)">More Round</button>
+          <button class="preset-btn" onclick="applyPreset(100,100,100,100)">Circle</button>
+          <button class="preset-btn" onclick="applyPreset(200,200,0,0)">Pill Top</button>
+          <button class="preset-btn" onclick="applyPreset(0,0,200,200)">Pill Bottom</button>
+          <button class="preset-btn" onclick="applyPreset(200,0,0,200)">Pill Left</button>
+          <button class="preset-btn" onclick="applyPreset(0,200,200,0)">Pill Right</button>
+          <button class="preset-btn" onclick="applyPreset(60,0,60,0)">Diagonal A</button>
+          <button class="preset-btn" onclick="applyPreset(0,60,0,60)">Diagonal B</button>
+          <button class="preset-btn" onclick="applyPreset(80,20,80,20)">Blob</button>
+          <button class="preset-btn" onclick="applyPreset(30,80,30,80)">Blob 2</button>
+          <button class="preset-btn" onclick="applyPreset(120,20,120,20)">Leaf</button>
+          <button class="preset-btn" onclick="applyPreset(0,100,0,100)">Tab</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Customize Box</div>
+        <div style="display:flex;flex-direction:column;gap:.75rem;margin-top:.75rem">
+          <div class="color-row">
+            <label>Fill</label>
+            <input type="color" id="boxColor" value="#6366f1" oninput="updateBox()">
+            <input type="text" id="boxColorHex" value="#6366f1" oninput="updateBoxFromHex()">
+          </div>
+          <div class="color-row">
+            <label>Border</label>
+            <input type="color" id="borderColor" value="#a855f7" oninput="updateBox()">
+            <input type="text" id="borderColorHex" value="#a855f7" oninput="updateBoxFromHex()">
+          </div>
+          <div class="size-row">
+            <label>Border W.</label>
+            <input type="number" id="borderWidth" value="2" min="0" max="20" oninput="updateBox()">
+            <span>px</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="copyCss()">&#128203; Copy CSS</button>
+        <button class="btn btn-secondary" onclick="applyPreset(20,20,20,20)">&#8634; Reset</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<footer>&copy; 2026 NexTool. All rights reserved.</footer>
+
+<script>
+const corners = { tl: 20, tr: 20, bl: 20, br: 20 };
+const box = document.getElementById('shapeBox');
+const wrap = document.getElementById('canvasWrap');
+let dragging = null;
+
+function update() {
+  const r = `${corners.tl}px ${corners.tr}px ${corners.br}px ${corners.bl}px`;
+  box.style.borderRadius = r;
+  document.getElementById('slTL').value = corners.tl;
+  document.getElementById('slTR').value = corners.tr;
+  document.getElementById('slBL').value = corners.bl;
+  document.getElementById('slBR').value = corners.br;
+  document.getElementById('vTL').textContent = corners.tl;
+  document.getElementById('vTR').textContent = corners.tr;
+  document.getElementById('vBL').textContent = corners.bl;
+  document.getElementById('vBR').textContent = corners.br;
+  document.getElementById('labelTL').textContent = corners.tl + 'px';
+  document.getElementById('labelTR').textContent = corners.tr + 'px';
+  document.getElementById('labelBL').textContent = corners.bl + 'px';
+  document.getElementById('labelBR').textContent = corners.br + 'px';
+  positionHandles();
+  updateCssBar();
+}
+
+function updateCssBar() {
+  const { tl, tr, bl, br } = corners;
+  let val;
+  if (tl === tr && tr === br && br === bl) val = tl + 'px';
+  else if (tl === br && tr === bl) val = `${tl}px ${tr}px`;
+  else val = `${tl}px ${tr}px ${br}px ${bl}px`;
+  document.getElementById('cssVal').textContent = val;
+}
+
+function positionHandles() {
+  const r = box.getBoundingClientRect();
+  const pr = box.offsetParent.getBoundingClientRect();
+  const ox = r.left - pr.left;
+  const oy = r.top - pr.top;
+  const w = r.width, h = r.height;
+
+  const max = Math.min(w, h) / 2;
+  const tlR = Math.min(corners.tl, max);
+  const trR = Math.min(corners.tr, max);
+  const blR = Math.min(corners.bl, max);
+  const brR = Math.min(corners.br, max);
+
+  setPos('handleTL', ox + tlR, oy + tlR);
+  setPos('handleTR', ox + w - trR, oy + trR);
+  setPos('handleBL', ox + blR, oy + h - blR);
+  setPos('handleBR', ox + w - brR, oy + h - brR);
+}
+
+function setPos(id, x, y) {
+  const el = document.getElementById(id);
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+}
+
+function onSlider(corner, val) {
+  val = parseInt(val);
+  if (document.getElementById('linkCorners').checked) {
+    corners.tl = corners.tr = corners.bl = corners.br = val;
+  } else {
+    corners[corner] = val;
+  }
+  update();
+}
+
+function onLinkChange() {
+  if (document.getElementById('linkCorners').checked) {
+    const avg = Math.round((corners.tl + corners.tr + corners.bl + corners.br) / 4);
+    corners.tl = corners.tr = corners.bl = corners.br = avg;
+    update();
+  }
+}
+
+function applyPreset(tl, tr, bl, br) {
+  document.getElementById('linkCorners').checked = false;
+  corners.tl = tl; corners.tr = tr; corners.bl = bl; corners.br = br;
+  update();
+}
+
+function updateBox() {
+  const fill = document.getElementById('boxColor').value;
+  const bColor = document.getElementById('borderColor').value;
+  const bWidth = document.getElementById('borderWidth').value;
+  document.getElementById('boxColorHex').value = fill;
+  document.getElementById('borderColorHex').value = bColor;
+  box.style.background = fill;
+  box.style.border = `${bWidth}px solid ${bColor}`;
+  setTimeout(positionHandles, 10);
+}
+
+function updateBoxFromHex() {
+  const fill = document.getElementById('boxColorHex').value;
+  const bColor = document.getElementById('borderColorHex').value;
+  if (/^#[0-9a-fA-F]{6}$/.test(fill)) { document.getElementById('boxColor').value = fill; }
+  if (/^#[0-9a-fA-F]{6}$/.test(bColor)) { document.getElementById('borderColor').value = bColor; }
+  updateBox();
+}
+
+function copyCss() {
+  const { tl, tr, bl, br } = corners;
+  let val;
+  if (tl === tr && tr === br && br === bl) val = tl + 'px';
+  else if (tl === br && tr === bl) val = `${tl}px ${tr}px`;
+  else val = `${tl}px ${tr}px ${br}px ${bl}px`;
+  const css = `border-radius: ${val};`;
+  navigator.clipboard.writeText(css).then(() => showToast('CSS copied!'));
+}
+
+// DRAG HANDLES
+document.querySelectorAll('.handle').forEach(h => {
+  h.addEventListener('mousedown', startDrag);
+  h.addEventListener('touchstart', startDrag, { passive: false });
+});
+
+function startDrag(e) {
+  e.preventDefault();
+  dragging = e.target.dataset.corner;
+  e.target.classList.add('active');
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', stopDrag);
+  document.addEventListener('touchmove', onDrag, { passive: false });
+  document.addEventListener('touchend', stopDrag);
+}
+
+function onDrag(e) {
+  if (!dragging) return;
+  e.preventDefault();
+  const rect = box.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const w = rect.width, h = rect.height;
+  const maxR = 200;
+  let val;
+
+  if (dragging === 'tl') {
+    const dx = clientX - rect.left;
+    const dy = clientY - rect.top;
+    val = Math.max(0, Math.min(maxR, Math.round((dx + dy) / 2)));
+  } else if (dragging === 'tr') {
+    const dx = rect.right - clientX;
+    const dy = clientY - rect.top;
+    val = Math.max(0, Math.min(maxR, Math.round((dx + dy) / 2)));
+  } else if (dragging === 'bl') {
+    const dx = clientX - rect.left;
+    const dy = rect.bottom - clientY;
+    val = Math.max(0, Math.min(maxR, Math.round((dx + dy) / 2)));
+  } else if (dragging === 'br') {
+    const dx = rect.right - clientX;
+    const dy = rect.bottom - clientY;
+    val = Math.max(0, Math.min(maxR, Math.round((dx + dy) / 2)));
+  }
+
+  if (document.getElementById('linkCorners').checked) {
+    corners.tl = corners.tr = corners.bl = corners.br = val;
+  } else {
+    corners[dragging] = val;
+  }
+  update();
+}
+
+function stopDrag() {
+  if (dragging) {
+    document.getElementById('handle' + dragging.toUpperCase()).classList.remove('active');
+  }
+  dragging = null;
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchmove', onDrag);
+  document.removeEventListener('touchend', stopDrag);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Init
+box.style.background = '#6366f1';
+box.style.border = '2px solid #a855f7';
+update();
+window.addEventListener('resize', positionHandles);
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>
