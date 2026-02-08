@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Converter - HEX, RGB, HSL, HSV, CMYK | NexTool</title>
+<meta name="description" content="Free color converter: input any format (HEX, RGB, HSL, HSV, CMYK, named colors) and instantly convert to all other formats. Color harmonies, history, and one-click copy.">
+<meta name="keywords" content="color converter, hex to rgb, rgb to hsl, color picker, CSS colors, NexTool">
+<link rel="canonical" href="https://nextool.app/tools/color-converter">
+<meta property="og:title" content="Color Converter - HEX, RGB, HSL, HSV, CMYK | NexTool">
+<meta property="og:description" content="Input any color format and instantly convert to HEX, RGB, HSL, HSV, CMYK. Free, no signup.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/tools/color-converter">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Color Converter | NexTool">
+<meta name="twitter:description" content="Convert between HEX, RGB, HSL, HSV, CMYK, and 140 named colors instantly.">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"SoftwareApplication",
+  "name":"Color Converter","applicationCategory":"DesignApplication","operatingSystem":"Web",
+  "description":"Convert between HEX, RGB, HSL, HSV, CMYK, and 140 CSS named colors. Complementary, analogous, triadic palettes. Color history.",
+  "url":"https://nextool.app/tools/color-converter",
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+  "author":{"@type":"Organization","name":"NexTool","url":"https://nextool.app"}
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--surface3:#22222f;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text-dim:#94a3b8;--text-muted:#64748b;--gradient:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);--green:#22c55e;--radius:12px;--radius-lg:20px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(5,5,8,.75);backdrop-filter:blur(20px);border-bottom:1px solid rgba(99,102,241,.1)}
+.nav-logo{display:flex;align-items:center;gap:.5rem;font-weight:800;font-size:1.15rem;text-decoration:none;color:var(--text)}
+.nav-logo .ico{width:28px;height:28px;border-radius:7px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:900;color:#fff}
+.nav-logo span{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-links a{color:var(--text-dim);font-size:.85rem;font-weight:500;text-decoration:none}
+.nav-links a:hover{color:var(--text)}
+.main{max-width:900px;margin:0 auto;padding:100px 1.5rem 3rem}
+.tool-header{text-align:center;margin-bottom:2rem}
+.tool-badge{display:inline-flex;padding:.3rem .8rem;border-radius:100px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.15);font-size:.72rem;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem}
+.tool-header h1{font-size:clamp(1.75rem,4vw,2.5rem);font-weight:800;margin-bottom:.5rem}
+.tool-header h1 .gr{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tool-header p{color:var(--text-dim);font-size:1rem;max-width:550px;margin:0 auto}
+
+/* Input */
+.input-card{background:var(--surface);border:1px solid rgba(99,102,241,.1);border-radius:var(--radius-lg);padding:1.75rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.input-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient)}
+.input-row{display:flex;gap:1rem;align-items:stretch}
+.color-input{flex:1;padding:.75rem 1rem;border-radius:var(--radius);border:1px solid var(--surface3);background:var(--surface2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:1.1rem;outline:none;transition:border-color .2s}
+.color-input:focus{border-color:var(--primary)}
+.color-input::placeholder{color:var(--text-muted)}
+.color-picker-wrap{width:56px;height:100%;min-height:48px;border-radius:var(--radius);overflow:hidden;border:2px solid var(--surface3);cursor:pointer;position:relative}
+.color-picker-wrap input{position:absolute;inset:-8px;width:calc(100% + 16px);height:calc(100% + 16px);cursor:pointer;border:none}
+.input-hint{font-size:.78rem;color:var(--text-muted);margin-top:.75rem}
+.detected-format{display:inline-block;padding:.15rem .5rem;border-radius:4px;background:rgba(99,102,241,.1);color:var(--primary);font-weight:600;font-size:.7rem;margin-left:.5rem}
+
+/* Swatch */
+.swatch-card{background:var(--surface);border:1px solid rgba(99,102,241,.1);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1.5rem}
+.swatch{height:140px;transition:background-color .2s;display:flex;align-items:center;justify-content:center}
+.swatch-text{font-family:'JetBrains Mono',monospace;font-size:1.25rem;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.5);padding:.3rem .8rem;border-radius:6px}
+
+/* Formats grid */
+.formats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:1.5rem}
+.format-card{background:var(--surface);border:1px solid rgba(99,102,241,.08);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;transition:border-color .2s}
+.format-card:hover{border-color:rgba(99,102,241,.2)}
+.format-label{font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem}
+.format-value{font-family:'JetBrains Mono',monospace;font-size:.88rem;color:var(--text);word-break:break-all}
+.copy-btn{padding:.3rem .7rem;border-radius:6px;border:1px solid var(--surface3);background:transparent;color:var(--text-dim);font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.copy-btn:hover{border-color:var(--primary);color:var(--primary)}
+
+/* Harmonies */
+.harmonies{margin-bottom:1.5rem}
+.harmonies h3{font-size:1rem;font-weight:700;margin-bottom:1rem}
+.harmony-row{display:flex;gap:.75rem;margin-bottom:1rem;align-items:center}
+.harmony-label{font-size:.8rem;font-weight:600;color:var(--text-dim);width:100px;flex-shrink:0}
+.harmony-swatches{display:flex;gap:.4rem;flex:1}
+.harmony-swatch{height:48px;flex:1;border-radius:8px;cursor:pointer;transition:transform .15s;position:relative;border:1px solid rgba(255,255,255,.05)}
+.harmony-swatch:hover{transform:scale(1.08);z-index:1}
+.harmony-swatch .tip{display:none;position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--text-dim);font-size:.65rem;padding:.2rem .5rem;border-radius:4px;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.harmony-swatch:hover .tip{display:block}
+
+/* History */
+.history-card{background:var(--surface);border:1px solid rgba(99,102,241,.08);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem}
+.history-card h3{font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
+.history-clear{font-size:.75rem;color:var(--text-muted);cursor:pointer;font-weight:500;background:none;border:none;font-family:'Inter',sans-serif}
+.history-clear:hover{color:var(--pink)}
+.history-grid{display:flex;gap:.4rem;flex-wrap:wrap}
+.history-swatch{width:40px;height:40px;border-radius:8px;cursor:pointer;transition:transform .15s;border:2px solid transparent}
+.history-swatch:hover{transform:scale(1.15);border-color:var(--primary)}
+
+/* CTA */
+.cta-section{text-align:center;padding:3rem 0}
+.cta-section h2{font-size:1.5rem;font-weight:800;margin-bottom:.5rem}
+.cta-section p{color:var(--text-dim);margin-bottom:1.5rem;font-size:.95rem}
+.cta-btn{display:inline-block;padding:.7rem 2rem;border-radius:var(--radius);background:var(--gradient);color:#fff;font-weight:700;font-size:.95rem;text-decoration:none;transition:transform .2s}
+.cta-btn:hover{transform:translateY(-2px)}
+
+.footer{border-top:1px solid rgba(99,102,241,.06);padding:2rem 0}
+.footer-inner{max-width:900px;margin:0 auto;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.footer-logo{display:flex;align-items:center;gap:.4rem;font-weight:700;font-size:.9rem}
+.footer-logo .ico{width:20px;height:20px;border-radius:5px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:.5rem;font-weight:900;color:#fff}
+.footer-logo span{color:var(--text-dim)}
+.footer-links{display:flex;gap:1.25rem}
+.footer-links a{color:var(--text-muted);font-size:.8rem;text-decoration:none}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{color:var(--text-muted);font-size:.75rem;width:100%;text-align:center;margin-top:.5rem}
+
+@media(max-width:600px){
+  .main{padding:80px 1rem 2rem}
+  .input-row{flex-direction:column}
+  .formats-grid{grid-template-columns:1fr}
+  .harmony-row{flex-direction:column;align-items:stretch}
+  .harmony-label{width:auto}
+  .nav-links{display:none}
+  .footer-inner{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="https://nextool.app"><div class="ico">N</div><span>NexTool</span></a>
+  <div class="nav-links"><a href="https://nextool.app/tools">All Tools</a><a href="https://nextool.app">Home</a></div>
+</nav>
+
+<div class="main">
+  <div class="tool-header">
+    <div class="tool-badge">Free Tool</div>
+    <h1><span class="gr">Color</span> Converter</h1>
+    <p>Input any color format and instantly convert to HEX, RGB, HSL, HSV, CMYK. Color harmonies and history included.</p>
+  </div>
+
+  <div class="input-card">
+    <div class="input-row">
+      <input class="color-input" id="colorInput" type="text" placeholder="#6366f1, rgb(99,102,241), hsl(239,84%,67%), cornflowerblue..." value="#6366f1" oninput="onInput()">
+      <div class="color-picker-wrap"><input type="color" id="nativePicker" value="#6366f1" oninput="onPicker(this.value)"></div>
+    </div>
+    <div class="input-hint">Accepts: HEX, RGB, HSL, HSV, CMYK, or any of 140 CSS named colors <span class="detected-format" id="detectedFmt">HEX</span></div>
+  </div>
+
+  <div class="swatch-card">
+    <div class="swatch" id="swatch" style="background:#6366f1">
+      <span class="swatch-text" id="swatchText" style="color:#fff">#6366f1</span>
+    </div>
+  </div>
+
+  <div class="formats-grid" id="formatsGrid"></div>
+
+  <div class="harmonies">
+    <h3>Color Harmonies</h3>
+    <div id="harmoniesContent"></div>
+  </div>
+
+  <div class="history-card">
+    <h3>Recent Colors <button class="history-clear" onclick="clearHistory()">Clear</button></h3>
+    <div class="history-grid" id="historyGrid"></div>
+  </div>
+
+  <div class="cta-section">
+    <h2>Explore More Free Tools</h2>
+    <p>NexTool offers 20+ free developer and productivity tools.</p>
+    <a href="https://nextool.app/tools" class="cta-btn">Browse All Tools</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo"><div class="ico">N</div><span>NexTool</span></div>
+    <div class="footer-links"><a href="https://nextool.app">Home</a><a href="https://nextool.app/tools">Tools</a><a href="mailto:hello@nextool.app">Contact</a></div>
+    <div class="footer-copy">&copy; 2026 NexTool. Free forever.</div>
+  </div>
+</footer>
+
+<script>
+// Named colors (140 CSS named colors)
+const NAMED={"aliceblue":"#f0f8ff","antiquewhite":"#faebd7","aqua":"#00ffff","aquamarine":"#7fffd4","azure":"#f0ffff","beige":"#f5f5dc","bisque":"#ffe4c4","black":"#000000","blanchedalmond":"#ffebcd","blue":"#0000ff","blueviolet":"#8a2be2","brown":"#a52a2a","burlywood":"#deb887","cadetblue":"#5f9ea0","chartreuse":"#7fff00","chocolate":"#d2691e","coral":"#ff7f50","cornflowerblue":"#6495ed","cornsilk":"#fff8dc","crimson":"#dc143c","cyan":"#00ffff","darkblue":"#00008b","darkcyan":"#008b8b","darkgoldenrod":"#b8860b","darkgray":"#a9a9a9","darkgreen":"#006400","darkgrey":"#a9a9a9","darkkhaki":"#bdb76b","darkmagenta":"#8b008b","darkolivegreen":"#556b2f","darkorange":"#ff8c00","darkorchid":"#9932cc","darkred":"#8b0000","darksalmon":"#e9967a","darkseagreen":"#8fbc8f","darkslateblue":"#483d8b","darkslategray":"#2f4f4f","darkslategrey":"#2f4f4f","darkturquoise":"#00ced1","darkviolet":"#9400d3","deeppink":"#ff1493","deepskyblue":"#00bfff","dimgray":"#696969","dimgrey":"#696969","dodgerblue":"#1e90ff","firebrick":"#b22222","floralwhite":"#fffaf0","forestgreen":"#228b22","fuchsia":"#ff00ff","gainsboro":"#dcdcdc","ghostwhite":"#f8f8ff","gold":"#ffd700","goldenrod":"#daa520","gray":"#808080","green":"#008000","greenyellow":"#adff2f","grey":"#808080","honeydew":"#f0fff0","hotpink":"#ff69b4","indianred":"#cd5c5c","indigo":"#4b0082","ivory":"#fffff0","khaki":"#f0e68c","lavender":"#e6e6fa","lavenderblush":"#fff0f5","lawngreen":"#7cfc00","lemonchiffon":"#fffacd","lightblue":"#add8e6","lightcoral":"#f08080","lightcyan":"#e0ffff","lightgoldenrodyellow":"#fafad2","lightgray":"#d3d3d3","lightgreen":"#90ee90","lightgrey":"#d3d3d3","lightpink":"#ffb6c1","lightsalmon":"#ffa07a","lightseagreen":"#20b2aa","lightskyblue":"#87cefa","lightslategray":"#778899","lightslategrey":"#778899","lightsteelblue":"#b0c4de","lightyellow":"#ffffe0","lime":"#00ff00","limegreen":"#32cd32","linen":"#faf0e6","magenta":"#ff00ff","maroon":"#800000","mediumaquamarine":"#66cdaa","mediumblue":"#0000cd","mediumorchid":"#ba55d3","mediumpurple":"#9370db","mediumseagreen":"#3cb371","mediumslateblue":"#7b68ee","mediumspringgreen":"#00fa9a","mediumturquoise":"#48d1cc","mediumvioletred":"#c71585","midnightblue":"#191970","mintcream":"#f5fffa","mistyrose":"#ffe4e1","moccasin":"#ffe4b5","navajowhite":"#ffdead","navy":"#000080","oldlace":"#fdf5e6","olive":"#808000","olivedrab":"#6b8e23","orange":"#ffa500","orangered":"#ff4500","orchid":"#da70d6","palegoldenrod":"#eee8aa","palegreen":"#98fb98","paleturquoise":"#afeeee","palevioletred":"#db7093","papayawhip":"#ffefd5","peachpuff":"#ffdab9","peru":"#cd853f","pink":"#ffc0cb","plum":"#dda0dd","powderblue":"#b0e0e6","purple":"#800080","rebeccapurple":"#663399","red":"#ff0000","rosybrown":"#bc8f8f","royalblue":"#4169e1","saddlebrown":"#8b4513","salmon":"#fa8072","sandybrown":"#f4a460","seagreen":"#2e8b57","seashell":"#fff5ee","sienna":"#a0522d","silver":"#c0c0c0","skyblue":"#87ceeb","slateblue":"#6a5acd","slategray":"#708090","slategrey":"#708090","snow":"#fffafa","springgreen":"#00ff7f","steelblue":"#4682b4","tan":"#d2b48c","teal":"#008080","thistle":"#d8bfd8","tomato":"#ff6347","turquoise":"#40e0d0","violet":"#ee82ee","wheat":"#f5deb3","white":"#ffffff","whitesmoke":"#f5f5f5","yellow":"#ffff00","yellowgreen":"#9acd32"};
+
+let history=JSON.parse(localStorage.getItem('cc_history')||'[]');
+
+// Color conversion functions
+function hexToRgb(h){h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];return{r:parseInt(h.substr(0,2),16),g:parseInt(h.substr(2,2),16),b:parseInt(h.substr(4,2),16)}}
+function rgbToHex(r,g,b){return'#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let h=0,s=0;if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break}}return{h:Math.round(h*360),s:Math.round(s*100),l:Math.round(l*100)}}
+function hslToRgb(h,s,l){h/=360;s/=100;l/=100;let r,g,b;if(s===0){r=g=b=l}else{const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p};const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3)}return{r:Math.round(r*255),g:Math.round(g*255),b:Math.round(b*255)}}
+function rgbToHsv(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;const s=mx===0?0:d/mx,v=mx;if(d!==0){switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break}}return{h:Math.round(h*360),s:Math.round(s*100),v:Math.round(v*100)}}
+function hsvToRgb(h,s,v){h/=360;s/=100;v/=100;const i=Math.floor(h*6),f=h*6-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);let r,g,b;switch(i%6){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;case 5:r=v;g=p;b=q;break}return{r:Math.round(r*255),g:Math.round(g*255),b:Math.round(b*255)}}
+function rgbToCmyk(r,g,b){if(r===0&&g===0&&b===0)return{c:0,m:0,y:0,k:100};const rr=r/255,gg=g/255,bb=b/255;const k=1-Math.max(rr,gg,bb);return{c:Math.round((1-rr-k)/(1-k)*100),m:Math.round((1-gg-k)/(1-k)*100),y:Math.round((1-bb-k)/(1-k)*100),k:Math.round(k*100)}}
+function cmykToRgb(c,m,y,k){c/=100;m/=100;y/=100;k/=100;return{r:Math.round(255*(1-c)*(1-k)),g:Math.round(255*(1-m)*(1-k)),b:Math.round(255*(1-y)*(1-k))}}
+
+function parseColor(input){
+  let s=input.trim().toLowerCase();
+  // Named
+  if(NAMED[s])return{rgb:hexToRgb(NAMED[s]),fmt:'Named'};
+  // HEX
+  let m=s.match(/^#?([0-9a-f]{3,8})$/);
+  if(m){let h=m[1];if(h.length===3||h.length===6||h.length===8){return{rgb:hexToRgb(h.length===8?h.slice(0,6):h),fmt:'HEX'}}}
+  // RGB
+  m=s.match(/^rgba?\s*\(\s*(\d{1,3})\s*[,\s]\s*(\d{1,3})\s*[,\s]\s*(\d{1,3})/);
+  if(m)return{rgb:{r:+m[1],g:+m[2],b:+m[3]},fmt:'RGB'};
+  // HSL
+  m=s.match(/^hsla?\s*\(\s*(\d{1,3})\s*[,\s]\s*(\d{1,3})%?\s*[,\s]\s*(\d{1,3})%?/);
+  if(m)return{rgb:hslToRgb(+m[1],+m[2],+m[3]),fmt:'HSL'};
+  // HSV
+  m=s.match(/^hsv\s*\(\s*(\d{1,3})\s*[,\s]\s*(\d{1,3})%?\s*[,\s]\s*(\d{1,3})%?/);
+  if(m)return{rgb:hsvToRgb(+m[1],+m[2],+m[3]),fmt:'HSV'};
+  // CMYK
+  m=s.match(/^cmyk\s*\(\s*(\d{1,3})%?\s*[,\s]\s*(\d{1,3})%?\s*[,\s]\s*(\d{1,3})%?\s*[,\s]\s*(\d{1,3})%?/);
+  if(m)return{rgb:cmykToRgb(+m[1],+m[2],+m[3],+m[4]),fmt:'CMYK'};
+  // Raw RGB numbers: "99 102 241"
+  m=s.match(/^(\d{1,3})\s+(\d{1,3})\s+(\d{1,3})$/);
+  if(m)return{rgb:{r:+m[1],g:+m[2],b:+m[3]},fmt:'RGB'};
+  return null;
+}
+
+function luminance(r,g,b){return(0.299*r+0.587*g+0.114*b)/255}
+
+function onInput(){
+  const val=document.getElementById('colorInput').value;
+  const parsed=parseColor(val);
+  if(!parsed)return;
+  update(parsed.rgb,parsed.fmt);
+}
+
+function onPicker(hex){
+  document.getElementById('colorInput').value=hex;
+  update(hexToRgb(hex),'HEX');
+}
+
+function update(rgb,fmt){
+  const{r,g,b}=rgb;
+  const hex=rgbToHex(r,g,b);
+  const hsl=rgbToHsl(r,g,b);
+  const hsv=rgbToHsv(r,g,b);
+  const cmyk=rgbToCmyk(r,g,b);
+  const lum=luminance(r,g,b);
+  const txtColor=lum>.55?'#000':'#fff';
+
+  // Swatch
+  document.getElementById('swatch').style.background=hex;
+  const st=document.getElementById('swatchText');
+  st.textContent=hex;st.style.color=txtColor;
+
+  // Native picker
+  document.getElementById('nativePicker').value=hex;
+
+  // Format badge
+  document.getElementById('detectedFmt').textContent=fmt;
+
+  // Formats grid
+  const formats=[
+    {label:'HEX',value:hex},
+    {label:'RGB',value:`rgb(${r}, ${g}, ${b})`},
+    {label:'HSL',value:`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`},
+    {label:'HSV',value:`hsv(${hsv.h}, ${hsv.s}%, ${hsv.v}%)`},
+    {label:'CMYK',value:`cmyk(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)`},
+    {label:'CSS',value:findName(hex)||hex}
+  ];
+  const grid=document.getElementById('formatsGrid');
+  grid.innerHTML=formats.map(f=>`<div class="format-card"><div><div class="format-label">${f.label}</div><div class="format-value">${f.value}</div></div><button class="copy-btn" onclick="copyVal(this,'${f.value.replace(/'/g,"\\'")}')">Copy</button></div>`).join('');
+
+  // Harmonies
+  buildHarmonies(hsl);
+
+  // History
+  addHistory(hex);
+}
+
+function findName(hex){
+  hex=hex.toLowerCase();
+  for(const[n,h]of Object.entries(NAMED)){if(h===hex)return n}
+  return null;
+}
+
+function buildHarmonies(hsl){
+  const wrap=document.getElementById('harmoniesContent');
+  const types=[
+    {name:'Complementary',offsets:[0,180]},
+    {name:'Analogous',offsets:[-30,0,30]},
+    {name:'Triadic',offsets:[0,120,240]},
+    {name:'Split Comp.',offsets:[0,150,210]},
+    {name:'Tetradic',offsets:[0,90,180,270]}
+  ];
+  wrap.innerHTML=types.map(t=>{
+    const swatches=t.offsets.map(o=>{
+      const h2=(hsl.h+o+360)%360;
+      const rgb2=hslToRgb(h2,hsl.s,hsl.l);
+      const hex2=rgbToHex(rgb2.r,rgb2.g,rgb2.b);
+      return`<div class="harmony-swatch" style="background:${hex2}" onclick="selectHarmony('${hex2}')" title="${hex2}"><span class="tip">${hex2}</span></div>`;
+    }).join('');
+    return`<div class="harmony-row"><div class="harmony-label">${t.name}</div><div class="harmony-swatches">${swatches}</div></div>`;
+  }).join('');
+}
+
+function selectHarmony(hex){
+  document.getElementById('colorInput').value=hex;
+  update(hexToRgb(hex),'HEX');
+}
+
+function addHistory(hex){
+  history=history.filter(h=>h!==hex);
+  history.unshift(hex);
+  if(history.length>20)history.pop();
+  localStorage.setItem('cc_history',JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory(){
+  const g=document.getElementById('historyGrid');
+  g.innerHTML=history.map(h=>`<div class="history-swatch" style="background:${h}" onclick="selectHarmony('${h}')" title="${h}"></div>`).join('');
+}
+
+function clearHistory(){history=[];localStorage.removeItem('cc_history');renderHistory()}
+
+function copyVal(btn,val){
+  navigator.clipboard.writeText(val).then(()=>{
+    const o=btn.textContent;btn.textContent='Copied!';btn.style.borderColor='var(--green)';btn.style.color='var(--green)';
+    setTimeout(()=>{btn.textContent=o;btn.style.borderColor='';btn.style.color=''},1200);
+  });
+}
+
+// Init
+renderHistory();
+onInput();
+</script>
+</body>
+</html>

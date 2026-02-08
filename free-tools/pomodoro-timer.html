@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pomodoro Timer - Free Focus Timer | NexTool</title>
+<meta name="description" content="Free Pomodoro Timer with 25/5 cycles, customizable durations, session tracking, audio notifications, and dark theme. No signup required.">
+<meta name="keywords" content="pomodoro timer, focus timer, productivity timer, work timer, free pomodoro, NexTool">
+<link rel="canonical" href="https://nextool.app/tools/pomodoro-timer">
+<meta property="og:title" content="Pomodoro Timer - Free Focus Timer | NexTool">
+<meta property="og:description" content="Free Pomodoro Timer with 25/5 cycles, customizable durations, and session tracking. No signup required.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/tools/pomodoro-timer">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pomodoro Timer - Free Focus Timer | NexTool">
+<meta name="twitter:description" content="Free Pomodoro Timer with 25/5 cycles, session tracking, audio notifications.">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"SoftwareApplication",
+  "name":"Pomodoro Timer",
+  "applicationCategory":"ProductivityApplication",
+  "operatingSystem":"Web",
+  "description":"Free Pomodoro Timer with 25/5 cycles, customizable durations, session tracking, and audio notifications.",
+  "url":"https://nextool.app/tools/pomodoro-timer",
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+  "author":{"@type":"Organization","name":"NexTool","url":"https://nextool.app"}
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--surface3:#22222f;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text-dim:#94a3b8;--text-muted:#64748b;--gradient:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);--green:#22c55e;--red:#ef4444;--yellow:#eab308;--radius:12px;--radius-lg:20px}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+/* Nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(5,5,8,.75);backdrop-filter:blur(20px);border-bottom:1px solid rgba(99,102,241,.1)}
+.nav-logo{display:flex;align-items:center;gap:.5rem;font-weight:800;font-size:1.15rem;text-decoration:none;color:var(--text)}
+.nav-logo .ico{width:28px;height:28px;border-radius:7px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:900;color:#fff}
+.nav-logo span{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-links a{color:var(--text-dim);font-size:.85rem;font-weight:500;text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+/* Main */
+.main{max-width:700px;margin:0 auto;padding:100px 1.5rem 3rem}
+.tool-header{text-align:center;margin-bottom:2.5rem}
+.tool-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:100px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.15);font-size:.72rem;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem}
+.tool-header h1{font-size:clamp(1.75rem,4vw,2.5rem);font-weight:800;margin-bottom:.5rem}
+.tool-header h1 .gr{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tool-header p{color:var(--text-dim);font-size:1rem;max-width:500px;margin:0 auto}
+
+/* Timer Card */
+.timer-card{background:var(--surface);border:1px solid rgba(99,102,241,.1);border-radius:var(--radius-lg);padding:2.5rem 2rem;text-align:center;position:relative;overflow:hidden;margin-bottom:1.5rem}
+.timer-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gradient)}
+.mode-tabs{display:flex;justify-content:center;gap:.5rem;margin-bottom:2rem}
+.mode-tab{padding:.5rem 1.25rem;border-radius:8px;border:1px solid var(--surface3);background:transparent;color:var(--text-dim);font-size:.85rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
+.mode-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.mode-tab:hover:not(.active){border-color:var(--primary);color:var(--text)}
+
+/* Ring */
+.timer-ring-wrap{position:relative;width:280px;height:280px;margin:0 auto 2rem}
+.timer-ring-svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--surface3);stroke-width:6}
+.ring-progress{fill:none;stroke:url(#ringGrad);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+.timer-display{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.timer-time{font-family:'JetBrains Mono',monospace;font-size:4rem;font-weight:700;letter-spacing:-.02em;line-height:1}
+.timer-label{font-size:.85rem;color:var(--text-muted);margin-top:.5rem;font-weight:500}
+
+/* Controls */
+.controls{display:flex;justify-content:center;gap:.75rem;margin-bottom:2rem}
+.ctrl-btn{width:52px;height:52px;border-radius:50%;border:1px solid var(--surface3);background:var(--surface2);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:1.1rem}
+.ctrl-btn:hover{border-color:var(--primary);transform:translateY(-2px)}
+.ctrl-btn.primary{width:64px;height:64px;background:var(--gradient);border:none;color:#fff;font-size:1.3rem}
+.ctrl-btn.primary:hover{box-shadow:0 4px 25px rgba(99,102,241,.4);transform:translateY(-2px)}
+.ctrl-btn svg{width:22px;height:22px;fill:currentColor}
+
+/* Session counter */
+.sessions-row{display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap}
+.session-dot{width:14px;height:14px;border-radius:50%;background:var(--surface3);transition:background .3s}
+.session-dot.done{background:var(--green)}
+.session-dot.active{background:var(--primary);box-shadow:0 0 10px rgba(99,102,241,.5)}
+
+/* Settings */
+.settings-card{background:var(--surface);border:1px solid rgba(99,102,241,.08);border-radius:var(--radius-lg);padding:1.75rem 2rem;margin-bottom:1.5rem}
+.settings-card h3{font-size:1rem;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+.settings-card h3 svg{width:18px;height:18px;color:var(--primary)}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid rgba(99,102,241,.05)}
+.setting-row:last-child{border-bottom:none}
+.setting-row label{font-size:.9rem;color:var(--text-dim);font-weight:500}
+.setting-input{width:80px;padding:.4rem .6rem;border-radius:6px;border:1px solid var(--surface3);background:var(--surface2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;text-align:center;outline:none;transition:border-color .2s}
+.setting-input:focus{border-color:var(--primary)}
+
+/* Stats */
+.stats-card{background:var(--surface);border:1px solid rgba(99,102,241,.08);border-radius:var(--radius-lg);padding:1.75rem 2rem;margin-bottom:1.5rem}
+.stats-card h3{font-size:1rem;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.stat-item{text-align:center;padding:1rem .5rem;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--surface3)}
+.stat-value{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:.75rem;color:var(--text-muted);margin-top:.25rem;font-weight:500}
+
+/* CTA */
+.cta-section{text-align:center;padding:3rem 0;margin-top:1rem}
+.cta-section h2{font-size:1.5rem;font-weight:800;margin-bottom:.5rem}
+.cta-section p{color:var(--text-dim);margin-bottom:1.5rem;font-size:.95rem}
+.cta-btn{display:inline-block;padding:.7rem 2rem;border-radius:var(--radius);background:var(--gradient);color:#fff;font-weight:700;font-size:.95rem;text-decoration:none;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(99,102,241,.4)}
+
+/* Footer */
+.footer{border-top:1px solid rgba(99,102,241,.06);padding:2rem 0;text-align:center}
+.footer-inner{max-width:700px;margin:0 auto;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.footer-logo{display:flex;align-items:center;gap:.4rem;font-weight:700;font-size:.9rem}
+.footer-logo .ico{width:20px;height:20px;border-radius:5px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:.5rem;font-weight:900;color:#fff}
+.footer-logo span{color:var(--text-dim)}
+.footer-links{display:flex;gap:1.25rem}
+.footer-links a{color:var(--text-muted);font-size:.8rem;text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{color:var(--text-muted);font-size:.75rem;width:100%;text-align:center;margin-top:.5rem}
+
+@media(max-width:600px){
+  .main{padding:80px 1rem 2rem}
+  .timer-ring-wrap{width:220px;height:220px}
+  .timer-time{font-size:3rem}
+  .stats-grid{grid-template-columns:1fr}
+  .mode-tabs{flex-wrap:wrap}
+  .nav-links{display:none}
+  .footer-inner{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="https://nextool.app"><div class="ico">N</div><span>NexTool</span></a>
+  <div class="nav-links">
+    <a href="https://nextool.app/tools">All Tools</a>
+    <a href="https://nextool.app">Home</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="tool-header">
+    <div class="tool-badge">Free Tool</div>
+    <h1><span class="gr">Pomodoro</span> Timer</h1>
+    <p>Stay focused with the 25/5 technique. Customizable durations, session tracking, and audio alerts.</p>
+  </div>
+
+  <div class="timer-card">
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="work" onclick="switchMode('work')">Focus</button>
+      <button class="mode-tab" data-mode="break" onclick="switchMode('break')">Break</button>
+      <button class="mode-tab" data-mode="longbreak" onclick="switchMode('longbreak')">Long Break</button>
+    </div>
+    <div class="timer-ring-wrap">
+      <svg class="timer-ring-svg" viewBox="0 0 300 300">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#6366f1"/>
+            <stop offset="50%" style="stop-color:#a855f7"/>
+            <stop offset="100%" style="stop-color:#ec4899"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-bg" cx="150" cy="150" r="140"/>
+        <circle class="ring-progress" id="ring" cx="150" cy="150" r="140" stroke-dasharray="879.65" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-display">
+        <div class="timer-time" id="timerDisplay">25:00</div>
+        <div class="timer-label" id="timerLabel">Focus Time</div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="ctrl-btn" id="btnReset" onclick="resetTimer()" title="Reset">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      </button>
+      <button class="ctrl-btn primary" id="btnPlay" onclick="toggleTimer()">
+        <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="iconPause" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <button class="ctrl-btn" id="btnSkip" onclick="skipTimer()" title="Skip">
+        <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+    </div>
+    <div class="sessions-row" id="sessions"></div>
+  </div>
+
+  <div class="settings-card">
+    <h3>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </h3>
+    <div class="setting-row">
+      <label>Focus (min)</label>
+      <input class="setting-input" type="number" id="setWork" value="25" min="1" max="120" onchange="updateSettings()">
+    </div>
+    <div class="setting-row">
+      <label>Short Break (min)</label>
+      <input class="setting-input" type="number" id="setBreak" value="5" min="1" max="60" onchange="updateSettings()">
+    </div>
+    <div class="setting-row">
+      <label>Long Break (min)</label>
+      <input class="setting-input" type="number" id="setLong" value="15" min="1" max="60" onchange="updateSettings()">
+    </div>
+    <div class="setting-row">
+      <label>Sessions before long break</label>
+      <input class="setting-input" type="number" id="setRounds" value="4" min="2" max="10" onchange="updateSettings()">
+    </div>
+  </div>
+
+  <div class="stats-card">
+    <h3>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      Today's Stats
+    </h3>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value" id="statSessions">0</div>
+        <div class="stat-label">Sessions</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="statFocus">0m</div>
+        <div class="stat-label">Focus Time</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="statStreak">0</div>
+        <div class="stat-label">Current Streak</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-section">
+    <h2>Explore More Free Tools</h2>
+    <p>NexTool offers 20+ free developer and productivity tools.</p>
+    <a href="https://nextool.app/tools" class="cta-btn">Browse All Tools</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo"><div class="ico">N</div><span>NexTool</span></div>
+    <div class="footer-links">
+      <a href="https://nextool.app">Home</a>
+      <a href="https://nextool.app/tools">Tools</a>
+      <a href="mailto:hello@nextool.app">Contact</a>
+    </div>
+    <div class="footer-copy">&copy; 2026 NexTool. Free forever.</div>
+  </div>
+</footer>
+
+<script>
+const CIRC=2*Math.PI*140; // ~879.65
+let config={work:25,break:5,longbreak:15,rounds:4};
+let state={mode:'work',timeLeft:25*60,totalTime:25*60,running:false,interval:null,completedSessions:0,currentRound:0};
+let stats=loadStats();
+
+function loadStats(){
+  try{
+    const d=JSON.parse(localStorage.getItem('pomo_stats')||'{}');
+    const today=new Date().toDateString();
+    if(d.date!==today)return{date:today,sessions:0,focusMin:0,streak:0};
+    return d;
+  }catch(e){return{date:new Date().toDateString(),sessions:0,focusMin:0,streak:0}}
+}
+function saveStats(){localStorage.setItem('pomo_stats',JSON.stringify(stats));updateStatsUI()}
+function savePersist(){localStorage.setItem('pomo_config',JSON.stringify(config))}
+function loadPersist(){
+  try{
+    const c=JSON.parse(localStorage.getItem('pomo_config'));
+    if(c){config={...config,...c};document.getElementById('setWork').value=config.work;document.getElementById('setBreak').value=config.break;document.getElementById('setLong').value=config.longbreak;document.getElementById('setRounds').value=config.rounds}
+  }catch(e){}
+}
+
+function updateStatsUI(){
+  document.getElementById('statSessions').textContent=stats.sessions;
+  const h=Math.floor(stats.focusMin/60);
+  document.getElementById('statFocus').textContent=h>0?h+'h '+stats.focusMin%60+'m':stats.focusMin+'m';
+  document.getElementById('statStreak').textContent=stats.streak;
+}
+
+function updateSettings(){
+  config.work=Math.max(1,Math.min(120,+document.getElementById('setWork').value||25));
+  config.break=Math.max(1,Math.min(60,+document.getElementById('setBreak').value||5));
+  config.longbreak=Math.max(1,Math.min(60,+document.getElementById('setLong').value||15));
+  config.rounds=Math.max(2,Math.min(10,+document.getElementById('setRounds').value||4));
+  savePersist();
+  if(!state.running){
+    const dur=config[state.mode==='longbreak'?'longbreak':state.mode]*60;
+    state.timeLeft=dur;state.totalTime=dur;
+    updateDisplay();
+  }
+}
+
+function switchMode(mode){
+  state.mode=mode;
+  if(state.running)toggleTimer();
+  const dur=config[mode==='longbreak'?'longbreak':mode]*60;
+  state.timeLeft=dur;state.totalTime=dur;
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.toggle('active',t.dataset.mode===mode));
+  updateDisplay();
+  updateLabel();
+}
+
+function updateLabel(){
+  const labels={work:'Focus Time',break:'Short Break',longbreak:'Long Break'};
+  document.getElementById('timerLabel').textContent=labels[state.mode];
+}
+
+function updateDisplay(){
+  const m=Math.floor(state.timeLeft/60);
+  const s=state.timeLeft%60;
+  document.getElementById('timerDisplay').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  const pct=1-state.timeLeft/state.totalTime;
+  document.getElementById('ring').style.strokeDashoffset=CIRC*(1-pct);
+  document.title=(state.running?'('+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+') ':'')+'Pomodoro Timer - NexTool';
+}
+
+function toggleTimer(){
+  if(state.running){
+    clearInterval(state.interval);state.running=false;
+    document.getElementById('iconPlay').style.display='';
+    document.getElementById('iconPause').style.display='none';
+  }else{
+    state.running=true;
+    document.getElementById('iconPlay').style.display='none';
+    document.getElementById('iconPause').style.display='';
+    state.interval=setInterval(tick,1000);
+  }
+}
+
+function tick(){
+  if(state.timeLeft<=0){onComplete();return}
+  state.timeLeft--;
+  updateDisplay();
+}
+
+function onComplete(){
+  clearInterval(state.interval);state.running=false;
+  document.getElementById('iconPlay').style.display='';
+  document.getElementById('iconPause').style.display='none';
+  playBeep();
+  if(state.mode==='work'){
+    stats.sessions++;stats.focusMin+=config.work;stats.streak++;
+    state.completedSessions++;state.currentRound++;
+    saveStats();renderSessions();
+    if(state.currentRound>=config.rounds){
+      state.currentRound=0;switchMode('longbreak');
+    }else{switchMode('break')}
+  }else{switchMode('work')}
+}
+
+function resetTimer(){
+  if(state.running)toggleTimer();
+  const dur=config[state.mode==='longbreak'?'longbreak':state.mode]*60;
+  state.timeLeft=dur;state.totalTime=dur;
+  updateDisplay();
+}
+
+function skipTimer(){
+  state.timeLeft=0;
+  if(!state.running){onComplete()}
+}
+
+function playBeep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [0,.15,.3].forEach(d=>{
+      const osc=ctx.createOscillator();const gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='sine';osc.frequency.value=d===.15?880:660;
+      gain.gain.setValueAtTime(.3,ctx.currentTime+d);
+      gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+d+.12);
+      osc.start(ctx.currentTime+d);osc.stop(ctx.currentTime+d+.12);
+    });
+  }catch(e){}
+}
+
+function renderSessions(){
+  const el=document.getElementById('sessions');
+  el.innerHTML='';
+  for(let i=0;i<config.rounds;i++){
+    const d=document.createElement('div');
+    d.className='session-dot';
+    if(i<state.currentRound)d.classList.add('done');
+    else if(i===state.currentRound&&state.mode==='work')d.classList.add('active');
+    el.appendChild(d);
+  }
+}
+
+// Init
+loadPersist();
+updateDisplay();
+updateLabel();
+updateStatsUI();
+renderSessions();
+</script>
+</body>
+</html>
