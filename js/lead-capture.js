@@ -218,11 +218,10 @@
       '<div class="ntool-lead-success">',
       '  <div class="ntool-lead-success-icon">\uD83C\uDF89</div>',
       '  <h3>Your toolkit is ready!</h3>',
-      '  <p>16 resources — cheat sheets, templates, and a workflow guide.</p>',
-      '  <a href="/toolkit.html" style="display:inline-block;margin-top:12px;padding:12px 24px;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;border-radius:10px;font-weight:600;font-size:14px;text-decoration:none;transition:opacity .2s">Open Toolkit \u2192</a>',
-      '</div>',
-      '<button class="ntool-lead-dismiss" onclick="document.getElementById(\'ntool-lead-overlay\').classList.remove(\'visible\');setTimeout(function(){document.getElementById(\'ntool-lead-overlay\').remove()},400)" style="margin-top:12px">Close</button>'
+      '  <p>Redirecting you to your free resources...</p>',
+      '</div>'
     ].join('\n');
+    setTimeout(function(){ location.href='/welcome.html'; }, 1500);
   }
 
   // ── Initialize ──
