@@ -7,7 +7,7 @@
 <meta name="description" content="Give your AI agent a brain that never forgets. Persistent memory with TF-IDF semantic search for Claude Code, Cursor, Windsurf, and any MCP client. Free & open source.">
 <link rel="canonical" href="https://nextool.app/memory.html">
 <meta property="og:title" content="Smart Memory MCP — Persistent Memory for AI Agents">
-<meta property="og:description" content="Give your AI agent a brain that never forgets. Persistent memory with TF-IDF semantic search for Claude Code, Cursor, Windsurf, and any MCP client. Free & open source.">
+<meta property="og:description" content="Give your AI agent a brain that never forgets. Persistent memory with TF-IDF semantic search for Claude Code, Cursor, Windsurf, and any MCP client.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://nextool.app/memory.html">
 <meta property="og:image" content="https://nextool.app/og-image.png">
@@ -20,7 +20,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%236366f1'/><stop offset='100%25' style='stop-color:%23a855f7'/></linearGradient></defs><text y='85' font-size='80' font-weight='900' font-family='system-ui' fill='url(%23g)'>N</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script type="application/ld+json">
 [{
   "@context":"https://schema.org","@type":"SoftwareApplication",
@@ -56,43 +56,45 @@
 }
 html{scroll-behavior:smooth}
 body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(99,102,241,.025) 1px,transparent 0);background-size:40px 40px;pointer-events:none;z-index:0}
 a{color:inherit;text-decoration:none}
-img{max-width:100%;display:block}
 ::selection{background:rgba(99,102,241,.3);color:#fff}
 .container{max-width:1100px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
 .gradient-text{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* SCROLL PROGRESS */
+.scroll-progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent),var(--pink));z-index:10000;width:0%;transition:width .1s linear}
+
+/* CUSTOM CURSOR */
+.cursor-dot{position:fixed;width:6px;height:6px;background:var(--primary);border-radius:50%;pointer-events:none;z-index:9999;transition:transform .1s}
+.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(99,102,241,.4);border-radius:50%;pointer-events:none;z-index:9998;transition:transform .15s ease-out,width .2s,height .2s,border-color .2s}
+.cursor-ring.hover{width:56px;height:56px;border-color:rgba(168,85,247,.5)}
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:16px 0;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(5,5,8,.8);border-bottom:1px solid transparent;transition:all .3s}
 nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{font-size:20px;font-weight:800;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo{font-size:20px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px}
 .nav-logo svg{width:28px;height:28px}
 .nav-links{display:flex;align-items:center;gap:28px;list-style:none}
-.nav-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+.nav-links a{color:var(--muted);font-size:14px;font-weight:500;transition:color .2s}
 .nav-links a:hover{color:#fff}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;transition:all .2s;cursor:pointer;border:none;font-family:inherit}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;transition:all .2s;cursor:pointer;border:none;font-family:inherit}
 .btn-primary{background:var(--primary);color:#fff}
 .btn-primary:hover{background:var(--primary-h);transform:translateY(-1px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
 .mobile-toggle{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:8px}
-.mobile-menu{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,8,.98);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);z-index:999;flex-direction:column;align-items:center;justify-content:center;gap:24px;opacity:0;pointer-events:none;transition:opacity .3s}
-.mobile-menu.open{display:flex;opacity:1;pointer-events:all}
-.mobile-menu a{font-size:24px;font-weight:700;color:var(--text);text-decoration:none;transition:color .2s}
-.mobile-menu a:hover{color:var(--primary-h)}
-.mobile-close{position:absolute;top:20px;right:24px;background:none;border:none;color:var(--text);font-size:32px;cursor:pointer}
 
 /* HERO */
-.hero{padding:140px 0 80px;text-align:center;position:relative}
-.hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:900px;height:600px;background:radial-gradient(ellipse,rgba(99,102,241,.12) 0%,rgba(168,85,247,.05) 40%,transparent 70%);pointer-events:none}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:100px;font-size:13px;font-weight:600;color:var(--primary-h);margin-bottom:24px}
-.hero-badge .dot{width:8px;height:8px;background:var(--primary);border-radius:50%;animation:pulse 2s infinite}
+.hero{padding:140px 0 80px;text-align:center;position:relative;overflow:hidden}
+.hero-canvas{position:absolute;inset:0;z-index:0}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:100px;font-size:13px;font-weight:600;color:var(--primary-h);margin-bottom:24px;position:relative;z-index:1}
+.hero-badge .dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
-.hero h1{font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.05;letter-spacing:-.04em;margin-bottom:24px;color:#fff}
-.hero-desc{font-size:18px;color:var(--muted);max-width:600px;margin:0 auto 36px;line-height:1.7}
+.hero h1{font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.05;letter-spacing:-.04em;margin-bottom:24px;color:#fff;position:relative;z-index:1}
+.hero-desc{font-size:18px;color:var(--muted);max-width:600px;margin:0 auto 36px;line-height:1.7;position:relative;z-index:1}
 
 /* INSTALL BOX */
-.install-box{max-width:600px;margin:0 auto 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.install-box{max-width:600px;margin:0 auto 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative;z-index:1;transition:border-color .3s}
+.install-box:hover{border-color:rgba(99,102,241,.3)}
 .install-label{padding:10px 16px 0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
 .install-row{display:flex;align-items:center;padding:8px 16px 12px;gap:12px}
 .install-cmd{flex:1;font-family:var(--mono);font-size:15px;color:var(--primary-h);white-space:nowrap;overflow-x:auto;scrollbar-width:none}
@@ -101,11 +103,9 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .copy-btn{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:var(--primary-h);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .2s;white-space:nowrap}
 .copy-btn:hover{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.35)}
 .copy-btn.copied{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:var(--green)}
-.install-alt{text-align:center;font-size:13px;color:var(--dim);margin-bottom:36px}
-.install-alt code{font-family:var(--mono);color:var(--muted);font-size:12px;background:rgba(99,102,241,.06);padding:2px 8px;border-radius:4px}
 
 /* HERO BUTTONS */
-.hero-btns{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:32px}
+.hero-btns{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:32px;position:relative;z-index:1}
 .btn-hero{padding:14px 32px;font-size:15px;border-radius:12px}
 .btn-glow{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;position:relative;overflow:hidden}
 .btn-glow:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(99,102,241,.4)}
@@ -114,11 +114,11 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
 .btn-outline:hover{border-color:var(--primary);background:rgba(99,102,241,.05)}
 
-/* CLIENTS ROW */
-.clients-row{display:flex;justify-content:center;align-items:center;gap:32px;flex-wrap:wrap;padding-top:16px}
-.client-item{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--dim);transition:color .2s}
-.client-item:hover{color:var(--muted)}
-.client-icon{width:20px;height:20px;opacity:.5}
+/* STAT PILLS */
+.stat-row{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-top:32px;position:relative;z-index:1}
+.stat-pill{display:flex;align-items:center;gap:10px;padding:10px 20px;background:rgba(17,17,24,.6);border:1px solid var(--border2);border-radius:100px;backdrop-filter:blur(8px)}
+.stat-num{font-size:20px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+.stat-label{font-size:12px;color:var(--dim);font-weight:500}
 
 /* SECTIONS */
 .section{padding:100px 0}
@@ -128,12 +128,35 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .section-title{font-size:clamp(28px,4vw,42px);font-weight:800;line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
 .section-sub{font-size:17px;color:var(--muted);max-width:540px;margin:0 auto}
 
+/* LIVE TERMINAL DEMO */
+.terminal-wrap{max-width:720px;margin:0 auto;position:relative}
+.terminal{background:#0c0c14;border:1px solid rgba(99,102,241,.15);border-radius:16px;overflow:hidden;box-shadow:0 20px 80px rgba(0,0,0,.5),0 0 60px rgba(99,102,241,.06)}
+.terminal-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(17,17,24,.8);border-bottom:1px solid rgba(99,102,241,.08)}
+.terminal-dot{width:12px;height:12px;border-radius:50%}
+.terminal-dot.r{background:#ff5f57}.terminal-dot.y{background:#ffbd2e}.terminal-dot.g{background:#28ca41}
+.terminal-title{flex:1;text-align:center;font-size:12px;color:var(--dim);font-family:var(--mono)}
+.terminal-body{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.8;min-height:260px}
+.term-line{opacity:0;transform:translateY(4px);transition:opacity .3s,transform .3s}
+.term-line.visible{opacity:1;transform:translateY(0)}
+.term-prompt{color:var(--green)}
+.term-cmd{color:#e4e4ed}
+.term-comment{color:var(--dim)}
+.term-key{color:var(--primary-h)}
+.term-value{color:var(--amber)}
+.term-string{color:var(--green)}
+.term-result{color:var(--accent)}
+.term-score{color:var(--pink)}
+.term-cursor{display:inline-block;width:8px;height:16px;background:var(--primary);animation:blink 1s infinite;vertical-align:middle;margin-left:2px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
 /* FEATURE GRID */
 .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.feature-card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;transition:all .3s;position:relative;overflow:hidden}
-.feature-card:hover{border-color:rgba(99,102,241,.25);transform:translateY(-3px)}
-.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--accent));opacity:0;transition:opacity .3s}
+.feature-card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;transition:all .3s;position:relative;overflow:hidden;cursor:default}
+.feature-card::before{content:'';position:absolute;inset:0;border-radius:16px;background:radial-gradient(600px circle at var(--mouse-x,50%) var(--mouse-y,50%),rgba(99,102,241,.06),transparent 40%);opacity:0;transition:opacity .3s}
 .feature-card:hover::before{opacity:1}
+.feature-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--accent));opacity:0;transition:opacity .3s}
+.feature-card:hover::after{opacity:1}
+.feature-card:hover{border-color:rgba(99,102,241,.2);transform:translateY(-4px)}
 .feature-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
 .feature-card h3{font-size:16px;font-weight:700;margin-bottom:4px;color:#fff}
 .feature-card .tool-name{font-family:var(--mono);font-size:12px;color:var(--primary-h);margin-bottom:10px;display:inline-block;background:rgba(99,102,241,.08);padding:2px 8px;border-radius:4px}
@@ -143,7 +166,7 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 /* HOW IT WORKS */
 .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:900px;margin:0 auto}
 .step-card{text-align:center;padding:32px 24px;position:relative}
-.step-number{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;margin:0 auto 20px}
+.step-number{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;margin:0 auto 20px;box-shadow:0 4px 20px rgba(99,102,241,.3)}
 .step-card h3{font-size:18px;font-weight:700;margin-bottom:8px;color:#fff}
 .step-cmd{font-family:var(--mono);font-size:13px;color:var(--primary-h);background:rgba(99,102,241,.06);padding:6px 14px;border-radius:8px;display:inline-block;margin-bottom:12px}
 .step-card p{font-size:14px;color:var(--muted);line-height:1.6}
@@ -160,7 +183,9 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:780px;margin:0 auto}
 .pricing-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:36px 28px;position:relative;transition:all .3s;display:flex;flex-direction:column}
 .pricing-card:hover{transform:translateY(-4px)}
-.pricing-card.featured{border:2px solid var(--primary);background:linear-gradient(180deg,rgba(99,102,241,.06) 0%,var(--surface) 40%)}
+.pricing-card.featured{border:2px solid transparent;background-image:linear-gradient(var(--surface),var(--surface)),linear-gradient(135deg,var(--primary),var(--accent),var(--pink));background-origin:border-box;background-clip:padding-box,border-box;animation:borderShift 4s linear infinite}
+@keyframes borderShift{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+.pricing-card.featured::before{content:'';position:absolute;inset:-2px;border-radius:22px;background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));z-index:-1;opacity:.15;filter:blur(20px)}
 .popular-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:12px;font-weight:700;padding:5px 18px;border-radius:100px;white-space:nowrap;letter-spacing:.02em}
 .tier-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:4px}
 .tier-desc{font-size:13px;color:var(--muted);margin-bottom:20px}
@@ -174,7 +199,7 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .tier-features li .check{color:var(--green)}
 .tier-features li .x{color:var(--dim)}
 .tier-features li.dim{color:var(--dim)}
-.tier-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:700;text-align:center;text-decoration:none;display:block;transition:all .2s;font-family:inherit;border:none;cursor:pointer}
+.tier-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:700;text-align:center;display:block;transition:all .2s;font-family:inherit;border:none;cursor:pointer}
 .tier-btn.primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
 .tier-btn.primary:hover{box-shadow:0 8px 30px rgba(99,102,241,.35);transform:translateY(-1px)}
 .tier-btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
@@ -194,22 +219,23 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .compare-table .highlight{color:var(--primary-h);font-weight:600}
 .compare-table .yes{color:var(--green);font-weight:600}
 .compare-table .no{color:var(--dim)}
-.compare-table tbody tr:hover{background:rgba(99,102,241,.03)}
+.compare-table tbody tr{transition:background .2s}
+.compare-table tbody tr:hover{background:rgba(99,102,241,.04)}
 
 /* FAQ */
 .faq-list{max-width:700px;margin:0 auto}
 .faq-item{border-bottom:1px solid var(--border2)}
-.faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 0;background:none;border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left}
+.faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 0;background:none;border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:color .2s}
 .faq-q:hover{color:var(--primary-h)}
 .faq-icon{font-size:20px;transition:transform .3s;flex-shrink:0;margin-left:16px;color:var(--dim)}
-.faq-item.open .faq-icon{transform:rotate(45deg)}
-.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.faq-item.open .faq-icon{transform:rotate(45deg);color:var(--primary)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease}
 .faq-a-inner{padding:0 0 18px;font-size:14px;color:var(--muted);line-height:1.7}
 .faq-item.open .faq-a{max-height:300px}
 
 /* FINAL CTA */
-.final-cta{padding:100px 0;text-align:center;position:relative}
-.final-cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:400px;background:radial-gradient(ellipse,rgba(99,102,241,.1) 0%,transparent 70%);pointer-events:none}
+.final-cta{padding:100px 0;text-align:center;position:relative;overflow:hidden}
+.final-cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,.1) 0%,rgba(168,85,247,.05) 40%,transparent 70%);pointer-events:none}
 .final-cta h2{font-size:clamp(28px,4vw,42px);font-weight:900;line-height:1.1;margin-bottom:16px;position:relative}
 .final-cta p{font-size:17px;color:var(--muted);margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto;position:relative}
 
@@ -218,24 +244,24 @@ footer{border-top:1px solid var(--border2);padding:48px 0 24px}
 .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
 .footer-brand p{font-size:13px;color:var(--dim);line-height:1.6;margin-top:12px;max-width:260px}
 .footer-col h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:12px}
-.footer-col a{display:block;font-size:13px;color:var(--dim);text-decoration:none;padding:3px 0}
+.footer-col a{display:block;font-size:13px;color:var(--dim);padding:3px 0;transition:color .2s}
 .footer-col a:hover{color:var(--primary-h)}
 .footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:24px;border-top:1px solid var(--border2);font-size:12px;color:var(--dim)}
 .footer-bottom-links{display:flex;gap:20px}
-.footer-bottom-links a{color:var(--dim);text-decoration:none}
+.footer-bottom-links a{color:var(--dim)}
 .footer-bottom-links a:hover{color:var(--text)}
 
-/* FADE */
-.fade-in{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
-.fade-in.visible{opacity:1;transform:translateY(0)}
-.delay-1{transition-delay:.1s}.delay-2{transition-delay:.2s}.delay-3{transition-delay:.3s}.delay-4{transition-delay:.4s}
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}.d5{transition-delay:.5s}
 
 /* RESPONSIVE */
-@media(max-width:900px){
+@media(max-width:960px){
+  .cursor-dot,.cursor-ring{display:none!important}
   .feature-grid{grid-template-columns:1fr 1fr}
   .steps-grid{grid-template-columns:1fr}
   .pricing-grid{grid-template-columns:1fr;max-width:400px}
-  .compare-table{min-width:580px}
   .footer-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:768px){
@@ -246,63 +272,58 @@ footer{border-top:1px solid var(--border2);padding:48px 0 24px}
   .feature-grid{grid-template-columns:1fr}
   .footer-grid{grid-template-columns:1fr}
   .footer-bottom{flex-direction:column;gap:12px;text-align:center}
-  .clients-row{gap:20px}
+  .stat-row{gap:16px}
+  .stat-pill{padding:8px 14px}
+  .stat-num{font-size:16px}
 }
 @media(max-width:500px){
   .hero-btns{flex-direction:column;align-items:center}
   .install-cmd{font-size:13px}
 }
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+  .term-line{opacity:1;transform:none}
+}
 </style>
 </head>
 <body>
+
+<!-- SCROLL PROGRESS -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- CUSTOM CURSOR -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
 
 <!-- NAVIGATION -->
 <nav id="nav">
 <div class="nav-inner">
 <a href="/" class="nav-logo"><svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="#6366f1"/><path d="M8 10l4 8 4-8 4 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> NexTool</a>
 <ul class="nav-links">
-<li><a href="/">Products</a></li>
+<li><a href="/">Home</a></li>
 <li><a href="/free-tools/">Free Tools</a></li>
 <li><a href="/blog/">Blog</a></li>
-<li><a href="/#contact">About</a></li>
+<li><a href="#pricing">Pricing</a></li>
 </ul>
 <div style="display:flex;align-items:center;gap:12px">
-<a href="/#contact" class="btn btn-primary" style="padding:8px 16px;font-size:13px;border-radius:8px">Start a Project</a>
+<a href="#pricing" class="btn btn-primary" style="padding:8px 16px;font-size:13px;border-radius:8px">Get Pro</a>
 </div>
-<button class="mobile-toggle" id="mobileToggle" aria-label="Open menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+<button class="mobile-toggle" id="mobileToggle" aria-label="Menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
 </div>
 </nav>
-
-<!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobileMenu">
-<button class="mobile-close" id="mobileClose" aria-label="Close menu">&times;</button>
-<a href="/">Home</a>
-<a href="/free-tools/">Free Tools</a>
-<a href="/blog/">Blog</a>
-<a href="/#contact">Contact</a>
-<a href="#pricing" style="background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Get Pro</a>
-</div>
 
 <main>
 
 <!-- ======================== HERO ======================== -->
 <section class="hero">
+<canvas class="hero-canvas" id="heroCanvas"></canvas>
 <div class="container">
-<div class="hero-badge fade-in"><span class="dot"></span> MCP Server</div>
-<h1 class="fade-in">Smart Memory <span class="gradient-text">MCP</span></h1>
-<p class="hero-desc fade-in delay-1">Your AI agent never forgets again. Persistent memory with TF-IDF semantic search. Works with Claude Code, Cursor, Windsurf, and any MCP-compatible client. Install in 10 seconds. No cloud. No API keys.</p>
+<div class="hero-badge reveal"><span class="dot"></span> Open Source MCP Server</div>
+<h1 class="reveal d1">Your Agent<br>Never <span class="gradient-text">Forgets</span></h1>
+<p class="hero-desc reveal d2">Persistent memory with semantic search for AI agents. Install in 10 seconds. No cloud. No API keys. Works with Claude Code, Cursor, Windsurf, and any MCP client.</p>
 
-<!-- Install box: npx -->
-<div class="install-box fade-in delay-2">
-<div class="install-label">Quick Install</div>
-<div class="install-row">
-<div class="install-cmd"><span class="prompt">$</span> npx smart-memory-mcp</div>
-<button class="copy-btn" data-copy="npx smart-memory-mcp" onclick="copyCmd(this)">Copy</button>
-</div>
-</div>
-
-<!-- Install box: Claude Code -->
-<div class="install-box fade-in delay-2">
+<div class="install-box reveal d2">
 <div class="install-label">Claude Code</div>
 <div class="install-row">
 <div class="install-cmd"><span class="prompt">$</span> claude mcp add memory -- npx smart-memory-mcp</div>
@@ -310,100 +331,133 @@ footer{border-top:1px solid var(--border2);padding:48px 0 24px}
 </div>
 </div>
 
+<div class="install-box reveal d3">
+<div class="install-label">Cursor / Windsurf / Any MCP Client</div>
+<div class="install-row">
+<div class="install-cmd"><span class="prompt">$</span> npx smart-memory-mcp</div>
+<button class="copy-btn" data-copy="npx smart-memory-mcp" onclick="copyCmd(this)">Copy</button>
+</div>
+</div>
+
 <div style="height:12px"></div>
 
-<!-- Buttons -->
-<div class="hero-btns fade-in delay-3">
-<a href="https://github.com/christian140903-sudo/smart-memory-mcp" class="btn btn-hero btn-outline" target="_blank" rel="noopener">View on GitHub</a>
-<a href="#pricing" class="btn btn-hero btn-glow">Get Pro &mdash; $29</a>
+<div class="hero-btns reveal d3">
+<a href="https://github.com/christian140903-sudo/smart-memory-mcp" class="btn btn-hero btn-outline" target="_blank" rel="noopener">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+GitHub
+</a>
+<a href="#pricing" class="btn btn-hero btn-glow magnetic">Get Pro &mdash; $29</a>
 </div>
 
-<!-- Client logos -->
-<div class="clients-row fade-in delay-4">
-<div class="client-item">
-<svg class="client-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-Claude Code
+<div class="stat-row reveal d4">
+<div class="stat-pill">
+<span class="stat-num" data-target="6">0</span>
+<span class="stat-label">MCP Tools</span>
 </div>
-<div class="client-item">
-<svg class="client-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-Cursor
+<div class="stat-pill">
+<span class="stat-num" data-target="0" data-suffix="">100%</span>
+<span class="stat-label">Local</span>
 </div>
-<div class="client-item">
-<svg class="client-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-Windsurf
+<div class="stat-pill">
+<span class="stat-num" data-target="0" data-suffix="s">10</span>
+<span class="stat-label">Install Time</span>
 </div>
-<div class="client-item">
-<svg class="client-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-Any MCP Client
+<div class="stat-pill">
+<span class="stat-num" data-target="0" data-suffix="">$0</span>
+<span class="stat-label">API Costs</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ======================== LIVE TERMINAL DEMO ======================== -->
+<section class="section section-alt" id="demo">
+<div class="container">
+<div class="section-header reveal">
+<div class="section-label">Live Demo</div>
+<h2 class="section-title">See It <span class="gradient-text">In Action</span></h2>
+<p class="section-sub">Watch how your AI agent stores and recalls knowledge with semantic search.</p>
+</div>
+<div class="terminal-wrap reveal d1">
+<div class="terminal">
+<div class="terminal-bar">
+<span class="terminal-dot r"></span>
+<span class="terminal-dot y"></span>
+<span class="terminal-dot g"></span>
+<span class="terminal-title">smart-memory-mcp</span>
+</div>
+<div class="terminal-body" id="terminalBody">
+<!-- Lines injected by JS -->
+</div>
 </div>
 </div>
 </div>
 </section>
 
 <!-- ======================== 6 TOOLS / FEATURES ======================== -->
-<section class="section section-alt" id="features">
+<section class="section" id="features">
 <div class="container">
-<div class="section-header fade-in">
+<div class="section-header reveal">
 <div class="section-label">Features</div>
 <h2 class="section-title">6 Tools. <span class="gradient-text">One Install.</span></h2>
-<p class="section-sub">Everything your AI agent needs to build persistent knowledge, from learning to self-improvement.</p>
+<p class="section-sub">Everything your AI agent needs to build persistent knowledge.</p>
 </div>
-<div class="feature-grid">
+<div class="feature-grid" id="featureGrid">
 
-<div class="feature-card fade-in">
+<div class="feature-card reveal">
 <div class="feature-icon" style="background:rgba(99,102,241,.1)">
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
 </div>
 <span class="tool-name">memory_learn</span>
 <h3>Store Knowledge</h3>
-<p>Store knowledge with categories and tags. Everything persists across sessions. Your agent builds a real knowledge base over time.</p>
+<p>Store anything with categories and tags. Persists across sessions. Your agent builds a real knowledge base over time.</p>
 </div>
 
-<div class="feature-card fade-in delay-1">
+<div class="feature-card reveal d1">
 <div class="feature-icon" style="background:rgba(168,85,247,.1)">
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
 </div>
 <span class="tool-name">memory_recall</span>
 <h3>Semantic Search</h3>
-<p>Search using TF-IDF semantic similarity. Not just keywords -- meaning. Finds relevant memories even when exact terms differ.</p>
+<p>TF-IDF similarity matching. Finds relevant memories by meaning, not just exact keywords. Natural language queries.</p>
 </div>
 
-<div class="feature-card fade-in delay-2">
+<div class="feature-card reveal d2">
 <div class="feature-icon" style="background:rgba(34,197,94,.1)">
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
 </div>
 <span class="tool-name">memory_stats</span>
 <h3>Knowledge Overview</h3>
-<p>Knowledge base overview. Total entries, categories, access patterns. See what your agent has learned at a glance.</p>
+<p>Total entries, categories, access patterns, storage info. See what your agent has learned at a glance.</p>
 </div>
 
-<div class="feature-card fade-in">
+<div class="feature-card reveal">
 <div class="feature-icon" style="background:rgba(236,72,153,.1)">
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
 </div>
 <span class="tool-name">memory_patterns</span>
 <h3>Pattern Detection</h3>
-<p>Detect patterns in your knowledge. Tag frequency, co-occurrence, most accessed entries. Find hidden connections in what your agent knows.</p>
+<p>Detect patterns in your knowledge. Tag frequency, co-occurrence, most accessed entries. Find hidden connections.</p>
 <span class="feature-pro">PRO</span>
 </div>
 
-<div class="feature-card fade-in delay-1">
+<div class="feature-card reveal d1">
 <div class="feature-icon" style="background:rgba(245,158,11,.1)">
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
 </div>
 <span class="tool-name">memory_suggest</span>
 <h3>Proactive Suggestions</h3>
-<p>Proactive suggestions based on context. Warnings, solutions, best practices. Your agent anticipates what you need.</p>
+<p>Context-aware suggestions. Warnings, solutions, best practices. Your agent anticipates what you need.</p>
 <span class="feature-pro">PRO</span>
 </div>
 
-<div class="feature-card fade-in delay-2">
+<div class="feature-card reveal d2">
 <div class="feature-icon" style="background:rgba(99,102,241,.1)">
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
 </div>
 <span class="tool-name">memory_evaluate</span>
 <h3>Quality Feedback</h3>
-<p>Rate entries as useful or not. Improves future recall quality. Your agent learns which memories matter most.</p>
+<p>Rate entries as useful or not. Improves future recall by boosting high-value memories. Self-improving system.</p>
 <span class="feature-pro">PRO</span>
 </div>
 
@@ -412,57 +466,51 @@ Any MCP Client
 </section>
 
 <!-- ======================== HOW IT WORKS ======================== -->
-<section class="section" id="how-it-works">
+<section class="section section-alt" id="how-it-works">
 <div class="container">
-<div class="section-header fade-in">
+<div class="section-header reveal">
 <div class="section-label">Getting Started</div>
 <h2 class="section-title">How It <span class="gradient-text">Works</span></h2>
 </div>
 <div class="steps-grid">
-
-<div class="step-card fade-in">
+<div class="step-card reveal">
 <div class="step-number">1</div>
 <h3>Install</h3>
 <div class="step-cmd">npx smart-memory-mcp</div>
-<p>One command. Zero config. No API keys needed, no cloud accounts, no dependencies to manage.</p>
+<p>One command. Zero config. No API keys, no cloud, no dependencies to manage.</p>
 <span class="step-connector"></span>
 </div>
-
-<div class="step-card fade-in delay-1">
+<div class="step-card reveal d1">
 <div class="step-number">2</div>
 <h3>Learn</h3>
 <div class="step-cmd">memory_learn</div>
-<p>Your agent stores knowledge as it works. Decisions, patterns, solutions, mistakes -- all categorized and tagged automatically.</p>
+<p>Your agent stores knowledge as it works. Decisions, patterns, solutions, mistakes -- all tagged.</p>
 <span class="step-connector"></span>
 </div>
-
-<div class="step-card fade-in delay-2">
+<div class="step-card reveal d2">
 <div class="step-number">3</div>
 <h3>Recall</h3>
 <div class="step-cmd">memory_recall</div>
-<p>Next session, your agent searches its memory. Semantic similarity finds what matters, even across different wording.</p>
+<p>Next session, your agent searches its memory. Semantic similarity finds what matters.</p>
 </div>
-
 </div>
-
-<div class="tech-note fade-in">
-<p>Powered by <strong>TF-IDF with cosine similarity</strong>. Pure JavaScript, zero ML dependencies. Your data stays local as JSON files in <code style="font-family:var(--mono);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px">~/.smart-memory/</code></p>
+<div class="tech-note reveal">
+<p>Powered by <strong>TF-IDF with cosine similarity</strong>. Pure JavaScript, zero ML dependencies. Data stays local as JSON in <code style="font-family:var(--mono);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px">~/.smart-memory/</code></p>
 </div>
 </div>
 </section>
 
 <!-- ======================== PRICING ======================== -->
-<section class="section section-alt" id="pricing">
+<section class="section" id="pricing">
 <div class="container">
-<div class="section-header fade-in">
+<div class="section-header reveal">
 <div class="section-label">Pricing</div>
 <h2 class="section-title">Free vs <span class="gradient-text">Pro</span></h2>
 <p class="section-sub">The free version is genuinely useful. Pro is for power users who want the full system.</p>
 </div>
 <div class="pricing-grid">
 
-<!-- FREE -->
-<div class="pricing-card fade-in">
+<div class="pricing-card reveal">
 <div class="tier-name">Free</div>
 <div class="tier-desc">Open source. MIT License.</div>
 <div class="tier-price"><span class="tier-amount"><span class="currency">$</span>0</span></div>
@@ -481,8 +529,7 @@ Any MCP Client
 <a href="https://github.com/christian140903-sudo/smart-memory-mcp" class="tier-btn secondary" target="_blank" rel="noopener">Install Free</a>
 </div>
 
-<!-- PRO -->
-<div class="pricing-card featured fade-in delay-1">
+<div class="pricing-card featured reveal d1">
 <div class="popular-badge">Recommended</div>
 <div class="tier-name">Pro</div>
 <div class="tier-desc">Full power. Pay once, own forever.</div>
@@ -507,7 +554,7 @@ Any MCP Client
 <input type="hidden" name="return" value="https://nextool.app/memory-pro.html">
 <input type="hidden" name="cancel_return" value="https://nextool.app/memory.html">
 <input type="hidden" name="no_shipping" value="1">
-<button type="submit" class="tier-btn primary">Get Pro &mdash; $29</button>
+<button type="submit" class="tier-btn primary magnetic">Get Pro &mdash; $29</button>
 </form>
 </div>
 
@@ -516,74 +563,27 @@ Any MCP Client
 </section>
 
 <!-- ======================== COMPARISON TABLE ======================== -->
-<section class="section" id="compare">
+<section class="section section-alt" id="compare">
 <div class="container">
-<div class="section-header fade-in">
+<div class="section-header reveal">
 <div class="section-label">Comparison</div>
 <h2 class="section-title">Smart Memory vs <span class="gradient-text">Alternatives</span></h2>
-<p class="section-sub">The only MCP-native memory system that works with every client. No cloud, no lock-in.</p>
+<p class="section-sub">The only MCP-native memory system that works with every client.</p>
 </div>
-<div class="table-wrap fade-in">
+<div class="table-wrap reveal">
 <table class="compare-table">
 <thead>
-<tr>
-<th>Feature</th>
-<th class="highlight">Smart Memory</th>
-<th>claude-mem</th>
-<th>mem0</th>
-<th>Zep</th>
-</tr>
+<tr><th>Feature</th><th class="highlight">Smart Memory</th><th>claude-mem</th><th>mem0</th><th>Zep</th></tr>
 </thead>
 <tbody>
-<tr>
-<td>MCP Native</td>
-<td class="yes">Yes</td>
-<td class="no">Plugin</td>
-<td class="no">SDK</td>
-<td class="no">SDK</td>
-</tr>
-<tr>
-<td>Any MCP Client</td>
-<td class="yes">Yes</td>
-<td class="no">Claude only</td>
-<td class="no">Python</td>
-<td class="no">Python</td>
-</tr>
-<tr>
-<td>No Cloud Required</td>
-<td class="yes">Yes</td>
-<td class="yes">Yes</td>
-<td class="no">No</td>
-<td class="no">No</td>
-</tr>
-<tr>
-<td>No API Key</td>
-<td class="yes">Yes</td>
-<td class="yes">Yes</td>
-<td class="no">No</td>
-<td class="no">No</td>
-</tr>
-<tr>
-<td>Semantic Search</td>
-<td class="yes">TF-IDF</td>
-<td class="no">No</td>
-<td>Embeddings</td>
-<td>Embeddings</td>
-</tr>
-<tr>
-<td>Pattern Detection</td>
-<td class="yes">Yes</td>
-<td class="no">No</td>
-<td class="no">No</td>
-<td class="no">No</td>
-</tr>
-<tr>
-<td>Proactive Suggestions</td>
-<td class="yes">Yes</td>
-<td class="no">No</td>
-<td class="no">No</td>
-<td class="no">No</td>
-</tr>
+<tr><td>MCP Native</td><td class="yes">Yes</td><td class="no">Plugin</td><td class="no">SDK</td><td class="no">SDK</td></tr>
+<tr><td>Any MCP Client</td><td class="yes">Yes</td><td class="no">Claude only</td><td class="no">Python</td><td class="no">Python</td></tr>
+<tr><td>No Cloud Required</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
+<tr><td>No API Key</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
+<tr><td>Semantic Search</td><td class="yes">TF-IDF</td><td class="no">No</td><td>Embeddings</td><td>Embeddings</td></tr>
+<tr><td>Pattern Detection</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+<tr><td>Proactive Suggestions</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+<tr><td>Zero Dependencies</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
 </tbody>
 </table>
 </div>
@@ -591,44 +591,37 @@ Any MCP Client
 </section>
 
 <!-- ======================== FAQ ======================== -->
-<section class="section section-alt" id="faq">
+<section class="section" id="faq">
 <div class="container">
-<div class="section-header fade-in">
+<div class="section-header reveal">
 <div class="section-label">FAQ</div>
 <h2 class="section-title">Common <span class="gradient-text">Questions</span></h2>
 </div>
-<div class="faq-list fade-in">
-
+<div class="faq-list reveal">
 <div class="faq-item">
 <button class="faq-q">What MCP clients does Smart Memory work with?<span class="faq-icon">+</span></button>
-<div class="faq-a"><div class="faq-a-inner">Any MCP-compatible client: Claude Code, Cursor, Windsurf, Cline, and more. If it supports the Model Context Protocol, Smart Memory works out of the box. No adapters, no plugins, no configuration.</div></div>
+<div class="faq-a"><div class="faq-a-inner">Any MCP-compatible client: Claude Code, Cursor, Windsurf, Cline, and more. If it supports the Model Context Protocol, Smart Memory works out of the box.</div></div>
 </div>
-
 <div class="faq-item">
 <button class="faq-q">Where is my data stored?<span class="faq-icon">+</span></button>
-<div class="faq-a"><div class="faq-a-inner">Locally on your machine in <code>~/.smart-memory/</code> as JSON files. Nothing leaves your computer. No cloud sync, no API calls, no telemetry. Your knowledge base is entirely yours.</div></div>
+<div class="faq-a"><div class="faq-a-inner">Locally on your machine in <code style="font-family:var(--mono);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px">~/.smart-memory/</code> as JSON files. Nothing leaves your computer. No cloud, no API calls, no telemetry.</div></div>
 </div>
-
 <div class="faq-item">
 <button class="faq-q">What's the difference between Free and Pro?<span class="faq-icon">+</span></button>
-<div class="faq-a"><div class="faq-a-inner">Free includes the 3 core tools (memory_learn, memory_recall, memory_stats) with unlimited entries and 100% local storage under the MIT license. Pro adds memory_patterns (pattern detection), memory_suggest (proactive suggestions), memory_evaluate (quality feedback), plus multi-database support, export/import, and auto-categorization.</div></div>
+<div class="faq-a"><div class="faq-a-inner">Free includes the 3 core tools (memory_learn, memory_recall, memory_stats) with unlimited entries. Pro adds memory_patterns (pattern detection), memory_suggest (proactive suggestions), memory_evaluate (quality feedback), plus multi-database support, export/import, and auto-categorization.</div></div>
 </div>
-
 <div class="faq-item">
 <button class="faq-q">Can I use multiple knowledge bases?<span class="faq-icon">+</span></button>
-<div class="faq-a"><div class="faq-a-inner">Yes! Set the <code>SMART_MEMORY_DB</code> environment variable to create separate databases for different projects. Each database is fully independent with its own entries, categories, and tags. Perfect for keeping work and personal projects separate.</div></div>
+<div class="faq-a"><div class="faq-a-inner">Yes! Set the <code style="font-family:var(--mono);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px">SMART_MEMORY_DB</code> environment variable to create separate databases for different projects. Each database is fully independent.</div></div>
 </div>
-
 <div class="faq-item">
 <button class="faq-q">Does it require an internet connection?<span class="faq-icon">+</span></button>
-<div class="faq-a"><div class="faq-a-inner">No. After the initial <code>npx</code> install (which downloads the package), Smart Memory runs entirely offline. All search, storage, and pattern detection happens locally on your machine using pure JavaScript. Zero external API calls.</div></div>
+<div class="faq-a"><div class="faq-a-inner">No. After the initial <code style="font-family:var(--mono);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px">npx</code> install, Smart Memory runs entirely offline. All search and storage happens locally using pure JavaScript.</div></div>
 </div>
-
 <div class="faq-item">
-<button class="faq-q">How does the semantic search work without ML models?<span class="faq-icon">+</span></button>
-<div class="faq-a"><div class="faq-a-inner">Smart Memory uses TF-IDF (Term Frequency-Inverse Document Frequency) with cosine similarity. It's the same algorithm used by search engines for decades -- proven, fast, and effective. It understands which terms are most important in your query and finds entries with similar meaning, not just exact keyword matches. No GPU required, no model downloads, instant results.</div></div>
+<button class="faq-q">How does semantic search work without ML models?<span class="faq-icon">+</span></button>
+<div class="faq-a"><div class="faq-a-inner">Smart Memory uses TF-IDF (Term Frequency-Inverse Document Frequency) with cosine similarity. The same algorithm used by search engines for decades -- proven, fast, effective. No GPU required, no model downloads, instant results.</div></div>
 </div>
-
 </div>
 </div>
 </section>
@@ -636,9 +629,9 @@ Any MCP Client
 <!-- ======================== FINAL CTA ======================== -->
 <section class="final-cta">
 <div class="container">
-<h2 class="fade-in">Your Agent Deserves<br><span class="gradient-text">A Memory.</span></h2>
-<p class="fade-in delay-1">Install in 10 seconds. Free and open source. Pro for $29 one-time if you want the full system.</p>
-<div class="hero-btns fade-in delay-2" style="justify-content:center">
+<h2 class="reveal">Your Agent Deserves<br><span class="gradient-text">A Memory.</span></h2>
+<p class="reveal d1">Install in 10 seconds. Free and open source. Pro for $29 if you want the full system.</p>
+<div class="hero-btns reveal d2" style="justify-content:center">
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" class="paypal-form" style="display:inline">
 <input type="hidden" name="cmd" value="_xclick">
 <input type="hidden" name="business" value="christianjunbucher@gmail.com">
@@ -648,7 +641,7 @@ Any MCP Client
 <input type="hidden" name="return" value="https://nextool.app/memory-pro.html">
 <input type="hidden" name="cancel_return" value="https://nextool.app/memory.html">
 <input type="hidden" name="no_shipping" value="1">
-<button type="submit" class="btn btn-hero btn-glow">Get Pro &mdash; $29</button>
+<button type="submit" class="btn btn-hero btn-glow magnetic">Get Pro &mdash; $29</button>
 </form>
 <a href="https://github.com/christian140903-sudo/smart-memory-mcp" class="btn btn-hero btn-outline" target="_blank" rel="noopener">View on GitHub</a>
 </div>
@@ -663,13 +656,13 @@ Any MCP Client
 <div class="footer-grid">
 <div class="footer-brand">
 <a href="/" class="nav-logo" style="margin-bottom:4px"><svg viewBox="0 0 28 28" fill="none" width="28" height="28"><rect width="28" height="28" rx="6" fill="#6366f1"/><path d="M8 10l4 8 4-8 4 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> NexTool</a>
-<p>Developer tools and MCP servers. Built with AI. Your data stays on your device.</p>
+<p>AI-native development studio. MCP servers and developer tools built by Claude Opus 4.6.</p>
 </div>
 <div class="footer-col">
 <h4>Product</h4>
 <a href="/memory.html">Smart Memory MCP</a>
-<a href="/pro.html">NexTool Pro</a>
 <a href="/free-tools/">Free Tools</a>
+<a href="/#contact">Custom Projects</a>
 </div>
 <div class="footer-col">
 <h4>Resources</h4>
@@ -686,44 +679,209 @@ Any MCP Client
 </div>
 <div class="footer-bottom">
 <span>&copy; 2026 NexTool. All rights reserved.</span>
-<div class="footer-bottom-links"><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/imprint.html">Imprint</a></div>
+<div class="footer-bottom-links"><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a></div>
 </div>
 </div>
 </footer>
 
 <script>
-/* Copy command */
+/* ═══════════ HERO CANVAS — NEURAL NETWORK ═══════════ */
+(function(){
+  var c=document.getElementById('heroCanvas'),ctx=c.getContext('2d');
+  var particles=[],mouse={x:0,y:0},W,H;
+  var isMobile=window.innerWidth<960;
+  var COUNT=isMobile?30:60;
+  var CONNECT=isMobile?100:150;
+
+  function resize(){W=c.width=c.offsetWidth;H=c.height=c.offsetHeight}
+  resize();window.addEventListener('resize',resize);
+
+  function Particle(){
+    this.x=Math.random()*W;
+    this.y=Math.random()*H;
+    this.vx=(Math.random()-.5)*.4;
+    this.vy=(Math.random()-.5)*.4;
+    this.r=Math.random()*2+1;
+  }
+  for(var i=0;i<COUNT;i++)particles.push(new Particle());
+
+  c.addEventListener('mousemove',function(e){var r=c.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+
+      // Mouse repulsion
+      var dx=p.x-mouse.x,dy=p.y-mouse.y,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<120){var f=(120-dist)/120*.02;p.vx+=dx*f;p.vy+=dy*f}
+
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(99,102,241,'+(0.3+p.r/4)+')';ctx.fill();
+
+      for(var j=i+1;j<particles.length;j++){
+        var q=particles[j];
+        var ddx=p.x-q.x,ddy=p.y-q.y,dd=Math.sqrt(ddx*ddx+ddy*ddy);
+        if(dd<CONNECT){
+          ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);
+          ctx.strokeStyle='rgba(99,102,241,'+(1-dd/CONNECT)*.15+')';
+          ctx.lineWidth=.5;ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ═══════════ CUSTOM CURSOR ═══════════ */
+(function(){
+  if(window.innerWidth<960)return;
+  var dot=document.getElementById('cursorDot'),ring=document.getElementById('cursorRing');
+  var mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY});
+  (function loop(){
+    rx+=(mx-rx)*.15;ry+=(my-ry)*.15;
+    dot.style.transform='translate('+(mx-3)+'px,'+(my-3)+'px)';
+    ring.style.transform='translate('+(rx-18)+'px,'+(ry-18)+'px)';
+    requestAnimationFrame(loop);
+  })();
+  document.querySelectorAll('a,button,.feature-card,.pricing-card,.install-box').forEach(function(el){
+    el.addEventListener('mouseenter',function(){ring.classList.add('hover')});
+    el.addEventListener('mouseleave',function(){ring.classList.remove('hover')});
+  });
+})();
+
+/* ═══════════ SCROLL PROGRESS ═══════════ */
+window.addEventListener('scroll',function(){
+  var h=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById('scrollProgress').style.width=(window.scrollY/h*100)+'%';
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>20);
+});
+
+/* ═══════════ REVEAL ON SCROLL ═══════════ */
+var revealObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(function(el){revealObs.observe(el)});
+
+/* ═══════════ FEATURE CARD GLOW ═══════════ */
+document.getElementById('featureGrid').addEventListener('mousemove',function(e){
+  document.querySelectorAll('.feature-card').forEach(function(card){
+    var r=card.getBoundingClientRect();
+    card.style.setProperty('--mouse-x',(e.clientX-r.left)+'px');
+    card.style.setProperty('--mouse-y',(e.clientY-r.top)+'px');
+  });
+});
+
+/* ═══════════ MAGNETIC BUTTONS ═══════════ */
+document.querySelectorAll('.magnetic').forEach(function(btn){
+  btn.addEventListener('mousemove',function(e){
+    var r=btn.getBoundingClientRect();
+    var x=e.clientX-r.left-r.width/2;
+    var y=e.clientY-r.top-r.height/2;
+    btn.style.transform='translate('+x*.2+'px,'+y*.2+'px)';
+  });
+  btn.addEventListener('mouseleave',function(){btn.style.transform=''});
+});
+
+/* ═══════════ TERMINAL DEMO ═══════════ */
+(function(){
+  var lines=[
+    {html:'<span class="term-comment">// Store knowledge</span>'},
+    {html:'<span class="term-prompt">$</span> <span class="term-cmd">memory_learn</span>'},
+    {html:'  <span class="term-key">content:</span> <span class="term-string">"React useEffect cleanup runs before unmount"</span>'},
+    {html:'  <span class="term-key">category:</span> <span class="term-value">"pattern"</span>'},
+    {html:'  <span class="term-key">tags:</span> <span class="term-value">["react", "hooks"]</span>'},
+    {html:'<span class="term-result">  Stored #1 [pattern] 1 entry total</span>'},
+    {html:''},
+    {html:'<span class="term-comment">// Recall with semantic search</span>'},
+    {html:'<span class="term-prompt">$</span> <span class="term-cmd">memory_recall</span>'},
+    {html:'  <span class="term-key">query:</span> <span class="term-string">"how to clean up effects in React"</span>'},
+    {html:'<span class="term-result">  #1</span> <span class="term-score">score: 0.847</span>'},
+    {html:'  <span class="term-string">"React useEffect cleanup runs before unmount"</span>'},
+    {html:'  <span class="term-value">[pattern] react, hooks</span>'},
+  ];
+  var body=document.getElementById('terminalBody');
+  var started=false;
+
+  function runDemo(){
+    if(started)return;started=true;
+    body.innerHTML='';
+    lines.forEach(function(l,i){
+      var div=document.createElement('div');
+      div.className='term-line';
+      div.innerHTML=l.html||(i===lines.length-1?'<span class="term-cursor"></span>':'&nbsp;');
+      body.appendChild(div);
+      setTimeout(function(){div.classList.add('visible')},i*300+200);
+    });
+    // Add cursor at the end
+    setTimeout(function(){
+      var cur=document.createElement('div');
+      cur.className='term-line visible';
+      cur.innerHTML='<span class="term-prompt">$</span> <span class="term-cursor"></span>';
+      body.appendChild(cur);
+    },lines.length*300+500);
+  }
+
+  var termObs=new IntersectionObserver(function(entries){
+    if(entries[0].isIntersecting)runDemo();
+  },{threshold:.3});
+  termObs.observe(body);
+})();
+
+/* ═══════════ COPY COMMAND ═══════════ */
 function copyCmd(btn){
-  var text=btn.getAttribute('data-copy');
-  navigator.clipboard.writeText(text).then(function(){
-    btn.textContent='Copied!';
-    btn.classList.add('copied');
+  navigator.clipboard.writeText(btn.getAttribute('data-copy')).then(function(){
+    btn.textContent='Copied!';btn.classList.add('copied');
     setTimeout(function(){btn.textContent='Copy';btn.classList.remove('copied')},2000);
   });
 }
 
-/* Fade-in observer */
-var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
-document.querySelectorAll('.fade-in').forEach(function(el){obs.observe(el)});
+/* ═══════════ FAQ ACCORDION ═══════════ */
+document.querySelectorAll('.faq-q').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var item=btn.parentElement;
+    var wasOpen=item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(function(i){i.classList.remove('open')});
+    if(!wasOpen)item.classList.add('open');
+  });
+});
 
-/* Nav scroll */
-window.addEventListener('scroll',function(){document.getElementById('nav').classList.toggle('scrolled',window.scrollY>20)});
+/* ═══════════ SMOOTH SCROLL ═══════════ */
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var t=document.querySelector(this.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})}
+  });
+});
 
-/* FAQ accordion */
-document.querySelectorAll('.faq-q').forEach(function(btn){btn.addEventListener('click',function(){var item=btn.parentElement;var wasOpen=item.classList.contains('open');document.querySelectorAll('.faq-item').forEach(function(i){i.classList.remove('open')});if(!wasOpen)item.classList.add('open')})});
-
-/* Smooth scroll */
-document.querySelectorAll('a[href^="#"]').forEach(function(a){a.addEventListener('click',function(e){var t=document.querySelector(this.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})}})});
-
-/* Mobile menu */
-var toggle=document.getElementById('mobileToggle');
-var menu=document.getElementById('mobileMenu');
-var close=document.getElementById('mobileClose');
-if(toggle&&menu){
-  toggle.addEventListener('click',function(){menu.classList.add('open')});
-  close.addEventListener('click',function(){menu.classList.remove('open')});
-  menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){menu.classList.remove('open')})});
-}
+/* ═══════════ MOBILE MENU ═══════════ */
+(function(){
+  var toggle=document.getElementById('mobileToggle');
+  if(!toggle)return;
+  var overlay=document.createElement('div');
+  overlay.style.cssText='display:none;position:fixed;inset:0;background:rgba(5,5,8,.98);backdrop-filter:blur(24px);z-index:999;flex-direction:column;align-items:center;justify-content:center;gap:24px';
+  var links=['/','/free-tools/','/blog/','#pricing'];
+  var labels=['Home','Free Tools','Blog','Pricing'];
+  links.forEach(function(href,i){
+    var a=document.createElement('a');
+    a.href=href;a.textContent=labels[i];
+    a.style.cssText='font-size:24px;font-weight:700;color:#e4e4ed;text-decoration:none';
+    a.addEventListener('click',function(){overlay.style.display='none'});
+    overlay.appendChild(a);
+  });
+  var closeBtn=document.createElement('button');
+  closeBtn.innerHTML='&times;';
+  closeBtn.style.cssText='position:absolute;top:20px;right:24px;background:none;border:none;color:#e4e4ed;font-size:32px;cursor:pointer';
+  closeBtn.addEventListener('click',function(){overlay.style.display='none'});
+  overlay.appendChild(closeBtn);
+  document.body.appendChild(overlay);
+  toggle.addEventListener('click',function(){overlay.style.display='flex'});
+})();
 </script>
 <script src="/js/analytics-lite.js" defer></script>
 </body>
