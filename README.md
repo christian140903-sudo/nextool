@@ -1,46 +1,47 @@
-# NexTool — AI Automation Studio
+# NexTool — 150+ Free Developer Tools
 
-**150+ Free Developer Tools** — Browser-based, no signup, no tracking.
+**Browser-based tools for developers and designers. No signup, no tracking, no ads.**
 
 [Live at nextool.app](https://nextool.app)
 
 ---
 
-## Services
+## What is NexTool?
 
-| Service | Starting At | What You Get |
-|---------|------------|--------------|
-| **Websites** | $5 | Landing pages, portfolios, business sites, full web apps |
-| **Chatbots** | $5 | AI chatbots for customer support, sales, FAQ |
-| **Automations** | $5 | n8n/Zapier workflows, email sequences, data pipelines |
-| **Content** | $5 | Blog posts, social media content, copywriting |
-| **Video** | $49 | Explainer videos, social clips, AI-generated content |
-| **Data** | $5 | Scraping, analysis, dashboards, reports |
+NexTool is a collection of 150+ free online tools that run entirely in your browser. Your data never leaves your device.
 
-## How It Works
+### Tool Categories
 
-1. **Describe** your project via WhatsApp or the website
-2. **Get a quote** within minutes
-3. **Pay** via PayPal
-4. **Receive** your completed project with revisions included
+| Category | Examples |
+|----------|----------|
+| **Code Formatters** | JSON, CSS, HTML, JavaScript, SQL, XML, YAML |
+| **Generators** | Password, UUID, QR Code, Lorem Ipsum, Favicon, Barcode |
+| **Converters** | JSON↔CSV, JSON↔XML, HTML↔Markdown, Base64, Binary |
+| **CSS Tools** | Flexbox Playground, Grid Generator, Animation, Gradient, Box Shadow |
+| **Image Tools** | Compressor, Resizer, Color Palette from Image, Placeholder |
+| **SEO Tools** | Meta Tag Generator, OG Preview, Schema Markup, Sitemap Generator |
+| **Dev Utilities** | Regex Tester, Diff Checker, JWT Decoder, API Builder, cURL to Code |
+| **Calculators** | Color Contrast, Percentage, Date, Subnet, Loan, BMI |
+| **Productivity** | Pomodoro Timer, Notepad, Whiteboard, Typing Test, Stopwatch |
+
+## NexTool Pro — $29
+
+One-time payment. No subscription.
+
+- Clean output (no branding on exports)
+- Enhanced tool features
+- Unlimited workspace saves
+- All future updates included
+- 30-day money-back guarantee
+
+[Get NexTool Pro](https://nextool.app/pro.html)
 
 ## Tech Stack
 
-- Single-page application (HTML/CSS/JS)
+- Static HTML/CSS/JS (no framework)
 - Hosted on GitHub Pages
-- PayPal checkout integration
-- WhatsApp AI bot for customer communication
-
-## Features
-
-- Niche-specific landing pages for targeted industries
-- Chrome extension with 20+ AI tools
-- Interactive pricing calculator
-- Mobile-responsive design
-
-## Live Demo
-
-Visit [nextool.app](https://nextool.app) to see it in action.
+- 100% client-side processing
+- PayPal payment integration
 
 ## License
 
