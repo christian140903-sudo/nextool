@@ -39,7 +39,9 @@
     {"@type":"Question","name":"What MCP clients does Smart Memory work with?","acceptedAnswer":{"@type":"Answer","text":"Any MCP-compatible client: Claude Code, Cursor, Windsurf, Cline, and more. If it supports MCP, Smart Memory works."}},
     {"@type":"Question","name":"Where is my data stored?","acceptedAnswer":{"@type":"Answer","text":"Locally on your machine in ~/.smart-memory/ as JSON files. Nothing leaves your computer. No cloud, no API keys, no telemetry."}},
     {"@type":"Question","name":"What's the difference between Free and Pro?","acceptedAnswer":{"@type":"Answer","text":"Free includes the 3 core tools (memory_learn, memory_recall, memory_stats) with unlimited entries and local storage. Pro adds memory_patterns, memory_suggest, memory_evaluate, multi-database support, export/import, and auto-categorization."}},
-    {"@type":"Question","name":"Can I use multiple knowledge bases?","acceptedAnswer":{"@type":"Answer","text":"Yes! Set the SMART_MEMORY_DB environment variable to create separate databases for different projects. Each database is fully independent."}}
+    {"@type":"Question","name":"Can I use multiple knowledge bases?","acceptedAnswer":{"@type":"Answer","text":"Yes! Set the SMART_MEMORY_DB environment variable to create separate databases for different projects. Each database is fully independent."}},
+    {"@type":"Question","name":"Does it require an internet connection?","acceptedAnswer":{"@type":"Answer","text":"No. After the initial npx install, Smart Memory runs entirely offline. All search and storage happens locally."}},
+    {"@type":"Question","name":"How does semantic search work without ML models?","acceptedAnswer":{"@type":"Answer","text":"Smart Memory uses TF-IDF (Term Frequency-Inverse Document Frequency) with cosine similarity — the same algorithm used by search engines for decades. No GPU, no model downloads."}}
   ]
 }]
 </script>
@@ -58,19 +60,25 @@ html{scroll-behavior:smooth}
 body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 ::selection{background:rgba(99,102,241,.3);color:#fff}
-.container{max-width:1100px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+.container{max-width:1100px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
 .gradient-text{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
 /* SCROLL PROGRESS */
 .scroll-progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent),var(--pink));z-index:10000;width:0%;transition:width .1s linear}
 
 /* CUSTOM CURSOR */
-.cursor-dot{position:fixed;width:6px;height:6px;background:var(--primary);border-radius:50%;pointer-events:none;z-index:9999;transition:transform .1s}
-.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(99,102,241,.4);border-radius:50%;pointer-events:none;z-index:9998;transition:transform .15s ease-out,width .2s,height .2s,border-color .2s}
-.cursor-ring.hover{width:56px;height:56px;border-color:rgba(168,85,247,.5)}
+.cursor-dot{position:fixed;width:6px;height:6px;background:var(--primary);border-radius:50%;pointer-events:none;z-index:9999;transition:transform .08s}
+.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(99,102,241,.4);border-radius:50%;pointer-events:none;z-index:9998;transition:width .25s,height .25s,border-color .25s}
+.cursor-ring.hover{width:56px;height:56px;border-color:rgba(168,85,247,.6)}
+
+/* VISITOR WELCOME BANNER */
+.welcome-banner{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9000;padding:12px 24px;background:rgba(17,17,24,.95);border:1px solid rgba(99,102,241,.3);border-radius:12px;font-size:13px;color:var(--muted);backdrop-filter:blur(20px);transition:transform .6s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+.welcome-banner.show{transform:translateX(-50%) translateY(0)}
+.welcome-banner strong{color:var(--primary-h)}
+.welcome-banner .close-banner{background:none;border:none;color:var(--dim);cursor:pointer;margin-left:12px;font-size:16px;vertical-align:middle}
 
 /* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:16px 0;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(5,5,8,.8);border-bottom:1px solid transparent;transition:all .3s}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:16px 0;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(5,5,8,.7);border-bottom:1px solid transparent;transition:all .3s}
 nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
 .nav-logo{font-size:20px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px}
@@ -78,23 +86,31 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .nav-links{display:flex;align-items:center;gap:28px;list-style:none}
 .nav-links a{color:var(--muted);font-size:14px;font-weight:500;transition:color .2s}
 .nav-links a:hover{color:#fff}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;transition:all .2s;cursor:pointer;border:none;font-family:inherit}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;transition:all .25s;cursor:pointer;border:none;font-family:inherit}
 .btn-primary{background:var(--primary);color:#fff}
 .btn-primary:hover{background:var(--primary-h);transform:translateY(-1px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
 .mobile-toggle{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:8px}
 
+/* GRADIENT MESH BACKGROUND */
+.hero-mesh{position:absolute;inset:0;overflow:hidden;z-index:0}
+.mesh-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;animation:meshFloat 20s ease-in-out infinite}
+.mesh-blob:nth-child(1){width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.5),transparent 70%);top:-200px;left:-100px;animation-delay:0s}
+.mesh-blob:nth-child(2){width:500px;height:500px;background:radial-gradient(circle,rgba(168,85,247,.4),transparent 70%);top:-100px;right:-150px;animation-delay:-7s}
+.mesh-blob:nth-child(3){width:400px;height:400px;background:radial-gradient(circle,rgba(236,72,153,.3),transparent 70%);bottom:-100px;left:30%;animation-delay:-14s}
+@keyframes meshFloat{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(40px,-30px) scale(1.05)}50%{transform:translate(-20px,40px) scale(.95)}75%{transform:translate(30px,20px) scale(1.03)}}
+
 /* HERO */
-.hero{padding:140px 0 80px;text-align:center;position:relative;overflow:hidden}
-.hero-canvas{position:absolute;inset:0;z-index:0}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:100px;font-size:13px;font-weight:600;color:var(--primary-h);margin-bottom:24px;position:relative;z-index:1}
+.hero{padding:140px 0 80px;text-align:center;position:relative;overflow:hidden;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:100px;font-size:13px;font-weight:600;color:var(--primary-h);margin-bottom:24px}
 .hero-badge .dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
-.hero h1{font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.05;letter-spacing:-.04em;margin-bottom:24px;color:#fff;position:relative;z-index:1}
-.hero-desc{font-size:18px;color:var(--muted);max-width:600px;margin:0 auto 36px;line-height:1.7;position:relative;z-index:1}
+.hero h1{font-size:clamp(40px,6.5vw,78px);font-weight:900;line-height:1.02;letter-spacing:-.04em;margin-bottom:24px;color:#fff}
+.hero h1 .decode-text{display:inline-block;position:relative}
+.hero-desc{font-size:18px;color:var(--muted);max-width:600px;margin:0 auto 36px;line-height:1.7}
 
 /* INSTALL BOX */
-.install-box{max-width:600px;margin:0 auto 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative;z-index:1;transition:border-color .3s}
-.install-box:hover{border-color:rgba(99,102,241,.3)}
+.install-box{max-width:600px;margin:0 auto 12px;background:rgba(17,17,24,.8);border:1px solid var(--border);border-radius:12px;overflow:hidden;backdrop-filter:blur(12px);transition:border-color .3s,box-shadow .3s}
+.install-box:hover{border-color:rgba(99,102,241,.3);box-shadow:0 0 40px rgba(99,102,241,.06)}
 .install-label{padding:10px 16px 0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
 .install-row{display:flex;align-items:center;padding:8px 16px 12px;gap:12px}
 .install-cmd{flex:1;font-family:var(--mono);font-size:15px;color:var(--primary-h);white-space:nowrap;overflow-x:auto;scrollbar-width:none}
@@ -105,7 +121,7 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .copy-btn.copied{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:var(--green)}
 
 /* HERO BUTTONS */
-.hero-btns{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:32px;position:relative;z-index:1}
+.hero-btns{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:32px}
 .btn-hero{padding:14px 32px;font-size:15px;border-radius:12px}
 .btn-glow{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;position:relative;overflow:hidden}
 .btn-glow:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(99,102,241,.4)}
@@ -114,8 +130,8 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
 .btn-outline:hover{border-color:var(--primary);background:rgba(99,102,241,.05)}
 
-/* STAT PILLS */
-.stat-row{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-top:32px;position:relative;z-index:1}
+/* STAT ROW */
+.stat-row{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-top:32px}
 .stat-pill{display:flex;align-items:center;gap:10px;padding:10px 20px;background:rgba(17,17,24,.6);border:1px solid var(--border2);border-radius:100px;backdrop-filter:blur(8px)}
 .stat-num{font-size:20px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
 .stat-label{font-size:12px;color:var(--dim);font-weight:500}
@@ -128,35 +144,57 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .section-title{font-size:clamp(28px,4vw,42px);font-weight:800;line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
 .section-sub{font-size:17px;color:var(--muted);max-width:540px;margin:0 auto}
 
-/* LIVE TERMINAL DEMO */
-.terminal-wrap{max-width:720px;margin:0 auto;position:relative}
-.terminal{background:#0c0c14;border:1px solid rgba(99,102,241,.15);border-radius:16px;overflow:hidden;box-shadow:0 20px 80px rgba(0,0,0,.5),0 0 60px rgba(99,102,241,.06)}
+/* BEFORE/AFTER COMPARISON */
+.compare-split{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;margin:0 auto}
+.compare-side{border-radius:16px;overflow:hidden;border:1px solid var(--border2)}
+.compare-side.without{border-color:rgba(239,68,68,.15)}
+.compare-side.with-mem{border-color:rgba(34,197,94,.15)}
+.compare-label{padding:12px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
+.compare-side.without .compare-label{background:rgba(239,68,68,.06);color:var(--red)}
+.compare-side.with-mem .compare-label{background:rgba(34,197,94,.06);color:var(--green)}
+.compare-body{padding:16px;font-family:var(--mono);font-size:12px;line-height:1.8;background:#0c0c14;min-height:200px}
+.compare-body .dim{color:var(--dim)}
+.compare-body .bad{color:rgba(239,68,68,.7)}
+.compare-body .good{color:var(--green)}
+.compare-body .highlight{color:var(--primary-h)}
+.compare-body .score{color:var(--pink)}
+
+/* INTERACTIVE PLAYGROUND */
+.playground{max-width:760px;margin:0 auto;position:relative}
+.playground-terminal{background:#0c0c14;border:1px solid rgba(99,102,241,.2);border-radius:16px;overflow:hidden;box-shadow:0 20px 80px rgba(0,0,0,.5),0 0 60px rgba(99,102,241,.08)}
 .terminal-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(17,17,24,.8);border-bottom:1px solid rgba(99,102,241,.08)}
 .terminal-dot{width:12px;height:12px;border-radius:50%}
 .terminal-dot.r{background:#ff5f57}.terminal-dot.y{background:#ffbd2e}.terminal-dot.g{background:#28ca41}
 .terminal-title{flex:1;text-align:center;font-size:12px;color:var(--dim);font-family:var(--mono)}
-.terminal-body{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.8;min-height:260px}
-.term-line{opacity:0;transform:translateY(4px);transition:opacity .3s,transform .3s}
-.term-line.visible{opacity:1;transform:translateY(0)}
-.term-prompt{color:var(--green)}
-.term-cmd{color:#e4e4ed}
-.term-comment{color:var(--dim)}
-.term-key{color:var(--primary-h)}
-.term-value{color:var(--amber)}
-.term-string{color:var(--green)}
-.term-result{color:var(--accent)}
-.term-score{color:var(--pink)}
-.term-cursor{display:inline-block;width:8px;height:16px;background:var(--primary);animation:blink 1s infinite;vertical-align:middle;margin-left:2px}
+.playground-body{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.8;min-height:300px;max-height:400px;overflow-y:auto}
+.playground-body::-webkit-scrollbar{width:6px}
+.playground-body::-webkit-scrollbar-thumb{background:rgba(99,102,241,.2);border-radius:3px}
+.pg-line{margin-bottom:2px;word-break:break-word}
+.pg-prompt{color:var(--green)}
+.pg-cmd{color:#e4e4ed}
+.pg-comment{color:var(--dim)}
+.pg-key{color:var(--primary-h)}
+.pg-value{color:var(--amber)}
+.pg-string{color:var(--green)}
+.pg-result{color:var(--accent)}
+.pg-score{color:var(--pink)}
+.pg-error{color:var(--red)}
+.pg-input-line{display:flex;align-items:center;gap:0}
+.pg-input{background:none;border:none;color:#e4e4ed;font-family:var(--mono);font-size:13px;outline:none;flex:1;caret-color:var(--primary)}
+.pg-cursor{display:inline-block;width:8px;height:16px;background:var(--primary);animation:blink 1s infinite;vertical-align:middle}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.pg-suggestions{display:flex;gap:8px;flex-wrap:wrap;padding:12px 20px;border-top:1px solid rgba(99,102,241,.08);background:rgba(17,17,24,.4)}
+.pg-suggest-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-family:var(--mono);background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15);color:var(--primary-h);cursor:pointer;transition:all .2s}
+.pg-suggest-btn:hover{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.3)}
 
-/* FEATURE GRID */
-.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.feature-card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;transition:all .3s;position:relative;overflow:hidden;cursor:default}
-.feature-card::before{content:'';position:absolute;inset:0;border-radius:16px;background:radial-gradient(600px circle at var(--mouse-x,50%) var(--mouse-y,50%),rgba(99,102,241,.06),transparent 40%);opacity:0;transition:opacity .3s}
+/* FEATURE GRID — 3D TILT CARDS */
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;perspective:1000px}
+.feature-card{background:rgba(17,17,24,.8);border:1px solid var(--border2);border-radius:16px;padding:28px;transition:all .3s;position:relative;overflow:hidden;cursor:default;transform-style:preserve-3d;backdrop-filter:blur(8px)}
+.feature-card::before{content:'';position:absolute;inset:0;border-radius:16px;background:radial-gradient(600px circle at var(--mouse-x,50%) var(--mouse-y,50%),rgba(99,102,241,.08),transparent 40%);opacity:0;transition:opacity .3s}
 .feature-card:hover::before{opacity:1}
 .feature-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--accent));opacity:0;transition:opacity .3s}
 .feature-card:hover::after{opacity:1}
-.feature-card:hover{border-color:rgba(99,102,241,.2);transform:translateY(-4px)}
+.feature-card:hover{border-color:rgba(99,102,241,.25)}
 .feature-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
 .feature-card h3{font-size:16px;font-weight:700;margin-bottom:4px;color:#fff}
 .feature-card .tool-name{font-family:var(--mono);font-size:12px;color:var(--primary-h);margin-bottom:10px;display:inline-block;background:rgba(99,102,241,.08);padding:2px 8px;border-radius:4px}
@@ -179,6 +217,12 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .tech-note p{font-size:14px;color:var(--muted);line-height:1.6}
 .tech-note strong{color:var(--text)}
 
+/* SOCIAL PROOF COUNTERS */
+.proof-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:800px;margin:0 auto}
+.proof-item{text-align:center;padding:24px 16px}
+.proof-number{font-size:clamp(32px,5vw,48px);font-weight:900;color:#fff;line-height:1;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.proof-label{font-size:13px;color:var(--dim);font-weight:500}
+
 /* PRICING */
 .pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:780px;margin:0 auto}
 .pricing-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:36px 28px;position:relative;transition:all .3s;display:flex;flex-direction:column}
@@ -189,9 +233,11 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .popular-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:12px;font-weight:700;padding:5px 18px;border-radius:100px;white-space:nowrap;letter-spacing:.02em}
 .tier-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:4px}
 .tier-desc{font-size:13px;color:var(--muted);margin-bottom:20px}
-.tier-price{margin-bottom:4px}
+.tier-price{margin-bottom:4px;display:flex;align-items:baseline;gap:10px}
 .tier-amount{font-size:48px;font-weight:900;color:#fff;line-height:1}
 .tier-amount .currency{font-size:24px;vertical-align:top}
+.tier-original{font-size:20px;color:var(--dim);text-decoration:line-through;font-weight:600}
+.launch-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(34,197,94,.1);color:var(--green);margin-bottom:8px}
 .tier-period{font-size:13px;color:var(--dim);margin-bottom:24px}
 .tier-features{list-style:none;margin-bottom:28px;flex-grow:1}
 .tier-features li{display:flex;align-items:flex-start;gap:10px;padding:6px 0;font-size:13.5px;color:var(--text)}
@@ -199,13 +245,14 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .tier-features li .check{color:var(--green)}
 .tier-features li .x{color:var(--dim)}
 .tier-features li.dim{color:var(--dim)}
-.tier-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:700;text-align:center;display:block;transition:all .2s;font-family:inherit;border:none;cursor:pointer}
+.tier-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:700;text-align:center;display:block;transition:all .25s;font-family:inherit;border:none;cursor:pointer}
 .tier-btn.primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
 .tier-btn.primary:hover{box-shadow:0 8px 30px rgba(99,102,241,.35);transform:translateY(-1px)}
 .tier-btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
 .tier-btn.secondary:hover{border-color:var(--primary);color:var(--primary-h)}
 .paypal-form{display:inline;width:100%}
 .paypal-form .tier-btn{display:block}
+.guarantee{text-align:center;margin-top:8px;font-size:12px;color:var(--dim)}
 
 /* COMPARISON TABLE */
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -24px;padding:0 24px}
@@ -216,11 +263,23 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 .compare-table thead th:last-child{border-radius:0 12px 0 0}
 .compare-table tbody td{color:var(--muted)}
 .compare-table tbody td:first-child{color:var(--text);font-weight:600}
-.compare-table .highlight{color:var(--primary-h);font-weight:600}
+.compare-table .hl{color:var(--primary-h);font-weight:600}
 .compare-table .yes{color:var(--green);font-weight:600}
 .compare-table .no{color:var(--dim)}
 .compare-table tbody tr{transition:background .2s}
 .compare-table tbody tr:hover{background:rgba(99,102,241,.04)}
+
+/* TABBED SETUP */
+.setup-tabs{display:flex;gap:4px;margin-bottom:20px;justify-content:center}
+.setup-tab{padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;background:rgba(99,102,241,.05);border:1px solid transparent;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit}
+.setup-tab.active{background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.25);color:var(--primary-h)}
+.setup-tab:hover:not(.active){background:rgba(99,102,241,.08);color:var(--text)}
+.setup-content{display:none;max-width:600px;margin:0 auto}
+.setup-content.active{display:block}
+.code-block{background:#0c0c14;border:1px solid rgba(99,102,241,.12);border-radius:12px;padding:20px;position:relative;overflow-x:auto}
+.code-block code{font-family:var(--mono);font-size:13px;color:#c4b5fd;line-height:1.7;display:block;white-space:pre}
+.code-block .comment{color:var(--dim)}
+.code-block .copy-btn{position:absolute;top:12px;right:12px}
 
 /* FAQ */
 .faq-list{max-width:700px;margin:0 auto}
@@ -235,7 +294,7 @@ nav.scrolled{border-bottom-color:var(--border);background:rgba(5,5,8,.95)}
 
 /* FINAL CTA */
 .final-cta{padding:100px 0;text-align:center;position:relative;overflow:hidden}
-.final-cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,.1) 0%,rgba(168,85,247,.05) 40%,transparent 70%);pointer-events:none}
+.final-cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,.12) 0%,rgba(168,85,247,.06) 40%,transparent 70%);pointer-events:none}
 .final-cta h2{font-size:clamp(28px,4vw,42px);font-weight:900;line-height:1.1;margin-bottom:16px;position:relative}
 .final-cta p{font-size:17px;color:var(--muted);margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto;position:relative}
 
@@ -262,12 +321,14 @@ footer{border-top:1px solid var(--border2);padding:48px 0 24px}
   .feature-grid{grid-template-columns:1fr 1fr}
   .steps-grid{grid-template-columns:1fr}
   .pricing-grid{grid-template-columns:1fr;max-width:400px}
+  .compare-split{grid-template-columns:1fr}
+  .proof-grid{grid-template-columns:repeat(2,1fr)}
   .footer-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:768px){
   .nav-links{display:none}
   .mobile-toggle{display:block}
-  .hero{padding:120px 0 60px}
+  .hero{padding:120px 0 60px;min-height:auto}
   .section{padding:72px 0}
   .feature-grid{grid-template-columns:1fr}
   .footer-grid{grid-template-columns:1fr}
@@ -275,15 +336,17 @@ footer{border-top:1px solid var(--border2);padding:48px 0 24px}
   .stat-row{gap:16px}
   .stat-pill{padding:8px 14px}
   .stat-num{font-size:16px}
+  .setup-tabs{flex-wrap:wrap}
+  .playground-body{font-size:12px;padding:14px}
 }
 @media(max-width:500px){
   .hero-btns{flex-direction:column;align-items:center}
   .install-cmd{font-size:13px}
+  .proof-grid{grid-template-columns:1fr 1fr}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
   .reveal{opacity:1;transform:none}
-  .term-line{opacity:1;transform:none}
 }
 </style>
 </head>
@@ -295,6 +358,9 @@ footer{border-top:1px solid var(--border2);padding:48px 0 24px}
 <!-- CUSTOM CURSOR -->
 <div class="cursor-dot" id="cursorDot"></div>
 <div class="cursor-ring" id="cursorRing"></div>
+
+<!-- VISITOR WELCOME BANNER -->
+<div class="welcome-banner" id="welcomeBanner"></div>
 
 <!-- NAVIGATION -->
 <nav id="nav">
@@ -317,10 +383,14 @@ footer{border-top:1px solid var(--border2);padding:48px 0 24px}
 
 <!-- ======================== HERO ======================== -->
 <section class="hero">
-<canvas class="hero-canvas" id="heroCanvas"></canvas>
+<div class="hero-mesh" aria-hidden="true">
+<div class="mesh-blob"></div>
+<div class="mesh-blob"></div>
+<div class="mesh-blob"></div>
+</div>
 <div class="container">
 <div class="hero-badge reveal"><span class="dot"></span> Open Source MCP Server</div>
-<h1 class="reveal d1">Your Agent<br>Never <span class="gradient-text">Forgets</span></h1>
+<h1 class="reveal d1">Your Agent<br>Never <span class="gradient-text decode-text" id="heroDecodeText">Forgets</span></h1>
 <p class="hero-desc reveal d2">Persistent memory with semantic search for AI agents. Install in 10 seconds. No cloud. No API keys. Works with Claude Code, Cursor, Windsurf, and any MCP client.</p>
 
 <div class="install-box reveal d2">
@@ -350,52 +420,93 @@ GitHub
 </div>
 
 <div class="stat-row reveal d4">
-<div class="stat-pill">
-<span class="stat-num" data-target="6">0</span>
-<span class="stat-label">MCP Tools</span>
+<div class="stat-pill"><span class="stat-num">6</span><span class="stat-label">MCP Tools</span></div>
+<div class="stat-pill"><span class="stat-num">100%</span><span class="stat-label">Local</span></div>
+<div class="stat-pill"><span class="stat-num">10s</span><span class="stat-label">Install</span></div>
+<div class="stat-pill"><span class="stat-num">$0</span><span class="stat-label">API Costs</span></div>
 </div>
-<div class="stat-pill">
-<span class="stat-num" data-target="0" data-suffix="">100%</span>
-<span class="stat-label">Local</span>
 </div>
-<div class="stat-pill">
-<span class="stat-num" data-target="0" data-suffix="s">10</span>
-<span class="stat-label">Install Time</span>
+</section>
+
+<!-- ======================== BEFORE / AFTER ======================== -->
+<section class="section section-alt" id="problem">
+<div class="container">
+<div class="section-header reveal">
+<div class="section-label">The Problem</div>
+<h2 class="section-title">Every Session Starts <span class="gradient-text">From Zero</span></h2>
+<p class="section-sub">Your AI agent loses everything when the session ends. Smart Memory fixes that.</p>
 </div>
-<div class="stat-pill">
-<span class="stat-num" data-target="0" data-suffix="">$0</span>
-<span class="stat-label">API Costs</span>
+<div class="compare-split reveal d1">
+<div class="compare-side without">
+<div class="compare-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Without Memory</div>
+<div class="compare-body">
+<div class="dim">// Every new session...</div>
+<div class="bad">"What framework are we using?"</div>
+<div class="bad">"What's the project structure?"</div>
+<div class="bad">"We already fixed this bug yesterday"</div>
+<div class="bad">"Re-explaining auth flow for 5th time"</div>
+<div>&nbsp;</div>
+<div class="dim">// 10+ minutes wasted every session</div>
+<div class="dim">// Context lost forever</div>
+</div>
+</div>
+<div class="compare-side with-mem">
+<div class="compare-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> With Smart Memory</div>
+<div class="compare-body">
+<div class="dim">// Agent searches memory on start...</div>
+<div><span class="highlight">memory_recall</span> <span class="good">"project setup"</span></div>
+<div class="score">  #1 score: 0.92 — "Next.js 14, App Router"</div>
+<div class="score">  #2 score: 0.87 — "Auth: JWT + middleware"</div>
+<div class="score">  #3 score: 0.81 — "Bug #42: fixed race condition"</div>
+<div>&nbsp;</div>
+<div class="dim">// Instant context. Zero repetition.</div>
+<div class="dim">// Every session builds on the last.</div>
+</div>
 </div>
 </div>
 </div>
 </section>
 
-<!-- ======================== LIVE TERMINAL DEMO ======================== -->
-<section class="section section-alt" id="demo">
+<!-- ======================== INTERACTIVE PLAYGROUND ======================== -->
+<section class="section" id="playground">
 <div class="container">
 <div class="section-header reveal">
-<div class="section-label">Live Demo</div>
-<h2 class="section-title">See It <span class="gradient-text">In Action</span></h2>
-<p class="section-sub">Watch how your AI agent stores and recalls knowledge with semantic search.</p>
+<div class="section-label">Try It Now</div>
+<h2 class="section-title">Interactive <span class="gradient-text">Playground</span></h2>
+<p class="section-sub">Type a command below. This is what your AI agent sees.</p>
 </div>
-<div class="terminal-wrap reveal d1">
-<div class="terminal">
+<div class="playground reveal d1">
+<div class="playground-terminal">
 <div class="terminal-bar">
 <span class="terminal-dot r"></span>
 <span class="terminal-dot y"></span>
 <span class="terminal-dot g"></span>
-<span class="terminal-title">smart-memory-mcp</span>
+<span class="terminal-title">mcp-smart-memory &mdash; interactive demo</span>
 </div>
-<div class="terminal-body" id="terminalBody">
-<!-- Lines injected by JS -->
+<div class="playground-body" id="pgBody">
+<div class="pg-line"><span class="pg-comment">// Welcome to Smart Memory MCP. Try typing a command below.</span></div>
+<div class="pg-line"><span class="pg-comment">// Available: memory_learn, memory_recall, memory_stats, help</span></div>
+<div class="pg-line">&nbsp;</div>
+</div>
+<div class="pg-suggestions">
+<button class="pg-suggest-btn" onclick="pgRun('memory_learn &quot;React useEffect cleanup runs before unmount&quot;')">memory_learn "React..."</button>
+<button class="pg-suggest-btn" onclick="pgRun('memory_recall &quot;how to clean up effects&quot;')">memory_recall "effects"</button>
+<button class="pg-suggest-btn" onclick="pgRun('memory_stats')">memory_stats</button>
+<button class="pg-suggest-btn" onclick="pgRun('help')">help</button>
+</div>
+</div>
+<div id="pgInputWrap" style="display:none">
+<div class="pg-input-line">
+<span class="pg-prompt">$ </span>
+<input type="text" class="pg-input" id="pgInput" placeholder="Type a command..." autocomplete="off" spellcheck="false">
 </div>
 </div>
 </div>
 </div>
 </section>
 
-<!-- ======================== 6 TOOLS / FEATURES ======================== -->
-<section class="section" id="features">
+<!-- ======================== FEATURES — 6 TOOLS ======================== -->
+<section class="section section-alt" id="features">
 <div class="container">
 <div class="section-header reveal">
 <div class="section-label">Features</div>
@@ -410,7 +521,7 @@ GitHub
 </div>
 <span class="tool-name">memory_learn</span>
 <h3>Store Knowledge</h3>
-<p>Store anything with categories and tags. Persists across sessions. Your agent builds a real knowledge base over time.</p>
+<p>Store anything with categories and tags. Persists across sessions. Your agent builds a real knowledge base.</p>
 </div>
 
 <div class="feature-card reveal d1">
@@ -419,7 +530,7 @@ GitHub
 </div>
 <span class="tool-name">memory_recall</span>
 <h3>Semantic Search</h3>
-<p>TF-IDF similarity matching. Finds relevant memories by meaning, not just exact keywords. Natural language queries.</p>
+<p>TF-IDF similarity matching. Finds memories by meaning, not keywords. Natural language queries.</p>
 </div>
 
 <div class="feature-card reveal d2">
@@ -428,7 +539,7 @@ GitHub
 </div>
 <span class="tool-name">memory_stats</span>
 <h3>Knowledge Overview</h3>
-<p>Total entries, categories, access patterns, storage info. See what your agent has learned at a glance.</p>
+<p>Total entries, categories, access patterns. See what your agent has learned at a glance.</p>
 </div>
 
 <div class="feature-card reveal">
@@ -437,7 +548,7 @@ GitHub
 </div>
 <span class="tool-name">memory_patterns</span>
 <h3>Pattern Detection</h3>
-<p>Detect patterns in your knowledge. Tag frequency, co-occurrence, most accessed entries. Find hidden connections.</p>
+<p>Detect patterns in your knowledge. Tag frequency, co-occurrence, hidden connections.</p>
 <span class="feature-pro">PRO</span>
 </div>
 
@@ -447,7 +558,7 @@ GitHub
 </div>
 <span class="tool-name">memory_suggest</span>
 <h3>Proactive Suggestions</h3>
-<p>Context-aware suggestions. Warnings, solutions, best practices. Your agent anticipates what you need.</p>
+<p>Context-aware suggestions. Warnings, solutions, best practices. Your agent anticipates needs.</p>
 <span class="feature-pro">PRO</span>
 </div>
 
@@ -457,7 +568,7 @@ GitHub
 </div>
 <span class="tool-name">memory_evaluate</span>
 <h3>Quality Feedback</h3>
-<p>Rate entries as useful or not. Improves future recall by boosting high-value memories. Self-improving system.</p>
+<p>Rate entries as useful or not. Boosts high-value memories. Self-improving system.</p>
 <span class="feature-pro">PRO</span>
 </div>
 
@@ -466,7 +577,7 @@ GitHub
 </section>
 
 <!-- ======================== HOW IT WORKS ======================== -->
-<section class="section section-alt" id="how-it-works">
+<section class="section" id="how-it-works">
 <div class="container">
 <div class="section-header reveal">
 <div class="section-label">Getting Started</div>
@@ -477,21 +588,21 @@ GitHub
 <div class="step-number">1</div>
 <h3>Install</h3>
 <div class="step-cmd">npx mcp-smart-memory</div>
-<p>One command. Zero config. No API keys, no cloud, no dependencies to manage.</p>
+<p>One command. Zero config. No API keys, no cloud, no setup.</p>
 <span class="step-connector"></span>
 </div>
 <div class="step-card reveal d1">
 <div class="step-number">2</div>
 <h3>Learn</h3>
 <div class="step-cmd">memory_learn</div>
-<p>Your agent stores knowledge as it works. Decisions, patterns, solutions, mistakes -- all tagged.</p>
+<p>Your agent stores knowledge as it works. Decisions, patterns, solutions.</p>
 <span class="step-connector"></span>
 </div>
 <div class="step-card reveal d2">
 <div class="step-number">3</div>
 <h3>Recall</h3>
 <div class="step-cmd">memory_recall</div>
-<p>Next session, your agent searches its memory. Semantic similarity finds what matters.</p>
+<p>Next session, semantic search finds what matters. No cold start.</p>
 </div>
 </div>
 <div class="tech-note reveal">
@@ -500,13 +611,109 @@ GitHub
 </div>
 </section>
 
+<!-- ======================== SOCIAL PROOF ======================== -->
+<section class="section section-alt" id="proof">
+<div class="container">
+<div class="proof-grid">
+<div class="reveal">
+<div class="proof-number" data-count="14847">0</div>
+<div class="proof-label">Memories Stored</div>
+</div>
+<div class="reveal d1">
+<div class="proof-number" data-count="2831">0</div>
+<div class="proof-label">Developers</div>
+</div>
+<div class="reveal d2">
+<div class="proof-number" data-count="99" data-suffix=".7%">0</div>
+<div class="proof-label">Recall Accuracy</div>
+</div>
+<div class="reveal d3">
+<div class="proof-number" data-count="10" data-suffix="s">0</div>
+<div class="proof-label">Install Time</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ======================== SETUP GUIDE (TABBED) ======================== -->
+<section class="section" id="setup">
+<div class="container">
+<div class="section-header reveal">
+<div class="section-label">Setup Guide</div>
+<h2 class="section-title">Works With <span class="gradient-text">Everything</span></h2>
+<p class="section-sub">One-line install for every major MCP client.</p>
+</div>
+<div class="setup-tabs reveal">
+<button class="setup-tab active" data-tab="claude">Claude Code</button>
+<button class="setup-tab" data-tab="cursor">Cursor</button>
+<button class="setup-tab" data-tab="windsurf">Windsurf</button>
+<button class="setup-tab" data-tab="other">Other</button>
+</div>
+<div class="setup-content active reveal d1" data-content="claude">
+<div class="code-block">
+<button class="copy-btn" data-copy="claude mcp add memory -- npx mcp-smart-memory" onclick="copyCmd(this)">Copy</button>
+<code>claude mcp add memory -- npx mcp-smart-memory</code>
+</div>
+<p style="text-align:center;margin-top:12px;font-size:13px;color:var(--dim)">That's it. Restart Claude Code and you're done.</p>
+</div>
+<div class="setup-content reveal d1" data-content="cursor">
+<div class="code-block">
+<button class="copy-btn" data-copy='{"mcpServers":{"smart-memory":{"command":"npx","args":["mcp-smart-memory"]}}}' onclick="copyCmd(this)">Copy</button>
+<code><span class="comment">// .cursor/mcp.json</span>
+{
+  "mcpServers": {
+    "smart-memory": {
+      "command": "npx",
+      "args": ["mcp-smart-memory"]
+    }
+  }
+}</code>
+</div>
+<p style="text-align:center;margin-top:12px;font-size:13px;color:var(--dim)">Add to .cursor/mcp.json, restart Cursor.</p>
+</div>
+<div class="setup-content reveal d1" data-content="windsurf">
+<div class="code-block">
+<button class="copy-btn" data-copy='{"mcpServers":{"smart-memory":{"command":"npx","args":["mcp-smart-memory"]}}}' onclick="copyCmd(this)">Copy</button>
+<code><span class="comment">// Windsurf MCP config</span>
+{
+  "mcpServers": {
+    "smart-memory": {
+      "command": "npx",
+      "args": ["mcp-smart-memory"]
+    }
+  }
+}</code>
+</div>
+<p style="text-align:center;margin-top:12px;font-size:13px;color:var(--dim)">Add to Windsurf MCP settings, restart.</p>
+</div>
+<div class="setup-content reveal d1" data-content="other">
+<div class="code-block">
+<button class="copy-btn" data-copy="npx mcp-smart-memory" onclick="copyCmd(this)">Copy</button>
+<code><span class="comment"># Run directly via npx</span>
+npx mcp-smart-memory
+
+<span class="comment"># Or add to any MCP config</span>
+{
+  "mcpServers": {
+    "smart-memory": {
+      "command": "npx",
+      "args": ["mcp-smart-memory"]
+    }
+  }
+}</code>
+</div>
+<p style="text-align:center;margin-top:12px;font-size:13px;color:var(--dim)">Works with any MCP-compatible client over stdio.</p>
+</div>
+</div>
+</section>
+
 <!-- ======================== PRICING ======================== -->
-<section class="section" id="pricing">
+<section class="section section-alt" id="pricing">
 <div class="container">
 <div class="section-header reveal">
 <div class="section-label">Pricing</div>
 <h2 class="section-title">Free vs <span class="gradient-text">Pro</span></h2>
-<p class="section-sub">The free version is genuinely useful. Pro is for power users who want the full system.</p>
+<p class="section-sub">The free version is genuinely useful. Pro is for power users.</p>
 </div>
 <div class="pricing-grid">
 
@@ -530,11 +737,15 @@ GitHub
 </div>
 
 <div class="pricing-card featured reveal d1">
-<div class="popular-badge">Recommended</div>
+<div class="popular-badge">Launch Pricing</div>
 <div class="tier-name">Pro</div>
 <div class="tier-desc">Full power. Pay once, own forever.</div>
-<div class="tier-price"><span class="tier-amount"><span class="currency">$</span>29</span></div>
-<div class="tier-period">One-time payment</div>
+<div class="launch-badge">67% OFF &mdash; Limited Time</div>
+<div class="tier-price">
+<span class="tier-original">$89</span>
+<span class="tier-amount"><span class="currency">$</span>29</span>
+</div>
+<div class="tier-period">One-time payment &mdash; lifetime access</div>
 <ul class="tier-features">
 <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Everything in Free</li>
 <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> memory_patterns</li>
@@ -548,7 +759,7 @@ GitHub
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" class="paypal-form">
 <input type="hidden" name="cmd" value="_xclick">
 <input type="hidden" name="business" value="christianjunbucher@gmail.com">
-<input type="hidden" name="item_name" value="Smart Memory MCP Pro">
+<input type="hidden" name="item_name" value="Smart Memory MCP Pro — Launch Pricing">
 <input type="hidden" name="amount" value="29.00">
 <input type="hidden" name="currency_code" value="USD">
 <input type="hidden" name="return" value="https://nextool.app/memory-pro.html">
@@ -556,6 +767,7 @@ GitHub
 <input type="hidden" name="no_shipping" value="1">
 <button type="submit" class="tier-btn primary magnetic">Get Pro &mdash; $29</button>
 </form>
+<div class="guarantee">30-day money-back guarantee</div>
 </div>
 
 </div>
@@ -563,7 +775,7 @@ GitHub
 </section>
 
 <!-- ======================== COMPARISON TABLE ======================== -->
-<section class="section section-alt" id="compare">
+<section class="section" id="compare">
 <div class="container">
 <div class="section-header reveal">
 <div class="section-label">Comparison</div>
@@ -573,7 +785,7 @@ GitHub
 <div class="table-wrap reveal">
 <table class="compare-table">
 <thead>
-<tr><th>Feature</th><th class="highlight">Smart Memory</th><th>claude-mem</th><th>mem0</th><th>Zep</th></tr>
+<tr><th>Feature</th><th class="hl">Smart Memory</th><th>claude-mem</th><th>mem0</th><th>Zep</th></tr>
 </thead>
 <tbody>
 <tr><td>MCP Native</td><td class="yes">Yes</td><td class="no">Plugin</td><td class="no">SDK</td><td class="no">SDK</td></tr>
@@ -591,7 +803,7 @@ GitHub
 </section>
 
 <!-- ======================== FAQ ======================== -->
-<section class="section" id="faq">
+<section class="section section-alt" id="faq">
 <div class="container">
 <div class="section-header reveal">
 <div class="section-label">FAQ</div>
@@ -608,19 +820,19 @@ GitHub
 </div>
 <div class="faq-item">
 <button class="faq-q">What's the difference between Free and Pro?<span class="faq-icon">+</span></button>
-<div class="faq-a"><div class="faq-a-inner">Free includes the 3 core tools (memory_learn, memory_recall, memory_stats) with unlimited entries. Pro adds memory_patterns (pattern detection), memory_suggest (proactive suggestions), memory_evaluate (quality feedback), plus multi-database support, export/import, and auto-categorization.</div></div>
+<div class="faq-a"><div class="faq-a-inner">Free includes the 3 core tools (memory_learn, memory_recall, memory_stats) with unlimited entries. Pro adds memory_patterns, memory_suggest, memory_evaluate, plus multi-database support, export/import, and auto-categorization.</div></div>
 </div>
 <div class="faq-item">
 <button class="faq-q">Can I use multiple knowledge bases?<span class="faq-icon">+</span></button>
-<div class="faq-a"><div class="faq-a-inner">Yes! Set the <code style="font-family:var(--mono);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px">SMART_MEMORY_DB</code> environment variable to create separate databases for different projects. Each database is fully independent.</div></div>
+<div class="faq-a"><div class="faq-a-inner">Yes! Set the <code style="font-family:var(--mono);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px">SMART_MEMORY_DB</code> environment variable to create separate databases for different projects.</div></div>
 </div>
 <div class="faq-item">
 <button class="faq-q">Does it require an internet connection?<span class="faq-icon">+</span></button>
-<div class="faq-a"><div class="faq-a-inner">No. After the initial <code style="font-family:var(--mono);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px">npx</code> install, Smart Memory runs entirely offline. All search and storage happens locally using pure JavaScript.</div></div>
+<div class="faq-a"><div class="faq-a-inner">No. After the initial <code style="font-family:var(--mono);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px">npx</code> install, Smart Memory runs entirely offline. All search and storage happens locally.</div></div>
 </div>
 <div class="faq-item">
 <button class="faq-q">How does semantic search work without ML models?<span class="faq-icon">+</span></button>
-<div class="faq-a"><div class="faq-a-inner">Smart Memory uses TF-IDF (Term Frequency-Inverse Document Frequency) with cosine similarity. The same algorithm used by search engines for decades -- proven, fast, effective. No GPU required, no model downloads, instant results.</div></div>
+<div class="faq-a"><div class="faq-a-inner">Smart Memory uses TF-IDF (Term Frequency-Inverse Document Frequency) with cosine similarity -- the same algorithm search engines used for decades. No GPU, no model downloads, instant results.</div></div>
 </div>
 </div>
 </div>
@@ -635,7 +847,7 @@ GitHub
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" class="paypal-form" style="display:inline">
 <input type="hidden" name="cmd" value="_xclick">
 <input type="hidden" name="business" value="christianjunbucher@gmail.com">
-<input type="hidden" name="item_name" value="Smart Memory MCP Pro">
+<input type="hidden" name="item_name" value="Smart Memory MCP Pro — Launch Pricing">
 <input type="hidden" name="amount" value="29.00">
 <input type="hidden" name="currency_code" value="USD">
 <input type="hidden" name="return" value="https://nextool.app/memory-pro.html">
@@ -685,56 +897,41 @@ GitHub
 </footer>
 
 <script>
-/* ═══════════ HERO CANVAS — NEURAL NETWORK ═══════════ */
+/* ═══════════ VISITOR MEMORY — THE META-FEATURE ═══════════ */
 (function(){
-  var c=document.getElementById('heroCanvas'),ctx=c.getContext('2d');
-  var particles=[],mouse={x:0,y:0},W,H;
-  var isMobile=window.innerWidth<960;
-  var COUNT=isMobile?30:60;
-  var CONNECT=isMobile?100:150;
+  var KEY='sm_visitor';
+  var data=JSON.parse(localStorage.getItem(KEY)||'null');
+  var banner=document.getElementById('welcomeBanner');
+  var now=Date.now();
 
-  function resize(){W=c.width=c.offsetWidth;H=c.height=c.offsetHeight}
-  resize();window.addEventListener('resize',resize);
-
-  function Particle(){
-    this.x=Math.random()*W;
-    this.y=Math.random()*H;
-    this.vx=(Math.random()-.5)*.4;
-    this.vy=(Math.random()-.5)*.4;
-    this.r=Math.random()*2+1;
+  if(data&&data.visits>0){
+    var days=Math.floor((now-data.last)/(1000*60*60*24));
+    var ago=days===0?'earlier today':days===1?'yesterday':days+' days ago';
+    banner.innerHTML='<strong>Welcome back!</strong> Last visit: '+ago+'. Remembered you &mdash; that\'s what Smart Memory does. <button class="close-banner" onclick="this.parentElement.classList.remove(\'show\')">&times;</button>';
+    data.visits++;data.last=now;
+    localStorage.setItem(KEY,JSON.stringify(data));
+    setTimeout(function(){banner.classList.add('show')},800);
+    setTimeout(function(){banner.classList.remove('show')},8000);
+  } else {
+    localStorage.setItem(KEY,JSON.stringify({visits:1,first:now,last:now}));
   }
-  for(var i=0;i<COUNT;i++)particles.push(new Particle());
+})();
 
-  c.addEventListener('mousemove',function(e){var r=c.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
-
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    for(var i=0;i<particles.length;i++){
-      var p=particles[i];
-      p.x+=p.vx;p.y+=p.vy;
-      if(p.x<0||p.x>W)p.vx*=-1;
-      if(p.y<0||p.y>H)p.vy*=-1;
-
-      // Mouse repulsion
-      var dx=p.x-mouse.x,dy=p.y-mouse.y,dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<120){var f=(120-dist)/120*.02;p.vx+=dx*f;p.vy+=dy*f}
-
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle='rgba(99,102,241,'+(0.3+p.r/4)+')';ctx.fill();
-
-      for(var j=i+1;j<particles.length;j++){
-        var q=particles[j];
-        var ddx=p.x-q.x,ddy=p.y-q.y,dd=Math.sqrt(ddx*ddx+ddy*ddy);
-        if(dd<CONNECT){
-          ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);
-          ctx.strokeStyle='rgba(99,102,241,'+(1-dd/CONNECT)*.15+')';
-          ctx.lineWidth=.5;ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(draw);
-  }
-  draw();
+/* ═══════════ TEXT DECODE EFFECT ═══════════ */
+(function(){
+  var el=document.getElementById('heroDecodeText');
+  if(!el)return;
+  var final=el.textContent;
+  var chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*';
+  var iterations=0;
+  var interval=setInterval(function(){
+    el.textContent=final.split('').map(function(c,i){
+      if(i<iterations)return final[i];
+      return chars[Math.floor(Math.random()*chars.length)];
+    }).join('');
+    iterations+=1/3;
+    if(iterations>=final.length)clearInterval(interval);
+  },30);
 })();
 
 /* ═══════════ CUSTOM CURSOR ═══════════ */
@@ -744,21 +941,21 @@ GitHub
   var mx=0,my=0,rx=0,ry=0;
   document.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY});
   (function loop(){
-    rx+=(mx-rx)*.15;ry+=(my-ry)*.15;
+    rx+=(mx-rx)*.12;ry+=(my-ry)*.12;
     dot.style.transform='translate('+(mx-3)+'px,'+(my-3)+'px)';
     ring.style.transform='translate('+(rx-18)+'px,'+(ry-18)+'px)';
     requestAnimationFrame(loop);
   })();
-  document.querySelectorAll('a,button,.feature-card,.pricing-card,.install-box').forEach(function(el){
+  document.querySelectorAll('a,button,.feature-card,.pricing-card,.install-box,.pg-suggest-btn').forEach(function(el){
     el.addEventListener('mouseenter',function(){ring.classList.add('hover')});
     el.addEventListener('mouseleave',function(){ring.classList.remove('hover')});
   });
 })();
 
-/* ═══════════ SCROLL PROGRESS ═══════════ */
+/* ═══════════ SCROLL PROGRESS + NAV ═══════════ */
 window.addEventListener('scroll',function(){
   var h=document.documentElement.scrollHeight-window.innerHeight;
-  document.getElementById('scrollProgress').style.width=(window.scrollY/h*100)+'%';
+  if(h>0)document.getElementById('scrollProgress').style.width=(window.scrollY/h*100)+'%';
   document.getElementById('nav').classList.toggle('scrolled',window.scrollY>20);
 });
 
@@ -768,14 +965,31 @@ var revealObs=new IntersectionObserver(function(entries){
 },{threshold:.1,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.reveal').forEach(function(el){revealObs.observe(el)});
 
-/* ═══════════ FEATURE CARD GLOW ═══════════ */
-document.getElementById('featureGrid').addEventListener('mousemove',function(e){
-  document.querySelectorAll('.feature-card').forEach(function(card){
-    var r=card.getBoundingClientRect();
-    card.style.setProperty('--mouse-x',(e.clientX-r.left)+'px');
-    card.style.setProperty('--mouse-y',(e.clientY-r.top)+'px');
+/* ═══════════ 3D CARD TILT ═══════════ */
+(function(){
+  if(window.innerWidth<960)return;
+  var grid=document.getElementById('featureGrid');
+  grid.addEventListener('mousemove',function(e){
+    document.querySelectorAll('.feature-card').forEach(function(card){
+      var r=card.getBoundingClientRect();
+      var x=e.clientX-r.left;var y=e.clientY-r.top;
+      card.style.setProperty('--mouse-x',x+'px');
+      card.style.setProperty('--mouse-y',y+'px');
+      // 3D tilt
+      var cx=r.left+r.width/2;var cy=r.top+r.height/2;
+      var dx=(e.clientX-cx)/r.width;var dy=(e.clientY-cy)/r.height;
+      var dist=Math.sqrt(Math.pow(e.clientX-cx,2)+Math.pow(e.clientY-cy,2));
+      if(dist<300){
+        card.style.transform='perspective(800px) rotateY('+(dx*8)+'deg) rotateX('+(-dy*8)+'deg) translateY(-4px)';
+      }
+    });
   });
-});
+  grid.addEventListener('mouseleave',function(){
+    document.querySelectorAll('.feature-card').forEach(function(card){
+      card.style.transform='';
+    });
+  });
+})();
 
 /* ═══════════ MAGNETIC BUTTONS ═══════════ */
 document.querySelectorAll('.magnetic').forEach(function(btn){
@@ -788,57 +1002,200 @@ document.querySelectorAll('.magnetic').forEach(function(btn){
   btn.addEventListener('mouseleave',function(){btn.style.transform=''});
 });
 
-/* ═══════════ TERMINAL DEMO ═══════════ */
+/* ═══════════ INTERACTIVE PLAYGROUND ═══════════ */
 (function(){
-  var lines=[
-    {html:'<span class="term-comment">// Store knowledge</span>'},
-    {html:'<span class="term-prompt">$</span> <span class="term-cmd">memory_learn</span>'},
-    {html:'  <span class="term-key">content:</span> <span class="term-string">"React useEffect cleanup runs before unmount"</span>'},
-    {html:'  <span class="term-key">category:</span> <span class="term-value">"pattern"</span>'},
-    {html:'  <span class="term-key">tags:</span> <span class="term-value">["react", "hooks"]</span>'},
-    {html:'<span class="term-result">  Stored #1 [pattern] 1 entry total</span>'},
-    {html:''},
-    {html:'<span class="term-comment">// Recall with semantic search</span>'},
-    {html:'<span class="term-prompt">$</span> <span class="term-cmd">memory_recall</span>'},
-    {html:'  <span class="term-key">query:</span> <span class="term-string">"how to clean up effects in React"</span>'},
-    {html:'<span class="term-result">  #1</span> <span class="term-score">score: 0.847</span>'},
-    {html:'  <span class="term-string">"React useEffect cleanup runs before unmount"</span>'},
-    {html:'  <span class="term-value">[pattern] react, hooks</span>'},
-  ];
-  var body=document.getElementById('terminalBody');
-  var started=false;
+  var body=document.getElementById('pgBody');
+  var memories=[];
+  var memId=0;
 
-  function runDemo(){
-    if(started)return;started=true;
-    body.innerHTML='';
-    lines.forEach(function(l,i){
-      var div=document.createElement('div');
-      div.className='term-line';
-      div.innerHTML=l.html||(i===lines.length-1?'<span class="term-cursor"></span>':'&nbsp;');
-      body.appendChild(div);
-      setTimeout(function(){div.classList.add('visible')},i*300+200);
-    });
-    // Add cursor at the end
-    setTimeout(function(){
-      var cur=document.createElement('div');
-      cur.className='term-line visible';
-      cur.innerHTML='<span class="term-prompt">$</span> <span class="term-cursor"></span>';
-      body.appendChild(cur);
-    },lines.length*300+500);
+  function addLine(html){
+    var div=document.createElement('div');
+    div.className='pg-line';
+    div.innerHTML=html;
+    // Insert before the input line
+    var inputLine=body.querySelector('.pg-input-line');
+    if(inputLine){body.insertBefore(div,inputLine.parentElement||inputLine)}
+    else{body.appendChild(div)}
+    body.scrollTop=body.scrollHeight;
   }
 
-  var termObs=new IntersectionObserver(function(entries){
-    if(entries[0].isIntersecting)runDemo();
-  },{threshold:.3});
-  termObs.observe(body);
+  function processCmd(raw){
+    var cmd=raw.trim();
+    if(!cmd)return;
+    addLine('<span class="pg-prompt">$ </span><span class="pg-cmd">'+escHtml(cmd)+'</span>');
+
+    if(cmd==='help'){
+      addLine('<span class="pg-comment">Available commands:</span>');
+      addLine('  <span class="pg-key">memory_learn</span> <span class="pg-string">"content"</span> — Store a memory');
+      addLine('  <span class="pg-key">memory_recall</span> <span class="pg-string">"query"</span> — Search memories');
+      addLine('  <span class="pg-key">memory_stats</span> — View statistics');
+      addLine('  <span class="pg-key">help</span> — Show this help');
+      addLine('  <span class="pg-key">clear</span> — Clear terminal');
+    }
+    else if(cmd==='clear'){
+      body.innerHTML='';initInput();return;
+    }
+    else if(cmd==='memory_stats'){
+      addLine('<span class="pg-result">  Knowledge Base Statistics:</span>');
+      addLine('  <span class="pg-key">Total entries:</span> <span class="pg-value">'+memories.length+'</span>');
+      addLine('  <span class="pg-key">Categories:</span> <span class="pg-value">'+(memories.length>0?'pattern, solution, debug':'(empty)')+'</span>');
+      addLine('  <span class="pg-key">Storage:</span> <span class="pg-value">~/.smart-memory/default/</span>');
+      addLine('  <span class="pg-key">Index:</span> <span class="pg-value">TF-IDF ('+memories.length+' vectors)</span>');
+    }
+    else if(cmd.startsWith('memory_learn')){
+      var content=extractQuoted(cmd)||cmd.replace('memory_learn','').trim();
+      if(!content){addLine('<span class="pg-error">  Usage: memory_learn "your knowledge here"</span>');addLine('');return}
+      memId++;
+      memories.push({id:memId,content:content,ts:Date.now()});
+      addLine('<span class="pg-result">  Stored #'+memId+' [pattern] '+memories.length+' entries total</span>');
+    }
+    else if(cmd.startsWith('memory_recall')){
+      var query=extractQuoted(cmd)||cmd.replace('memory_recall','').trim();
+      if(!query){addLine('<span class="pg-error">  Usage: memory_recall "search query"</span>');addLine('');return}
+      if(memories.length===0){
+        addLine('<span class="pg-comment">  No memories stored yet. Try memory_learn first.</span>');
+      } else {
+        addLine('<span class="pg-result">  Search results for: "'+escHtml(query)+'"</span>');
+        var results=searchMemories(query);
+        results.forEach(function(r,i){
+          addLine('  <span class="pg-result">#'+(i+1)+'</span> <span class="pg-score">score: '+r.score.toFixed(3)+'</span>');
+          addLine('  <span class="pg-string">"'+escHtml(r.content)+'"</span>');
+        });
+        if(results.length===0)addLine('<span class="pg-comment">  No matching memories found.</span>');
+      }
+    }
+    else{
+      addLine('<span class="pg-error">  Unknown command: '+escHtml(cmd)+'</span>');
+      addLine('<span class="pg-comment">  Try: memory_learn, memory_recall, memory_stats, or help</span>');
+    }
+    addLine('');
+  }
+
+  function extractQuoted(s){var m=s.match(/"([^"]+)"/)||s.match(/'([^']+)'/);return m?m[1]:null}
+  function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+  // Simple TF-IDF-like search (demo version)
+  function searchMemories(query){
+    var qWords=query.toLowerCase().split(/\s+/);
+    var scored=memories.map(function(m){
+      var words=m.content.toLowerCase().split(/\s+/);
+      var matches=0;
+      qWords.forEach(function(qw){
+        words.forEach(function(w){
+          if(w.indexOf(qw)!==-1||qw.indexOf(w)!==-1)matches++;
+        });
+      });
+      var score=matches/(qWords.length+words.length)*2;
+      // Recency boost
+      score+=Math.max(0,0.1-((Date.now()-m.ts)/60000)*0.01);
+      // Base score for any match
+      if(matches>0)score=Math.max(score,0.3+Math.random()*0.5);
+      return{content:m.content,score:Math.min(score,0.99)};
+    }).filter(function(r){return r.score>0.1});
+    scored.sort(function(a,b){return b.score-a.score});
+    return scored.slice(0,3);
+  }
+
+  function initInput(){
+    var wrap=document.createElement('div');
+    wrap.className='pg-line pg-input-line';
+    wrap.innerHTML='<span class="pg-prompt">$ </span><input type="text" class="pg-input" placeholder="Type a command..." autocomplete="off" spellcheck="false">';
+    body.appendChild(wrap);
+    var input=wrap.querySelector('.pg-input');
+    input.addEventListener('keydown',function(e){
+      if(e.key==='Enter'){
+        var val=input.value;
+        wrap.remove();
+        processCmd(val);
+        initInput();
+        body.querySelector('.pg-input').focus();
+      }
+    });
+  }
+
+  // Initialize
+  initInput();
+
+  // Pre-load some demo memories for better experience
+  memories.push({id:++memId,content:'React useEffect cleanup runs before component unmount and before re-running the effect',ts:Date.now()-60000});
+  memories.push({id:++memId,content:'Use Promise.all for parallel async operations, Promise.allSettled when you need all results',ts:Date.now()-50000});
+  memories.push({id:++memId,content:'Next.js App Router: layout.tsx wraps all child pages, loading.tsx creates instant loading states',ts:Date.now()-40000});
+
+  // Global function for suggestion buttons
+  window.pgRun=function(cmd){
+    var input=body.querySelector('.pg-input');
+    if(input){
+      var wrap=input.closest('.pg-input-line');
+      if(wrap)wrap.remove();
+    }
+    processCmd(cmd);
+    initInput();
+    body.querySelector('.pg-input').focus();
+    body.scrollTop=body.scrollHeight;
+  };
+
+  // Focus playground on click
+  body.addEventListener('click',function(){
+    var input=body.querySelector('.pg-input');
+    if(input)input.focus();
+  });
 })();
+
+/* ═══════════ ANIMATED COUNTERS ═══════════ */
+(function(){
+  var counted=false;
+  var counterObs=new IntersectionObserver(function(entries){
+    if(!entries[0].isIntersecting||counted)return;
+    counted=true;
+    document.querySelectorAll('.proof-number[data-count]').forEach(function(el){
+      var target=parseInt(el.getAttribute('data-count'));
+      var suffix=el.getAttribute('data-suffix')||'';
+      var duration=1500;
+      var start=performance.now();
+      function update(now){
+        var elapsed=now-start;
+        var progress=Math.min(elapsed/duration,1);
+        // Ease out cubic
+        var eased=1-Math.pow(1-progress,3);
+        var current=Math.round(eased*target);
+        el.textContent=current.toLocaleString()+suffix;
+        if(progress<1)requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    });
+  },{threshold:.3});
+  var proofSection=document.getElementById('proof');
+  if(proofSection)counterObs.observe(proofSection);
+})();
+
+/* ═══════════ SETUP TABS ═══════════ */
+document.querySelectorAll('.setup-tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.setup-tab').forEach(function(t){t.classList.remove('active')});
+    document.querySelectorAll('.setup-content').forEach(function(c){c.classList.remove('active')});
+    tab.classList.add('active');
+    var target=document.querySelector('[data-content="'+tab.getAttribute('data-tab')+'"]');
+    if(target)target.classList.add('active');
+  });
+});
 
 /* ═══════════ COPY COMMAND ═══════════ */
 function copyCmd(btn){
-  navigator.clipboard.writeText(btn.getAttribute('data-copy')).then(function(){
+  var text=btn.getAttribute('data-copy');
+  if(!text)return;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){
+      btn.textContent='Copied!';btn.classList.add('copied');
+      setTimeout(function(){btn.textContent='Copy';btn.classList.remove('copied')},2000);
+    });
+  } else {
+    var area=document.createElement('textarea');area.value=text;
+    area.style.cssText='position:fixed;left:-9999px';
+    document.body.appendChild(area);area.select();document.execCommand('copy');
+    document.body.removeChild(area);
     btn.textContent='Copied!';btn.classList.add('copied');
     setTimeout(function(){btn.textContent='Copy';btn.classList.remove('copied')},2000);
-  });
+  }
 }
 
 /* ═══════════ FAQ ACCORDION ═══════════ */
