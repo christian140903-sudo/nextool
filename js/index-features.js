@@ -1794,28 +1794,14 @@
             if (!overlay || !input || !results) return;
 
             var items = [
-                { title: 'Services', desc: 'View all 6 AI services', icon: '\u2699\uFE0F', target: '#services', type: 'section' },
-                { title: 'Automations', desc: 'Explore 53+ automation templates', icon: '\u26A1', target: '#automation-explorer', type: 'section' },
-                { title: 'Live Build Demo', desc: 'Watch AI build a project live', icon: '\uD83C\uDFAC', target: '#live-build', type: 'section' },
-                { title: 'Website Generator', desc: 'Interactive live code preview', icon: '\uD83D\uDCBB', target: '#demo', type: 'section' },
-                { title: 'AI Systems', desc: 'Revenue, Intelligence, Memory, Workflow', icon: '\uD83E\uDDE0', target: '#ai-systems', type: 'section' },
-                { title: 'AI Playground', desc: 'Interactive demos and knowledge graph', icon: '\uD83C\uDFAE', target: '/ai-playground.html', type: 'page' },
-                { title: 'Pricing', desc: 'Plans starting at $5', icon: '\uD83D\uDCB0', target: '#pricing', type: 'section' },
-                { title: 'How It Works', desc: '4-step process from idea to delivery', icon: '\uD83D\uDCA1', target: '#process', type: 'section' },
-                { title: 'Project Configurator', desc: 'Build your custom project', icon: '\uD83D\uDD27', target: '#configurator', type: 'section' },
+                { title: 'Free Tools', desc: '150+ free browser-based tools', icon: '\uD83D\uDEE0\uFE0F', target: '/free-tools/', type: 'page' },
+                { title: 'NexTool Pro', desc: 'Clean output, enhanced features — $29', icon: '\u26A1', target: '/pro.html', type: 'page' },
+                { title: 'Workspace', desc: 'Personal workspace for saved results', icon: '\uD83D\uDCBE', target: '/workspace.html', type: 'page' },
+                { title: 'How It Works', desc: 'Browse, use, chain, save, upgrade', icon: '\uD83D\uDCA1', target: '#process', type: 'section' },
                 { title: 'About NexTool', desc: 'Our story and mission', icon: '\uD83D\uDCD6', target: '#about-story', type: 'section' },
                 { title: 'FAQ', desc: 'Frequently asked questions', icon: '\u2753', target: '#faq', type: 'section' },
-                { title: 'Contact', desc: 'Send us a project brief', icon: '\uD83D\uDCE9', target: '#contact', type: 'section' },
-                { title: 'Start a Project', desc: 'Open checkout modal', icon: '\uD83D\uDE80', target: 'checkout', type: 'action' },
-                { title: 'Custom Website', desc: 'AI-powered responsive sites', icon: '\uD83C\uDF10', target: '/services/websites.html', type: 'page' },
-                { title: 'AI Chatbot', desc: 'Intelligent customer bots', icon: '\uD83E\uDD16', target: '/services/chatbots.html', type: 'page' },
-                { title: 'Automation Workflow', desc: 'n8n, Make.com alternatives', icon: '\u2699\uFE0F', target: '/services/automations.html', type: 'page' },
-                { title: 'Content Creation', desc: 'AI-powered blog, social, copy', icon: '\u270D\uFE0F', target: '/services/content.html', type: 'page' },
-                { title: 'Video Production', desc: 'AI video editing & production', icon: '\uD83C\uDFA5', target: '/services/video.html', type: 'page' },
-                { title: 'Data Solutions', desc: 'Dashboards, analytics, scraping', icon: '\uD83D\uDCCA', target: '/services/data.html', type: 'page' },
-                { title: 'Blog', desc: 'AI automation insights & tutorials', icon: '\uD83D\uDCDD', target: '/blog/', type: 'page' },
-                { title: 'Free Tools', desc: '36 free developer & design tools', icon: '\uD83D\uDEE0\uFE0F', target: '/free-tools/', type: 'page' },
-                { title: 'Products', desc: 'Digital products, templates & toolkits', icon: '\uD83D\uDCE6', target: '/products/', type: 'page' },
+                { title: 'Contact', desc: 'Get in touch with us', icon: '\uD83D\uDCE9', target: '#contact', type: 'section' },
+                { title: 'Blog', desc: '37 developer guides & tutorials', icon: '\uD83D\uDCDD', target: '/blog/', type: 'page' },
                 { title: 'QR Generator', desc: 'Create QR codes instantly', icon: '\uD83D\uDCF1', target: '/free-tools/qr-generator.html', type: 'page' },
                 { title: 'JSON Formatter', desc: 'Format, validate, minify JSON', icon: '\uD83D\uDCCB', target: '/free-tools/json-formatter.html', type: 'page' },
                 { title: 'Color Palette', desc: 'Generate beautiful color schemes', icon: '\uD83C\uDFA8', target: '/free-tools/color-palette.html', type: 'page' },
@@ -1824,10 +1810,13 @@
                 { title: 'Text Analyzer', desc: 'Word count, readability, SEO', icon: '\uD83D\uDCCA', target: '/free-tools/text-analyzer.html', type: 'page' },
                 { title: 'Regex Tester', desc: 'Test regular expressions', icon: '\uD83D\uDD0D', target: '/free-tools/regex-tester.html', type: 'page' },
                 { title: 'Base64 Encoder', desc: 'Encode & decode Base64', icon: '\uD83D\uDD04', target: '/free-tools/base64.html', type: 'page' },
-                { title: 'Testimonials', desc: 'What people are saying', icon: '\u2B50', target: '#testimonials', type: 'section' },
-                { title: 'Use Cases', desc: 'Real-world examples', icon: '\uD83D\uDCCB', target: '#use-cases', type: 'section' },
-                { title: 'Showcase', desc: 'Portfolio of built projects', icon: '\uD83C\uDFC6', target: '/showcase.html', type: 'page' },
-                { title: 'System Status', desc: 'Live AI system monitoring', icon: '\uD83D\uDFE2', target: '/status.html', type: 'page' },
+                { title: 'Image Compressor', desc: 'Compress images in-browser', icon: '\uD83D\uDDBC\uFE0F', target: '/free-tools/image-compressor.html', type: 'page' },
+                { title: 'Markdown Preview', desc: 'Live markdown editor & preview', icon: '\uD83D\uDCDD', target: '/free-tools/markdown-preview.html', type: 'page' },
+                { title: 'Testimonials', desc: 'Verifiable results', icon: '\u2B50', target: '#testimonials', type: 'section' },
+                { title: 'Use Cases', desc: 'Popular tool examples', icon: '\uD83D\uDCCB', target: '#use-cases', type: 'section' },
+                { title: 'Activate Pro', desc: 'Activate NexTool Pro on this device', icon: '\uD83D\uDD11', target: '/activate.html', type: 'page' },
+                { title: 'Privacy', desc: 'Privacy policy', icon: '\uD83D\uDD12', target: '/privacy.html', type: 'page' },
+                { title: 'Terms', desc: 'Terms of service', icon: '\uD83D\uDCC4', target: '/terms.html', type: 'page' },
             ];
 
             var activeIdx = 0;
@@ -2059,13 +2048,13 @@
             if (!el) return;
 
             var phrases = [
-                'stunning websites.',
-                'intelligent chatbots.',
-                'automated workflows.',
-                'SEO-optimized content.',
-                'promotional videos.',
-                'data scraping pipelines.',
-                'anything you can imagine.'
+                'JSON formatting.',
+                'regex testing.',
+                'CSS generation.',
+                'image compression.',
+                'color palettes.',
+                'code conversion.',
+                '150+ free tools.'
             ];
 
             var phraseIdx = 0;
@@ -2490,8 +2479,8 @@
                 })
                 .catch(function() {
                     window.location.href = 'mailto:christianjunbucher@gmail.com?subject=' +
-                        encodeURIComponent('NexTool Project Brief from ' + name) +
-                        '&body=' + encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\nProject:\n' + (brief || 'No details'));
+                        encodeURIComponent('NexTool Message from ' + name) +
+                        '&body=' + encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\nMessage:\n' + (brief || 'No details'));
                     form.style.display = 'none';
                     sent.classList.add('show');
                 });

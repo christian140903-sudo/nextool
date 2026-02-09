@@ -1048,20 +1048,23 @@
         ========================================================== */
         var ntChatIntents = {
             greeting:    { w: ['hi','hello','hey','good morning','good evening','howdy','yo','greetings','sup','what\'s up'], s: 2 },
-            website:     { w: ['website','web site','landing page','web page','homepage','portfolio','online presence','web design','web app','frontend','html','react','site','webpage'], s: 3 },
-            chatbot:     { w: ['chatbot','chat bot','bot','customer service bot','discord bot','telegram bot','ai assistant','virtual assistant','support bot','messenger bot'], s: 3 },
-            automation:  { w: ['automation','automate','workflow','integrate','integration','zapier','make.com','connect apps','pipeline','trigger','scheduled','cron','api connect'], s: 3 },
-            content:     { w: ['content','blog','social media','email marketing','copywriting','article','post','newsletter','seo content','copy','writing','email sequence'], s: 3 },
-            video:       { w: ['video','promo','animation','motion graphics','edit','reel','clip','footage','explainer','trailer','youtube'], s: 3 },
-            data:        { w: ['data','scrape','scraping','dashboard','analysis','extract','crawl','csv','spreadsheet','database','analytics','visualization','report'], s: 3 },
-            pricing:     { w: ['how much','cost','price','pricing','cheap','expensive','budget','afford','pay','money','rate','fee','quote','estimate','invoice'], s: 2 },
-            timeline:    { w: ['how long','when','fast','urgent','deadline','rush','quick','delivery time','turnaround','speed','asap','tomorrow','today'], s: 2 },
-            process:     { w: ['how does it work','how do you work','process','steps','what happens','how to start','get started','workflow','procedure'], s: 2 },
-            quality:     { w: ['example','portfolio','quality','guarantee','experience','sample','showcase','previous work','proof','refund','money back'], s: 2 },
-            comparison:  { w: ['vs','compare','agency','freelancer','diy','why you','why nextool','better than','different from','alternative'], s: 2 },
-            help:        { w: ['help','not sure','don\'t know','confused','recommend','suggest','what should','which service','what do i need','advice'], s: 2 },
+            tools:       { w: ['tools','tool','free tools','developer tools','online tools','browser tools','utilities','what tools','which tools'], s: 3 },
+            json:        { w: ['json','json formatter','json format','format json','validate json','json validator','json editor'], s: 3 },
+            css:         { w: ['css','gradient','color','palette','design','border radius','box shadow','flexbox','grid','tailwind'], s: 3 },
+            converter:   { w: ['convert','converter','base64','markdown','csv','yaml','xml','encode','decode','transform'], s: 3 },
+            text:        { w: ['text','word count','character count','case','regex','slug','lorem ipsum','diff','analyzer'], s: 3 },
+            image:       { w: ['image','compress','resize','qr','qr code','screenshot','favicon','svg','picture','photo'], s: 3 },
+            pro:         { w: ['pro','premium','upgrade','paid','nexttool pro','nextool pro','enhanced','clean output','branding','subscription'], s: 3 },
+            pricing:     { w: ['how much','cost','price','pricing','cheap','expensive','budget','afford','pay','money','rate','fee'], s: 2 },
+            privacy:     { w: ['privacy','data','tracking','secure','safe','upload','server','collect','cookies','gdpr'], s: 2 },
+            pipeline:    { w: ['pipeline','chain','connect tools','send to','workflow','multi-step','combine'], s: 3 },
+            workspace:   { w: ['workspace','save','saved','clipboard','history','favorites','bookmark'], s: 3 },
+            process:     { w: ['how does it work','how do you work','process','steps','what happens','how to start','get started'], s: 2 },
+            quality:     { w: ['example','quality','guarantee','refund','money back','proof'], s: 2 },
+            comparison:  { w: ['vs','compare','alternative','better than','different from','why nextool'], s: 2 },
+            help:        { w: ['help','not sure','don\'t know','confused','recommend','suggest','what should','advice'], s: 2 },
             thanks:      { w: ['thanks','thank you','great','awesome','perfect','cool','nice','appreciate','wonderful','excellent'], s: 1 },
-            whatsapp:    { w: ['contact','email','phone','call','message','reach','talk to human','real person','speak'], s: 2 },
+            contact:     { w: ['contact','email','phone','call','message','reach','talk to human','real person','speak','feedback','bug'], s: 2 },
             negative:    { w: ['no thanks','not interested','too expensive','maybe later','not now','pass','nah','nope'], s: 1 }
         };
 
@@ -1086,176 +1089,204 @@
         }
 
         function ntGetResponse(intent, text) {
-            var svc = {
-                website:  { name: 'Website Development', price: '$29 - $499+', time: '24h - 7 days', stack: 'HTML/CSS/JS, React' },
-                chatbot:  { name: 'Chatbot Development', price: '$29 - $499+', time: '24h - 7 days', stack: 'Node.js, Claude AI, Twilio' },
-                automation:{ name: 'Workflow Automation', price: '$5 - $499+',  time: 'Same day - 7 days', stack: 'Make.com, Zapier, Custom' },
-                content:  { name: 'Content Creation',    price: '$5 - $149',   time: 'Same day - 5 days', stack: 'AI-assisted + human editing' },
-                video:    { name: 'Video Production',     price: '$49 - $499+', time: '2-7 days', stack: 'AI generation + pro editing' },
-                data:     { name: 'Data Solutions',       price: '$5 - $149',   time: 'Same day - 5 days', stack: 'Python, Node.js, dashboards' }
-            };
-
-            function card(s) {
-                return '<div class="nt-sc"><h4>' + s.name + '</h4>' +
-                    '<div class="nt-sc-r"><span>Price range</span><span>' + s.price + '</span></div>' +
-                    '<div class="nt-sc-r"><span>Delivery</span><span>' + s.time + '</span></div>' +
-                    '<div class="nt-sc-r"><span>Built with</span><span>' + s.stack + '</span></div></div>';
-            }
-
             var pick = function(arr) { return arr[Math.floor(Math.random() * arr.length)]; };
-            var wa = '<a href="#contact" style="color:var(--primary-light);text-decoration:underline">send us a project brief</a>';
+            var contactLink = '<a href="#contact" style="color:var(--primary-light);text-decoration:underline">contact us</a>';
             var r = { html: '', chips: [] };
 
             switch (intent) {
                 case 'greeting':
                     r.html = pick([
-                        'Hey! What are you working on? I can help with websites, bots, automations, and more.',
-                        'Hi there! Describe what you need and I\'ll show you what we can build — and what it\'ll cost.',
-                        'Hey! Whether it\'s a website, chatbot, automation, or anything digital — tell me what you need.'
+                        'Hey! I can help you find the right tool. We have 150+ free browser-based tools — what are you working on?',
+                        'Hi there! Looking for a specific tool? Tell me what you need — JSON formatting, image compression, CSS generation, and much more.',
+                        'Hey! NexTool has 150+ free developer tools. What can I help you find?'
                     ]);
-                    r.chips = ['I need a website', 'Build me a chatbot', 'Automate something', 'What do you offer?'];
+                    r.chips = ['JSON tools', 'CSS generators', 'Image tools', 'What do you offer?'];
                     break;
 
-                case 'website':
-                    r.html = pick([
-                        'Websites are our specialty. From simple landing pages to full web apps — we build fast, clean, and responsive.',
-                        'We build everything from one-page sites to complex web applications. Fully responsive, SEO-optimized, deployed free.'
-                    ]) + card(svc.website) + '<br>What kind of site do you have in mind?';
-                    r.chips = ['Landing page', 'Business website', 'Portfolio', 'Web application'];
+                case 'tools':
+                    r.html = '<strong>We have 150+ free tools across 6 categories:</strong><br><br>' +
+                        '&#8226; <strong>Developer</strong> — JSON formatter, regex tester, JWT decoder, cron builder<br>' +
+                        '&#8226; <strong>Design</strong> — Color palette, gradient generator, box shadow, CSS grid<br>' +
+                        '&#8226; <strong>Converters</strong> — Base64, Markdown to HTML, JSON to CSV, YAML<br>' +
+                        '&#8226; <strong>Text</strong> — Word counter, case converter, slug generator, Lorem Ipsum<br>' +
+                        '&#8226; <strong>Media</strong> — Image compressor, QR generator, favicon maker<br>' +
+                        '&#8226; <strong>Utilities</strong> — Password generator, UUID, stopwatch, calculator<br><br>' +
+                        'All free, no sign-up needed. <a href="/free-tools/" style="color:var(--primary-light)">Browse all tools &rarr;</a>';
+                    r.chips = ['JSON Formatter', 'Color Palette', 'Image Compressor', 'Get NexTool Pro'];
                     break;
 
-                case 'chatbot':
-                    r.html = pick([
-                        'We build intelligent chatbots that actually understand your customers — not just keyword matchers.',
-                        'From FAQ bots to full AI assistants with conversation memory — we handle Telegram, Discord, and web chat.'
-                    ]) + card(svc.chatbot) + '<br>What platform do you need the bot on?';
-                    r.chips = ['Discord bot', 'Website chat', 'Telegram bot', 'AI assistant'];
+                case 'json':
+                    r.html = 'We have several JSON tools:<br><br>' +
+                        '&#8226; <a href="/free-tools/json-formatter.html" style="color:var(--primary-light)">JSON Formatter</a> — format, validate, minify<br>' +
+                        '&#8226; <a href="/free-tools/json-to-csv.html" style="color:var(--primary-light)">JSON to CSV</a> — convert JSON arrays<br>' +
+                        '&#8226; <a href="/free-tools/json-to-yaml.html" style="color:var(--primary-light)">JSON to YAML</a> — format conversion<br>' +
+                        '&#8226; <a href="/free-tools/json-to-typescript.html" style="color:var(--primary-light)">JSON to TypeScript</a> — generate types<br><br>' +
+                        'All process locally in your browser — your data never leaves your device.';
+                    r.chips = ['Try JSON Formatter', 'Other tools', 'NexTool Pro'];
                     break;
 
-                case 'automation':
-                    r.html = pick([
-                        'We connect your apps and automate repetitive work. Save hours every week with zero manual effort.',
-                        'Whether it\'s email triggers, data syncing, or complex multi-step workflows — we build automations that just work.'
-                    ]) + card(svc.automation) + '<br>What are you looking to automate?';
-                    r.chips = ['Email automation', 'App integration', 'Data pipeline', 'Custom workflow'];
+                case 'css':
+                    r.html = 'Here are our CSS & design tools:<br><br>' +
+                        '&#8226; <a href="/free-tools/gradient-generator.html" style="color:var(--primary-light)">Gradient Generator</a> — visual CSS gradients<br>' +
+                        '&#8226; <a href="/free-tools/color-palette.html" style="color:var(--primary-light)">Color Palette</a> — generate color schemes<br>' +
+                        '&#8226; <a href="/free-tools/box-shadow-generator.html" style="color:var(--primary-light)">Box Shadow</a> — visual shadow builder<br>' +
+                        '&#8226; <a href="/free-tools/flexbox-playground.html" style="color:var(--primary-light)">Flexbox Playground</a> — interactive layout<br>' +
+                        '&#8226; <a href="/free-tools/css-grid-generator.html" style="color:var(--primary-light)">CSS Grid</a> — visual grid builder<br><br>' +
+                        'Copy the generated CSS directly to your project.';
+                    r.chips = ['Color Palette', 'Other tools', 'NexTool Pro'];
                     break;
 
-                case 'content':
-                    r.html = pick([
-                        'We create SEO-optimized blog posts, social media content, email sequences — all matched to your brand voice.',
-                        'From a single blog post to a full content calendar — AI-assisted creation with human quality control.'
-                    ]) + card(svc.content) + '<br>What type of content do you need?';
-                    r.chips = ['Blog posts', 'Social media', 'Email sequences', 'Ad copy'];
+                case 'converter':
+                    r.html = 'We have lots of converters:<br><br>' +
+                        '&#8226; <a href="/free-tools/base64.html" style="color:var(--primary-light)">Base64</a> — encode & decode<br>' +
+                        '&#8226; <a href="/free-tools/markdown-preview.html" style="color:var(--primary-light)">Markdown Preview</a> — live preview<br>' +
+                        '&#8226; <a href="/free-tools/json-to-csv.html" style="color:var(--primary-light)">JSON to CSV</a><br>' +
+                        '&#8226; <a href="/free-tools/json-to-yaml.html" style="color:var(--primary-light)">JSON to YAML</a><br>' +
+                        '&#8226; <a href="/free-tools/html-to-markdown.html" style="color:var(--primary-light)">HTML to Markdown</a><br><br>' +
+                        'All processing happens in your browser.';
+                    r.chips = ['Browse all tools', 'NexTool Pro', 'Contact us'];
                     break;
 
-                case 'video':
-                    r.html = pick([
-                        'We produce promotional videos, explainers, social clips, and motion graphics using AI tools + professional editing.',
-                        'Short-form promos, product demos, brand intros — we handle the full pipeline from script to final export.'
-                    ]) + card(svc.video) + '<br>What kind of video do you need?';
-                    r.chips = ['Promo video', 'Explainer', 'Social media clip', 'Product demo'];
+                case 'text':
+                    r.html = 'Text & content tools:<br><br>' +
+                        '&#8226; <a href="/free-tools/text-analyzer.html" style="color:var(--primary-light)">Text Analyzer</a> — word count, readability<br>' +
+                        '&#8226; <a href="/free-tools/regex-tester.html" style="color:var(--primary-light)">Regex Tester</a> — test patterns live<br>' +
+                        '&#8226; <a href="/free-tools/slug-generator.html" style="color:var(--primary-light)">Slug Generator</a> — URL-friendly slugs<br>' +
+                        '&#8226; <a href="/free-tools/lorem-ipsum.html" style="color:var(--primary-light)">Lorem Ipsum</a> — placeholder text<br><br>' +
+                        'All free, no sign-up required.';
+                    r.chips = ['Regex Tester', 'Browse all tools', 'NexTool Pro'];
                     break;
 
-                case 'data':
-                    r.html = pick([
-                        'We scrape, clean, analyze, and visualize data. From simple CSV exports to interactive dashboards.',
-                        'Need data from the web? Competitor analysis? A dashboard? We handle extraction, cleaning, and presentation.'
-                    ]) + card(svc.data) + '<br>What data do you need?';
-                    r.chips = ['Web scraping', 'Data analysis', 'Dashboard', 'Competitor research'];
+                case 'image':
+                    r.html = 'Image & media tools:<br><br>' +
+                        '&#8226; <a href="/free-tools/image-compressor.html" style="color:var(--primary-light)">Image Compressor</a> — up to 90% smaller<br>' +
+                        '&#8226; <a href="/free-tools/qr-generator.html" style="color:var(--primary-light)">QR Generator</a> — custom QR codes<br>' +
+                        '&#8226; <a href="/free-tools/image-resizer.html" style="color:var(--primary-light)">Image Resizer</a> — batch resize<br>' +
+                        '&#8226; <a href="/free-tools/favicon-generator.html" style="color:var(--primary-light)">Favicon Generator</a><br><br>' +
+                        'Images are processed locally — they never leave your device.';
+                    r.chips = ['Image Compressor', 'QR Generator', 'Browse all tools'];
+                    break;
+
+                case 'pro':
+                    r.html = '<strong>NexTool Pro — $29 one-time:</strong><br><br>' +
+                        '&#8226; Clean output without NexTool branding<br>' +
+                        '&#8226; Enhanced features on all 150+ tools<br>' +
+                        '&#8226; Unlimited workspace saves<br>' +
+                        '&#8226; No subscription — pay once, yours forever<br>' +
+                        '&#8226; 30-day money-back guarantee<br><br>' +
+                        'Currently at <strong>Founding Member pricing</strong> — this price will increase later.<br><br>' +
+                        '<a href="/pro.html" style="color:var(--primary-light)">Learn more about NexTool Pro &rarr;</a>';
+                    r.chips = ['Get NexTool Pro', 'What\'s included?', 'Browse free tools'];
                     break;
 
                 case 'pricing':
-                    r.html = '<strong>Our pricing is transparent:</strong><br><br>' +
-                        '&#8226; <strong>Starter</strong> — $5-49 (simple, same-day projects)<br>' +
-                        '&#8226; <strong>Professional</strong> — $149 (multi-day, polished work)<br>' +
-                        '&#8226; <strong>Enterprise</strong> — $499+ (complex, custom solutions)<br><br>' +
-                        'The exact price depends on scope. Tell me what you need and I\'ll give you a more accurate range — or ' + wa + ' for a detailed quote.';
-                    r.chips = ['I need a website', 'What\'s the cheapest option?', 'Enterprise project'];
+                    r.html = '<strong>Simple pricing:</strong><br><br>' +
+                        '&#8226; <strong>Free</strong> — All 150+ tools, no sign-up, no limits<br>' +
+                        '&#8226; <strong>NexTool Pro</strong> — $29 one-time. Clean output, enhanced features, unlimited workspace<br><br>' +
+                        'No subscription. No hidden fees. No recurring charges. The free tools stay free forever.<br><br>' +
+                        '<a href="/pro.html" style="color:var(--primary-light)">See NexTool Pro details &rarr;</a>';
+                    r.chips = ['Get NexTool Pro', 'Browse free tools', 'What\'s included in Pro?'];
                     break;
 
-                case 'timeline':
-                    r.html = '<strong>Delivery times:</strong><br><br>' +
-                        '&#8226; Simple projects (Starter): <strong>Same day to 24h</strong><br>' +
-                        '&#8226; Professional projects: <strong>2-3 days</strong><br>' +
-                        '&#8226; Enterprise projects: <strong>5-7 days</strong><br><br>' +
-                        'Need something urgent? We can often fast-track. Tell me what you need and when you need it.';
-                    r.chips = ['I need something ASAP', 'Tell me about your services', 'Start a project'];
+                case 'privacy':
+                    r.html = '<strong>Your privacy is our #1 priority:</strong><br><br>' +
+                        '&#8226; All tools run 100% in your browser<br>' +
+                        '&#8226; No data is ever sent to any server<br>' +
+                        '&#8226; No tracking cookies, no analytics trackers<br>' +
+                        '&#8226; No sign-up or account required<br>' +
+                        '&#8226; Your files, text, and data never leave your device<br><br>' +
+                        'We literally cannot see what you process with our tools.';
+                    r.chips = ['Browse tools', 'NexTool Pro', 'Contact us'];
+                    break;
+
+                case 'pipeline':
+                    r.html = '<strong>Tool Pipelines</strong> let you chain tools together:<br><br>' +
+                        'For example: Format JSON → Convert to CSV → Download. Or: Generate color palette → Export as CSS variables.<br><br>' +
+                        'Look for the "Send to..." button on any tool to chain it with related tools. This feature is available on most of our 150+ tools.';
+                    r.chips = ['Browse tools', 'NexTool Pro', 'How it works'];
+                    break;
+
+                case 'workspace':
+                    r.html = '<strong>Personal Workspace</strong> auto-saves your tool results:<br><br>' +
+                        '&#8226; Free users: 10 saved items<br>' +
+                        '&#8226; Pro users: unlimited saves<br><br>' +
+                        'Access your workspace from any tool page via the floating button, or visit <a href="/workspace.html" style="color:var(--primary-light)">workspace.html</a> directly. All data stays in your browser.';
+                    r.chips = ['Get NexTool Pro', 'Browse tools', 'Privacy info'];
                     break;
 
                 case 'process':
-                    r.html = '<strong>How it works:</strong><br><br>' +
-                        '<strong>1. Describe</strong> — Tell us what you need (here or via our contact form)<br>' +
-                        '<strong>2. Quote</strong> — We give you a clear price and timeline<br>' +
-                        '<strong>3. Pay</strong> — Secure payment via PayPal<br>' +
-                        '<strong>4. Preview</strong> — Review a live preview before final delivery<br>' +
-                        '<strong>5. Launch</strong> — Get everything: source code, deployed project, docs<br><br>' +
-                        'Unlimited revisions within scope. 100% money-back guarantee.';
-                    r.chips = ['Start a project', 'See pricing', 'What can you build?'];
+                    r.html = '<strong>How NexTool works:</strong><br><br>' +
+                        '<strong>1. Browse</strong> — Find the tool you need from 150+ options<br>' +
+                        '<strong>2. Use</strong> — Paste your data, get instant results<br>' +
+                        '<strong>3. Chain</strong> — Send output to another tool via pipelines<br>' +
+                        '<strong>4. Save</strong> — Auto-save results to your workspace<br>' +
+                        '<strong>5. Upgrade</strong> — Get Pro for clean output and enhanced features<br><br>' +
+                        'No sign-up needed. Just open a tool and start using it.';
+                    r.chips = ['Browse tools', 'NexTool Pro', 'Tool Pipelines'];
                     break;
 
                 case 'quality':
-                    r.html = 'You\'re looking at our portfolio right now — <strong>this website</strong> is built by us. Every animation, every interaction, every line of code.<br><br>' +
-                        'We offer a <strong>100% money-back guarantee</strong>. You see a live preview before final payment. If you\'re not satisfied, you don\'t pay.<br><br>' +
-                        'Ready to see what we\'d build for you? ' + wa + '.';
-                    r.chips = ['Start a project', 'Tell me about pricing', 'How does it work?'];
+                    r.html = 'NexTool Pro comes with a <strong>30-day money-back guarantee</strong>. If it doesn\'t meet your expectations, you get a full refund — no questions asked.<br><br>' +
+                        'Try any of our 150+ free tools right now to see the quality for yourself. Pro just removes branding and adds enhanced features.';
+                    r.chips = ['Browse tools', 'Get NexTool Pro', 'Contact us'];
                     break;
 
                 case 'comparison':
-                    r.html = '<strong>NexTool vs the alternatives:</strong><br><br>' +
-                        '&#8226; <strong>vs Agencies</strong>: We\'re 10-100x cheaper, deliver in days not months<br>' +
-                        '&#8226; <strong>vs Freelancers</strong>: AI-accelerated = faster and more consistent<br>' +
-                        '&#8226; <strong>vs DIY</strong>: Professional quality without learning curves<br><br>' +
-                        'One developer + AI tools = agency-quality output at freelancer speed. You own everything we build — no lock-in, no subscriptions.';
-                    r.chips = ['See pricing', 'Start a project', 'What do you build?'];
+                    r.html = '<strong>NexTool vs alternatives:</strong><br><br>' +
+                        '&#8226; <strong>vs Other tool sites</strong>: No ads, no sign-up, 150+ tools in one place<br>' +
+                        '&#8226; <strong>vs Paid SaaS</strong>: Free with $29 Pro option, no monthly fees<br>' +
+                        '&#8226; <strong>vs Browser extensions</strong>: No install needed, works everywhere<br><br>' +
+                        'Plus: tool pipelines for chaining, personal workspace for saving, and complete privacy — your data never leaves your browser.';
+                    r.chips = ['Browse tools', 'Get NexTool Pro', 'Privacy info'];
                     break;
 
                 case 'help':
-                    r.html = 'No worries — let me help you figure it out. What\'s your situation?<br><br>' +
-                        '&#8226; <strong>Need an online presence?</strong> → Website<br>' +
-                        '&#8226; <strong>Want to automate customer support?</strong> → Chatbot<br>' +
-                        '&#8226; <strong>Tired of repetitive tasks?</strong> → Automation<br>' +
-                        '&#8226; <strong>Need marketing material?</strong> → Content or Video<br>' +
-                        '&#8226; <strong>Need information from the web?</strong> → Data<br><br>' +
-                        'Just describe your problem and I\'ll recommend the best solution.';
-                    r.chips = ['I have a business idea', 'I need marketing help', 'I want to save time', 'Something custom'];
+                    r.html = 'Let me help you find the right tool:<br><br>' +
+                        '&#8226; <strong>Working with JSON/data?</strong> → JSON Formatter, CSV tools<br>' +
+                        '&#8226; <strong>Building a website?</strong> → CSS generators, color tools<br>' +
+                        '&#8226; <strong>Need to convert something?</strong> → Base64, Markdown, YAML<br>' +
+                        '&#8226; <strong>Working with images?</strong> → Compressor, QR, resizer<br>' +
+                        '&#8226; <strong>Writing code?</strong> → Regex tester, diff checker, minifiers<br><br>' +
+                        'Or <a href="/free-tools/" style="color:var(--primary-light)">browse all 150+ tools</a>.';
+                    r.chips = ['JSON tools', 'CSS tools', 'Image tools', 'Browse all'];
                     break;
 
                 case 'thanks':
                     r.html = pick([
-                        'Anytime! If you\'re ready to start a project, just ' + wa + '. We\'d love to build something for you.',
-                        'Happy to help! Whenever you\'re ready to get started, we\'re just a message away — ' + wa + '.',
-                        'Glad I could help! Don\'t hesitate to reach out when you\'re ready to build something.'
+                        'Anytime! Enjoy the tools. If you want clean output and extra features, check out <a href="/pro.html" style="color:var(--primary-light)">NexTool Pro</a>.',
+                        'Happy to help! Feel free to ask anytime you\'re looking for a specific tool.',
+                        'Glad I could help! Have fun with the tools.'
                     ]);
-                    r.chips = ['Start a project', 'I have another question'];
+                    r.chips = ['Browse tools', 'I have another question'];
                     break;
 
-                case 'whatsapp':
-                    r.html = 'You can reach us via our contact form or email at <strong>' + CONTACT_EMAIL + '</strong><br><br>' +
-                        wa + ' — we usually respond within 2 hours during business hours (8AM-10PM CET).<br><br>' +
-                        'Or just keep chatting here if you have more questions first!';
-                    r.chips = ['Tell me about pricing', 'What can you build?'];
+                case 'contact':
+                    r.html = 'You can reach us at <strong>christianjunbucher@gmail.com</strong> or use the ' + contactLink + ' form below.<br><br>' +
+                        'We read every message personally and usually respond within a few hours.<br><br>' +
+                        'Or just keep chatting here — I can answer most questions about our tools!';
+                    r.chips = ['Browse tools', 'NexTool Pro', 'Privacy info'];
                     break;
 
                 case 'negative':
                     r.html = pick([
-                        'No pressure at all. We\'re here whenever you need us. Good luck with your project!',
-                        'Totally understand. If you change your mind or have questions later, you know where to find us.',
-                        'All good! We\'ll be here if you ever need anything built. Have a great day!'
+                        'No worries! All 150+ tools are free — you can always come back whenever you need them.',
+                        'Totally fine. The free tools are always here when you need them. Have a great day!',
+                        'All good! Bookmark us for when you need a quick JSON format or image compress.'
                     ]);
                     break;
 
                 default:
                     var lower = text.toLowerCase();
                     if (lower.length < 10) {
-                        r.html = 'Tell me more — what are you looking to build or automate? The more detail you give, the better I can help.';
+                        r.html = 'Tell me what you\'re looking for — a specific tool, a feature question, or anything else. I\'m here to help!';
                     } else {
                         r.html = pick([
-                            'Interesting! That sounds like something we could definitely help with. Can you tell me a bit more about what the end result should look like?',
-                            'I think we can work with that. Let me understand better — what\'s the main problem you\'re trying to solve?',
-                            'Sounds like a great project. To give you an accurate quote, I\'d need a few more details. What\'s the most important feature or outcome for you?'
+                            'Interesting! Let me see if we have a tool for that. Can you be more specific about what you need?',
+                            'I\'d love to help. Could you describe what kind of tool or functionality you\'re looking for?',
+                            'We have 150+ tools — I might have exactly what you need. What\'s the main thing you\'re trying to do?'
                         ]);
                     }
-                    r.chips = ['I need a website', 'Build me a chatbot', 'Automate something', 'Show me pricing'];
+                    r.chips = ['JSON tools', 'CSS generators', 'Image tools', 'Browse all tools'];
                     break;
             }
             return r;
@@ -1295,8 +1326,8 @@
             }
 
             function greet() {
-                addBot('Hey! I\'m the NexTool AI. Tell me what you need — a website, chatbot, automation, or anything digital — and I\'ll show you what we can build.');
-                showChips(['I need a website', 'Build me a chatbot', 'Automate a workflow', 'What do you offer?']);
+                addBot('Hey! I\'m the NexTool AI. Looking for a specific tool? We have 150+ free developer tools — JSON formatter, color palette, regex tester, and much more. What can I help you find?');
+                showChips(['JSON tools', 'CSS generators', 'Image tools', 'What do you offer?']);
             }
 
             function addBot(html) {
@@ -1392,10 +1423,10 @@
                             addBot(data.reply.replace(/\n/g, '<br>'));
                             history.push({ role: 'assistant', content: data.reply });
                         } catch(e) {
-                            addBot('Something went wrong. Try again or <a href="#contact" style="color:var(--primary-light);text-decoration:underline">send us a project brief</a>.');
+                            addBot('Something went wrong. Try again or <a href="#contact" style="color:var(--primary-light);text-decoration:underline">contact us</a>.');
                         }
                     } else {
-                        addBot('I\'m having trouble connecting. Try again in a moment or <a href="#contact" style="color:var(--primary-light);text-decoration:underline">send us a project brief</a>.');
+                        addBot('I\'m having trouble connecting. Try again in a moment or <a href="#contact" style="color:var(--primary-light);text-decoration:underline">contact us</a>.');
                     }
                 };
                 xhr.onerror = function() {
