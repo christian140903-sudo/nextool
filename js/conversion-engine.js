@@ -139,7 +139,7 @@ function showExitModal() {
     '<button class="ntce-ec" aria-label="Close">\u00D7</button>' +
     '<div class="ntce-ei">\uD83C\uDF81</div>' +
     '<h2 class="ntce-eh">Before you go...</h2>' +
-    '<p class="ntce-ep">Get our <strong>free Developer Toolkit</strong> \u2014 cheat sheets for JSON, regex, git + links to all 125+ tools. One email, no spam.</p>' +
+    '<p class="ntce-ep">Get our <strong>free Developer Toolkit</strong> \u2014 cheat sheets for JSON, regex, git + links to all 150+ tools. One email, no spam.</p>' +
     '<form class="ntce-ef" id="ntce-ef">' +
     '<input type="email" placeholder="your@email.com" required autocomplete="email" class="ntce-ein">' +
     '<button type="submit" class="ntce-eb">Send Me the Toolkit \u2192</button>' +
@@ -242,9 +242,9 @@ function showContextBanner() {
   c.innerHTML = '<div class="ntce-cbi">' +
     '<span class="ntce-cbic">\uD83D\uDCA1</span>' +
     '<div class="ntce-cbt">' +
-    '<strong>Love this tool?</strong> We built it. We build custom solutions for businesses too.' +
+    '<strong>Love this tool?</strong> Get clean output and enhanced features with NexTool Pro.' +
     '</div>' +
-    '<a href="' + CONTACT_URL + '" class="ntce-cbb">Get a Quote \u2014 from $5</a>' +
+    '<a href="/pro.html" class="ntce-cbb">NexTool Pro \u2014 $29</a>' +
     '<button class="ntce-cbx" aria-label="Close">\u00D7</button>' +
     '</div>';
   document.body.appendChild(c);
