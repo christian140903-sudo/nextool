@@ -1,6 +1,6 @@
 # NexTool — AI Automation Studio
 
-**You describe it. We build it.** AI-powered automation services starting from $5.
+**150+ Free Developer Tools** — Browser-based, no signup, no tracking.
 
 [Live at nextool.app](https://nextool.app)
 
