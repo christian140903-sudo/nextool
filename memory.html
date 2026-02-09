@@ -344,6 +344,34 @@ footer{border-top:1px solid var(--border2);padding:48px 0 24px}
   .install-cmd{font-size:13px}
   .proof-grid{grid-template-columns:1fr 1fr}
 }
+/* CONFETTI CANVAS */
+.confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:99999}
+
+/* URGENCY COUNTDOWN */
+.countdown-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+.countdown-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:6px 10px;min-width:42px;text-align:center}
+.countdown-num{font-size:18px;font-weight:800;color:#ef4444;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+.countdown-unit{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);display:block;margin-top:1px}
+.countdown-sep{font-size:18px;font-weight:800;color:rgba(239,68,68,.4);line-height:1}
+.countdown-label{font-size:12px;color:var(--red);font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:4px;justify-content:center}
+.countdown-label svg{animation:pulse 1.5s infinite}
+
+/* BUTTON GLOW PULSE */
+.btn-glow{animation:glowPulse 3s ease-in-out infinite}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 20px rgba(99,102,241,.2),0 4px 15px rgba(0,0,0,.2)}50%{box-shadow:0 0 40px rgba(99,102,241,.4),0 0 80px rgba(168,85,247,.15),0 4px 15px rgba(0,0,0,.2)}}
+
+/* CURSOR GLOW TRAIL */
+.cursor-trail{position:fixed;width:4px;height:4px;background:var(--primary);border-radius:50%;pointer-events:none;z-index:9997;opacity:0;transition:opacity .3s}
+
+/* TYPING INDICATOR */
+.sound-toggle{position:absolute;top:12px;right:50px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.12);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--dim);cursor:pointer;font-family:var(--mono);transition:all .2s;display:flex;align-items:center;gap:4px}
+.sound-toggle:hover{background:rgba(99,102,241,.15);color:var(--primary-h)}
+.sound-toggle.active{color:var(--green);border-color:rgba(34,197,94,.2)}
+
+/* EASTER EGG MATRIX */
+.matrix-char{position:fixed;font-family:var(--mono);font-size:14px;color:var(--green);pointer-events:none;z-index:99998;opacity:0;animation:matrixFall 2s linear forwards}
+@keyframes matrixFall{0%{opacity:0;transform:translateY(-20px)}10%{opacity:1}90%{opacity:.5}100%{opacity:0;transform:translateY(100vh)}}
+
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
   .reveal{opacity:1;transform:none}
@@ -482,6 +510,7 @@ GitHub
 <span class="terminal-dot y"></span>
 <span class="terminal-dot g"></span>
 <span class="terminal-title">mcp-smart-memory &mdash; interactive demo</span>
+<button class="sound-toggle" id="soundToggle" title="Toggle typing sounds">&#x1f50a; sound</button>
 </div>
 <div class="playground-body" id="pgBody">
 <div class="pg-line"><span class="pg-comment">// Welcome to Smart Memory MCP. Try typing a command below.</span></div>
@@ -741,6 +770,14 @@ npx mcp-smart-memory
 <div class="tier-name">Pro</div>
 <div class="tier-desc">Full power. Pay once, own forever.</div>
 <div class="launch-badge">67% OFF &mdash; Limited Time</div>
+<div class="countdown-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Offer ends in:</div>
+<div class="countdown-row" id="urgencyCountdown">
+<div class="countdown-box"><span class="countdown-num" id="cdH">00</span><span class="countdown-unit">hrs</span></div>
+<span class="countdown-sep">:</span>
+<div class="countdown-box"><span class="countdown-num" id="cdM">00</span><span class="countdown-unit">min</span></div>
+<span class="countdown-sep">:</span>
+<div class="countdown-box"><span class="countdown-num" id="cdS">00</span><span class="countdown-unit">sec</span></div>
+</div>
 <div class="tier-price">
 <span class="tier-original">$89</span>
 <span class="tier-amount"><span class="currency">$</span>29</span>
@@ -1064,6 +1101,35 @@ document.querySelectorAll('.magnetic').forEach(function(btn){
         if(results.length===0)addLine('<span class="pg-comment">  No matching memories found.</span>');
       }
     }
+    else if(cmd==='konami'||cmd==='secret'){
+      addLine('<span class="pg-result">  &#x1f389; You found the Easter egg!</span>');
+      addLine('<span class="pg-string">  "The best AI is the one that remembers why you built it."</span>');
+      addLine('<span class="pg-comment">  — Smart Memory MCP, 2026</span>');
+      if(window._fireConfetti)window._fireConfetti();
+    }
+    else if(cmd==='matrix'){
+      addLine('<span class="pg-result">  &#x1f7e2; Entering the Matrix...</span>');
+      for(var mi=0;mi<40;mi++){
+        (function(idx){
+          setTimeout(function(){
+            var ch=document.createElement('span');
+            ch.className='matrix-char';
+            ch.textContent=String.fromCharCode(0x30A0+Math.random()*96);
+            ch.style.left=Math.random()*100+'vw';
+            ch.style.top='-20px';
+            ch.style.animationDuration=(1.5+Math.random()*2)+'s';
+            document.body.appendChild(ch);
+            setTimeout(function(){ch.remove()},4000);
+          },idx*60);
+        })(mi);
+      }
+    }
+    else if(cmd==='whoami'){
+      addLine('<span class="pg-result">  Smart Memory MCP v1.0.0</span>');
+      addLine('<span class="pg-comment">  Built with &#x2665; by NexTool</span>');
+      addLine('<span class="pg-comment">  Running: TF-IDF engine, cosine similarity</span>');
+      addLine('<span class="pg-comment">  Storage: ~/.smart-memory/default/</span>');
+    }
     else{
       addLine('<span class="pg-error">  Unknown command: '+escHtml(cmd)+'</span>');
       addLine('<span class="pg-comment">  Try: memory_learn, memory_recall, memory_stats, or help</span>');
@@ -1109,6 +1175,8 @@ document.querySelectorAll('.magnetic').forEach(function(btn){
         processCmd(val);
         initInput();
         body.querySelector('.pg-input').focus();
+      } else if(e.key.length===1&&window._typeSound){
+        window._typeSound();
       }
     });
   }
@@ -1207,6 +1275,143 @@ document.querySelectorAll('.faq-q').forEach(function(btn){
     if(!wasOpen)item.classList.add('open');
   });
 });
+
+/* ═══════════ CONFETTI EXPLOSION ═══════════ */
+(function(){
+  function fireConfetti(){
+    var canvas=document.createElement('canvas');
+    canvas.className='confetti-canvas';
+    canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+    document.body.appendChild(canvas);
+    var ctx=canvas.getContext('2d');
+    var particles=[];
+    var colors=['#6366f1','#a855f7','#ec4899','#22c55e','#f59e0b','#fff'];
+    for(var i=0;i<120;i++){
+      particles.push({
+        x:canvas.width/2,y:canvas.height/2,
+        vx:(Math.random()-.5)*18,vy:Math.random()*-16-4,
+        w:Math.random()*8+3,h:Math.random()*4+2,
+        color:colors[Math.floor(Math.random()*colors.length)],
+        rotation:Math.random()*360,rotSpeed:(Math.random()-.5)*12,
+        gravity:.35,drag:.99,life:1
+      });
+    }
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      var alive=false;
+      particles.forEach(function(p){
+        if(p.life<=0)return;
+        alive=true;
+        p.vy+=p.gravity;p.vx*=p.drag;p.vy*=p.drag;
+        p.x+=p.vx;p.y+=p.vy;p.rotation+=p.rotSpeed;
+        p.life-=.008;
+        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rotation*Math.PI/180);
+        ctx.globalAlpha=Math.max(0,p.life);
+        ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+        ctx.restore();
+      });
+      if(alive)requestAnimationFrame(draw);
+      else canvas.remove();
+    }
+    requestAnimationFrame(draw);
+  }
+  // Attach to all buy buttons
+  document.querySelectorAll('.tier-btn.primary, .btn-glow').forEach(function(btn){
+    btn.addEventListener('click',function(){fireConfetti()});
+  });
+  window._fireConfetti=fireConfetti;
+})();
+
+/* ═══════════ URGENCY COUNTDOWN ═══════════ */
+(function(){
+  var KEY='sm_countdown_end';
+  var stored=localStorage.getItem(KEY);
+  var end;
+  if(stored){
+    end=parseInt(stored);
+    if(end<=Date.now()){
+      // Reset if expired — give 48h more
+      end=Date.now()+48*60*60*1000;
+      localStorage.setItem(KEY,end.toString());
+    }
+  } else {
+    // First visit: 48 hours from now
+    end=Date.now()+48*60*60*1000;
+    localStorage.setItem(KEY,end.toString());
+  }
+  function tick(){
+    var left=Math.max(0,end-Date.now());
+    var h=Math.floor(left/3600000);
+    var m=Math.floor((left%3600000)/60000);
+    var s=Math.floor((left%60000)/1000);
+    var eH=document.getElementById('cdH');
+    var eM=document.getElementById('cdM');
+    var eS=document.getElementById('cdS');
+    if(eH)eH.textContent=h<10?'0'+h:h;
+    if(eM)eM.textContent=m<10?'0'+m:m;
+    if(eS)eS.textContent=s<10?'0'+s:s;
+  }
+  tick();
+  setInterval(tick,1000);
+})();
+
+/* ═══════════ CURSOR GLOW TRAIL ═══════════ */
+(function(){
+  if(window.innerWidth<960)return;
+  var trail=[];
+  var TRAIL_SIZE=8;
+  for(var i=0;i<TRAIL_SIZE;i++){
+    var dot=document.createElement('div');
+    dot.className='cursor-trail';
+    dot.style.opacity=0;
+    document.body.appendChild(dot);
+    trail.push({el:dot,x:0,y:0});
+  }
+  var mx=0,my=0;
+  document.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY});
+  (function loop(){
+    var prev={x:mx,y:my};
+    trail.forEach(function(t,i){
+      var ease=.15+i*.04;
+      t.x+=(prev.x-t.x)*ease;
+      t.y+=(prev.y-t.y)*ease;
+      t.el.style.transform='translate('+t.x+'px,'+t.y+'px)';
+      t.el.style.opacity=(1-i/TRAIL_SIZE)*.25;
+      t.el.style.width=(4-i*.3)+'px';
+      t.el.style.height=(4-i*.3)+'px';
+      prev={x:t.x,y:t.y};
+    });
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ═══════════ TYPING SOUNDS (WEB AUDIO) ═══════════ */
+(function(){
+  var toggle=document.getElementById('soundToggle');
+  if(!toggle)return;
+  var enabled=false;
+  var audioCtx=null;
+  toggle.addEventListener('click',function(){
+    enabled=!enabled;
+    toggle.classList.toggle('active',enabled);
+    toggle.innerHTML=enabled?'&#x1f50a; ON':'&#x1f50a; sound';
+    if(enabled&&!audioCtx){
+      audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    }
+  });
+  window._typeSound=function(){
+    if(!enabled||!audioCtx)return;
+    var osc=audioCtx.createOscillator();
+    var gain=audioCtx.createGain();
+    osc.connect(gain);gain.connect(audioCtx.destination);
+    osc.type='square';
+    osc.frequency.setValueAtTime(800+Math.random()*400,audioCtx.currentTime);
+    gain.gain.setValueAtTime(.015,audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.05);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime+.05);
+  };
+})();
 
 /* ═══════════ SMOOTH SCROLL ═══════════ */
 document.querySelectorAll('a[href^="#"]').forEach(function(a){
