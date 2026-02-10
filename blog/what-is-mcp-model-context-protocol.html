@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What is MCP (Model Context Protocol)? Guide 2026 | NexTool</title>
+<meta name="description" content="Learn what Model Context Protocol (MCP) is, how it works, and why it matters. A complete guide to MCP servers, architecture, and getting started in 2026.">
+<meta name="keywords" content="what is MCP, model context protocol explained, MCP servers guide, MCP tutorial, how MCP works, MCP architecture, MCP servers 2026, AI tool integration">
+<meta name="author" content="NexTool Team">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nextool.app/blog/what-is-mcp-model-context-protocol.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="What is MCP (Model Context Protocol)? A Complete Guide for 2026">
+<meta property="og:description" content="Learn what Model Context Protocol is, how it works, and why it changes how AI tools connect to your data. Includes code examples and setup instructions.">
+<meta property="og:url" content="https://nextool.app/blog/what-is-mcp-model-context-protocol.html">
+<meta property="og:site_name" content="NexTool">
+<meta property="article:published_time" content="2026-02-10T10:00:00Z">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="What is MCP (Model Context Protocol)? A Complete Guide for 2026">
+<meta name="twitter:description" content="Learn what Model Context Protocol is, how it works, and why it changes how AI tools connect to your data. Code examples and setup included.">
+
+<!-- JSON-LD: Article -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "What is MCP (Model Context Protocol)? A Complete Guide for 2026",
+    "description": "Learn what Model Context Protocol (MCP) is, how it works, and why it matters. A complete guide to MCP servers, architecture, and getting started in 2026.",
+    "author": {"@type": "Organization", "name": "NexTool Team", "url": "https://nextool.app"},
+    "publisher": {"@type": "Organization", "name": "NexTool", "logo": {"@type": "ImageObject", "url": "https://nextool.app/images/logo.png"}},
+    "datePublished": "2026-02-10T10:00:00Z",
+    "dateModified": "2026-02-10T10:00:00Z",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "https://nextool.app/blog/what-is-mcp-model-context-protocol.html"},
+    "keywords": "what is MCP, model context protocol explained, MCP servers guide, MCP tutorial, how MCP works",
+    "wordCount": 2800,
+    "articleSection": "AI Development"
+}
+</script>
+
+<!-- JSON-LD: BreadcrumbList -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app"},
+        {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://nextool.app/blog/"},
+        {"@type": "ListItem", "position": 3, "name": "What is MCP (Model Context Protocol)?", "item": "https://nextool.app/blog/what-is-mcp-model-context-protocol.html"}
+    ]
+}
+</script>
+
+<!-- JSON-LD: FAQPage -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "What is Model Context Protocol (MCP)?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Model Context Protocol (MCP) is an open standard created by Anthropic that defines how AI models connect to external tools, data sources, and services. It provides a universal interface so that any AI application can interact with any compatible tool using a single, consistent protocol. Think of it as USB-C for AI: one connector that works everywhere."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How does MCP work?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "MCP uses a client-server architecture. An MCP Host (like Claude Desktop or Cursor) contains an MCP Client that communicates with MCP Servers over JSON-RPC. Servers expose three types of capabilities: Tools (functions the AI can call), Resources (data the AI can read), and Prompts (reusable templates). Communication happens over stdio for local servers or HTTP with Server-Sent Events for remote servers."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is the difference between MCP and function calling?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Function calling is a model-specific feature where you define functions in each API request and the model outputs structured arguments for them. Your application code must then execute the function and return the result. MCP is a protocol layer that standardizes this entire flow. With MCP, you define tools once in a server, and any compatible AI host can discover, understand, and invoke them automatically. Function calling is per-request; MCP is a persistent, discoverable integration."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How do I install an MCP server?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Installation depends on your MCP host. In Claude Desktop, you add server configuration to the claude_desktop_config.json file, specifying the command to run and any arguments. In Claude Code, you use the command 'claude mcp add server-name -- npx package-name' to register a server. In Cursor, you configure servers through the settings panel. Most MCP servers are distributed as npm packages or Python packages and run locally on your machine."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Is MCP secure? Does my data leave my machine?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Most MCP servers run locally on your machine and communicate with the AI host over stdio (standard input/output), meaning your data never leaves your computer during the tool interaction. The AI model sees the results of tool calls, but the server itself processes data locally. Remote MCP servers that use HTTP transport do send data over the network, so you should evaluate each server's security model individually. Always review what permissions an MCP server requests before installing it."
+            }
+        }
+    ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050508;
+  --surface: #111118;
+  --surface-2: #1a1a24;
+  --surface-3: #222233;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --accent: #a855f7;
+  --pink: #ec4899;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --border: #1e1e2e;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--primary-hover); }
+
+/* ===== NAVBAR ===== */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(5,5,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-size: 1.4rem; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+.nav-links a { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: #fff; }
+.nav-cta {
+  background: var(--primary); color: #fff !important; padding: 0.5rem 1.2rem;
+  border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+  transition: background 0.2s, transform 0.2s;
+}
+.nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+.nav-mobile-toggle { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+/* ===== ARTICLE HERO ===== */
+.article-hero {
+  padding: 8rem 2rem 3rem;
+  max-width: 900px; margin: 0 auto; text-align: center;
+}
+.article-meta {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.article-category {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; padding: 0.3rem 0.9rem; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.article-date, .article-reading-time { color: var(--text-dim); font-size: 0.85rem; }
+.article-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; line-height: 1.15;
+  color: #fff; margin-bottom: 1.2rem;
+}
+.article-hero h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.article-subtitle { color: var(--text-muted); font-size: 1.15rem; max-width: 680px; margin: 0 auto; }
+
+/* ===== LAYOUT ===== */
+.article-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  align-items: start;
+}
+
+/* ===== TOC SIDEBAR ===== */
+.toc-sidebar {
+  position: sticky; top: 84px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+}
+.toc-title {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 0.8rem;
+}
+.toc-list { list-style: none; }
+.toc-list li { margin-bottom: 0.4rem; }
+.toc-list a {
+  color: var(--text-muted); font-size: 0.8rem; display: block;
+  padding: 0.25rem 0.5rem; border-radius: 6px; border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+.toc-list a:hover, .toc-list a.active {
+  color: var(--primary); border-left-color: var(--primary); background: rgba(99,102,241,0.06);
+}
+
+/* ===== ARTICLE CONTENT ===== */
+.article-content { max-width: 720px; }
+.article-content h2 {
+  font-size: 1.6rem; font-weight: 800; color: #fff;
+  margin: 2.5rem 0 1rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.article-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.article-content h3 {
+  font-size: 1.2rem; font-weight: 700; color: #fff; margin: 2rem 0 0.8rem;
+}
+.article-content p { margin-bottom: 1.2rem; color: var(--text); }
+.article-content ul, .article-content ol {
+  margin: 0 0 1.5rem 1.2rem; color: var(--text);
+}
+.article-content li { margin-bottom: 0.5rem; }
+.article-content strong { color: #fff; }
+.article-content blockquote {
+  border-left: 3px solid var(--primary); padding: 1rem 1.5rem;
+  background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1.5rem 0; color: var(--text-muted); font-style: italic;
+}
+.article-content code {
+  background: var(--surface-2); padding: 0.15rem 0.45rem; border-radius: 4px;
+  font-size: 0.9em; color: var(--pink);
+}
+.article-content pre {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.2rem; overflow-x: auto; margin: 1.5rem 0;
+}
+.article-content pre code { background: none; padding: 0; color: var(--text); font-size: 0.88em; line-height: 1.7; }
+
+/* ===== ARCHITECTURE DIAGRAM ===== */
+.arch-diagram {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ===== KEY TAKEAWAY ===== */
+.key-takeaway {
+  background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(99,102,241,0.05));
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+}
+.key-takeaway-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--success); margin-bottom: 0.4rem;
+}
+
+/* ===== CTA BOX ===== */
+.cta-box {
+  background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.08));
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+.cta-box h3 { color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 0.6rem; }
+.cta-box p { color: var(--text-muted); margin-bottom: 1.2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+.cta-button {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; font-weight: 700; padding: 0.75rem 2rem;
+  border-radius: 10px; font-size: 0.95rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(99,102,241,0.35);
+  color: #fff;
+}
+
+/* ===== COMPARISON TABLE ===== */
+.comparison-table-wrap {
+  overflow-x: auto; margin: 1.5rem 0; border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.comparison-table {
+  width: 100%; border-collapse: collapse; font-size: 0.85rem;
+}
+.comparison-table th {
+  background: var(--surface-2); color: #fff; font-weight: 700;
+  padding: 0.8rem 1rem; text-align: left; white-space: nowrap;
+}
+.comparison-table td {
+  padding: 0.8rem 1rem; border-top: 1px solid var(--border); color: var(--text-muted);
+}
+.comparison-table tr:hover td { background: rgba(99,102,241,0.04); }
+.comparison-table .check { color: var(--success); }
+.comparison-table .cross { color: #ef4444; }
+
+/* ===== AUTHOR BOX ===== */
+.author-box {
+  display: flex; gap: 1.2rem; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem; margin: 2.5rem 0;
+}
+.author-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.author-info h4 { color: #fff; font-weight: 700; margin-bottom: 0.2rem; }
+.author-info p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+
+/* ===== RELATED ARTICLES ===== */
+.related-articles { margin: 3rem 0; }
+.related-articles h3 { color: #fff; font-weight: 800; font-size: 1.3rem; margin-bottom: 1.2rem; }
+.related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+.related-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.2rem;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.related-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.related-card-cat {
+  font-size: 0.7rem; text-transform: uppercase; font-weight: 700;
+  letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.5rem;
+}
+.related-card h4 { color: #fff; font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; line-height: 1.4; }
+.related-card p { color: var(--text-dim); font-size: 0.82rem; }
+
+/* ===== FOOTER ===== */
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 3rem 2rem 1.5rem;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+}
+.footer-col h4 {
+  color: #fff; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.footer-col a { display: block; color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.4rem; }
+.footer-col a:hover { color: var(--primary); }
+.footer-brand {
+  font-size: 1.2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+.footer-brand-desc { color: var(--text-dim); font-size: 0.82rem; line-height: 1.5; }
+.footer-bottom {
+  text-align: center; padding-top: 1.5rem;
+  border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.8rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .article-layout { grid-template-columns: 1fr; }
+  .toc-sidebar { position: static; margin-bottom: 1rem; }
+}
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .nav-mobile-toggle { display: block; }
+  .article-hero { padding: 6rem 1rem 2rem; }
+  .article-layout { padding: 0 1rem 3rem; }
+  .author-box { flex-direction: column; text-align: center; }
+  .comparison-table { font-size: 0.78rem; }
+  .comparison-table th, .comparison-table td { padding: 0.6rem 0.7rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">NexTool</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/free-tools/">Tools</a></li>
+    <li><a href="/free-tools/">Free Tools</a></li>
+    <li><a href="/pro.html">Pro</a></li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/pro.html" class="nav-cta">NexTool Pro</a></li>
+  </ul>
+  <button class="nav-mobile-toggle" aria-label="Menu">&#9776;</button>
+</nav>
+
+<!-- HERO -->
+<header class="article-hero">
+  <div class="article-meta">
+    <span class="article-category">AI Development</span>
+    <span class="article-date">February 10, 2026</span>
+    <span class="article-reading-time">14 min read</span>
+  </div>
+  <h1>What is MCP (Model Context Protocol)? <span>A Complete Guide for 2026</span></h1>
+  <p class="article-subtitle">AI models are powerful but isolated. They cannot access your tools, databases, or services -- until now. MCP is the open standard that changes everything.</p>
+</header>
+
+<!-- ARTICLE LAYOUT -->
+<div class="article-layout">
+
+  <!-- TOC SIDEBAR -->
+  <aside class="toc-sidebar">
+    <div class="toc-title">Table of Contents</div>
+    <ul class="toc-list">
+      <li><a href="#introduction">Introduction</a></li>
+      <li><a href="#what-is-mcp">What is MCP?</a></li>
+      <li><a href="#why-mcp-matters">Why MCP Matters</a></li>
+      <li><a href="#how-mcp-works">How MCP Works</a></li>
+      <li><a href="#mcp-servers-in-practice">MCP Servers in Practice</a></li>
+      <li><a href="#build-first-server">Build Your First Server</a></li>
+      <li><a href="#installing-mcp-servers">Installing MCP Servers</a></li>
+      <li><a href="#ecosystem-2026">The Ecosystem in 2026</a></li>
+      <li><a href="#mcp-vs-alternatives">MCP vs Alternatives</a></li>
+      <li><a href="#getting-started">Getting Started</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </aside>
+
+  <!-- ARTICLE CONTENT -->
+  <article class="article-content">
+
+    <h2 id="introduction">AI Is Powerful but Isolated</h2>
+
+    <p>Modern AI models can write code, analyze data, draft documents, and reason through complex problems. But they have a fundamental limitation: they are trapped inside a text box. They cannot read your files, query your database, check your calendar, or call your internal APIs. Every time you need an AI to work with real-world data, you copy and paste. You are the integration layer.</p>
+
+    <p>This is the problem <strong>Model Context Protocol</strong> solves. MCP gives AI models a standardized way to reach out into the world -- to discover tools, read data sources, and take actions on external systems. Instead of manually feeding context into a chat window, the AI connects directly to the systems it needs.</p>
+
+    <p>If you have ever wished your AI assistant could just <em>look at</em> your codebase, <em>query</em> your database, or <em>remember</em> what you told it yesterday, MCP is how that happens. This guide explains what it is, how it works, and how to start using it today.</p>
+
+    <h2 id="what-is-mcp">What is Model Context Protocol (MCP)?</h2>
+
+    <p><strong>Model Context Protocol (MCP)</strong> is an open standard created by Anthropic that defines how AI models connect to external tools and data sources. It was released as an open specification in late 2024 and has since become the dominant standard for AI-tool integration across the industry.</p>
+
+    <p>The simplest analogy: <strong>MCP is USB-C for AI.</strong></p>
+
+    <p>Before USB-C, every device had its own proprietary connector. You needed different cables for different phones, different chargers for different laptops, different adapters for different peripherals. USB-C replaced all of that with one universal port. You plug in once and it just works.</p>
+
+    <p>MCP does the same thing for AI applications. Before MCP, connecting an AI model to a tool meant building a custom integration for every combination of AI application and tool. Claude needs to talk to GitHub? Build a custom integration. ChatGPT needs to talk to the same GitHub? Build a different custom integration. Now add Cursor, Windsurf, and every other AI tool. The integration matrix explodes.</p>
+
+    <p>With MCP, a tool developer builds one server that implements the protocol, and every compatible AI application can use it immediately. Build once, connect everywhere.</p>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Key Takeaway</div>
+      <p><strong>MCP is an open protocol, not a product.</strong> It is not owned by any single company. Anthropic created it and open-sourced the specification, the SDKs, and reference implementations. Anyone can build MCP servers and clients. This is what makes it a standard rather than a proprietary lock-in.</p>
+    </div>
+
+    <h2 id="why-mcp-matters">Why MCP Matters</h2>
+
+    <p>To understand why MCP is significant, consider the state of AI tool integration before it existed.</p>
+
+    <h3>Before MCP: The N x M Problem</h3>
+
+    <p>Every AI application that wanted to connect to external tools had to build its own integration system. OpenAI built plugins, then deprecated them. They built GPT Actions. Google built Gemini extensions. Each system had its own API format, authentication scheme, and capability model. If you were a tool developer who wanted your tool to work with AI, you had to build and maintain separate integrations for each platform.</p>
+
+    <p>With 10 AI platforms and 100 tools, you needed 1,000 custom integrations. That is the N x M problem, and it does not scale.</p>
+
+    <h3>After MCP: Build Once, Connect Everywhere</h3>
+
+    <p>MCP reduces N x M to N + M. Each AI application implements the MCP client protocol once. Each tool implements the MCP server protocol once. Then any client can connect to any server automatically. With 10 platforms and 100 tools, you need 110 implementations instead of 1,000.</p>
+
+    <p>This is the same pattern that made the web possible. HTTP standardized how browsers talk to servers. It did not matter which browser you used or which server software ran the website -- they all spoke the same protocol. MCP is doing the same for AI-tool communication.</p>
+
+    <h3>What This Means for Developers</h3>
+
+    <ul>
+      <li><strong>Tool builders</strong> write one MCP server and it works across Claude Desktop, Claude Code, Cursor, Windsurf, Cline, and every other MCP-compatible host.</li>
+      <li><strong>Application developers</strong> implement one MCP client and gain access to the entire ecosystem of MCP servers -- databases, file systems, APIs, memory systems, and more.</li>
+      <li><strong>End users</strong> get AI assistants that can actually do things: read their files, manage their projects, query their data, and automate their workflows -- without copy-pasting context.</li>
+    </ul>
+
+    <h2 id="how-mcp-works">How MCP Works: Architecture and Protocol</h2>
+
+    <p>The MCP architecture has three layers: Hosts, Clients, and Servers. Understanding how they fit together is essential for building with the protocol.</p>
+
+    <h3>MCP Host</h3>
+
+    <p>The <strong>Host</strong> is the AI application the user interacts with. This is Claude Desktop, Claude Code, Cursor, Windsurf, or any custom application you build using an AI SDK. The host provides the user interface and manages the AI model's interactions.</p>
+
+    <h3>MCP Client</h3>
+
+    <p>The <strong>Client</strong> is a protocol component embedded inside the host. It maintains a one-to-one connection with a specific MCP server. The client handles the protocol handshake, capability negotiation, and message routing. When you configure three MCP servers in Claude Desktop, three separate MCP client instances are created -- one for each server.</p>
+
+    <h3>MCP Server</h3>
+
+    <p>The <strong>Server</strong> is the tool or service that exposes capabilities to the AI. A server can be as simple as a single-file script that reads a local database, or as complex as a full application that manages browser automation. Servers expose their capabilities through three primitives:</p>
+
+    <ul>
+      <li><strong>Tools</strong> -- Functions that the AI model can call. A tool has a name, a description (so the AI knows when to use it), and an input schema (so the AI knows what arguments to pass). Example: a <code>search_files</code> tool that takes a query string and returns matching file paths.</li>
+      <li><strong>Resources</strong> -- Data that the AI model can read. Resources are identified by URIs and can be static (like a configuration file) or dynamic (like the current contents of a database table). Example: <code>file:///Users/you/project/README.md</code> as a resource the AI can access.</li>
+      <li><strong>Prompts</strong> -- Reusable templates that help the AI interact with the server's capabilities effectively. A server can provide prompts that users can invoke to trigger specific workflows. Example: a "summarize-database" prompt that reads the schema resource and produces a structured summary.</li>
+    </ul>
+
+    <h3>The Protocol: JSON-RPC</h3>
+
+    <p>MCP messages are encoded as <strong>JSON-RPC 2.0</strong>. This is a lightweight, well-established protocol for remote procedure calls. Each message is a JSON object with a method name, parameters, and an ID for matching responses to requests.</p>
+
+    <p>Communication between client and server happens over one of two transports:</p>
+
+    <ul>
+      <li><strong>stdio</strong> -- The client launches the server as a subprocess and communicates over standard input/output. This is the most common transport for local servers. It is simple, secure (no network exposure), and works with any language that can read stdin and write to stdout.</li>
+      <li><strong>HTTP with Server-Sent Events (SSE)</strong> -- For remote servers, the client connects over HTTP. The server sends events back through an SSE stream. This transport enables MCP servers to run on remote machines or as cloud services.</li>
+    </ul>
+
+    <p>Here is what a typical session looks like:</p>
+
+    <pre><code>1. Host starts server process (stdio) or connects (HTTP)
+2. Client sends "initialize" with protocol version and capabilities
+3. Server responds with its capabilities (tools, resources, prompts)
+4. Client sends "initialized" notification
+5. --- Session is live ---
+6. AI model decides to call a tool
+7. Client sends "tools/call" with tool name and arguments
+8. Server executes the tool and returns the result
+9. AI model receives the result and continues reasoning
+10. Repeat steps 6-9 as needed</code></pre>
+
+    <h2 id="mcp-servers-in-practice">MCP Servers in Practice: What People Are Building</h2>
+
+    <p>The MCP ecosystem has grown rapidly since the protocol's release. Servers now exist for nearly every category of developer tool. Here are the most common types.</p>
+
+    <h3>Memory Servers</h3>
+
+    <p>One of the most popular MCP server categories solves AI memory. By default, AI models have no persistent memory -- every conversation starts from zero. Memory MCP servers give models the ability to store and recall information across sessions.</p>
+
+    <p><a href="/memory.html">Smart Memory MCP</a> is a lightweight memory server that uses TF-IDF semantic search to store and retrieve memories locally. You install it with a single command and it runs with zero configuration. Other memory servers like Anthropic's Knowledge Graph server and Mem0's OpenMemory take different architectural approaches. For a detailed comparison, see our <a href="/blog/best-mcp-memory-servers.html">guide to the best MCP memory servers</a>.</p>
+
+    <h3>File System and Code Servers</h3>
+
+    <p>File system MCP servers let AI models read and write files on your local machine. This is foundational for coding assistants. The official <code>@modelcontextprotocol/server-filesystem</code> server provides sandboxed access to specified directories. Other servers provide Git integration, letting the AI read commit history, create branches, and manage pull requests.</p>
+
+    <h3>Database Connectors</h3>
+
+    <p>Database MCP servers connect AI models to PostgreSQL, MySQL, SQLite, MongoDB, and other databases. The AI can inspect schemas, run queries, and analyze results without you copying SQL output into the chat. This is transformative for data analysis workflows.</p>
+
+    <h3>API Integrations</h3>
+
+    <p>MCP servers exist for GitHub, GitLab, Slack, Linear, Notion, Jira, Google Drive, and dozens of other services. These let AI models interact with your project management, communication, and documentation tools directly. Instead of describing a GitHub issue to the AI, the AI reads it directly.</p>
+
+    <h3>Browser Automation</h3>
+
+    <p>Browser MCP servers like Playwright MCP and Puppeteer MCP give AI models the ability to navigate web pages, fill forms, click elements, take screenshots, and extract data. This enables AI-driven web testing, scraping, and workflow automation.</p>
+
+    <h3>Developer Tooling</h3>
+
+    <p>Specialized servers exist for Docker management, Kubernetes operations, AWS and cloud infrastructure, CI/CD pipelines, and monitoring systems. These extend AI capabilities into DevOps workflows, letting models inspect container logs, deploy services, and diagnose production issues.</p>
+
+    <h2 id="build-first-server">Building Your First MCP Server</h2>
+
+    <p>The best way to understand MCP is to build a server. Here is a minimal example in TypeScript using the official MCP SDK. This server exposes a single tool that returns the current date and time.</p>
+
+    <pre><code>// time-server.ts
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+
+const server = new McpServer({
+  name: "time-server",
+  version: "1.0.0",
+});
+
+// Register a tool
+server.tool(
+  "get_current_time",
+  "Returns the current date and time in ISO format",
+  {},  // No input parameters needed
+  async () =&gt; {
+    const now = new Date().toISOString();
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Current time: ${now}`,
+        },
+      ],
+    };
+  }
+);
+
+// Start the server with stdio transport
+const transport = new StdioServerTransport();
+await server.connect(transport);</code></pre>
+
+    <p>That is a complete, working MCP server in under 30 lines. When an AI host connects to this server, it discovers the <code>get_current_time</code> tool, understands what it does from the description, and can call it whenever the user asks about the current time.</p>
+
+    <p>Here is a slightly more practical example -- a tool that accepts parameters:</p>
+
+    <pre><code>// word-count-server.ts
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+
+const server = new McpServer({
+  name: "word-count",
+  version: "1.0.0",
+});
+
+server.tool(
+  "count_words",
+  "Count the number of words in a given text string",
+  { text: z.string().describe("The text to count words in") },
+  async ({ text }) =&gt; {
+    const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+    const charCount = text.length;
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Words: ${wordCount}\nCharacters: ${charCount}`,
+        },
+      ],
+    };
+  }
+);
+
+const transport = new StdioServerTransport();
+await server.connect(transport);</code></pre>
+
+    <p>The <code>z.string()</code> parameter uses <a href="https://zod.dev" rel="nofollow">Zod</a> for schema validation. The SDK automatically converts this into a JSON Schema that the AI host uses to understand what arguments the tool expects. The <code>.describe()</code> method adds a human-readable description so the AI knows what to pass.</p>
+
+    <p>To make this server installable, add a <code>package.json</code> with a <code>bin</code> entry pointing to your compiled file, publish to npm, and anyone can install it with <code>npx</code>.</p>
+
+    <h2 id="installing-mcp-servers">Installing MCP Servers</h2>
+
+    <p>How you install and configure MCP servers depends on which AI host you are using. Here are the three most common setups.</p>
+
+    <h3>Claude Desktop</h3>
+
+    <p>Claude Desktop reads MCP server configuration from a JSON file. On macOS, this file is located at <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>. On Windows, it is in <code>%APPDATA%\Claude\claude_desktop_config.json</code>.</p>
+
+    <pre><code>{
+  "mcpServers": {
+    "smart-memory": {
+      "command": "npx",
+      "args": ["mcp-smart-memory"]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/you/projects"
+      ]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "ghp_your_token_here"
+      }
+    }
+  }
+}</code></pre>
+
+    <p>Each entry in <code>mcpServers</code> defines a server by its command (how to launch it), arguments, and optional environment variables. After saving this file and restarting Claude Desktop, the servers appear as available tools in the interface.</p>
+
+    <h3>Claude Code</h3>
+
+    <p>Claude Code uses a CLI command to register MCP servers. This is the fastest way to get started.</p>
+
+    <pre><code># Add Smart Memory MCP
+claude mcp add memory -- npx mcp-smart-memory
+
+# Add filesystem access
+claude mcp add filesystem -- npx @modelcontextprotocol/server-filesystem /path/to/dir
+
+# Add GitHub integration
+claude mcp add github -e GITHUB_TOKEN=ghp_xxx -- npx @modelcontextprotocol/server-github
+
+# List all configured servers
+claude mcp list</code></pre>
+
+    <p>Each <code>claude mcp add</code> command registers a server that Claude Code will automatically start when needed. The <code>-e</code> flag passes environment variables. Servers persist across sessions until you remove them with <code>claude mcp remove</code>.</p>
+
+    <h3>Cursor</h3>
+
+    <p>Cursor supports MCP through its settings panel. Navigate to Settings, then Features, and find the MCP section. Click "Add new MCP server" and provide the server command and arguments. Cursor supports both stdio and HTTP transports. After adding a server, it appears in the tool list when you use the AI features.</p>
+
+    <h2 id="ecosystem-2026">The MCP Ecosystem in 2026</h2>
+
+    <p>As of February 2026, the MCP ecosystem has grown to over 1,000 publicly available servers. The growth has been driven by several factors.</p>
+
+    <p><strong>Wide host adoption.</strong> Claude Desktop, Claude Code, Cursor, Windsurf, Cline, Continue, Zed, and dozens of other AI applications now support MCP as a first-class integration mechanism. This gives server developers a large, immediate audience.</p>
+
+    <p><strong>Simple SDK.</strong> The official TypeScript and Python SDKs make it straightforward to build a server. As the examples above show, a functional server can be written in under 30 lines. This low barrier to entry has encouraged thousands of developers to publish servers for their specific use cases.</p>
+
+    <p><strong>Marketplace growth.</strong> Dedicated MCP marketplaces have emerged. <a href="https://smithery.ai" rel="nofollow">Smithery</a> is the largest open directory, providing search and discovery for public servers. <a href="https://mcpize.com" rel="nofollow">MCPize</a> offers a monetization platform where developers can sell premium MCP servers with an 85% revenue share. These marketplaces make it easy for users to find servers and for developers to distribute them.</p>
+
+    <p><strong>Enterprise adoption.</strong> Companies are building internal MCP servers to connect AI assistants to proprietary systems -- CRMs, ERPs, internal databases, ticketing systems, and deployment pipelines. This turns AI coding assistants into full-stack development environments that understand the company's entire infrastructure.</p>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Ecosystem Snapshot</div>
+      <p><strong>1,000+ public MCP servers</strong> available across major registries. Server categories span file systems, databases, APIs, memory, browser automation, DevOps, analytics, and more. The ecosystem is growing at roughly 100 new servers per month.</p>
+    </div>
+
+    <h2 id="mcp-vs-alternatives">MCP vs Alternatives</h2>
+
+    <p>MCP is not the only way to give AI models access to tools. Here is how it compares to the main alternatives.</p>
+
+    <div class="comparison-table-wrap">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>MCP</th>
+            <th>Function Calling</th>
+            <th>ChatGPT Plugins / GPT Actions</th>
+            <th>Custom API Integration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Standard</strong></td>
+            <td class="check">Open protocol</td>
+            <td>Model-specific</td>
+            <td>OpenAI-only</td>
+            <td class="cross">None</td>
+          </tr>
+          <tr>
+            <td><strong>Discovery</strong></td>
+            <td class="check">Automatic</td>
+            <td class="cross">Manual per request</td>
+            <td class="check">Store-based</td>
+            <td class="cross">Manual</td>
+          </tr>
+          <tr>
+            <td><strong>Persistent Connection</strong></td>
+            <td class="check">Yes</td>
+            <td class="cross">No (per-request)</td>
+            <td>Partial</td>
+            <td class="check">Depends</td>
+          </tr>
+          <tr>
+            <td><strong>Local Execution</strong></td>
+            <td class="check">Yes (stdio)</td>
+            <td class="cross">No</td>
+            <td class="cross">No (cloud)</td>
+            <td class="check">Possible</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-Host</strong></td>
+            <td class="check">Any MCP host</td>
+            <td class="cross">One provider</td>
+            <td class="cross">OpenAI only</td>
+            <td class="cross">One app</td>
+          </tr>
+          <tr>
+            <td><strong>Resources + Prompts</strong></td>
+            <td class="check">Yes</td>
+            <td class="cross">No (tools only)</td>
+            <td class="cross">No</td>
+            <td class="cross">No</td>
+          </tr>
+          <tr>
+            <td><strong>Ecosystem Size</strong></td>
+            <td class="check">1,000+ servers</td>
+            <td>N/A</td>
+            <td>~1,000 plugins</td>
+            <td>N/A</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Function calling</strong> is a model-level feature where you define functions in each API request and the model outputs structured arguments. Your code then executes the function. Function calling is great for simple, one-off tool use within your application. But it is per-request, manual, and tied to a single model provider. MCP builds on top of function calling by standardizing the discovery, connection, and execution layer.</p>
+
+    <p><strong>ChatGPT Plugins / GPT Actions</strong> were OpenAI's approach to tool integration. They require an OpenAPI spec hosted on a public server and are limited to the ChatGPT ecosystem. MCP servers can run locally, work across all compatible hosts, and support richer primitives (resources and prompts, not just tools).</p>
+
+    <p><strong>Custom API integrations</strong> are what most teams built before MCP existed. They work, but they lock you into a single AI application and require maintaining the integration code as both the AI platform and the tool evolve.</p>
+
+    <h2 id="getting-started">Getting Started: 3 MCP Servers to Install Today</h2>
+
+    <p>If you want to experience MCP firsthand, here are three servers worth installing immediately. Each one adds a genuinely useful capability to your AI workflow.</p>
+
+    <h3>1. Smart Memory MCP</h3>
+
+    <p><a href="/memory.html">Smart Memory MCP</a> gives your AI persistent memory. Once installed, Claude remembers what you tell it across sessions -- project context, preferences, decisions, and lessons learned. It uses local JSON storage with TF-IDF semantic search, so your data never leaves your machine.</p>
+
+    <pre><code># Install in Claude Code
+claude mcp add memory -- npx mcp-smart-memory
+
+# Or add to Claude Desktop config
+# "smart-memory": { "command": "npx", "args": ["mcp-smart-memory"] }</code></pre>
+
+    <h3>2. Filesystem Server</h3>
+
+    <p>The official filesystem server lets your AI read and explore files in specified directories. This is essential for coding workflows where the AI needs to understand your project structure without you pasting file contents.</p>
+
+    <pre><code># Install in Claude Code
+claude mcp add files -- npx @modelcontextprotocol/server-filesystem /path/to/your/project</code></pre>
+
+    <h3>3. GitHub Server</h3>
+
+    <p>The GitHub MCP server connects your AI to GitHub repositories, issues, pull requests, and code search. It transforms your AI assistant from a code generator into a project-aware collaborator.</p>
+
+    <pre><code># Install in Claude Code (requires a GitHub personal access token)
+claude mcp add github -e GITHUB_TOKEN=ghp_xxx -- npx @modelcontextprotocol/server-github</code></pre>
+
+    <p>With these three servers installed, your AI assistant gains persistent memory, local file access, and GitHub integration. That covers the most common gaps in AI-assisted development workflows.</p>
+
+    <div class="cta-box">
+      <h3>Build with 150+ Free Developer Tools</h3>
+      <p>While your AI handles the context, you handle the craft. NexTool gives you free, client-side tools for JSON, regex, CSS, encoding, and much more.</p>
+      <a href="/free-tools/" class="cta-button">Browse All Free Tools</a>
+    </div>
+
+    <h2 id="faq">Frequently Asked Questions</h2>
+
+    <h3>What is Model Context Protocol (MCP)?</h3>
+    <p>Model Context Protocol (MCP) is an open standard created by Anthropic that defines how AI models connect to external tools, data sources, and services. It provides a universal interface so that any AI application can interact with any compatible tool using a single, consistent protocol. Think of it as USB-C for AI: one connector that works everywhere.</p>
+
+    <h3>How does MCP work?</h3>
+    <p>MCP uses a client-server architecture. An MCP Host (like Claude Desktop or Cursor) contains an MCP Client that communicates with MCP Servers over JSON-RPC. Servers expose three types of capabilities: Tools (functions the AI can call), Resources (data the AI can read), and Prompts (reusable templates). Communication happens over stdio for local servers or HTTP with Server-Sent Events for remote servers.</p>
+
+    <h3>What is the difference between MCP and function calling?</h3>
+    <p>Function calling is a model-specific feature where you define functions in each API request and the model outputs structured arguments for them. Your application code must then execute the function and return the result. MCP is a protocol layer that standardizes this entire flow. With MCP, you define tools once in a server, and any compatible AI host can discover, understand, and invoke them automatically. Function calling is per-request; MCP is a persistent, discoverable integration.</p>
+
+    <h3>How do I install an MCP server?</h3>
+    <p>Installation depends on your MCP host. In Claude Desktop, you add server configuration to the <code>claude_desktop_config.json</code> file, specifying the command to run and any arguments. In Claude Code, you use <code>claude mcp add server-name -- npx package-name</code> to register a server. In Cursor, you configure servers through the settings panel. Most MCP servers are distributed as npm packages or Python packages and run locally on your machine.</p>
+
+    <h3>Is MCP secure? Does my data leave my machine?</h3>
+    <p>Most MCP servers run locally on your machine and communicate with the AI host over stdio (standard input/output), meaning your data never leaves your computer during the tool interaction. The AI model sees the results of tool calls, but the server itself processes data locally. Remote MCP servers that use HTTP transport do send data over the network, so you should evaluate each server's security model individually. Always review what permissions an MCP server requests before installing it.</p>
+
+    <!-- CTA Box -->
+    <div class="cta-box">
+      <h3>Give Your AI Persistent Memory</h3>
+      <p>Smart Memory MCP lets Claude remember everything across sessions. Zero config, local storage, semantic search. Free to get started.</p>
+      <a href="/memory.html" class="cta-button">Learn About Smart Memory MCP</a>
+    </div>
+
+    <!-- AUTHOR BOX -->
+    <div class="author-box">
+      <div class="author-avatar">NT</div>
+      <div class="author-info">
+        <h4>NexTool Team</h4>
+        <p>We build free, privacy-first developer tools and MCP servers. Our mission is to make the tools you reach for every day faster, cleaner, and more respectful of your data.</p>
+      </div>
+    </div>
+
+    <!-- RELATED ARTICLES -->
+    <div class="related-articles">
+      <h3>Related Articles</h3>
+      <div class="related-grid">
+        <a href="/blog/best-mcp-memory-servers.html" class="related-card">
+          <div class="related-card-cat">MCP &amp; AI</div>
+          <h4>Best MCP Memory Servers Compared</h4>
+          <p>A detailed comparison of the top MCP memory servers for persistent AI context across sessions.</p>
+        </a>
+        <a href="/blog/api-design-best-practices.html" class="related-card">
+          <div class="related-card-cat">API Development</div>
+          <h4>API Design Best Practices for 2026</h4>
+          <p>Build APIs that developers love. Covers REST conventions, error handling, versioning, and documentation.</p>
+        </a>
+        <a href="/blog/developer-productivity-tools-2026.html" class="related-card">
+          <div class="related-card-cat">Productivity</div>
+          <h4>Developer Productivity Tools in 2026</h4>
+          <p>The tools, workflows, and habits that top developers use to ship faster without burning out.</p>
+        </a>
+      </div>
+    </div>
+
+  </article>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="footer-brand">NexTool</div>
+      <p class="footer-brand-desc">150+ free developer tools for developers and designers. Browser-based, no signup.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Free Tools</h4>
+      <a href="/free-tools/">All 150+ Tools</a>
+      <a href="/free-tools/json-formatter.html">JSON Formatter</a>
+      <a href="/free-tools/csv-formatter.html">CSV Formatter</a>
+      <a href="/free-tools/regex-tester.html">Regex Tester</a>
+      <a href="/free-tools/image-compressor.html">Image Compressor</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+      <a href="/blog/">Blog</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="mailto:christianjunbucher@gmail.com">Email Us</a>
+      <a href="/imprint.html">Imprint</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+// TOC active state
+const tocLinks = document.querySelectorAll('.toc-list a');
+const sections = document.querySelectorAll('.article-content h2[id]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  tocLinks.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+// Mobile nav toggle
+document.querySelector('.nav-mobile-toggle')?.addEventListener('click', () => {
+  const links = document.querySelector('.nav-links');
+  links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+  links.style.flexDirection = 'column';
+  links.style.position = 'absolute';
+  links.style.top = '64px';
+  links.style.right = '1rem';
+  links.style.background = 'var(--surface)';
+  links.style.padding = '1rem';
+  links.style.borderRadius = '12px';
+  links.style.border = '1px solid var(--border)';
+});
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>

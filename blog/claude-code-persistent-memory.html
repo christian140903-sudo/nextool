@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Add Memory to Claude Code with MCP | NexTool</title>
+<meta name="description" content="Give Claude Code persistent memory using MCP. Step-by-step guide to installing mcp-smart-memory, storing knowledge, and building context that survives sessions.">
+<meta name="keywords" content="claude code memory, mcp memory server, claude code persistent memory, how to add memory to claude, mcp smart memory, claude code mcp, model context protocol memory">
+<meta name="author" content="NexTool Team">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nextool.app/blog/claude-code-persistent-memory.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to Add Persistent Memory to Claude Code with MCP">
+<meta property="og:description" content="Step-by-step guide to giving Claude Code persistent memory using MCP. Store project context, decisions, and patterns that survive across sessions.">
+<meta property="og:url" content="https://nextool.app/blog/claude-code-persistent-memory.html">
+<meta property="og:site_name" content="NexTool">
+<meta property="article:published_time" content="2026-02-10T10:00:00Z">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to Add Persistent Memory to Claude Code with MCP">
+<meta name="twitter:description" content="Give Claude Code persistent memory using MCP. Store knowledge, recall context, and stop re-explaining your codebase every session.">
+
+<!-- JSON-LD: Article -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How to Add Persistent Memory to Claude Code with MCP",
+    "description": "Give Claude Code persistent memory using MCP. Step-by-step guide to installing mcp-smart-memory, storing knowledge, and building context that survives sessions.",
+    "author": {"@type": "Organization", "name": "NexTool Team", "url": "https://nextool.app"},
+    "publisher": {"@type": "Organization", "name": "NexTool", "logo": {"@type": "ImageObject", "url": "https://nextool.app/images/logo.png"}},
+    "datePublished": "2026-02-10T10:00:00Z",
+    "dateModified": "2026-02-10T10:00:00Z",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "https://nextool.app/blog/claude-code-persistent-memory.html"},
+    "keywords": "claude code memory, mcp memory server, claude code persistent memory, how to add memory to claude, mcp smart memory",
+    "wordCount": 2400,
+    "articleSection": "AI Development"
+}
+</script>
+
+<!-- JSON-LD: BreadcrumbList -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app"},
+        {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://nextool.app/blog/"},
+        {"@type": "ListItem", "position": 3, "name": "How to Add Memory to Claude Code with MCP", "item": "https://nextool.app/blog/claude-code-persistent-memory.html"}
+    ]
+}
+</script>
+
+<!-- JSON-LD: FAQPage -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Does Claude Code have persistent memory?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Claude Code does not have built-in persistent memory across sessions. Each new conversation starts with a blank context. However, you can add persistent memory by connecting an MCP memory server like mcp-smart-memory. This gives Claude Code the ability to store and recall knowledge across sessions using tools like memory_store and memory_recall."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is an MCP memory server?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "An MCP memory server is an external tool that connects to AI coding assistants like Claude Code, Cursor, or Windsurf through the Model Context Protocol. It provides persistent storage for knowledge, context, and patterns. The AI can write to and read from this memory store, allowing it to remember information across separate conversations and sessions."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How do I install mcp-smart-memory for Claude Code?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Run a single command in your terminal: claude mcp add memory -- npx mcp-smart-memory. This registers the memory server with Claude Code. No API keys, no cloud accounts, and no configuration files are needed. The server stores all data locally in a JSON file on your machine. You can also install it globally with npm install -g mcp-smart-memory."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Is my data sent to the cloud when using mcp-smart-memory?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. mcp-smart-memory is 100% local. All memories are stored in a JSON file on your machine. There are no API calls, no cloud services, and no external dependencies. The TF-IDF semantic search runs entirely in your local Node.js process. Your project knowledge, architecture decisions, and debugging notes never leave your computer."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is the difference between TF-IDF and vector embeddings for AI memory?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "TF-IDF (Term Frequency-Inverse Document Frequency) is a statistical method that scores relevance based on word frequency. It works locally, requires zero configuration, and performs well when the vocabulary is consistent, which is typical for developer notes and project documentation. Vector embeddings use neural networks to capture semantic meaning, which can handle synonyms and paraphrases better, but they require an API key or a local model, add latency, and introduce external dependencies. For most developer use cases, TF-IDF provides accurate recall with no setup overhead."
+            }
+        }
+    ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050508;
+  --surface: #111118;
+  --surface-2: #1a1a24;
+  --surface-3: #222233;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --accent: #a855f7;
+  --pink: #ec4899;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --border: #1e1e2e;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--primary-hover); }
+
+/* ===== NAVBAR ===== */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(5,5,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-size: 1.4rem; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+.nav-links a { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: #fff; }
+.nav-cta {
+  background: var(--primary); color: #fff !important; padding: 0.5rem 1.2rem;
+  border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+  transition: background 0.2s, transform 0.2s;
+}
+.nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+.nav-mobile-toggle { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+/* ===== ARTICLE HERO ===== */
+.article-hero {
+  padding: 8rem 2rem 3rem;
+  max-width: 900px; margin: 0 auto; text-align: center;
+}
+.article-meta {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.article-category {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; padding: 0.3rem 0.9rem; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.article-date, .article-reading-time { color: var(--text-dim); font-size: 0.85rem; }
+.article-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; line-height: 1.15;
+  color: #fff; margin-bottom: 1.2rem;
+}
+.article-hero h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.article-subtitle { color: var(--text-muted); font-size: 1.15rem; max-width: 680px; margin: 0 auto; }
+
+/* ===== LAYOUT ===== */
+.article-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  align-items: start;
+}
+
+/* ===== TOC SIDEBAR ===== */
+.toc-sidebar {
+  position: sticky; top: 84px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+}
+.toc-title {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 0.8rem;
+}
+.toc-list { list-style: none; }
+.toc-list li { margin-bottom: 0.4rem; }
+.toc-list a {
+  color: var(--text-muted); font-size: 0.8rem; display: block;
+  padding: 0.25rem 0.5rem; border-radius: 6px; border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+.toc-list a:hover, .toc-list a.active {
+  color: var(--primary); border-left-color: var(--primary); background: rgba(99,102,241,0.06);
+}
+
+/* ===== ARTICLE CONTENT ===== */
+.article-content { max-width: 720px; }
+.article-content h2 {
+  font-size: 1.6rem; font-weight: 800; color: #fff;
+  margin: 2.5rem 0 1rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.article-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.article-content h3 {
+  font-size: 1.2rem; font-weight: 700; color: #fff; margin: 2rem 0 0.8rem;
+}
+.article-content p { margin-bottom: 1.2rem; color: var(--text); }
+.article-content ul, .article-content ol {
+  margin: 0 0 1.5rem 1.2rem; color: var(--text);
+}
+.article-content li { margin-bottom: 0.5rem; }
+.article-content strong { color: #fff; }
+.article-content blockquote {
+  border-left: 3px solid var(--primary); padding: 1rem 1.5rem;
+  background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1.5rem 0; color: var(--text-muted); font-style: italic;
+}
+.article-content code {
+  background: var(--surface-2); padding: 0.15rem 0.45rem; border-radius: 4px;
+  font-size: 0.9em; color: var(--pink);
+}
+.article-content pre {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.2rem; overflow-x: auto; margin: 1.5rem 0;
+}
+.article-content pre code { background: none; padding: 0; color: var(--text); }
+
+/* ===== COMPARISON TABLE ===== */
+.comparison-table-wrap {
+  overflow-x: auto; margin: 1.5rem 0; border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.comparison-table {
+  width: 100%; border-collapse: collapse; font-size: 0.85rem;
+}
+.comparison-table th {
+  background: var(--surface-2); color: #fff; font-weight: 700;
+  padding: 0.8rem 1rem; text-align: left; white-space: nowrap;
+}
+.comparison-table td {
+  padding: 0.8rem 1rem; border-top: 1px solid var(--border); color: var(--text-muted);
+}
+.comparison-table tr:hover td { background: rgba(99,102,241,0.04); }
+.comparison-table .check { color: var(--success); }
+.comparison-table .cross { color: #ef4444; }
+
+/* ===== KEY TAKEAWAY ===== */
+.key-takeaway {
+  background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(99,102,241,0.05));
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+}
+.key-takeaway-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--success); margin-bottom: 0.4rem;
+}
+
+/* ===== CTA BOX ===== */
+.cta-box {
+  background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.08));
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+.cta-box h3 { color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 0.6rem; }
+.cta-box p { color: var(--text-muted); margin-bottom: 1.2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+.cta-button {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; font-weight: 700; padding: 0.75rem 2rem;
+  border-radius: 10px; font-size: 0.95rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(99,102,241,0.35);
+  color: #fff;
+}
+
+/* ===== AUTHOR BOX ===== */
+.author-box {
+  display: flex; gap: 1.2rem; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem; margin: 2.5rem 0;
+}
+.author-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.author-info h4 { color: #fff; font-weight: 700; margin-bottom: 0.2rem; }
+.author-info p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+
+/* ===== RELATED ARTICLES ===== */
+.related-articles { margin: 3rem 0; }
+.related-articles h3 { color: #fff; font-weight: 800; font-size: 1.3rem; margin-bottom: 1.2rem; }
+.related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+.related-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.2rem;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.related-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.related-card-cat {
+  font-size: 0.7rem; text-transform: uppercase; font-weight: 700;
+  letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.5rem;
+}
+.related-card h4 { color: #fff; font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; line-height: 1.4; }
+.related-card p { color: var(--text-dim); font-size: 0.82rem; }
+
+/* ===== FOOTER ===== */
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 3rem 2rem 1.5rem;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+}
+.footer-col h4 {
+  color: #fff; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.footer-col a { display: block; color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.4rem; }
+.footer-col a:hover { color: var(--primary); }
+.footer-brand {
+  font-size: 1.2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+.footer-brand-desc { color: var(--text-dim); font-size: 0.82rem; line-height: 1.5; }
+.footer-bottom {
+  text-align: center; padding-top: 1.5rem;
+  border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.8rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .article-layout { grid-template-columns: 1fr; }
+  .toc-sidebar { position: static; margin-bottom: 1rem; }
+}
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .nav-mobile-toggle { display: block; }
+  .article-hero { padding: 6rem 1rem 2rem; }
+  .article-layout { padding: 0 1rem 3rem; }
+  .author-box { flex-direction: column; text-align: center; }
+  .comparison-table { font-size: 0.78rem; }
+  .comparison-table th, .comparison-table td { padding: 0.6rem 0.7rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">NexTool</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/free-tools/">Tools</a></li>
+    <li><a href="/free-tools/">Free Tools</a></li>
+    <li><a href="/pro.html">Pro</a></li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/pro.html" class="nav-cta">NexTool Pro</a></li>
+  </ul>
+  <button class="nav-mobile-toggle" aria-label="Menu">&#9776;</button>
+</nav>
+
+<!-- HERO -->
+<header class="article-hero">
+  <div class="article-meta">
+    <span class="article-category">AI Development</span>
+    <span class="article-date">February 10, 2026</span>
+    <span class="article-reading-time">12 min read</span>
+  </div>
+  <h1>How to Add <span>Persistent Memory</span> to Claude Code with MCP</h1>
+  <p class="article-subtitle">Claude Code forgets everything between sessions. Here is how to fix that with a single npm command, zero cloud dependencies, and a local memory system that actually works.</p>
+</header>
+
+<!-- ARTICLE LAYOUT -->
+<div class="article-layout">
+
+  <!-- TOC SIDEBAR -->
+  <aside class="toc-sidebar">
+    <div class="toc-title">Table of Contents</div>
+    <ul class="toc-list">
+      <li><a href="#the-problem">The Problem</a></li>
+      <li><a href="#what-is-mcp">What is MCP?</a></li>
+      <li><a href="#the-solution">The Solution</a></li>
+      <li><a href="#installation">Installation</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#practical-examples">Practical Examples</a></li>
+      <li><a href="#tfidf-vs-vectors">TF-IDF vs Vectors</a></li>
+      <li><a href="#advanced">Advanced: soul-mcp</a></li>
+      <li><a href="#tips">Tips for AI Memory</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#conclusion">Conclusion</a></li>
+    </ul>
+  </aside>
+
+  <!-- ARTICLE CONTENT -->
+  <article class="article-content">
+
+    <h2 id="the-problem">The Problem: Claude Code Forgets Everything</h2>
+
+    <p>You spend 45 minutes explaining your project architecture to Claude Code. You walk it through the folder structure, the naming conventions, the database schema, the reason you chose Postgres over MongoDB, and the three edge cases that caused production incidents last quarter. Claude Code nails the task. You close the terminal.</p>
+
+    <p>The next morning, you open a new session. Claude Code has no idea who you are. It does not know your project. It does not know your conventions. It does not know about the edge cases. You are starting from zero.</p>
+
+    <p>This is the single biggest friction point in working with AI coding assistants in 2026. The models are powerful enough to understand complex codebases. They can write production-quality code, debug race conditions, and refactor legacy systems. But they cannot <em>remember</em>. Every session is an isolated conversation that dies when you close the window.</p>
+
+    <p>The cost of this is real. You re-explain the same context repeatedly. You lose nuance that took multiple sessions to build. The AI makes suggestions you already rejected last week because it has no memory of that decision. Over days and weeks, the accumulated re-onboarding time adds up to hours of wasted effort.</p>
+
+    <p>There is a fix for this, and it takes less than 30 seconds to set up.</p>
+
+    <h2 id="what-is-mcp">What is MCP (Model Context Protocol)?</h2>
+
+    <p>Before jumping into the solution, a quick primer on the technology that makes it possible. <strong>Model Context Protocol (MCP)</strong> is an open standard created by Anthropic that lets AI assistants connect to external tools and data sources. Think of it as a USB port for AI: a standardized way to plug in new capabilities without modifying the model itself.</p>
+
+    <p>MCP works through a client-server architecture. The AI assistant (Claude Code, Cursor, Windsurf, or any MCP-compatible client) acts as the client. External programs called <strong>MCP servers</strong> provide tools the AI can call. When you connect an MCP server, the AI gains access to new functions it can invoke during a conversation.</p>
+
+    <p>For example, an MCP server could give the AI the ability to query a database, read from a CRM, or -- relevant to this article -- store and retrieve persistent memories.</p>
+
+    <p>The protocol handles all the communication plumbing. You do not need to write integration code, build APIs, or configure webhooks. You register a server, and the AI can immediately use whatever tools that server exposes.</p>
+
+    <p>MCP is supported by Claude Code, Cursor, Windsurf, Cline, and a growing list of AI development tools. If you want to explore what is available, we maintain a guide to the <a href="/blog/best-mcp-memory-servers.html">best MCP memory servers</a> with detailed comparisons.</p>
+
+    <h2 id="the-solution">The Solution: mcp-smart-memory</h2>
+
+    <p><strong>mcp-smart-memory</strong> is an npm package that gives Claude Code persistent memory. When connected, Claude Code gains three new tools: the ability to store knowledge, recall it using semantic search, and view statistics about what it has remembered.</p>
+
+    <p>The key design decisions that make it practical for daily use:</p>
+
+    <ul>
+      <li><strong>100% local.</strong> All memories are stored in a JSON file on your machine. No cloud, no API keys, no external services, no data leaving your computer.</li>
+      <li><strong>Zero configuration.</strong> One command to install. No config files, no environment variables, no Docker containers.</li>
+      <li><strong>TF-IDF semantic search.</strong> When Claude Code recalls a memory, it does not do simple keyword matching. It uses TF-IDF (Term Frequency-Inverse Document Frequency) to find semantically relevant results, even if the exact words do not match.</li>
+      <li><strong>Categorized storage.</strong> Memories are organized by category and tagged for fine-grained retrieval. This means Claude Code can ask for "all architecture decisions" or "debugging patterns for the auth module" and get targeted results.</li>
+      <li><strong>Works across projects.</strong> Your memories persist globally, so knowledge learned in one project is available in another when relevant.</li>
+    </ul>
+
+    <h2 id="installation">Step-by-Step Installation</h2>
+
+    <p>There are two ways to set up mcp-smart-memory. Both take under 30 seconds.</p>
+
+    <h3>Option 1: Add Directly to Claude Code (Recommended)</h3>
+
+    <p>This is the fastest method. Run this single command in your terminal:</p>
+
+    <pre><code>claude mcp add memory -- npx mcp-smart-memory</code></pre>
+
+    <p>That is it. Claude Code now has persistent memory. The next time you start a conversation, it will have access to <code>memory_store</code>, <code>memory_recall</code>, and <code>memory_stats</code> tools.</p>
+
+    <h3>Option 2: Install Globally via npm</h3>
+
+    <p>If you prefer to install the package globally so it is available system-wide (useful if you use multiple MCP clients):</p>
+
+    <pre><code># Install globally
+npm install -g mcp-smart-memory
+
+# Then add to Claude Code
+claude mcp add memory -- mcp-smart-memory</code></pre>
+
+    <h3>Verify the Installation</h3>
+
+    <p>Start a new Claude Code session and ask it to check its available tools. You should see three new memory tools listed. You can also run a quick test:</p>
+
+    <pre><code># In your Claude Code session, ask:
+"Store a memory: This project uses TypeScript with strict mode enabled."
+
+# Then in a NEW session, ask:
+"What do you remember about TypeScript in this project?"</code></pre>
+
+    <p>If Claude Code recalls the TypeScript detail, your memory is working.</p>
+
+    <h2 id="how-it-works">How It Works: The Three Core Tools</h2>
+
+    <p>Once connected, Claude Code has access to three tools it can call at any point during a conversation.</p>
+
+    <h3>memory_store -- Save Knowledge</h3>
+
+    <p>This tool writes a piece of knowledge to persistent storage. Each memory has a content field (the actual knowledge), a category (like "architecture", "debugging", or "preferences"), and optional tags for more granular organization.</p>
+
+    <pre><code>// What Claude Code does internally when you say
+// "Remember that we use PostgreSQL 16 with pgvector for embeddings"
+
+memory_store({
+  content: "Project uses PostgreSQL 16 with pgvector extension for vector embeddings. Chosen over MongoDB for ACID compliance and mature ecosystem.",
+  category: "architecture",
+  tags: ["database", "postgresql", "pgvector", "embeddings"]
+})</code></pre>
+
+    <p>You do not need to call this tool manually. When you share context that seems worth remembering, Claude Code will store it automatically. You can also explicitly say "remember this" to trigger a store.</p>
+
+    <h3>memory_recall -- Semantic Search</h3>
+
+    <p>This tool searches across all stored memories using TF-IDF scoring. It returns the most relevant results based on the query, not just exact keyword matches.</p>
+
+    <pre><code>// When Claude Code needs to know about your database setup:
+
+memory_recall({
+  query: "database setup and configuration",
+  limit: 5
+})
+
+// Returns the PostgreSQL memory even though the query
+// did not contain "PostgreSQL" or "pgvector"</code></pre>
+
+    <p>The search considers term frequency (how often a word appears in a specific memory), inverse document frequency (how unique a word is across all memories), and category weighting. This means highly specific terms like "pgvector" carry more weight than common words like "database".</p>
+
+    <h3>memory_stats -- Your Knowledge Dashboard</h3>
+
+    <p>This tool provides an overview of what is stored: total memory count, breakdown by category, storage size, and most frequently tagged topics. It is useful for auditing what Claude Code knows and identifying gaps.</p>
+
+    <pre><code>memory_stats()
+
+// Returns:
+// Total memories: 47
+// Categories: architecture (12), debugging (9), preferences (8), ...
+// Top tags: typescript, react, postgresql, auth, api
+// Storage: 23 KB</code></pre>
+
+    <h2 id="practical-examples">Practical Examples</h2>
+
+    <p>Here are four real-world scenarios where persistent memory eliminates repeated context-setting.</p>
+
+    <h3>1. Storing Architecture Decisions</h3>
+
+    <p>Your project has a specific reason for every technical choice. Without memory, you explain these repeatedly. With memory, you explain once.</p>
+
+    <pre><code>You: "We use a monorepo with pnpm workspaces. The API is in packages/api,
+the web app in packages/web, and shared types in packages/shared.
+We chose this over separate repos because the shared types package
+prevents frontend-backend type drift. Remember this."
+
+// Claude Code stores this. In every future session, it knows
+// the repo structure and the reasoning behind it.</code></pre>
+
+    <p>This is especially valuable for onboarding. If a second developer on your team connects the same memory store, they get the full context of your architectural decisions without reading through months of Slack threads.</p>
+
+    <h3>2. Remembering Debugging Patterns</h3>
+
+    <p>Every codebase has recurring failure modes. Memory turns these into institutional knowledge.</p>
+
+    <pre><code>You: "When the auth middleware returns a 401 on valid tokens,
+it is almost always because the JWT_SECRET env var is not
+loaded. The .env file must be in packages/api, not the root.
+We have hit this three times. Remember this pattern."
+
+// Next time this issue surfaces, Claude Code checks memory
+// before suggesting generic debugging steps.</code></pre>
+
+    <h3>3. Tracking Preferences and Conventions</h3>
+
+    <p>Code style preferences, <a href="/free-tools/json-formatter.html">formatting standards</a>, naming conventions, commit message formats -- these are the things you tell every AI assistant repeatedly. Memory stores them once.</p>
+
+    <pre><code>You: "Our conventions: use barrel exports (index.ts) in every directory.
+Component files are PascalCase. Utility files are camelCase.
+We use Zod for all runtime validation, never io-ts.
+Tests go in __tests__ next to the source file, not in a
+separate test directory."
+
+// Claude Code follows these conventions in every future session
+// without being reminded.</code></pre>
+
+    <h3>4. Building a Knowledge Base Over Time</h3>
+
+    <p>The most powerful use of persistent memory is not any single stored fact -- it is the accumulation of knowledge over weeks and months. After 50 sessions, Claude Code has absorbed your project's architecture, your team's conventions, the bugs you have fixed, the refactors you have planned, and the decisions you have deferred. It becomes a genuine project knowledge base that grows every time you code.</p>
+
+    <p>You can browse your stored memories at any time by asking Claude Code to run <code>memory_stats</code> or by inspecting the local JSON file directly.</p>
+
+    <h2 id="tfidf-vs-vectors">TF-IDF vs Vector Embeddings: Why TF-IDF Works</h2>
+
+    <p>If you are familiar with AI memory systems, you might wonder why mcp-smart-memory uses TF-IDF instead of vector embeddings. Both are valid approaches, but they make different trade-offs. For a comprehensive comparison of available options, see our <a href="/blog/best-mcp-memory-servers.html">guide to MCP memory servers</a>.</p>
+
+    <div class="comparison-table-wrap">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Factor</th>
+            <th>TF-IDF (mcp-smart-memory)</th>
+            <th>Vector Embeddings</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Setup</strong></td>
+            <td class="check">Zero config, no dependencies</td>
+            <td class="cross">Requires API key or local model</td>
+          </tr>
+          <tr>
+            <td><strong>Privacy</strong></td>
+            <td class="check">100% local, no network calls</td>
+            <td>Depends on embedding provider</td>
+          </tr>
+          <tr>
+            <td><strong>Speed</strong></td>
+            <td class="check">Instant (in-memory index)</td>
+            <td>Latency from API calls or model inference</td>
+          </tr>
+          <tr>
+            <td><strong>Cost</strong></td>
+            <td class="check">Free forever</td>
+            <td>API costs per embedding call</td>
+          </tr>
+          <tr>
+            <td><strong>Synonym Handling</strong></td>
+            <td>Limited (exact terms weighted)</td>
+            <td class="check">Strong semantic similarity</td>
+          </tr>
+          <tr>
+            <td><strong>Developer Notes</strong></td>
+            <td class="check">Excellent (consistent vocabulary)</td>
+            <td class="check">Excellent</td>
+          </tr>
+          <tr>
+            <td><strong>Offline Use</strong></td>
+            <td class="check">Fully offline</td>
+            <td class="cross">Cloud embeddings require internet</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Key Takeaway</div>
+      <p>For developer notes, architecture decisions, and project documentation, TF-IDF works remarkably well because the vocabulary is consistent. You always refer to "PostgreSQL" as "PostgreSQL", not as "that relational database we use." The terms are technical, specific, and stable -- exactly the conditions where TF-IDF excels. Vector embeddings add value when dealing with natural language that uses varied phrasing, but that is rarely the case in developer documentation.</p>
+    </div>
+
+    <h2 id="advanced">Advanced: soul-mcp for Identity and Reflection</h2>
+
+    <p>If you want to go beyond basic memory into something more structured, <strong>soul-mcp</strong> builds on the same foundation with additional capabilities:</p>
+
+    <ul>
+      <li><strong>Identity persistence.</strong> The AI develops a consistent working style and personality across sessions, maintaining continuity in how it approaches problems.</li>
+      <li><strong>Reflection.</strong> The AI can evaluate its own past decisions and learn from mistakes, storing meta-knowledge about what approaches worked and what did not.</li>
+      <li><strong>Pattern recognition.</strong> Automatic detection of recurring themes across stored memories, surfacing connections you might not have noticed.</li>
+      <li><strong>Evaluation.</strong> Built-in tools to assess the quality and relevance of stored memories, keeping the knowledge base clean over time.</li>
+    </ul>
+
+    <p>soul-mcp includes 6 tools total: the 3 core memory tools plus <code>memory_patterns</code>, <code>memory_suggest</code>, and <code>memory_evaluate</code>. The core tools are free. The advanced tools are available with a <a href="/memory.html">Smart Memory Pro license</a>.</p>
+
+    <p>This is particularly relevant for developers who use Claude Code as a long-running pair programming partner. Over time, the AI builds up not just knowledge of your project, but an understanding of how you prefer to solve problems.</p>
+
+    <div class="cta-box">
+      <h3>Explore Smart Memory</h3>
+      <p>See the full feature set, install commands, and Pro comparison on the product page.</p>
+      <a href="/memory.html" class="cta-button">View Smart Memory &rarr;</a>
+    </div>
+
+    <h2 id="tips">5 Tips for Getting the Most Out of AI Memory</h2>
+
+    <h3>1. Be explicit about what to remember</h3>
+    <p>While Claude Code will proactively store important context, you get better results when you explicitly flag high-value knowledge. Phrases like "remember this decision" or "store this pattern" signal that the information is worth persisting. The more intentional you are about what gets stored, the more useful recall becomes.</p>
+
+    <h3>2. Use categories consistently</h3>
+    <p>Stick to a small set of categories: architecture, debugging, preferences, conventions, decisions. Consistent categorization makes recall more precise because Claude Code can filter by category when searching. If your categories are random ("stuff", "important", "misc"), the search has nothing useful to filter on.</p>
+
+    <h3>3. Store the "why", not just the "what"</h3>
+    <p>Storing "we use PostgreSQL" is less valuable than storing "we chose PostgreSQL over MongoDB because we need ACID transactions for payment processing and the pgvector extension for our embedding search feature." The reasoning is what prevents Claude Code from suggesting alternatives you already evaluated and rejected.</p>
+
+    <h3>4. Review and prune periodically</h3>
+    <p>Run <code>memory_stats</code> every few weeks to see what is accumulated. If you have migrated from React to Svelte, the old React conventions are now noise. Ask Claude Code to remove outdated memories. A clean memory store with 30 relevant entries outperforms a bloated one with 300 entries where half are stale.</p>
+
+    <h3>5. Combine with project-level context files</h3>
+    <p>Memory works best alongside structured context files like <code>CLAUDE.md</code> or <code>.cursorrules</code>. Use the context file for stable, project-wide rules (formatting, linting, directory structure). Use memory for evolving knowledge (debugging patterns, decision history, learned preferences). The two complement each other: the context file is the constitution, memory is the case law. You can use our <a href="/free-tools/">free developer tools</a> like the <a href="/free-tools/json-formatter.html">JSON formatter</a> to inspect and validate memory export files if you ever need to audit the raw data.</p>
+
+    <h2 id="faq">Frequently Asked Questions</h2>
+
+    <h3>Does Claude Code have persistent memory?</h3>
+    <p>Claude Code does not have built-in persistent memory across sessions. Each new conversation starts with a blank context. However, you can add persistent memory by connecting an MCP memory server like mcp-smart-memory. This gives Claude Code the ability to store and recall knowledge across sessions using tools like <code>memory_store</code> and <code>memory_recall</code>.</p>
+
+    <h3>What is an MCP memory server?</h3>
+    <p>An MCP memory server is an external tool that connects to AI coding assistants like Claude Code, Cursor, or Windsurf through the Model Context Protocol. It provides persistent storage for knowledge, context, and patterns. The AI can write to and read from this memory store, allowing it to remember information across separate conversations and sessions.</p>
+
+    <h3>How do I install mcp-smart-memory for Claude Code?</h3>
+    <p>Run a single command in your terminal: <code>claude mcp add memory -- npx mcp-smart-memory</code>. This registers the memory server with Claude Code. No API keys, no cloud accounts, and no configuration files are needed. The server stores all data locally in a JSON file on your machine. You can also install it globally with <code>npm install -g mcp-smart-memory</code>.</p>
+
+    <h3>Is my data sent to the cloud when using mcp-smart-memory?</h3>
+    <p>No. mcp-smart-memory is 100% local. All memories are stored in a JSON file on your machine. There are no API calls, no cloud services, and no external dependencies. The TF-IDF semantic search runs entirely in your local Node.js process. Your project knowledge, architecture decisions, and debugging notes never leave your computer.</p>
+
+    <h3>What is the difference between TF-IDF and vector embeddings for AI memory?</h3>
+    <p>TF-IDF (Term Frequency-Inverse Document Frequency) is a statistical method that scores relevance based on word frequency. It works locally, requires zero configuration, and performs well when the vocabulary is consistent -- which is typical for developer notes and project documentation. Vector embeddings use neural networks to capture semantic meaning, which can handle synonyms and paraphrases better, but they require an API key or a local model, add latency, and introduce external dependencies. For most developer use cases, TF-IDF provides accurate recall with no setup overhead.</p>
+
+    <h2 id="conclusion">Your AI Should Learn and Grow With You</h2>
+
+    <p>The gap between what AI coding assistants <em>can</em> do and what they <em>remember</em> is the biggest bottleneck in the developer experience today. The models understand complex systems. They write solid code. They debug intricate issues. But without memory, every session starts from scratch, and you pay the re-onboarding cost every single time.</p>
+
+    <p>Persistent memory changes the dynamic entirely. Instead of an assistant you re-train daily, you get a collaborator that accumulates knowledge about your project, your patterns, and your preferences. It gets more useful the longer you work with it, not less.</p>
+
+    <p>The setup takes one command. The storage is local and private. The search is fast and relevant. There is no good reason not to try it.</p>
+
+    <pre><code>claude mcp add memory -- npx mcp-smart-memory</code></pre>
+
+    <p>Run that, start a session, and tell Claude Code something worth remembering. Tomorrow, ask it what it knows. The difference speaks for itself.</p>
+
+    <!-- CTA Box -->
+    <div class="cta-box">
+      <h3>Explore 150+ Free Developer Tools</h3>
+      <p>Memory is just one piece of the toolkit. NexTool has free browser-based tools for JSON, CSV, regex, encoding, hashing, and much more.</p>
+      <a href="/free-tools/" class="cta-button">Browse All Free Tools</a>
+    </div>
+
+    <!-- AUTHOR BOX -->
+    <div class="author-box">
+      <div class="author-avatar">NT</div>
+      <div class="author-info">
+        <h4>NexTool Team</h4>
+        <p>We build free, privacy-first developer tools and MCP servers. Our mission is to make the tools you reach for every day faster, smarter, and more respectful of your data.</p>
+      </div>
+    </div>
+
+    <!-- RELATED ARTICLES -->
+    <div class="related-articles">
+      <h3>Related Articles</h3>
+      <div class="related-grid">
+        <a href="/blog/best-mcp-memory-servers.html" class="related-card">
+          <div class="related-card-cat">AI Development</div>
+          <h4>Best MCP Memory Servers Compared</h4>
+          <p>Side-by-side comparison of every MCP memory server available in 2026, including features, privacy, and setup complexity.</p>
+        </a>
+        <a href="/blog/developer-productivity-tools-2026.html" class="related-card">
+          <div class="related-card-cat">Productivity</div>
+          <h4>Developer Productivity Tools in 2026</h4>
+          <p>The tools, workflows, and habits that top developers use to ship faster without burning out.</p>
+        </a>
+        <a href="/blog/best-free-json-formatter.html" class="related-card">
+          <div class="related-card-cat">Developer Tools</div>
+          <h4>Best Free JSON Formatter Online in 2026</h4>
+          <p>Compare the 7 best free JSON formatter tools online with honest pros, cons, and feature comparisons.</p>
+        </a>
+      </div>
+    </div>
+
+  </article>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="footer-brand">NexTool</div>
+      <p class="footer-brand-desc">150+ free developer tools for developers and designers. Browser-based, no signup.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Free Tools</h4>
+      <a href="/free-tools/">All 150+ Tools</a>
+      <a href="/free-tools/json-formatter.html">JSON Formatter</a>
+      <a href="/free-tools/csv-formatter.html">CSV Formatter</a>
+      <a href="/free-tools/regex-tester.html">Regex Tester</a>
+      <a href="/free-tools/image-compressor.html">Image Compressor</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+      <a href="/blog/">Blog</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="mailto:christianjunbucher@gmail.com">Email Us</a>
+      <a href="/imprint.html">Imprint</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+// TOC active state
+const tocLinks = document.querySelectorAll('.toc-list a');
+const sections = document.querySelectorAll('.article-content h2[id]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  tocLinks.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+// Mobile nav toggle
+document.querySelector('.nav-mobile-toggle')?.addEventListener('click', () => {
+  const links = document.querySelector('.nav-links');
+  links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+  links.style.flexDirection = 'column';
+  links.style.position = 'absolute';
+  links.style.top = '64px';
+  links.style.right = '1rem';
+  links.style.background = 'var(--surface)';
+  links.style.padding = '1rem';
+  links.style.borderRadius = '12px';
+  links.style.border = '1px solid var(--border)';
+});
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>

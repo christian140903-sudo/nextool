@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free QR Code Reader — Scan QR Codes from Images or Camera | NexTool</title>
+<meta name="description" content="Free online QR code reader and scanner. Upload an image or use your camera to decode QR codes instantly. Detects URLs, WiFi, vCards, email, phone. No signup.">
+<meta name="keywords" content="QR code reader, QR code scanner, QR decoder, scan QR code, read QR code online, camera QR scanner, free QR tool, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free QR Code Reader & Scanner | NexTool">
+<meta property="og:description" content="Scan and decode QR codes from images or camera instantly. Detects URLs, WiFi, contacts, and more. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/qr-code-reader.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/qr-code-reader.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free QR Code Reader & Scanner | NexTool">
+<meta name="twitter:description" content="Scan and decode QR codes from images or camera. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool QR Code Reader","applicationCategory":"UtilitiesApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online QR code reader and scanner. Upload an image or use your camera to decode QR codes instantly."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:900px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.ready{background:var(--green)}
+.status-dot.scanning{background:var(--yellow);animation:pulse 1s infinite}
+.status-dot.empty{background:var(--border)}
+.status-dot.error{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* PANELS */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:400px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:350px}
+/* DROP ZONE */
+.drop-zone{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;cursor:pointer;transition:all .2s;position:relative}
+.drop-zone.drag-over{background:rgba(99,102,241,.08);border-color:var(--primary)}
+.drop-zone-icon{font-size:3rem;margin-bottom:1rem;opacity:.5}
+.drop-zone-text{color:var(--text2);font-size:.9rem;text-align:center}
+.drop-zone-text strong{color:var(--text);display:block;margin-bottom:.3rem}
+.drop-zone input[type="file"]{display:none}
+/* CANVAS */
+.preview-canvas{max-width:100%;max-height:300px;border-radius:8px;display:none}
+/* VIDEO */
+.camera-container{width:100%;height:100%;position:relative;display:none}
+.camera-container video{width:100%;height:100%;object-fit:cover;border-radius:0 0 var(--radius) var(--radius)}
+.camera-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;border:2px solid rgba(99,102,241,.6);border-radius:16px;pointer-events:none}
+.camera-overlay::before,.camera-overlay::after{content:'';position:absolute;width:30px;height:30px;border-color:var(--primary);border-style:solid}
+.camera-overlay::before{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:12px 0 0 0}
+.camera-overlay::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;border-radius:0 0 12px 0}
+.camera-scanning-line{position:absolute;top:0;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,var(--primary),transparent);animation:scanLine 2s ease-in-out infinite}
+@keyframes scanLine{0%{top:10%}50%{top:90%}100%{top:10%}}
+/* RESULT */
+.result-area{padding:1.5rem;width:100%;display:none}
+.result-type{display:inline-block;padding:3px 10px;border-radius:6px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.75rem}
+.result-type.url{background:rgba(99,102,241,.15);color:#818cf8}
+.result-type.wifi{background:rgba(34,197,94,.15);color:#4ade80}
+.result-type.vcard{background:rgba(168,85,247,.15);color:#c084fc}
+.result-type.email{background:rgba(236,72,153,.15);color:#f472b6}
+.result-type.phone{background:rgba(34,211,238,.15);color:#22d3ee}
+.result-type.text{background:rgba(148,163,184,.15);color:#94a3b8}
+.result-content{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem;word-break:break-all;font-size:.85rem;line-height:1.6;color:var(--text)}
+.result-content a{color:#818cf8;text-decoration:none}
+.result-content a:hover{text-decoration:underline}
+.result-parsed{margin-bottom:1rem}
+.result-parsed-row{display:flex;gap:.75rem;padding:.4rem 0;border-bottom:1px solid rgba(42,42,58,.5);font-size:.85rem}
+.result-parsed-label{color:var(--text2);min-width:90px;font-weight:500;flex-shrink:0}
+.result-parsed-value{color:var(--text);word-break:break-all}
+.result-actions{display:flex;flex-wrap:wrap;gap:.5rem}
+.result-btn{padding:.5rem 1rem;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem}
+.result-btn.primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
+.result-btn.primary:hover{opacity:.9;transform:translateY(-1px)}
+.result-btn.secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+.result-btn.secondary:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+/* HISTORY */
+.history-section{margin-top:2rem;padding:1.5rem;background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius)}
+.history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.history-header h3{font-size:.9rem;font-weight:600;color:var(--text)}
+.history-clear{background:none;border:none;color:var(--text2);font-size:.75rem;cursor:pointer;font-family:inherit;transition:color .2s}
+.history-clear:hover{color:var(--red)}
+.history-list{display:flex;flex-direction:column;gap:.5rem}
+.history-item{display:flex;align-items:center;gap:.75rem;padding:.6rem .8rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s;font-size:.8rem}
+.history-item:hover{border-color:var(--primary);background:rgba(99,102,241,.06)}
+.history-item-type{font-size:.65rem;font-weight:600;text-transform:uppercase;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.history-item-content{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.history-item-time{color:var(--text2);font-size:.7rem;flex-shrink:0}
+.history-empty{text-align:center;color:var(--text2);font-size:.8rem;padding:1rem}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .camera-overlay{width:150px;height:150px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro &mdash; $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>QR Code Reader</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">NexTool's QR Code Reader decodes QR codes from uploaded images or your device camera in real time. Automatically detects URLs, WiFi credentials, contacts, email addresses, and phone numbers. 100% client-side &mdash; your data never leaves your browser.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button id="btnUpload" class="active" onclick="switchMode('upload')">Upload Image</button>
+    <button id="btnCamera" onclick="switchMode('camera')">Camera Scan</button>
+    <button onclick="resetTool()">Clear</button>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Upload an image or start camera to scan</span>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-header"><span id="inputLabel">Input</span><span id="inputInfo"></span></div>
+      <div class="panel-body" id="inputPanel">
+        <!-- Drop zone -->
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-zone-icon">&#128247;</div>
+          <div class="drop-zone-text">
+            <strong>Drop QR code image here</strong>
+            or click to browse files<br>
+            <span style="font-size:.75rem;color:var(--text2);margin-top:.3rem;display:inline-block">PNG, JPG, GIF, WebP, BMP</span>
+          </div>
+          <input type="file" id="fileInput" accept="image/png,image/jpeg,image/gif,image/webp,image/bmp">
+        </div>
+        <!-- Preview canvas (for uploaded image with QR overlay) -->
+        <canvas id="previewCanvas" class="preview-canvas"></canvas>
+        <!-- Camera container -->
+        <div class="camera-container" id="cameraContainer">
+          <video id="cameraVideo" autoplay playsinline muted></video>
+          <div class="camera-overlay">
+            <div class="camera-scanning-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span id="outputLabel">Result</span><span id="outputInfo"></span></div>
+      <div class="panel-body" id="outputPanel" style="justify-content:flex-start;align-items:stretch">
+        <div class="result-area" id="resultArea">
+          <span class="result-type text" id="resultType">Text</span>
+          <div class="result-content" id="resultContent"></div>
+          <div class="result-parsed" id="resultParsed" style="display:none"></div>
+          <div class="result-actions" id="resultActions"></div>
+        </div>
+        <div id="emptyResult" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:2rem;text-align:center">
+          <div style="font-size:2.5rem;margin-bottom:.75rem;opacity:.4">&#128270;</div>
+          <div style="color:var(--text2);font-size:.85rem">Decoded content will appear here</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-section fade-in" id="historySection">
+    <div class="history-header">
+      <h3>Scan History</h3>
+      <button class="history-clear" onclick="clearHistory()">Clear History</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty" id="historyEmpty">No scans yet</div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 &mdash; Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro &mdash; $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== STATE ===== */
+let currentMode = 'upload';
+let cameraStream = null;
+let cameraAnimFrame = null;
+let lastDecodedData = '';
+const HISTORY_KEY = 'nextool_qr_history';
+const MAX_HISTORY = 10;
+
+/* ===== ELEMENTS ===== */
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const previewCanvas = document.getElementById('previewCanvas');
+const cameraContainer = document.getElementById('cameraContainer');
+const cameraVideo = document.getElementById('cameraVideo');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const resultArea = document.getElementById('resultArea');
+const resultType = document.getElementById('resultType');
+const resultContent = document.getElementById('resultContent');
+const resultParsed = document.getElementById('resultParsed');
+const resultActions = document.getElementById('resultActions');
+const emptyResult = document.getElementById('emptyResult');
+const inputLabel = document.getElementById('inputLabel');
+const inputInfo = document.getElementById('inputInfo');
+const outputInfo = document.getElementById('outputInfo');
+const btnUpload = document.getElementById('btnUpload');
+const btnCamera = document.getElementById('btnCamera');
+
+/* ===== MODE SWITCHING ===== */
+function switchMode(mode) {
+  if (mode === currentMode) return;
+  stopCamera();
+  currentMode = mode;
+  btnUpload.classList.toggle('active', mode === 'upload');
+  btnCamera.classList.toggle('active', mode === 'camera');
+  if (mode === 'upload') {
+    inputLabel.textContent = 'Input';
+    dropZone.style.display = 'flex';
+    previewCanvas.style.display = 'none';
+    cameraContainer.style.display = 'none';
+    inputInfo.textContent = '';
+    setStatus('empty', 'Upload an image or start camera to scan');
+  } else {
+    inputLabel.textContent = 'Camera';
+    dropZone.style.display = 'none';
+    previewCanvas.style.display = 'none';
+    cameraContainer.style.display = 'block';
+    startCamera();
+  }
+}
+
+/* ===== STATUS ===== */
+function setStatus(type, text) {
+  statusDot.className = 'status-dot ' + type;
+  statusText.textContent = text;
+}
+
+/* ===== FILE UPLOAD ===== */
+dropZone.addEventListener('click', function() { fileInput.click(); });
+fileInput.addEventListener('change', function(e) {
+  if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+/* Drag and drop */
+dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('drag-over'); });
+dropZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(file) {
+  if (!file.type.startsWith('image/')) {
+    setStatus('error', 'Please upload an image file');
+    showToast('Invalid file type');
+    return;
+  }
+  setStatus('scanning', 'Scanning image...');
+  inputInfo.textContent = file.name + ' (' + formatBytes(file.size) + ')';
+  const img = new Image();
+  img.onload = function() {
+    const canvas = previewCanvas;
+    const ctx = canvas.getContext('2d');
+    /* Scale down large images for display but decode at full res */
+    const maxDim = 800;
+    let w = img.width, h = img.height;
+    if (w > maxDim || h > maxDim) {
+      const scale = maxDim / Math.max(w, h);
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+    canvas.width = w;
+    canvas.height = h;
+    ctx.drawImage(img, 0, 0, w, h);
+
+    /* Decode at original resolution for best accuracy */
+    const decodeCanvas = document.createElement('canvas');
+    decodeCanvas.width = img.width;
+    decodeCanvas.height = img.height;
+    const dctx = decodeCanvas.getContext('2d');
+    dctx.drawImage(img, 0, 0);
+    const imageData = dctx.getContext ? dctx.getImageData(0, 0, img.width, img.height) : ctx.getImageData(0, 0, w, h);
+
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' })
+              || jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+
+    if (code) {
+      /* Draw QR position highlight on preview canvas */
+      const scaleX = w / img.width;
+      const scaleY = h / img.height;
+      ctx.strokeStyle = '#6366f1';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(code.location.topLeftCorner.x * scaleX, code.location.topLeftCorner.y * scaleY);
+      ctx.lineTo(code.location.topRightCorner.x * scaleX, code.location.topRightCorner.y * scaleY);
+      ctx.lineTo(code.location.bottomRightCorner.x * scaleX, code.location.bottomRightCorner.y * scaleY);
+      ctx.lineTo(code.location.bottomLeftCorner.x * scaleX, code.location.bottomLeftCorner.y * scaleY);
+      ctx.closePath();
+      ctx.stroke();
+      /* Corner dots */
+      ctx.fillStyle = '#6366f1';
+      [code.location.topLeftCorner, code.location.topRightCorner, code.location.bottomRightCorner, code.location.bottomLeftCorner].forEach(function(c) {
+        ctx.beginPath();
+        ctx.arc(c.x * scaleX, c.y * scaleY, 5, 0, 2 * Math.PI);
+        ctx.fill();
+      });
+
+      dropZone.style.display = 'none';
+      previewCanvas.style.display = 'block';
+      setStatus('ready', 'QR code detected');
+      showResult(code.data);
+    } else {
+      dropZone.style.display = 'none';
+      previewCanvas.style.display = 'block';
+      setStatus('error', 'No QR code found in image');
+      showToast('No QR code found');
+      hideResult();
+    }
+    URL.revokeObjectURL(img.src);
+  };
+  img.onerror = function() {
+    setStatus('error', 'Failed to load image');
+    showToast('Could not load image');
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+/* ===== CAMERA ===== */
+async function startCamera() {
+  setStatus('scanning', 'Requesting camera access...');
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    cameraVideo.srcObject = cameraStream;
+    await cameraVideo.play();
+    setStatus('scanning', 'Scanning for QR codes...');
+    lastDecodedData = '';
+    scanCameraFrame();
+  } catch (err) {
+    setStatus('error', 'Camera access denied or unavailable');
+    showToast('Could not access camera');
+    switchMode('upload');
+  }
+}
+
+function scanCameraFrame() {
+  if (!cameraStream) return;
+  const video = cameraVideo;
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+    if (code && code.data && code.data !== lastDecodedData) {
+      lastDecodedData = code.data;
+      setStatus('ready', 'QR code detected');
+      showResult(code.data);
+    }
+  }
+  cameraAnimFrame = requestAnimationFrame(scanCameraFrame);
+}
+
+function stopCamera() {
+  if (cameraAnimFrame) { cancelAnimationFrame(cameraAnimFrame); cameraAnimFrame = null; }
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(function(t) { t.stop(); });
+    cameraStream = null;
+  }
+  cameraVideo.srcObject = null;
+}
+
+/* ===== CONTENT DETECTION ===== */
+function detectType(data) {
+  if (/^https?:\/\//i.test(data)) return 'url';
+  if (/^WIFI:/i.test(data)) return 'wifi';
+  if (/^BEGIN:VCARD/i.test(data)) return 'vcard';
+  if (/^mailto:/i.test(data)) return 'email';
+  if (/^tel:/i.test(data)) return 'phone';
+  if (/^MATMSG:/i.test(data)) return 'email';
+  if (/^smsto:/i.test(data)) return 'phone';
+  return 'text';
+}
+
+function parseWifi(data) {
+  const result = {};
+  const ssidMatch = data.match(/S:([^;]*)/);
+  const typeMatch = data.match(/T:([^;]*)/);
+  const passMatch = data.match(/P:([^;]*)/);
+  const hiddenMatch = data.match(/H:([^;]*)/);
+  if (ssidMatch) result.ssid = ssidMatch[1];
+  if (typeMatch) result.security = typeMatch[1] || 'None';
+  if (passMatch) result.password = passMatch[1];
+  if (hiddenMatch) result.hidden = hiddenMatch[1] === 'true';
+  return result;
+}
+
+function parseVCard(data) {
+  const result = {};
+  const lines = data.split(/\r?\n/);
+  lines.forEach(function(line) {
+    if (/^FN[;:]/.test(line)) result.name = line.split(':').slice(1).join(':');
+    else if (/^N[;:]/.test(line)) {
+      const parts = line.split(':').slice(1).join(':').split(';');
+      if (!result.name && parts.length >= 2) result.name = (parts[1] + ' ' + parts[0]).trim();
+    }
+    else if (/^TEL[;:]/.test(line)) result.phone = line.split(':').slice(1).join(':');
+    else if (/^EMAIL[;:]/.test(line)) result.email = line.split(':').slice(1).join(':');
+    else if (/^ORG[;:]/.test(line)) result.org = line.split(':').slice(1).join(':');
+    else if (/^TITLE[;:]/.test(line)) result.title = line.split(':').slice(1).join(':');
+    else if (/^URL[;:]/.test(line)) result.url = line.split(':').slice(1).join(':');
+    else if (/^ADR[;:]/.test(line)) {
+      const addr = line.split(':').slice(1).join(':').split(';').filter(Boolean).join(', ');
+      if (addr) result.address = addr;
+    }
+  });
+  return result;
+}
+
+/* ===== SHOW RESULT ===== */
+function showResult(data) {
+  emptyResult.style.display = 'none';
+  resultArea.style.display = 'block';
+  const type = detectType(data);
+
+  /* Type badge */
+  resultType.className = 'result-type ' + type;
+  const typeLabels = { url: 'URL', wifi: 'WiFi', vcard: 'Contact', email: 'Email', phone: 'Phone', text: 'Text' };
+  resultType.textContent = typeLabels[type] || 'Text';
+
+  /* Raw content */
+  if (type === 'url') {
+    resultContent.innerHTML = '<a href="' + escapeHtml(data) + '" target="_blank" rel="noopener">' + escapeHtml(data) + '</a>';
+  } else {
+    resultContent.textContent = data;
+  }
+
+  /* Parsed fields */
+  resultParsed.innerHTML = '';
+  resultParsed.style.display = 'none';
+
+  if (type === 'wifi') {
+    const wifi = parseWifi(data);
+    resultParsed.style.display = 'block';
+    if (wifi.ssid) addParsedRow('Network', wifi.ssid);
+    if (wifi.security) addParsedRow('Security', wifi.security);
+    if (wifi.password) addParsedRow('Password', wifi.password);
+    if (wifi.hidden) addParsedRow('Hidden', 'Yes');
+  } else if (type === 'vcard') {
+    const vc = parseVCard(data);
+    resultParsed.style.display = 'block';
+    if (vc.name) addParsedRow('Name', vc.name);
+    if (vc.org) addParsedRow('Organization', vc.org);
+    if (vc.title) addParsedRow('Title', vc.title);
+    if (vc.phone) addParsedRow('Phone', vc.phone);
+    if (vc.email) addParsedRow('Email', vc.email);
+    if (vc.url) addParsedRow('Website', vc.url);
+    if (vc.address) addParsedRow('Address', vc.address);
+  } else if (type === 'email') {
+    const emailAddr = data.replace(/^mailto:/i, '').split('?')[0];
+    resultParsed.style.display = 'block';
+    addParsedRow('Email', emailAddr);
+    const params = new URLSearchParams(data.split('?')[1] || '');
+    if (params.get('subject')) addParsedRow('Subject', params.get('subject'));
+    if (params.get('body')) addParsedRow('Body', params.get('body'));
+  } else if (type === 'phone') {
+    const phoneNum = data.replace(/^tel:|^smsto:/i, '').split(':')[0].split('?')[0];
+    resultParsed.style.display = 'block';
+    addParsedRow('Number', phoneNum);
+  }
+
+  /* Action buttons */
+  resultActions.innerHTML = '';
+  const copyBtn = createBtn('Copy to Clipboard', 'primary', function() {
+    navigator.clipboard.writeText(data).then(function() { showToast('Copied to clipboard'); });
+  });
+  resultActions.appendChild(copyBtn);
+
+  if (type === 'url') {
+    const openBtn = document.createElement('a');
+    openBtn.href = data;
+    openBtn.target = '_blank';
+    openBtn.rel = 'noopener';
+    openBtn.className = 'result-btn secondary';
+    openBtn.textContent = 'Open Link';
+    resultActions.appendChild(openBtn);
+  } else if (type === 'email') {
+    const emailAddr = data.startsWith('mailto:') ? data : 'mailto:' + data.replace(/^MATMSG:TO:/i, '').split(';')[0];
+    const composeBtn = document.createElement('a');
+    composeBtn.href = emailAddr;
+    composeBtn.className = 'result-btn secondary';
+    composeBtn.textContent = 'Compose Email';
+    resultActions.appendChild(composeBtn);
+  } else if (type === 'phone') {
+    const phoneNum = data.replace(/^tel:|^smsto:/i, '').split(':')[0].split('?')[0];
+    const callBtn = document.createElement('a');
+    callBtn.href = 'tel:' + phoneNum;
+    callBtn.className = 'result-btn secondary';
+    callBtn.textContent = 'Call Number';
+    resultActions.appendChild(callBtn);
+  } else if (type === 'wifi') {
+    const wifi = parseWifi(data);
+    if (wifi.password) {
+      const cpw = createBtn('Copy Password', 'secondary', function() {
+        navigator.clipboard.writeText(wifi.password).then(function() { showToast('Password copied'); });
+      });
+      resultActions.appendChild(cpw);
+    }
+  }
+
+  outputInfo.textContent = data.length + ' chars';
+  addToHistory(data, type);
+}
+
+function hideResult() {
+  resultArea.style.display = 'none';
+  emptyResult.style.display = 'flex';
+  outputInfo.textContent = '';
+}
+
+function addParsedRow(label, value) {
+  const row = document.createElement('div');
+  row.className = 'result-parsed-row';
+  row.innerHTML = '<span class="result-parsed-label">' + escapeHtml(label) + '</span><span class="result-parsed-value">' + escapeHtml(value) + '</span>';
+  resultParsed.appendChild(row);
+}
+
+function createBtn(text, cls, handler) {
+  const btn = document.createElement('button');
+  btn.className = 'result-btn ' + cls;
+  btn.textContent = text;
+  btn.addEventListener('click', handler);
+  return btn;
+}
+
+/* ===== HISTORY ===== */
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) { return []; }
+}
+
+function saveHistory(history) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch(e) {}
+}
+
+function addToHistory(data, type) {
+  let history = loadHistory();
+  /* Remove duplicates */
+  history = history.filter(function(item) { return item.data !== data; });
+  history.unshift({ data: data, type: type, time: Date.now() });
+  if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+  saveHistory(history);
+  renderHistory();
+}
+
+function renderHistory() {
+  const history = loadHistory();
+  const list = document.getElementById('historyList');
+  const emptyMsg = document.getElementById('historyEmpty');
+  if (history.length === 0) {
+    list.innerHTML = '';
+    list.appendChild(emptyMsg);
+    emptyMsg.style.display = 'block';
+    return;
+  }
+  list.innerHTML = '';
+  history.forEach(function(item) {
+    const el = document.createElement('div');
+    el.className = 'history-item';
+    const typeColors = { url: 'rgba(99,102,241,.15);color:#818cf8', wifi: 'rgba(34,197,94,.15);color:#4ade80', vcard: 'rgba(168,85,247,.15);color:#c084fc', email: 'rgba(236,72,153,.15);color:#f472b6', phone: 'rgba(34,211,238,.15);color:#22d3ee', text: 'rgba(148,163,184,.15);color:#94a3b8' };
+    const typeLabels = { url: 'URL', wifi: 'WiFi', vcard: 'Contact', email: 'Email', phone: 'Phone', text: 'Text' };
+    el.innerHTML = '<span class="history-item-type" style="background:' + (typeColors[item.type] || typeColors.text) + '">' + (typeLabels[item.type] || 'Text') + '</span>'
+      + '<span class="history-item-content">' + escapeHtml(item.data.substring(0, 100)) + '</span>'
+      + '<span class="history-item-time">' + timeAgo(item.time) + '</span>';
+    el.addEventListener('click', function() { showResult(item.data); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    list.appendChild(el);
+  });
+}
+
+function clearHistory() {
+  saveHistory([]);
+  renderHistory();
+  showToast('History cleared');
+}
+
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  if (diff < 60000) return 'just now';
+  if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+  return Math.floor(diff / 86400000) + 'd ago';
+}
+
+/* ===== RESET ===== */
+function resetTool() {
+  stopCamera();
+  currentMode = 'upload';
+  btnUpload.classList.add('active');
+  btnCamera.classList.remove('active');
+  dropZone.style.display = 'flex';
+  previewCanvas.style.display = 'none';
+  cameraContainer.style.display = 'none';
+  inputLabel.textContent = 'Input';
+  inputInfo.textContent = '';
+  fileInput.value = '';
+  hideResult();
+  setStatus('empty', 'Upload an image or start camera to scan');
+  lastDecodedData = '';
+}
+
+/* ===== UTILITIES ===== */
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024, sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+/* Paste support */
+document.addEventListener('paste', function(e) {
+  if (currentMode !== 'upload') return;
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.startsWith('image/')) {
+      e.preventDefault();
+      const file = items[i].getAsFile();
+      if (file) handleFile(file);
+      return;
+    }
+  }
+});
+
+/* Init history */
+renderHistory();
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I scan a QR code with this tool?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can scan a QR code in two ways: upload an image containing a QR code by dragging and dropping or using the file picker, or click 'Camera Scan' to use your device camera for real-time scanning. The tool automatically detects and decodes the QR code content."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What types of QR codes can this reader decode?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NexTool's QR Code Reader can decode all standard QR code formats including URLs, plain text, WiFi credentials (network name, password, security type), vCard contacts (name, phone, email), email addresses (mailto:), and phone numbers (tel:). The decoded content is automatically categorized and displayed with relevant action buttons."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my data safe when using this QR code scanner?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's QR Code Reader runs 100% in your browser. Your images and camera feed are never uploaded to any server. All QR code decoding happens locally on your device using JavaScript, ensuring complete privacy and security."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I scan QR codes from my phone camera?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, click the 'Camera Scan' button to activate your device camera. The tool will continuously scan for QR codes in real-time using your rear-facing camera. This works on both mobile phones and laptops with webcams. Camera access permission is required."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
