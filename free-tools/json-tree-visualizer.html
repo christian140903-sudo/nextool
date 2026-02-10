@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free JSON Tree Visualizer — Interactive Tree View | NexTool</title>
+<meta name="description" content="Visualize JSON as an interactive tree with expand/collapse, color-coded types, path copying, search, minimap, and export to image. 100% free, no signup.">
+<meta name="keywords" content="JSON tree visualizer, JSON tree view, interactive JSON viewer, JSON explorer, JSON path finder, free online tool, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free JSON Tree Visualizer — Interactive Tree View | NexTool">
+<meta property="og:description" content="Visualize JSON data as an interactive, color-coded tree. Expand/collapse nodes, copy paths, search, and export as image. Free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/json-tree-visualizer.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/json-tree-visualizer.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free JSON Tree Visualizer | NexTool">
+<meta name="twitter:description" content="Visualize JSON as an interactive tree. Color-coded types, path copying, search, export. Free online tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool JSON Tree Visualizer","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free interactive JSON tree visualizer with color-coded types, search, path copying, minimap, and image export."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#f97316;--blue:#3b82f6;--purple:#a855f7;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1400px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.search-wrap{position:relative;flex:1;min-width:180px;max-width:320px}
+.search-wrap input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem .45rem 2rem;border-radius:8px;font-size:.8rem;font-family:inherit;outline:none;transition:border-color .2s}
+.search-wrap input:focus{border-color:var(--primary)}
+.search-wrap svg{position:absolute;left:.6rem;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text2)}
+.search-info{font-size:.75rem;color:var(--text2);margin-left:.5rem}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2);flex-wrap:wrap}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.valid{background:var(--green)}
+.status-dot.invalid{background:var(--red)}
+.status-dot.empty{background:var(--border)}
+.main-layout{display:grid;grid-template-columns:1fr 280px;gap:1rem;min-height:550px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto}
+/* INPUT PANEL */
+.input-section{margin-bottom:1rem}
+#jsonInput{width:100%;min-height:180px;max-height:300px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:vertical;outline:none;line-height:1.7;tab-size:2}
+#jsonInput::placeholder{color:var(--text2);opacity:.5}
+#jsonInput:focus{border-color:var(--primary)}
+/* TREE VIEW */
+.tree-panel{min-height:400px}
+.tree-area{padding:1rem;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.8;min-height:400px}
+.tree-node{position:relative}
+.tree-children{margin-left:20px;border-left:1px solid rgba(99,102,241,.15);padding-left:8px}
+.tree-children.collapsed{display:none}
+.tree-row{display:flex;align-items:flex-start;gap:4px;padding:1px 4px;border-radius:4px;cursor:pointer;transition:background .15s}
+.tree-row:hover{background:rgba(99,102,241,.08)}
+.tree-row.selected{background:rgba(99,102,241,.15);outline:1px solid rgba(99,102,241,.3);outline-offset:-1px}
+.tree-row.search-match{background:rgba(234,179,8,.12);outline:1px solid rgba(234,179,8,.3);outline-offset:-1px}
+.tree-toggle{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);flex-shrink:0;margin-top:2px;user-select:none;transition:transform .15s}
+.tree-toggle.open{transform:rotate(90deg)}
+.tree-toggle-placeholder{width:16px;flex-shrink:0}
+.tree-key{color:#c084fc;font-weight:600}
+.tree-colon{color:var(--text2);margin:0 4px}
+.val-string{color:var(--green)}
+.val-number{color:var(--blue)}
+.val-boolean{color:var(--orange)}
+.val-null{color:#6b7280;font-style:italic}
+.val-array{color:var(--purple)}
+.val-object{color:var(--cyan)}
+.bracket-info{color:var(--text2);font-size:.75rem;margin-left:6px}
+/* PATH BAR */
+.path-bar{padding:.5rem 1rem;border-top:1px solid var(--border);background:rgba(26,26,36,0.5);font-size:.78rem;font-family:'Courier New',monospace;display:flex;align-items:center;gap:.5rem;min-height:36px}
+.path-bar .path-text{color:var(--cyan);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.path-bar .copy-btn{background:none;border:1px solid var(--border);color:var(--text2);padding:2px 8px;border-radius:4px;font-size:.72rem;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap}
+.path-bar .copy-btn:hover{border-color:var(--primary);color:var(--text)}
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:1rem}
+.sidebar-card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.sidebar-card-header{padding:.5rem .8rem;border-bottom:1px solid var(--border);font-size:.78rem;font-weight:600;color:var(--text2);background:rgba(26,26,36,0.5)}
+.sidebar-card-body{padding:.8rem}
+/* STATS */
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.78rem}
+.stat-label{color:var(--text2)}
+.stat-value{color:var(--text);font-weight:600;font-family:'Courier New',monospace}
+.type-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:8px 0 4px;background:var(--surface2)}
+.type-bar div{height:100%;transition:width .3s}
+.type-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.type-legend-item{display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text2)}
+.type-legend-item .dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+/* MINIMAP */
+.minimap-wrap{position:relative;height:120px;overflow:hidden;background:var(--surface2);border-radius:6px}
+.minimap-canvas{width:100%;height:100%}
+.minimap-viewport{position:absolute;border:1px solid rgba(99,102,241,.5);background:rgba(99,102,241,.08);border-radius:2px;pointer-events:none}
+/* ERROR */
+.error-display{padding:1rem;color:var(--red);font-size:.85rem;font-family:'Courier New',monospace;white-space:pre-wrap}
+.error-line{background:rgba(239,68,68,.1);border-left:3px solid var(--red);padding:.3rem .6rem;margin:.3rem 0;border-radius:4px}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:900px){
+  .main-layout{grid-template-columns:1fr}
+  .sidebar{flex-direction:row;flex-wrap:wrap}
+  .sidebar-card{flex:1;min-width:200px}
+}
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .search-wrap{max-width:100%;min-width:120px}
+  .sidebar{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro &mdash; $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>JSON Tree Visualizer</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Paste your JSON and explore it as an interactive, color-coded tree. Expand and collapse nodes, click to copy paths, search across keys and values, view statistics, and export the tree as an image. No signup, 100% client-side.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <!-- INPUT -->
+  <div class="input-section">
+    <textarea id="jsonInput" placeholder='Paste your JSON here...&#10;&#10;Example:&#10;{&#10;  "users": [&#10;    { "name": "Alice", "age": 30 },&#10;    { "name": "Bob", "age": 25 }&#10;  ]&#10;}' spellcheck="false"></textarea>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <button onclick="expandAll()" title="Expand all nodes">Expand All</button>
+    <button onclick="collapseAll()" title="Collapse all nodes">Collapse All</button>
+    <button onclick="exportImage()" title="Export tree as PNG image">Export Image</button>
+    <button onclick="loadSample()" title="Load sample JSON">Sample</button>
+    <button onclick="clearAll()" title="Clear input and tree">Clear</button>
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="Search keys & values..." oninput="searchTree()">
+    </div>
+    <span class="search-info" id="searchInfo"></span>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Paste JSON to begin</span>
+    <span id="sizeInfo" style="margin-left:auto"></span>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="main-layout">
+    <!-- TREE PANEL -->
+    <div class="panel tree-panel">
+      <div class="panel-header">
+        <span>Tree View</span>
+        <span id="nodeCountHeader"></span>
+      </div>
+      <div class="panel-body" id="treeContainer">
+        <div class="tree-area" id="treeArea"></div>
+        <div class="error-display" id="errorOutput" style="display:none"></div>
+      </div>
+      <div class="path-bar" id="pathBar" style="display:none">
+        <span style="color:var(--text2)">Path:</span>
+        <span class="path-text" id="pathText"></span>
+        <button class="copy-btn" onclick="copyPath()">Copy</button>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <!-- STATS -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">Statistics</div>
+        <div class="sidebar-card-body" id="statsPanel">
+          <div style="color:var(--text2);font-size:.78rem">Parse JSON to see statistics</div>
+        </div>
+      </div>
+
+      <!-- TYPE DISTRIBUTION -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">Type Distribution</div>
+        <div class="sidebar-card-body" id="typePanel">
+          <div style="color:var(--text2);font-size:.78rem">No data yet</div>
+        </div>
+      </div>
+
+      <!-- MINIMAP -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">Minimap</div>
+        <div class="sidebar-card-body" style="padding:6px">
+          <div class="minimap-wrap" id="minimapWrap">
+            <canvas class="minimap-canvas" id="minimapCanvas"></canvas>
+            <div class="minimap-viewport" id="minimapViewport"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 &mdash; Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro &mdash; $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const jsonInput = document.getElementById('jsonInput');
+const treeArea = document.getElementById('treeArea');
+const errorOutput = document.getElementById('errorOutput');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const sizeInfo = document.getElementById('sizeInfo');
+const nodeCountHeader = document.getElementById('nodeCountHeader');
+const pathBar = document.getElementById('pathBar');
+const pathText = document.getElementById('pathText');
+const searchInput = document.getElementById('searchInput');
+const searchInfo = document.getElementById('searchInfo');
+const statsPanel = document.getElementById('statsPanel');
+const typePanel = document.getElementById('typePanel');
+const treeContainer = document.getElementById('treeContainer');
+
+let parsedData = null;
+let currentPath = '';
+let selectedRow = null;
+let allToggleNodes = [];
+let allTreeRows = [];
+let treeStats = null;
+
+jsonInput.addEventListener('input', debounce(processJSON, 300));
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function processJSON() {
+  const raw = jsonInput.value.trim();
+  if (!raw) {
+    clearAll();
+    return;
+  }
+  sizeInfo.textContent = formatBytes(new Blob([raw]).size);
+  try {
+    parsedData = JSON.parse(raw);
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid JSON';
+    errorOutput.style.display = 'none';
+    treeArea.style.display = '';
+    renderTree(parsedData);
+  } catch (e) {
+    statusDot.className = 'status-dot invalid';
+    statusText.textContent = 'Invalid JSON';
+    parsedData = null;
+    showError(e, raw);
+    clearStats();
+  }
+}
+
+function renderTree(data) {
+  treeArea.innerHTML = '';
+  allToggleNodes = [];
+  allTreeRows = [];
+  selectedRow = null;
+  pathBar.style.display = 'none';
+  currentPath = '';
+
+  treeStats = analyzeJSON(data);
+  const rootNode = buildNode('root', data, '', true);
+  treeArea.appendChild(rootNode);
+
+  updateStats(treeStats);
+  updateTypeDistribution(treeStats);
+  nodeCountHeader.textContent = treeStats.totalNodes + ' nodes';
+  updateMinimap();
+
+  treeContainer.addEventListener('scroll', throttle(updateMinimapViewport, 50));
+  if (searchInput.value.trim()) searchTree();
+}
+
+function buildNode(key, value, parentPath, isRoot) {
+  const node = document.createElement('div');
+  node.className = 'tree-node';
+
+  const isObject = value !== null && typeof value === 'object';
+  const isArray = Array.isArray(value);
+  const currentPathStr = isRoot ? '$' : parentPath;
+
+  if (isObject) {
+    const entries = isArray ? value : Object.keys(value);
+    const count = isArray ? value.length : Object.keys(value).length;
+
+    // Row
+    const row = document.createElement('div');
+    row.className = 'tree-row';
+    row.dataset.path = currentPathStr;
+
+    // Toggle arrow
+    const toggle = document.createElement('span');
+    toggle.className = 'tree-toggle open';
+    toggle.innerHTML = '&#9654;';
+    row.appendChild(toggle);
+
+    // Key
+    if (!isRoot) {
+      const keySpan = document.createElement('span');
+      keySpan.className = 'tree-key';
+      keySpan.textContent = key;
+      row.appendChild(keySpan);
+      const colon = document.createElement('span');
+      colon.className = 'tree-colon';
+      colon.textContent = ':';
+      row.appendChild(colon);
+    }
+
+    // Type bracket
+    const typeSpan = document.createElement('span');
+    typeSpan.className = isArray ? 'val-array' : 'val-object';
+    typeSpan.textContent = isArray ? '[' : '{';
+    row.appendChild(typeSpan);
+
+    const info = document.createElement('span');
+    info.className = 'bracket-info';
+    info.textContent = count + (count === 1 ? ' item' : ' items');
+    row.appendChild(info);
+
+    node.appendChild(row);
+    allTreeRows.push(row);
+
+    row.addEventListener('click', (e) => {
+      if (e.target === toggle || e.target.parentElement === toggle) return;
+      selectNode(row, currentPathStr);
+    });
+
+    // Children container
+    const children = document.createElement('div');
+    children.className = 'tree-children';
+
+    if (isArray) {
+      value.forEach((v, i) => {
+        const childPath = currentPathStr + '[' + i + ']';
+        children.appendChild(buildNode(i, v, childPath, false));
+      });
+    } else {
+      for (const k of Object.keys(value)) {
+        const childPath = currentPathStr + '.' + (needsBracketNotation(k) ? '["' + k + '"]' : k);
+        children.appendChild(buildNode(k, value[k], childPath, false));
+      }
+    }
+
+    node.appendChild(children);
+
+    // Closing bracket
+    const closingRow = document.createElement('div');
+    closingRow.style.cssText = 'padding-left:20px;color:var(--text2);font-size:.82rem';
+    closingRow.textContent = isArray ? ']' : '}';
+    node.appendChild(closingRow);
+
+    // Toggle logic
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggle.classList.toggle('open');
+      children.classList.toggle('collapsed');
+      closingRow.style.display = children.classList.contains('collapsed') ? 'none' : '';
+      info.textContent = children.classList.contains('collapsed')
+        ? count + (count === 1 ? ' item' : ' items') + ' ...'
+        : count + (count === 1 ? ' item' : ' items');
+      updateMinimap();
+    });
+
+    allToggleNodes.push({ toggle, children, closingRow, info, count });
+  } else {
+    // Leaf node
+    const row = document.createElement('div');
+    row.className = 'tree-row';
+    row.dataset.path = currentPathStr;
+
+    const placeholder = document.createElement('span');
+    placeholder.className = 'tree-toggle-placeholder';
+    row.appendChild(placeholder);
+
+    const keySpan = document.createElement('span');
+    keySpan.className = 'tree-key';
+    keySpan.textContent = String(key);
+    row.appendChild(keySpan);
+
+    const colon = document.createElement('span');
+    colon.className = 'tree-colon';
+    colon.textContent = ':';
+    row.appendChild(colon);
+
+    const valSpan = document.createElement('span');
+    if (typeof value === 'string') {
+      valSpan.className = 'val-string';
+      valSpan.textContent = '"' + truncateStr(value, 120) + '"';
+    } else if (typeof value === 'number') {
+      valSpan.className = 'val-number';
+      valSpan.textContent = value;
+    } else if (typeof value === 'boolean') {
+      valSpan.className = 'val-boolean';
+      valSpan.textContent = value;
+    } else {
+      valSpan.className = 'val-null';
+      valSpan.textContent = 'null';
+    }
+    row.appendChild(valSpan);
+
+    node.appendChild(row);
+    allTreeRows.push(row);
+
+    row.addEventListener('click', () => selectNode(row, currentPathStr));
+  }
+
+  return node;
+}
+
+function needsBracketNotation(key) {
+  return !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key);
+}
+
+function truncateStr(s, max) {
+  return s.length > max ? s.substring(0, max) + '...' : s;
+}
+
+function selectNode(row, path) {
+  if (selectedRow) selectedRow.classList.remove('selected');
+  row.classList.add('selected');
+  selectedRow = row;
+  currentPath = path;
+  pathText.textContent = path;
+  pathBar.style.display = '';
+}
+
+function copyPath() {
+  if (!currentPath) return;
+  navigator.clipboard.writeText(currentPath).then(() => showToast('Path copied: ' + currentPath));
+}
+
+/* EXPAND / COLLAPSE */
+function expandAll() {
+  allToggleNodes.forEach(({ toggle, children, closingRow, info, count }) => {
+    toggle.classList.add('open');
+    children.classList.remove('collapsed');
+    closingRow.style.display = '';
+    info.textContent = count + (count === 1 ? ' item' : ' items');
+  });
+  updateMinimap();
+}
+
+function collapseAll() {
+  allToggleNodes.forEach(({ toggle, children, closingRow, info, count }) => {
+    toggle.classList.remove('open');
+    children.classList.add('collapsed');
+    closingRow.style.display = 'none';
+    info.textContent = count + (count === 1 ? ' item' : ' items') + ' ...';
+  });
+  updateMinimap();
+}
+
+/* SEARCH */
+function searchTree() {
+  const query = searchInput.value.trim().toLowerCase();
+  allTreeRows.forEach(r => r.classList.remove('search-match'));
+
+  if (!query) {
+    searchInfo.textContent = '';
+    return;
+  }
+
+  let matches = 0;
+  allTreeRows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    if (text.includes(query)) {
+      row.classList.add('search-match');
+      matches++;
+      // Expand parents to make match visible
+      let parent = row.parentElement;
+      while (parent && parent !== treeArea) {
+        if (parent.classList.contains('tree-children') && parent.classList.contains('collapsed')) {
+          parent.classList.remove('collapsed');
+          const nodeContainer = parent.parentElement;
+          if (nodeContainer) {
+            const tgl = nodeContainer.querySelector('.tree-toggle');
+            if (tgl) tgl.classList.add('open');
+            const closingRow = nodeContainer.lastElementChild;
+            if (closingRow && closingRow !== parent) closingRow.style.display = '';
+          }
+        }
+        parent = parent.parentElement;
+      }
+    }
+  });
+
+  searchInfo.textContent = matches + ' match' + (matches !== 1 ? 'es' : '');
+  updateMinimap();
+}
+
+/* ANALYZE JSON */
+function analyzeJSON(data) {
+  const stats = {
+    totalNodes: 0,
+    maxDepth: 0,
+    types: { string: 0, number: 0, boolean: 0, null: 0, array: 0, object: 0 },
+    totalKeys: 0,
+    totalLeaves: 0
+  };
+
+  function walk(val, depth) {
+    stats.totalNodes++;
+    if (depth > stats.maxDepth) stats.maxDepth = depth;
+
+    if (val === null) {
+      stats.types.null++;
+      stats.totalLeaves++;
+    } else if (Array.isArray(val)) {
+      stats.types.array++;
+      val.forEach(v => walk(v, depth + 1));
+    } else if (typeof val === 'object') {
+      stats.types.object++;
+      const keys = Object.keys(val);
+      stats.totalKeys += keys.length;
+      keys.forEach(k => walk(val[k], depth + 1));
+    } else if (typeof val === 'string') {
+      stats.types.string++;
+      stats.totalLeaves++;
+    } else if (typeof val === 'number') {
+      stats.types.number++;
+      stats.totalLeaves++;
+    } else if (typeof val === 'boolean') {
+      stats.types.boolean++;
+      stats.totalLeaves++;
+    }
+  }
+
+  walk(data, 0);
+  return stats;
+}
+
+function updateStats(s) {
+  const jsonStr = JSON.stringify(parsedData);
+  statsPanel.innerHTML = `
+    <div class="stat-row"><span class="stat-label">Total Nodes</span><span class="stat-value">${s.totalNodes}</span></div>
+    <div class="stat-row"><span class="stat-label">Max Depth</span><span class="stat-value">${s.maxDepth}</span></div>
+    <div class="stat-row"><span class="stat-label">Unique Keys</span><span class="stat-value">${s.totalKeys}</span></div>
+    <div class="stat-row"><span class="stat-label">Leaf Nodes</span><span class="stat-value">${s.totalLeaves}</span></div>
+    <div class="stat-row"><span class="stat-label">Data Size</span><span class="stat-value">${formatBytes(new Blob([jsonStr]).size)}</span></div>
+  `;
+}
+
+function updateTypeDistribution(s) {
+  const types = s.types;
+  const total = s.totalNodes;
+  if (total === 0) { typePanel.innerHTML = '<div style="color:var(--text2);font-size:.78rem">No data</div>'; return; }
+
+  const colors = {
+    string: '#22c55e',
+    number: '#3b82f6',
+    boolean: '#f97316',
+    null: '#6b7280',
+    array: '#a855f7',
+    object: '#22d3ee'
+  };
+
+  let barHTML = '<div class="type-bar">';
+  let legendHTML = '<div class="type-legend">';
+  for (const [type, count] of Object.entries(types)) {
+    if (count === 0) continue;
+    const pct = ((count / total) * 100).toFixed(1);
+    barHTML += `<div style="width:${pct}%;background:${colors[type]}"></div>`;
+    legendHTML += `<div class="type-legend-item"><span class="dot" style="background:${colors[type]}"></span>${type}: ${count}</div>`;
+  }
+  barHTML += '</div>';
+  legendHTML += '</div>';
+
+  typePanel.innerHTML = barHTML + legendHTML;
+}
+
+/* MINIMAP */
+function updateMinimap() {
+  const canvas = document.getElementById('minimapCanvas');
+  const wrap = document.getElementById('minimapWrap');
+  if (!parsedData || !canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const rect = wrap.getBoundingClientRect();
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(2, 2);
+  ctx.clearRect(0, 0, rect.width, rect.height);
+
+  // Draw a mini representation of the tree
+  const rows = treeArea.querySelectorAll('.tree-row');
+  if (rows.length === 0) return;
+
+  const rowHeight = 2;
+  const totalHeight = rows.length * rowHeight;
+  const scale = Math.min(1, rect.height / totalHeight);
+
+  const colors = {
+    'val-string': '#22c55e',
+    'val-number': '#3b82f6',
+    'val-boolean': '#f97316',
+    'val-null': '#6b7280',
+    'val-array': '#a855f7',
+    'val-object': '#22d3ee',
+    'tree-key': '#c084fc'
+  };
+
+  rows.forEach((row, i) => {
+    const y = i * rowHeight * scale;
+    const indent = Math.min(row.getBoundingClientRect().left - treeArea.getBoundingClientRect().left, 200);
+    const indentRatio = indent / 200;
+    const x = indentRatio * rect.width * 0.3;
+    const w = rect.width - x;
+
+    let color = '#2a2a3a';
+    const valEl = row.querySelector('[class^="val-"]');
+    if (valEl) {
+      for (const [cls, c] of Object.entries(colors)) {
+        if (valEl.classList.contains(cls)) { color = c; break; }
+      }
+    }
+
+    if (row.classList.contains('search-match')) color = '#eab308';
+
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.6;
+    ctx.fillRect(x, y, w * 0.8, Math.max(rowHeight * scale - 0.5, 1));
+  });
+
+  ctx.globalAlpha = 1;
+  updateMinimapViewport();
+}
+
+function updateMinimapViewport() {
+  const viewport = document.getElementById('minimapViewport');
+  const wrap = document.getElementById('minimapWrap');
+  if (!parsedData || !viewport) return;
+
+  const container = treeContainer;
+  const scrollTop = container.scrollTop;
+  const scrollHeight = container.scrollHeight;
+  const clientHeight = container.clientHeight;
+  const wrapHeight = wrap.getBoundingClientRect().height;
+
+  if (scrollHeight <= clientHeight) {
+    viewport.style.display = 'none';
+    return;
+  }
+
+  viewport.style.display = '';
+  const top = (scrollTop / scrollHeight) * wrapHeight;
+  const height = Math.max((clientHeight / scrollHeight) * wrapHeight, 8);
+  viewport.style.top = top + 'px';
+  viewport.style.height = height + 'px';
+  viewport.style.left = '0';
+  viewport.style.right = '0';
+}
+
+function throttle(fn, ms) {
+  let last = 0;
+  return function(...args) {
+    const now = Date.now();
+    if (now - last >= ms) { last = now; fn(...args); }
+  };
+}
+
+/* EXPORT IMAGE */
+function exportImage() {
+  if (!parsedData) { showToast('No JSON to export'); return; }
+
+  // Temporarily expand all for full capture
+  const wasCollapsed = [];
+  allToggleNodes.forEach(({ toggle, children, closingRow }) => {
+    if (children.classList.contains('collapsed')) {
+      wasCollapsed.push({ toggle, children, closingRow });
+      toggle.classList.add('open');
+      children.classList.remove('collapsed');
+      if (closingRow) closingRow.style.display = '';
+    }
+  });
+
+  const area = treeArea;
+  const canvas = document.createElement('canvas');
+  const padding = 40;
+  const lineHeight = 22;
+  const rows = area.querySelectorAll('.tree-row');
+  const totalLines = rows.length;
+
+  canvas.width = 1200;
+  canvas.height = totalLines * lineHeight + padding * 2;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#050508';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Header
+  ctx.fillStyle = '#111118';
+  ctx.fillRect(0, 0, canvas.width, 50);
+  ctx.fillStyle = '#6366f1';
+  ctx.font = 'bold 16px Inter, sans-serif';
+  ctx.fillText('JSON Tree Visualizer - NexTool', 20, 32);
+  ctx.fillStyle = '#64748b';
+  ctx.font = '12px Inter, sans-serif';
+  ctx.fillText(treeStats.totalNodes + ' nodes | depth ' + treeStats.maxDepth, canvas.width - 200, 32);
+
+  // Draw tree lines
+  ctx.font = '13px Courier New, monospace';
+  const colorMap = {
+    'tree-key': '#c084fc',
+    'val-string': '#22c55e',
+    'val-number': '#3b82f6',
+    'val-boolean': '#f97316',
+    'val-null': '#6b7280',
+    'val-array': '#a855f7',
+    'val-object': '#22d3ee',
+    'tree-colon': '#9494a8',
+    'bracket-info': '#9494a8'
+  };
+
+  let y = 50 + padding;
+  rows.forEach(row => {
+    const rect = row.getBoundingClientRect();
+    const areaRect = area.getBoundingClientRect();
+    const indent = rect.left - areaRect.left;
+    let x = 20 + indent * 0.8;
+
+    const children = row.childNodes;
+    children.forEach(child => {
+      if (child.nodeType === 3) return; // text node
+      const el = child;
+      let color = '#e4e4eb';
+      for (const [cls, c] of Object.entries(colorMap)) {
+        if (el.classList && el.classList.contains(cls)) { color = c; break; }
+      }
+      ctx.fillStyle = color;
+      const text = el.textContent;
+      ctx.fillText(text, x, y);
+      x += ctx.measureText(text).width;
+    });
+
+    y += lineHeight;
+  });
+
+  // Watermark
+  ctx.fillStyle = '#2a2a3a';
+  ctx.font = '11px Inter, sans-serif';
+  ctx.fillText('nextool.app/free-tools/json-tree-visualizer.html', 20, canvas.height - 15);
+
+  // Restore collapsed state
+  wasCollapsed.forEach(({ toggle, children, closingRow }) => {
+    toggle.classList.remove('open');
+    children.classList.add('collapsed');
+    if (closingRow) closingRow.style.display = 'none';
+  });
+
+  // Download
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'json-tree.png';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Tree exported as PNG');
+  });
+}
+
+/* ERROR */
+function showError(e, raw) {
+  const msg = e.message;
+  let lineNum = null;
+  const posMatch = msg.match(/position\s+(\d+)/i);
+  if (posMatch) {
+    const pos = parseInt(posMatch[1]);
+    lineNum = raw.substring(0, pos).split('\n').length;
+  }
+  let html = '<strong>JSON Parse Error</strong>\n\n';
+  html += '<div class="error-line">' + escapeHtml(msg) + '</div>\n';
+  if (lineNum) {
+    html += '\nError near line ' + lineNum + ':\n';
+    const lines = raw.split('\n');
+    const start = Math.max(0, lineNum - 3);
+    const end = Math.min(lines.length, lineNum + 2);
+    for (let i = start; i < end; i++) {
+      const marker = i === lineNum - 1 ? ' >>> ' : '     ';
+      html += '<span style="color:' + (i === lineNum - 1 ? 'var(--red)' : 'var(--text2)') + '">' + marker + (i + 1) + ' | ' + escapeHtml(lines[i]) + '</span>\n';
+    }
+  }
+  errorOutput.innerHTML = html;
+  errorOutput.style.display = '';
+  treeArea.style.display = 'none';
+  nodeCountHeader.textContent = '';
+  clearStats();
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* CLEAR */
+function clearAll() {
+  jsonInput.value = '';
+  treeArea.innerHTML = '';
+  errorOutput.style.display = 'none';
+  treeArea.style.display = '';
+  parsedData = null;
+  currentPath = '';
+  selectedRow = null;
+  allToggleNodes = [];
+  allTreeRows = [];
+  treeStats = null;
+  statusDot.className = 'status-dot empty';
+  statusText.textContent = 'Paste JSON to begin';
+  sizeInfo.textContent = '';
+  nodeCountHeader.textContent = '';
+  pathBar.style.display = 'none';
+  searchInput.value = '';
+  searchInfo.textContent = '';
+  clearStats();
+  clearMinimap();
+}
+
+function clearStats() {
+  statsPanel.innerHTML = '<div style="color:var(--text2);font-size:.78rem">Parse JSON to see statistics</div>';
+  typePanel.innerHTML = '<div style="color:var(--text2);font-size:.78rem">No data yet</div>';
+}
+
+function clearMinimap() {
+  const canvas = document.getElementById('minimapCanvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  const viewport = document.getElementById('minimapViewport');
+  if (viewport) viewport.style.display = 'none';
+}
+
+/* SAMPLE */
+function loadSample() {
+  jsonInput.value = JSON.stringify({
+    "company": "NexTool",
+    "version": "2.0.0",
+    "description": "AI-powered developer tools platform",
+    "team": [
+      { "name": "Alice", "role": "Lead Developer", "active": true, "skills": ["TypeScript", "React", "Node.js"] },
+      { "name": "Bob", "role": "Designer", "active": true, "skills": ["Figma", "CSS", "Animation"] },
+      { "name": "Charlie", "role": "DevOps", "active": false, "skills": ["Docker", "Kubernetes", "CI/CD"] }
+    ],
+    "config": {
+      "api": {
+        "baseUrl": "https://api.nextool.app",
+        "version": "v3",
+        "rateLimit": 1000,
+        "auth": { "type": "bearer", "expiry": 3600, "refresh": true }
+      },
+      "features": {
+        "darkMode": true,
+        "analytics": true,
+        "caching": { "enabled": true, "ttl": 300, "strategy": "lru" }
+      },
+      "limits": { "maxUpload": 10485760, "maxRequests": 50000, "concurrent": 100 }
+    },
+    "stats": {
+      "totalTools": 150,
+      "monthlyUsers": 45000,
+      "satisfaction": 4.8,
+      "uptime": 99.97,
+      "deprecated": null
+    },
+    "tags": ["AI", "developer-tools", "automation", "free", "open-source"],
+    "links": {
+      "website": "https://nextool.app",
+      "github": "https://github.com/nextool",
+      "docs": "https://docs.nextool.app"
+    },
+    "isPublic": true,
+    "founded": 2025,
+    "headquarters": null
+  }, null, 2);
+  processJSON();
+}
+
+/* UTILS */
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024, sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* Tab key in textarea */
+jsonInput.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = jsonInput.selectionStart, end = jsonInput.selectionEnd;
+    jsonInput.value = jsonInput.value.substring(0, start) + '  ' + jsonInput.value.substring(end);
+    jsonInput.selectionStart = jsonInput.selectionEnd = start + 2;
+  }
+});
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a JSON tree visualizer?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A JSON tree visualizer is a tool that displays JSON data as an interactive, hierarchical tree structure. You can expand and collapse nodes, see data types color-coded, copy JSONPath expressions, and explore nested data intuitively."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is NexTool's JSON Tree Visualizer free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's JSON Tree Visualizer is completely free. No signup, no download, no data sent to any server. It runs entirely in your browser for maximum privacy and speed."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I export the JSON tree as an image?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, click the Export Image button to generate a PNG image of your entire JSON tree with color-coded syntax. The image includes a NexTool watermark and is suitable for documentation or sharing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I copy a JSON path?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Click any node in the tree to see its full JSONPath in the path bar at the bottom of the tree panel. Then click the Copy button to copy the path to your clipboard. Paths use dot notation for simple keys and bracket notation for array indices or special characters."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>

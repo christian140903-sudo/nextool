@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Table of Contents Generator — Extract Headings from HTML & Markdown | NexTool</title>
+<meta name="description" content="Free online Table of Contents generator. Paste HTML or Markdown, extract headings (H1-H6), generate nested TOC with anchor links. Multiple output formats, drag to reorder.">
+<meta name="keywords" content="table of contents generator, TOC generator, extract headings, HTML headings, Markdown headings, anchor links, nested TOC, free online tool">
+<meta property="og:title" content="Free Table of Contents Generator | NexTool">
+<meta property="og:description" content="Generate a nested table of contents from HTML or Markdown. Extract headings, add anchor links, export as HTML, Markdown, or numbered outline.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/table-of-contents-generator.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/table-of-contents-generator.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Table of Contents Generator | NexTool">
+<meta name="twitter:description" content="Generate a nested table of contents from HTML or Markdown content. Free online tool by NexTool.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Table of Contents Generator","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online Table of Contents generator. Paste HTML or Markdown, extract headings, generate nested TOC with anchor links and multiple output formats."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select,.toolbar label{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar select{appearance:none;padding-right:1.8rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.toolbar label{display:flex;align-items:center;gap:.4rem;cursor:pointer;user-select:none}
+.toolbar label input[type="checkbox"]{accent-color:var(--primary);width:14px;height:14px}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2);flex-wrap:wrap}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.found{background:var(--green)}
+.status-dot.empty{background:var(--border)}
+.status-dot.warn{background:var(--yellow)}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:500px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto}
+#contentInput{width:100%;height:100%;min-height:400px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:none;outline:none;line-height:1.7;tab-size:2}
+#contentInput::placeholder{color:var(--text2);opacity:.5}
+/* OUTPUT */
+.output-area{padding:1rem;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.7;white-space:pre-wrap;word-break:break-all;min-height:400px;color:var(--text)}
+/* TOC PREVIEW */
+.toc-preview{padding:1rem;min-height:400px}
+.toc-preview ul,.toc-preview ol{margin:0;padding-left:1.5rem}
+.toc-preview li{margin:.3rem 0;color:var(--text);font-size:.9rem;line-height:1.5}
+.toc-preview a{color:var(--primary);text-decoration:none;transition:color .2s}
+.toc-preview a:hover{color:var(--accent);text-decoration:underline}
+.toc-preview .toc-h1{font-weight:700;font-size:1rem}
+.toc-preview .toc-h2{font-weight:600;font-size:.95rem}
+.toc-preview .toc-h3{font-weight:500;font-size:.9rem;color:var(--text2)}
+.toc-preview .toc-h4,.toc-preview .toc-h5,.toc-preview .toc-h6{font-weight:400;font-size:.85rem;color:var(--text2)}
+/* DRAG HANDLE */
+.heading-item{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;margin:.2rem 0;border-radius:6px;transition:background .15s;cursor:grab}
+.heading-item:active{cursor:grabbing}
+.heading-item.dragging{opacity:.4;background:rgba(99,102,241,.1)}
+.heading-item.drag-over{border-top:2px solid var(--primary)}
+.heading-item:hover{background:rgba(255,255,255,.03)}
+.drag-handle{color:var(--text2);font-size:.75rem;flex-shrink:0;cursor:grab;opacity:.5;transition:opacity .2s}
+.heading-item:hover .drag-handle{opacity:1}
+.heading-text{flex:1;font-size:.85rem}
+.heading-level{font-size:.7rem;color:var(--text2);background:var(--surface2);padding:.1rem .4rem;border-radius:4px;flex-shrink:0}
+/* OPTIONS PANEL */
+.options-row{display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);align-items:center}
+.options-row .opt-group{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2)}
+.options-row .opt-group select,.options-row .opt-group input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.3rem .6rem;border-radius:6px;font-size:.8rem;font-family:inherit}
+.options-row .opt-group select{appearance:none;padding-right:1.6rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .5rem center}
+.options-row .opt-group label{display:flex;align-items:center;gap:.3rem;cursor:pointer;user-select:none}
+.options-row .opt-group input[type="checkbox"]{accent-color:var(--primary);width:14px;height:14px}
+.options-row .opt-group input[type="number"]{width:48px;text-align:center}
+/* TABS */
+.output-tabs{display:flex;gap:0;border-bottom:1px solid var(--border)}
+.output-tab{padding:.5rem 1rem;font-size:.78rem;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .2s;font-family:inherit}
+.output-tab:hover{color:var(--text)}
+.output-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .options-row{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>Table of Contents</span> Generator</h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Paste HTML or Markdown content, automatically extract all headings (H1-H6), and generate a nested table of contents with anchor links. Export as HTML, Markdown, or numbered outline. Drag to reorder, customize depth, and copy with one click.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <!-- Input mode toggle -->
+  <div class="toolbar">
+    <button id="btnHTML" class="active" onclick="setInputMode('html')">HTML Input</button>
+    <button id="btnMD" onclick="setInputMode('markdown')">Markdown Input</button>
+    <span style="color:var(--text2);font-size:.8rem;margin:0 .3rem">|</span>
+    <button onclick="generateTOC()" title="Extract headings and generate TOC">Generate TOC</button>
+    <button onclick="copyOutput()" title="Copy generated TOC to clipboard">Copy</button>
+    <button onclick="downloadTOC()" title="Download TOC as file">Download</button>
+    <button onclick="clearAll()" title="Clear input and output">Clear</button>
+    <button onclick="loadSample()" title="Load sample content">Sample</button>
+  </div>
+
+  <!-- Options -->
+  <div class="options-row">
+    <div class="opt-group">
+      <span>Min level:</span>
+      <select id="minLevel" onchange="generateTOC()">
+        <option value="1">H1</option>
+        <option value="2" selected>H2</option>
+        <option value="3">H3</option>
+      </select>
+    </div>
+    <div class="opt-group">
+      <span>Max level:</span>
+      <select id="maxLevel" onchange="generateTOC()">
+        <option value="2">H2</option>
+        <option value="3" selected>H3</option>
+        <option value="4">H4</option>
+        <option value="5">H5</option>
+        <option value="6">H6</option>
+      </select>
+    </div>
+    <div class="opt-group">
+      <span>Style:</span>
+      <select id="listStyle" onchange="generateTOC()">
+        <option value="bullets">Bullets</option>
+        <option value="numbered">Numbered (1, 2, 3)</option>
+        <option value="nested-numbered">Nested (1.1, 1.1.1)</option>
+      </select>
+    </div>
+    <div class="opt-group">
+      <label><input type="checkbox" id="addAnchors" checked onchange="generateTOC()"> Anchor links</label>
+    </div>
+    <div class="opt-group">
+      <label><input type="checkbox" id="includeLinks" checked onchange="generateTOC()"> Clickable links</label>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Paste content to begin</span>
+    <span id="headingCount" style="margin-left:auto"></span>
+  </div>
+
+  <div class="panels">
+    <!-- Input panel -->
+    <div class="panel">
+      <div class="panel-header"><span id="inputLabel">HTML Input</span><span id="lineCount"></span></div>
+      <div class="panel-body">
+        <textarea id="contentInput" placeholder="Paste your HTML or Markdown content here...
+
+HTML example:
+<h1>My Article</h1>
+<h2>Introduction</h2>
+<h3>Background</h3>
+<h2>Main Content</h2>
+
+Markdown example:
+# My Article
+## Introduction
+### Background
+## Main Content" spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <!-- Output panel -->
+    <div class="panel">
+      <div class="panel-header" style="padding:0">
+        <div class="output-tabs">
+          <button class="output-tab active" data-tab="preview" onclick="switchTab('preview')">Preview</button>
+          <button class="output-tab" data-tab="html" onclick="switchTab('html')">HTML</button>
+          <button class="output-tab" data-tab="markdown" onclick="switchTab('markdown')">Markdown</button>
+          <button class="output-tab" data-tab="outline" onclick="switchTab('outline')">Outline</button>
+          <button class="output-tab" data-tab="reorder" onclick="switchTab('reorder')">Reorder</button>
+        </div>
+      </div>
+      <div class="panel-body" id="outputPanel">
+        <div class="toc-preview" id="previewOutput"></div>
+        <div class="output-area" id="htmlOutput" style="display:none"></div>
+        <div class="output-area" id="markdownOutput" style="display:none"></div>
+        <div class="output-area" id="outlineOutput" style="display:none"></div>
+        <div class="toc-preview" id="reorderOutput" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const contentInput = document.getElementById('contentInput');
+const previewOutput = document.getElementById('previewOutput');
+const htmlOutput = document.getElementById('htmlOutput');
+const markdownOutput = document.getElementById('markdownOutput');
+const outlineOutput = document.getElementById('outlineOutput');
+const reorderOutput = document.getElementById('reorderOutput');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const headingCount = document.getElementById('headingCount');
+const lineCount = document.getElementById('lineCount');
+
+let inputMode = 'html';
+let headings = [];
+let currentTab = 'preview';
+let lastOutputs = { html: '', markdown: '', outline: '' };
+
+contentInput.addEventListener('input', debounce(autoProcess, 400));
+contentInput.addEventListener('input', updateLineCount);
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function updateLineCount() {
+  const lines = contentInput.value.split('\n').length;
+  lineCount.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+
+function setInputMode(mode) {
+  inputMode = mode;
+  document.getElementById('btnHTML').classList.toggle('active', mode === 'html');
+  document.getElementById('btnMD').classList.toggle('active', mode === 'markdown');
+  document.getElementById('inputLabel').textContent = mode === 'html' ? 'HTML Input' : 'Markdown Input';
+  autoProcess();
+}
+
+function autoProcess() {
+  const raw = contentInput.value.trim();
+  if (!raw) {
+    headings = [];
+    clearOutputs();
+    statusDot.className = 'status-dot empty';
+    statusText.textContent = 'Paste content to begin';
+    headingCount.textContent = '';
+    return;
+  }
+  generateTOC();
+}
+
+function slugify(text) {
+  return text.toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function extractHeadings(content) {
+  const results = [];
+  if (inputMode === 'html') {
+    // Parse HTML headings (h1-h6)
+    const regex = /<h([1-6])(?:\s+[^>]*id\s*=\s*["']([^"']*)["'][^>]*|[^>]*)>([\s\S]*?)<\/h\1>/gi;
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      const level = parseInt(match[1]);
+      const existingId = match[2] || '';
+      // Strip HTML tags from heading text
+      const text = match[3].replace(/<[^>]+>/g, '').trim();
+      if (text) {
+        results.push({
+          level,
+          text,
+          id: existingId || slugify(text),
+          originalIndex: results.length
+        });
+      }
+    }
+  } else {
+    // Parse Markdown headings (# to ######)
+    const lines = content.split('\n');
+    for (const line of lines) {
+      const match = line.match(/^(#{1,6})\s+(.+)$/);
+      if (match) {
+        const level = match[1].length;
+        const text = match[2].replace(/\*\*|__|\*|_|`|~~|\[([^\]]*)\]\([^)]*\)/g, '$1').trim();
+        if (text) {
+          results.push({
+            level,
+            text,
+            id: slugify(text),
+            originalIndex: results.length
+          });
+        }
+      }
+    }
+  }
+  // Ensure unique IDs
+  const idCounts = {};
+  for (const h of results) {
+    if (idCounts[h.id] !== undefined) {
+      idCounts[h.id]++;
+      h.id = h.id + '-' + idCounts[h.id];
+    } else {
+      idCounts[h.id] = 0;
+    }
+  }
+  return results;
+}
+
+function getFilteredHeadings() {
+  const minLevel = parseInt(document.getElementById('minLevel').value);
+  const maxLevel = parseInt(document.getElementById('maxLevel').value);
+  return headings.filter(h => h.level >= minLevel && h.level <= maxLevel);
+}
+
+function generateTOC() {
+  const raw = contentInput.value.trim();
+  if (!raw) return;
+
+  headings = extractHeadings(raw);
+  const filtered = getFilteredHeadings();
+
+  if (filtered.length === 0) {
+    statusDot.className = 'status-dot warn';
+    statusText.textContent = headings.length > 0 ? 'Headings found but filtered out - adjust depth' : 'No headings found';
+    headingCount.textContent = headings.length + ' total heading' + (headings.length !== 1 ? 's' : '');
+    clearOutputs();
+    previewOutput.innerHTML = '<div style="color:var(--text2);padding:2rem;text-align:center">' +
+      (headings.length > 0 ? 'All ' + headings.length + ' headings are outside your selected depth range. Adjust min/max level above.' : 'No headings detected. Make sure your content contains &lt;h1&gt;-&lt;h6&gt; tags or # Markdown headings.') + '</div>';
+    return;
+  }
+
+  statusDot.className = 'status-dot found';
+  statusText.textContent = filtered.length + ' heading' + (filtered.length !== 1 ? 's' : '') + ' extracted';
+  headingCount.textContent = headings.length + ' total, ' + filtered.length + ' shown';
+
+  const style = document.getElementById('listStyle').value;
+  const addAnchors = document.getElementById('addAnchors').checked;
+  const includeLinks = document.getElementById('includeLinks').checked;
+
+  // Generate all output formats
+  lastOutputs.html = generateHTMLOutput(filtered, style, addAnchors, includeLinks);
+  lastOutputs.markdown = generateMarkdownOutput(filtered, style, addAnchors, includeLinks);
+  lastOutputs.outline = generateOutlineOutput(filtered, style);
+
+  // Render preview
+  renderPreview(filtered, style, addAnchors, includeLinks);
+  // Render code outputs
+  htmlOutput.textContent = lastOutputs.html;
+  markdownOutput.textContent = lastOutputs.markdown;
+  outlineOutput.textContent = lastOutputs.outline;
+  // Render reorder panel
+  renderReorderPanel(filtered);
+}
+
+function generateHTMLOutput(filtered, style, addAnchors, includeLinks) {
+  if (style === 'nested-numbered') {
+    return generateNestedNumberedHTML(filtered, addAnchors, includeLinks);
+  }
+  const tag = style === 'bullets' ? 'ul' : 'ol';
+  const minLevel = Math.min(...filtered.map(h => h.level));
+  let html = '';
+  let currentLevel = minLevel;
+  let openTags = 0;
+
+  html += '<' + tag + '>\n';
+  openTags++;
+
+  for (const h of filtered) {
+    while (h.level > currentLevel) {
+      html += '  '.repeat(openTags) + '<' + tag + '>\n';
+      openTags++;
+      currentLevel++;
+    }
+    while (h.level < currentLevel && openTags > 1) {
+      openTags--;
+      html += '  '.repeat(openTags) + '</' + tag + '>\n';
+      currentLevel--;
+    }
+    const indent = '  '.repeat(openTags);
+    if (includeLinks) {
+      html += indent + '<li><a href="#' + h.id + '">' + escapeHtml(h.text) + '</a></li>\n';
+    } else {
+      html += indent + '<li>' + escapeHtml(h.text) + '</li>\n';
+    }
+  }
+  while (openTags > 0) {
+    openTags--;
+    html += '  '.repeat(openTags) + '</' + tag + '>\n';
+  }
+  return html.trimEnd();
+}
+
+function generateNestedNumberedHTML(filtered, addAnchors, includeLinks) {
+  const minLevel = Math.min(...filtered.map(h => h.level));
+  let html = '<ol>\n';
+  let openTags = 1;
+  let currentLevel = minLevel;
+
+  for (const h of filtered) {
+    while (h.level > currentLevel) {
+      html += '  '.repeat(openTags) + '<ol>\n';
+      openTags++;
+      currentLevel++;
+    }
+    while (h.level < currentLevel && openTags > 1) {
+      openTags--;
+      html += '  '.repeat(openTags) + '</ol>\n';
+      currentLevel--;
+    }
+    const indent = '  '.repeat(openTags);
+    if (includeLinks) {
+      html += indent + '<li><a href="#' + h.id + '">' + escapeHtml(h.text) + '</a></li>\n';
+    } else {
+      html += indent + '<li>' + escapeHtml(h.text) + '</li>\n';
+    }
+  }
+  while (openTags > 0) {
+    openTags--;
+    html += '  '.repeat(openTags) + '</ol>\n';
+  }
+  return html.trimEnd();
+}
+
+function generateMarkdownOutput(filtered, style, addAnchors, includeLinks) {
+  const minLevel = Math.min(...filtered.map(h => h.level));
+  const lines = [];
+  const counters = {};
+
+  for (const h of filtered) {
+    const depth = h.level - minLevel;
+    const indent = '  '.repeat(depth);
+    let prefix;
+
+    if (style === 'bullets') {
+      prefix = '- ';
+    } else if (style === 'numbered') {
+      if (!counters[depth]) counters[depth] = 0;
+      counters[depth]++;
+      // Reset deeper counters
+      for (const k in counters) { if (parseInt(k) > depth) counters[k] = 0; }
+      prefix = counters[depth] + '. ';
+    } else {
+      // nested-numbered: build hierarchical number like 1.2.1
+      if (!counters[depth]) counters[depth] = 0;
+      counters[depth]++;
+      for (const k in counters) { if (parseInt(k) > depth) counters[k] = 0; }
+      const nums = [];
+      for (let d = 0; d <= depth; d++) {
+        nums.push(counters[d] || 1);
+      }
+      prefix = nums.join('.') + ' ';
+    }
+
+    if (includeLinks) {
+      lines.push(indent + prefix + '[' + h.text + '](#' + h.id + ')');
+    } else {
+      lines.push(indent + prefix + h.text);
+    }
+  }
+  return lines.join('\n');
+}
+
+function generateOutlineOutput(filtered, style) {
+  const minLevel = Math.min(...filtered.map(h => h.level));
+  const lines = [];
+  const counters = {};
+
+  for (const h of filtered) {
+    const depth = h.level - minLevel;
+    const indent = '    '.repeat(depth);
+
+    if (!counters[depth]) counters[depth] = 0;
+    counters[depth]++;
+    for (const k in counters) { if (parseInt(k) > depth) counters[k] = 0; }
+
+    if (style === 'nested-numbered') {
+      const nums = [];
+      for (let d = 0; d <= depth; d++) {
+        nums.push(counters[d] || 1);
+      }
+      lines.push(indent + nums.join('.') + '  ' + h.text);
+    } else {
+      lines.push(indent + counters[depth] + '.  ' + h.text);
+    }
+  }
+  return lines.join('\n');
+}
+
+function renderPreview(filtered, style, addAnchors, includeLinks) {
+  if (style === 'bullets') {
+    previewOutput.innerHTML = buildPreviewList(filtered, 'ul', includeLinks);
+  } else {
+    previewOutput.innerHTML = buildPreviewList(filtered, 'ol', includeLinks);
+  }
+}
+
+function buildPreviewList(filtered, tag, includeLinks) {
+  if (!filtered.length) return '';
+  const minLevel = Math.min(...filtered.map(h => h.level));
+  let html = '<' + tag + '>';
+  let stack = [minLevel];
+
+  for (let i = 0; i < filtered.length; i++) {
+    const h = filtered[i];
+    while (h.level > stack[stack.length - 1]) {
+      html += '<' + tag + '>';
+      stack.push(stack[stack.length - 1] + 1);
+    }
+    while (h.level < stack[stack.length - 1] && stack.length > 1) {
+      html += '</' + tag + '>';
+      stack.pop();
+    }
+    const cls = 'toc-h' + h.level;
+    if (includeLinks) {
+      html += '<li class="' + cls + '"><a href="#' + h.id + '">' + escapeHtml(h.text) + '</a></li>';
+    } else {
+      html += '<li class="' + cls + '">' + escapeHtml(h.text) + '</li>';
+    }
+  }
+  while (stack.length > 0) {
+    html += '</' + tag + '>';
+    stack.pop();
+  }
+  return html;
+}
+
+function renderReorderPanel(filtered) {
+  if (!filtered.length) {
+    reorderOutput.innerHTML = '<div style="color:var(--text2);padding:2rem;text-align:center">No headings to reorder</div>';
+    return;
+  }
+  const minLevel = Math.min(...filtered.map(h => h.level));
+  let html = '<div style="padding:.5rem 0;margin-bottom:.5rem;font-size:.75rem;color:var(--text2)">Drag headings to reorder them in the TOC</div>';
+  for (let i = 0; i < filtered.length; i++) {
+    const h = filtered[i];
+    const indent = (h.level - minLevel) * 20;
+    html += '<div class="heading-item" draggable="true" data-idx="' + i + '" style="padding-left:' + (indent + 8) + 'px">' +
+      '<span class="drag-handle">&#9776;</span>' +
+      '<span class="heading-text">' + escapeHtml(h.text) + '</span>' +
+      '<span class="heading-level">H' + h.level + '</span>' +
+      '</div>';
+  }
+  reorderOutput.innerHTML = html;
+  initDragAndDrop();
+}
+
+function initDragAndDrop() {
+  const items = reorderOutput.querySelectorAll('.heading-item');
+  let dragIdx = null;
+
+  items.forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragIdx = parseInt(item.dataset.idx);
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      items.forEach(el => el.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      items.forEach(el => el.classList.remove('drag-over'));
+      item.classList.add('drag-over');
+    });
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drag-over');
+    });
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      const dropIdx = parseInt(item.dataset.idx);
+      if (dragIdx === null || dragIdx === dropIdx) return;
+
+      const filtered = getFilteredHeadings();
+      const [moved] = filtered.splice(dragIdx, 1);
+      filtered.splice(dropIdx, 0, moved);
+
+      // Rebuild headings from the new filtered order
+      const minLevel = parseInt(document.getElementById('minLevel').value);
+      const maxLevel = parseInt(document.getElementById('maxLevel').value);
+      const unfiltered = headings.filter(h => h.level < minLevel || h.level > maxLevel);
+      headings = [...filtered, ...unfiltered];
+
+      // Re-render
+      const style = document.getElementById('listStyle').value;
+      const addAnchors = document.getElementById('addAnchors').checked;
+      const includeLinks = document.getElementById('includeLinks').checked;
+
+      lastOutputs.html = generateHTMLOutput(filtered, style, addAnchors, includeLinks);
+      lastOutputs.markdown = generateMarkdownOutput(filtered, style, addAnchors, includeLinks);
+      lastOutputs.outline = generateOutlineOutput(filtered, style);
+
+      renderPreview(filtered, style, addAnchors, includeLinks);
+      htmlOutput.textContent = lastOutputs.html;
+      markdownOutput.textContent = lastOutputs.markdown;
+      outlineOutput.textContent = lastOutputs.outline;
+      renderReorderPanel(filtered);
+    });
+  });
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.output-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  previewOutput.style.display = tab === 'preview' ? '' : 'none';
+  htmlOutput.style.display = tab === 'html' ? '' : 'none';
+  markdownOutput.style.display = tab === 'markdown' ? '' : 'none';
+  outlineOutput.style.display = tab === 'outline' ? '' : 'none';
+  reorderOutput.style.display = tab === 'reorder' ? '' : 'none';
+}
+
+function copyOutput() {
+  let text = '';
+  if (currentTab === 'preview' || currentTab === 'html') text = lastOutputs.html;
+  else if (currentTab === 'markdown') text = lastOutputs.markdown;
+  else if (currentTab === 'outline') text = lastOutputs.outline;
+  else if (currentTab === 'reorder') text = lastOutputs.html;
+
+  if (!text) { showToast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+function downloadTOC() {
+  let text = '';
+  let ext = 'html';
+  if (currentTab === 'preview' || currentTab === 'html' || currentTab === 'reorder') {
+    text = lastOutputs.html;
+    ext = 'html';
+  } else if (currentTab === 'markdown') {
+    text = lastOutputs.markdown;
+    ext = 'md';
+  } else if (currentTab === 'outline') {
+    text = lastOutputs.outline;
+    ext = 'txt';
+  }
+  if (!text) { showToast('Nothing to download'); return; }
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'table-of-contents.' + ext;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Downloaded table-of-contents.' + ext);
+}
+
+function clearAll() {
+  contentInput.value = '';
+  headings = [];
+  lastOutputs = { html: '', markdown: '', outline: '' };
+  clearOutputs();
+  statusDot.className = 'status-dot empty';
+  statusText.textContent = 'Paste content to begin';
+  headingCount.textContent = '';
+  lineCount.textContent = '';
+}
+
+function clearOutputs() {
+  previewOutput.innerHTML = '';
+  htmlOutput.textContent = '';
+  markdownOutput.textContent = '';
+  outlineOutput.textContent = '';
+  reorderOutput.innerHTML = '';
+}
+
+function loadSample() {
+  if (inputMode === 'html') {
+    contentInput.value = `<h1>Complete Guide to Web Development</h1>
+<p>This comprehensive guide covers everything you need to know.</p>
+
+<h2>Getting Started</h2>
+<p>Before diving into code, let's set up your environment.</p>
+
+<h3>Prerequisites</h3>
+<p>You'll need Node.js, a code editor, and a browser.</p>
+
+<h3>Setting Up Your Editor</h3>
+<p>VS Code is recommended for its extensions ecosystem.</p>
+
+<h2>HTML Fundamentals</h2>
+<p>HTML is the backbone of every web page.</p>
+
+<h3>Semantic Elements</h3>
+<p>Using proper semantic elements improves accessibility.</p>
+
+<h3>Forms and Inputs</h3>
+<p>Interactive forms are essential for user input.</p>
+
+<h4>Input Validation</h4>
+<p>Always validate both client-side and server-side.</p>
+
+<h2>CSS Styling</h2>
+<p>CSS brings your pages to life with visual design.</p>
+
+<h3>Flexbox Layout</h3>
+<p>Flexbox simplifies one-dimensional layouts.</p>
+
+<h3>Grid Layout</h3>
+<p>CSS Grid handles two-dimensional layouts with ease.</p>
+
+<h3>Responsive Design</h3>
+<p>Make your sites look great on every screen size.</p>
+
+<h4>Media Queries</h4>
+<p>Target specific viewport sizes with media queries.</p>
+
+<h4>Mobile-First Approach</h4>
+<p>Start with mobile styles and scale up.</p>
+
+<h2>JavaScript Essentials</h2>
+<p>JavaScript adds interactivity and dynamic behavior.</p>
+
+<h3>DOM Manipulation</h3>
+<p>Select, create, and modify HTML elements with JS.</p>
+
+<h3>Event Handling</h3>
+<p>Respond to user actions like clicks, scrolls, and keypresses.</p>
+
+<h3>Async Programming</h3>
+<p>Handle API calls and timers with promises and async/await.</p>
+
+<h2>Deployment</h2>
+<p>Ship your project to the world.</p>
+
+<h3>Static Hosting</h3>
+<p>GitHub Pages, Netlify, and Vercel for static sites.</p>
+
+<h3>CI/CD Pipelines</h3>
+<p>Automate testing and deployment with GitHub Actions.</p>`;
+  } else {
+    contentInput.value = `# Complete Guide to Web Development
+
+This comprehensive guide covers everything you need to know.
+
+## Getting Started
+
+Before diving into code, let's set up your environment.
+
+### Prerequisites
+
+You'll need Node.js, a code editor, and a browser.
+
+### Setting Up Your Editor
+
+VS Code is recommended for its extensions ecosystem.
+
+## HTML Fundamentals
+
+HTML is the backbone of every web page.
+
+### Semantic Elements
+
+Using proper semantic elements improves accessibility.
+
+### Forms and Inputs
+
+Interactive forms are essential for user input.
+
+#### Input Validation
+
+Always validate both client-side and server-side.
+
+## CSS Styling
+
+CSS brings your pages to life with visual design.
+
+### Flexbox Layout
+
+Flexbox simplifies one-dimensional layouts.
+
+### Grid Layout
+
+CSS Grid handles two-dimensional layouts with ease.
+
+### Responsive Design
+
+Make your sites look great on every screen size.
+
+#### Media Queries
+
+Target specific viewport sizes with media queries.
+
+#### Mobile-First Approach
+
+Start with mobile styles and scale up.
+
+## JavaScript Essentials
+
+JavaScript adds interactivity and dynamic behavior.
+
+### DOM Manipulation
+
+Select, create, and modify HTML elements with JS.
+
+### Event Handling
+
+Respond to user actions like clicks, scrolls, and keypresses.
+
+### Async Programming
+
+Handle API calls and timers with promises and async/await.
+
+## Deployment
+
+Ship your project to the world.
+
+### Static Hosting
+
+GitHub Pages, Netlify, and Vercel for static sites.
+
+### CI/CD Pipelines
+
+Automate testing and deployment with GitHub Actions.`;
+  }
+  updateLineCount();
+  autoProcess();
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* Tab key support in textarea */
+contentInput.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = contentInput.selectionStart, end = contentInput.selectionEnd;
+    contentInput.value = contentInput.value.substring(0, start) + '  ' + contentInput.value.substring(end);
+    contentInput.selectionStart = contentInput.selectionEnd = start + 2;
+  }
+});
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a Table of Contents generator?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A Table of Contents (TOC) generator automatically extracts headings from your HTML or Markdown content and creates a structured, nested list with anchor links. This saves time when creating documentation, blog posts, or long-form articles."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What formats does this TOC generator support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NexTool's TOC Generator supports both HTML and Markdown input. It can output your table of contents as an HTML list, Markdown list, or a numbered outline. You can choose between bullet points, simple numbers, or hierarchical numbering (1.1, 1.1.1)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I customize which heading levels are included?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, you can set the minimum and maximum heading levels. For example, include only H2-H3 for a top-level overview, or H2-H6 for a detailed table of contents. The tool updates in real time as you change the settings."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it generate anchor links?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, the generator automatically creates URL-friendly anchor IDs from your heading text (e.g., 'Getting Started' becomes #getting-started). These anchor links let readers click to jump directly to each section."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free HTTP Header Analyzer — Security &amp; Cache Analysis | NexTool</title>
+<meta name="description" content="Analyze HTTP headers for security vulnerabilities, caching issues, and CORS misconfigurations. Get a security score, cookie analysis, and actionable recommendations.">
+<meta name="keywords" content="HTTP header analyzer, security headers check, HSTS, CSP, Content-Security-Policy, X-Frame-Options, cache headers, cookie security, CORS headers, NexTool">
+<meta property="og:title" content="Free HTTP Header Analyzer — Security & Cache Analysis | NexTool">
+<meta property="og:description" content="Paste HTTP headers and get instant security scoring, caching analysis, cookie checks, and CORS review. 100% free, runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/http-header-analyzer.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/http-header-analyzer.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free HTTP Header Analyzer | NexTool">
+<meta name="twitter:description" content="Analyze HTTP response headers for security, caching, cookies, and CORS. Free online tool by NexTool.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool HTTP Header Analyzer","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online HTTP header analyzer with security scoring, cache analysis, cookie checks, and CORS review."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#f97316;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+/* INPUT PANEL */
+.input-panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+#headerInput{width:100%;min-height:200px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:vertical;outline:none;line-height:1.7;tab-size:2}
+#headerInput::placeholder{color:var(--text2);opacity:.5}
+/* SCORE */
+.score-section{display:grid;grid-template-columns:180px 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.score-ring{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem}
+.score-ring svg{width:120px;height:120px}
+.score-ring .score-label{font-size:.8rem;color:var(--text2);margin-top:.5rem}
+.score-summary{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;display:flex;flex-direction:column;gap:.6rem}
+.summary-row{display:flex;align-items:center;gap:.6rem;font-size:.85rem}
+.summary-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.summary-dot.good{background:var(--green)}
+.summary-dot.warn{background:var(--yellow)}
+.summary-dot.bad{background:var(--red)}
+.summary-dot.info{background:var(--cyan)}
+/* RESULT SECTIONS */
+.result-section{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden}
+.section-header{padding:.8rem 1rem;border-bottom:1px solid var(--border);font-size:.9rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5);cursor:pointer;user-select:none}
+.section-header:hover{background:rgba(26,26,36,0.8)}
+.section-header .badge{font-size:.7rem;padding:2px 8px;border-radius:6px;font-weight:600}
+.badge-good{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-warn{background:rgba(234,179,8,.15);color:var(--yellow)}
+.badge-bad{background:rgba(239,68,68,.15);color:var(--red)}
+.badge-info{background:rgba(34,211,238,.15);color:var(--cyan)}
+.section-body{padding:0}
+.section-body.collapsed{display:none}
+/* HEADER ROW */
+.header-row{padding:.7rem 1rem;border-bottom:1px solid rgba(42,42,58,.5);display:grid;grid-template-columns:200px 1fr;gap:1rem;font-size:.82rem;transition:background .15s}
+.header-row:last-child{border-bottom:none}
+.header-row:hover{background:rgba(99,102,241,.04)}
+.header-name{font-weight:600;color:var(--cyan);font-family:'Courier New',monospace;word-break:break-all}
+.header-value{color:var(--text);font-family:'Courier New',monospace;word-break:break-all}
+.header-desc{color:var(--text2);font-size:.78rem;margin-top:.3rem;font-family:'Inter',sans-serif;line-height:1.5}
+/* SECURITY ITEMS */
+.sec-item{padding:.7rem 1rem;border-bottom:1px solid rgba(42,42,58,.5);display:flex;gap:.8rem;align-items:flex-start;font-size:.82rem}
+.sec-item:last-child{border-bottom:none}
+.sec-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;margin-top:1px}
+.sec-icon.good{background:rgba(34,197,94,.15);color:var(--green)}
+.sec-icon.warn{background:rgba(234,179,8,.15);color:var(--yellow)}
+.sec-icon.bad{background:rgba(239,68,68,.15);color:var(--red)}
+.sec-content{flex:1}
+.sec-name{font-weight:600;color:var(--text)}
+.sec-detail{color:var(--text2);font-size:.78rem;margin-top:.2rem;line-height:1.5}
+.sec-value{font-family:'Courier New',monospace;color:var(--cyan);font-size:.78rem;margin-top:.2rem;word-break:break-all}
+.sec-rec{margin-top:.4rem;padding:.4rem .6rem;background:rgba(99,102,241,.06);border-left:2px solid var(--primary);border-radius:0 4px 4px 0;font-size:.75rem;color:var(--text2);line-height:1.5}
+/* NO RESULTS */
+.no-results{text-align:center;padding:3rem 1rem;color:var(--text2)}
+.no-results .icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+.no-results p{font-size:.9rem}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .score-section{grid-template-columns:1fr}
+  .header-row{grid-template-columns:1fr;gap:.3rem}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro &mdash; $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>HTTP Header Analyzer</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Paste raw HTTP response headers and get instant security scoring, caching analysis, cookie checks, CORS review, and actionable recommendations. Runs entirely in your browser -- no data ever leaves your machine.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button onclick="analyzeHeaders()">Analyze</button>
+    <button onclick="copyReport()">Copy Report</button>
+    <button onclick="loadSample()">Load Sample</button>
+    <button onclick="clearAll()">Clear</button>
+  </div>
+
+  <div class="input-panel">
+    <div class="panel-header"><span>Paste HTTP Headers</span><span id="lineCount"></span></div>
+    <textarea id="headerInput" placeholder="Paste raw HTTP headers here...
+
+Example:
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'
+Set-Cookie: session=abc123; Secure; HttpOnly; SameSite=Strict" spellcheck="false"></textarea>
+  </div>
+
+  <div id="resultsArea">
+    <div class="no-results">
+      <div class="icon">&#128269;</div>
+      <p>Paste HTTP response headers above and click <strong>Analyze</strong> to get a full security and performance report.</p>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 &mdash; Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro &mdash; $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const headerInput = document.getElementById('headerInput');
+const resultsArea = document.getElementById('resultsArea');
+const lineCount = document.getElementById('lineCount');
+let lastReport = '';
+
+headerInput.addEventListener('input', function() {
+  const lines = headerInput.value.split('\n').length;
+  lineCount.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+});
+
+/* ========== HEADER KNOWLEDGE BASE ========== */
+const HEADER_INFO = {
+  'content-type': 'Indicates the media type of the resource. Tells the browser how to interpret the response body.',
+  'content-length': 'The size of the response body in bytes.',
+  'content-encoding': 'Specifies the compression algorithm used (e.g., gzip, br, deflate).',
+  'content-language': 'Describes the human language(s) of the intended audience.',
+  'content-disposition': 'Indicates if the content should be displayed inline or as a download attachment.',
+  'transfer-encoding': 'Specifies the form of encoding used to transfer the payload body.',
+  'connection': 'Controls whether the network connection stays open after the current transaction.',
+  'keep-alive': 'Sets parameters for persistent connections.',
+  'date': 'The date and time at which the message was originated.',
+  'server': 'Contains information about the software used by the origin server. Exposing this can leak version info to attackers.',
+  'x-powered-by': 'Non-standard header indicating server technology. Should be removed to reduce information leakage.',
+  'via': 'Added by proxies to track message forwarding.',
+  'vary': 'Determines how to match future request headers to decide whether a cached response can be used.',
+  'accept-ranges': 'Indicates that the server supports range requests for the resource.',
+  'age': 'The time in seconds the object has been in a proxy cache.',
+  'allow': 'Lists the set of HTTP methods supported by the resource.',
+  'alt-svc': 'Lists alternative services available for the origin.',
+  'etag': 'An identifier for a specific version of a resource. Used for cache validation.',
+  'expires': 'The date/time after which the response is considered stale.',
+  'last-modified': 'The date and time at which the origin server last modified the resource.',
+  'cache-control': 'Directives for caching mechanisms in both requests and responses.',
+  'pragma': 'Implementation-specific directives. Pragma: no-cache is equivalent to Cache-Control: no-cache for HTTP/1.0.',
+  'strict-transport-security': 'Forces HTTPS connections. Tells browsers to only access the site via HTTPS for a specified duration.',
+  'content-security-policy': 'Controls resources the user agent is allowed to load. Critical defense against XSS attacks.',
+  'content-security-policy-report-only': 'Like CSP but only reports violations without enforcing. Useful for testing policies.',
+  'x-frame-options': 'Prevents clickjacking by controlling whether the page can be embedded in iframes.',
+  'x-content-type-options': 'Prevents MIME type sniffing. Set to "nosniff" to force declared Content-Type.',
+  'x-xss-protection': 'Legacy XSS filter. Modern browsers rely on CSP instead, but still useful for older browsers.',
+  'referrer-policy': 'Controls how much referrer information is sent with requests.',
+  'permissions-policy': 'Controls which browser features and APIs can be used (camera, microphone, geolocation, etc.).',
+  'feature-policy': 'Deprecated predecessor to Permissions-Policy. Controls browser feature access.',
+  'cross-origin-embedder-policy': 'Prevents loading cross-origin resources that do not explicitly grant permission.',
+  'cross-origin-opener-policy': 'Isolates the browsing context to prevent cross-origin attacks.',
+  'cross-origin-resource-policy': 'Controls which origins can read the resource.',
+  'x-permitted-cross-domain-policies': 'Controls Adobe Flash and PDF cross-domain data loading.',
+  'access-control-allow-origin': 'CORS: Specifies which origins are allowed to read the response.',
+  'access-control-allow-methods': 'CORS: Specifies allowed HTTP methods for cross-origin requests.',
+  'access-control-allow-headers': 'CORS: Specifies allowed headers for cross-origin requests.',
+  'access-control-allow-credentials': 'CORS: Indicates whether credentials (cookies, auth) can be exposed to requesting client.',
+  'access-control-expose-headers': 'CORS: Lists headers that the browser is allowed to access.',
+  'access-control-max-age': 'CORS: How long the preflight request result can be cached (in seconds).',
+  'set-cookie': 'Sends cookies from the server to the user agent.',
+  'location': 'Indicates the URL to redirect a page to.',
+  'www-authenticate': 'Defines the authentication method that should be used to access a resource.',
+  'authorization': 'Contains credentials for authenticating the user agent with the server.',
+  'retry-after': 'Indicates how long to wait before making a follow-up request.',
+  'x-request-id': 'A unique identifier for the request, useful for tracing and debugging.',
+  'x-correlation-id': 'Links related requests together across services for distributed tracing.',
+  'x-dns-prefetch-control': 'Controls DNS prefetching that browsers perform on links.',
+  'expect-ct': 'Allows sites to enforce Certificate Transparency requirements.',
+  'nel': 'Network Error Logging configuration header.',
+  'report-to': 'Configures reporting endpoints for various browser reporting APIs.',
+  'timing-allow-origin': 'Specifies origins allowed to see timing resource values via the Resource Timing API.',
+  'link': 'Provides metadata about the current resource, such as preloading hints.',
+  'x-cache': 'Non-standard header indicating whether the response was served from cache.',
+  'x-cache-hits': 'Non-standard header showing the number of cache hits.',
+  'cf-ray': 'Cloudflare-specific identifier for the request.',
+  'cf-cache-status': 'Cloudflare cache status (HIT, MISS, DYNAMIC, etc.).',
+  'x-amz-request-id': 'Amazon Web Services request identifier.',
+  'x-served-by': 'Identifies the server or CDN node that served the response.'
+};
+
+/* ========== SECURITY HEADERS CHECKS ========== */
+const SECURITY_CHECKS = [
+  {
+    header: 'strict-transport-security',
+    name: 'Strict-Transport-Security (HSTS)',
+    weight: 15,
+    check: function(val) {
+      if (!val) return { status: 'bad', detail: 'Missing. Site can be accessed over insecure HTTP.', rec: 'Add: Strict-Transport-Security: max-age=31536000; includeSubDomains; preload' };
+      var maxAge = val.match(/max-age=(\d+)/i);
+      var ma = maxAge ? parseInt(maxAge[1]) : 0;
+      var sub = /includeSubDomains/i.test(val);
+      var preload = /preload/i.test(val);
+      if (ma >= 31536000 && sub && preload) return { status: 'good', detail: 'Excellent. max-age=' + ma + ', includeSubDomains, preload enabled.' };
+      if (ma >= 31536000 && sub) return { status: 'good', detail: 'Good. max-age=' + ma + ' with includeSubDomains.', rec: 'Consider adding "preload" and submitting to the HSTS preload list.' };
+      if (ma >= 15768000) return { status: 'warn', detail: 'Acceptable but max-age could be longer. Currently ' + ma + ' seconds.', rec: 'Increase max-age to 31536000 (1 year) and add includeSubDomains.' };
+      return { status: 'warn', detail: 'max-age=' + ma + ' is too short.', rec: 'Set max-age to at least 31536000 (1 year) and add includeSubDomains.' };
+    }
+  },
+  {
+    header: 'content-security-policy',
+    name: 'Content-Security-Policy (CSP)',
+    weight: 20,
+    check: function(val) {
+      if (!val) return { status: 'bad', detail: 'Missing. Site is vulnerable to XSS and data injection attacks.', rec: "Add a Content-Security-Policy header. Start with: Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'" };
+      var hasUnsafeInline = /unsafe-inline/i.test(val);
+      var hasUnsafeEval = /unsafe-eval/i.test(val);
+      var hasWildcard = /\s\*[\s;]|default-src\s+\*/i.test(val);
+      if (hasWildcard) return { status: 'warn', detail: 'CSP uses wildcard (*) which significantly weakens protection.', rec: 'Replace wildcard sources with specific domains.' };
+      if (hasUnsafeInline && hasUnsafeEval) return { status: 'warn', detail: "CSP present but uses both 'unsafe-inline' and 'unsafe-eval', weakening XSS protection.", rec: "Remove 'unsafe-inline' by using nonces or hashes. Remove 'unsafe-eval' by refactoring JavaScript." };
+      if (hasUnsafeInline) return { status: 'warn', detail: "CSP present but uses 'unsafe-inline' which allows inline scripts.", rec: "Replace 'unsafe-inline' with nonce-based or hash-based CSP for stronger protection." };
+      if (hasUnsafeEval) return { status: 'warn', detail: "CSP present but uses 'unsafe-eval' which allows eval().", rec: "Remove 'unsafe-eval' and refactor code to avoid eval(), new Function(), etc." };
+      return { status: 'good', detail: 'CSP is configured and does not use unsafe directives.' };
+    }
+  },
+  {
+    header: 'x-frame-options',
+    name: 'X-Frame-Options',
+    weight: 10,
+    check: function(val) {
+      if (!val) return { status: 'bad', detail: 'Missing. Page can be embedded in iframes, enabling clickjacking attacks.', rec: 'Add: X-Frame-Options: DENY (or SAMEORIGIN if iframes are needed from the same domain)' };
+      var v = val.toUpperCase().trim();
+      if (v === 'DENY') return { status: 'good', detail: 'Set to DENY. Page cannot be embedded in any iframe.' };
+      if (v === 'SAMEORIGIN') return { status: 'good', detail: 'Set to SAMEORIGIN. Page can only be embedded by same-origin pages.' };
+      if (v.startsWith('ALLOW-FROM')) return { status: 'warn', detail: 'ALLOW-FROM is deprecated and not supported by modern browsers.', rec: 'Use CSP frame-ancestors directive instead.' };
+      return { status: 'warn', detail: 'Unrecognized value: ' + val, rec: 'Use DENY or SAMEORIGIN.' };
+    }
+  },
+  {
+    header: 'x-content-type-options',
+    name: 'X-Content-Type-Options',
+    weight: 10,
+    check: function(val) {
+      if (!val) return { status: 'bad', detail: 'Missing. Browsers may MIME-sniff responses, potentially executing uploaded files as scripts.', rec: 'Add: X-Content-Type-Options: nosniff' };
+      if (val.toLowerCase().trim() === 'nosniff') return { status: 'good', detail: 'Set to nosniff. MIME type sniffing is blocked.' };
+      return { status: 'warn', detail: 'Unexpected value: ' + val, rec: 'Set to: nosniff' };
+    }
+  },
+  {
+    header: 'referrer-policy',
+    name: 'Referrer-Policy',
+    weight: 8,
+    check: function(val) {
+      if (!val) return { status: 'warn', detail: 'Missing. Browser defaults may leak full referrer URLs to third parties.', rec: 'Add: Referrer-Policy: strict-origin-when-cross-origin (or no-referrer for maximum privacy)' };
+      var good = ['no-referrer', 'strict-origin-when-cross-origin', 'same-origin', 'strict-origin', 'no-referrer-when-downgrade'];
+      var v = val.toLowerCase().trim();
+      if (good.indexOf(v) !== -1) return { status: 'good', detail: 'Set to "' + v + '". Referrer leakage is controlled.' };
+      if (v === 'unsafe-url') return { status: 'bad', detail: 'Set to "unsafe-url" which leaks the full URL in all requests.', rec: 'Change to: strict-origin-when-cross-origin' };
+      if (v === 'origin') return { status: 'warn', detail: 'Set to "origin". The origin is always sent, which may not be ideal.', rec: 'Consider: strict-origin-when-cross-origin for better privacy.' };
+      return { status: 'warn', detail: 'Value: ' + val };
+    }
+  },
+  {
+    header: 'permissions-policy',
+    name: 'Permissions-Policy',
+    weight: 7,
+    check: function(val, headers) {
+      var fp = headers['feature-policy'];
+      if (!val && !fp) return { status: 'warn', detail: 'Missing. Browser features like camera, microphone, and geolocation are not restricted.', rec: 'Add: Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()' };
+      if (!val && fp) return { status: 'warn', detail: 'Only the deprecated Feature-Policy header is set. Modern browsers use Permissions-Policy.', rec: 'Migrate Feature-Policy to Permissions-Policy format.' };
+      return { status: 'good', detail: 'Permissions-Policy is configured. Browser feature access is restricted.' };
+    }
+  },
+  {
+    header: 'x-xss-protection',
+    name: 'X-XSS-Protection',
+    weight: 3,
+    check: function(val) {
+      if (!val) return { status: 'warn', detail: 'Missing. Legacy XSS filter not configured (modern browsers use CSP instead).', rec: 'Add: X-XSS-Protection: 0 (recommended with CSP) or 1; mode=block (without CSP)' };
+      var v = val.trim();
+      if (v === '0') return { status: 'good', detail: 'Disabled (value: 0). This is recommended when a strong CSP is in place, as the XSS auditor can introduce vulnerabilities.' };
+      if (v === '1; mode=block' || v === '1;mode=block') return { status: 'good', detail: 'Enabled with mode=block. Page will not render if an XSS attack is detected.' };
+      if (v === '1') return { status: 'warn', detail: 'Enabled but without mode=block. Browser may sanitize the page instead of blocking it.', rec: 'Change to: 1; mode=block' };
+      return { status: 'warn', detail: 'Value: ' + val };
+    }
+  },
+  {
+    header: 'cross-origin-opener-policy',
+    name: 'Cross-Origin-Opener-Policy (COOP)',
+    weight: 5,
+    check: function(val) {
+      if (!val) return { status: 'warn', detail: 'Missing. Page shares a browsing context group with cross-origin documents.', rec: 'Add: Cross-Origin-Opener-Policy: same-origin' };
+      if (val.toLowerCase().trim() === 'same-origin') return { status: 'good', detail: 'Set to same-origin. Browsing context is isolated from cross-origin documents.' };
+      if (val.toLowerCase().trim() === 'same-origin-allow-popups') return { status: 'good', detail: 'Set to same-origin-allow-popups. Allows popups but isolates the main context.' };
+      return { status: 'warn', detail: 'Value: ' + val };
+    }
+  },
+  {
+    header: 'cross-origin-embedder-policy',
+    name: 'Cross-Origin-Embedder-Policy (COEP)',
+    weight: 5,
+    check: function(val) {
+      if (!val) return { status: 'warn', detail: 'Missing. Cross-origin resources can be loaded without explicit permission.', rec: 'Add: Cross-Origin-Embedder-Policy: require-corp' };
+      if (val.toLowerCase().trim() === 'require-corp') return { status: 'good', detail: 'Set to require-corp. Only resources with explicit cross-origin permission are loaded.' };
+      if (val.toLowerCase().trim() === 'credentialless') return { status: 'good', detail: 'Set to credentialless. Cross-origin no-cors requests are sent without credentials.' };
+      return { status: 'warn', detail: 'Value: ' + val };
+    }
+  },
+  {
+    header: 'cross-origin-resource-policy',
+    name: 'Cross-Origin-Resource-Policy (CORP)',
+    weight: 5,
+    check: function(val) {
+      if (!val) return { status: 'warn', detail: 'Missing. Resources may be read by cross-origin pages.', rec: 'Add: Cross-Origin-Resource-Policy: same-origin (or same-site / cross-origin as needed)' };
+      return { status: 'good', detail: 'Set to "' + val.trim() + '". Cross-origin resource loading is controlled.' };
+    }
+  },
+  {
+    header: 'server',
+    name: 'Server Header (Info Leak)',
+    weight: 4,
+    check: function(val) {
+      if (!val) return { status: 'good', detail: 'Not present. No server information leaked.' };
+      if (/\d+\.\d+/.test(val)) return { status: 'bad', detail: 'Exposes server software with version number: "' + val + '". Attackers can target known vulnerabilities.', rec: 'Remove the Server header or strip version information.' };
+      return { status: 'warn', detail: 'Exposes server software: "' + val + '".', rec: 'Consider removing or obscuring the Server header to reduce attack surface.' };
+    }
+  },
+  {
+    header: 'x-powered-by',
+    name: 'X-Powered-By (Info Leak)',
+    weight: 4,
+    check: function(val) {
+      if (!val) return { status: 'good', detail: 'Not present. No technology stack information leaked.' };
+      return { status: 'bad', detail: 'Exposes technology stack: "' + val + '". Reveals framework/language to attackers.', rec: 'Remove the X-Powered-By header entirely.' };
+    }
+  },
+  {
+    header: 'x-dns-prefetch-control',
+    name: 'X-DNS-Prefetch-Control',
+    weight: 2,
+    check: function(val) {
+      if (!val) return { status: 'warn', detail: 'Missing. DNS prefetching is browser-default (usually on), which may leak which links exist on the page.', rec: 'Add: X-DNS-Prefetch-Control: off (for privacy) or on (for performance)' };
+      return { status: 'good', detail: 'Set to "' + val.trim() + '". DNS prefetching behavior is explicitly controlled.' };
+    }
+  },
+  {
+    header: 'expect-ct',
+    name: 'Expect-CT',
+    weight: 2,
+    check: function(val) {
+      if (!val) return { status: 'warn', detail: 'Missing. Certificate Transparency is not explicitly enforced.', rec: 'Note: Expect-CT is largely obsolete as modern browsers enforce CT by default. Low priority.' };
+      return { status: 'good', detail: 'Certificate Transparency enforcement configured.' };
+    }
+  }
+];
+
+/* ========== PARSE HEADERS ========== */
+function parseHeaders(raw) {
+  var headers = {};
+  var ordered = [];
+  var statusLine = null;
+  var lines = raw.split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) continue;
+    if (i === 0 && /^HTTP\//i.test(line)) {
+      statusLine = line;
+      continue;
+    }
+    var colonIdx = line.indexOf(':');
+    if (colonIdx === -1) continue;
+    var name = line.substring(0, colonIdx).trim();
+    var value = line.substring(colonIdx + 1).trim();
+    var nameLower = name.toLowerCase();
+    if (nameLower === 'set-cookie') {
+      if (!headers[nameLower]) headers[nameLower] = [];
+      headers[nameLower].push(value);
+      ordered.push({ name: name, value: value, nameLower: nameLower });
+    } else {
+      headers[nameLower] = value;
+      ordered.push({ name: name, value: value, nameLower: nameLower });
+    }
+  }
+  return { headers: headers, ordered: ordered, statusLine: statusLine };
+}
+
+/* ========== ANALYZE ========== */
+function analyzeHeaders() {
+  var raw = headerInput.value.trim();
+  if (!raw) { showToast('Please paste HTTP headers first'); return; }
+  var parsed = parseHeaders(raw);
+  if (parsed.ordered.length === 0) { showToast('No valid headers found. Use "Name: Value" format.'); return; }
+  var html = '';
+
+  // Security analysis
+  var secResults = [];
+  var totalWeight = 0;
+  var earnedWeight = 0;
+  for (var i = 0; i < SECURITY_CHECKS.length; i++) {
+    var chk = SECURITY_CHECKS[i];
+    var val = parsed.headers[chk.header] || null;
+    var result = chk.check(val, parsed.headers);
+    result.name = chk.name;
+    result.header = chk.header;
+    result.value = val;
+    result.weight = chk.weight;
+    secResults.push(result);
+    totalWeight += chk.weight;
+    if (result.status === 'good') earnedWeight += chk.weight;
+    else if (result.status === 'warn') earnedWeight += chk.weight * 0.4;
+  }
+  var score = Math.round((earnedWeight / totalWeight) * 100);
+
+  // Score summary counts
+  var goodCount = 0, warnCount = 0, badCount = 0;
+  for (var j = 0; j < secResults.length; j++) {
+    if (secResults[j].status === 'good') goodCount++;
+    else if (secResults[j].status === 'warn') warnCount++;
+    else badCount++;
+  }
+
+  // Score ring
+  var scoreColor = score >= 80 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+  var scoreGrade = score >= 90 ? 'A+' : score >= 80 ? 'A' : score >= 70 ? 'B' : score >= 60 ? 'C' : score >= 50 ? 'D' : 'F';
+  var circumference = 2 * Math.PI * 52;
+  var offset = circumference - (score / 100) * circumference;
+
+  html += '<div class="score-section">';
+  html += '<div class="score-ring">';
+  html += '<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="8"/>';
+  html += '<circle cx="60" cy="60" r="52" fill="none" stroke="' + scoreColor + '" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .8s ease"/>';
+  html += '<text x="60" y="55" text-anchor="middle" fill="' + scoreColor + '" font-size="28" font-weight="800" font-family="Inter,sans-serif">' + score + '</text>';
+  html += '<text x="60" y="72" text-anchor="middle" fill="var(--text2)" font-size="11" font-family="Inter,sans-serif">/ 100</text>';
+  html += '</svg>';
+  html += '<div class="score-label">Security Grade: <strong style="color:' + scoreColor + '">' + scoreGrade + '</strong></div>';
+  html += '</div>';
+
+  html += '<div class="score-summary">';
+  html += '<div style="font-weight:700;font-size:.9rem;margin-bottom:.3rem">Security Summary</div>';
+  html += '<div class="summary-row"><span class="summary-dot good"></span>' + goodCount + ' headers properly configured</div>';
+  html += '<div class="summary-row"><span class="summary-dot warn"></span>' + warnCount + ' warnings (could be improved)</div>';
+  html += '<div class="summary-row"><span class="summary-dot bad"></span>' + badCount + ' missing or misconfigured</div>';
+  html += '<div class="summary-row"><span class="summary-dot info"></span>' + parsed.ordered.length + ' total headers parsed</div>';
+  if (parsed.statusLine) html += '<div class="summary-row" style="margin-top:.3rem;font-family:\'Courier New\',monospace;font-size:.78rem;color:var(--cyan)">' + escapeHtml(parsed.statusLine) + '</div>';
+  html += '</div></div>';
+
+  // Security headers section
+  html += '<div class="result-section">';
+  html += '<div class="section-header" onclick="toggleSection(this)">Security Headers Analysis <span class="badge ' + (badCount === 0 ? 'badge-good' : badCount <= 2 ? 'badge-warn' : 'badge-bad') + '">' + (badCount === 0 ? 'All Good' : badCount + ' Issue' + (badCount > 1 ? 's' : '')) + '</span></div>';
+  html += '<div class="section-body">';
+  for (var k = 0; k < secResults.length; k++) {
+    var sr = secResults[k];
+    var icon = sr.status === 'good' ? '&#10003;' : sr.status === 'warn' ? '!' : '&#10007;';
+    html += '<div class="sec-item">';
+    html += '<div class="sec-icon ' + sr.status + '">' + icon + '</div>';
+    html += '<div class="sec-content">';
+    html += '<div class="sec-name">' + escapeHtml(sr.name) + '</div>';
+    html += '<div class="sec-detail">' + escapeHtml(sr.detail) + '</div>';
+    if (sr.value) {
+      var dispVal = Array.isArray(sr.value) ? sr.value.join('; ') : sr.value;
+      html += '<div class="sec-value">' + escapeHtml(dispVal) + '</div>';
+    }
+    if (sr.rec) html += '<div class="sec-rec">' + escapeHtml(sr.rec) + '</div>';
+    html += '</div></div>';
+  }
+  html += '</div></div>';
+
+  // Cache headers analysis
+  var cacheHeaders = ['cache-control', 'etag', 'expires', 'last-modified', 'age', 'pragma', 'vary'];
+  var cachePresent = cacheHeaders.filter(function(h) { return parsed.headers[h]; });
+  html += '<div class="result-section">';
+  html += '<div class="section-header" onclick="toggleSection(this)">Cache Headers <span class="badge badge-info">' + cachePresent.length + ' / ' + cacheHeaders.length + '</span></div>';
+  html += '<div class="section-body">';
+  if (cachePresent.length === 0) {
+    html += '<div class="sec-item"><div class="sec-icon warn">!</div><div class="sec-content"><div class="sec-name">No cache headers detected</div><div class="sec-detail">Consider adding Cache-Control headers to improve performance and reduce server load.</div><div class="sec-rec">Add: Cache-Control: public, max-age=3600 (adjust based on content update frequency)</div></div></div>';
+  } else {
+    for (var ci = 0; ci < cacheHeaders.length; ci++) {
+      var ch = cacheHeaders[ci];
+      var cv = parsed.headers[ch];
+      if (!cv) continue;
+      var cacheStatus = 'good';
+      var cacheDetail = '';
+      if (ch === 'cache-control') {
+        var directives = cv.toLowerCase();
+        if (/no-store/.test(directives)) { cacheDetail = 'Response will not be cached at all (no-store).'; cacheStatus = 'info'; }
+        else if (/no-cache/.test(directives)) { cacheDetail = 'Response is stored but must be revalidated before each use.'; }
+        else if (/public/.test(directives)) { cacheDetail = 'Response can be cached by any cache (public).'; }
+        else if (/private/.test(directives)) { cacheDetail = 'Response can only be cached by the browser, not shared caches (private).'; }
+        var maxAgeMatch = directives.match(/max-age=(\d+)/);
+        if (maxAgeMatch) {
+          var secs = parseInt(maxAgeMatch[1]);
+          var human = secs < 60 ? secs + 's' : secs < 3600 ? Math.round(secs/60) + 'min' : secs < 86400 ? Math.round(secs/3600) + 'h' : Math.round(secs/86400) + 'd';
+          cacheDetail += ' max-age=' + secs + ' (' + human + ').';
+        }
+        if (/immutable/.test(directives)) cacheDetail += ' Marked as immutable (will not revalidate).';
+        if (/must-revalidate/.test(directives)) cacheDetail += ' Must revalidate when stale.';
+        if (/s-maxage=(\d+)/.test(directives)) {
+          var smatch = directives.match(/s-maxage=(\d+)/);
+          cacheDetail += ' Shared cache max-age: ' + smatch[1] + 's.';
+        }
+        if (!cacheDetail) cacheDetail = 'Cache-Control directives: ' + cv;
+      } else if (ch === 'etag') {
+        var isWeak = /^W\//.test(cv);
+        cacheDetail = (isWeak ? 'Weak' : 'Strong') + ' ETag for cache validation. Allows conditional requests (If-None-Match).';
+      } else if (ch === 'expires') {
+        var expDate = new Date(cv);
+        if (isNaN(expDate.getTime())) { cacheDetail = 'Invalid date format. Browsers may ignore this header.'; cacheStatus = 'warn'; }
+        else if (expDate < new Date()) { cacheDetail = 'Expired: ' + cv + '. Content is considered stale.'; cacheStatus = 'warn'; }
+        else { cacheDetail = 'Content expires: ' + cv + '.'; }
+      } else if (ch === 'last-modified') {
+        cacheDetail = 'Last modified: ' + cv + '. Enables conditional requests (If-Modified-Since).';
+      } else if (ch === 'age') {
+        cacheDetail = 'Object has been in proxy cache for ' + cv + ' seconds.';
+      } else if (ch === 'pragma') {
+        cacheDetail = /no-cache/.test(cv) ? 'HTTP/1.0 cache prevention. Prefer Cache-Control for HTTP/1.1+.' : 'Value: ' + cv;
+      } else if (ch === 'vary') {
+        cacheDetail = 'Cache varies on: ' + cv + '. Different cached versions for different request header values.';
+      }
+      html += '<div class="sec-item"><div class="sec-icon ' + cacheStatus + '">' + (cacheStatus === 'good' ? '&#10003;' : cacheStatus === 'warn' ? '!' : 'i') + '</div><div class="sec-content"><div class="sec-name">' + escapeHtml(ch) + '</div><div class="sec-value">' + escapeHtml(cv) + '</div><div class="sec-detail">' + escapeHtml(cacheDetail) + '</div></div></div>';
+    }
+  }
+  html += '</div></div>';
+
+  // Cookie analysis
+  var cookies = parsed.headers['set-cookie'];
+  if (cookies) {
+    var cookieArr = Array.isArray(cookies) ? cookies : [cookies];
+    var cookieIssues = 0;
+    html += '<div class="result-section">';
+    html += '<div class="section-header" onclick="toggleSection(this)">Cookie Analysis <span class="badge badge-info">' + cookieArr.length + ' cookie' + (cookieArr.length > 1 ? 's' : '') + '</span></div>';
+    html += '<div class="section-body">';
+    for (var ci2 = 0; ci2 < cookieArr.length; ci2++) {
+      var cookie = cookieArr[ci2];
+      var cookieName = cookie.split('=')[0].trim();
+      var hasSecure = /;\s*secure/i.test(cookie);
+      var hasHttpOnly = /;\s*httponly/i.test(cookie);
+      var hasSameSite = /;\s*samesite/i.test(cookie);
+      var sameSiteVal = '';
+      var ssMatch = cookie.match(/samesite=(\w+)/i);
+      if (ssMatch) sameSiteVal = ssMatch[1];
+      var hasPath = /;\s*path=/i.test(cookie);
+      var hasExpires = /;\s*expires=/i.test(cookie) || /;\s*max-age=/i.test(cookie);
+      var flags = [];
+      var issues = [];
+      if (hasSecure) flags.push('Secure');
+      else { issues.push('Missing Secure flag -- cookie can be sent over unencrypted HTTP'); cookieIssues++; }
+      if (hasHttpOnly) flags.push('HttpOnly');
+      else { issues.push('Missing HttpOnly flag -- cookie is accessible via JavaScript (XSS risk)'); cookieIssues++; }
+      if (hasSameSite) flags.push('SameSite=' + sameSiteVal);
+      else { issues.push('Missing SameSite attribute -- vulnerable to CSRF attacks'); cookieIssues++; }
+      if (sameSiteVal.toLowerCase() === 'none' && !hasSecure) { issues.push('SameSite=None requires the Secure flag'); cookieIssues++; }
+
+      var cookieStatus = issues.length === 0 ? 'good' : issues.length <= 1 ? 'warn' : 'bad';
+      var iconChar = cookieStatus === 'good' ? '&#10003;' : cookieStatus === 'warn' ? '!' : '&#10007;';
+      html += '<div class="sec-item"><div class="sec-icon ' + cookieStatus + '">' + iconChar + '</div><div class="sec-content">';
+      html += '<div class="sec-name">' + escapeHtml(cookieName) + '</div>';
+      html += '<div class="sec-value">' + escapeHtml(cookie) + '</div>';
+      if (flags.length) html += '<div class="sec-detail">Flags present: ' + flags.join(', ') + '</div>';
+      for (var fi = 0; fi < issues.length; fi++) {
+        html += '<div class="sec-rec">' + escapeHtml(issues[fi]) + '</div>';
+      }
+      html += '</div></div>';
+    }
+    html += '</div></div>';
+  }
+
+  // CORS analysis
+  var corsHeaders = ['access-control-allow-origin', 'access-control-allow-methods', 'access-control-allow-headers', 'access-control-allow-credentials', 'access-control-expose-headers', 'access-control-max-age'];
+  var corsPresent = corsHeaders.filter(function(h) { return parsed.headers[h]; });
+  if (corsPresent.length > 0) {
+    html += '<div class="result-section">';
+    html += '<div class="section-header" onclick="toggleSection(this)">CORS Headers <span class="badge badge-info">' + corsPresent.length + ' header' + (corsPresent.length > 1 ? 's' : '') + '</span></div>';
+    html += '<div class="section-body">';
+    for (var cri = 0; cri < corsHeaders.length; cri++) {
+      var crh = corsHeaders[cri];
+      var crv = parsed.headers[crh];
+      if (!crv) continue;
+      var corsStatus = 'good';
+      var corsDetail = '';
+      if (crh === 'access-control-allow-origin') {
+        if (crv.trim() === '*') {
+          corsStatus = 'warn';
+          corsDetail = 'Wildcard (*) allows any origin to read the response. Fine for public APIs, risky for authenticated endpoints.';
+          if (parsed.headers['access-control-allow-credentials'] === 'true') {
+            corsStatus = 'bad';
+            corsDetail = 'CRITICAL: Wildcard origin with credentials=true is blocked by browsers and indicates a misconfiguration.';
+          }
+        } else {
+          corsDetail = 'Restricted to origin: ' + crv;
+        }
+      } else if (crh === 'access-control-allow-credentials') {
+        corsDetail = crv === 'true' ? 'Credentials (cookies, auth headers) are allowed in cross-origin requests.' : 'Credentials not allowed.';
+      } else if (crh === 'access-control-allow-methods') {
+        corsDetail = 'Allowed methods: ' + crv;
+      } else if (crh === 'access-control-allow-headers') {
+        corsDetail = 'Allowed request headers: ' + crv;
+      } else if (crh === 'access-control-expose-headers') {
+        corsDetail = 'Exposed response headers: ' + crv;
+      } else if (crh === 'access-control-max-age') {
+        corsDetail = 'Preflight cache duration: ' + crv + ' seconds.';
+      }
+      var corsIcon = corsStatus === 'good' ? '&#10003;' : corsStatus === 'warn' ? '!' : '&#10007;';
+      html += '<div class="sec-item"><div class="sec-icon ' + corsStatus + '">' + corsIcon + '</div><div class="sec-content"><div class="sec-name">' + escapeHtml(crh) + '</div><div class="sec-value">' + escapeHtml(crv) + '</div><div class="sec-detail">' + escapeHtml(corsDetail) + '</div></div></div>';
+    }
+    html += '</div></div>';
+  }
+
+  // All parsed headers
+  html += '<div class="result-section">';
+  html += '<div class="section-header" onclick="toggleSection(this)">All Parsed Headers <span class="badge badge-info">' + parsed.ordered.length + ' headers</span></div>';
+  html += '<div class="section-body">';
+  for (var ai = 0; ai < parsed.ordered.length; ai++) {
+    var ah = parsed.ordered[ai];
+    var desc = HEADER_INFO[ah.nameLower] || '';
+    html += '<div class="header-row"><div class="header-name">' + escapeHtml(ah.name) + '</div><div><div class="header-value">' + escapeHtml(ah.value) + '</div>';
+    if (desc) html += '<div class="header-desc">' + escapeHtml(desc) + '</div>';
+    html += '</div></div>';
+  }
+  html += '</div></div>';
+
+  // Recommendations
+  var recs = secResults.filter(function(r) { return r.rec; });
+  if (recs.length > 0) {
+    html += '<div class="result-section">';
+    html += '<div class="section-header" onclick="toggleSection(this)">Recommendations <span class="badge badge-warn">' + recs.length + ' suggestion' + (recs.length > 1 ? 's' : '') + '</span></div>';
+    html += '<div class="section-body">';
+    for (var ri = 0; ri < recs.length; ri++) {
+      var rr = recs[ri];
+      var recIcon = rr.status === 'bad' ? '&#10007;' : '!';
+      html += '<div class="sec-item"><div class="sec-icon ' + rr.status + '">' + recIcon + '</div><div class="sec-content"><div class="sec-name">' + escapeHtml(rr.name) + '</div><div class="sec-rec">' + escapeHtml(rr.rec) + '</div></div></div>';
+    }
+    html += '</div></div>';
+  }
+
+  resultsArea.innerHTML = html;
+
+  // Build text report for copy
+  lastReport = 'HTTP Header Analysis Report\n';
+  lastReport += '===========================\n\n';
+  lastReport += 'Security Score: ' + score + '/100 (Grade: ' + scoreGrade + ')\n';
+  lastReport += 'Good: ' + goodCount + ' | Warnings: ' + warnCount + ' | Issues: ' + badCount + '\n\n';
+  lastReport += '--- Security Headers ---\n';
+  for (var ti = 0; ti < secResults.length; ti++) {
+    var tr = secResults[ti];
+    var statusLabel = tr.status === 'good' ? '[PASS]' : tr.status === 'warn' ? '[WARN]' : '[FAIL]';
+    lastReport += statusLabel + ' ' + tr.name + '\n';
+    lastReport += '  ' + tr.detail + '\n';
+    if (tr.rec) lastReport += '  Recommendation: ' + tr.rec + '\n';
+    lastReport += '\n';
+  }
+  if (cachePresent.length > 0) {
+    lastReport += '--- Cache Headers ---\n';
+    for (var tci = 0; tci < cacheHeaders.length; tci++) {
+      var tch = cacheHeaders[tci];
+      var tcv = parsed.headers[tch];
+      if (tcv) lastReport += tch + ': ' + tcv + '\n';
+    }
+    lastReport += '\n';
+  }
+  if (cookies) {
+    lastReport += '--- Cookies ---\n';
+    var cookieArrR = Array.isArray(cookies) ? cookies : [cookies];
+    for (var tki = 0; tki < cookieArrR.length; tki++) {
+      lastReport += cookieArrR[tki] + '\n';
+    }
+    lastReport += '\n';
+  }
+  lastReport += 'Generated by NexTool HTTP Header Analyzer\nhttps://nextool.app/free-tools/http-header-analyzer.html\n';
+
+  showToast('Analysis complete. Score: ' + score + '/100');
+}
+
+function toggleSection(el) {
+  var body = el.nextElementSibling;
+  body.classList.toggle('collapsed');
+}
+
+function copyReport() {
+  if (!lastReport) { showToast('Run an analysis first'); return; }
+  navigator.clipboard.writeText(lastReport).then(function() { showToast('Report copied to clipboard'); });
+}
+
+function loadSample() {
+  headerInput.value = 'HTTP/1.1 200 OK\n' +
+    'Date: Mon, 10 Feb 2026 12:00:00 GMT\n' +
+    'Content-Type: text/html; charset=UTF-8\n' +
+    'Content-Length: 51234\n' +
+    'Connection: keep-alive\n' +
+    'Server: nginx/1.24.0\n' +
+    'X-Powered-By: Express\n' +
+    'Strict-Transport-Security: max-age=31536000; includeSubDomains; preload\n' +
+    'Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\'; style-src \'self\' \'unsafe-inline\'; img-src * data:\n' +
+    'X-Frame-Options: SAMEORIGIN\n' +
+    'X-Content-Type-Options: nosniff\n' +
+    'Referrer-Policy: strict-origin-when-cross-origin\n' +
+    'Permissions-Policy: camera=(), microphone=(), geolocation=()\n' +
+    'X-XSS-Protection: 1; mode=block\n' +
+    'Cache-Control: public, max-age=3600, must-revalidate\n' +
+    'ETag: W/"c81e-abc123"\n' +
+    'Last-Modified: Sun, 09 Feb 2026 08:30:00 GMT\n' +
+    'Vary: Accept-Encoding\n' +
+    'Access-Control-Allow-Origin: https://app.example.com\n' +
+    'Access-Control-Allow-Methods: GET, POST, OPTIONS\n' +
+    'Access-Control-Allow-Headers: Content-Type, Authorization\n' +
+    'Access-Control-Allow-Credentials: true\n' +
+    'Access-Control-Max-Age: 86400\n' +
+    'Set-Cookie: session=abc123def456; Secure; HttpOnly; SameSite=Strict; Path=/\n' +
+    'Set-Cookie: _ga=GA1.2.123456789; Path=/; Expires=Wed, 10 Feb 2027 12:00:00 GMT\n' +
+    'Set-Cookie: prefs=dark; Secure; SameSite=Lax; Path=/';
+  var lines = headerInput.value.split('\n').length;
+  lineCount.textContent = lines + ' lines';
+  analyzeHeaders();
+}
+
+function clearAll() {
+  headerInput.value = '';
+  lineCount.textContent = '';
+  lastReport = '';
+  resultsArea.innerHTML = '<div class="no-results"><div class="icon">&#128269;</div><p>Paste HTTP response headers above and click <strong>Analyze</strong> to get a full security and performance report.</p></div>';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+/* IntersectionObserver fade-in */
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What does the HTTP Header Analyzer check?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It analyzes security headers (HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, COOP, COEP, CORP), cache headers (Cache-Control, ETag, Expires, Last-Modified), cookies (Secure, HttpOnly, SameSite flags), CORS configuration, and information leakage (Server, X-Powered-By). Each header gets a pass/warn/fail rating with recommendations."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is the security score calculated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The score is weighted out of 100 points. Critical headers like Content-Security-Policy (20 points) and Strict-Transport-Security (15 points) carry more weight. Each header is scored as pass (full points), warning (40% of points), or fail (0 points). The final percentage maps to a letter grade from A+ to F."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this tool free and private?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, the HTTP Header Analyzer is completely free, requires no signup, and runs 100% in your browser. Your headers are never sent to any server. All analysis happens client-side using JavaScript."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I get my HTTP response headers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Open your browser DevTools (F12), go to the Network tab, reload the page, click on the main document request, and look at the Response Headers section. You can also use curl -I https://example.com in a terminal to fetch just the headers."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
