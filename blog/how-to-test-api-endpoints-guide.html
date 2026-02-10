@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Test API Endpoints: A Complete Guide | NexTool</title>
+<meta name="description" content="Learn how to test REST API endpoints with curl, free tools, and automation. Step-by-step guide covering manual testing, response validation, and debugging.">
+<meta name="keywords" content="how to test API endpoints, API testing tools free, REST API testing guide, test REST API, API endpoint testing, curl API testing, API response validation, free API tester, API debugging, HTTP request testing">
+<meta name="author" content="NexTool Team">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nextool.app/blog/how-to-test-api-endpoints-guide.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to Test API Endpoints: A Complete Guide">
+<meta property="og:description" content="Learn how to test REST API endpoints with curl, free tools, and automation. Step-by-step guide covering manual testing, response validation, and debugging.">
+<meta property="og:url" content="https://nextool.app/blog/how-to-test-api-endpoints-guide.html">
+<meta property="og:site_name" content="NexTool">
+<meta property="article:published_time" content="2026-02-10T12:00:00Z">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to Test API Endpoints: A Complete Guide">
+<meta name="twitter:description" content="Learn how to test REST API endpoints with curl, free tools, and automation. Step-by-step guide covering manual testing, response validation, and debugging.">
+
+<!-- JSON-LD: Article -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How to Test API Endpoints: A Complete Guide",
+    "description": "Learn how to test REST API endpoints with curl, free tools, and automation. Step-by-step guide covering manual testing, response validation, and debugging.",
+    "author": {"@type": "Organization", "name": "NexTool Team", "url": "https://nextool.app"},
+    "publisher": {"@type": "Organization", "name": "NexTool", "logo": {"@type": "ImageObject", "url": "https://nextool.app/images/logo.png"}},
+    "datePublished": "2026-02-10T12:00:00Z",
+    "dateModified": "2026-02-10T12:00:00Z",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "https://nextool.app/blog/how-to-test-api-endpoints-guide.html"},
+    "keywords": "how to test API endpoints, API testing tools free, REST API testing guide, curl API testing, API response validation",
+    "wordCount": 2400,
+    "articleSection": "Developer Tools"
+}
+</script>
+
+<!-- JSON-LD: BreadcrumbList -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app"},
+        {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://nextool.app/blog/"},
+        {"@type": "ListItem", "position": 3, "name": "How to Test API Endpoints: A Complete Guide", "item": "https://nextool.app/blog/how-to-test-api-endpoints-guide.html"}
+    ]
+}
+</script>
+
+<!-- JSON-LD: FAQPage -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "What is the easiest way to test an API endpoint?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The easiest way is to use a browser-based API testing tool like NexTool API Tester. Paste your endpoint URL, choose the HTTP method (GET, POST, PUT, DELETE), add any headers or body data, and click Send. The tool shows the response status code, headers, body, and response time instantly. For quick GET requests, you can also paste the URL directly into your browser address bar. For command-line users, curl is the fastest option: run 'curl https://api.example.com/users' to send a GET request and see the response."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How do I test a POST API endpoint with JSON data?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "To test a POST endpoint with JSON data using curl, run: curl -X POST https://api.example.com/users -H 'Content-Type: application/json' -d '{\"name\":\"Alice\",\"email\":\"alice@example.com\"}'. The -X flag sets the HTTP method, -H adds the Content-Type header so the server knows you are sending JSON, and -d provides the request body. In a browser-based tool like NexTool API Tester, select POST from the method dropdown, paste your URL, add the Content-Type header, paste your JSON body, and click Send."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What HTTP status codes should I check when testing APIs?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The critical status codes to verify are: 200 OK (successful GET or PUT), 201 Created (successful POST that creates a resource), 204 No Content (successful DELETE), 400 Bad Request (invalid input from the client), 401 Unauthorized (missing or invalid authentication), 403 Forbidden (authenticated but not authorized), 404 Not Found (endpoint or resource does not exist), 422 Unprocessable Entity (valid JSON but fails validation), and 500 Internal Server Error (server-side bug). Always test both the success path and the error paths for each endpoint."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is the difference between manual and automated API testing?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Manual API testing involves sending individual requests using tools like curl, NexTool API Tester, or Postman, and visually inspecting the responses. It is ideal for exploratory testing, debugging, and learning how an API works. Automated API testing uses scripts or frameworks (like Jest, pytest, or Newman) to run predefined test cases automatically. Automated tests can validate status codes, response bodies, headers, and response times across hundreds of endpoints in seconds. Use manual testing during development and debugging. Use automated testing in CI/CD pipelines to catch regressions before deployment."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Is it safe to test APIs in the browser?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, browser-based API testing tools are safe as long as the tool processes requests client-side. Tools like NexTool API Tester send requests directly from your browser to the API endpoint without routing through a third-party server. Your API keys, tokens, and request data stay on your machine. However, be cautious with any tool that proxies requests through its own server, as your authentication credentials would pass through their infrastructure. Check the tool's documentation or monitor the network tab in your browser's developer tools to verify where requests are being sent."
+            }
+        }
+    ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050508;
+  --surface: #111118;
+  --surface-2: #1a1a24;
+  --surface-3: #222233;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --accent: #a855f7;
+  --pink: #ec4899;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --border: #1e1e2e;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--primary-hover); }
+
+/* ===== NAVBAR ===== */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(5,5,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-size: 1.4rem; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+.nav-links a { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: #fff; }
+.nav-cta {
+  background: var(--primary); color: #fff !important; padding: 0.5rem 1.2rem;
+  border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+  transition: background 0.2s, transform 0.2s;
+}
+.nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+.nav-mobile-toggle { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+/* ===== ARTICLE HERO ===== */
+.article-hero {
+  padding: 8rem 2rem 3rem;
+  max-width: 900px; margin: 0 auto; text-align: center;
+}
+.article-meta {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.article-category {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; padding: 0.3rem 0.9rem; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.article-date, .article-reading-time { color: var(--text-dim); font-size: 0.85rem; }
+.article-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; line-height: 1.15;
+  color: #fff; margin-bottom: 1.2rem;
+}
+.article-hero h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.article-subtitle { color: var(--text-muted); font-size: 1.15rem; max-width: 680px; margin: 0 auto; }
+
+/* ===== LAYOUT ===== */
+.article-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  align-items: start;
+}
+
+/* ===== TOC SIDEBAR ===== */
+.toc-sidebar {
+  position: sticky; top: 84px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+}
+.toc-title {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 0.8rem;
+}
+.toc-list { list-style: none; }
+.toc-list li { margin-bottom: 0.4rem; }
+.toc-list a {
+  color: var(--text-muted); font-size: 0.8rem; display: block;
+  padding: 0.25rem 0.5rem; border-radius: 6px; border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+.toc-list a:hover, .toc-list a.active {
+  color: var(--primary); border-left-color: var(--primary); background: rgba(99,102,241,0.06);
+}
+
+/* ===== ARTICLE CONTENT ===== */
+.article-content { max-width: 720px; }
+.article-content h2 {
+  font-size: 1.6rem; font-weight: 800; color: #fff;
+  margin: 2.5rem 0 1rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.article-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.article-content h3 {
+  font-size: 1.2rem; font-weight: 700; color: #fff; margin: 2rem 0 0.8rem;
+}
+.article-content p { margin-bottom: 1.2rem; color: var(--text); }
+.article-content ul, .article-content ol {
+  margin: 0 0 1.5rem 1.2rem; color: var(--text);
+}
+.article-content li { margin-bottom: 0.5rem; }
+.article-content strong { color: #fff; }
+.article-content blockquote {
+  border-left: 3px solid var(--primary); padding: 1rem 1.5rem;
+  background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1.5rem 0; color: var(--text-muted); font-style: italic;
+}
+.article-content code {
+  background: var(--surface-2); padding: 0.15rem 0.45rem; border-radius: 4px;
+  font-size: 0.9em; color: var(--pink);
+}
+.article-content pre {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.2rem; overflow-x: auto; margin: 1.5rem 0;
+}
+.article-content pre code { background: none; padding: 0; color: var(--text); }
+
+/* ===== KEY TAKEAWAY ===== */
+.key-takeaway {
+  background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(99,102,241,0.05));
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+}
+.key-takeaway-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--success); margin-bottom: 0.4rem;
+}
+
+/* ===== CTA BOX ===== */
+.cta-box {
+  background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.08));
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+.cta-box h3 { color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 0.6rem; }
+.cta-box p { color: var(--text-muted); margin-bottom: 1.2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+.cta-button {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; font-weight: 700; padding: 0.75rem 2rem;
+  border-radius: 10px; font-size: 0.95rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(99,102,241,0.35);
+  color: #fff;
+}
+
+/* ===== COMPARISON TABLE ===== */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+}
+.comparison-table th {
+  background: var(--surface-2);
+  color: #fff;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--border);
+}
+.comparison-table td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.comparison-table tr:hover td {
+  background: rgba(99,102,241,0.04);
+}
+
+/* ===== AUTHOR BOX ===== */
+.author-box {
+  display: flex; gap: 1.2rem; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem; margin: 2.5rem 0;
+}
+.author-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.author-info h4 { color: #fff; font-weight: 700; margin-bottom: 0.2rem; }
+.author-info p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+
+/* ===== RELATED ARTICLES ===== */
+.related-articles { margin: 3rem 0; }
+.related-articles h3 { color: #fff; font-weight: 800; font-size: 1.3rem; margin-bottom: 1.2rem; }
+.related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+.related-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.2rem;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.related-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.related-card-cat {
+  font-size: 0.7rem; text-transform: uppercase; font-weight: 700;
+  letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.5rem;
+}
+.related-card h4 { color: #fff; font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; line-height: 1.4; }
+.related-card p { color: var(--text-dim); font-size: 0.82rem; }
+
+/* ===== FOOTER ===== */
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 3rem 2rem 1.5rem;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+}
+.footer-col h4 {
+  color: #fff; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.footer-col a { display: block; color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.4rem; }
+.footer-col a:hover { color: var(--primary); }
+.footer-brand {
+  font-size: 1.2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+.footer-brand-desc { color: var(--text-dim); font-size: 0.82rem; line-height: 1.5; }
+.footer-bottom {
+  text-align: center; padding-top: 1.5rem;
+  border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.8rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .article-layout { grid-template-columns: 1fr; }
+  .toc-sidebar { position: static; margin-bottom: 1rem; }
+  .comparison-table { font-size: 0.8rem; }
+  .comparison-table th, .comparison-table td { padding: 0.5rem 0.6rem; }
+}
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .nav-mobile-toggle { display: block; }
+  .article-hero { padding: 6rem 1rem 2rem; }
+  .article-layout { padding: 0 1rem 3rem; }
+  .author-box { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">NexTool</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/free-tools/">Tools</a></li>
+    <li><a href="/free-tools/">Free Tools</a></li>
+    <li><a href="/pro.html">Pro</a></li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/pro.html" class="nav-cta">NexTool Pro</a></li>
+  </ul>
+  <button class="nav-mobile-toggle" aria-label="Menu">&#9776;</button>
+</nav>
+
+<!-- HERO -->
+<header class="article-hero">
+  <div class="article-meta">
+    <span class="article-category">Developer Tools</span>
+    <span class="article-date">February 10, 2026</span>
+    <span class="article-reading-time">14 min read</span>
+  </div>
+  <h1>How to Test API Endpoints: <span>A Complete Guide</span></h1>
+  <p class="article-subtitle">Everything you need to know about testing REST API endpoints. Covers manual and automated testing, curl commands, response validation, debugging techniques, and the best free tools for API testing in 2026.</p>
+</header>
+
+<!-- ARTICLE LAYOUT -->
+<div class="article-layout">
+
+  <!-- TOC SIDEBAR -->
+  <aside class="toc-sidebar">
+    <div class="toc-title">Table of Contents</div>
+    <ul class="toc-list">
+      <li><a href="#what-is-api-testing">What Is API Testing</a></li>
+      <li><a href="#types-of-api-testing">Types of API Testing</a></li>
+      <li><a href="#manual-vs-automated">Manual vs Automated</a></li>
+      <li><a href="#step-by-step-guide">Step-by-Step Guide</a></li>
+      <li><a href="#curl-commands">Essential curl Commands</a></li>
+      <li><a href="#parsing-responses">Parsing API Responses</a></li>
+      <li><a href="#best-free-tools">Best Free Tools</a></li>
+      <li><a href="#common-mistakes">Common Mistakes</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </aside>
+
+  <!-- ARTICLE CONTENT -->
+  <article class="article-content">
+
+    <h2 id="what-is-api-testing">What Is API Testing and Why It Matters</h2>
+
+    <p>API testing is the process of sending requests to an API endpoint and verifying that the response is correct. You check the status code, the response body, the headers, and the response time. You confirm that valid inputs produce expected outputs and that invalid inputs produce meaningful errors instead of crashes.</p>
+
+    <p>If you build or consume APIs -- and in 2026, nearly every developer does -- testing them is not optional. A broken API endpoint can take down a mobile app, corrupt user data, or silently return wrong results that propagate through your entire system. The cost of finding a bug in production is orders of magnitude higher than catching it during testing.</p>
+
+    <p>Consider a payment API that accepts a charge request. If you never test what happens when the amount is negative, or when the currency field is missing, or when the authentication token is expired, you are gambling that your users will never trigger those conditions. They will.</p>
+
+    <p><strong>API testing is the fastest feedback loop a developer has.</strong> Unlike UI testing, which requires rendering a browser, clicking through forms, and waiting for animations, API testing sends a raw HTTP request and gets a raw response. A single curl command or a click in an <a href="/free-tools/api-tester.html">API testing tool</a> tells you instantly whether your endpoint works. No UI, no browser, no setup. Just a request and a response.</p>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Key Insight</div>
+      <p><strong>APIs are contracts.</strong> Your endpoint promises to accept certain inputs and return certain outputs. API testing verifies that the contract holds. Every untested endpoint is an unverified promise.</p>
+    </div>
+
+    <h2 id="types-of-api-testing">Types of API Testing</h2>
+
+    <p>Not all API tests serve the same purpose. Understanding the different types helps you decide what to test and when.</p>
+
+    <h3>Functional Testing</h3>
+    <p>The most common type. You send a request and check whether the response matches what the API documentation promises. Does <code>GET /users/1</code> return the user with ID 1? Does <code>POST /orders</code> create a new order and return a 201 status code? Does <code>DELETE /sessions</code> invalidate the session token? Functional testing answers these questions one endpoint at a time.</p>
+
+    <h3>Validation Testing</h3>
+    <p>Goes beyond "does it work" to "does it reject what it should reject." Send a request with a missing required field. Send a string where a number is expected. Send a body that exceeds the maximum allowed size. Validation testing ensures your API fails gracefully with clear error messages rather than crashing or accepting garbage data.</p>
+
+    <h3>Security Testing</h3>
+    <p>Tries to access endpoints without authentication, with expired tokens, or with tokens belonging to a different user. Tests for SQL injection in query parameters, checks whether sensitive data like passwords appears in responses, and verifies that rate limiting actually blocks excessive requests. Security testing is where you think like an attacker.</p>
+
+    <h3>Performance Testing</h3>
+    <p>Measures response times under normal load and under stress. How long does <code>GET /search?q=term</code> take with 10 concurrent users? With 1,000? At what point does the response time exceed your SLA? Performance testing reveals bottlenecks before your users hit them.</p>
+
+    <h3>Integration Testing</h3>
+    <p>Tests the full flow across multiple endpoints. Create a user, log in, create an order, fetch the order, cancel it, verify the user's order list is updated. Integration tests catch bugs that live in the seams between endpoints -- race conditions, state inconsistencies, and data that gets lost between services.</p>
+
+    <h2 id="manual-vs-automated">Manual vs Automated API Testing</h2>
+
+    <p>Both approaches have their place. The key is knowing when each one makes sense.</p>
+
+    <p><strong>Manual testing</strong> means sending individual requests using a tool like curl, a browser-based <a href="/free-tools/api-tester.html">API tester</a>, or Postman, and visually inspecting the responses. You are the test runner. You decide what to send, you read the response, and you judge whether it is correct.</p>
+
+    <p>Manual testing excels at:</p>
+    <ul>
+      <li><strong>Exploratory testing</strong> -- poking at an unfamiliar API to understand how it works</li>
+      <li><strong>Debugging</strong> -- reproducing a specific bug with exact request parameters</li>
+      <li><strong>Prototyping</strong> -- testing a new endpoint during development before writing formal tests</li>
+      <li><strong>One-off checks</strong> -- verifying a fix in production or checking a third-party API's behavior</li>
+    </ul>
+
+    <p><strong>Automated testing</strong> means writing scripts or test suites that send requests, assert on the responses, and run without human intervention. Frameworks like Jest (JavaScript), pytest (Python), and RSpec (Ruby) can all make HTTP requests and validate responses programmatically.</p>
+
+    <p>Automated testing excels at:</p>
+    <ul>
+      <li><strong>Regression testing</strong> -- catching when a code change breaks an existing endpoint</li>
+      <li><strong>CI/CD pipelines</strong> -- running hundreds of tests on every pull request</li>
+      <li><strong>Contract testing</strong> -- ensuring API responses match a schema on every deploy</li>
+      <li><strong>Load testing</strong> -- simulating thousands of concurrent requests</li>
+    </ul>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Practical Advice</div>
+      <p><strong>Start manual, then automate.</strong> Use manual testing to understand the API and find bugs. Once you know what "correct" looks like, write automated tests to lock it in. The manual phase teaches you what to automate. Skipping it means writing tests that test the wrong things.</p>
+    </div>
+
+    <h2 id="step-by-step-guide">How to Test API Endpoints: Step-by-Step</h2>
+
+    <p>This is a practical workflow for testing any REST API endpoint, whether you are building it yourself or integrating with a third-party service.</p>
+
+    <h3>Step 1: Read the API Documentation</h3>
+    <p>Before you send a single request, read the documentation. You need to know the base URL, the available endpoints, the HTTP methods each endpoint accepts, the required and optional parameters, the authentication method, and the expected response format. If the API has an OpenAPI/Swagger spec, open it in a viewer to see the full schema. Without documentation, you are testing blind.</p>
+
+    <h3>Step 2: Set Up Authentication</h3>
+    <p>Most APIs require authentication. The three most common methods are:</p>
+    <ul>
+      <li><strong>API Key</strong> -- passed as a header (<code>X-API-Key: your-key</code>) or query parameter (<code>?api_key=your-key</code>)</li>
+      <li><strong>Bearer Token</strong> -- passed as an Authorization header (<code>Authorization: Bearer your-token</code>)</li>
+      <li><strong>OAuth 2.0</strong> -- a multi-step flow that produces an access token, which is then used as a Bearer token</li>
+    </ul>
+    <p>Get your credentials ready before testing. A 401 Unauthorized response is the most common first result when testing an API, and it almost always means the authentication is missing or formatted incorrectly.</p>
+
+    <h3>Step 3: Send a Basic GET Request</h3>
+    <p>Start with the simplest possible request. Pick a read-only endpoint -- usually a list endpoint like <code>GET /users</code> or a single-resource endpoint like <code>GET /users/1</code> -- and send a request with proper authentication.</p>
+
+    <pre><code># Basic GET request with curl
+curl -s https://api.example.com/users \
+  -H "Authorization: Bearer YOUR_TOKEN" | jq '.'</code></pre>
+
+    <p>Check three things: the status code is 200, the response body contains the expected data structure, and the Content-Type header is <code>application/json</code>. If all three pass, your authentication works and the API is reachable. You can now move on to more complex operations.</p>
+
+    <h3>Step 4: Test CRUD Operations</h3>
+    <p>Work through the full lifecycle of a resource. Create it, read it, update it, and delete it. This sequence tests the four fundamental operations and reveals state-related bugs.</p>
+
+    <pre><code># CREATE - POST a new resource
+curl -s -X POST https://api.example.com/users \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Alice", "email": "alice@test.com"}' | jq '.'
+
+# READ - GET the created resource (use the ID from the POST response)
+curl -s https://api.example.com/users/42 \
+  -H "Authorization: Bearer YOUR_TOKEN" | jq '.'
+
+# UPDATE - PUT or PATCH the resource
+curl -s -X PATCH https://api.example.com/users/42 \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Alice Smith"}' | jq '.'
+
+# DELETE - Remove the resource
+curl -s -X DELETE https://api.example.com/users/42 \
+  -H "Authorization: Bearer YOUR_TOKEN" -w "\nHTTP Status: %{http_code}\n"</code></pre>
+
+    <p>After each operation, verify the state is consistent. After POST, the GET should return the new resource. After PATCH, the GET should reflect the updated fields. After DELETE, a GET should return 404.</p>
+
+    <h3>Step 5: Test Error Handling</h3>
+    <p>This is where most developers stop testing -- and where most production bugs live. Deliberately send bad requests and verify the API responds with appropriate error codes and messages.</p>
+
+    <pre><code># Missing required field
+curl -s -X POST https://api.example.com/users \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Alice"}' | jq '.'
+# Expected: 400 or 422 with an error message about missing "email"
+
+# Invalid data type
+curl -s -X POST https://api.example.com/users \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": 12345, "email": "not-an-email"}' | jq '.'
+# Expected: 400 or 422 with validation errors
+
+# Non-existent resource
+curl -s https://api.example.com/users/99999 \
+  -H "Authorization: Bearer YOUR_TOKEN" -w "\nHTTP Status: %{http_code}\n"
+# Expected: 404 Not Found
+
+# No authentication
+curl -s https://api.example.com/users -w "\nHTTP Status: %{http_code}\n"
+# Expected: 401 Unauthorized</code></pre>
+
+    <h3>Step 6: Validate Response Structure</h3>
+    <p>Beyond checking status codes, verify that the response body matches the expected schema. Are all documented fields present? Are the data types correct? Are dates in the expected format? Is pagination information included in list responses? Use a <a href="/free-tools/json-formatter.html">JSON formatter</a> to make the response readable, then compare it field-by-field against the documentation.</p>
+
+    <h2 id="curl-commands">Essential curl Commands for API Testing</h2>
+
+    <p>curl is the universal tool for API testing. It is installed on virtually every operating system, and every API's documentation includes curl examples. Master these commands and you can test any API from your terminal.</p>
+
+    <h3>GET Requests</h3>
+    <pre><code># Simple GET
+curl https://api.example.com/users
+
+# GET with headers
+curl -H "Accept: application/json" \
+     -H "Authorization: Bearer TOKEN" \
+     https://api.example.com/users
+
+# GET with query parameters
+curl "https://api.example.com/users?page=2&limit=10"
+
+# GET with verbose output (shows request/response headers)
+curl -v https://api.example.com/users
+
+# GET showing only response headers
+curl -I https://api.example.com/users</code></pre>
+
+    <h3>POST, PUT, PATCH, DELETE</h3>
+    <pre><code># POST with JSON body
+curl -X POST https://api.example.com/users \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Alice", "email": "alice@example.com"}'
+
+# PUT (full update)
+curl -X PUT https://api.example.com/users/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Alice Smith", "email": "alice@example.com", "role": "admin"}'
+
+# PATCH (partial update)
+curl -X PATCH https://api.example.com/users/1 \
+  -H "Content-Type: application/json" \
+  -d '{"role": "admin"}'
+
+# DELETE
+curl -X DELETE https://api.example.com/users/1 \
+  -H "Authorization: Bearer TOKEN"</code></pre>
+
+    <h3>Useful curl Flags</h3>
+    <pre><code># -s  Silent mode (no progress bar)
+# -S  Show errors even in silent mode
+# -w  Custom output format (status code, timing, etc.)
+# -o  Save response to a file
+# -L  Follow redirects
+# -k  Skip SSL verification (dev only!)
+
+# Measure response time
+curl -s -o /dev/null -w "Status: %{http_code}\nTime: %{time_total}s\nSize: %{size_download} bytes\n" \
+  https://api.example.com/users
+
+# Save response body and show status code
+curl -s -w "\n%{http_code}" -o response.json \
+  https://api.example.com/users</code></pre>
+
+    <p>If you frequently convert curl commands to code for your application, the <a href="/free-tools/curl-to-code.html">NexTool curl to Code converter</a> translates curl syntax into Python, JavaScript, Go, PHP, and other languages instantly.</p>
+
+    <h2 id="parsing-responses">Parsing and Validating API Responses</h2>
+
+    <p>Getting a 200 status code is necessary but not sufficient. You need to parse the response body and verify its contents.</p>
+
+    <h3>Using jq for JSON Responses</h3>
+    <p>jq is a command-line JSON processor that pairs perfectly with curl. Pipe your API response through jq to format, filter, and extract data.</p>
+
+    <pre><code># Pretty-print the full response
+curl -s https://api.example.com/users | jq '.'
+
+# Extract a specific field
+curl -s https://api.example.com/users/1 | jq '.email'
+
+# Get the first item from an array
+curl -s https://api.example.com/users | jq '.[0]'
+
+# Extract multiple fields
+curl -s https://api.example.com/users | jq '.[] | {name, email}'
+
+# Count items in the response
+curl -s https://api.example.com/users | jq 'length'
+
+# Filter by a condition
+curl -s https://api.example.com/users | jq '[.[] | select(.active == true)]'</code></pre>
+
+    <p>For more complex JSON inspection -- especially when dealing with deeply nested responses -- paste the output into the <a href="/free-tools/json-formatter.html">NexTool JSON Formatter</a> for a collapsible tree view with syntax highlighting.</p>
+
+    <h3>Checking Response Headers</h3>
+    <p>Headers carry critical metadata that is easy to overlook. Pay attention to these:</p>
+    <ul>
+      <li><code>Content-Type</code> -- should be <code>application/json</code> for JSON APIs</li>
+      <li><code>X-RateLimit-Remaining</code> -- how many requests you have left before being throttled</li>
+      <li><code>Cache-Control</code> -- whether the response is cacheable and for how long</li>
+      <li><code>X-Request-Id</code> -- a unique ID for tracing the request through server logs</li>
+      <li><code>Link</code> -- pagination URLs for the next and previous pages of results</li>
+    </ul>
+
+    <pre><code># Show response headers only
+curl -sI https://api.example.com/users \
+  -H "Authorization: Bearer TOKEN"
+
+# Show both request and response headers with the body
+curl -sv https://api.example.com/users 2>&amp;1 | head -30</code></pre>
+
+    <h2 id="best-free-tools">Best Free API Testing Tools in 2026</h2>
+
+    <p>Here are the tools that cover the full API testing workflow, from quick manual checks to full automation.</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Best For</th>
+          <th>Type</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>NexTool API Tester</strong></td>
+          <td>Quick browser-based testing</td>
+          <td>Web app</td>
+          <td>Free</td>
+        </tr>
+        <tr>
+          <td><strong>curl</strong></td>
+          <td>Terminal-based testing</td>
+          <td>CLI</td>
+          <td>Free (built-in)</td>
+        </tr>
+        <tr>
+          <td><strong>Postman</strong></td>
+          <td>Collections and team collaboration</td>
+          <td>Desktop app</td>
+          <td>Free tier</td>
+        </tr>
+        <tr>
+          <td><strong>Insomnia</strong></td>
+          <td>Clean, fast desktop client</td>
+          <td>Desktop app</td>
+          <td>Free tier</td>
+        </tr>
+        <tr>
+          <td><strong>HTTPie</strong></td>
+          <td>Human-friendly CLI syntax</td>
+          <td>CLI</td>
+          <td>Free</td>
+        </tr>
+        <tr>
+          <td><strong>Bruno</strong></td>
+          <td>Git-friendly, offline-first</td>
+          <td>Desktop app</td>
+          <td>Free (open source)</td>
+        </tr>
+        <tr>
+          <td><strong>k6</strong></td>
+          <td>Load and performance testing</td>
+          <td>CLI</td>
+          <td>Free (open source)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>NexTool API Tester</h3>
+    <p>A browser-based tool for sending HTTP requests and inspecting responses with zero setup. Select the HTTP method, paste your URL, add headers and a request body, and hit Send. The tool displays the status code, response headers, formatted response body, and response time. Everything runs in the browser -- your API keys and request data never touch a third-party server. Ideal for quick debugging and one-off tests.</p>
+    <p><a href="/free-tools/api-tester.html">Try NexTool API Tester</a></p>
+
+    <h3>curl</h3>
+    <p>Already installed on macOS, Linux, and Windows 10+. No downloads, no sign-ups, no GUI to learn. The syntax can be verbose, but it is universally understood. Every API's documentation includes curl examples, making it the lingua franca of API testing. Pipe the output through <code>jq</code> for readable JSON.</p>
+
+    <h3>Postman</h3>
+    <p>The most popular desktop API client. Its strength is collections -- saved groups of requests that you can share with your team, parameterize with variables, and run sequentially. The free tier covers most individual use cases. The downside is that it has grown into a heavy application with features most developers never use.</p>
+
+    <h3>Bruno</h3>
+    <p>An open-source alternative to Postman that stores collections as plain files in your project directory. This means your API tests live alongside your code and can be version-controlled with Git. No cloud sync, no accounts, no lock-in. Growing rapidly in 2026 among developers who prefer simplicity.</p>
+
+    <div class="cta-box">
+      <h3>Test Your API Right Now</h3>
+      <p>No downloads, no sign-ups. Send HTTP requests and inspect responses directly in your browser.</p>
+      <a href="/free-tools/api-tester.html" class="cta-button">Open NexTool API Tester</a>
+    </div>
+
+    <h2 id="common-mistakes">Common API Testing Mistakes to Avoid</h2>
+
+    <p>After years of building and testing APIs, these are the mistakes we see developers make most often.</p>
+
+    <h3>1. Only Testing the Happy Path</h3>
+    <p>Sending valid data and getting a 200 response is the bare minimum. If you stop there, you have tested 10% of your API's behavior. The other 90% is error handling: what happens with missing fields, wrong data types, empty strings, SQL injection payloads, oversized payloads, concurrent requests to the same resource, and expired authentication tokens.</p>
+
+    <h3>2. Ignoring Status Codes</h3>
+    <p>Checking only the response body and ignoring the status code is a recipe for silent failures. An endpoint that returns user data with a 500 status code has a bug, even if the data looks correct. Always assert on the status code first, then the body.</p>
+
+    <h3>3. Hardcoding Test Data</h3>
+    <p>Tests that create a user with <code>email: "test@test.com"</code> will fail on the second run because the email already exists. Use unique identifiers (timestamps, UUIDs, or random strings) in test data. Clean up created resources after tests run, or use a fresh database for each test suite.</p>
+
+    <h3>4. Not Testing Authentication Separately</h3>
+    <p>When an authenticated request fails, you need to know whether the problem is authentication or the endpoint logic. Test authentication in isolation first: verify that a valid token returns 200, an expired token returns 401, and a token for a different user returns 403. Once authentication is verified, you can rule it out when debugging other endpoint failures.</p>
+
+    <h3>5. Skipping Response Time Checks</h3>
+    <p>An endpoint that returns correct data in 8 seconds is functionally correct but practically broken. Include response time assertions in your tests. A simple threshold like "this endpoint must respond in under 500ms" catches performance regressions before they reach production.</p>
+
+    <h3>6. Testing Against Production</h3>
+    <p>Sending POST, PUT, and DELETE requests to production APIs creates real data, modifies real records, and can trigger real charges. Always test against a staging or sandbox environment. If the API provides a sandbox mode (most payment APIs do), use it for all non-read-only testing.</p>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Best Practice</div>
+      <p><strong>Write your tests before you write the endpoint.</strong> Define what the request should look like and what the response should contain. Then implement the endpoint to make the test pass. This is test-driven development applied to APIs, and it produces cleaner, more predictable endpoints.</p>
+    </div>
+
+    <h2 id="faq">Frequently Asked Questions</h2>
+
+    <h3>What is the easiest way to test an API endpoint?</h3>
+    <p>The easiest way is to use a browser-based tool like <a href="/free-tools/api-tester.html">NexTool API Tester</a>. Paste the endpoint URL, select the HTTP method, add any headers or body data, and click Send. The response appears instantly with the status code, headers, and formatted body. For a quick GET request, you can even paste the URL directly into your browser address bar. For command-line users, curl is the fastest option: <code>curl https://api.example.com/users</code> sends a GET request and prints the response.</p>
+
+    <h3>How do I test a POST API endpoint with JSON data?</h3>
+    <p>Using curl: <code>curl -X POST https://api.example.com/users -H "Content-Type: application/json" -d '{"name":"Alice","email":"alice@example.com"}'</code>. The <code>-X</code> flag sets the method, <code>-H</code> adds the Content-Type header, and <code>-d</code> provides the JSON body. In a browser-based tool, select POST from the method dropdown, paste your URL, add the Content-Type header, enter your JSON body, and send. Use a <a href="/free-tools/json-formatter.html">JSON formatter</a> to validate your request body before sending.</p>
+
+    <h3>What HTTP status codes should I check when testing APIs?</h3>
+    <p>The essential codes: <strong>200</strong> (OK for GET/PUT), <strong>201</strong> (Created for POST), <strong>204</strong> (No Content for DELETE), <strong>400</strong> (Bad Request -- invalid input), <strong>401</strong> (Unauthorized -- missing or bad credentials), <strong>403</strong> (Forbidden -- authenticated but not allowed), <strong>404</strong> (Not Found), <strong>422</strong> (Unprocessable Entity -- valid JSON but fails validation), and <strong>500</strong> (Internal Server Error -- a bug on the server side). Always test both success and error paths.</p>
+
+    <h3>What is the difference between manual and automated API testing?</h3>
+    <p>Manual testing means sending individual requests and inspecting the responses yourself. It is ideal for exploring APIs, debugging issues, and quick one-off checks. Automated testing uses scripts or test frameworks to run predefined test cases and assert on the results without human intervention. Automated tests run in CI/CD pipelines and catch regressions on every code change. Start with manual testing to learn the API, then automate the important paths.</p>
+
+    <h3>Is it safe to test APIs in the browser?</h3>
+    <p>Yes, if the tool sends requests directly from your browser to the API endpoint. Tools like <a href="/free-tools/api-tester.html">NexTool API Tester</a> run client-side, so your API keys and request data stay on your machine. Be cautious with tools that route requests through their own servers, as your credentials would pass through their infrastructure. You can verify this by monitoring the Network tab in your browser's developer tools.</p>
+
+    <!-- CTA Box -->
+    <div class="cta-box">
+      <h3>Explore 150+ Free Developer Tools</h3>
+      <p>API Tester is just the start. NexTool has free tools for JSON formatting, curl conversion, regex testing, encoding, hashing, and much more.</p>
+      <a href="/free-tools/" class="cta-button">Browse All Free Tools</a>
+    </div>
+
+    <!-- AUTHOR BOX -->
+    <div class="author-box">
+      <div class="author-avatar">NT</div>
+      <div class="author-info">
+        <h4>NexTool Team</h4>
+        <p>We build free, privacy-first developer tools. Our mission is to make the tools you reach for every day faster, cleaner, and more respectful of your data.</p>
+      </div>
+    </div>
+
+    <!-- RELATED ARTICLES -->
+    <div class="related-articles">
+      <h3>Related Articles</h3>
+      <div class="related-grid">
+        <a href="/blog/how-to-format-json-complete-guide.html" class="related-card">
+          <div class="related-card-cat">Developer Tools</div>
+          <h4>How to Format JSON: The Complete Guide</h4>
+          <p>Everything you need to know about formatting, validating, and beautifying JSON data with examples and free tools.</p>
+        </a>
+        <a href="/blog/data-format-conversion-guide.html" class="related-card">
+          <div class="related-card-cat">Data &amp; Development</div>
+          <h4>How to Convert Between JSON, CSV, XML, and YAML</h4>
+          <p>A practical guide to data format conversion with code examples, pitfalls, and free online tools.</p>
+        </a>
+        <a href="/blog/developer-productivity-tools-2026.html" class="related-card">
+          <div class="related-card-cat">Productivity</div>
+          <h4>Developer Productivity Tools in 2026</h4>
+          <p>The tools, workflows, and habits that top developers use to ship faster without burning out.</p>
+        </a>
+      </div>
+    </div>
+
+  </article>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="footer-brand">NexTool</div>
+      <p class="footer-brand-desc">150+ free developer tools for developers and designers. Browser-based, no signup.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Free Tools</h4>
+      <a href="/free-tools/">All 150+ Tools</a>
+      <a href="/free-tools/json-formatter.html">JSON Formatter</a>
+      <a href="/free-tools/csv-formatter.html">CSV Formatter</a>
+      <a href="/free-tools/regex-tester.html">Regex Tester</a>
+      <a href="/free-tools/image-compressor.html">Image Compressor</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+      <a href="/blog/">Blog</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="mailto:christianjunbucher@gmail.com">Email Us</a>
+      <a href="/imprint.html">Imprint</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+// TOC active state
+const tocLinks = document.querySelectorAll('.toc-list a');
+const sections = document.querySelectorAll('.article-content h2[id]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  tocLinks.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+// Mobile nav toggle
+document.querySelector('.nav-mobile-toggle')?.addEventListener('click', () => {
+  const links = document.querySelector('.nav-links');
+  links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+  links.style.flexDirection = 'column';
+  links.style.position = 'absolute';
+  links.style.top = '64px';
+  links.style.right = '1rem';
+  links.style.background = 'var(--surface)';
+  links.style.padding = '1rem';
+  links.style.borderRadius = '12px';
+  links.style.border = '1px solid var(--border)';
+});
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>

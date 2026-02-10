@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Schema Validation: A Complete Tutorial | NexTool</title>
+<meta name="description" content="Learn JSON Schema validation from scratch. Complete tutorial covering Draft 7, types, required fields, nested objects, arrays, patterns, and practical examples.">
+<meta name="keywords" content="json schema validation, json schema tutorial, validate json against schema, json schema draft 7, json schema examples, json schema required fields, json schema types, json schema patterns, json schema nested objects, json schema arrays">
+<meta name="author" content="NexTool Team">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nextool.app/blog/json-schema-validation-complete-guide.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="JSON Schema Validation: A Complete Tutorial">
+<meta property="og:description" content="Learn JSON Schema validation from scratch. Complete tutorial covering Draft 7, types, required fields, nested objects, arrays, patterns, and practical examples.">
+<meta property="og:url" content="https://nextool.app/blog/json-schema-validation-complete-guide.html">
+<meta property="og:site_name" content="NexTool">
+<meta property="article:published_time" content="2026-02-10T12:00:00Z">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="JSON Schema Validation: A Complete Tutorial">
+<meta name="twitter:description" content="Learn JSON Schema validation from scratch. Complete tutorial covering Draft 7, types, required fields, nested objects, arrays, patterns, and practical examples.">
+
+<!-- JSON-LD: Article -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "JSON Schema Validation: A Complete Tutorial",
+    "description": "Learn JSON Schema validation from scratch. Complete tutorial covering Draft 7, types, required fields, nested objects, arrays, patterns, and practical examples.",
+    "author": {"@type": "Organization", "name": "NexTool Team", "url": "https://nextool.app"},
+    "publisher": {"@type": "Organization", "name": "NexTool", "logo": {"@type": "ImageObject", "url": "https://nextool.app/images/logo.png"}},
+    "datePublished": "2026-02-10T12:00:00Z",
+    "dateModified": "2026-02-10T12:00:00Z",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "https://nextool.app/blog/json-schema-validation-complete-guide.html"},
+    "keywords": "json schema validation, json schema tutorial, validate json against schema, json schema draft 7",
+    "wordCount": 2400,
+    "articleSection": "Developer Tools"
+}
+</script>
+
+<!-- JSON-LD: BreadcrumbList -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app"},
+        {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://nextool.app/blog/"},
+        {"@type": "ListItem", "position": 3, "name": "JSON Schema Validation: A Complete Tutorial", "item": "https://nextool.app/blog/json-schema-validation-complete-guide.html"}
+    ]
+}
+</script>
+
+<!-- JSON-LD: FAQPage -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "What is JSON Schema validation?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "JSON Schema validation is the process of checking whether a JSON document conforms to a predefined structure described by a JSON Schema. The schema defines what types, properties, and constraints are allowed. A validator compares your JSON data against the schema and reports whether it passes or fails, including specific error messages for each violation. It goes beyond syntax checking by enforcing data types, required fields, value ranges, string patterns, and structural rules."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Which JSON Schema draft should I use?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "For most projects, use Draft 7 (draft-07). It is the most widely supported draft across all major programming languages and validation libraries, including ajv for JavaScript, jsonschema for Python, and gojsonschema for Go. Newer drafts like 2019-09 and 2020-12 add features such as $defs and prefixItems, but library support is less universal. If you are starting a new project and your validator supports it, Draft 2020-12 is the latest stable specification. If you need maximum compatibility, stick with Draft 7."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How do I validate JSON against a schema online?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Paste your JSON data and your JSON Schema into a browser-based validator like NexTool JSON Schema Validator. The tool runs entirely client-side in your browser, so your data never leaves your machine. It checks your JSON against the schema in real time, highlighting exactly which fields fail validation and why. This is the fastest way to test and debug schemas without installing any software."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is the difference between 'required' and 'optional' in JSON Schema?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "In JSON Schema, all properties defined inside the 'properties' keyword are optional by default. To make a property mandatory, you must list its name in the 'required' array at the same level as the 'properties' keyword. For example, if your schema has properties 'name', 'email', and 'age', and the required array is ['name', 'email'], then a JSON object must include 'name' and 'email' to pass validation, but 'age' can be omitted. A missing required field causes a validation error."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Can JSON Schema validate nested objects and arrays?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. JSON Schema handles nested structures through recursive schema definitions. For nested objects, define the inner object's schema inside the 'properties' keyword of the parent, setting its 'type' to 'object' with its own 'properties' and 'required' fields. For arrays, use 'type': 'array' with an 'items' keyword that contains the schema for each element. You can validate arrays of objects, arrays of strings, arrays with minimum and maximum lengths, and arrays where every item must be unique using 'uniqueItems': true."
+            }
+        }
+    ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050508;
+  --surface: #111118;
+  --surface-2: #1a1a24;
+  --surface-3: #222233;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --accent: #a855f7;
+  --pink: #ec4899;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --border: #1e1e2e;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--primary-hover); }
+
+/* ===== NAVBAR ===== */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(5,5,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-size: 1.4rem; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+.nav-links a { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: #fff; }
+.nav-cta {
+  background: var(--primary); color: #fff !important; padding: 0.5rem 1.2rem;
+  border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+  transition: background 0.2s, transform 0.2s;
+}
+.nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+.nav-mobile-toggle { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+/* ===== ARTICLE HERO ===== */
+.article-hero {
+  padding: 8rem 2rem 3rem;
+  max-width: 900px; margin: 0 auto; text-align: center;
+}
+.article-meta {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.article-category {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; padding: 0.3rem 0.9rem; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.article-date, .article-reading-time { color: var(--text-dim); font-size: 0.85rem; }
+.article-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; line-height: 1.15;
+  color: #fff; margin-bottom: 1.2rem;
+}
+.article-hero h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.article-subtitle { color: var(--text-muted); font-size: 1.15rem; max-width: 680px; margin: 0 auto; }
+
+/* ===== LAYOUT ===== */
+.article-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  align-items: start;
+}
+
+/* ===== TOC SIDEBAR ===== */
+.toc-sidebar {
+  position: sticky; top: 84px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+}
+.toc-title {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 0.8rem;
+}
+.toc-list { list-style: none; }
+.toc-list li { margin-bottom: 0.4rem; }
+.toc-list a {
+  color: var(--text-muted); font-size: 0.8rem; display: block;
+  padding: 0.25rem 0.5rem; border-radius: 6px; border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+.toc-list a:hover, .toc-list a.active {
+  color: var(--primary); border-left-color: var(--primary); background: rgba(99,102,241,0.06);
+}
+
+/* ===== ARTICLE CONTENT ===== */
+.article-content { max-width: 720px; }
+.article-content h2 {
+  font-size: 1.6rem; font-weight: 800; color: #fff;
+  margin: 2.5rem 0 1rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.article-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.article-content h3 {
+  font-size: 1.2rem; font-weight: 700; color: #fff; margin: 2rem 0 0.8rem;
+}
+.article-content p { margin-bottom: 1.2rem; color: var(--text); }
+.article-content ul, .article-content ol {
+  margin: 0 0 1.5rem 1.2rem; color: var(--text);
+}
+.article-content li { margin-bottom: 0.5rem; }
+.article-content strong { color: #fff; }
+.article-content blockquote {
+  border-left: 3px solid var(--primary); padding: 1rem 1.5rem;
+  background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1.5rem 0; color: var(--text-muted); font-style: italic;
+}
+.article-content code {
+  background: var(--surface-2); padding: 0.15rem 0.45rem; border-radius: 4px;
+  font-size: 0.9em; color: var(--pink);
+}
+.article-content pre {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.2rem; overflow-x: auto; margin: 1.5rem 0;
+}
+.article-content pre code { background: none; padding: 0; color: var(--text); }
+
+/* ===== KEY TAKEAWAY ===== */
+.key-takeaway {
+  background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(99,102,241,0.05));
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+}
+.key-takeaway-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--success); margin-bottom: 0.4rem;
+}
+
+/* ===== CTA BOX ===== */
+.cta-box {
+  background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.08));
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+.cta-box h3 { color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 0.6rem; }
+.cta-box p { color: var(--text-muted); margin-bottom: 1.2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+.cta-button {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; font-weight: 700; padding: 0.75rem 2rem;
+  border-radius: 10px; font-size: 0.95rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(99,102,241,0.35);
+  color: #fff;
+}
+
+/* ===== AUTHOR BOX ===== */
+.author-box {
+  display: flex; gap: 1.2rem; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem; margin: 2.5rem 0;
+}
+.author-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.author-info h4 { color: #fff; font-weight: 700; margin-bottom: 0.2rem; }
+.author-info p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+
+/* ===== RELATED ARTICLES ===== */
+.related-articles { margin: 3rem 0; }
+.related-articles h3 { color: #fff; font-weight: 800; font-size: 1.3rem; margin-bottom: 1.2rem; }
+.related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+.related-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.2rem;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.related-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.related-card-cat {
+  font-size: 0.7rem; text-transform: uppercase; font-weight: 700;
+  letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.5rem;
+}
+.related-card h4 { color: #fff; font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; line-height: 1.4; }
+.related-card p { color: var(--text-dim); font-size: 0.82rem; }
+
+/* ===== FOOTER ===== */
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 3rem 2rem 1.5rem;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+}
+.footer-col h4 {
+  color: #fff; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.footer-col a { display: block; color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.4rem; }
+.footer-col a:hover { color: var(--primary); }
+.footer-brand {
+  font-size: 1.2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+.footer-brand-desc { color: var(--text-dim); font-size: 0.82rem; line-height: 1.5; }
+.footer-bottom {
+  text-align: center; padding-top: 1.5rem;
+  border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.8rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .article-layout { grid-template-columns: 1fr; }
+  .toc-sidebar { position: static; margin-bottom: 1rem; }
+}
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .nav-mobile-toggle { display: block; }
+  .article-hero { padding: 6rem 1rem 2rem; }
+  .article-layout { padding: 0 1rem 3rem; }
+  .author-box { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">NexTool</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/free-tools/">Tools</a></li>
+    <li><a href="/free-tools/">Free Tools</a></li>
+    <li><a href="/pro.html">Pro</a></li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/pro.html" class="nav-cta">NexTool Pro</a></li>
+  </ul>
+  <button class="nav-mobile-toggle" aria-label="Menu">&#9776;</button>
+</nav>
+
+<!-- HERO -->
+<header class="article-hero">
+  <div class="article-meta">
+    <span class="article-category">Developer Tools</span>
+    <span class="article-date">February 10, 2026</span>
+    <span class="article-reading-time">14 min read</span>
+  </div>
+  <h1>JSON Schema Validation: <span>A Complete Tutorial</span></h1>
+  <p class="article-subtitle">Everything you need to know about JSON Schema: how it works, how to write schemas from scratch, and how to validate JSON data against them. Includes Draft 7 syntax, type constraints, nested objects, arrays, patterns, and working code examples.</p>
+</header>
+
+<!-- ARTICLE LAYOUT -->
+<div class="article-layout">
+
+  <!-- TOC SIDEBAR -->
+  <aside class="toc-sidebar">
+    <div class="toc-title">Table of Contents</div>
+    <ul class="toc-list">
+      <li><a href="#what-is-json-schema">What Is JSON Schema</a></li>
+      <li><a href="#draft-7-overview">Draft 7 Overview</a></li>
+      <li><a href="#basic-types">Basic Types and Constraints</a></li>
+      <li><a href="#required-fields">Required Fields</a></li>
+      <li><a href="#nested-objects">Nested Objects</a></li>
+      <li><a href="#arrays">Arrays and Tuples</a></li>
+      <li><a href="#patterns-formats">Patterns and Formats</a></li>
+      <li><a href="#composition">Schema Composition</a></li>
+      <li><a href="#validation-examples">Validation in Practice</a></li>
+      <li><a href="#common-mistakes">Common Mistakes</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </aside>
+
+  <!-- ARTICLE CONTENT -->
+  <article class="article-content">
+
+    <h2 id="what-is-json-schema">What Is JSON Schema and Why You Need It</h2>
+
+    <p>JSON Schema is a declarative language for defining the structure, content, and constraints of JSON data. Think of it as a contract: the schema describes what valid data looks like, and a validator checks whether actual data conforms to that contract.</p>
+
+    <p>Without JSON Schema, validating JSON means writing manual checks scattered across your codebase. You write <code>if (!data.name)</code> here, <code>if (typeof data.age !== 'number')</code> there, and hope you remembered every field and edge case. When the data structure changes, you hunt through your code to update every check. This approach does not scale.</p>
+
+    <p>JSON Schema solves this by centralizing your validation rules into a single, readable document. Here is a minimal example:</p>
+
+    <pre><code>{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "age": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["name"]
+}</code></pre>
+
+    <p>This schema says: the data must be an object, it may have a <code>name</code> (string) and an <code>age</code> (non-negative integer), and <code>name</code> is required. Any JSON document can be validated against this schema in milliseconds using libraries available in every major language.</p>
+
+    <p><strong>Where JSON Schema is used:</strong></p>
+    <ul>
+      <li><strong>API validation</strong> -- validate request and response bodies against a schema before processing</li>
+      <li><strong>Configuration files</strong> -- ensure config files contain the right keys and value types before the application starts</li>
+      <li><strong>Form generation</strong> -- generate UI forms automatically from a schema definition</li>
+      <li><strong>Documentation</strong> -- schemas serve as machine-readable documentation for your data models</li>
+      <li><strong>Code generation</strong> -- generate TypeScript interfaces, database models, or mock data from schemas</li>
+      <li><strong>Testing</strong> -- validate API responses in integration tests against the expected schema</li>
+    </ul>
+
+    <p>You can test any schema interactively using the <a href="/free-tools/json-schema-validator.html">NexTool JSON Schema Validator</a>, which runs entirely in your browser with instant feedback on every change.</p>
+
+    <h2 id="draft-7-overview">JSON Schema Draft 7: The Standard You Should Use</h2>
+
+    <p>JSON Schema has evolved through several drafts. The most widely supported is <strong>Draft 7</strong> (officially <code>draft-07</code>), published in 2018. Newer drafts exist (2019-09 and 2020-12), but Draft 7 has the broadest library support and the largest body of documentation, tutorials, and tooling.</p>
+
+    <h3>Why Draft 7</h3>
+    <p>Every major validation library supports Draft 7 out of the box: <code>ajv</code> (JavaScript), <code>jsonschema</code> (Python), <code>gojsonschema</code> (Go), <code>everit-org/json-schema</code> (Java), and <code>NJsonSchema</code> (.NET). If you pick Draft 7, you will never encounter a "this draft is not supported" error regardless of your tech stack.</p>
+
+    <h3>Anatomy of a Draft 7 Schema</h3>
+
+    <pre><code>{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/user.json",
+  "title": "User",
+  "description": "A registered user in the system",
+  "type": "object",
+  "properties": {
+    ...
+  },
+  "required": [...]
+}</code></pre>
+
+    <ul>
+      <li><code>$schema</code> -- declares which JSON Schema draft is used. Always include this.</li>
+      <li><code>$id</code> -- a unique identifier (URI) for this schema. Useful for referencing schemas from other schemas.</li>
+      <li><code>title</code> and <code>description</code> -- human-readable metadata. Does not affect validation, but helps documentation tooling.</li>
+      <li><code>type</code> -- the expected JSON type at the root level.</li>
+      <li><code>properties</code> -- defines the fields and their individual schemas.</li>
+      <li><code>required</code> -- an array of property names that must be present.</li>
+    </ul>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Recommendation</div>
+      <p><strong>Start with Draft 7.</strong> It covers every common validation scenario, has universal library support, and an enormous ecosystem of tutorials and tools. Move to a newer draft only when you need a specific feature it provides, such as <code>prefixItems</code> for tuple validation in Draft 2020-12.</p>
+    </div>
+
+    <h2 id="basic-types">Basic Types and Constraints</h2>
+
+    <p>JSON Schema supports seven types that map directly to JSON's data types. Each type has its own set of validation keywords.</p>
+
+    <h3>string</h3>
+    <p>Validates that the value is a string. Additional constraints include minimum and maximum length, regex patterns, and format hints.</p>
+
+    <pre><code>{
+  "type": "string",
+  "minLength": 1,
+  "maxLength": 255
+}</code></pre>
+
+    <h3>number and integer</h3>
+    <p>Both validate numeric values. <code>integer</code> rejects values with decimal points. Use <code>minimum</code>, <code>maximum</code>, <code>exclusiveMinimum</code>, and <code>exclusiveMaximum</code> to constrain the range. <code>multipleOf</code> enforces divisibility.</p>
+
+    <pre><code>{
+  "type": "integer",
+  "minimum": 1,
+  "maximum": 120,
+  "multipleOf": 1
+}</code></pre>
+
+    <h3>boolean</h3>
+    <p>Accepts only <code>true</code> or <code>false</code>. No additional constraints.</p>
+
+    <pre><code>{ "type": "boolean" }</code></pre>
+
+    <h3>null</h3>
+    <p>Accepts only <code>null</code>. Useful in combination with other types to allow nullable fields.</p>
+
+    <pre><code>{ "type": ["string", "null"] }</code></pre>
+
+    <p>Passing an array to <code>type</code> means the value can be any of the listed types. The example above accepts either a string or null.</p>
+
+    <h3>object</h3>
+    <p>Validates objects (key-value pairs). Use <code>properties</code> for field definitions, <code>required</code> for mandatory fields, <code>additionalProperties</code> to control whether unlisted keys are allowed, and <code>minProperties</code>/<code>maxProperties</code> for size constraints.</p>
+
+    <h3>array</h3>
+    <p>Validates arrays. Use <code>items</code> for the schema of each element, <code>minItems</code>/<code>maxItems</code> for length, and <code>uniqueItems</code> to forbid duplicates.</p>
+
+    <h3>enum</h3>
+    <p>While not a type itself, <code>enum</code> restricts a value to a fixed set of options. It works with any type.</p>
+
+    <pre><code>{
+  "type": "string",
+  "enum": ["active", "inactive", "suspended"]
+}</code></pre>
+
+    <h2 id="required-fields">Required Fields and Default Values</h2>
+
+    <p>A common misunderstanding is that defining a property in <code>properties</code> makes it required. It does not. In JSON Schema, <strong>all properties are optional by default</strong>. You must explicitly declare which ones are mandatory.</p>
+
+    <pre><code>{
+  "type": "object",
+  "properties": {
+    "username": { "type": "string", "minLength": 3 },
+    "email": { "type": "string", "format": "email" },
+    "bio": { "type": "string", "maxLength": 500 }
+  },
+  "required": ["username", "email"]
+}</code></pre>
+
+    <p>In this schema, <code>username</code> and <code>email</code> are required. The <code>bio</code> field can be omitted entirely without causing a validation error. But if <code>bio</code> is provided, it must be a string with at most 500 characters.</p>
+
+    <h3>Controlling Extra Properties</h3>
+    <p>By default, JSON Schema allows properties not listed in <code>properties</code>. To reject unknown fields, set <code>additionalProperties</code> to <code>false</code>.</p>
+
+    <pre><code>{
+  "type": "object",
+  "properties": {
+    "username": { "type": "string" },
+    "email": { "type": "string" }
+  },
+  "required": ["username", "email"],
+  "additionalProperties": false
+}</code></pre>
+
+    <p>Now any JSON object with a key other than <code>username</code> or <code>email</code> will fail validation. This is extremely useful for API endpoints where you want strict control over the payload shape.</p>
+
+    <h3>Default Values</h3>
+    <p>The <code>default</code> keyword declares a default value for a property. Note that <strong>most validators do not insert defaults automatically</strong> -- they just report it as metadata. If you want default-filling behavior, use a library like <code>ajv</code> with the <code>useDefaults</code> option enabled.</p>
+
+    <pre><code>{
+  "type": "object",
+  "properties": {
+    "role": { "type": "string", "default": "viewer" },
+    "active": { "type": "boolean", "default": true }
+  }
+}</code></pre>
+
+    <h2 id="nested-objects">Nested Objects</h2>
+
+    <p>Real-world data is rarely flat. Users have addresses. Orders have line items. Configurations have nested sections. JSON Schema handles nesting by composing schemas inside each other.</p>
+
+    <pre><code>{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "address": {
+      "type": "object",
+      "properties": {
+        "street": { "type": "string" },
+        "city": { "type": "string" },
+        "zip": { "type": "string", "pattern": "^[0-9]{5}$" },
+        "country": { "type": "string", "minLength": 2, "maxLength": 2 }
+      },
+      "required": ["street", "city", "country"]
+    }
+  },
+  "required": ["name", "address"]
+}</code></pre>
+
+    <p>This schema requires a <code>name</code> and an <code>address</code> object. The address itself must contain <code>street</code>, <code>city</code>, and a two-letter <code>country</code> code. The <code>zip</code> field is optional but if present must be exactly five digits.</p>
+
+    <h3>Reusing Schemas with $ref</h3>
+    <p>When the same structure appears in multiple places, use <code>$ref</code> to reference a shared definition instead of duplicating it.</p>
+
+    <pre><code>{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "address": {
+      "type": "object",
+      "properties": {
+        "street": { "type": "string" },
+        "city": { "type": "string" },
+        "country": { "type": "string" }
+      },
+      "required": ["street", "city", "country"]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "billing_address": { "$ref": "#/definitions/address" },
+    "shipping_address": { "$ref": "#/definitions/address" }
+  }
+}</code></pre>
+
+    <p>Both <code>billing_address</code> and <code>shipping_address</code> share the same schema. Change the definition once, and both references pick up the change. This keeps large schemas maintainable and free of redundancy. You can test complex nested schemas instantly with the <a href="/free-tools/json-schema-validator.html">NexTool JSON Schema Validator</a>.</p>
+
+    <h2 id="arrays">Arrays and Tuples</h2>
+
+    <p>Arrays in JSON Schema are validated using the <code>items</code> keyword. The simplest form validates that every element matches a single schema.</p>
+
+    <h3>Homogeneous Arrays</h3>
+    <pre><code>{
+  "type": "array",
+  "items": { "type": "string" },
+  "minItems": 1,
+  "maxItems": 10,
+  "uniqueItems": true
+}</code></pre>
+
+    <p>This schema requires an array of 1 to 10 unique strings. An empty array fails. An array with duplicate values fails. An array containing a number fails.</p>
+
+    <h3>Arrays of Objects</h3>
+    <p>This is the most common real-world pattern: an array where each element is an object with a defined structure.</p>
+
+    <pre><code>{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "integer" },
+      "name": { "type": "string" },
+      "email": { "type": "string", "format": "email" }
+    },
+    "required": ["id", "name"]
+  },
+  "minItems": 1
+}</code></pre>
+
+    <p>Every element in the array must be an object with at least <code>id</code> (integer) and <code>name</code> (string). The <code>email</code> field is optional per element.</p>
+
+    <h3>Tuple Validation (Fixed-Position Arrays)</h3>
+    <p>Sometimes an array has a fixed structure where each position means something different, like <code>[latitude, longitude]</code>. In Draft 7, use <code>items</code> as an array of schemas combined with <code>additionalItems</code>.</p>
+
+    <pre><code>{
+  "type": "array",
+  "items": [
+    { "type": "number", "minimum": -90, "maximum": 90 },
+    { "type": "number", "minimum": -180, "maximum": 180 }
+  ],
+  "additionalItems": false
+}</code></pre>
+
+    <p>This validates a two-element array where the first number is a latitude (-90 to 90) and the second is a longitude (-180 to 180). No additional elements are allowed.</p>
+
+    <h2 id="patterns-formats">Patterns and Formats</h2>
+
+    <p>String validation goes far beyond just checking the type. JSON Schema gives you two mechanisms for constraining string content: regex patterns and semantic formats.</p>
+
+    <h3>Regular Expression Patterns</h3>
+    <p>The <code>pattern</code> keyword validates a string against a regular expression. The regex must match somewhere in the string (it does not require a full match unless you use <code>^</code> and <code>$</code> anchors).</p>
+
+    <pre><code>{
+  "type": "object",
+  "properties": {
+    "phone": {
+      "type": "string",
+      "pattern": "^\\+[1-9][0-9]{6,14}$"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "hex_color": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$"
+    }
+  }
+}</code></pre>
+
+    <p>Patterns use ECMA-262 regular expression syntax. Remember to double-escape backslashes in JSON strings (<code>\\d</code> instead of <code>\d</code>).</p>
+
+    <h3>Built-In Formats</h3>
+    <p>The <code>format</code> keyword provides semantic validation for common string types. In Draft 7, format validation is optional by default -- validators may treat it as an annotation rather than an assertion. Libraries like <code>ajv</code> require explicit opt-in via configuration.</p>
+
+    <pre><code>{
+  "type": "object",
+  "properties": {
+    "email": { "type": "string", "format": "email" },
+    "website": { "type": "string", "format": "uri" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "birth_date": { "type": "string", "format": "date" },
+    "server_ip": { "type": "string", "format": "ipv4" },
+    "request_id": { "type": "string", "format": "uuid" }
+  }
+}</code></pre>
+
+    <p>Supported formats in Draft 7 include: <code>date-time</code>, <code>date</code>, <code>time</code>, <code>email</code>, <code>idn-email</code>, <code>hostname</code>, <code>idn-hostname</code>, <code>ipv4</code>, <code>ipv6</code>, <code>uri</code>, <code>uri-reference</code>, <code>iri</code>, <code>iri-reference</code>, <code>uri-template</code>, <code>json-pointer</code>, <code>relative-json-pointer</code>, and <code>regex</code>.</p>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Important Note</div>
+      <p><strong>Format validation is not enforced by default in most validators.</strong> In <code>ajv</code>, you need to install the <code>ajv-formats</code> plugin and add it explicitly. Without it, <code>"format": "email"</code> is treated as a hint, not a rule. Always check your validator's documentation.</p>
+    </div>
+
+    <h2 id="composition">Schema Composition: allOf, anyOf, oneOf, not</h2>
+
+    <p>JSON Schema provides four keywords for combining schemas. These let you express complex validation logic that goes beyond what individual type checks can do.</p>
+
+    <h3>allOf -- Must Match All</h3>
+    <p>The data must satisfy every schema in the array. This is commonly used to combine a base schema with additional constraints.</p>
+
+    <pre><code>{
+  "allOf": [
+    { "$ref": "#/definitions/base_user" },
+    {
+      "properties": {
+        "role": { "const": "admin" },
+        "permissions": { "type": "array", "minItems": 1 }
+      },
+      "required": ["role", "permissions"]
+    }
+  ]
+}</code></pre>
+
+    <h3>anyOf -- Must Match At Least One</h3>
+    <p>The data must satisfy at least one of the listed schemas. Useful for accepting multiple valid shapes.</p>
+
+    <pre><code>{
+  "anyOf": [
+    { "type": "string", "minLength": 1 },
+    { "type": "number", "minimum": 0 }
+  ]
+}</code></pre>
+
+    <h3>oneOf -- Must Match Exactly One</h3>
+    <p>The data must satisfy exactly one schema and fail all others. This is stricter than <code>anyOf</code> and is used for discriminated unions.</p>
+
+    <pre><code>{
+  "oneOf": [
+    {
+      "properties": { "type": { "const": "email" }, "address": { "type": "string" } },
+      "required": ["type", "address"]
+    },
+    {
+      "properties": { "type": { "const": "sms" }, "phone": { "type": "string" } },
+      "required": ["type", "phone"]
+    }
+  ]
+}</code></pre>
+
+    <h3>not -- Must Not Match</h3>
+    <p>The data must fail validation against the given schema. Useful for excluding specific values or patterns.</p>
+
+    <pre><code>{
+  "type": "string",
+  "not": { "enum": ["admin", "root", "superuser"] }
+}</code></pre>
+
+    <h2 id="validation-examples">Validation in Practice: Working Code</h2>
+
+    <p>Knowing the schema syntax is half the picture. Here is how to actually validate JSON against a schema in the languages you are most likely to use.</p>
+
+    <h3>JavaScript with ajv</h3>
+    <pre><code>import Ajv from "ajv";
+import addFormats from "ajv-formats";
+
+const ajv = new Ajv({ allErrors: true });
+addFormats(ajv);
+
+const schema = {
+  type: "object",
+  properties: {
+    name: { type: "string", minLength: 1 },
+    email: { type: "string", format: "email" },
+    age: { type: "integer", minimum: 0 }
+  },
+  required: ["name", "email"],
+  additionalProperties: false
+};
+
+const validate = ajv.compile(schema);
+
+const data = { name: "Alice", email: "alice@example.com", age: 30 };
+const valid = validate(data);
+
+if (!valid) {
+  console.log("Validation errors:", validate.errors);
+} else {
+  console.log("Data is valid");
+}</code></pre>
+
+    <h3>Python with jsonschema</h3>
+    <pre><code>from jsonschema import validate, ValidationError
+
+schema = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "email": {"type": "string", "format": "email"},
+        "age": {"type": "integer", "minimum": 0}
+    },
+    "required": ["name", "email"]
+}
+
+data = {"name": "Alice", "email": "alice@example.com", "age": 30}
+
+try:
+    validate(instance=data, schema=schema)
+    print("Data is valid")
+except ValidationError as e:
+    print(f"Validation error: {e.message}")</code></pre>
+
+    <p>For quick validation without writing code, paste your schema and data into the <a href="/free-tools/json-schema-validator.html">NexTool JSON Schema Validator</a>. For formatting your JSON before validation, use the <a href="/free-tools/json-formatter.html">JSON Formatter</a>. And for editing complex JSON structures visually, the <a href="/free-tools/json-editor.html">JSON Editor</a> lets you build valid JSON with a tree interface.</p>
+
+    <div class="cta-box">
+      <h3>Validate Your JSON Schema Now</h3>
+      <p>Paste your schema and data side by side. Get instant validation results with detailed error messages. No signup, no server uploads.</p>
+      <a href="/free-tools/json-schema-validator.html" class="cta-button">Open JSON Schema Validator</a>
+    </div>
+
+    <h2 id="common-mistakes">Common JSON Schema Mistakes</h2>
+
+    <p>After helping thousands of developers debug their schemas, these are the errors we see most often.</p>
+
+    <h3>1. Forgetting the required Array</h3>
+    <p>Defining a property in <code>properties</code> does not make it required. Without an explicit <code>required</code> array, every single property is optional. An empty object <code>{}</code> will pass validation against a schema that has properties but no required array.</p>
+
+    <h3>2. Using additionalProperties Too Aggressively with allOf</h3>
+    <p>When you use <code>allOf</code> to combine schemas, each sub-schema is evaluated independently. If one sub-schema sets <code>additionalProperties: false</code> but the other defines different properties, validation will fail because each sub-schema does not know about the other's properties. Solution: put <code>additionalProperties</code> at the top level, not inside <code>allOf</code> branches.</p>
+
+    <h3>3. Confusing pattern with Full-String Match</h3>
+    <p>The <code>pattern</code> keyword checks for a match anywhere in the string, not a full match. If you want the entire string to match, you must use <code>^</code> at the start and <code>$</code> at the end of your regex. Without anchors, <code>"pattern": "[0-9]+"</code> will match <code>"abc123xyz"</code> because it contains digits somewhere.</p>
+
+    <h3>4. Expecting format to Validate by Default</h3>
+    <p>As noted earlier, most validators treat <code>format</code> as an annotation, not an assertion. If your <code>"format": "email"</code> is not rejecting invalid emails, you need to enable format validation explicitly in your library's configuration.</p>
+
+    <h3>5. Not Using $ref for Reusable Definitions</h3>
+    <p>Duplicating the same schema in multiple places makes maintenance painful and error-prone. Use <code>definitions</code> (Draft 7) or <code>$defs</code> (Draft 2019-09+) and reference them with <code>$ref</code>. Your schemas will be shorter, clearer, and easier to update.</p>
+
+    <h2 id="faq">Frequently Asked Questions</h2>
+
+    <h3>What is JSON Schema validation?</h3>
+    <p>JSON Schema validation is the process of checking whether a JSON document conforms to a predefined structure described by a JSON Schema. The schema defines what types, properties, and constraints are allowed. A validator compares your data against the schema and reports whether it passes or fails, with specific error messages for each violation. It goes beyond syntax checking by enforcing data types, required fields, value ranges, string patterns, and structural rules.</p>
+
+    <h3>Which JSON Schema draft should I use?</h3>
+    <p>For most projects, use <strong>Draft 7</strong> (<code>draft-07</code>). It is the most widely supported draft across all major programming languages and validation libraries. Newer drafts like 2019-09 and 2020-12 add features such as <code>$defs</code> and <code>prefixItems</code>, but library support is less universal. If maximum compatibility is your priority, Draft 7 is the safest choice.</p>
+
+    <h3>How do I validate JSON against a schema online?</h3>
+    <p>Paste your JSON data and your JSON Schema into a browser-based tool like <a href="/free-tools/json-schema-validator.html">NexTool JSON Schema Validator</a>. It runs entirely in your browser, so your data never leaves your machine. You get instant validation results with detailed error messages pinpointing exactly which fields fail and why.</p>
+
+    <h3>What is the difference between required and optional in JSON Schema?</h3>
+    <p>All properties defined inside the <code>properties</code> keyword are optional by default. To make a property mandatory, list its name in the <code>required</code> array at the same level as <code>properties</code>. A JSON object missing a required field will fail validation. A missing optional field is silently ignored.</p>
+
+    <h3>Can JSON Schema validate nested objects and arrays?</h3>
+    <p>Yes. JSON Schema handles nested structures through recursive schema definitions. For nested objects, define the inner object inside the parent's <code>properties</code> with its own <code>type</code>, <code>properties</code>, and <code>required</code> fields. For arrays, use <code>"type": "array"</code> with an <code>items</code> keyword containing the element schema. You can validate arrays of objects, enforce minimum and maximum lengths, and require unique items with <code>"uniqueItems": true</code>.</p>
+
+    <!-- CTA Box -->
+    <div class="cta-box">
+      <h3>Explore 150+ Free Developer Tools</h3>
+      <p>JSON Schema Validator is one of 150+ free tools on NexTool. Format JSON, test regex, convert data, compress images, and more -- all in your browser.</p>
+      <a href="/free-tools/" class="cta-button">Browse All Free Tools</a>
+    </div>
+
+    <!-- AUTHOR BOX -->
+    <div class="author-box">
+      <div class="author-avatar">NT</div>
+      <div class="author-info">
+        <h4>NexTool Team</h4>
+        <p>We build free, privacy-first developer tools. Our mission is to make the tools you reach for every day faster, cleaner, and more respectful of your data.</p>
+      </div>
+    </div>
+
+    <!-- RELATED ARTICLES -->
+    <div class="related-articles">
+      <h3>Related Articles</h3>
+      <div class="related-grid">
+        <a href="/blog/how-to-format-json-complete-guide.html" class="related-card">
+          <div class="related-card-cat">Developer Tools</div>
+          <h4>How to Format JSON: The Complete Guide</h4>
+          <p>Everything you need to know about formatting, validating, and beautifying JSON data with code examples.</p>
+        </a>
+        <a href="/blog/best-free-json-formatter.html" class="related-card">
+          <div class="related-card-cat">Developer Tools</div>
+          <h4>Best Free JSON Formatter Online in 2026</h4>
+          <p>Side-by-side comparison of the 7 best free JSON formatters with real pros, cons, and speed tests.</p>
+        </a>
+        <a href="/blog/data-format-conversion-guide.html" class="related-card">
+          <div class="related-card-cat">Data &amp; Development</div>
+          <h4>How to Convert Between JSON, CSV, XML, and YAML</h4>
+          <p>A practical guide to data format conversion with code examples, pitfalls, and free online tools.</p>
+        </a>
+      </div>
+    </div>
+
+  </article>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="footer-brand">NexTool</div>
+      <p class="footer-brand-desc">150+ free developer tools for developers and designers. Browser-based, no signup.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Free Tools</h4>
+      <a href="/free-tools/">All 150+ Tools</a>
+      <a href="/free-tools/json-formatter.html">JSON Formatter</a>
+      <a href="/free-tools/json-schema-validator.html">JSON Schema Validator</a>
+      <a href="/free-tools/regex-tester.html">Regex Tester</a>
+      <a href="/free-tools/image-compressor.html">Image Compressor</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+      <a href="/blog/">Blog</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="mailto:christianjunbucher@gmail.com">Email Us</a>
+      <a href="/imprint.html">Imprint</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+// TOC active state
+const tocLinks = document.querySelectorAll('.toc-list a');
+const sections = document.querySelectorAll('.article-content h2[id]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  tocLinks.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+// Mobile nav toggle
+document.querySelector('.nav-mobile-toggle')?.addEventListener('click', () => {
+  const links = document.querySelector('.nav-links');
+  links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+  links.style.flexDirection = 'column';
+  links.style.position = 'absolute';
+  links.style.top = '64px';
+  links.style.right = '1rem';
+  links.style.background = 'var(--surface)';
+  links.style.padding = '1rem';
+  links.style.borderRadius = '12px';
+  links.style.border = '1px solid var(--border)';
+});
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>
