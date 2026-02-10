@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Background Remover — Remove Image Background Online | NexTool</title>
+<meta name="description" content="Remove image backgrounds instantly in your browser. Free online background remover with color picker, magic wand, tolerance control, and edge feathering. No upload needed.">
+<meta name="keywords" content="remove background from image, background remover online free, remove image background, transparent background maker, background eraser, free photo editor">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free Background Remover — Remove Image Background | NexTool">
+<meta property="og:description" content="Remove image backgrounds instantly. Color picker, magic wand, tolerance slider, edge feathering. 100% client-side, no upload.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/background-remover.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/background-remover.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Background Remover — Remove Image Background | NexTool">
+<meta name="twitter:description" content="Remove image backgrounds instantly in your browser. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Background Remover","applicationCategory":"MultimediaApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online background remover. Remove image backgrounds with color picker, magic wand, tolerance control, and edge feathering. Runs entirely in your browser."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+/* Upload zone */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:3rem 2rem;text-align:center;cursor:pointer;transition:all .3s;background:var(--glass);backdrop-filter:blur(16px);margin-bottom:1.5rem}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--primary);background:rgba(99,102,241,.06)}
+.upload-zone .upload-icon{font-size:3rem;margin-bottom:.75rem;opacity:.6}
+.upload-zone h3{font-size:1.1rem;font-weight:600;margin-bottom:.4rem}
+.upload-zone p{color:var(--text2);font-size:.85rem}
+.upload-zone input{display:none}
+/* Controls */
+.controls-bar{display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem;align-items:center}
+.ctrl-group{display:flex;align-items:center;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.4rem .75rem;font-size:.8rem}
+.ctrl-group label{color:var(--text2);font-weight:500;white-space:nowrap}
+.ctrl-group input[type="range"]{width:80px;accent-color:var(--primary);cursor:pointer}
+.ctrl-group input[type="color"]{width:28px;height:28px;border:2px solid var(--border);border-radius:6px;cursor:pointer;background:none;padding:0}
+.ctrl-group select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.3rem .5rem;border-radius:6px;font-size:.8rem;font-family:inherit;cursor:pointer}
+.ctrl-group .val{color:var(--primary);font-weight:600;min-width:24px;text-align:center}
+.btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:.35rem}
+.btn:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.btn.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.btn.primary{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.btn.primary:hover{opacity:.9;border-color:transparent}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{padding:.3rem .6rem;font-size:.75rem}
+/* Status */
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2);flex-wrap:wrap}
+.status-bar .status-info{margin-left:auto}
+/* Canvas area */
+.canvas-area{position:relative;background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;min-height:400px;display:none}
+.canvas-wrapper{position:relative;width:100%;overflow:auto;display:flex;align-items:center;justify-content:center;min-height:400px;max-height:70vh}
+/* Checkerboard background */
+.canvas-wrapper.checkerboard{background-image:linear-gradient(45deg,#1a1a24 25%,transparent 25%),linear-gradient(-45deg,#1a1a24 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1a1a24 75%),linear-gradient(-45deg,transparent 75%,#1a1a24 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+.canvas-wrapper canvas{max-width:100%;max-height:70vh;cursor:crosshair;display:block}
+/* Comparison slider */
+.comparison-container{position:relative;width:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:400px;max-height:70vh}
+.comparison-container canvas{max-width:100%;max-height:70vh;display:block}
+.comparison-slider{position:absolute;top:0;bottom:0;width:3px;background:var(--primary);cursor:ew-resize;z-index:10;box-shadow:0 0 8px rgba(99,102,241,.5)}
+.comparison-slider::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:var(--primary);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.comparison-slider::after{content:'\2194';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:16px;font-weight:700;z-index:1}
+.comparison-label{position:absolute;top:12px;padding:4px 10px;background:rgba(0,0,0,.7);color:#fff;font-size:.7rem;font-weight:600;border-radius:6px;z-index:5;pointer-events:none}
+.comparison-label.before{left:12px}
+.comparison-label.after{right:12px}
+/* Tabs for view mode */
+.view-tabs{display:flex;gap:.5rem;margin-bottom:1rem}
+/* Download panel */
+.download-panel{margin-top:1.5rem;display:none;background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem}
+.download-panel h3{font-size:.95rem;font-weight:600;margin-bottom:.75rem}
+.download-row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .controls-bar{gap:.5rem}
+  .ctrl-group{padding:.3rem .5rem;font-size:.75rem}
+  .ctrl-group input[type="range"]{width:60px}
+  .canvas-wrapper{min-height:280px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>Background Remover</span></h1>
+  <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Remove image backgrounds instantly in your browser. Use color selection, magic wand, and tolerance controls to precisely erase backgrounds. Download as transparent PNG or with a replacement color. 100% client-side, your images never leave your device.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <!-- Upload Zone -->
+  <div class="upload-zone" id="uploadZone">
+    <div class="upload-icon">&#128444;</div>
+    <h3>Drop your image here or click to upload</h3>
+    <p>Supports PNG, JPG, WebP, GIF, BMP, SVG. Max 20MB.</p>
+    <input type="file" id="fileInput" accept="image/*">
+  </div>
+
+  <!-- Controls (hidden until image loaded) -->
+  <div id="toolUI" style="display:none">
+    <!-- Mode & action buttons row -->
+    <div class="controls-bar">
+      <button class="btn active" id="btnColorMode" onclick="setMode('color')" title="Remove all pixels matching the selected color">Color Remove</button>
+      <button class="btn" id="btnWandMode" onclick="setMode('wand')" title="Magic wand: click a point to flood-fill remove connected similar pixels">Magic Wand</button>
+      <button class="btn" id="btnSampleMode" onclick="setMode('sample')" title="Click on the image to sample a background color">Eyedropper</button>
+      <span style="color:var(--border)">|</span>
+      <button class="btn" id="btnUndo" onclick="undo()" disabled title="Undo last action">&#8630; Undo</button>
+      <button class="btn" id="btnRedo" onclick="redo()" disabled title="Redo last undone action">&#8631; Redo</button>
+      <span style="color:var(--border)">|</span>
+      <button class="btn" onclick="resetImage()" title="Reset to original image">Reset</button>
+      <button class="btn" onclick="document.getElementById('fileInput').click()" title="Upload a different image">New Image</button>
+    </div>
+
+    <!-- Settings row -->
+    <div class="controls-bar">
+      <div class="ctrl-group">
+        <label>BG Color</label>
+        <input type="color" id="bgColor" value="#ffffff" title="Select the background color to remove">
+        <span class="val" id="bgColorHex">#ffffff</span>
+      </div>
+      <div class="ctrl-group">
+        <label>Tolerance</label>
+        <input type="range" id="tolerance" min="0" max="100" value="30">
+        <span class="val" id="tolVal">30</span>
+      </div>
+      <div class="ctrl-group">
+        <label>Feather</label>
+        <input type="range" id="feather" min="0" max="10" value="1" step="0.5">
+        <span class="val" id="featherVal">1</span>
+      </div>
+      <div class="ctrl-group">
+        <label>Replace</label>
+        <select id="replaceBg" onchange="onReplaceBgChange()">
+          <option value="transparent">Transparent</option>
+          <option value="#ffffff">White</option>
+          <option value="#000000">Black</option>
+          <option value="custom">Custom...</option>
+        </select>
+        <input type="color" id="replaceBgCustom" value="#6366f1" style="display:none" title="Custom replacement color">
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span id="statusText">Click on the image or use Color Remove to erase the background</span>
+      <span class="status-info" id="imgInfo"></span>
+    </div>
+
+    <!-- View toggle -->
+    <div class="view-tabs">
+      <button class="btn active" id="tabEdit" onclick="setView('edit')">Edit</button>
+      <button class="btn" id="tabCompare" onclick="setView('compare')">Before / After</button>
+    </div>
+
+    <!-- Canvas area -->
+    <div class="canvas-area" id="canvasArea">
+      <!-- Edit view -->
+      <div class="canvas-wrapper checkerboard" id="editView">
+        <canvas id="mainCanvas"></canvas>
+      </div>
+      <!-- Comparison view -->
+      <div class="comparison-container" id="compareView" style="display:none">
+        <canvas id="compareCanvas"></canvas>
+        <span class="comparison-label before">Before</span>
+        <span class="comparison-label after">After</span>
+        <div class="comparison-slider" id="compSlider"></div>
+      </div>
+    </div>
+
+    <!-- Apply button for color mode -->
+    <div style="margin-top:1rem;text-align:center" id="applyRow">
+      <button class="btn primary" onclick="applyColorRemove()" id="btnApply" style="padding:.6rem 2rem;font-size:.9rem">Remove Background Color</button>
+    </div>
+
+    <!-- Download panel -->
+    <div class="download-panel" id="downloadPanel">
+      <h3>Download Result</h3>
+      <div class="download-row">
+        <button class="btn primary" onclick="downloadPNG()">Download PNG (Transparent)</button>
+        <button class="btn" onclick="downloadJPG()">Download JPG</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== STATE ===== */
+let originalImage = null;   // original HTMLImageElement
+let originalData = null;    // original ImageData copy
+let currentData = null;     // current ImageData on canvas
+let undoStack = [];
+let redoStack = [];
+const MAX_UNDO = 30;
+let mode = 'color'; // color | wand | sample
+let currentView = 'edit';
+let compSliderX = 0.5;
+
+const mainCanvas = document.getElementById('mainCanvas');
+const ctx = mainCanvas.getContext('2d', { willReadFrequently: true });
+const compareCanvas = document.getElementById('compareCanvas');
+const ctxComp = compareCanvas.getContext('2d', { willReadFrequently: true });
+
+/* ===== FILE UPLOAD ===== */
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  if (e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files.length) loadFile(fileInput.files[0]); });
+
+function loadFile(file) {
+  if (!file.type.startsWith('image/')) { showToast('Please select an image file'); return; }
+  if (file.size > 20 * 1024 * 1024) { showToast('File too large (max 20MB)'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => initImage(img);
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function initImage(img) {
+  originalImage = img;
+  mainCanvas.width = img.width;
+  mainCanvas.height = img.height;
+  ctx.drawImage(img, 0, 0);
+  originalData = ctx.getImageData(0, 0, img.width, img.height);
+  currentData = ctx.getImageData(0, 0, img.width, img.height);
+  undoStack = [];
+  redoStack = [];
+  updateUndoButtons();
+
+  uploadZone.style.display = 'none';
+  document.getElementById('toolUI').style.display = '';
+  document.getElementById('canvasArea').style.display = '';
+  document.getElementById('downloadPanel').style.display = '';
+  document.getElementById('imgInfo').textContent = img.width + ' x ' + img.height + 'px';
+  document.getElementById('statusText').textContent = 'Image loaded. Select mode and click on the image or apply color remove.';
+  setView('edit');
+}
+
+/* ===== MODE SWITCHING ===== */
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnColorMode').classList.toggle('active', m === 'color');
+  document.getElementById('btnWandMode').classList.toggle('active', m === 'wand');
+  document.getElementById('btnSampleMode').classList.toggle('active', m === 'sample');
+  document.getElementById('applyRow').style.display = m === 'color' ? '' : 'none';
+  const hints = {
+    color: 'Adjust color + tolerance, then click "Remove Background Color" to erase matching pixels.',
+    wand: 'Click on the image to flood-fill remove connected similar-colored pixels.',
+    sample: 'Click on the image to pick a color, then switch to Color Remove or Magic Wand.'
+  };
+  document.getElementById('statusText').textContent = hints[m];
+  mainCanvas.style.cursor = m === 'sample' ? 'copy' : 'crosshair';
+}
+
+/* ===== VIEW SWITCHING ===== */
+function setView(v) {
+  currentView = v;
+  document.getElementById('tabEdit').classList.toggle('active', v === 'edit');
+  document.getElementById('tabCompare').classList.toggle('active', v === 'compare');
+  document.getElementById('editView').style.display = v === 'edit' ? '' : 'none';
+  document.getElementById('compareView').style.display = v === 'compare' ? '' : 'none';
+  if (v === 'compare') drawComparison();
+}
+
+/* ===== CONTROLS ===== */
+document.getElementById('bgColor').addEventListener('input', e => {
+  document.getElementById('bgColorHex').textContent = e.target.value;
+});
+document.getElementById('tolerance').addEventListener('input', e => {
+  document.getElementById('tolVal').textContent = e.target.value;
+});
+document.getElementById('feather').addEventListener('input', e => {
+  document.getElementById('featherVal').textContent = e.target.value;
+});
+
+function onReplaceBgChange() {
+  const sel = document.getElementById('replaceBg');
+  document.getElementById('replaceBgCustom').style.display = sel.value === 'custom' ? '' : 'none';
+}
+
+function getReplaceBgColor() {
+  const sel = document.getElementById('replaceBg').value;
+  if (sel === 'transparent') return null;
+  if (sel === 'custom') return hexToRgb(document.getElementById('replaceBgCustom').value);
+  return hexToRgb(sel);
+}
+
+/* ===== COLOR HELPERS ===== */
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return { r, g, b };
+}
+
+function colorDistance(r1, g1, b1, r2, g2, b2) {
+  return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+}
+
+/* Max possible distance is sqrt(3*255^2) ~ 441.67 */
+const MAX_DIST = Math.sqrt(3 * 255 * 255);
+
+/* ===== CANVAS CLICK HANDLER ===== */
+mainCanvas.addEventListener('click', e => {
+  if (!currentData) return;
+  const rect = mainCanvas.getBoundingClientRect();
+  const scaleX = mainCanvas.width / rect.width;
+  const scaleY = mainCanvas.height / rect.height;
+  const x = Math.floor((e.clientX - rect.left) * scaleX);
+  const y = Math.floor((e.clientY - rect.top) * scaleY);
+  if (x < 0 || y < 0 || x >= mainCanvas.width || y >= mainCanvas.height) return;
+
+  const idx = (y * mainCanvas.width + x) * 4;
+  const pr = currentData.data[idx];
+  const pg = currentData.data[idx + 1];
+  const pb = currentData.data[idx + 2];
+
+  if (mode === 'sample') {
+    const hex = '#' + [pr, pg, pb].map(c => c.toString(16).padStart(2, '0')).join('');
+    document.getElementById('bgColor').value = hex;
+    document.getElementById('bgColorHex').textContent = hex;
+    showToast('Sampled color: ' + hex);
+    document.getElementById('statusText').textContent = 'Color sampled: ' + hex + '. Switch to Color Remove or Magic Wand to erase.';
+  } else if (mode === 'wand') {
+    pushUndo();
+    magicWandRemove(x, y);
+    showToast('Magic wand applied');
+  }
+});
+
+/* ===== COLOR REMOVE (GLOBAL) ===== */
+function applyColorRemove() {
+  if (!currentData) return;
+  pushUndo();
+
+  const bgHex = document.getElementById('bgColor').value;
+  const bg = hexToRgb(bgHex);
+  const tol = parseInt(document.getElementById('tolerance').value);
+  const feather = parseFloat(document.getElementById('feather').value);
+  const tolDist = (tol / 100) * MAX_DIST;
+  const featherDist = (feather / 10) * MAX_DIST * 0.15;
+  const replaceBg = getReplaceBgColor();
+
+  const data = currentData.data;
+  const w = mainCanvas.width;
+  const h = mainCanvas.height;
+
+  /* Build alpha mask first */
+  const mask = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    const off = i * 4;
+    const dist = colorDistance(data[off], data[off + 1], data[off + 2], bg.r, bg.g, bg.b);
+    if (dist <= tolDist) {
+      mask[i] = 0; // fully transparent
+    } else if (featherDist > 0 && dist <= tolDist + featherDist) {
+      mask[i] = (dist - tolDist) / featherDist; // feathered
+    } else {
+      mask[i] = 1; // fully opaque
+    }
+  }
+
+  applyMaskToData(data, mask, w, h, replaceBg);
+
+  ctx.putImageData(currentData, 0, 0);
+  document.getElementById('statusText').textContent = 'Background removed. Adjust and re-apply, or download the result.';
+  showToast('Background removed');
+  if (currentView === 'compare') drawComparison();
+}
+
+/* ===== MAGIC WAND (FLOOD FILL) ===== */
+function magicWandRemove(startX, startY) {
+  const data = currentData.data;
+  const w = mainCanvas.width;
+  const h = mainCanvas.height;
+  const tol = parseInt(document.getElementById('tolerance').value);
+  const feather = parseFloat(document.getElementById('feather').value);
+  const tolDist = (tol / 100) * MAX_DIST;
+  const featherDist = (feather / 10) * MAX_DIST * 0.15;
+  const replaceBg = getReplaceBgColor();
+
+  const startIdx = (startY * w + startX) * 4;
+  const sr = data[startIdx], sg = data[startIdx + 1], sb = data[startIdx + 2];
+
+  const visited = new Uint8Array(w * h);
+  const mask = new Float32Array(w * h);
+  mask.fill(1); // default opaque
+
+  const stack = [[startX, startY]];
+  visited[startY * w + startX] = 1;
+
+  while (stack.length > 0) {
+    const [cx, cy] = stack.pop();
+    const ci = cy * w + cx;
+    const off = ci * 4;
+    const dist = colorDistance(data[off], data[off + 1], data[off + 2], sr, sg, sb);
+
+    if (dist <= tolDist) {
+      mask[ci] = 0;
+      // Expand to neighbors
+      const neighbors = [[cx-1,cy],[cx+1,cy],[cx,cy-1],[cx,cy+1]];
+      for (const [nx, ny] of neighbors) {
+        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+          const ni = ny * w + nx;
+          if (!visited[ni]) {
+            visited[ni] = 1;
+            stack.push([nx, ny]);
+          }
+        }
+      }
+    } else if (featherDist > 0 && dist <= tolDist + featherDist) {
+      mask[ci] = Math.min(mask[ci], (dist - tolDist) / featherDist);
+    }
+  }
+
+  applyMaskToData(data, mask, w, h, replaceBg);
+
+  ctx.putImageData(currentData, 0, 0);
+  document.getElementById('statusText').textContent = 'Magic wand applied. Click again or switch modes.';
+  if (currentView === 'compare') drawComparison();
+}
+
+/* ===== APPLY MASK ===== */
+function applyMaskToData(data, mask, w, h, replaceBg) {
+  for (let i = 0; i < w * h; i++) {
+    const off = i * 4;
+    const alpha = mask[i];
+    if (alpha >= 1) continue;
+    if (replaceBg) {
+      // Blend toward replacement color
+      const keep = alpha;
+      const remove = 1 - alpha;
+      data[off] = Math.round(data[off] * keep + replaceBg.r * remove);
+      data[off + 1] = Math.round(data[off + 1] * keep + replaceBg.g * remove);
+      data[off + 2] = Math.round(data[off + 2] * keep + replaceBg.b * remove);
+      data[off + 3] = 255;
+    } else {
+      // Transparent: multiply existing alpha by mask
+      data[off + 3] = Math.round(data[off + 3] * alpha);
+    }
+  }
+}
+
+/* ===== UNDO / REDO ===== */
+function pushUndo() {
+  const copy = new ImageData(new Uint8ClampedArray(currentData.data), currentData.width, currentData.height);
+  undoStack.push(copy);
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  redoStack = [];
+  updateUndoButtons();
+}
+
+function undo() {
+  if (!undoStack.length) return;
+  const prev = undoStack.pop();
+  redoStack.push(new ImageData(new Uint8ClampedArray(currentData.data), currentData.width, currentData.height));
+  currentData = prev;
+  ctx.putImageData(currentData, 0, 0);
+  updateUndoButtons();
+  showToast('Undo');
+  if (currentView === 'compare') drawComparison();
+}
+
+function redo() {
+  if (!redoStack.length) return;
+  const next = redoStack.pop();
+  undoStack.push(new ImageData(new Uint8ClampedArray(currentData.data), currentData.width, currentData.height));
+  currentData = next;
+  ctx.putImageData(currentData, 0, 0);
+  updateUndoButtons();
+  showToast('Redo');
+  if (currentView === 'compare') drawComparison();
+}
+
+function updateUndoButtons() {
+  document.getElementById('btnUndo').disabled = !undoStack.length;
+  document.getElementById('btnRedo').disabled = !redoStack.length;
+}
+
+function resetImage() {
+  if (!originalData) return;
+  pushUndo();
+  currentData = new ImageData(new Uint8ClampedArray(originalData.data), originalData.width, originalData.height);
+  ctx.putImageData(currentData, 0, 0);
+  showToast('Reset to original');
+  document.getElementById('statusText').textContent = 'Image reset to original.';
+  if (currentView === 'compare') drawComparison();
+}
+
+/* ===== COMPARISON SLIDER ===== */
+function drawComparison() {
+  if (!originalData || !currentData) return;
+  const w = originalData.width;
+  const h = originalData.height;
+  compareCanvas.width = w;
+  compareCanvas.height = h;
+
+  const splitX = Math.round(w * compSliderX);
+
+  // Draw checkerboard for transparency behind the "after" side
+  const checkSize = 10;
+  for (let cy = 0; cy < h; cy += checkSize) {
+    for (let cx = splitX; cx < w; cx += checkSize) {
+      const isLight = ((Math.floor(cx / checkSize) + Math.floor(cy / checkSize)) % 2 === 0);
+      ctxComp.fillStyle = isLight ? '#2a2a3a' : '#1a1a24';
+      ctxComp.fillRect(cx, cy, checkSize, checkSize);
+    }
+  }
+
+  // Draw original on left
+  const origTmp = new ImageData(new Uint8ClampedArray(originalData.data), w, h);
+  ctxComp.putImageData(origTmp, 0, 0, 0, 0, splitX, h);
+
+  // Draw current on right (over checkerboard)
+  const curTmp = document.createElement('canvas');
+  curTmp.width = w; curTmp.height = h;
+  curTmp.getContext('2d').putImageData(currentData, 0, 0);
+  ctxComp.drawImage(curTmp, splitX, 0, w - splitX, h, splitX, 0, w - splitX, h);
+
+  // Position slider
+  const container = document.getElementById('compareView');
+  const slider = document.getElementById('compSlider');
+  const canvasRect = compareCanvas.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  const offsetLeft = canvasRect.left - containerRect.left;
+  slider.style.left = (offsetLeft + canvasRect.width * compSliderX) + 'px';
+}
+
+// Slider drag
+(function() {
+  const slider = document.getElementById('compSlider');
+  const container = document.getElementById('compareView');
+  let dragging = false;
+
+  function onMove(clientX) {
+    const canvasRect = compareCanvas.getBoundingClientRect();
+    let x = (clientX - canvasRect.left) / canvasRect.width;
+    x = Math.max(0.02, Math.min(0.98, x));
+    compSliderX = x;
+    drawComparison();
+  }
+
+  slider.addEventListener('mousedown', e => { e.preventDefault(); dragging = true; });
+  slider.addEventListener('touchstart', e => { e.preventDefault(); dragging = true; }, { passive: false });
+  window.addEventListener('mousemove', e => { if (dragging) onMove(e.clientX); });
+  window.addEventListener('touchmove', e => { if (dragging) onMove(e.touches[0].clientX); }, { passive: false });
+  window.addEventListener('mouseup', () => dragging = false);
+  window.addEventListener('touchend', () => dragging = false);
+
+  // Also allow clicking on the comparison canvas to move slider
+  container.addEventListener('click', e => {
+    if (e.target === slider) return;
+    onMove(e.clientX);
+  });
+})();
+
+/* ===== DOWNLOAD ===== */
+function downloadPNG() {
+  if (!currentData) return;
+  const link = document.createElement('a');
+  link.download = 'background-removed.png';
+  link.href = mainCanvas.toDataURL('image/png');
+  link.click();
+  showToast('Downloaded PNG');
+}
+
+function downloadJPG() {
+  if (!currentData) return;
+  // JPG does not support transparency, so composite onto replacement or white
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = mainCanvas.width;
+  tmpCanvas.height = mainCanvas.height;
+  const tmpCtx = tmpCanvas.getContext('2d');
+  const bg = getReplaceBgColor();
+  if (bg) {
+    tmpCtx.fillStyle = 'rgb(' + bg.r + ',' + bg.g + ',' + bg.b + ')';
+  } else {
+    tmpCtx.fillStyle = '#ffffff';
+  }
+  tmpCtx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+  tmpCtx.drawImage(mainCanvas, 0, 0);
+  const link = document.createElement('a');
+  link.download = 'background-removed.jpg';
+  link.href = tmpCanvas.toDataURL('image/jpeg', 0.92);
+  link.click();
+  showToast('Downloaded JPG');
+}
+
+/* ===== TOAST ===== */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ===== FADE IN ===== */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does this background remover work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NexTool's Background Remover uses client-side Canvas API image processing. You select a background color (or click to sample it), adjust the tolerance to control how similar colors must be, and the tool removes matching pixels. Magic Wand mode uses flood-fill to remove only connected regions of similar color."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this background remover free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, it is completely free. No signup, no upload limits, and no watermarks. Your images are processed entirely in your browser and never sent to any server."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I download the result as a transparent PNG?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Click Download PNG to save your image with a transparent background. You can also download as JPG with a white, black, or custom-colored background fill."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What image formats are supported?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The tool supports PNG, JPG, WebP, GIF, BMP, and SVG images up to 20MB. For best results with background removal, use high-contrast images where the background color is distinct from the subject."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
