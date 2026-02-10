@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free .env File Editor — Parse, Edit & Convert Env Files | NexTool</title>
+<meta name="description" content="Free online .env file editor. Parse, edit, validate environment variables with a visual UI. Convert between .env, JSON, YAML, Docker formats. 100% client-side.">
+<meta name="keywords" content="env file editor, dotenv editor, environment variables editor, env to json, env to yaml, env validator, docker env, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free .env File Editor — Parse & Convert | NexTool">
+<meta property="og:description" content="Parse, edit, and convert .env files visually. Supports JSON, YAML, Docker env formats. Mask sensitive values. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/env-file-editor.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/env-file-editor.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free .env File Editor — Parse & Convert | NexTool">
+<meta name="twitter:description" content="Parse, edit, and convert .env files visually. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool .env File Editor","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online .env file editor to parse, edit, validate, and convert environment variables between .env, JSON, YAML, and Docker formats."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar select{appearance:none;padding-right:1.8rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.valid{background:var(--green)}
+.status-dot.invalid{background:var(--red)}
+.status-dot.empty{background:var(--border)}
+/* PANELS */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:500px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto}
+#envInput{width:100%;height:100%;min-height:400px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:none;outline:none;line-height:1.7;tab-size:2}
+#envInput::placeholder{color:var(--text2);opacity:.5}
+/* TABLE VIEW */
+.env-table{width:100%;border-collapse:collapse}
+.env-table th{text-align:left;padding:.6rem .8rem;color:var(--text2);font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);background:rgba(26,26,36,0.3);position:sticky;top:0;z-index:2}
+.env-table td{padding:.4rem .5rem;border-bottom:1px solid rgba(42,42,58,.5);vertical-align:middle}
+.env-table tr:hover td{background:rgba(99,102,241,.04)}
+.env-table .row-actions{display:flex;gap:.3rem;opacity:.4;transition:opacity .2s}
+.env-table tr:hover .row-actions{opacity:1}
+.env-row-key,.env-row-val{background:transparent;border:1px solid transparent;color:var(--text);font-family:'Courier New',monospace;font-size:.82rem;padding:.35rem .5rem;border-radius:6px;width:100%;outline:none;transition:border-color .2s}
+.env-row-key:focus,.env-row-val:focus{border-color:var(--primary);background:rgba(99,102,241,.06)}
+.env-row-key{color:#c084fc;font-weight:600}
+.env-row-val{color:#4ade80}
+.env-row-val.masked{color:var(--text2);-webkit-text-security:disc;text-security:disc}
+.env-row-comment{color:var(--text2);font-style:italic;font-size:.8rem;padding:.4rem .8rem}
+.env-row-empty{height:8px}
+.icon-btn{background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;border-radius:4px;font-size:.85rem;transition:all .15s;display:flex;align-items:center;justify-content:center;width:26px;height:26px}
+.icon-btn:hover{color:var(--text);background:rgba(99,102,241,.12)}
+.icon-btn.del:hover{color:var(--red);background:rgba(239,68,68,.12)}
+/* ADD ROW */
+.add-row-bar{padding:.6rem .8rem;border-top:1px solid var(--border);display:flex;gap:.5rem;align-items:center;background:rgba(26,26,36,0.3)}
+.add-row-bar input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Courier New',monospace;font-size:.82rem;padding:.35rem .5rem;border-radius:6px;outline:none;flex:1;transition:border-color .2s}
+.add-row-bar input:focus{border-color:var(--primary)}
+.add-row-bar button{background:linear-gradient(135deg,var(--primary),var(--accent));border:none;color:#fff;padding:.4rem .8rem;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+.add-row-bar button:hover{opacity:.85}
+/* VALIDATION */
+.validation-list{padding:.8rem 1rem;font-size:.82rem}
+.val-item{padding:.35rem .6rem;margin-bottom:.3rem;border-radius:6px;display:flex;align-items:flex-start;gap:.5rem}
+.val-item.error{background:rgba(239,68,68,.08);color:var(--red)}
+.val-item.warn{background:rgba(234,179,8,.08);color:var(--yellow)}
+.val-item.ok{background:rgba(34,197,94,.08);color:var(--green)}
+.val-line{font-weight:600;white-space:nowrap;font-size:.75rem}
+/* OUTPUT */
+.output-area{padding:1rem;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.7;white-space:pre-wrap;word-break:break-all;min-height:300px;color:var(--text)}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* TAB SWITCH */
+.tab-bar{display:flex;gap:2px;background:var(--surface);border-radius:8px;padding:2px;margin-bottom:1rem}
+.tab-bar button{flex:1;background:transparent;border:none;color:var(--text2);padding:.45rem .6rem;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.tab-bar button.active{background:var(--primary);color:#fff}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro &mdash; $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>.env File Editor</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">NexTool's .env File Editor lets you parse, edit, validate, and convert environment variable files with a clean visual interface. Add, remove, sort, and mask sensitive values. Export to .env, JSON, YAML, or Docker env format. 100% client-side &mdash; your secrets never leave your browser.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button onclick="parseEnv()" title="Parse .env input into table">Parse</button>
+    <button onclick="sortKeys()" title="Sort keys A-Z">Sort A-Z</button>
+    <button onclick="toggleMask()" id="maskBtn" title="Mask/reveal all values">Mask Values</button>
+    <button onclick="validateEnv()" title="Validate .env syntax">Validate</button>
+    <button onclick="copyOutput()" title="Copy output to clipboard">Copy</button>
+    <button onclick="downloadOutput()" title="Download output file">Download</button>
+    <select id="formatSelect" onchange="updateOutput()">
+      <option value="env">.env</option>
+      <option value="json">JSON</option>
+      <option value="yaml">YAML</option>
+      <option value="docker">Docker --env-file</option>
+      <option value="shell">Shell export</option>
+    </select>
+    <button onclick="clearAll()" title="Clear all data">Clear</button>
+    <button onclick="loadSample()" title="Load sample .env">Sample</button>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Paste or type your .env content to begin</span>
+    <span id="varCount" style="margin-left:auto"></span>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-header">
+        <span>Input (.env)</span>
+        <span id="lineCount"></span>
+      </div>
+      <div class="panel-body">
+        <textarea id="envInput" placeholder='Paste your .env file here...
+
+Example:
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=admin
+DB_PASS=s3cr3t
+
+# App
+APP_NAME=MyApp
+APP_ENV=production
+DEBUG=false' spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div class="panel" style="display:flex;flex-direction:column">
+      <div class="panel-header">
+        <div class="tab-bar" style="margin:0;background:transparent;padding:0;gap:4px">
+          <button class="active" onclick="switchTab('table',this)" style="padding:.3rem .7rem;flex:none">Table</button>
+          <button onclick="switchTab('output',this)" style="padding:.3rem .7rem;flex:none">Export</button>
+          <button onclick="switchTab('validation',this)" style="padding:.3rem .7rem;flex:none">Validate</button>
+        </div>
+        <span id="outputInfo"></span>
+      </div>
+      <div class="panel-body" id="rightPanel">
+        <div id="tableView">
+          <table class="env-table">
+            <thead><tr><th style="width:35%">Key</th><th style="width:45%">Value</th><th style="width:20%">Actions</th></tr></thead>
+            <tbody id="envTableBody"></tbody>
+          </table>
+        </div>
+        <div id="outputView" style="display:none">
+          <div class="output-area" id="formattedOutput"></div>
+        </div>
+        <div id="validationView" style="display:none">
+          <div class="validation-list" id="validationOutput"></div>
+        </div>
+      </div>
+      <div class="add-row-bar">
+        <input type="text" id="newKey" placeholder="KEY_NAME" style="flex:.8" onkeydown="if(event.key==='Enter')addVariable()">
+        <input type="text" id="newVal" placeholder="value" style="flex:1.2" onkeydown="if(event.key==='Enter')addVariable()">
+        <button onclick="addVariable()">+ Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 &mdash; Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro &mdash; $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const envInput = document.getElementById('envInput');
+const envTableBody = document.getElementById('envTableBody');
+const formattedOutput = document.getElementById('formattedOutput');
+const validationOutput = document.getElementById('validationOutput');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const varCount = document.getElementById('varCount');
+const lineCount = document.getElementById('lineCount');
+const outputInfo = document.getElementById('outputInfo');
+const maskBtn = document.getElementById('maskBtn');
+
+let envData = []; // Array of {type:'var'|'comment'|'empty', key:'', value:'', raw:'', line:0}
+let isMasked = false;
+let currentTab = 'table';
+
+envInput.addEventListener('input', debounce(autoProcess, 400));
+envInput.addEventListener('input', updateLineCount);
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function updateLineCount() {
+  const lines = envInput.value.split('\n').length;
+  lineCount.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+
+function autoProcess() {
+  const raw = envInput.value.trim();
+  if (!raw) {
+    envData = [];
+    renderTable();
+    statusDot.className = 'status-dot empty';
+    statusText.textContent = 'Paste or type your .env content to begin';
+    varCount.textContent = '';
+    outputInfo.textContent = '';
+    return;
+  }
+  parseEnv();
+}
+
+function parseEnv() {
+  const raw = envInput.value;
+  const lines = raw.split('\n');
+  envData = [];
+  let hasError = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (trimmed === '') {
+      envData.push({ type: 'empty', key: '', value: '', raw: line, line: i + 1 });
+      continue;
+    }
+
+    if (trimmed.startsWith('#')) {
+      envData.push({ type: 'comment', key: '', value: '', raw: trimmed, line: i + 1 });
+      continue;
+    }
+
+    const eqIndex = trimmed.indexOf('=');
+    if (eqIndex === -1) {
+      envData.push({ type: 'invalid', key: trimmed, value: '', raw: line, line: i + 1 });
+      hasError = true;
+      continue;
+    }
+
+    const key = trimmed.substring(0, eqIndex).trim();
+    let value = trimmed.substring(eqIndex + 1);
+
+    // Handle quoted values
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+
+    // Validate key: should be alphanumeric + underscores, start with letter or underscore
+    const validKey = /^[A-Za-z_][A-Za-z0-9_]*$/.test(key);
+    if (!validKey) {
+      hasError = true;
+    }
+
+    envData.push({ type: 'var', key: key, value: value, raw: line, line: i + 1, validKey: validKey });
+  }
+
+  const vars = envData.filter(e => e.type === 'var');
+  statusDot.className = hasError ? 'status-dot invalid' : 'status-dot valid';
+  statusText.textContent = hasError ? 'Parsed with warnings' : 'Valid .env file';
+  varCount.textContent = vars.length + ' variable' + (vars.length !== 1 ? 's' : '');
+
+  renderTable();
+  updateOutput();
+}
+
+function renderTable() {
+  envTableBody.innerHTML = '';
+
+  if (envData.length === 0) {
+    envTableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text2);padding:2rem;font-size:.85rem">No variables yet. Paste .env content or add variables below.</td></tr>';
+    return;
+  }
+
+  envData.forEach((item, idx) => {
+    const tr = document.createElement('tr');
+
+    if (item.type === 'empty') {
+      tr.innerHTML = '<td colspan="3" class="env-row-empty"></td>';
+      envTableBody.appendChild(tr);
+      return;
+    }
+
+    if (item.type === 'comment') {
+      tr.innerHTML = '<td colspan="3" class="env-row-comment">' + escapeHtml(item.raw) + '</td>';
+      envTableBody.appendChild(tr);
+      return;
+    }
+
+    if (item.type === 'invalid') {
+      tr.innerHTML = '<td colspan="2" style="color:var(--red);font-size:.82rem;padding:.5rem .8rem;font-family:monospace">Invalid: ' + escapeHtml(item.raw) + '</td><td><div class="row-actions"><button class="icon-btn del" onclick="deleteRow(' + idx + ')" title="Delete">&#10005;</button></div></td>';
+      envTableBody.appendChild(tr);
+      return;
+    }
+
+    const keyStyle = item.validKey === false ? 'border-color:var(--red)' : '';
+
+    tr.innerHTML =
+      '<td><input class="env-row-key" value="' + escapeAttr(item.key) + '" data-idx="' + idx + '" data-field="key" onchange="updateField(this)" style="' + keyStyle + '"></td>' +
+      '<td><input class="env-row-val' + (isMasked ? ' masked' : '') + '" value="' + escapeAttr(item.value) + '" data-idx="' + idx + '" data-field="value" onchange="updateField(this)" type="text"></td>' +
+      '<td><div class="row-actions">' +
+        '<button class="icon-btn" onclick="toggleRowMask(this)" title="Toggle visibility">&#128065;</button>' +
+        '<button class="icon-btn" onclick="duplicateRow(' + idx + ')" title="Duplicate">&#10697;</button>' +
+        '<button class="icon-btn" onclick="moveRow(' + idx + ',-1)" title="Move up">&#9650;</button>' +
+        '<button class="icon-btn" onclick="moveRow(' + idx + ',1)" title="Move down">&#9660;</button>' +
+        '<button class="icon-btn del" onclick="deleteRow(' + idx + ')" title="Delete">&#10005;</button>' +
+      '</div></td>';
+
+    envTableBody.appendChild(tr);
+  });
+
+  outputInfo.textContent = envData.filter(e => e.type === 'var').length + ' vars';
+}
+
+function updateField(el) {
+  const idx = parseInt(el.dataset.idx);
+  const field = el.dataset.field;
+  if (envData[idx]) {
+    envData[idx][field] = el.value;
+    syncInputFromData();
+    updateOutput();
+  }
+}
+
+function deleteRow(idx) {
+  envData.splice(idx, 1);
+  renderTable();
+  syncInputFromData();
+  updateOutput();
+  updateStatus();
+}
+
+function duplicateRow(idx) {
+  if (envData[idx]) {
+    const copy = Object.assign({}, envData[idx]);
+    copy.key = copy.key + '_COPY';
+    envData.splice(idx + 1, 0, copy);
+    renderTable();
+    syncInputFromData();
+    updateOutput();
+  }
+}
+
+function moveRow(idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= envData.length) return;
+  const temp = envData[idx];
+  envData[idx] = envData[newIdx];
+  envData[newIdx] = temp;
+  renderTable();
+  syncInputFromData();
+  updateOutput();
+}
+
+function addVariable() {
+  const keyInput = document.getElementById('newKey');
+  const valInput = document.getElementById('newVal');
+  const key = keyInput.value.trim();
+  const value = valInput.value;
+
+  if (!key) { showToast('Enter a key name'); return; }
+
+  const validKey = /^[A-Za-z_][A-Za-z0-9_]*$/.test(key);
+  envData.push({ type: 'var', key: key, value: value, raw: key + '=' + value, line: envData.length + 1, validKey: validKey });
+
+  keyInput.value = '';
+  valInput.value = '';
+  keyInput.focus();
+
+  renderTable();
+  syncInputFromData();
+  updateOutput();
+  updateStatus();
+  showToast('Added ' + key);
+}
+
+function sortKeys() {
+  const comments = [];
+  const vars = [];
+  envData.forEach(item => {
+    if (item.type === 'var') vars.push(item);
+    else if (item.type === 'comment') comments.push(item);
+  });
+
+  vars.sort((a, b) => a.key.localeCompare(b.key));
+  envData = [...comments, { type: 'empty', key: '', value: '', raw: '' }, ...vars];
+
+  renderTable();
+  syncInputFromData();
+  updateOutput();
+  showToast('Sorted alphabetically');
+}
+
+function toggleMask() {
+  isMasked = !isMasked;
+  maskBtn.classList.toggle('active', isMasked);
+  maskBtn.textContent = isMasked ? 'Reveal Values' : 'Mask Values';
+  document.querySelectorAll('.env-row-val').forEach(el => {
+    el.classList.toggle('masked', isMasked);
+  });
+}
+
+function toggleRowMask(btn) {
+  const input = btn.closest('tr').querySelector('.env-row-val');
+  if (input) {
+    input.classList.toggle('masked');
+  }
+}
+
+function syncInputFromData() {
+  const lines = envData.map(item => {
+    if (item.type === 'empty') return '';
+    if (item.type === 'comment') return item.raw;
+    if (item.type === 'invalid') return item.raw;
+    const val = item.value;
+    // Quote value if it contains spaces, #, or special chars
+    if (val.includes(' ') || val.includes('#') || val.includes('"') || val.includes("'")) {
+      return item.key + '="' + val.replace(/"/g, '\\"') + '"';
+    }
+    return item.key + '=' + val;
+  });
+  envInput.value = lines.join('\n');
+  updateLineCount();
+}
+
+function updateOutput() {
+  const format = document.getElementById('formatSelect').value;
+  const vars = envData.filter(e => e.type === 'var');
+  let output = '';
+
+  switch (format) {
+    case 'env':
+      output = envData.map(item => {
+        if (item.type === 'empty') return '';
+        if (item.type === 'comment') return item.raw;
+        if (item.type === 'invalid') return '# INVALID: ' + item.raw;
+        const val = item.value;
+        if (val.includes(' ') || val.includes('#') || val.includes('"')) {
+          return item.key + '="' + val.replace(/"/g, '\\"') + '"';
+        }
+        return item.key + '=' + val;
+      }).join('\n');
+      break;
+
+    case 'json':
+      const obj = {};
+      vars.forEach(v => { obj[v.key] = v.value; });
+      output = JSON.stringify(obj, null, 2);
+      break;
+
+    case 'yaml':
+      output = vars.map(v => {
+        let val = v.value;
+        if (val === 'true' || val === 'false' || val === 'null' || val === '' || /^\d+$/.test(val) || val.includes(':') || val.includes('#')) {
+          val = '"' + val.replace(/"/g, '\\"') + '"';
+        }
+        return v.key + ': ' + val;
+      }).join('\n');
+      break;
+
+    case 'docker':
+      output = vars.map(v => v.key + '=' + v.value).join('\n');
+      break;
+
+    case 'shell':
+      output = vars.map(v => {
+        const val = v.value;
+        return 'export ' + v.key + '="' + val.replace(/"/g, '\\"') + '"';
+      }).join('\n');
+      break;
+  }
+
+  formattedOutput.textContent = output;
+}
+
+function validateEnv() {
+  switchTab('validation', document.querySelector('.tab-bar button:nth-child(3)'));
+  const vars = envData.filter(e => e.type === 'var' || e.type === 'invalid');
+  const issues = [];
+  const seenKeys = {};
+
+  envData.forEach(item => {
+    if (item.type === 'invalid') {
+      issues.push({ type: 'error', line: item.line, msg: 'Invalid syntax: missing "=" separator' });
+    }
+
+    if (item.type === 'var') {
+      if (!item.validKey) {
+        issues.push({ type: 'error', line: item.line, msg: 'Invalid key "' + item.key + '" - must start with a letter or underscore, and contain only alphanumeric characters or underscores' });
+      }
+
+      if (seenKeys[item.key]) {
+        issues.push({ type: 'warn', line: item.line, msg: 'Duplicate key "' + item.key + '" (first seen on line ' + seenKeys[item.key] + ')' });
+      } else {
+        seenKeys[item.key] = item.line;
+      }
+
+      if (item.value === '') {
+        issues.push({ type: 'warn', line: item.line, msg: 'Empty value for "' + item.key + '"' });
+      }
+
+      // Sensitive value checks
+      const lk = item.key.toLowerCase();
+      if ((lk.includes('password') || lk.includes('secret') || lk.includes('token') || lk.includes('api_key') || lk.includes('apikey') || lk.includes('private')) && item.value.length > 0 && item.value.length < 8) {
+        issues.push({ type: 'warn', line: item.line, msg: '"' + item.key + '" looks sensitive but value seems short (< 8 chars)' });
+      }
+
+      // URL format check
+      if ((lk.includes('url') || lk.includes('endpoint') || lk.includes('host')) && item.value && !item.value.match(/^(https?:\/\/|localhost|[\d.]+|[\w.-]+\.\w+)/)) {
+        issues.push({ type: 'warn', line: item.line, msg: '"' + item.key + '" looks like a URL/host but value may be malformed' });
+      }
+
+      // Port range check
+      if (lk.includes('port') && item.value) {
+        const port = parseInt(item.value);
+        if (isNaN(port) || port < 1 || port > 65535) {
+          issues.push({ type: 'warn', line: item.line, msg: '"' + item.key + '" port value "' + item.value + '" is outside valid range (1-65535)' });
+        }
+      }
+    }
+  });
+
+  let html = '';
+  if (issues.length === 0) {
+    html = '<div class="val-item ok"><span style="font-size:1.1rem">&#10003;</span> All ' + Object.keys(seenKeys).length + ' variables look good. No issues found.</div>';
+  } else {
+    const errors = issues.filter(i => i.type === 'error').length;
+    const warnings = issues.filter(i => i.type === 'warn').length;
+    html += '<div style="margin-bottom:.8rem;font-size:.82rem;color:var(--text2)">' + errors + ' error' + (errors !== 1 ? 's' : '') + ', ' + warnings + ' warning' + (warnings !== 1 ? 's' : '') + '</div>';
+    issues.forEach(issue => {
+      html += '<div class="val-item ' + issue.type + '"><span class="val-line">L' + issue.line + '</span> ' + escapeHtml(issue.msg) + '</div>';
+    });
+  }
+  validationOutput.innerHTML = html;
+}
+
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  document.getElementById('tableView').style.display = tab === 'table' ? '' : 'none';
+  document.getElementById('outputView').style.display = tab === 'output' ? '' : 'none';
+  document.getElementById('validationView').style.display = tab === 'validation' ? '' : 'none';
+
+  if (tab === 'output') updateOutput();
+  if (tab === 'validation') validateEnv();
+}
+
+function updateStatus() {
+  const vars = envData.filter(e => e.type === 'var');
+  if (vars.length === 0) {
+    statusDot.className = 'status-dot empty';
+    statusText.textContent = 'Paste or type your .env content to begin';
+    varCount.textContent = '';
+  } else {
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = vars.length + ' variables loaded';
+    varCount.textContent = vars.length + ' variable' + (vars.length !== 1 ? 's' : '');
+  }
+}
+
+function copyOutput() {
+  updateOutput();
+  const text = formattedOutput.textContent;
+  if (!text) { showToast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+function downloadOutput() {
+  updateOutput();
+  const text = formattedOutput.textContent;
+  if (!text) { showToast('Nothing to download'); return; }
+  const format = document.getElementById('formatSelect').value;
+  const ext = { env: '.env', json: '.json', yaml: '.yml', docker: '.env', shell: '.sh' };
+  const mime = { env: 'text/plain', json: 'application/json', yaml: 'text/yaml', docker: 'text/plain', shell: 'text/x-shellscript' };
+  const blob = new Blob([text], { type: mime[format] || 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'environment' + (ext[format] || '.env');
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Downloaded environment' + (ext[format] || '.env'));
+}
+
+function clearAll() {
+  envInput.value = '';
+  envData = [];
+  isMasked = false;
+  maskBtn.classList.remove('active');
+  maskBtn.textContent = 'Mask Values';
+  renderTable();
+  formattedOutput.textContent = '';
+  validationOutput.innerHTML = '';
+  statusDot.className = 'status-dot empty';
+  statusText.textContent = 'Paste or type your .env content to begin';
+  varCount.textContent = '';
+  lineCount.textContent = '';
+  outputInfo.textContent = '';
+  switchTab('table', document.querySelector('.tab-bar button:first-child'));
+}
+
+function loadSample() {
+  envInput.value = '# =========================\n# Application Configuration\n# =========================\n\nAPP_NAME=MyApp\nAPP_ENV=production\nAPP_PORT=3000\nAPP_URL=https://myapp.example.com\nDEBUG=false\n\n# =========================\n# Database\n# =========================\n\nDB_HOST=localhost\nDB_PORT=5432\nDB_NAME=myapp_production\nDB_USER=admin\nDB_PASSWORD=super_s3cr3t_passw0rd\n\n# =========================\n# Redis Cache\n# =========================\n\nREDIS_HOST=127.0.0.1\nREDIS_PORT=6379\nREDIS_PASSWORD=\n\n# =========================\n# Auth / API Keys\n# =========================\n\nJWT_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6\nJWT_EXPIRY=3600\nAPI_KEY=sk-proj-abcdef123456789\nSTRIPE_SECRET_KEY=sk_live_abcdefghijklmnop\nSTRIPE_WEBHOOK_SECRET=whsec_abcdefghijklmnop\n\n# =========================\n# Email (SMTP)\n# =========================\n\nSMTP_HOST=smtp.gmail.com\nSMTP_PORT=587\nSMTP_USER=noreply@myapp.com\nSMTP_PASSWORD=email_p4ssw0rd\n\n# =========================\n# AWS S3\n# =========================\n\nAWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nAWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nAWS_REGION=us-east-1\nAWS_BUCKET=myapp-uploads';
+  updateLineCount();
+  parseEnv();
+  showToast('Sample .env loaded');
+}
+
+function escapeHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function escapeAttr(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* Tab key support in textarea */
+envInput.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = envInput.selectionStart, end = envInput.selectionEnd;
+    envInput.value = envInput.value.substring(0, start) + '  ' + envInput.value.substring(end);
+    envInput.selectionStart = envInput.selectionEnd = start + 2;
+  }
+});
+
+/* Drag and drop .env file */
+envInput.addEventListener('dragover', e => { e.preventDefault(); envInput.style.borderColor = 'var(--primary)'; });
+envInput.addEventListener('dragleave', () => { envInput.style.borderColor = ''; });
+envInput.addEventListener('drop', e => {
+  e.preventDefault();
+  envInput.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      envInput.value = ev.target.result;
+      updateLineCount();
+      parseEnv();
+      showToast('Loaded ' + file.name);
+    };
+    reader.readAsText(file);
+  }
+});
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is an .env file?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "An .env file is a simple text file that stores environment variables as key-value pairs (e.g., DB_HOST=localhost). It is commonly used in software development to configure applications without hardcoding sensitive values like API keys, database credentials, and feature flags."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this .env editor safe for sensitive values?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's .env File Editor runs 100% in your browser. No data is ever sent to a server. Your secrets and API keys stay on your machine. You can also use the Mask Values feature to hide sensitive data while editing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What formats can I export to?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can export your environment variables to .env (standard dotenv format), JSON, YAML, Docker --env-file format, and shell export commands. Just select the format from the dropdown and click Copy or Download."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I import a .env file?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, you can either paste .env content directly into the editor, or drag and drop a .env file from your computer. The tool will automatically parse all variables, comments, and empty lines."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>

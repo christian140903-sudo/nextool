@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free CSS Variable Visualizer — Extract & Preview Custom Properties | NexTool</title>
+<meta name="description" content="Paste CSS and instantly extract, visualize, and explore all custom properties. Color swatches, font previews, dependency trees, grouping by type. 100% free.">
+<meta name="keywords" content="CSS variables, CSS custom properties, CSS variable visualizer, design token viewer, CSS variable extractor, free online tool, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free CSS Variable Visualizer | NexTool">
+<meta property="og:description" content="Extract and visualize CSS custom properties. Color swatches, font previews, dependency trees. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/css-variable-visualizer.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/css-variable-visualizer.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free CSS Variable Visualizer | NexTool">
+<meta name="twitter:description" content="Extract and visualize CSS custom properties instantly. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool CSS Variable Visualizer","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online CSS variable visualizer that extracts and previews custom properties with color swatches, font previews, and dependency trees."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select,.toolbar input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar input[type="text"]{cursor:text;min-width:180px}
+.toolbar input::placeholder{color:var(--text2);opacity:.5}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2);flex-wrap:wrap}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.found{background:var(--green)}
+.status-dot.none{background:var(--border)}
+.status-dot.warn{background:var(--yellow)}
+/* LAYOUT */
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:500px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto}
+#cssInput{width:100%;height:100%;min-height:400px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:none;outline:none;line-height:1.7;tab-size:2}
+#cssInput::placeholder{color:var(--text2);opacity:.5}
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);background:rgba(26,26,36,0.5)}
+.tab-btn{padding:.5rem 1rem;background:none;border:none;color:var(--text2);font-size:.8rem;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:inherit}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-badge{background:rgba(99,102,241,.2);color:var(--primary);font-size:.65rem;padding:1px 5px;border-radius:4px;margin-left:4px}
+/* VARIABLE CARDS */
+.var-list{padding:1rem;display:flex;flex-direction:column;gap:.6rem}
+.var-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;transition:border-color .2s;cursor:default}
+.var-card:hover{border-color:rgba(99,102,241,.3)}
+.var-preview{width:36px;height:36px;border-radius:8px;flex-shrink:0;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.var-preview.color-swatch{border:none;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.var-preview.size-bar{background:var(--surface);position:relative}
+.var-preview.size-bar .bar-fill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,var(--primary),var(--accent));border-radius:0 0 7px 7px}
+.var-preview.font-preview{font-size:14px;color:var(--text);background:var(--surface)}
+.var-preview.other-preview{background:var(--surface);font-size:10px;color:var(--text2)}
+.var-info{flex:1;min-width:0}
+.var-name{font-family:'Courier New',monospace;font-size:.8rem;color:var(--primary);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.var-value{font-family:'Courier New',monospace;font-size:.75rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.var-ref{font-size:.65rem;color:var(--accent);margin-top:2px}
+.var-actions{display:flex;gap:.3rem;flex-shrink:0}
+.var-actions button{background:none;border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.7rem;transition:all .2s}
+.var-actions button:hover{border-color:var(--primary);color:var(--primary);background:rgba(99,102,241,.08)}
+/* DEPENDENCY TREE */
+.dep-tree{padding:1rem;font-size:.85rem}
+.dep-node{margin-left:1.2rem;border-left:1px solid var(--border);padding-left:.6rem;margin-bottom:.3rem}
+.dep-root{margin-left:0;border-left:none;padding-left:0}
+.dep-name{color:var(--primary);font-family:'Courier New',monospace;font-weight:600;font-size:.8rem}
+.dep-arrow{color:var(--text2);margin:0 .3rem}
+.dep-val{color:var(--text2);font-family:'Courier New',monospace;font-size:.75rem}
+.dep-ref-tag{display:inline-block;background:rgba(168,85,247,.15);color:var(--accent);font-size:.65rem;padding:1px 5px;border-radius:3px;margin-left:4px}
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:300px;text-align:center;padding:2rem;color:var(--text2)}
+.empty-state .icon{font-size:2.5rem;margin-bottom:1rem;opacity:.4}
+.empty-state p{font-size:.85rem;max-width:280px}
+/* GROUP HEADER */
+.group-header{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);padding:.4rem 0;margin-top:.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.4rem}
+.group-header .group-count{background:rgba(99,102,241,.15);color:var(--primary);padding:1px 6px;border-radius:4px;font-size:.65rem}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .main-grid{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .toolbar input[type="text"]{min-width:120px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro &mdash; $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>CSS Variable Visualizer</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Paste your CSS and instantly extract, preview, and explore every custom property. See color swatches, font previews, spacing visualizations, dependency trees, and export clean variable lists. 100% client-side, no data leaves your browser.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button onclick="analyzeCSS()" title="Extract variables">Analyze</button>
+    <button onclick="exportVariables()" title="Export variable list">Export</button>
+    <button onclick="copyAll()" title="Copy all variables">Copy All</button>
+    <input type="text" id="searchBox" placeholder="Search variables..." oninput="filterVariables()">
+    <button onclick="clearAll()" title="Clear everything">Clear</button>
+    <button onclick="loadSample()" title="Load sample CSS">Sample</button>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot none" id="statusDot"></span></span>
+    <span id="statusText">Paste CSS to begin</span>
+    <span id="countInfo" style="margin-left:auto"></span>
+  </div>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-header"><span>CSS Input</span><span id="lineCount"></span></div>
+      <div class="panel-body">
+        <textarea id="cssInput" placeholder="Paste your CSS here...&#10;&#10;Example:&#10;:root {&#10;  --primary: #6366f1;&#10;  --bg: #050508;&#10;  --font-size-lg: 1.25rem;&#10;  --font-body: 'Inter', sans-serif;&#10;  --surface: rgba(17, 17, 24, 0.7);&#10;  --accent-hover: var(--primary);&#10;}" spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="grouped" onclick="switchTab('grouped')">Grouped<span class="tab-badge" id="groupedCount">0</span></button>
+        <button class="tab-btn" data-tab="all" onclick="switchTab('all')">All<span class="tab-badge" id="allCount">0</span></button>
+        <button class="tab-btn" data-tab="deps" onclick="switchTab('deps')">Dependencies<span class="tab-badge" id="depsCount">0</span></button>
+      </div>
+      <div class="panel-body" id="outputPanel">
+        <div id="groupedView" class="var-list"></div>
+        <div id="allView" class="var-list" style="display:none"></div>
+        <div id="depsView" class="dep-tree" style="display:none"></div>
+        <div class="empty-state" id="emptyState">
+          <div class="icon">&#127912;</div>
+          <p>Paste CSS with custom properties (--variable-name) and click Analyze to visualize them.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 &mdash; Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro &mdash; $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const input = document.getElementById('cssInput');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const countInfo = document.getElementById('countInfo');
+const lineCount = document.getElementById('lineCount');
+const searchBox = document.getElementById('searchBox');
+const emptyState = document.getElementById('emptyState');
+
+let allVariables = [];
+let currentTab = 'grouped';
+
+input.addEventListener('input', debounce(autoAnalyze, 400));
+input.addEventListener('input', updateLineCount);
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function updateLineCount() {
+  const lines = input.value.split('\n').length;
+  lineCount.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+
+function autoAnalyze() {
+  const raw = input.value.trim();
+  if (!raw) {
+    clearOutputs();
+    return;
+  }
+  analyzeCSS();
+}
+
+function analyzeCSS() {
+  const raw = input.value.trim();
+  if (!raw) { showToast('No CSS to analyze'); return; }
+
+  allVariables = extractVariables(raw);
+
+  if (allVariables.length === 0) {
+    statusDot.className = 'status-dot warn';
+    statusText.textContent = 'No CSS custom properties found';
+    countInfo.textContent = '';
+    clearOutputs();
+    emptyState.querySelector('p').textContent = 'No CSS custom properties (--variable-name) found in the input. Make sure your CSS uses custom properties.';
+    emptyState.style.display = '';
+    return;
+  }
+
+  statusDot.className = 'status-dot found';
+  statusText.textContent = allVariables.length + ' variable' + (allVariables.length !== 1 ? 's' : '') + ' found';
+
+  const groups = groupByType(allVariables);
+  const counts = {};
+  for (const g of Object.keys(groups)) counts[g] = groups[g].length;
+  countInfo.textContent = Object.entries(counts).map(([k,v]) => v + ' ' + k).join(' | ');
+
+  renderAll();
+}
+
+function extractVariables(css) {
+  const vars = [];
+  const seen = new Set();
+  // Match --name: value patterns, handling multi-line values
+  const regex = /(--[\w-]+)\s*:\s*([^;]+)/g;
+  let match;
+  while ((match = regex.exec(css)) !== null) {
+    const name = match[1].trim();
+    const value = match[2].trim();
+    const key = name + ':' + value;
+    if (!seen.has(key)) {
+      seen.add(key);
+      const refs = extractRefs(value);
+      vars.push({
+        name,
+        value,
+        type: classifyVariable(name, value),
+        refs
+      });
+    }
+  }
+  return vars;
+}
+
+function extractRefs(value) {
+  const refs = [];
+  const regex = /var\(\s*(--[\w-]+)/g;
+  let m;
+  while ((m = regex.exec(value)) !== null) {
+    refs.push(m[1]);
+  }
+  return refs;
+}
+
+function classifyVariable(name, value) {
+  const nl = name.toLowerCase();
+  const vl = value.toLowerCase().trim();
+
+  // Color detection
+  if (/^#([0-9a-f]{3,8})$/i.test(vl)) return 'color';
+  if (/^(rgb|rgba|hsl|hsla|hwb|lab|lch|oklch|oklab)\s*\(/.test(vl)) return 'color';
+  if (/^(transparent|currentcolor|inherit)$/i.test(vl)) return 'color';
+  // Named CSS colors (common ones)
+  const namedColors = ['red','blue','green','yellow','orange','purple','pink','black','white','gray','grey','cyan','magenta','navy','teal','maroon','olive','lime','aqua','fuchsia','silver','indigo','violet','coral','salmon','tomato','gold','khaki','plum','orchid','turquoise','crimson','chocolate','sienna','peru','tan','wheat','linen','ivory','beige','bisque','azure','honeydew','lavender','seashell','snow','aliceblue','antiquewhite','blanchedalmond','blueviolet','burlywood','cadetblue','chartreuse','cornflowerblue','cornsilk','darkblue','darkcyan','darkgoldenrod','darkgray','darkgreen','darkkhaki','darkmagenta','darkolivegreen','darkorange','darkorchid','darkred','darksalmon','darkseagreen','darkslateblue','darkslategray','darkturquoise','darkviolet','deeppink','deepskyblue','dimgray','dodgerblue','firebrick','floralwhite','forestgreen','gainsboro','ghostwhite','goldenrod','greenyellow','hotpink','indianred','lavenderblush','lawngreen','lemonchiffon','lightblue','lightcoral','lightcyan','lightgoldenrodyellow','lightgray','lightgreen','lightpink','lightsalmon','lightseagreen','lightskyblue','lightslategray','lightsteelblue','lightyellow','limegreen','mediumaquamarine','mediumblue','mediumorchid','mediumpurple','mediumseagreen','mediumslateblue','mediumspringgreen','mediumturquoise','mediumvioletred','midnightblue','mintcream','mistyrose','moccasin','navajowhite','oldlace','olivedrab','orangered','palegoldenrod','palegreen','paleturquoise','palevioletred','papayawhip','peachpuff','powderblue','rosybrown','royalblue','saddlebrown','sandybrown','seagreen','skyblue','slateblue','slategray','springgreen','steelblue','thistle','whitesmoke','yellowgreen'];
+  if (namedColors.includes(vl)) return 'color';
+  // Name-based color hints
+  if (/color|bg|background|fill|stroke|border-color|shadow|highlight|tint|shade/i.test(nl)) {
+    if (/var\(/.test(vl)) return 'color';
+  }
+
+  // Font detection
+  if (/font|family|typeface/i.test(nl)) return 'font';
+  if (/^(['"][\w\s-]+['"],?\s*)+[\w-]+$/.test(vl) && /sans-serif|serif|monospace|cursive|fantasy|system-ui/i.test(vl)) return 'font';
+
+  // Size detection
+  if (/\d+(\.\d+)?\s*(px|rem|em|vh|vw|vmin|vmax|%|ch|ex|pt|cm|mm|in|pc|svh|dvh|lvh|svw|dvw|lvw|cqw|cqh)$/i.test(vl)) return 'size';
+  if (/size|spacing|gap|margin|padding|width|height|radius|indent|offset|top|right|bottom|left|inset/i.test(nl) && /\d/.test(vl)) return 'size';
+
+  return 'other';
+}
+
+function groupByType(vars) {
+  const groups = { color: [], font: [], size: [], other: [] };
+  for (const v of vars) {
+    (groups[v.type] || groups.other).push(v);
+  }
+  return groups;
+}
+
+function renderAll() {
+  const filter = searchBox.value.toLowerCase().trim();
+  const filtered = filter ? allVariables.filter(v => v.name.toLowerCase().includes(filter) || v.value.toLowerCase().includes(filter)) : allVariables;
+
+  renderGrouped(filtered);
+  renderFlat(filtered);
+  renderDeps(filtered);
+
+  emptyState.style.display = filtered.length > 0 ? 'none' : '';
+  if (filtered.length === 0 && filter) {
+    emptyState.querySelector('p').textContent = 'No variables match "' + escapeHtml(filter) + '".';
+    emptyState.style.display = '';
+  }
+
+  document.getElementById('groupedCount').textContent = filtered.length;
+  document.getElementById('allCount').textContent = filtered.length;
+  const depsCount = filtered.filter(v => v.refs.length > 0).length;
+  document.getElementById('depsCount').textContent = depsCount;
+}
+
+function renderGrouped(vars) {
+  const container = document.getElementById('groupedView');
+  const groups = groupByType(vars);
+  const labels = { color: 'Colors', font: 'Fonts', size: 'Sizes & Spacing', other: 'Other' };
+  const icons = { color: '&#127912;', font: '&#9000;', size: '&#8596;', other: '&#9881;' };
+  let html = '';
+
+  for (const type of ['color', 'font', 'size', 'other']) {
+    const g = groups[type];
+    if (!g || g.length === 0) continue;
+    html += '<div class="group-header">' + labels[type] + ' <span class="group-count">' + g.length + '</span></div>';
+    for (const v of g) {
+      html += renderVarCard(v);
+    }
+  }
+
+  container.innerHTML = html;
+}
+
+function renderFlat(vars) {
+  const container = document.getElementById('allView');
+  let html = '';
+  for (const v of vars) {
+    html += renderVarCard(v);
+  }
+  container.innerHTML = html;
+}
+
+function renderVarCard(v) {
+  const preview = buildPreview(v);
+  const refHtml = v.refs.length > 0 ? '<div class="var-ref">References: ' + v.refs.map(r => '<code>' + escapeHtml(r) + '</code>').join(', ') + '</div>' : '';
+
+  return '<div class="var-card" data-name="' + escapeHtml(v.name) + '">' +
+    preview +
+    '<div class="var-info">' +
+      '<div class="var-name" title="' + escapeHtml(v.name) + '">' + escapeHtml(v.name) + '</div>' +
+      '<div class="var-value" title="' + escapeHtml(v.value) + '">' + escapeHtml(v.value) + '</div>' +
+      refHtml +
+    '</div>' +
+    '<div class="var-actions">' +
+      '<button onclick="copyValue(\'' + escapeJs(v.name) + '\',\'' + escapeJs(v.value) + '\')" title="Copy value">&#128203;</button>' +
+      '<button onclick="copyDeclaration(\'' + escapeJs(v.name) + '\',\'' + escapeJs(v.value) + '\')" title="Copy declaration">&#59;</button>' +
+      '<button onclick="copyUsage(\'' + escapeJs(v.name) + '\')" title="Copy var() usage">&#123;&#125;</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function buildPreview(v) {
+  if (v.type === 'color') {
+    const resolved = resolveColor(v.value);
+    return '<div class="var-preview color-swatch" style="background:' + escapeHtml(resolved) + '"></div>';
+  }
+  if (v.type === 'size') {
+    const px = estimatePx(v.value);
+    const pct = Math.min(100, Math.max(5, (px / 60) * 100));
+    return '<div class="var-preview size-bar"><div class="bar-fill" style="height:' + pct + '%"></div></div>';
+  }
+  if (v.type === 'font') {
+    return '<div class="var-preview font-preview" style="font-family:' + escapeHtml(v.value) + '">Aa</div>';
+  }
+  return '<div class="var-preview other-preview">var</div>';
+}
+
+function resolveColor(value) {
+  // If it references a var(), try to find it in allVariables
+  if (/var\(/.test(value)) {
+    const refMatch = value.match(/var\(\s*(--[\w-]+)/);
+    if (refMatch) {
+      const refVar = allVariables.find(v => v.name === refMatch[1]);
+      if (refVar && refVar.type === 'color' && !/var\(/.test(refVar.value)) {
+        return refVar.value;
+      }
+    }
+    // Can't resolve, use a placeholder gradient
+    return 'linear-gradient(135deg, #6366f1, #a855f7)';
+  }
+  return value;
+}
+
+function estimatePx(value) {
+  const v = value.trim().toLowerCase();
+  const num = parseFloat(v);
+  if (isNaN(num)) return 16;
+  if (v.endsWith('px')) return num;
+  if (v.endsWith('rem') || v.endsWith('em')) return num * 16;
+  if (v.endsWith('vh') || v.endsWith('vw')) return num * 5;
+  if (v.endsWith('%')) return num * 0.5;
+  if (v.endsWith('pt')) return num * 1.33;
+  return num;
+}
+
+function renderDeps(vars) {
+  const container = document.getElementById('depsView');
+  const withDeps = vars.filter(v => v.refs.length > 0);
+
+  if (withDeps.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="min-height:200px"><div class="icon">&#128279;</div><p>No variable dependencies found. Variables using var() references will appear here.</p></div>';
+    return;
+  }
+
+  // Build a map from name to variable
+  const varMap = {};
+  for (const v of allVariables) varMap[v.name] = v;
+
+  let html = '';
+  for (const v of withDeps) {
+    html += '<div class="dep-root">';
+    html += '<span class="dep-name">' + escapeHtml(v.name) + '</span>';
+    html += '<span class="dep-arrow">=</span>';
+    html += '<span class="dep-val">' + escapeHtml(v.value) + '</span>';
+    html += renderDepChildren(v, varMap, new Set([v.name]), 0);
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function renderDepChildren(v, varMap, visited, depth) {
+  if (depth > 8) return '';
+  let html = '';
+  for (const ref of v.refs) {
+    const refVar = varMap[ref];
+    html += '<div class="dep-node">';
+    html += '<span class="dep-name">' + escapeHtml(ref) + '</span>';
+    if (refVar) {
+      html += '<span class="dep-arrow">=</span>';
+      html += '<span class="dep-val">' + escapeHtml(refVar.value) + '</span>';
+      if (refVar.refs.length > 0 && !visited.has(ref)) {
+        visited.add(ref);
+        html += renderDepChildren(refVar, varMap, visited, depth + 1);
+      } else if (visited.has(ref)) {
+        html += ' <span class="dep-ref-tag">circular</span>';
+      }
+    } else {
+      html += ' <span class="dep-ref-tag">undefined</span>';
+    }
+    html += '</div>';
+  }
+  return html;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  document.getElementById('groupedView').style.display = tab === 'grouped' ? '' : 'none';
+  document.getElementById('allView').style.display = tab === 'all' ? '' : 'none';
+  document.getElementById('depsView').style.display = tab === 'deps' ? '' : 'none';
+
+  // Show/hide empty state based on content
+  if (allVariables.length > 0) {
+    emptyState.style.display = 'none';
+  }
+}
+
+function filterVariables() {
+  if (allVariables.length > 0) {
+    renderAll();
+  }
+}
+
+function copyValue(name, value) {
+  navigator.clipboard.writeText(value).then(() => showToast('Copied: ' + value));
+}
+
+function copyDeclaration(name, value) {
+  const decl = name + ': ' + value + ';';
+  navigator.clipboard.writeText(decl).then(() => showToast('Copied declaration'));
+}
+
+function copyUsage(name) {
+  const usage = 'var(' + name + ')';
+  navigator.clipboard.writeText(usage).then(() => showToast('Copied: ' + usage));
+}
+
+function copyAll() {
+  if (allVariables.length === 0) { showToast('No variables to copy'); return; }
+  const text = allVariables.map(v => v.name + ': ' + v.value + ';').join('\n');
+  navigator.clipboard.writeText(text).then(() => showToast('Copied ' + allVariables.length + ' variables'));
+}
+
+function exportVariables() {
+  if (allVariables.length === 0) { showToast('No variables to export'); return; }
+
+  const groups = groupByType(allVariables);
+  const labels = { color: 'Colors', font: 'Fonts', size: 'Sizes & Spacing', other: 'Other' };
+  let text = '/* CSS Custom Properties */\n/* Extracted by NexTool CSS Variable Visualizer */\n/* https://nextool.app/free-tools/css-variable-visualizer.html */\n\n:root {\n';
+
+  for (const type of ['color', 'font', 'size', 'other']) {
+    const g = groups[type];
+    if (!g || g.length === 0) continue;
+    text += '\n  /* ' + labels[type] + ' */\n';
+    for (const v of g) {
+      text += '  ' + v.name + ': ' + v.value + ';\n';
+    }
+  }
+
+  text += '}\n';
+
+  const blob = new Blob([text], { type: 'text/css' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'variables.css';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Exported variables.css');
+}
+
+function clearAll() {
+  input.value = '';
+  allVariables = [];
+  searchBox.value = '';
+  clearOutputs();
+  statusDot.className = 'status-dot none';
+  statusText.textContent = 'Paste CSS to begin';
+  countInfo.textContent = '';
+  lineCount.textContent = '';
+}
+
+function clearOutputs() {
+  document.getElementById('groupedView').innerHTML = '';
+  document.getElementById('allView').innerHTML = '';
+  document.getElementById('depsView').innerHTML = '';
+  document.getElementById('groupedCount').textContent = '0';
+  document.getElementById('allCount').textContent = '0';
+  document.getElementById('depsCount').textContent = '0';
+  emptyState.style.display = '';
+  emptyState.querySelector('p').textContent = 'Paste CSS with custom properties (--variable-name) and click Analyze to visualize them.';
+}
+
+function loadSample() {
+  input.value = `:root {
+  /* Colors */
+  --bg: #050508;
+  --bg-secondary: #0a0a12;
+  --surface: #111118;
+  --surface-hover: #1a1a24;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --accent: #a855f7;
+  --pink: #ec4899;
+  --green: #22c55e;
+  --red: #ef4444;
+  --cyan: #22d3ee;
+  --yellow: #eab308;
+  --text: #e4e4ed;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --border: rgba(99, 102, 241, 0.12);
+  --border-strong: rgba(99, 102, 241, 0.25);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --overlay: rgba(5, 5, 8, 0.85);
+
+  /* Fonts */
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-heading: 'Inter', sans-serif;
+
+  /* Sizes */
+  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.5rem;
+  --nav-height: 64px;
+  --max-width: 1200px;
+  --sidebar-width: 280px;
+
+  /* Composed / Referencing Other Vars */
+  --btn-bg: var(--primary);
+  --btn-hover: var(--primary-hover);
+  --card-bg: var(--surface);
+  --card-border: var(--border);
+  --heading-color: var(--text);
+  --link-color: var(--primary);
+  --link-hover: var(--accent);
+  --input-bg: var(--surface);
+  --input-border: var(--border);
+  --focus-ring: var(--primary);
+
+  /* Transitions & Other */
+  --transition-fast: 0.15s ease;
+  --transition: 0.2s ease;
+  --transition-slow: 0.4s ease;
+  --z-nav: 100;
+  --z-modal: 200;
+  --z-toast: 300;
+  --glass: rgba(17, 17, 24, 0.7);
+}`;
+
+  updateLineCount();
+  analyzeCSS();
+}
+
+function escapeHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function escapeJs(s) { return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* Tab key support */
+input.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = input.selectionStart, end = input.selectionEnd;
+    input.value = input.value.substring(0, start) + '  ' + input.value.substring(end);
+    input.selectionStart = input.selectionEnd = start + 2;
+  }
+});
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What are CSS custom properties (variables)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CSS custom properties, also known as CSS variables, are entities defined by CSS authors that contain specific values to be reused throughout a document. They are set using the -- prefix (e.g., --primary-color: #6366f1) and accessed using the var() function."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does this CSS Variable Visualizer do?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "This tool extracts all CSS custom properties from your stylesheet, classifies them by type (colors, fonts, sizes, other), shows visual previews like color swatches and size bars, maps dependency trees for variables referencing other variables, and lets you export a clean organized list."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this tool free and private?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's CSS Variable Visualizer is 100% free and runs entirely in your browser. No CSS data is sent to any server. There is no signup required and no usage limits."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>

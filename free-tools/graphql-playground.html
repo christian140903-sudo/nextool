@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free GraphQL Playground — Write, Format &amp; Validate Queries | NexTool</title>
+<meta name="description" content="Free online GraphQL playground. Write, format, and validate GraphQL queries with syntax highlighting, schema explorer, variables editor, and query generation. No signup.">
+<meta name="keywords" content="GraphQL playground, GraphQL formatter, GraphQL validator, GraphQL query builder, schema explorer, free online tool, NexTool">
+<meta property="og:title" content="Free GraphQL Playground — Write &amp; Validate Queries | NexTool">
+<meta property="og:description" content="Write, format, and validate GraphQL queries with syntax highlighting, schema explorer, and query generation. 100% free, runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/graphql-playground.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/graphql-playground.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free GraphQL Playground — Write &amp; Validate Queries | NexTool">
+<meta name="twitter:description" content="Write, format, and validate GraphQL queries instantly. Free online tool by NexTool.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool GraphQL Playground","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online GraphQL playground with query formatting, validation, schema explorer, and query generation."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#f97316;--radius:12px;--glass:rgba(17,17,24,0.7);--mono:'JetBrains Mono','Courier New',monospace}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1400px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar .sep{width:1px;height:24px;background:var(--border);margin:0 .25rem}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.valid{background:var(--green)}
+.status-dot.invalid{background:var(--red)}
+.status-dot.empty{background:var(--border)}
+.status-dot.warning{background:var(--yellow)}
+/* MAIN LAYOUT */
+.main-layout{display:grid;grid-template-columns:280px 1fr;gap:1rem;min-height:600px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5);gap:.5rem;min-height:40px}
+.panel-header-btn{background:none;border:none;color:var(--text2);font-size:.75rem;cursor:pointer;padding:2px 6px;border-radius:4px;transition:all .2s}
+.panel-header-btn:hover{color:var(--text);background:rgba(99,102,241,.15)}
+.panel-body{flex:1;position:relative;overflow:auto}
+/* SCHEMA SIDEBAR */
+.schema-sidebar{display:flex;flex-direction:column}
+.schema-input{width:100%;border:none;background:transparent;color:var(--text);font-family:var(--mono);font-size:.78rem;padding:.75rem;resize:none;outline:none;line-height:1.6;flex:1;min-height:200px}
+.schema-input::placeholder{color:var(--text2);opacity:.5}
+.schema-tree{flex:1;overflow-y:auto;padding:.5rem}
+.schema-type{margin-bottom:.5rem}
+.schema-type-header{display:flex;align-items:center;gap:.4rem;padding:4px 8px;border-radius:6px;cursor:pointer;transition:background .15s;font-size:.8rem;font-weight:600;user-select:none}
+.schema-type-header:hover{background:rgba(99,102,241,.1)}
+.schema-type-header .badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.badge-type{background:rgba(99,102,241,.2);color:#818cf8}
+.badge-input{background:rgba(234,179,8,.15);color:var(--yellow)}
+.badge-enum{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-interface{background:rgba(168,85,247,.15);color:var(--accent)}
+.badge-union{background:rgba(236,72,153,.15);color:var(--pink)}
+.badge-scalar{background:rgba(34,211,238,.15);color:var(--cyan)}
+.badge-query{background:rgba(99,102,241,.3);color:#a5b4fc}
+.badge-mutation{background:rgba(249,115,22,.2);color:var(--orange)}
+.badge-subscription{background:rgba(236,72,153,.2);color:var(--pink)}
+.schema-type-name{color:var(--text)}
+.schema-type-fields{padding-left:1rem;overflow:hidden;transition:max-height .2s}
+.schema-type-fields.collapsed{max-height:0!important;overflow:hidden}
+.schema-field{display:flex;align-items:center;gap:.3rem;padding:3px 8px;border-radius:4px;cursor:pointer;transition:background .15s;font-size:.78rem;font-family:var(--mono)}
+.schema-field:hover{background:rgba(99,102,241,.08)}
+.schema-field .fname{color:#c084fc}
+.schema-field .ftype{color:var(--text2);font-size:.72rem}
+.schema-field .fargs{color:var(--cyan);font-size:.68rem}
+.schema-field-check{width:14px;height:14px;border-radius:3px;border:1px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.schema-field-check.checked{background:var(--primary);border-color:var(--primary)}
+.schema-field-check.checked::after{content:'';display:block;width:5px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+/* EDITOR AREA */
+.editor-area{display:flex;flex-direction:column;gap:1rem}
+.editor-panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;flex:1}
+.editor-mono{width:100%;height:100%;min-height:350px;background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:.85rem;padding:1rem;resize:none;outline:none;line-height:1.7;tab-size:2}
+.editor-mono::placeholder{color:var(--text2);opacity:.5}
+/* SYNTAX HIGHLIGHTED OUTPUT */
+.output-area{padding:1rem;font-family:var(--mono);font-size:.85rem;line-height:1.7;white-space:pre-wrap;word-break:break-all;min-height:350px}
+/* GQL SYNTAX */
+.gql-keyword{color:#c084fc;font-weight:600}
+.gql-type{color:var(--cyan)}
+.gql-field{color:var(--text)}
+.gql-arg{color:var(--orange)}
+.gql-string{color:#4ade80}
+.gql-number{color:var(--cyan)}
+.gql-comment{color:#6b7280;font-style:italic}
+.gql-directive{color:var(--pink)}
+.gql-variable{color:var(--yellow)}
+.gql-brace{color:var(--text2)}
+.gql-enum-val{color:#4ade80}
+.gql-fragment{color:var(--pink)}
+/* VARIABLES PANEL */
+.vars-panel{max-height:220px}
+.vars-panel .panel-body{overflow:auto}
+.vars-input{width:100%;height:100%;min-height:120px;background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:.8rem;padding:.75rem;resize:none;outline:none;line-height:1.6}
+.vars-input::placeholder{color:var(--text2);opacity:.5}
+/* ERROR */
+.error-display{padding:1rem;color:var(--red);font-size:.85rem;font-family:var(--mono);white-space:pre-wrap}
+.error-line{background:rgba(239,68,68,.1);border-left:3px solid var(--red);padding:.3rem .6rem;margin:.3rem 0;border-radius:4px}
+/* VALIDATION RESULTS */
+.validation-results{padding:.75rem 1rem;font-size:.8rem}
+.val-ok{color:var(--green)}
+.val-err{color:var(--red)}
+.val-warn{color:var(--yellow)}
+.val-item{padding:4px 0;border-bottom:1px solid rgba(42,42,58,.5)}
+.val-item:last-child{border-bottom:none}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* TAB BAR */
+.tab-bar{display:flex;gap:2px;padding:0 .5rem}
+.tab-btn{padding:6px 14px;font-size:.78rem;font-weight:500;background:transparent;border:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:inherit}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+/* RESPONSIVE */
+@media(max-width:900px){
+  .main-layout{grid-template-columns:1fr}
+  .schema-sidebar{max-height:350px}
+  .editor-panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+}
+@media(max-width:600px){
+  .tool-container{padding:0 .75rem 2rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro &mdash; $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>GraphQL Playground</span></h1>
+  <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Write, format, and validate GraphQL queries entirely in your browser. Paste a schema to explore types and auto-generate queries. Syntax highlighting, variables editor, and one-click prettify included. No server, no signup.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button onclick="prettifyQuery()" title="Format query">Prettify</button>
+    <button onclick="validateQuery()" title="Check syntax">Validate</button>
+    <button onclick="copyQuery()" title="Copy to clipboard">Copy Query</button>
+    <button onclick="generateFromSchema()" title="Generate query from checked schema fields">Generate Query</button>
+    <span class="sep"></span>
+    <button onclick="loadSampleQuery()" title="Load example query">Sample Query</button>
+    <button onclick="loadSampleSchema()" title="Load example schema">Sample Schema</button>
+    <button onclick="clearAll()" title="Clear everything">Clear</button>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Write a GraphQL query to begin</span>
+  </div>
+
+  <div class="main-layout">
+    <!-- Schema Sidebar -->
+    <div class="panel schema-sidebar">
+      <div class="panel-header">
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="schema-paste" onclick="switchSchemaTab(this,'schema-paste')">Paste Schema</button>
+          <button class="tab-btn" data-tab="schema-explore" onclick="switchSchemaTab(this,'schema-explore')">Explorer</button>
+        </div>
+        <button class="panel-header-btn" onclick="parseSchema()" title="Parse schema">Parse</button>
+      </div>
+      <div class="panel-body">
+        <div id="schema-paste">
+          <textarea class="schema-input" id="schemaInput" placeholder="Paste your GraphQL schema (SDL) here...&#10;&#10;type Query {&#10;  user(id: ID!): User&#10;  users: [User!]!&#10;}&#10;&#10;type User {&#10;  id: ID!&#10;  name: String!&#10;  email: String&#10;}" spellcheck="false"></textarea>
+        </div>
+        <div id="schema-explore" style="display:none">
+          <div class="schema-tree" id="schemaTree">
+            <div style="padding:1rem;color:var(--text2);font-size:.8rem;">Paste a schema and click "Parse" to explore types.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor Area -->
+    <div class="editor-area">
+      <div class="editor-panels">
+        <!-- Query Editor -->
+        <div class="panel">
+          <div class="panel-header">
+            <span>Query Editor</span>
+            <span id="queryLineCount"></span>
+          </div>
+          <div class="panel-body">
+            <textarea class="editor-mono" id="queryInput" placeholder="# Write your GraphQL query here&#10;&#10;query GetUser($id: ID!) {&#10;  user(id: $id) {&#10;    id&#10;    name&#10;    email&#10;  }&#10;}" spellcheck="false"></textarea>
+          </div>
+        </div>
+
+        <!-- Formatted Output -->
+        <div class="panel">
+          <div class="panel-header">
+            <span id="outputLabel">Formatted Output</span>
+            <span id="outputInfo"></span>
+          </div>
+          <div class="panel-body" id="outputPanel">
+            <div class="output-area" id="formattedOutput"></div>
+            <div class="error-display" id="errorOutput" style="display:none"></div>
+            <div class="validation-results" id="validationOutput" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Variables Panel -->
+      <div class="panel vars-panel">
+        <div class="panel-header">
+          <span>Query Variables (JSON)</span>
+          <button class="panel-header-btn" onclick="formatVars()" title="Format variables JSON">Format JSON</button>
+        </div>
+        <div class="panel-body">
+          <textarea class="vars-input" id="varsInput" placeholder='{ "id": "123", "limit": 10 }' spellcheck="false"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 &mdash; Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro &mdash; $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== GLOBALS ===== */
+const queryInput = document.getElementById('queryInput');
+const schemaInput = document.getElementById('schemaInput');
+const varsInput = document.getElementById('varsInput');
+const formattedOutput = document.getElementById('formattedOutput');
+const errorOutput = document.getElementById('errorOutput');
+const validationOutput = document.getElementById('validationOutput');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const outputLabel = document.getElementById('outputLabel');
+const outputInfo = document.getElementById('outputInfo');
+const queryLineCount = document.getElementById('queryLineCount');
+
+let parsedSchema = null;
+let checkedFields = new Set();
+let lastFormatted = '';
+
+queryInput.addEventListener('input', debounce(autoProcess, 400));
+queryInput.addEventListener('input', updateLineCount);
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function updateLineCount() {
+  const lines = queryInput.value.split('\n').length;
+  queryLineCount.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+
+/* ===== SCHEMA TAB SWITCH ===== */
+function switchSchemaTab(btn, tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('schema-paste').style.display = tabId === 'schema-paste' ? '' : 'none';
+  document.getElementById('schema-explore').style.display = tabId === 'schema-explore' ? '' : 'none';
+}
+
+/* ===== GRAPHQL TOKENIZER ===== */
+function tokenizeGQL(src) {
+  const tokens = [];
+  let i = 0;
+  const len = src.length;
+  while (i < len) {
+    // Whitespace
+    if (/\s/.test(src[i])) {
+      let start = i;
+      while (i < len && /\s/.test(src[i])) i++;
+      tokens.push({ type: 'ws', value: src.slice(start, i) });
+      continue;
+    }
+    // Comment
+    if (src[i] === '#') {
+      let start = i;
+      while (i < len && src[i] !== '\n') i++;
+      tokens.push({ type: 'comment', value: src.slice(start, i) });
+      continue;
+    }
+    // String
+    if (src[i] === '"') {
+      let start = i; i++;
+      // Block string
+      if (src[i] === '"' && src[i + 1] === '"') {
+        i += 2;
+        while (i < len) {
+          if (src[i] === '"' && src[i + 1] === '"' && src[i + 2] === '"') { i += 3; break; }
+          i++;
+        }
+      } else {
+        while (i < len && src[i] !== '"') {
+          if (src[i] === '\\') i++;
+          i++;
+        }
+        if (i < len) i++;
+      }
+      tokens.push({ type: 'string', value: src.slice(start, i) });
+      continue;
+    }
+    // Variable
+    if (src[i] === '$') {
+      let start = i; i++;
+      while (i < len && /[_a-zA-Z0-9]/.test(src[i])) i++;
+      tokens.push({ type: 'variable', value: src.slice(start, i) });
+      continue;
+    }
+    // Directive
+    if (src[i] === '@') {
+      let start = i; i++;
+      while (i < len && /[_a-zA-Z0-9]/.test(src[i])) i++;
+      tokens.push({ type: 'directive', value: src.slice(start, i) });
+      continue;
+    }
+    // Spread
+    if (src[i] === '.' && src[i + 1] === '.' && src[i + 2] === '.') {
+      tokens.push({ type: 'spread', value: '...' });
+      i += 3;
+      continue;
+    }
+    // Punctuation
+    if ('{}()[]!:=|&'.includes(src[i])) {
+      tokens.push({ type: 'punct', value: src[i] });
+      i++;
+      continue;
+    }
+    // Number
+    if (/[-0-9]/.test(src[i]) && (src[i] !== '-' || (i + 1 < len && /[0-9]/.test(src[i + 1])))) {
+      let start = i;
+      if (src[i] === '-') i++;
+      while (i < len && /[0-9]/.test(src[i])) i++;
+      if (i < len && src[i] === '.') { i++; while (i < len && /[0-9]/.test(src[i])) i++; }
+      if (i < len && /[eE]/.test(src[i])) { i++; if (i < len && /[+-]/.test(src[i])) i++; while (i < len && /[0-9]/.test(src[i])) i++; }
+      tokens.push({ type: 'number', value: src.slice(start, i) });
+      continue;
+    }
+    // Name/keyword
+    if (/[_a-zA-Z]/.test(src[i])) {
+      let start = i;
+      while (i < len && /[_a-zA-Z0-9]/.test(src[i])) i++;
+      const word = src.slice(start, i);
+      const keywords = ['query', 'mutation', 'subscription', 'fragment', 'on', 'type', 'interface', 'union', 'enum', 'input', 'scalar', 'extend', 'schema', 'directive', 'implements', 'repeatable'];
+      const builtinTypes = ['String', 'Int', 'Float', 'Boolean', 'ID'];
+      if (keywords.includes(word)) {
+        tokens.push({ type: 'keyword', value: word });
+      } else if (word === 'true' || word === 'false' || word === 'null') {
+        tokens.push({ type: 'keyword', value: word });
+      } else if (builtinTypes.includes(word)) {
+        tokens.push({ type: 'type', value: word });
+      } else {
+        tokens.push({ type: 'name', value: word });
+      }
+      continue;
+    }
+    // Comma
+    if (src[i] === ',') {
+      tokens.push({ type: 'punct', value: ',' });
+      i++;
+      continue;
+    }
+    // Unknown char
+    tokens.push({ type: 'unknown', value: src[i] });
+    i++;
+  }
+  return tokens;
+}
+
+/* ===== SYNTAX HIGHLIGHT ===== */
+function highlightGQL(src) {
+  const tokens = tokenizeGQL(src);
+  let html = '';
+  for (const t of tokens) {
+    const esc = escapeHtml(t.value);
+    switch (t.type) {
+      case 'keyword': html += '<span class="gql-keyword">' + esc + '</span>'; break;
+      case 'type': html += '<span class="gql-type">' + esc + '</span>'; break;
+      case 'string': html += '<span class="gql-string">' + esc + '</span>'; break;
+      case 'number': html += '<span class="gql-number">' + esc + '</span>'; break;
+      case 'comment': html += '<span class="gql-comment">' + esc + '</span>'; break;
+      case 'directive': html += '<span class="gql-directive">' + esc + '</span>'; break;
+      case 'variable': html += '<span class="gql-variable">' + esc + '</span>'; break;
+      case 'spread': html += '<span class="gql-fragment">' + esc + '</span>'; break;
+      case 'punct': html += '<span class="gql-brace">' + esc + '</span>'; break;
+      default: html += esc;
+    }
+  }
+  return html;
+}
+
+function escapeHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+/* ===== PRETTIFY / FORMAT ===== */
+function prettifyQuery() {
+  const raw = queryInput.value.trim();
+  if (!raw) { showToast('Nothing to format'); return; }
+  try {
+    const formatted = formatGraphQL(raw);
+    lastFormatted = formatted;
+    queryInput.value = formatted;
+    formattedOutput.innerHTML = highlightGQL(formatted);
+    showPanel('formatted');
+    outputLabel.textContent = 'Formatted Output';
+    outputInfo.textContent = formatted.split('\n').length + ' lines';
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Query formatted';
+    updateLineCount();
+    showToast('Query prettified');
+  } catch (e) {
+    showError('Format Error', e.message);
+  }
+}
+
+function formatGraphQL(src) {
+  const tokens = tokenizeGQL(src);
+  // Filter out whitespace, re-indent
+  const significant = tokens.filter(t => t.type !== 'ws');
+  let result = '';
+  let indent = 0;
+  const indentStr = '  ';
+  let prevToken = null;
+  let onNewLine = true;
+
+  for (let i = 0; i < significant.length; i++) {
+    const t = significant[i];
+    const next = significant[i + 1] || null;
+
+    if (t.type === 'comment') {
+      if (!onNewLine) result += '\n' + indentStr.repeat(indent);
+      result += t.value + '\n';
+      if (next) result += indentStr.repeat(indent);
+      onNewLine = true;
+      prevToken = t;
+      continue;
+    }
+
+    if (t.value === '{') {
+      if (!onNewLine && prevToken && prevToken.type !== 'ws') result += ' ';
+      result += '{\n';
+      indent++;
+      result += indentStr.repeat(indent);
+      onNewLine = true;
+      prevToken = t;
+      continue;
+    }
+
+    if (t.value === '}') {
+      indent = Math.max(0, indent - 1);
+      if (!onNewLine) result += '\n';
+      result += indentStr.repeat(indent) + '}';
+      if (next && next.value !== '}' && next.value !== ')' && next.type !== 'punct') {
+        result += '\n';
+        if (next) result += indentStr.repeat(indent);
+        onNewLine = true;
+      } else {
+        onNewLine = false;
+      }
+      prevToken = t;
+      continue;
+    }
+
+    if (t.value === '(') {
+      result += '(';
+      onNewLine = false;
+      prevToken = t;
+      continue;
+    }
+
+    if (t.value === ')') {
+      result += ')';
+      onNewLine = false;
+      prevToken = t;
+      continue;
+    }
+
+    if (t.value === ':') {
+      result += ': ';
+      onNewLine = false;
+      prevToken = t;
+      continue;
+    }
+
+    if (t.value === ',' || t.value === '|' || t.value === '&') {
+      result += t.value + ' ';
+      onNewLine = false;
+      prevToken = t;
+      continue;
+    }
+
+    if (t.value === '=' || t.value === '!') {
+      result += t.value;
+      onNewLine = false;
+      prevToken = t;
+      continue;
+    }
+
+    if (t.value === '[') {
+      result += '[';
+      onNewLine = false;
+      prevToken = t;
+      continue;
+    }
+
+    if (t.value === ']') {
+      result += ']';
+      onNewLine = false;
+      prevToken = t;
+      continue;
+    }
+
+    // Names, keywords, types, etc.
+    if (onNewLine) {
+      // already indented
+    } else if (prevToken && prevToken.value !== '(' && prevToken.value !== '[' && prevToken.value !== '!' && prevToken.type !== 'spread') {
+      // Need space between adjacent tokens (except after open paren/bracket)
+      if (prevToken.value !== ':' && prevToken.value !== ',' && prevToken.value !== '|' && prevToken.value !== '&') {
+        result += ' ';
+      }
+    }
+
+    result += t.value;
+    onNewLine = false;
+
+    // After a field name at indent level, if next is not { or ( or : or directive, put newline
+    if (t.type === 'name' && indent > 0 && next) {
+      if (next.value !== '{' && next.value !== '(' && next.value !== ':' && next.type !== 'directive' && next.value !== '[' && next.value !== '!' && next.value !== ')') {
+        result += '\n' + indentStr.repeat(indent);
+        onNewLine = true;
+      }
+    }
+
+    // After a keyword like query, mutation, fragment - don't newline
+    prevToken = t;
+  }
+
+  // Clean up multiple blank lines
+  result = result.replace(/\n{3,}/g, '\n\n').trim();
+  return result;
+}
+
+/* ===== VALIDATE ===== */
+function validateQuery() {
+  const raw = queryInput.value.trim();
+  if (!raw) { showToast('Nothing to validate'); return; }
+
+  const errors = [];
+  const warnings = [];
+
+  // Check bracket matching
+  const brackets = { '{': 0, '(': 0, '[': 0 };
+  const bracketMap = { '{': '}', '(': ')', '[': ']' };
+  const lines = raw.split('\n');
+
+  let inString = false;
+  let inComment = false;
+  let inBlockString = false;
+
+  for (let ln = 0; ln < lines.length; ln++) {
+    const line = lines[ln];
+    inComment = false;
+    for (let ci = 0; ci < line.length; ci++) {
+      const ch = line[ci];
+      if (inBlockString) {
+        if (ch === '"' && line[ci + 1] === '"' && line[ci + 2] === '"') {
+          inBlockString = false;
+          ci += 2;
+        }
+        continue;
+      }
+      if (inString) {
+        if (ch === '\\') { ci++; continue; }
+        if (ch === '"') inString = false;
+        continue;
+      }
+      if (ch === '#') { inComment = true; break; }
+      if (ch === '"') {
+        if (line[ci + 1] === '"' && line[ci + 2] === '"') {
+          inBlockString = true;
+          ci += 2;
+          continue;
+        }
+        inString = true;
+        continue;
+      }
+      if (ch === '{') brackets['{']++;
+      if (ch === '}') brackets['{']--;
+      if (ch === '(') brackets['(']++;
+      if (ch === ')') brackets['(']--;
+      if (ch === '[') brackets['[']++;
+      if (ch === ']') brackets['[']--;
+
+      if (brackets['{'] < 0) errors.push('Line ' + (ln + 1) + ': Unexpected closing brace }');
+      if (brackets['('] < 0) errors.push('Line ' + (ln + 1) + ': Unexpected closing paren )');
+      if (brackets['['] < 0) errors.push('Line ' + (ln + 1) + ': Unexpected closing bracket ]');
+    }
+  }
+
+  if (brackets['{'] > 0) errors.push('Missing ' + brackets['{'] + ' closing brace(s) }');
+  if (brackets['('] > 0) errors.push('Missing ' + brackets['('] + ' closing paren(s) )');
+  if (brackets['['] > 0) errors.push('Missing ' + brackets['['] + ' closing bracket(s) ]');
+
+  // Check for operation keywords
+  const hasOperation = /\b(query|mutation|subscription)\b/.test(raw);
+  const hasTypeDef = /\b(type|interface|enum|union|input|scalar)\b/.test(raw);
+  const hasFieldsOnly = !hasOperation && !hasTypeDef && raw.includes('{');
+
+  if (!hasOperation && !hasTypeDef && !hasFieldsOnly) {
+    warnings.push('No query, mutation, subscription, or type definition found');
+  }
+
+  if (hasFieldsOnly) {
+    warnings.push('Query uses shorthand syntax (no operation keyword). Consider using named operations for clarity.');
+  }
+
+  // Check for common issues
+  const varDeclMatches = raw.match(/\$[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+  const uniqueVars = [...new Set(varDeclMatches)];
+
+  // Check variables JSON if present
+  const varsRaw = varsInput.value.trim();
+  if (varsRaw) {
+    try {
+      JSON.parse(varsRaw);
+    } catch (e) {
+      errors.push('Variables JSON is invalid: ' + e.message);
+    }
+  }
+
+  if (uniqueVars.length > 0 && !varsRaw) {
+    warnings.push('Query uses variables (' + uniqueVars.join(', ') + ') but no variables JSON is provided');
+  }
+
+  // Check for empty selection sets
+  const emptySetMatch = raw.match(/{\s*}/g);
+  if (emptySetMatch) {
+    errors.push('Empty selection set {} found. Fields must select at least one field.');
+  }
+
+  // Display results
+  validationOutput.style.display = '';
+  formattedOutput.style.display = 'none';
+  errorOutput.style.display = 'none';
+  outputLabel.textContent = 'Validation Results';
+  outputInfo.textContent = '';
+
+  let html = '';
+  if (errors.length === 0 && warnings.length === 0) {
+    html = '<div class="val-ok" style="font-weight:600;margin-bottom:.5rem;">Query looks valid</div>';
+    html += '<div class="val-item val-ok">No syntax errors detected</div>';
+    if (uniqueVars.length > 0) {
+      html += '<div class="val-item" style="color:var(--text2)">Variables found: ' + uniqueVars.join(', ') + '</div>';
+    }
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Query valid';
+  } else {
+    if (errors.length > 0) {
+      html += '<div class="val-err" style="font-weight:600;margin-bottom:.5rem;">' + errors.length + ' error(s)</div>';
+      errors.forEach(e => { html += '<div class="val-item val-err">' + escapeHtml(e) + '</div>'; });
+      statusDot.className = 'status-dot invalid';
+      statusText.textContent = errors.length + ' error(s) found';
+    }
+    if (warnings.length > 0) {
+      html += '<div class="val-warn" style="font-weight:600;margin-bottom:.5rem;margin-top:.5rem;">' + warnings.length + ' warning(s)</div>';
+      warnings.forEach(w => { html += '<div class="val-item val-warn">' + escapeHtml(w) + '</div>'; });
+      if (errors.length === 0) {
+        statusDot.className = 'status-dot warning';
+        statusText.textContent = warnings.length + ' warning(s)';
+      }
+    }
+  }
+  validationOutput.innerHTML = html;
+}
+
+/* ===== SCHEMA PARSER ===== */
+function parseSchema() {
+  const raw = schemaInput.value.trim();
+  if (!raw) { showToast('No schema to parse'); return; }
+  try {
+    parsedSchema = parseSchemaSDL(raw);
+    renderSchemaTree(parsedSchema);
+    // Switch to explorer tab
+    const btn = document.querySelector('[data-tab="schema-explore"]');
+    switchSchemaTab(btn, 'schema-explore');
+    showToast('Schema parsed: ' + parsedSchema.length + ' types');
+  } catch (e) {
+    showToast('Schema parse error: ' + e.message);
+  }
+}
+
+function parseSchemaSDL(src) {
+  const types = [];
+  // Remove comments (but keep block strings)
+  const cleaned = src.replace(/#[^\n]*/g, '');
+
+  // Match type definitions
+  const typeRegex = /\b(type|input|interface|enum|union|scalar)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s+implements\s+([A-Za-z_&\s]+))?\s*(\{[^}]*\})?/g;
+  let m;
+  while ((m = typeRegex.exec(cleaned)) !== null) {
+    const kind = m[1];
+    const name = m[2];
+    const impl = m[3] ? m[3].trim().split(/\s*&\s*/) : [];
+    const body = m[4] || '';
+    const fields = [];
+
+    if (kind === 'enum') {
+      // Parse enum values
+      const valMatch = body.match(/\{([^}]*)\}/);
+      if (valMatch) {
+        const vals = valMatch[1].trim().split(/\s+/).filter(v => v);
+        vals.forEach(v => fields.push({ name: v, type: 'EnumValue', args: [] }));
+      }
+    } else if (kind === 'union') {
+      const unionBody = cleaned.slice(m.index).match(/=\s*([^{}\n]+)/);
+      if (unionBody) {
+        const members = unionBody[1].split('|').map(s => s.trim()).filter(s => s);
+        members.forEach(mem => fields.push({ name: mem, type: 'UnionMember', args: [] }));
+      }
+    } else if (kind !== 'scalar') {
+      // Parse fields
+      const fieldMatch = body.match(/\{([^}]*)\}/);
+      if (fieldMatch) {
+        const fieldLines = fieldMatch[1].split('\n').map(l => l.trim()).filter(l => l);
+        for (const fl of fieldLines) {
+          const fm = fl.match(/^([A-Za-z_][A-Za-z0-9_]*)(\([^)]*\))?\s*:\s*(.+?)$/);
+          if (fm) {
+            const fieldName = fm[1];
+            const argsStr = fm[2] || '';
+            const fieldType = fm[3].replace(/,?\s*$/, '').trim();
+            const args = [];
+            if (argsStr) {
+              const argBody = argsStr.slice(1, -1);
+              const argParts = argBody.split(',').map(a => a.trim()).filter(a => a);
+              for (const ap of argParts) {
+                const am = ap.match(/([A-Za-z_$][A-Za-z0-9_]*)\s*:\s*(.+)/);
+                if (am) args.push({ name: am[1], type: am[2].trim() });
+              }
+            }
+            fields.push({ name: fieldName, type: fieldType, args });
+          }
+        }
+      }
+    }
+
+    types.push({ kind, name, implements: impl, fields });
+  }
+
+  // Parse schema definition for Query, Mutation, Subscription
+  const schemaDefMatch = cleaned.match(/schema\s*\{([^}]*)\}/);
+  if (schemaDefMatch) {
+    const entries = schemaDefMatch[1].match(/(query|mutation|subscription)\s*:\s*([A-Za-z_][A-Za-z0-9_]*)/g);
+    if (entries) {
+      for (const entry of entries) {
+        const em = entry.match(/(query|mutation|subscription)\s*:\s*([A-Za-z_][A-Za-z0-9_]*)/);
+        if (em) {
+          const existing = types.find(t => t.name === em[2]);
+          if (existing) existing.rootOp = em[1];
+        }
+      }
+    }
+  }
+
+  // Auto-detect root types by convention
+  for (const t of types) {
+    if (!t.rootOp) {
+      if (t.name === 'Query') t.rootOp = 'query';
+      else if (t.name === 'Mutation') t.rootOp = 'mutation';
+      else if (t.name === 'Subscription') t.rootOp = 'subscription';
+    }
+  }
+
+  return types;
+}
+
+/* ===== RENDER SCHEMA TREE ===== */
+function renderSchemaTree(types) {
+  const tree = document.getElementById('schemaTree');
+  tree.innerHTML = '';
+  checkedFields.clear();
+
+  if (!types || types.length === 0) {
+    tree.innerHTML = '<div style="padding:1rem;color:var(--text2);font-size:.8rem;">No types found in schema.</div>';
+    return;
+  }
+
+  // Sort: root ops first, then alphabetically
+  const sorted = [...types].sort((a, b) => {
+    if (a.rootOp && !b.rootOp) return -1;
+    if (!a.rootOp && b.rootOp) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  for (const t of sorted) {
+    const div = document.createElement('div');
+    div.className = 'schema-type';
+
+    let badgeClass = 'badge-type';
+    if (t.rootOp === 'query') badgeClass = 'badge-query';
+    else if (t.rootOp === 'mutation') badgeClass = 'badge-mutation';
+    else if (t.rootOp === 'subscription') badgeClass = 'badge-subscription';
+    else if (t.kind === 'enum') badgeClass = 'badge-enum';
+    else if (t.kind === 'input') badgeClass = 'badge-input';
+    else if (t.kind === 'interface') badgeClass = 'badge-interface';
+    else if (t.kind === 'union') badgeClass = 'badge-union';
+    else if (t.kind === 'scalar') badgeClass = 'badge-scalar';
+
+    const header = document.createElement('div');
+    header.className = 'schema-type-header';
+    header.innerHTML = '<span class="badge ' + badgeClass + '">' + escapeHtml(t.rootOp || t.kind) + '</span><span class="schema-type-name">' + escapeHtml(t.name) + '</span>';
+
+    const fieldsDiv = document.createElement('div');
+    fieldsDiv.className = 'schema-type-fields';
+
+    for (const f of t.fields) {
+      const fieldEl = document.createElement('div');
+      fieldEl.className = 'schema-field';
+      const fieldId = t.name + '.' + f.name;
+      const argsStr = f.args.length > 0 ? '(' + f.args.map(a => a.name + ': ' + a.type).join(', ') + ')' : '';
+
+      fieldEl.innerHTML =
+        '<div class="schema-field-check" data-field="' + escapeHtml(fieldId) + '"></div>' +
+        '<span class="fname">' + escapeHtml(f.name) + '</span>' +
+        (argsStr ? '<span class="fargs">' + escapeHtml(argsStr) + '</span>' : '') +
+        '<span class="ftype">' + escapeHtml(f.type) + '</span>';
+
+      const check = fieldEl.querySelector('.schema-field-check');
+      check.addEventListener('click', () => {
+        check.classList.toggle('checked');
+        if (check.classList.contains('checked')) {
+          checkedFields.add(fieldId);
+        } else {
+          checkedFields.delete(fieldId);
+        }
+      });
+
+      fieldsDiv.appendChild(fieldEl);
+    }
+
+    let isOpen = !!t.rootOp;
+    if (!isOpen) fieldsDiv.classList.add('collapsed');
+
+    header.addEventListener('click', () => {
+      isOpen = !isOpen;
+      fieldsDiv.classList.toggle('collapsed', !isOpen);
+    });
+
+    div.appendChild(header);
+    div.appendChild(fieldsDiv);
+    tree.appendChild(div);
+  }
+}
+
+/* ===== GENERATE QUERY FROM SCHEMA ===== */
+function generateFromSchema() {
+  if (!parsedSchema || parsedSchema.length === 0) {
+    showToast('Parse a schema first');
+    return;
+  }
+
+  if (checkedFields.size === 0) {
+    showToast('Select fields in the schema explorer');
+    return;
+  }
+
+  // Group checked fields by type
+  const fieldsByType = {};
+  for (const fieldId of checkedFields) {
+    const [typeName, fieldName] = fieldId.split('.');
+    if (!fieldsByType[typeName]) fieldsByType[typeName] = [];
+    fieldsByType[typeName].push(fieldName);
+  }
+
+  let query = '';
+  const variables = {};
+
+  // Find root operation types
+  const queryType = parsedSchema.find(t => t.rootOp === 'query');
+  const mutationType = parsedSchema.find(t => t.rootOp === 'mutation');
+
+  // Generate from root query fields
+  if (queryType && fieldsByType[queryType.name]) {
+    const rootFields = fieldsByType[queryType.name];
+    const varDefs = [];
+    let fieldStrs = '';
+
+    for (const rf of rootFields) {
+      const fieldDef = queryType.fields.find(f => f.name === rf);
+      if (!fieldDef) continue;
+
+      let fieldStr = '  ' + rf;
+      if (fieldDef.args.length > 0) {
+        const argStrs = [];
+        for (const arg of fieldDef.args) {
+          const varName = '$' + arg.name;
+          argStrs.push(arg.name + ': ' + varName);
+          varDefs.push(varName + ': ' + arg.type);
+          variables[arg.name] = getDefaultForType(arg.type);
+        }
+        fieldStr += '(' + argStrs.join(', ') + ')';
+      }
+
+      // Check if return type is an object type with selected fields
+      const returnTypeName = fieldDef.type.replace(/[\[\]!]/g, '');
+      const returnType = parsedSchema.find(t => t.name === returnTypeName);
+      if (returnType && returnType.fields.length > 0 && returnType.kind !== 'enum') {
+        const selectedSubFields = fieldsByType[returnTypeName];
+        if (selectedSubFields && selectedSubFields.length > 0) {
+          fieldStr += ' {\n' + selectedSubFields.map(sf => '    ' + sf).join('\n') + '\n  }';
+        } else {
+          // Auto-select first few scalar fields
+          const scalars = returnType.fields.filter(f => isScalarType(f.type)).slice(0, 5);
+          if (scalars.length > 0) {
+            fieldStr += ' {\n' + scalars.map(sf => '    ' + sf.name).join('\n') + '\n  }';
+          }
+        }
+      }
+
+      fieldStrs += fieldStr + '\n';
+    }
+
+    const varDefStr = varDefs.length > 0 ? '(' + varDefs.join(', ') + ')' : '';
+    query += 'query GetData' + varDefStr + ' {\n' + fieldStrs + '}\n';
+  }
+
+  // Generate from root mutation fields
+  if (mutationType && fieldsByType[mutationType.name]) {
+    const rootFields = fieldsByType[mutationType.name];
+    const varDefs = [];
+    let fieldStrs = '';
+
+    for (const rf of rootFields) {
+      const fieldDef = mutationType.fields.find(f => f.name === rf);
+      if (!fieldDef) continue;
+
+      let fieldStr = '  ' + rf;
+      if (fieldDef.args.length > 0) {
+        const argStrs = [];
+        for (const arg of fieldDef.args) {
+          const varName = '$' + arg.name;
+          argStrs.push(arg.name + ': ' + varName);
+          varDefs.push(varName + ': ' + arg.type);
+          variables[arg.name] = getDefaultForType(arg.type);
+        }
+        fieldStr += '(' + argStrs.join(', ') + ')';
+      }
+
+      const returnTypeName = fieldDef.type.replace(/[\[\]!]/g, '');
+      const returnType = parsedSchema.find(t => t.name === returnTypeName);
+      if (returnType && returnType.fields.length > 0 && returnType.kind !== 'enum') {
+        const selectedSubFields = fieldsByType[returnTypeName];
+        if (selectedSubFields && selectedSubFields.length > 0) {
+          fieldStr += ' {\n' + selectedSubFields.map(sf => '    ' + sf).join('\n') + '\n  }';
+        } else {
+          const scalars = returnType.fields.filter(f => isScalarType(f.type)).slice(0, 5);
+          if (scalars.length > 0) {
+            fieldStr += ' {\n' + scalars.map(sf => '    ' + sf.name).join('\n') + '\n  }';
+          }
+        }
+      }
+
+      fieldStrs += fieldStr + '\n';
+    }
+
+    const varDefStr = varDefs.length > 0 ? '(' + varDefs.join(', ') + ')' : '';
+    query += '\nmutation DoAction' + varDefStr + ' {\n' + fieldStrs + '}\n';
+  }
+
+  // If no root ops were matched, generate for arbitrary checked type
+  if (!query) {
+    // Build a simple query from checked non-root types
+    let fieldList = '';
+    for (const [typeName, fields] of Object.entries(fieldsByType)) {
+      fieldList += '  # Fields from ' + typeName + '\n';
+      fields.forEach(f => { fieldList += '  ' + f + '\n'; });
+    }
+    query = 'query GeneratedQuery {\n' + fieldList + '}\n';
+  }
+
+  queryInput.value = query.trim();
+  if (Object.keys(variables).length > 0) {
+    varsInput.value = JSON.stringify(variables, null, 2);
+  }
+  updateLineCount();
+  autoProcess();
+  showToast('Query generated from ' + checkedFields.size + ' fields');
+}
+
+function isScalarType(typeStr) {
+  const clean = typeStr.replace(/[\[\]!]/g, '');
+  return ['String', 'Int', 'Float', 'Boolean', 'ID', 'DateTime', 'Date'].includes(clean);
+}
+
+function getDefaultForType(typeStr) {
+  const clean = typeStr.replace(/[\[\]!]/g, '');
+  if (clean === 'Int' || clean === 'Float') return 0;
+  if (clean === 'Boolean') return false;
+  if (clean === 'ID') return "1";
+  return "";
+}
+
+/* ===== AUTO PROCESS ===== */
+function autoProcess() {
+  const raw = queryInput.value.trim();
+  if (!raw) {
+    clearOutputs();
+    statusDot.className = 'status-dot empty';
+    statusText.textContent = 'Write a GraphQL query to begin';
+    return;
+  }
+
+  try {
+    // Basic token check
+    const tokens = tokenizeGQL(raw);
+    const nonWs = tokens.filter(t => t.type !== 'ws' && t.type !== 'comment');
+    if (nonWs.length === 0) {
+      clearOutputs();
+      return;
+    }
+
+    lastFormatted = raw;
+    formattedOutput.innerHTML = highlightGQL(raw);
+    showPanel('formatted');
+    outputLabel.textContent = 'Syntax Highlighted';
+    outputInfo.textContent = raw.split('\n').length + ' lines';
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'GraphQL detected';
+  } catch (e) {
+    showError('Parse Error', e.message);
+  }
+}
+
+/* ===== FORMAT VARS ===== */
+function formatVars() {
+  const raw = varsInput.value.trim();
+  if (!raw) { showToast('No variables to format'); return; }
+  try {
+    const obj = JSON.parse(raw);
+    varsInput.value = JSON.stringify(obj, null, 2);
+    showToast('Variables formatted');
+  } catch (e) {
+    showToast('Invalid JSON: ' + e.message);
+  }
+}
+
+/* ===== COPY ===== */
+function copyQuery() {
+  const text = queryInput.value.trim();
+  if (!text) { showToast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(text).then(() => showToast('Query copied to clipboard'));
+}
+
+/* ===== PANELS ===== */
+function showPanel(which) {
+  formattedOutput.style.display = which === 'formatted' ? '' : 'none';
+  errorOutput.style.display = which === 'error' ? '' : 'none';
+  validationOutput.style.display = which === 'validation' ? '' : 'none';
+}
+
+function showError(title, msg) {
+  let html = '<strong>' + escapeHtml(title) + '</strong>\n\n';
+  html += '<div class="error-line">' + escapeHtml(msg) + '</div>';
+  errorOutput.innerHTML = html;
+  showPanel('error');
+  statusDot.className = 'status-dot invalid';
+  statusText.textContent = 'Error detected';
+}
+
+function clearOutputs() {
+  formattedOutput.innerHTML = '';
+  errorOutput.innerHTML = '';
+  validationOutput.innerHTML = '';
+  outputInfo.textContent = '';
+  outputLabel.textContent = 'Formatted Output';
+  showPanel('formatted');
+}
+
+function clearAll() {
+  queryInput.value = '';
+  varsInput.value = '';
+  lastFormatted = '';
+  clearOutputs();
+  statusDot.className = 'status-dot empty';
+  statusText.textContent = 'Write a GraphQL query to begin';
+  queryLineCount.textContent = '';
+}
+
+/* ===== SAMPLES ===== */
+function loadSampleQuery() {
+  queryInput.value = `# Fetch a user and their posts
+query GetUserWithPosts($userId: ID!, $first: Int = 10) {
+  user(id: $userId) {
+    id
+    name
+    email
+    avatar
+    role
+    posts(first: $first, orderBy: CREATED_AT_DESC) {
+      edges {
+        node {
+          id
+          title
+          body
+          createdAt
+          tags {
+            name
+          }
+          comments(first: 5) {
+            totalCount
+            edges {
+              node {
+                id
+                body
+                author {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+
+# Create a new post
+mutation CreatePost($input: CreatePostInput!) {
+  createPost(input: $input) {
+    post {
+      id
+      title
+      body
+      createdAt
+    }
+    errors {
+      field
+      message
+    }
+  }
+}
+
+fragment UserFields on User {
+  id
+  name
+  email
+  avatar
+}`;
+
+  varsInput.value = JSON.stringify({
+    "userId": "user_123",
+    "first": 10,
+    "input": {
+      "title": "Hello World",
+      "body": "This is my first post",
+      "tags": ["graphql", "api"]
+    }
+  }, null, 2);
+
+  updateLineCount();
+  autoProcess();
+  showToast('Sample query loaded');
+}
+
+function loadSampleSchema() {
+  schemaInput.value = `type Query {
+  user(id: ID!): User
+  users(first: Int, after: String): UserConnection!
+  post(id: ID!): Post
+  posts(first: Int, orderBy: PostOrder): PostConnection!
+  search(query: String!): [SearchResult!]!
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): CreateUserPayload!
+  updateUser(id: ID!, input: UpdateUserInput!): UpdateUserPayload!
+  deleteUser(id: ID!): DeletePayload!
+  createPost(input: CreatePostInput!): CreatePostPayload!
+  likePost(postId: ID!): Post!
+}
+
+type Subscription {
+  postCreated: Post!
+  commentAdded(postId: ID!): Comment!
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  avatar: String
+  role: Role!
+  posts(first: Int): PostConnection!
+  createdAt: DateTime!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  body: String!
+  author: User!
+  tags: [Tag!]!
+  comments(first: Int): CommentConnection!
+  likes: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type Comment {
+  id: ID!
+  body: String!
+  author: User!
+  post: Post!
+  createdAt: DateTime!
+}
+
+type Tag {
+  id: ID!
+  name: String!
+  posts: [Post!]!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+type PostConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PostEdge {
+  node: Post!
+  cursor: String!
+}
+
+type CommentConnection {
+  edges: [CommentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CommentEdge {
+  node: Comment!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  role: Role
+}
+
+input UpdateUserInput {
+  name: String
+  email: String
+  avatar: String
+  role: Role
+}
+
+input CreatePostInput {
+  title: String!
+  body: String!
+  tags: [String!]
+}
+
+type CreateUserPayload {
+  user: User
+  errors: [FieldError!]!
+}
+
+type UpdateUserPayload {
+  user: User
+  errors: [FieldError!]!
+}
+
+type CreatePostPayload {
+  post: Post
+  errors: [FieldError!]!
+}
+
+type DeletePayload {
+  success: Boolean!
+  message: String
+}
+
+type FieldError {
+  field: String!
+  message: String!
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum PostOrder {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  TITLE_ASC
+  TITLE_DESC
+  LIKES_DESC
+}
+
+union SearchResult = User | Post | Comment
+
+scalar DateTime`;
+
+  showToast('Sample schema loaded -- click Parse to explore');
+}
+
+/* ===== TOAST ===== */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* Tab key in textareas */
+[queryInput, schemaInput, varsInput].forEach(el => {
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = el.selectionStart, end = el.selectionEnd;
+      el.value = el.value.substring(0, start) + '  ' + el.value.substring(end);
+      el.selectionStart = el.selectionEnd = start + 2;
+    }
+  });
+});
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a GraphQL playground?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A GraphQL playground is a development tool that lets you write, format, and validate GraphQL queries. NexTool's GraphQL Playground runs entirely in your browser with syntax highlighting, schema exploration, and query generation."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this GraphQL playground free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's GraphQL Playground is completely free. No signup, no server calls, and no data leaves your browser. It works 100% client-side for maximum privacy and speed."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I explore a GraphQL schema?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, paste your GraphQL Schema Definition Language (SDL) into the schema panel, click Parse, and the explorer will display all types, fields, arguments, and enums in an interactive tree. You can check fields to auto-generate queries."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does this tool validate GraphQL queries?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, click Validate to check your query for syntax errors like mismatched brackets, empty selection sets, and missing variables. The validator reports errors with line numbers and provides helpful warnings."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
