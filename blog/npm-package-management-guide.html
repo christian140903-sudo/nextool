@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPM Package Management: Complete Developer Guide 2026 | NexTool</title>
+<meta name="description" content="Master npm package management with this complete guide. Covers package.json anatomy, semantic versioning, lock files, npm vs yarn vs pnpm, security audits, and best practices for 2026.">
+<meta name="keywords" content="npm package management, npm best practices, package.json guide, npm vs yarn vs pnpm, semantic versioning npm, npm lock file, npm security audit, npm install, node modules, package manager comparison">
+<meta name="author" content="NexTool Team">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nextool.app/blog/npm-package-management-guide.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="NPM Package Management: Complete Developer Guide 2026">
+<meta property="og:description" content="Master npm package management with this complete guide. Covers package.json anatomy, semantic versioning, lock files, npm vs yarn vs pnpm, security audits, and best practices.">
+<meta property="og:url" content="https://nextool.app/blog/npm-package-management-guide.html">
+<meta property="og:site_name" content="NexTool">
+<meta property="article:published_time" content="2026-02-10T12:00:00Z">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="NPM Package Management: Complete Developer Guide 2026">
+<meta name="twitter:description" content="Master npm package management with this complete guide. Covers package.json anatomy, semantic versioning, lock files, npm vs yarn vs pnpm, security audits, and best practices.">
+
+<!-- JSON-LD: Article -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "NPM Package Management: Complete Developer Guide 2026",
+    "description": "Master npm package management with this complete guide. Covers package.json anatomy, semantic versioning, lock files, npm vs yarn vs pnpm, security audits, and best practices for 2026.",
+    "author": {"@type": "Organization", "name": "NexTool Team", "url": "https://nextool.app"},
+    "publisher": {"@type": "Organization", "name": "NexTool", "logo": {"@type": "ImageObject", "url": "https://nextool.app/images/logo.png"}},
+    "datePublished": "2026-02-10T12:00:00Z",
+    "dateModified": "2026-02-10T12:00:00Z",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "https://nextool.app/blog/npm-package-management-guide.html"},
+    "keywords": "npm package management, npm best practices, package.json guide, npm vs yarn vs pnpm, semantic versioning",
+    "wordCount": 2200,
+    "articleSection": "Developer Tools"
+}
+</script>
+
+<!-- JSON-LD: BreadcrumbList -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app"},
+        {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://nextool.app/blog/"},
+        {"@type": "ListItem", "position": 3, "name": "NPM Package Management: Complete Developer Guide 2026", "item": "https://nextool.app/blog/npm-package-management-guide.html"}
+    ]
+}
+</script>
+
+<!-- JSON-LD: FAQPage -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "What is the difference between npm install and npm ci?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "npm install reads package.json, resolves dependency versions based on semver ranges, and writes or updates package-lock.json. It is designed for development, where you may be adding or updating packages. npm ci (clean install) deletes the existing node_modules directory, then installs the exact versions specified in package-lock.json without modifying it. npm ci is faster, deterministic, and designed for CI/CD pipelines and production builds where reproducibility matters. Always use npm ci in automated environments."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Should I commit package-lock.json to version control?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, always commit package-lock.json to version control for application projects. The lock file records the exact version of every installed dependency, including transitive dependencies. Without it, different developers and CI servers may install different versions of the same package, leading to 'works on my machine' bugs. The only exception is library packages published to npm -- libraries should not commit lock files because consumers will use their own lock files. For applications, the lock file is essential for reproducible builds."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What do the tilde (~) and caret (^) mean in package.json versions?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The caret (^) allows updates that do not change the leftmost non-zero digit. For example, ^1.2.3 allows any version from 1.2.3 up to but not including 2.0.0. The tilde (~) allows only patch-level updates. For example, ~1.2.3 allows any version from 1.2.3 up to but not including 1.3.0. The caret is the default when you run npm install, and it strikes a reasonable balance between getting bug fixes and avoiding breaking changes. Use exact versions (no prefix) or tilde ranges in production applications where stability is critical."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How do I fix npm security vulnerabilities?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Run npm audit to see a report of known vulnerabilities in your dependency tree. Run npm audit fix to automatically install compatible patched versions where available. For breaking-change fixes that require major version bumps, run npm audit fix --force, but review the changes carefully because this can break your application. If a vulnerability is in a deeply nested transitive dependency, you can use the overrides field in package.json to force a specific version. Always run your test suite after fixing vulnerabilities to ensure nothing breaks."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Which package manager should I use: npm, yarn, or pnpm?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "npm is the default and works without additional installation. It has closed the performance gap significantly in recent versions and is the safest choice for most projects. Yarn offers Plug'n'Play mode for zero-install workflows and has strong monorepo support via workspaces. pnpm is the fastest and most disk-efficient option, using a content-addressable store and hard links to avoid duplicating packages across projects. For new projects in 2026, pnpm is the best choice if performance and disk usage matter to you. For teams that want zero setup friction, npm is the pragmatic default. Yarn is best if you use its PnP mode or need its advanced workspace features."
+            }
+        }
+    ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050508;
+  --surface: #111118;
+  --surface-2: #1a1a24;
+  --surface-3: #222233;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --accent: #a855f7;
+  --pink: #ec4899;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --border: #1e1e2e;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--primary-hover); }
+
+/* ===== NAVBAR ===== */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(5,5,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-size: 1.4rem; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+.nav-links a { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: #fff; }
+.nav-cta {
+  background: var(--primary); color: #fff !important; padding: 0.5rem 1.2rem;
+  border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+  transition: background 0.2s, transform 0.2s;
+}
+.nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+.nav-mobile-toggle { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+/* ===== ARTICLE HERO ===== */
+.article-hero {
+  padding: 8rem 2rem 3rem;
+  max-width: 900px; margin: 0 auto; text-align: center;
+}
+.article-meta {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.article-category {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; padding: 0.3rem 0.9rem; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.article-date, .article-reading-time { color: var(--text-dim); font-size: 0.85rem; }
+.article-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; line-height: 1.15;
+  color: #fff; margin-bottom: 1.2rem;
+}
+.article-hero h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.article-subtitle { color: var(--text-muted); font-size: 1.15rem; max-width: 680px; margin: 0 auto; }
+
+/* ===== LAYOUT ===== */
+.article-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  align-items: start;
+}
+
+/* ===== TOC SIDEBAR ===== */
+.toc-sidebar {
+  position: sticky; top: 84px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+}
+.toc-title {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 0.8rem;
+}
+.toc-list { list-style: none; }
+.toc-list li { margin-bottom: 0.4rem; }
+.toc-list a {
+  color: var(--text-muted); font-size: 0.8rem; display: block;
+  padding: 0.25rem 0.5rem; border-radius: 6px; border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+.toc-list a:hover, .toc-list a.active {
+  color: var(--primary); border-left-color: var(--primary); background: rgba(99,102,241,0.06);
+}
+
+/* ===== ARTICLE CONTENT ===== */
+.article-content { max-width: 720px; }
+.article-content h2 {
+  font-size: 1.6rem; font-weight: 800; color: #fff;
+  margin: 2.5rem 0 1rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.article-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.article-content h3 {
+  font-size: 1.2rem; font-weight: 700; color: #fff; margin: 2rem 0 0.8rem;
+}
+.article-content p { margin-bottom: 1.2rem; color: var(--text); }
+.article-content ul, .article-content ol {
+  margin: 0 0 1.5rem 1.2rem; color: var(--text);
+}
+.article-content li { margin-bottom: 0.5rem; }
+.article-content strong { color: #fff; }
+.article-content blockquote {
+  border-left: 3px solid var(--primary); padding: 1rem 1.5rem;
+  background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1.5rem 0; color: var(--text-muted); font-style: italic;
+}
+.article-content code {
+  background: var(--surface-2); padding: 0.15rem 0.45rem; border-radius: 4px;
+  font-size: 0.9em; color: var(--pink);
+}
+.article-content pre {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.2rem; overflow-x: auto; margin: 1.5rem 0;
+}
+.article-content pre code { background: none; padding: 0; color: var(--text); }
+
+/* ===== KEY TAKEAWAY ===== */
+.key-takeaway {
+  background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(99,102,241,0.05));
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+}
+.key-takeaway-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--success); margin-bottom: 0.4rem;
+}
+
+/* ===== CTA BOX ===== */
+.cta-box {
+  background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.08));
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+.cta-box h3 { color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 0.6rem; }
+.cta-box p { color: var(--text-muted); margin-bottom: 1.2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+.cta-button {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; font-weight: 700; padding: 0.75rem 2rem;
+  border-radius: 10px; font-size: 0.95rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(99,102,241,0.35);
+  color: #fff;
+}
+
+/* ===== COMPARISON TABLE ===== */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+}
+.comparison-table th {
+  background: var(--surface-2);
+  color: #fff;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--border);
+}
+.comparison-table td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.comparison-table tr:hover td {
+  background: rgba(99,102,241,0.04);
+}
+
+/* ===== AUTHOR BOX ===== */
+.author-box {
+  display: flex; gap: 1.2rem; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem; margin: 2.5rem 0;
+}
+.author-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.author-info h4 { color: #fff; font-weight: 700; margin-bottom: 0.2rem; }
+.author-info p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+
+/* ===== RELATED ARTICLES ===== */
+.related-articles { margin: 3rem 0; }
+.related-articles h3 { color: #fff; font-weight: 800; font-size: 1.3rem; margin-bottom: 1.2rem; }
+.related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+.related-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.2rem;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.related-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.related-card-cat {
+  font-size: 0.7rem; text-transform: uppercase; font-weight: 700;
+  letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.5rem;
+}
+.related-card h4 { color: #fff; font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; line-height: 1.4; }
+.related-card p { color: var(--text-dim); font-size: 0.82rem; }
+
+/* ===== FOOTER ===== */
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 3rem 2rem 1.5rem;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+}
+.footer-col h4 {
+  color: #fff; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.footer-col a { display: block; color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.4rem; }
+.footer-col a:hover { color: var(--primary); }
+.footer-brand {
+  font-size: 1.2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+.footer-brand-desc { color: var(--text-dim); font-size: 0.82rem; line-height: 1.5; }
+.footer-bottom {
+  text-align: center; padding-top: 1.5rem;
+  border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.8rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .article-layout { grid-template-columns: 1fr; }
+  .toc-sidebar { position: static; margin-bottom: 1rem; }
+  .comparison-table { font-size: 0.8rem; }
+  .comparison-table th, .comparison-table td { padding: 0.5rem 0.6rem; }
+}
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .nav-mobile-toggle { display: block; }
+  .article-hero { padding: 6rem 1rem 2rem; }
+  .article-layout { padding: 0 1rem 3rem; }
+  .author-box { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">NexTool</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/free-tools/">Tools</a></li>
+    <li><a href="/free-tools/">Free Tools</a></li>
+    <li><a href="/pro.html">Pro</a></li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/pro.html" class="nav-cta">NexTool Pro</a></li>
+  </ul>
+  <button class="nav-mobile-toggle" aria-label="Menu">&#9776;</button>
+</nav>
+
+<!-- HERO -->
+<header class="article-hero">
+  <div class="article-meta">
+    <span class="article-category">Developer Tools</span>
+    <span class="article-date">February 10, 2026</span>
+    <span class="article-reading-time">12 min read</span>
+  </div>
+  <h1>NPM Package Management: <span>Complete Developer Guide 2026</span></h1>
+  <p class="article-subtitle">Everything you need to know about managing Node.js dependencies. Covers package.json anatomy, semantic versioning, lock files, npm vs yarn vs pnpm, security audits, and the best practices that keep production applications stable.</p>
+</header>
+
+<!-- ARTICLE LAYOUT -->
+<div class="article-layout">
+
+  <!-- TOC SIDEBAR -->
+  <aside class="toc-sidebar">
+    <div class="toc-title">Table of Contents</div>
+    <ul class="toc-list">
+      <li><a href="#npm-basics">NPM Basics</a></li>
+      <li><a href="#package-json-anatomy">package.json Anatomy</a></li>
+      <li><a href="#semantic-versioning">Semantic Versioning</a></li>
+      <li><a href="#lock-files">Lock Files Explained</a></li>
+      <li><a href="#essential-commands">Essential Commands</a></li>
+      <li><a href="#npm-vs-yarn-vs-pnpm">npm vs yarn vs pnpm</a></li>
+      <li><a href="#security-audits">Security Audits</a></li>
+      <li><a href="#best-practices">Best Practices</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </aside>
+
+  <!-- ARTICLE CONTENT -->
+  <article class="article-content">
+
+    <h2 id="npm-basics">NPM Basics: What It Is and Why It Matters</h2>
+
+    <p>npm (Node Package Manager) is the default package manager for Node.js and the largest software registry in the world. As of early 2026, the npm registry hosts over 2.5 million packages. When you run <code>npm install express</code>, you are pulling code from that registry into your project. When you run <code>npm publish</code>, you are pushing code into it.</p>
+
+    <p>Every modern JavaScript and TypeScript project depends on npm or one of its alternatives. Whether you are building a React frontend, a Node.js API, a CLI tool, or a full-stack application, your dependency tree is managed through a package manager. Getting this right is not a nice-to-have -- it directly affects your build reproducibility, deployment reliability, and application security.</p>
+
+    <p>npm does three things:</p>
+    <ul>
+      <li><strong>Installs packages</strong> from the registry into your project's <code>node_modules</code> directory</li>
+      <li><strong>Manages dependency versions</strong> using semantic versioning ranges and lock files</li>
+      <li><strong>Runs scripts</strong> defined in your <code>package.json</code> -- build commands, test suites, linting, deployment, and custom automation</li>
+    </ul>
+
+    <p>npm ships with every Node.js installation. No separate download required. Check your version with <code>npm --version</code> and update to the latest with <code>npm install -g npm@latest</code>.</p>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Key Insight</div>
+      <p><strong>Your dependency tree is your supply chain.</strong> Every package you install brings its own dependencies, which bring their own dependencies. A typical React application pulls in 800 to 1,500 packages. Understanding how npm resolves, installs, and locks these dependencies is not optional knowledge -- it is operational security.</p>
+    </div>
+
+    <h2 id="package-json-anatomy">The Anatomy of package.json</h2>
+
+    <p><code>package.json</code> is the manifest file for every Node.js project. It declares your project's identity, its dependencies, and the scripts that build, test, and run it. Here is a complete example with every field that matters.</p>
+
+    <pre><code>{
+  "name": "my-api-server",
+  "version": "2.4.1",
+  "description": "REST API for the inventory management system",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "zod": "^3.23.0",
+    "drizzle-orm": "^0.35.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "eslint": "^9.12.0",
+    "@types/express": "^5.0.0",
+    "tsx": "^4.19.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT"
+}</code></pre>
+
+    <h3>Key Fields Explained</h3>
+
+    <ul>
+      <li><strong>name</strong> -- Must be lowercase, URL-safe. If you publish to npm, this is the package name users will <code>npm install</code>.</li>
+      <li><strong>version</strong> -- Follows semantic versioning (see next section). Required for published packages.</li>
+      <li><strong>type</strong> -- Set to <code>"module"</code> to use ES modules (<code>import/export</code>) instead of CommonJS (<code>require</code>). In 2026, most new projects use ES modules.</li>
+      <li><strong>scripts</strong> -- Named commands you run with <code>npm run &lt;name&gt;</code>. The <code>start</code> and <code>test</code> scripts are special -- you can run them without the <code>run</code> keyword: <code>npm start</code>, <code>npm test</code>.</li>
+      <li><strong>dependencies</strong> -- Packages required at runtime. These ship with your application.</li>
+      <li><strong>devDependencies</strong> -- Packages needed only during development -- compilers, test frameworks, linters. Not installed in production when you run <code>npm install --production</code> or <code>npm ci --omit=dev</code>.</li>
+      <li><strong>engines</strong> -- Declares which Node.js versions your project supports. npm warns (but does not block) when the version does not match unless you set <code>engine-strict=true</code> in <code>.npmrc</code>.</li>
+    </ul>
+
+    <p>Need to scaffold a <code>package.json</code> quickly? The <a href="/free-tools/package-json-generator.html">NexTool Package.json Generator</a> lets you fill in fields through a visual form and exports a correctly formatted file -- no manual JSON editing required.</p>
+
+    <h2 id="semantic-versioning">Semantic Versioning: The Rules That Keep Things From Breaking</h2>
+
+    <p>Every npm package version follows the format <strong>MAJOR.MINOR.PATCH</strong> -- for example, <code>4.21.3</code>. The three numbers communicate what changed.</p>
+
+    <ul>
+      <li><strong>MAJOR</strong> (4.x.x) -- Breaking changes. The API changed in a way that could break existing code. You must read the migration guide.</li>
+      <li><strong>MINOR</strong> (x.21.x) -- New features that are backward-compatible. Existing code continues to work.</li>
+      <li><strong>PATCH</strong> (x.x.3) -- Bug fixes that are backward-compatible. No new features, just corrections.</li>
+    </ul>
+
+    <p>When you specify a dependency in <code>package.json</code>, you use a version range that tells npm which updates to accept automatically.</p>
+
+    <pre><code># Exact version -- installs only 4.21.3
+"express": "4.21.3"
+
+# Caret (^) -- allows minor and patch updates
+# ^4.21.3 matches >=4.21.3 and &lt;5.0.0
+"express": "^4.21.3"
+
+# Tilde (~) -- allows only patch updates
+# ~4.21.3 matches >=4.21.3 and &lt;4.22.0
+"express": "~4.21.3"
+
+# Greater than or equal
+"express": ">=4.21.0"
+
+# Range
+"express": ">=4.18.0 &lt;5.0.0"
+
+# Wildcard -- any version (dangerous)
+"express": "*"</code></pre>
+
+    <p>The <strong>caret (^)</strong> is the default when you run <code>npm install express</code>. It is a reasonable default because most well-maintained packages follow semver: minor and patch updates should not break your code. But "should not" is not "will not." This is why lock files exist.</p>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Practical Advice</div>
+      <p><strong>For application projects, use the caret (^) default and rely on your lock file for reproducibility.</strong> For critical infrastructure, consider pinning exact versions and updating manually after testing. The tradeoff is between automatic security patches and absolute control.</p>
+    </div>
+
+    <h2 id="lock-files">Lock Files: Why package-lock.json Exists</h2>
+
+    <p><code>package.json</code> declares version <em>ranges</em>. <code>package-lock.json</code> records the <em>exact</em> versions that were actually installed, including every transitive dependency in the entire tree.</p>
+
+    <p>Without a lock file, running <code>npm install</code> on two different machines at two different times can produce different <code>node_modules</code> directories. A new patch release of a dependency between your local install and the CI server install means you are testing locally against one set of code and deploying another. Lock files eliminate this class of bugs entirely.</p>
+
+    <pre><code># What package.json says:
+"express": "^4.21.0"
+
+# What package-lock.json records:
+"express": {
+  "version": "4.21.3",
+  "resolved": "https://registry.npmjs.org/express/-/express-4.21.3.tgz",
+  "integrity": "sha512-abc123..."
+}</code></pre>
+
+    <p>The <code>integrity</code> field is a hash of the package tarball. npm verifies this hash on every install, ensuring you get the exact same code. If someone tampers with a package on the registry, the integrity check fails and the install aborts.</p>
+
+    <h3>npm install vs npm ci</h3>
+
+    <p>This is one of the most important distinctions in npm and one that many developers get wrong.</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Behavior</th>
+          <th>npm install</th>
+          <th>npm ci</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Reads</td>
+          <td>package.json</td>
+          <td>package-lock.json</td>
+        </tr>
+        <tr>
+          <td>Modifies lock file</td>
+          <td>Yes (updates it)</td>
+          <td>Never</td>
+        </tr>
+        <tr>
+          <td>Deletes node_modules first</td>
+          <td>No</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>Resolves version ranges</td>
+          <td>Yes</td>
+          <td>No (uses exact lock)</td>
+        </tr>
+        <tr>
+          <td>Speed</td>
+          <td>Slower</td>
+          <td>Faster</td>
+        </tr>
+        <tr>
+          <td>Deterministic</td>
+          <td>Not guaranteed</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>Best for</td>
+          <td>Development</td>
+          <td>CI/CD, production</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><strong>Use <code>npm install</code> during development</strong> when you are adding, removing, or updating packages. <strong>Use <code>npm ci</code> everywhere else</strong> -- CI pipelines, Docker builds, production servers. This single change catches an entire category of deployment bugs.</p>
+
+    <h2 id="essential-commands">Essential npm Commands</h2>
+
+    <p>These are the commands you will use daily. Each one deserves understanding beyond the basic syntax.</p>
+
+    <h3>Installing Packages</h3>
+    <pre><code># Install all dependencies from package.json
+npm install
+
+# Install a specific package (adds to dependencies)
+npm install express
+
+# Install as a dev dependency
+npm install --save-dev vitest
+
+# Install a specific version
+npm install express@4.21.3
+
+# Install globally (CLI tools)
+npm install -g tsx
+
+# Clean install from lock file (CI/production)
+npm ci
+
+# Install without optional dependencies
+npm install --omit=optional
+
+# Install production dependencies only
+npm install --omit=dev</code></pre>
+
+    <h3>Updating Packages</h3>
+    <pre><code># Check which packages are outdated
+npm outdated
+
+# Update packages within semver ranges
+npm update
+
+# Update a specific package
+npm update express
+
+# Jump to a new major version (interactive)
+npx npm-check-updates -u
+npm install</code></pre>
+
+    <h3>Removing Packages</h3>
+    <pre><code># Remove a package
+npm uninstall lodash
+
+# Remove and clean from devDependencies
+npm uninstall --save-dev jest
+
+# Remove all node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install</code></pre>
+
+    <h3>Inspecting Your Dependency Tree</h3>
+    <pre><code># List all installed packages (top-level)
+npm list --depth=0
+
+# List all installed packages (full tree)
+npm list
+
+# Find why a specific package is installed
+npm explain package-name
+
+# View info about a registry package
+npm info express
+
+# Check for duplicate packages
+npm dedupe</code></pre>
+
+    <p>For a visual breakdown of any package's size, dependencies, and metadata, use the <a href="/free-tools/npm-package-analyzer.html">NexTool NPM Package Analyzer</a>. Paste a package name and see its bundle size, dependency count, weekly downloads, and version history at a glance.</p>
+
+    <div class="cta-box">
+      <h3>Analyze Any npm Package Instantly</h3>
+      <p>Check bundle size, dependencies, versions, and download stats -- directly in your browser.</p>
+      <a href="/free-tools/npm-package-analyzer.html" class="cta-button">Open NPM Package Analyzer</a>
+    </div>
+
+    <h2 id="npm-vs-yarn-vs-pnpm">npm vs yarn vs pnpm: Which Package Manager in 2026</h2>
+
+    <p>npm is no longer the only option. Yarn and pnpm both solve real problems that npm historically had -- speed, disk efficiency, and determinism. Here is how they compare in 2026.</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>npm</th>
+          <th>Yarn (Berry)</th>
+          <th>pnpm</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Included with Node.js</td>
+          <td>Yes</td>
+          <td>Via corepack</td>
+          <td>Via corepack</td>
+        </tr>
+        <tr>
+          <td>Install speed</td>
+          <td>Good</td>
+          <td>Fast</td>
+          <td>Fastest</td>
+        </tr>
+        <tr>
+          <td>Disk usage</td>
+          <td>High (copies per project)</td>
+          <td>Low (PnP) / High (node_modules)</td>
+          <td>Lowest (content-addressable store)</td>
+        </tr>
+        <tr>
+          <td>Lock file</td>
+          <td>package-lock.json</td>
+          <td>yarn.lock</td>
+          <td>pnpm-lock.yaml</td>
+        </tr>
+        <tr>
+          <td>Monorepo workspaces</td>
+          <td>Basic</td>
+          <td>Advanced</td>
+          <td>Advanced</td>
+        </tr>
+        <tr>
+          <td>Plug'n'Play (no node_modules)</td>
+          <td>No</td>
+          <td>Yes (default in Berry)</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td>Strict dependency isolation</td>
+          <td>No (hoisting)</td>
+          <td>Yes (PnP)</td>
+          <td>Yes (symlinks)</td>
+        </tr>
+        <tr>
+          <td>Ecosystem compatibility</td>
+          <td>100%</td>
+          <td>~95% (PnP breaks some tools)</td>
+          <td>~98%</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>npm: The Default</h3>
+    <p>npm is the safe choice. It ships with Node.js, every tutorial uses it, and every CI system supports it out of the box. Recent versions (npm 10+) have closed much of the performance gap with yarn and pnpm. If you have no specific pain point, npm works fine.</p>
+
+    <h3>Yarn (Berry / v4)</h3>
+    <p>Yarn's killer feature is Plug'n'Play (PnP), which eliminates the <code>node_modules</code> directory entirely. Dependencies are stored as compressed archives and resolved through a <code>.pnp.cjs</code> file. This makes installs near-instant after the first time (zero-install when committed to Git) and eliminates the massive <code>node_modules</code> folder. The tradeoff is compatibility -- some tools still expect <code>node_modules</code> to exist and need patching or workarounds.</p>
+
+    <h3>pnpm: The Performance Leader</h3>
+    <p>pnpm stores every package version once in a global content-addressable store (<code>~/.local/share/pnpm/store</code>), then creates hard links from each project's <code>node_modules</code> into the store. This means installing the same version of React in 10 projects uses disk space only once. pnpm is also the strictest about dependency isolation -- your code can only import packages that are explicitly listed in <code>package.json</code>, catching phantom dependency bugs that npm and yarn miss.</p>
+
+    <pre><code># Enable corepack (ships with Node.js 16.13+)
+corepack enable
+
+# Use pnpm in a project
+corepack use pnpm@latest
+
+# pnpm commands mirror npm closely
+pnpm install          # Same as npm install
+pnpm add express      # Same as npm install express
+pnpm remove lodash    # Same as npm uninstall lodash
+pnpm run build        # Same as npm run build
+pnpm dlx create-next-app  # Same as npx create-next-app</code></pre>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Recommendation</div>
+      <p><strong>For new projects in 2026, pnpm is the strongest choice</strong> -- fastest installs, lowest disk usage, strictest dependency resolution. For teams that want zero configuration overhead, npm is the pragmatic default. Choose yarn if you specifically want PnP zero-installs or use advanced workspace features. Pick one per organization and standardize.</p>
+    </div>
+
+    <h2 id="security-audits">Security Audits: Finding and Fixing Vulnerabilities</h2>
+
+    <p>Your <code>node_modules</code> directory is a supply chain. Every one of those packages was written by a third party, and any one of them can contain vulnerabilities -- or be compromised in a supply chain attack. npm provides built-in tools to detect known vulnerabilities.</p>
+
+    <h3>Running an Audit</h3>
+    <pre><code># Full vulnerability report
+npm audit
+
+# JSON output for CI parsing
+npm audit --json
+
+# Only production dependencies
+npm audit --omit=dev
+
+# Summary output
+npm audit --audit-level=moderate</code></pre>
+
+    <p>The audit report shows each vulnerability's severity (critical, high, moderate, low), the affected package, the vulnerable version range, and the fixed version if one exists.</p>
+
+    <h3>Fixing Vulnerabilities</h3>
+    <pre><code># Auto-fix compatible updates (safe)
+npm audit fix
+
+# Force fixes including breaking changes (review carefully)
+npm audit fix --force
+
+# See what fix would do without applying
+npm audit fix --dry-run
+
+# Override a transitive dependency version
+# Add to package.json:
+{
+  "overrides": {
+    "vulnerable-package": ">=2.1.4"
+  }
+}</code></pre>
+
+    <h3>Beyond npm audit</h3>
+    <p>npm audit only checks the npm advisory database. For deeper analysis, consider these layers.</p>
+    <ul>
+      <li><strong>Socket.dev</strong> -- Detects supply chain attacks: typosquatting, install scripts, obfuscated code, network calls. Add it to your GitHub pull requests.</li>
+      <li><strong>Snyk</strong> -- Broader vulnerability database with auto-fix PRs. Free for open-source projects.</li>
+      <li><strong>npm provenance</strong> -- Verify that a package was built from its claimed source repository using SLSA provenance attestations. Supported since npm 9.5.</li>
+      <li><strong>Lockfile-lint</strong> -- Verifies that your lock file only resolves packages from trusted registries and uses HTTPS.</li>
+    </ul>
+
+    <p>When reviewing audit output, use the <a href="/free-tools/json-formatter.html">NexTool JSON Formatter</a> to make the <code>npm audit --json</code> output readable. The tree view makes it easy to trace which top-level dependency pulls in a vulnerable transitive package.</p>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Security Rule</div>
+      <p><strong>Run <code>npm audit</code> in every CI pipeline.</strong> Set <code>--audit-level=high</code> to fail the build on high or critical vulnerabilities. Fixing vulnerabilities is not a quarterly task -- it is a continuous process that belongs in your deployment gate.</p>
+    </div>
+
+    <h2 id="best-practices">npm Best Practices for Production Projects</h2>
+
+    <p>These practices separate hobby projects from production-grade dependency management.</p>
+
+    <h3>1. Always Commit Your Lock File</h3>
+    <p>For application projects, <code>package-lock.json</code> (or <code>pnpm-lock.yaml</code> or <code>yarn.lock</code>) must be in version control. Without it, you cannot guarantee reproducible builds. Add <code>node_modules/</code> to <code>.gitignore</code> but never the lock file.</p>
+
+    <h3>2. Use npm ci in CI/CD</h3>
+    <p>Never run <code>npm install</code> in a CI pipeline. Use <code>npm ci</code> -- it is faster, deterministic, and fails loudly if the lock file is out of sync with <code>package.json</code>. This catches the common mistake of committing <code>package.json</code> changes without updating the lock file.</p>
+
+    <h3>3. Separate dependencies from devDependencies</h3>
+    <p>Test frameworks, type definitions, linters, and build tools belong in <code>devDependencies</code>. This matters when you deploy -- <code>npm ci --omit=dev</code> installs only what your application needs at runtime, producing smaller Docker images and faster cold starts.</p>
+
+    <h3>4. Pin Node.js Versions</h3>
+    <p>Use the <code>engines</code> field in <code>package.json</code> and a <code>.nvmrc</code> or <code>.node-version</code> file to declare which Node.js version your project uses. This prevents "works on my machine" issues when team members run different Node.js versions.</p>
+
+    <pre><code># .nvmrc
+20.11.0
+
+# .npmrc (enforce engine check)
+engine-strict=true</code></pre>
+
+    <h3>5. Audit Regularly and Automate It</h3>
+    <p>Set up Dependabot, Renovate, or Snyk to open PRs when dependency updates are available. Review and merge them weekly. Do not let your dependency updates accumulate into a terrifying mega-update that nobody wants to touch.</p>
+
+    <h3>6. Use .npmrc for Consistent Configuration</h3>
+    <p>A project-level <code>.npmrc</code> file ensures everyone on the team uses the same npm settings.</p>
+    <pre><code># .npmrc
+engine-strict=true
+save-exact=true
+fund=false
+audit-level=high</code></pre>
+    <p><code>save-exact=true</code> pins exact versions by default instead of caret ranges. <code>fund=false</code> suppresses the funding message after installs. <code>audit-level=high</code> only shows high and critical vulnerabilities.</p>
+
+    <h3>7. Clean Up Unused Dependencies</h3>
+    <p>Over time, packages get installed for features that are later removed, but the dependency stays in <code>package.json</code>. Use <code>npx depcheck</code> to find unused dependencies and remove them. Every unnecessary package is a larger bundle, a slower install, and a wider attack surface.</p>
+
+    <h2 id="faq">Frequently Asked Questions</h2>
+
+    <h3>What is the difference between npm install and npm ci?</h3>
+    <p><code>npm install</code> reads <code>package.json</code>, resolves dependency versions based on semver ranges, and writes or updates <code>package-lock.json</code>. It is designed for development, where you may be adding or updating packages. <code>npm ci</code> (clean install) deletes the existing <code>node_modules</code> directory, then installs the exact versions specified in <code>package-lock.json</code> without modifying it. <code>npm ci</code> is faster, deterministic, and designed for CI/CD pipelines and production builds where reproducibility matters. Always use <code>npm ci</code> in automated environments.</p>
+
+    <h3>Should I commit package-lock.json to version control?</h3>
+    <p>Yes, always commit <code>package-lock.json</code> to version control for application projects. The lock file records the exact version of every installed dependency, including transitive dependencies. Without it, different developers and CI servers may install different versions of the same package, leading to "works on my machine" bugs. The only exception is library packages published to npm -- libraries should not commit lock files because consumers will use their own lock files. For applications, the lock file is essential for reproducible builds.</p>
+
+    <h3>What do the tilde (~) and caret (^) mean in package.json versions?</h3>
+    <p>The caret (<code>^</code>) allows updates that do not change the leftmost non-zero digit. For example, <code>^1.2.3</code> allows any version from 1.2.3 up to but not including 2.0.0. The tilde (<code>~</code>) allows only patch-level updates. For example, <code>~1.2.3</code> allows any version from 1.2.3 up to but not including 1.3.0. The caret is the default when you run <code>npm install</code>, and it strikes a reasonable balance between getting bug fixes and avoiding breaking changes. Use exact versions (no prefix) or tilde ranges in production applications where stability is critical.</p>
+
+    <h3>How do I fix npm security vulnerabilities?</h3>
+    <p>Run <code>npm audit</code> to see a report of known vulnerabilities in your dependency tree. Run <code>npm audit fix</code> to automatically install compatible patched versions where available. For breaking-change fixes that require major version bumps, run <code>npm audit fix --force</code>, but review the changes carefully because this can break your application. If a vulnerability is in a deeply nested transitive dependency, you can use the <code>overrides</code> field in <code>package.json</code> to force a specific version. Always run your test suite after fixing vulnerabilities to ensure nothing breaks.</p>
+
+    <h3>Which package manager should I use: npm, yarn, or pnpm?</h3>
+    <p>npm is the default and works without additional installation. It has closed the performance gap significantly in recent versions and is the safest choice for most projects. Yarn offers Plug'n'Play mode for zero-install workflows and has strong monorepo support via workspaces. pnpm is the fastest and most disk-efficient option, using a content-addressable store and hard links to avoid duplicating packages across projects. For new projects in 2026, pnpm is the best choice if performance and disk usage matter to you. For teams that want zero setup friction, npm is the pragmatic default. Yarn is best if you use its PnP mode or need its advanced workspace features.</p>
+
+    <!-- CTA Box -->
+    <div class="cta-box">
+      <h3>Explore 150+ Free Developer Tools</h3>
+      <p>NPM Package Analyzer is just the start. NexTool has free tools for JSON formatting, package.json generation, regex testing, encoding, hashing, and much more.</p>
+      <a href="/free-tools/" class="cta-button">Browse All Free Tools</a>
+    </div>
+
+    <!-- AUTHOR BOX -->
+    <div class="author-box">
+      <div class="author-avatar">NT</div>
+      <div class="author-info">
+        <h4>NexTool Team</h4>
+        <p>We build free, privacy-first developer tools. Our mission is to make the tools you reach for every day faster, cleaner, and more respectful of your data.</p>
+      </div>
+    </div>
+
+    <!-- RELATED ARTICLES -->
+    <div class="related-articles">
+      <h3>Related Articles</h3>
+      <div class="related-grid">
+        <a href="/blog/how-to-format-json-complete-guide.html" class="related-card">
+          <div class="related-card-cat">Developer Tools</div>
+          <h4>How to Format JSON: The Complete Guide</h4>
+          <p>Everything you need to know about formatting, validating, and beautifying JSON data with examples and free tools.</p>
+        </a>
+        <a href="/blog/javascript-performance-optimization.html" class="related-card">
+          <div class="related-card-cat">JavaScript</div>
+          <h4>JavaScript Performance Optimization</h4>
+          <p>Practical techniques for faster load times, smaller bundles, and smoother runtime performance in JavaScript applications.</p>
+        </a>
+        <a href="/blog/developer-productivity-tools-2026.html" class="related-card">
+          <div class="related-card-cat">Productivity</div>
+          <h4>Developer Productivity Tools in 2026</h4>
+          <p>The tools, workflows, and habits that top developers use to ship faster without burning out.</p>
+        </a>
+      </div>
+    </div>
+
+  </article>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="footer-brand">NexTool</div>
+      <p class="footer-brand-desc">150+ free developer tools for developers and designers. Browser-based, no signup.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Free Tools</h4>
+      <a href="/free-tools/">All 150+ Tools</a>
+      <a href="/free-tools/json-formatter.html">JSON Formatter</a>
+      <a href="/free-tools/csv-formatter.html">CSV Formatter</a>
+      <a href="/free-tools/regex-tester.html">Regex Tester</a>
+      <a href="/free-tools/image-compressor.html">Image Compressor</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+      <a href="/blog/">Blog</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="mailto:christianjunbucher@gmail.com">Email Us</a>
+      <a href="/imprint.html">Imprint</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+// TOC active state
+const tocLinks = document.querySelectorAll('.toc-list a');
+const sections = document.querySelectorAll('.article-content h2[id]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  tocLinks.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+// Mobile nav toggle
+document.querySelector('.nav-mobile-toggle')?.addEventListener('click', () => {
+  const links = document.querySelector('.nav-links');
+  links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+  links.style.flexDirection = 'column';
+  links.style.position = 'absolute';
+  links.style.top = '64px';
+  links.style.right = '1rem';
+  links.style.background = 'var(--surface)';
+  links.style.padding = '1rem';
+  links.style.borderRadius = '12px';
+  links.style.border = '1px solid var(--border)';
+});
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>

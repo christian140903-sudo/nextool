@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Git Diff Viewer — Render Diffs Beautifully | NexTool</title>
+<meta name="description" content="Free online git diff viewer. Paste git diff output and render it with syntax highlighting, side-by-side or unified view, collapsible regions, and stats summary.">
+<meta name="keywords" content="git diff viewer, diff renderer, git diff online, side-by-side diff, unified diff, syntax highlighting, free tool, NexTool">
+<meta property="og:title" content="Free Git Diff Viewer — Render Diffs Beautifully | NexTool">
+<meta property="og:description" content="Paste git diff output and view it beautifully with syntax highlighting, side-by-side view, stats summary, and collapsible regions.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/git-diff-viewer.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/git-diff-viewer.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Git Diff Viewer — Render Diffs Beautifully | NexTool">
+<meta name="twitter:description" content="Paste git diff output and view it beautifully. Side-by-side, unified, syntax highlighting. Free.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Git Diff Viewer","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online git diff viewer with syntax highlighting, side-by-side and unified views, collapsible regions, and diff stats."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7);--add-bg:rgba(34,197,94,0.08);--add-border:rgba(34,197,94,0.2);--del-bg:rgba(239,68,68,0.08);--del-border:rgba(239,68,68,0.2);--hunk-bg:rgba(99,102,241,0.06);--hunk-border:rgba(99,102,241,0.15)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1400px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select,.toolbar label{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar select{appearance:none;padding-right:1.8rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.toolbar .spacer{flex:1}
+/* INPUT AREA */
+.input-section{margin-bottom:1.5rem}
+.input-panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.input-panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+#diffInput{width:100%;min-height:200px;max-height:400px;background:transparent;border:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:1rem;resize:vertical;outline:none;line-height:1.7;tab-size:4}
+#diffInput::placeholder{color:var(--text2);opacity:.5}
+/* STATS */
+.stats-bar{display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem;align-items:center;font-size:.8rem}
+.stat-chip{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .75rem;border-radius:8px;font-weight:600;font-family:'JetBrains Mono',monospace;font-size:.75rem}
+.stat-files{background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.2)}
+.stat-add{background:var(--add-bg);color:var(--green);border:1px solid var(--add-border)}
+.stat-del{background:var(--del-bg);color:var(--red);border:1px solid var(--del-border)}
+.stat-neutral{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+/* DIFF OUTPUT */
+.diff-output{font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.65}
+.diff-file{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.25rem}
+.diff-file-header{padding:.6rem 1rem;background:rgba(26,26,36,0.7);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.diff-file-header .filename{font-weight:700;color:var(--text);font-size:.85rem;word-break:break-all}
+.diff-file-header .file-badge{font-size:.65rem;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.badge-modified{background:rgba(234,179,8,.15);color:var(--yellow);border:1px solid rgba(234,179,8,.25)}
+.badge-added{background:var(--add-bg);color:var(--green);border:1px solid var(--add-border)}
+.badge-deleted{background:var(--del-bg);color:var(--red);border:1px solid var(--del-border)}
+.badge-renamed{background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.2)}
+.diff-file-header .file-stats{margin-left:auto;display:flex;gap:.5rem;font-size:.75rem;font-weight:600}
+.diff-file-header .fs-add{color:var(--green)}
+.diff-file-header .fs-del{color:var(--red)}
+/* UNIFIED VIEW */
+.diff-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.diff-table td{padding:0 12px;vertical-align:top;white-space:pre-wrap;word-break:break-all;border:none}
+.diff-table .ln{width:50px;min-width:50px;text-align:right;color:#4a4a5a;user-select:none;padding-right:8px;border-right:1px solid var(--border);font-size:.75rem}
+.diff-table .ln-old{width:50px;min-width:50px}
+.diff-table .ln-new{width:50px;min-width:50px;border-right:1px solid var(--border)}
+.diff-table .code{padding:0 12px;overflow-x:auto}
+.diff-table tr.line-add{background:var(--add-bg)}
+.diff-table tr.line-add .ln{color:rgba(34,197,94,.5)}
+.diff-table tr.line-add .code{color:#4ade80}
+.diff-table tr.line-del{background:var(--del-bg)}
+.diff-table tr.line-del .ln{color:rgba(239,68,68,.5)}
+.diff-table tr.line-del .code{color:#f87171}
+.diff-table tr.line-ctx .code{color:var(--text2)}
+.diff-table tr.line-hunk{background:var(--hunk-bg)}
+.diff-table tr.line-hunk td{padding:6px 12px;color:#818cf8;font-weight:600;font-size:.75rem;border-bottom:1px solid var(--hunk-border);border-top:1px solid var(--hunk-border)}
+.diff-table tr.line-hunk .code{display:flex;align-items:center;justify-content:space-between}
+.hunk-copy-btn{background:none;border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:.65rem;padding:2px 8px;border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s;opacity:0}
+tr.line-hunk:hover .hunk-copy-btn{opacity:1}
+.hunk-copy-btn:hover{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.4)}
+/* SIDE BY SIDE */
+.sbs-container{display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
+.sbs-container .sbs-half{overflow-x:auto}
+.sbs-container .sbs-half-header{padding:4px 12px;font-size:.7rem;font-weight:600;color:var(--text2);background:rgba(26,26,36,0.5);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.5px}
+.sbs-container .sbs-half:first-child{border-right:1px solid var(--border)}
+.sbs-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.sbs-table td{padding:0 10px;vertical-align:top;white-space:pre-wrap;word-break:break-all}
+.sbs-table .ln{width:45px;min-width:45px;text-align:right;color:#4a4a5a;user-select:none;padding-right:6px;border-right:1px solid var(--border);font-size:.75rem}
+.sbs-table .code{padding:0 10px;overflow-x:auto}
+.sbs-table tr.line-add{background:var(--add-bg)}
+.sbs-table tr.line-add .code{color:#4ade80}
+.sbs-table tr.line-add .ln{color:rgba(34,197,94,.5)}
+.sbs-table tr.line-del{background:var(--del-bg)}
+.sbs-table tr.line-del .code{color:#f87171}
+.sbs-table tr.line-del .ln{color:rgba(239,68,68,.5)}
+.sbs-table tr.line-ctx .code{color:var(--text2)}
+.sbs-table tr.line-empty{background:rgba(42,42,58,.3)}
+.sbs-table tr.line-empty td{min-height:1.65em}
+/* COLLAPSE */
+.collapse-row td{text-align:center;padding:4px 0!important;cursor:pointer;color:#818cf8;font-size:.72rem;font-weight:500;background:rgba(99,102,241,.04);border-top:1px dashed rgba(99,102,241,.15);border-bottom:1px dashed rgba(99,102,241,.15);transition:background .2s;user-select:none}
+.collapse-row:hover td{background:rgba(99,102,241,.1)}
+/* SYNTAX HIGHLIGHTING */
+.hl-kw{color:#c084fc}.hl-str{color:#4ade80}.hl-num{color:var(--cyan)}.hl-cm{color:#6b7280;font-style:italic}.hl-fn{color:#60a5fa}.hl-op{color:#f472b6}.hl-tag{color:#f87171}.hl-attr{color:#fbbf24}.hl-type{color:var(--cyan)}
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--text2)}
+.empty-state svg{width:64px;height:64px;margin-bottom:1rem;opacity:.4}
+.empty-state h3{color:var(--text);font-size:1.1rem;margin-bottom:.5rem}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .sbs-container{grid-template-columns:1fr}
+  .sbs-container .sbs-half:first-child{border-right:none;border-bottom:1px solid var(--border)}
+  .tool-container{padding:0 .75rem 3rem}
+  .diff-table .ln,.diff-table .ln-old,.diff-table .ln-new{width:35px;min-width:35px;font-size:.65rem}
+  .diff-table .code,.sbs-table .code{padding:0 6px;font-size:.7rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>Git Diff Viewer</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Paste the output of <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:13px;">git diff</code> and render it with syntax highlighting, side-by-side or unified view, collapsible unchanged regions, and a stats summary. 100% client-side, no data leaves your browser.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="input-section">
+    <div class="input-panel">
+      <div class="input-panel-header">
+        <span>Paste git diff output</span>
+        <span style="display:flex;gap:.5rem">
+          <button onclick="loadSample()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:2px 10px;border-radius:6px;font-size:.72rem;cursor:pointer;font-family:inherit;transition:all .2s" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">Load Sample</button>
+          <button onclick="clearAll()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:2px 10px;border-radius:6px;font-size:.72rem;cursor:pointer;font-family:inherit;transition:all .2s" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">Clear</button>
+        </span>
+      </div>
+      <textarea id="diffInput" placeholder="Paste your git diff output here...&#10;&#10;Example:&#10;diff --git a/src/app.js b/src/app.js&#10;index 1234567..abcdefg 100644&#10;--- a/src/app.js&#10;+++ b/src/app.js&#10;@@ -1,5 +1,6 @@&#10; const app = express();&#10;-app.use(cors());&#10;+app.use(cors({ origin: true }));&#10;+app.use(helmet());&#10; app.listen(3000);" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button id="btnUnified" class="active" onclick="setView('unified')">Unified</button>
+    <button id="btnSideBySide" onclick="setView('sbs')">Side by Side</button>
+    <div class="spacer"></div>
+    <select id="contextLines" onchange="renderDiff()" title="Context lines to show around changes">
+      <option value="3">3 lines context</option>
+      <option value="5">5 lines context</option>
+      <option value="10">10 lines context</option>
+      <option value="all">Show all lines</option>
+    </select>
+    <button onclick="copyAll()" title="Copy rendered diff as text">Copy All</button>
+  </div>
+
+  <div class="stats-bar" id="statsBar" style="display:none"></div>
+
+  <div class="diff-output" id="diffOutput">
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+        <polyline points="13 2 13 9 20 9"/>
+        <line x1="10" y1="13" x2="10" y2="17" stroke="var(--green)" stroke-width="2"/>
+        <line x1="14" y1="13" x2="14" y2="17" stroke="var(--red)" stroke-width="2"/>
+      </svg>
+      <h3>Paste a git diff to get started</h3>
+      <p>Supports unified diffs from <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px">git diff</code>, <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px">git show</code>, <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px">git log -p</code></p>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== STATE ========== */
+let currentView = 'unified';
+let parsedFiles = [];
+let rawDiff = '';
+
+const diffInput = document.getElementById('diffInput');
+const diffOutput = document.getElementById('diffOutput');
+const statsBar = document.getElementById('statsBar');
+
+let debounceTimer;
+diffInput.addEventListener('input', function() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(processDiff, 300);
+});
+
+/* ========== PARSE GIT DIFF ========== */
+function parseDiff(text) {
+  const files = [];
+  if (!text.trim()) return files;
+  /* Split on diff --git or diff --combined or "diff " lines */
+  const fileSections = text.split(/^(?=diff --git )/m);
+  for (const section of fileSections) {
+    if (!section.trim()) continue;
+    const file = parseFileSection(section);
+    if (file) files.push(file);
+  }
+  /* If no "diff --git" header found, try plain unified diff */
+  if (files.length === 0) {
+    const file = parsePlainDiff(text);
+    if (file) files.push(file);
+  }
+  return files;
+}
+
+function parseFileSection(section) {
+  const lines = section.split('\n');
+  let filename = '';
+  let oldFile = '';
+  let newFile = '';
+  let status = 'modified';
+  const hunks = [];
+  let i = 0;
+
+  /* Parse header */
+  const gitDiffMatch = lines[0] && lines[0].match(/^diff --git a\/(.+?) b\/(.+)/);
+  if (gitDiffMatch) {
+    oldFile = gitDiffMatch[1];
+    newFile = gitDiffMatch[2];
+    filename = newFile;
+    i = 1;
+  }
+
+  /* Parse extended headers */
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.startsWith('new file mode')) { status = 'added'; i++; continue; }
+    if (line.startsWith('deleted file mode')) { status = 'deleted'; i++; continue; }
+    if (line.startsWith('rename from')) { status = 'renamed'; i++; continue; }
+    if (line.startsWith('rename to')) { filename = line.replace('rename to ', ''); i++; continue; }
+    if (line.startsWith('similarity index') || line.startsWith('dissimilarity index')) { i++; continue; }
+    if (line.startsWith('index ')) { i++; continue; }
+    if (line.startsWith('Binary files')) { i++; continue; }
+    if (line.startsWith('--- ')) {
+      oldFile = line.substring(4);
+      if (oldFile.startsWith('a/')) oldFile = oldFile.substring(2);
+      i++; continue;
+    }
+    if (line.startsWith('+++ ')) {
+      newFile = line.substring(4);
+      if (newFile.startsWith('b/')) newFile = newFile.substring(2);
+      filename = newFile !== '/dev/null' ? newFile : oldFile;
+      i++; continue;
+    }
+    if (line.startsWith('@@')) break;
+    i++;
+  }
+
+  /* Parse hunks */
+  let currentHunk = null;
+  while (i < lines.length) {
+    const line = lines[i];
+    const hunkMatch = line.match(/^@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@(.*)/);
+    if (hunkMatch) {
+      if (currentHunk) hunks.push(currentHunk);
+      currentHunk = {
+        oldStart: parseInt(hunkMatch[1]),
+        oldCount: hunkMatch[2] !== undefined ? parseInt(hunkMatch[2]) : 1,
+        newStart: parseInt(hunkMatch[3]),
+        newCount: hunkMatch[4] !== undefined ? parseInt(hunkMatch[4]) : 1,
+        header: line,
+        context: hunkMatch[5] ? hunkMatch[5].trim() : '',
+        lines: []
+      };
+      i++; continue;
+    }
+    if (currentHunk) {
+      if (line.startsWith('+')) {
+        currentHunk.lines.push({ type: 'add', content: line.substring(1) });
+      } else if (line.startsWith('-')) {
+        currentHunk.lines.push({ type: 'del', content: line.substring(1) });
+      } else if (line.startsWith('\\')) {
+        /* "\ No newline at end of file" */
+        currentHunk.lines.push({ type: 'info', content: line.substring(2) });
+      } else {
+        /* context line: strip one leading space */
+        currentHunk.lines.push({ type: 'ctx', content: line.length > 0 ? line.substring(1) : '' });
+      }
+    }
+    i++;
+  }
+  if (currentHunk) hunks.push(currentHunk);
+
+  if (!filename && hunks.length === 0) return null;
+
+  /* Compute stats */
+  let additions = 0, deletions = 0;
+  for (const h of hunks) {
+    for (const l of h.lines) {
+      if (l.type === 'add') additions++;
+      else if (l.type === 'del') deletions++;
+    }
+  }
+
+  return { filename, oldFile, newFile, status, hunks, additions, deletions };
+}
+
+function parsePlainDiff(text) {
+  const lines = text.split('\n');
+  let filename = 'unknown';
+  let i = 0;
+  /* Look for --- / +++ */
+  while (i < lines.length) {
+    if (lines[i].startsWith('--- ')) {
+      const oldF = lines[i].substring(4);
+      filename = oldF.startsWith('a/') ? oldF.substring(2) : oldF;
+      i++; continue;
+    }
+    if (lines[i].startsWith('+++ ')) {
+      const newF = lines[i].substring(4);
+      if (newF !== '/dev/null') filename = newF.startsWith('b/') ? newF.substring(2) : newF;
+      i++; continue;
+    }
+    if (lines[i].startsWith('@@')) break;
+    i++;
+  }
+  const rest = lines.slice(i).join('\n');
+  const section = 'diff --git a/' + filename + ' b/' + filename + '\n--- a/' + filename + '\n+++ b/' + filename + '\n' + rest;
+  const parsed = parseFileSection(section);
+  return parsed && parsed.hunks.length > 0 ? parsed : null;
+}
+
+/* ========== SYNTAX HIGHLIGHTING ========== */
+function detectLang(filename) {
+  if (!filename) return '';
+  const ext = filename.split('.').pop().toLowerCase();
+  const map = {
+    js: 'js', jsx: 'js', mjs: 'js', cjs: 'js',
+    ts: 'ts', tsx: 'ts',
+    py: 'py', python: 'py',
+    html: 'html', htm: 'html', vue: 'html', svelte: 'html',
+    css: 'css', scss: 'css', less: 'css', sass: 'css',
+    json: 'json', jsonc: 'json',
+    yaml: 'yaml', yml: 'yaml',
+    md: 'md', markdown: 'md',
+    sh: 'sh', bash: 'sh', zsh: 'sh',
+    go: 'go', rs: 'rs', rb: 'rb', java: 'java', kt: 'java', c: 'c', cpp: 'c', h: 'c'
+  };
+  return map[ext] || '';
+}
+
+function esc(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function highlightLine(text, lang) {
+  let s = esc(text);
+  if (!lang) return s;
+
+  /* Comments first */
+  s = s.replace(/(\/\/.*$)/gm, '<span class="hl-cm">$1</span>');
+  s = s.replace(/(#.*$)/gm, function(m) {
+    if (lang === 'css' || lang === 'html') return m;
+    return '<span class="hl-cm">' + m + '</span>';
+  });
+  /* Strings */
+  s = s.replace(/(&quot;|"|')((?:(?!\1).|\\\1)*?)\1/g, function(m) {
+    return '<span class="hl-str">' + m + '</span>';
+  });
+  s = s.replace(/(`)([^`]*?)(`)/g, '<span class="hl-str">$1$2$3</span>');
+  /* Numbers */
+  s = s.replace(/\b(\d+\.?\d*(?:e[+-]?\d+)?)\b/g, '<span class="hl-num">$1</span>');
+  /* Keywords */
+  if (lang === 'js' || lang === 'ts') {
+    s = s.replace(/\b(const|let|var|function|return|if|else|for|while|class|extends|import|export|from|default|async|await|new|this|typeof|instanceof|try|catch|throw|finally|switch|case|break|continue|null|undefined|true|false|yield|of|in)\b/g, '<span class="hl-kw">$1</span>');
+    s = s.replace(/\b(string|number|boolean|any|void|never|interface|type|enum|declare|readonly|keyof|as|is)\b/g, '<span class="hl-type">$1</span>');
+  } else if (lang === 'py') {
+    s = s.replace(/\b(def|class|return|if|elif|else|for|while|import|from|as|with|try|except|finally|raise|pass|lambda|and|or|not|in|is|None|True|False|yield|async|await|global|nonlocal)\b/g, '<span class="hl-kw">$1</span>');
+  } else if (lang === 'html') {
+    s = s.replace(/(&lt;\/?)([\w-]+)/g, '$1<span class="hl-tag">$2</span>');
+    s = s.replace(/\b([\w-]+)(=)/g, '<span class="hl-attr">$1</span>$2');
+  } else if (lang === 'css') {
+    s = s.replace(/([\w-]+)(\s*:)/g, '<span class="hl-attr">$1</span>$2');
+    s = s.replace(/(@[\w-]+)/g, '<span class="hl-kw">$1</span>');
+  } else if (lang === 'json') {
+    /* Already highlighted via strings/numbers */
+    s = s.replace(/\b(true|false|null)\b/g, '<span class="hl-kw">$1</span>');
+  } else if (lang === 'go' || lang === 'rs' || lang === 'java' || lang === 'c' || lang === 'rb') {
+    s = s.replace(/\b(func|fn|pub|struct|impl|trait|use|mod|let|mut|const|if|else|for|while|return|match|enum|type|package|import|class|public|private|protected|static|void|int|long|float|double|char|bool|new|this|self|super|nil|null|true|false|def|do|end|require|module|include)\b/g, '<span class="hl-kw">$1</span>');
+  }
+
+  /* Function calls */
+  s = s.replace(/\b([a-zA-Z_]\w*)\s*(?=\()/g, function(m, fn) {
+    if (m.indexOf('hl-') !== -1) return m; /* skip already highlighted */
+    return '<span class="hl-fn">' + fn + '</span>';
+  });
+
+  return s;
+}
+
+/* ========== RENDER ========== */
+function processDiff() {
+  rawDiff = diffInput.value;
+  parsedFiles = parseDiff(rawDiff);
+  renderDiff();
+}
+
+function renderDiff() {
+  if (parsedFiles.length === 0) {
+    diffOutput.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/><line x1="10" y1="13" x2="10" y2="17" stroke="var(--green)" stroke-width="2"/><line x1="14" y1="13" x2="14" y2="17" stroke="var(--red)" stroke-width="2"/></svg><h3>Paste a git diff to get started</h3><p>Supports unified diffs from <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:12px">git diff</code>, <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:12px">git show</code>, <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:12px">git log -p</code></p></div>';
+    statsBar.style.display = 'none';
+    return;
+  }
+
+  /* Stats */
+  let totalAdd = 0, totalDel = 0;
+  for (const f of parsedFiles) { totalAdd += f.additions; totalDel += f.deletions; }
+  statsBar.style.display = 'flex';
+  statsBar.innerHTML =
+    '<span class="stat-chip stat-files">' + parsedFiles.length + ' file' + (parsedFiles.length !== 1 ? 's' : '') + ' changed</span>' +
+    '<span class="stat-chip stat-add">+' + totalAdd + ' insertion' + (totalAdd !== 1 ? 's' : '') + '</span>' +
+    '<span class="stat-chip stat-del">-' + totalDel + ' deletion' + (totalDel !== 1 ? 's' : '') + '</span>' +
+    '<span class="stat-chip stat-neutral">' + (totalAdd + totalDel) + ' lines total</span>';
+
+  /* Render files */
+  let html = '';
+  for (const file of parsedFiles) {
+    html += renderFile(file);
+  }
+  diffOutput.innerHTML = html;
+}
+
+function renderFile(file) {
+  const lang = detectLang(file.filename);
+  const badgeClass = file.status === 'added' ? 'badge-added' : file.status === 'deleted' ? 'badge-deleted' : file.status === 'renamed' ? 'badge-renamed' : 'badge-modified';
+
+  let html = '<div class="diff-file">';
+  html += '<div class="diff-file-header">';
+  html += '<span class="file-badge ' + badgeClass + '">' + file.status + '</span>';
+  html += '<span class="filename">' + esc(file.filename) + '</span>';
+  html += '<span class="file-stats">';
+  if (file.additions > 0) html += '<span class="fs-add">+' + file.additions + '</span>';
+  if (file.deletions > 0) html += '<span class="fs-del">-' + file.deletions + '</span>';
+  html += '</span>';
+  html += '</div>';
+
+  if (currentView === 'unified') {
+    html += renderUnified(file, lang);
+  } else {
+    html += renderSideBySide(file, lang);
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function getContextLimit() {
+  const v = document.getElementById('contextLines').value;
+  return v === 'all' ? Infinity : parseInt(v);
+}
+
+function renderUnified(file, lang) {
+  let html = '<table class="diff-table">';
+  const contextLimit = getContextLimit();
+
+  for (let hi = 0; hi < file.hunks.length; hi++) {
+    const hunk = file.hunks[hi];
+    /* Hunk header */
+    html += '<tr class="line-hunk"><td class="ln" colspan="2"></td><td class="code">';
+    html += '<span>' + esc(hunk.header) + '</span>';
+    html += '<button class="hunk-copy-btn" onclick="copyHunk(this,' + hi + ')" title="Copy this hunk">Copy</button>';
+    html += '</td></tr>';
+
+    /* Group lines for collapse */
+    const groups = groupLinesForCollapse(hunk.lines, contextLimit);
+    let oldLine = hunk.oldStart;
+    let newLine = hunk.newStart;
+
+    for (const group of groups) {
+      if (group.type === 'collapse') {
+        html += '<tr class="collapse-row" onclick="expandCollapse(this,' + group.count + ')"><td colspan="3">Show ' + group.count + ' unchanged line' + (group.count !== 1 ? 's' : '') + '</td></tr>';
+        oldLine += group.count;
+        newLine += group.count;
+      } else {
+        for (const line of group.lines) {
+          if (line.type === 'add') {
+            html += '<tr class="line-add"><td class="ln"></td><td class="ln">' + newLine + '</td><td class="code">+' + highlightLine(line.content, lang) + '</td></tr>';
+            newLine++;
+          } else if (line.type === 'del') {
+            html += '<tr class="line-del"><td class="ln">' + oldLine + '</td><td class="ln"></td><td class="code">-' + highlightLine(line.content, lang) + '</td></tr>';
+            oldLine++;
+          } else if (line.type === 'ctx') {
+            html += '<tr class="line-ctx"><td class="ln">' + oldLine + '</td><td class="ln">' + newLine + '</td><td class="code"> ' + highlightLine(line.content, lang) + '</td></tr>';
+            oldLine++;
+            newLine++;
+          } else if (line.type === 'info') {
+            html += '<tr class="line-ctx"><td class="ln"></td><td class="ln"></td><td class="code" style="color:var(--text2);font-style:italic">' + esc(line.content) + '</td></tr>';
+          }
+        }
+      }
+    }
+  }
+  html += '</table>';
+  return html;
+}
+
+function renderSideBySide(file, lang) {
+  let html = '<div class="sbs-container">';
+  html += '<div class="sbs-half"><div class="sbs-half-header">Original</div>';
+  html += '<table class="sbs-table" id="sbs-old-' + esc(file.filename).replace(/[^a-zA-Z0-9]/g, '_') + '">';
+
+  const contextLimit = getContextLimit();
+
+  /* Build aligned pairs */
+  for (const hunk of file.hunks) {
+    const pairs = buildSideBySidePairs(hunk.lines);
+    const groups = groupPairsForCollapse(pairs, contextLimit);
+    let oldLine = hunk.oldStart;
+    let newLine = hunk.newStart;
+    /* We'll build left and right simultaneously but output them into separate arrays */
+    /* Actually for a simpler approach, build the left table first, then right */
+  }
+
+  /* Simpler approach: build both tables at once */
+  html = '<div class="sbs-container">';
+  html += '<div class="sbs-half"><div class="sbs-half-header">Original</div><table class="sbs-table">';
+  let rightHtml = '<div class="sbs-half"><div class="sbs-half-header">Modified</div><table class="sbs-table">';
+
+  for (const hunk of file.hunks) {
+    const pairs = buildSideBySidePairs(hunk.lines);
+    const groups = groupPairsForCollapse(pairs, contextLimit);
+    let oldLine = hunk.oldStart;
+    let newLine = hunk.newStart;
+
+    /* Hunk divider */
+    html += '<tr class="line-hunk"><td class="ln"></td><td class="code" style="font-size:.72rem;color:#818cf8">' + esc(hunk.header.substring(0, 60)) + '</td></tr>';
+    rightHtml += '<tr class="line-hunk"><td class="ln"></td><td class="code" style="font-size:.72rem;color:#818cf8">' + (hunk.context ? esc(hunk.context.substring(0, 60)) : '') + '</td></tr>';
+
+    for (const group of groups) {
+      if (group.type === 'collapse') {
+        html += '<tr class="collapse-row" onclick="expandCollapseSbs(this,' + group.count + ')"><td colspan="2">Show ' + group.count + ' more lines</td></tr>';
+        rightHtml += '<tr class="collapse-row" onclick="expandCollapseSbs(this,' + group.count + ')"><td colspan="2">Show ' + group.count + ' more lines</td></tr>';
+        oldLine += group.count;
+        newLine += group.count;
+      } else {
+        for (const pair of group.pairs) {
+          /* Left (old) */
+          if (pair.left) {
+            const cls = pair.left.type === 'del' ? 'line-del' : pair.left.type === 'ctx' ? 'line-ctx' : '';
+            const ln = pair.left.type === 'del' || pair.left.type === 'ctx' ? oldLine : '';
+            html += '<tr class="' + cls + '"><td class="ln">' + ln + '</td><td class="code">' + highlightLine(pair.left.content, lang) + '</td></tr>';
+            if (pair.left.type === 'del' || pair.left.type === 'ctx') oldLine++;
+          } else {
+            html += '<tr class="line-empty"><td class="ln"></td><td class="code"></td></tr>';
+          }
+          /* Right (new) */
+          if (pair.right) {
+            const cls = pair.right.type === 'add' ? 'line-add' : pair.right.type === 'ctx' ? 'line-ctx' : '';
+            const ln = pair.right.type === 'add' || pair.right.type === 'ctx' ? newLine : '';
+            rightHtml += '<tr class="' + cls + '"><td class="ln">' + ln + '</td><td class="code">' + highlightLine(pair.right.content, lang) + '</td></tr>';
+            if (pair.right.type === 'add' || pair.right.type === 'ctx') newLine++;
+          } else {
+            rightHtml += '<tr class="line-empty"><td class="ln"></td><td class="code"></td></tr>';
+          }
+        }
+      }
+    }
+  }
+
+  html += '</table></div>';
+  rightHtml += '</table></div>';
+  html += rightHtml + '</div>';
+  return html;
+}
+
+function buildSideBySidePairs(lines) {
+  const pairs = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.type === 'ctx' || line.type === 'info') {
+      pairs.push({ left: line, right: line, type: 'ctx' });
+      i++;
+    } else if (line.type === 'del') {
+      /* Collect consecutive deletions then additions */
+      const dels = [];
+      while (i < lines.length && lines[i].type === 'del') { dels.push(lines[i]); i++; }
+      const adds = [];
+      while (i < lines.length && lines[i].type === 'add') { adds.push(lines[i]); i++; }
+      const maxLen = Math.max(dels.length, adds.length);
+      for (let j = 0; j < maxLen; j++) {
+        pairs.push({
+          left: j < dels.length ? dels[j] : null,
+          right: j < adds.length ? adds[j] : null,
+          type: 'change'
+        });
+      }
+    } else if (line.type === 'add') {
+      pairs.push({ left: null, right: line, type: 'add' });
+      i++;
+    } else {
+      i++;
+    }
+  }
+  return pairs;
+}
+
+/* ========== COLLAPSE LOGIC ========== */
+function groupLinesForCollapse(lines, contextLimit) {
+  if (contextLimit === Infinity) return [{ type: 'show', lines: lines }];
+
+  const groups = [];
+  /* Find indices of change lines */
+  const changeIndices = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].type === 'add' || lines[i].type === 'del') changeIndices.push(i);
+  }
+
+  if (changeIndices.length === 0) {
+    if (lines.length > contextLimit * 2) {
+      groups.push({ type: 'show', lines: lines.slice(0, contextLimit) });
+      groups.push({ type: 'collapse', count: lines.length - contextLimit * 2, hiddenLines: lines.slice(contextLimit, lines.length - contextLimit) });
+      groups.push({ type: 'show', lines: lines.slice(lines.length - contextLimit) });
+    } else {
+      groups.push({ type: 'show', lines: lines });
+    }
+    return groups;
+  }
+
+  /* Mark which lines should be visible */
+  const visible = new Array(lines.length).fill(false);
+  for (const idx of changeIndices) {
+    for (let j = Math.max(0, idx - contextLimit); j <= Math.min(lines.length - 1, idx + contextLimit); j++) {
+      visible[j] = true;
+    }
+  }
+
+  let i = 0;
+  while (i < lines.length) {
+    if (visible[i]) {
+      const showLines = [];
+      while (i < lines.length && visible[i]) { showLines.push(lines[i]); i++; }
+      groups.push({ type: 'show', lines: showLines });
+    } else {
+      let count = 0;
+      const hiddenLines = [];
+      while (i < lines.length && !visible[i]) { count++; hiddenLines.push(lines[i]); i++; }
+      if (count > 0) groups.push({ type: 'collapse', count: count, hiddenLines: hiddenLines });
+    }
+  }
+  return groups;
+}
+
+function groupPairsForCollapse(pairs, contextLimit) {
+  if (contextLimit === Infinity) return [{ type: 'show', pairs: pairs }];
+
+  const groups = [];
+  const changeIndices = [];
+  for (let i = 0; i < pairs.length; i++) {
+    if (pairs[i].type !== 'ctx') changeIndices.push(i);
+  }
+
+  if (changeIndices.length === 0) {
+    if (pairs.length > contextLimit * 2) {
+      groups.push({ type: 'show', pairs: pairs.slice(0, contextLimit) });
+      groups.push({ type: 'collapse', count: pairs.length - contextLimit * 2 });
+      groups.push({ type: 'show', pairs: pairs.slice(pairs.length - contextLimit) });
+    } else {
+      groups.push({ type: 'show', pairs: pairs });
+    }
+    return groups;
+  }
+
+  const visible = new Array(pairs.length).fill(false);
+  for (const idx of changeIndices) {
+    for (let j = Math.max(0, idx - contextLimit); j <= Math.min(pairs.length - 1, idx + contextLimit); j++) {
+      visible[j] = true;
+    }
+  }
+
+  let i = 0;
+  while (i < pairs.length) {
+    if (visible[i]) {
+      const showPairs = [];
+      while (i < pairs.length && visible[i]) { showPairs.push(pairs[i]); i++; }
+      groups.push({ type: 'show', pairs: showPairs });
+    } else {
+      let count = 0;
+      while (i < pairs.length && !visible[i]) { count++; i++; }
+      if (count > 0) groups.push({ type: 'collapse', count: count });
+    }
+  }
+  return groups;
+}
+
+/* ========== EXPAND COLLAPSED ========== */
+function expandCollapse(row, count) {
+  /* Re-render with all context */
+  const old = document.getElementById('contextLines').value;
+  document.getElementById('contextLines').value = 'all';
+  renderDiff();
+  document.getElementById('contextLines').value = old;
+}
+
+function expandCollapseSbs(row, count) {
+  expandCollapse(row, count);
+}
+
+/* ========== VIEW TOGGLE ========== */
+function setView(view) {
+  currentView = view;
+  document.getElementById('btnUnified').classList.toggle('active', view === 'unified');
+  document.getElementById('btnSideBySide').classList.toggle('active', view === 'sbs');
+  renderDiff();
+}
+
+/* ========== COPY ========== */
+function copyHunk(btn, hunkIndex) {
+  /* Find which file this button belongs to */
+  const fileEl = btn.closest('.diff-file');
+  const fileIdx = Array.from(document.querySelectorAll('.diff-file')).indexOf(fileEl);
+  if (fileIdx < 0 || fileIdx >= parsedFiles.length) return;
+  const file = parsedFiles[fileIdx];
+  if (hunkIndex >= file.hunks.length) return;
+  const hunk = file.hunks[hunkIndex];
+  let text = hunk.header + '\n';
+  for (const line of hunk.lines) {
+    if (line.type === 'add') text += '+' + line.content + '\n';
+    else if (line.type === 'del') text += '-' + line.content + '\n';
+    else if (line.type === 'ctx') text += ' ' + line.content + '\n';
+    else if (line.type === 'info') text += '\\' + line.content + '\n';
+  }
+  navigator.clipboard.writeText(text).then(() => showToast('Hunk copied to clipboard'));
+}
+
+function copyAll() {
+  if (!rawDiff.trim()) { showToast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(rawDiff).then(() => showToast('Full diff copied to clipboard'));
+}
+
+/* ========== CLEAR / SAMPLE ========== */
+function clearAll() {
+  diffInput.value = '';
+  rawDiff = '';
+  parsedFiles = [];
+  renderDiff();
+}
+
+function loadSample() {
+  diffInput.value = `diff --git a/src/components/Button.tsx b/src/components/Button.tsx
+index a1b2c3d..e4f5g6h 100644
+--- a/src/components/Button.tsx
++++ b/src/components/Button.tsx
+@@ -1,18 +1,24 @@
+-import React from 'react';
++import React, { forwardRef } from 'react';
++import { cn } from '../utils/classnames';
+
+ interface ButtonProps {
+   children: React.ReactNode;
+   variant?: 'primary' | 'secondary' | 'ghost';
++  size?: 'sm' | 'md' | 'lg';
+   onClick?: () => void;
+   disabled?: boolean;
++  className?: string;
+ }
+
+-export function Button({ children, variant = 'primary', onClick, disabled }: ButtonProps) {
++export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
++  ({ children, variant = 'primary', size = 'md', onClick, disabled, className }, ref) => {
+   return (
+     <button
+-      className={\`btn btn-\${variant}\`}
++      ref={ref}
++      className={cn(\`btn btn-\${variant} btn-\${size}\`, className)}
+       onClick={onClick}
+       disabled={disabled}
++      type="button"
+     >
+       {children}
+     </button>
+   );
+-}
++});
+diff --git a/src/utils/classnames.ts b/src/utils/classnames.ts
+new file mode 100644
+--- /dev/null
++++ b/src/utils/classnames.ts
+@@ -0,0 +1,8 @@
++export function cn(...classes: (string | undefined | null | false)[]): string {
++  return classes.filter(Boolean).join(' ');
++}
++
++export function clsx(...args: any[]): string {
++  return args.flat().filter(Boolean).join(' ');
++}
++
+diff --git a/src/styles/button.css b/src/styles/button.css
+index 1111111..2222222 100644
+--- a/src/styles/button.css
++++ b/src/styles/button.css
+@@ -8,6 +8,18 @@
+   border-radius: 8px;
+   font-weight: 600;
+   cursor: pointer;
++  transition: all 0.2s ease;
++}
++
++.btn-sm {
++  padding: 6px 12px;
++  font-size: 13px;
++}
++
++.btn-lg {
++  padding: 14px 28px;
++  font-size: 17px;
++  border-radius: 12px;
+ }
+
+ .btn-primary {
+@@ -15,6 +27,10 @@
+   color: white;
+ }
+
++.btn-primary:hover {
++  background: #4f46e5;
++}
++
+ .btn-secondary {
+   background: transparent;
+   border: 1px solid #6366f1;
+diff --git a/README.md b/README.md
+deleted file mode 100644
+--- a/README.md
++++ /dev/null
+@@ -1,5 +0,0 @@
+-# Old Project
+-
+-This is the old README.
+-
+-It will be replaced.`;
+  processDiff();
+}
+
+/* ========== TOAST ========== */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ========== FADE IN ========== */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a git diff viewer?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A git diff viewer renders the output of git diff commands into a readable, color-coded format with syntax highlighting, line numbers, and side-by-side comparison. NexTool's viewer works entirely in your browser with no server required."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this git diff viewer free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's Git Diff Viewer is 100% free with no signup, no download, and no data sent to any server. It runs entirely client-side in your browser."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What diff formats are supported?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "This tool supports standard unified diff format as generated by git diff, git show, git log -p, and similar commands. Both single-file and multi-file diffs are supported."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it support side-by-side diff view?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, you can toggle between unified view (all changes in one column) and side-by-side view (old and new versions shown in parallel columns) for easier comparison."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>

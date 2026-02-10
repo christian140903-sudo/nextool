@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Color Mixer — Blend Colors with Multiple Modes | NexTool</title>
+<meta name="description" content="Free online color mixer tool. Blend two or more colors with adjustable ratios, multiple blending modes, gradient generation, and CSS export. No signup required.">
+<meta name="keywords" content="color mixer, color blending, blend colors, CSS color mixer, gradient generator, color tools, free online tool, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free Color Mixer — Blend Colors Online | NexTool">
+<meta property="og:description" content="Mix and blend colors with adjustable ratios, blending modes, gradient generation, and CSS export. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/color-mixer.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/color-mixer.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Color Mixer — Blend Colors Online | NexTool">
+<meta name="twitter:description" content="Mix and blend colors with adjustable ratios, blending modes, and CSS export. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Color Mixer","applicationCategory":"DesignApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online color mixer tool with blending modes, gradient generation, and CSS variable export."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar select{appearance:none;padding-right:1.8rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+/* PANELS */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;padding:1rem}
+/* COLOR INPUTS */
+.color-slot{display:flex;align-items:center;gap:.75rem;padding:.75rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:.75rem;flex-wrap:wrap}
+.color-swatch-input{width:48px;height:48px;border:none;border-radius:10px;cursor:pointer;padding:0;background:none;flex-shrink:0}
+.color-swatch-input::-webkit-color-swatch-wrapper{padding:0}
+.color-swatch-input::-webkit-color-swatch{border:2px solid var(--border);border-radius:8px}
+.color-swatch-input::-moz-color-swatch{border:2px solid var(--border);border-radius:8px}
+.color-text-input{flex:1;min-width:120px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.45rem .7rem;border-radius:8px;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s}
+.color-text-input:focus{border-color:var(--primary)}
+.color-text-input::placeholder{color:var(--text2);opacity:.5}
+.color-slot .remove-btn{background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;padding:2px 6px;transition:color .2s;line-height:1}
+.color-slot .remove-btn:hover{color:var(--red)}
+.color-format-select{background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:.3rem .5rem;border-radius:6px;font-size:.75rem;font-family:inherit;cursor:pointer}
+/* SLIDER */
+.ratio-section{margin-bottom:1rem}
+.ratio-section label{display:block;font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:.4rem}
+.ratio-slider{width:100%;-webkit-appearance:none;appearance:none;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--primary),var(--accent));outline:none;cursor:pointer}
+.ratio-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--primary);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.ratio-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--primary);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.ratio-display{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text2);margin-top:.3rem}
+/* RESULT */
+.result-swatch{width:100%;height:160px;border-radius:12px;border:1px solid var(--border);margin-bottom:1rem;position:relative;overflow:hidden;transition:background-color .3s}
+.result-swatch .color-label{position:absolute;bottom:10px;left:14px;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);padding:4px 12px;border-radius:6px;font-size:.8rem;font-weight:600;color:#fff}
+.result-values{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem}
+.result-val{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.5rem .7rem;display:flex;justify-content:space-between;align-items:center;font-size:.8rem;cursor:pointer;transition:border-color .2s}
+.result-val:hover{border-color:var(--primary)}
+.result-val .label{color:var(--text2);font-weight:600;font-size:.7rem;text-transform:uppercase}
+.result-val .value{color:var(--text);font-family:'Courier New',monospace;font-size:.8rem}
+/* GRADIENT */
+.gradient-preview{width:100%;height:80px;border-radius:10px;border:1px solid var(--border);margin-bottom:.75rem}
+.gradient-code{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .8rem;font-family:'Courier New',monospace;font-size:.8rem;color:var(--cyan);word-break:break-all;cursor:pointer;transition:border-color .2s;margin-bottom:.75rem}
+.gradient-code:hover{border-color:var(--primary)}
+.gradient-stops{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.75rem}
+.gradient-stop{width:32px;height:32px;border-radius:6px;border:2px solid var(--border);cursor:pointer;transition:transform .15s}
+.gradient-stop:hover{transform:scale(1.15)}
+/* BLEND MODE */
+.blend-modes{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;margin-bottom:1rem}
+.blend-mode-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.5rem;border-radius:8px;font-size:.75rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;text-align:center}
+.blend-mode-btn:hover{border-color:var(--primary);background:rgba(99,102,241,.08)}
+.blend-mode-btn.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+/* HISTORY */
+.history-section{margin-top:1rem}
+.history-section h3{font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem}
+.history-colors{display:flex;gap:.4rem;flex-wrap:wrap}
+.history-swatch{width:36px;height:36px;border-radius:8px;border:2px solid var(--border);cursor:pointer;transition:transform .15s,border-color .2s;position:relative}
+.history-swatch:hover{transform:scale(1.15);border-color:var(--primary)}
+.history-swatch .tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);padding:3px 8px;border-radius:6px;font-size:.7rem;color:var(--text);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10}
+.history-swatch:hover .tooltip{opacity:1}
+/* EXPORT */
+.export-area{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem;font-family:'Courier New',monospace;font-size:.8rem;color:var(--green);white-space:pre-wrap;line-height:1.6;max-height:200px;overflow-y:auto;cursor:pointer;transition:border-color .2s}
+.export-area:hover{border-color:var(--primary)}
+/* FULL WIDTH SECTIONS */
+.full-section{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.full-section h3{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:1rem}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .result-values{grid-template-columns:1fr}
+  .blend-modes{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro &mdash; $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>Color Mixer</span> &amp; Blender</h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Mix two or more colors with adjustable ratios, multiple blending modes (normal, multiply, screen, overlay), gradient generation, and CSS variable export. Supports HEX, RGB, and HSL input. 100% client-side, no signup required.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button onclick="addColor()" title="Add another color">+ Add Color</button>
+    <button onclick="swapColors()" title="Swap the first two colors">Swap</button>
+    <button onclick="randomizeColors()" title="Random colors">Random</button>
+    <button onclick="exportCSS()" title="Export as CSS variables">Export CSS</button>
+    <button onclick="copyResult()" title="Copy mixed color">Copy Result</button>
+    <button onclick="clearHistory()" title="Clear saved history">Clear History</button>
+    <button onclick="resetAll()" title="Reset to defaults">Reset</button>
+  </div>
+
+  <div class="panels">
+    <!-- LEFT: Input Colors -->
+    <div class="panel">
+      <div class="panel-header"><span>Input Colors</span><span id="colorCount">2 colors</span></div>
+      <div class="panel-body">
+        <div id="colorSlots"></div>
+
+        <div class="ratio-section" id="ratioSection">
+          <label>Mixing Ratio: <strong id="ratioLabel">50 / 50</strong></label>
+          <input type="range" class="ratio-slider" id="ratioSlider" min="0" max="100" value="50" oninput="onRatioChange()">
+          <div class="ratio-display">
+            <span id="ratioLeft">Color 1: 50%</span>
+            <span id="ratioRight">Color 2: 50%</span>
+          </div>
+        </div>
+
+        <div style="margin-top:.75rem">
+          <label style="font-size:.8rem;font-weight:600;color:var(--text2);display:block;margin-bottom:.5rem">Blending Mode</label>
+          <div class="blend-modes" id="blendModes">
+            <button class="blend-mode-btn active" data-mode="normal" onclick="setBlendMode('normal',this)">Normal</button>
+            <button class="blend-mode-btn" data-mode="multiply" onclick="setBlendMode('multiply',this)">Multiply</button>
+            <button class="blend-mode-btn" data-mode="screen" onclick="setBlendMode('screen',this)">Screen</button>
+            <button class="blend-mode-btn" data-mode="overlay" onclick="setBlendMode('overlay',this)">Overlay</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Result -->
+    <div class="panel">
+      <div class="panel-header"><span>Mixed Result</span><span id="blendModeLabel">Normal</span></div>
+      <div class="panel-body">
+        <div class="result-swatch" id="resultSwatch">
+          <span class="color-label" id="resultHexLabel">#808080</span>
+        </div>
+        <div class="result-values" id="resultValues">
+          <div class="result-val" onclick="copyText(this)" title="Click to copy">
+            <span class="label">HEX</span>
+            <span class="value" id="resHex">#808080</span>
+          </div>
+          <div class="result-val" onclick="copyText(this)" title="Click to copy">
+            <span class="label">RGB</span>
+            <span class="value" id="resRgb">rgb(128, 128, 128)</span>
+          </div>
+          <div class="result-val" onclick="copyText(this)" title="Click to copy">
+            <span class="label">HSL</span>
+            <span class="value" id="resHsl">hsl(0, 0%, 50%)</span>
+          </div>
+          <div class="result-val" onclick="copyText(this)" title="Click to copy">
+            <span class="label">RGBA</span>
+            <span class="value" id="resRgba">rgba(128, 128, 128, 1)</span>
+          </div>
+        </div>
+
+        <div class="history-section">
+          <h3>Color History</h3>
+          <div class="history-colors" id="historyColors"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRADIENT SECTION -->
+  <div class="full-section">
+    <h3>Gradient Between Colors</h3>
+    <div class="gradient-preview" id="gradientPreview"></div>
+    <div class="gradient-code" id="gradientCode" onclick="copyText(this)" title="Click to copy CSS">background: linear-gradient(90deg, #000000, #ffffff);</div>
+    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.5rem">
+      <label style="font-size:.8rem;font-weight:600;color:var(--text2)">Steps:</label>
+      <input type="range" class="ratio-slider" id="gradientSteps" min="3" max="20" value="7" style="flex:1;min-width:100px" oninput="updateGradient()">
+      <span style="font-size:.8rem;color:var(--text2)" id="stepsLabel">7</span>
+      <select id="gradientDirection" class="color-format-select" onchange="updateGradient()" style="padding:.35rem .5rem">
+        <option value="90deg">Horizontal</option>
+        <option value="180deg">Vertical</option>
+        <option value="45deg">Diagonal</option>
+        <option value="135deg">Reverse Diagonal</option>
+        <option value="circle">Radial</option>
+      </select>
+    </div>
+    <div class="gradient-stops" id="gradientStops"></div>
+  </div>
+
+  <!-- EXPORT SECTION -->
+  <div class="full-section">
+    <h3>CSS Variable Export</h3>
+    <div class="export-area" id="exportArea" onclick="copyText(this)" title="Click to copy">:root {
+  --mixed-color: #808080;
+}</div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 &mdash; Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro &mdash; $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============= STATE ============= */
+let colors = [
+  { hex: '#6366f1', format: 'hex' },
+  { hex: '#ec4899', format: 'hex' }
+];
+let blendMode = 'normal';
+let history = [];
+const MAX_HISTORY = 24;
+const MAX_COLORS = 8;
+
+/* ============= INIT ============= */
+function init() {
+  loadHistory();
+  renderColorSlots();
+  mixColors();
+}
+
+/* ============= COLOR PARSING ============= */
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  const n = parseInt(hex, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(c => {
+    const h = Math.round(Math.max(0, Math.min(255, c))).toString(16);
+    return h.length === 1 ? '0' + h : h;
+  }).join('');
+}
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+function hslToRgb(h, s, l) {
+  h /= 360; s /= 100; l /= 100;
+  let r, g, b;
+  if (s === 0) { r = g = b = l; }
+  else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1; if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+}
+
+function parseColorInput(str) {
+  str = str.trim();
+  // HEX
+  const hexMatch = str.match(/^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+  if (hexMatch) {
+    let hex = hexMatch[1];
+    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    return '#' + hex.toLowerCase();
+  }
+  // RGB
+  const rgbMatch = str.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/);
+  if (rgbMatch) {
+    return rgbToHex(parseInt(rgbMatch[1]), parseInt(rgbMatch[2]), parseInt(rgbMatch[3]));
+  }
+  // HSL
+  const hslMatch = str.match(/^hsla?\(\s*(\d{1,3})\s*,\s*(\d{1,3})%?\s*,\s*(\d{1,3})%?/);
+  if (hslMatch) {
+    const rgb = hslToRgb(parseInt(hslMatch[1]), parseInt(hslMatch[2]), parseInt(hslMatch[3]));
+    return rgbToHex(rgb.r, rgb.g, rgb.b);
+  }
+  return null;
+}
+
+function formatColor(hex, format) {
+  const rgb = hexToRgb(hex);
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  switch (format) {
+    case 'rgb': return 'rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')';
+    case 'hsl': return 'hsl(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%)';
+    default: return hex;
+  }
+}
+
+/* ============= BLENDING ============= */
+function blendNormal(c1, c2, ratio) {
+  return {
+    r: c1.r * (1 - ratio) + c2.r * ratio,
+    g: c1.g * (1 - ratio) + c2.g * ratio,
+    b: c1.b * (1 - ratio) + c2.b * ratio
+  };
+}
+
+function blendMultiply(c1, c2, ratio) {
+  const mul = {
+    r: (c1.r * c2.r) / 255,
+    g: (c1.g * c2.g) / 255,
+    b: (c1.b * c2.b) / 255
+  };
+  return blendNormal(c1, mul, ratio);
+}
+
+function blendScreen(c1, c2, ratio) {
+  const scr = {
+    r: 255 - ((255 - c1.r) * (255 - c2.r)) / 255,
+    g: 255 - ((255 - c1.g) * (255 - c2.g)) / 255,
+    b: 255 - ((255 - c1.b) * (255 - c2.b)) / 255
+  };
+  return blendNormal(c1, scr, ratio);
+}
+
+function blendOverlay(c1, c2, ratio) {
+  const ov = (a, b) => a < 128 ? (2 * a * b) / 255 : 255 - (2 * (255 - a) * (255 - b)) / 255;
+  const ovl = {
+    r: ov(c1.r, c2.r),
+    g: ov(c1.g, c2.g),
+    b: ov(c1.b, c2.b)
+  };
+  return blendNormal(c1, ovl, ratio);
+}
+
+function blendTwo(hex1, hex2, ratio, mode) {
+  const c1 = hexToRgb(hex1);
+  const c2 = hexToRgb(hex2);
+  let result;
+  switch (mode) {
+    case 'multiply': result = blendMultiply(c1, c2, ratio); break;
+    case 'screen': result = blendScreen(c1, c2, ratio); break;
+    case 'overlay': result = blendOverlay(c1, c2, ratio); break;
+    default: result = blendNormal(c1, c2, ratio); break;
+  }
+  return rgbToHex(result.r, result.g, result.b);
+}
+
+function mixAllColors() {
+  if (colors.length === 0) return '#808080';
+  if (colors.length === 1) return colors[0].hex;
+
+  if (colors.length === 2) {
+    const ratio = parseInt(document.getElementById('ratioSlider').value) / 100;
+    return blendTwo(colors[0].hex, colors[1].hex, ratio, blendMode);
+  }
+
+  // For 3+ colors: blend sequentially with equal weight
+  let result = hexToRgb(colors[0].hex);
+  for (let i = 1; i < colors.length; i++) {
+    const next = hexToRgb(colors[i].hex);
+    const w = 1 / (i + 1); // progressive weight
+    const blended = blendTwo(
+      rgbToHex(result.r, result.g, result.b),
+      rgbToHex(next.r, next.g, next.b),
+      w,
+      blendMode
+    );
+    result = hexToRgb(blended);
+  }
+  return rgbToHex(result.r, result.g, result.b);
+}
+
+/* ============= UI RENDERING ============= */
+function renderColorSlots() {
+  const container = document.getElementById('colorSlots');
+  container.innerHTML = '';
+  colors.forEach((c, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'color-slot';
+    slot.innerHTML = '<input type="color" class="color-swatch-input" value="' + c.hex + '" onchange="onSwatchChange(' + i + ',this.value)" title="Pick color">' +
+      '<input type="text" class="color-text-input" value="' + formatColor(c.hex, c.format) + '" placeholder="HEX, RGB, or HSL" onchange="onTextChange(' + i + ',this.value)" title="Enter color value">' +
+      '<select class="color-format-select" onchange="onFormatChange(' + i + ',this.value)" title="Color format">' +
+        '<option value="hex"' + (c.format === 'hex' ? ' selected' : '') + '>HEX</option>' +
+        '<option value="rgb"' + (c.format === 'rgb' ? ' selected' : '') + '>RGB</option>' +
+        '<option value="hsl"' + (c.format === 'hsl' ? ' selected' : '') + '>HSL</option>' +
+      '</select>' +
+      (colors.length > 2 ? '<button class="remove-btn" onclick="removeColor(' + i + ')" title="Remove color">&times;</button>' : '');
+    container.appendChild(slot);
+  });
+  document.getElementById('colorCount').textContent = colors.length + ' color' + (colors.length !== 1 ? 's' : '');
+
+  // Show/hide ratio slider (only for 2 colors)
+  const ratioSection = document.getElementById('ratioSection');
+  ratioSection.style.display = colors.length === 2 ? '' : 'none';
+}
+
+function onSwatchChange(i, val) {
+  colors[i].hex = val;
+  renderColorSlots();
+  mixColors();
+}
+
+function onTextChange(i, val) {
+  const parsed = parseColorInput(val);
+  if (parsed) {
+    colors[i].hex = parsed;
+    renderColorSlots();
+    mixColors();
+  } else {
+    showToast('Invalid color format');
+  }
+}
+
+function onFormatChange(i, fmt) {
+  colors[i].format = fmt;
+  renderColorSlots();
+}
+
+function onRatioChange() {
+  const v = parseInt(document.getElementById('ratioSlider').value);
+  document.getElementById('ratioLabel').textContent = v + ' / ' + (100 - v);
+  document.getElementById('ratioLeft').textContent = 'Color 1: ' + v + '%';
+  document.getElementById('ratioRight').textContent = 'Color 2: ' + (100 - v) + '%';
+  mixColors();
+}
+
+function setBlendMode(mode, el) {
+  blendMode = mode;
+  document.querySelectorAll('.blend-mode-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('blendModeLabel').textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+  mixColors();
+}
+
+/* ============= MIX COLORS ============= */
+function mixColors() {
+  const result = mixAllColors();
+  const rgb = hexToRgb(result);
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+
+  // Update result swatch
+  document.getElementById('resultSwatch').style.backgroundColor = result;
+  document.getElementById('resultHexLabel').textContent = result.toUpperCase();
+
+  // Update values
+  document.getElementById('resHex').textContent = result.toUpperCase();
+  document.getElementById('resRgb').textContent = 'rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')';
+  document.getElementById('resHsl').textContent = 'hsl(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%)';
+  document.getElementById('resRgba').textContent = 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', 1)';
+
+  // Contrast for label
+  const lum = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+  document.getElementById('resultHexLabel').style.color = lum > 0.5 ? '#000' : '#fff';
+
+  // Add to history
+  addToHistory(result);
+
+  // Update gradient
+  updateGradient();
+
+  // Update export
+  updateExport(result);
+}
+
+/* ============= ACTIONS ============= */
+function addColor() {
+  if (colors.length >= MAX_COLORS) {
+    showToast('Maximum ' + MAX_COLORS + ' colors');
+    return;
+  }
+  const rand = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+  colors.push({ hex: rand, format: 'hex' });
+  renderColorSlots();
+  mixColors();
+}
+
+function removeColor(i) {
+  if (colors.length <= 2) return;
+  colors.splice(i, 1);
+  renderColorSlots();
+  mixColors();
+}
+
+function swapColors() {
+  if (colors.length < 2) return;
+  const tmp = colors[0];
+  colors[0] = colors[1];
+  colors[1] = tmp;
+  renderColorSlots();
+  mixColors();
+  showToast('Colors swapped');
+}
+
+function randomizeColors() {
+  colors.forEach((c, i) => {
+    colors[i].hex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+  });
+  renderColorSlots();
+  mixColors();
+  showToast('Colors randomized');
+}
+
+function resetAll() {
+  colors = [
+    { hex: '#6366f1', format: 'hex' },
+    { hex: '#ec4899', format: 'hex' }
+  ];
+  blendMode = 'normal';
+  document.getElementById('ratioSlider').value = 50;
+  document.querySelectorAll('.blend-mode-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-mode="normal"]').classList.add('active');
+  document.getElementById('blendModeLabel').textContent = 'Normal';
+  onRatioChange();
+  renderColorSlots();
+  mixColors();
+  showToast('Reset to defaults');
+}
+
+function copyResult() {
+  const hex = document.getElementById('resHex').textContent;
+  navigator.clipboard.writeText(hex).then(() => showToast('Copied ' + hex));
+}
+
+/* ============= GRADIENT ============= */
+function updateGradient() {
+  if (colors.length < 2) return;
+  const steps = parseInt(document.getElementById('gradientSteps').value);
+  document.getElementById('stepsLabel').textContent = steps;
+  const dir = document.getElementById('gradientDirection').value;
+
+  const c1 = colors[0].hex;
+  const c2 = colors[colors.length - 1].hex;
+  const stopColors = [];
+
+  for (let i = 0; i < steps; i++) {
+    const t = i / (steps - 1);
+    stopColors.push(blendTwo(c1, c2, t, 'normal'));
+  }
+
+  const isRadial = dir === 'circle';
+  const gradientCSS = isRadial
+    ? 'radial-gradient(circle, ' + stopColors.join(', ') + ')'
+    : 'linear-gradient(' + dir + ', ' + stopColors.join(', ') + ')';
+
+  document.getElementById('gradientPreview').style.background = gradientCSS;
+  document.getElementById('gradientCode').textContent = 'background: ' + gradientCSS + ';';
+
+  // Render stops
+  const stopsContainer = document.getElementById('gradientStops');
+  stopsContainer.innerHTML = '';
+  stopColors.forEach(c => {
+    const stop = document.createElement('div');
+    stop.className = 'gradient-stop';
+    stop.style.backgroundColor = c;
+    stop.title = c.toUpperCase();
+    stop.onclick = () => {
+      navigator.clipboard.writeText(c.toUpperCase()).then(() => showToast('Copied ' + c.toUpperCase()));
+    };
+    stopsContainer.appendChild(stop);
+  });
+}
+
+/* ============= HISTORY ============= */
+function addToHistory(hex) {
+  hex = hex.toUpperCase();
+  // Don't add duplicates consecutively
+  if (history.length > 0 && history[0] === hex) return;
+  history.unshift(hex);
+  if (history.length > MAX_HISTORY) history.pop();
+  saveHistory();
+  renderHistory();
+}
+
+function renderHistory() {
+  const container = document.getElementById('historyColors');
+  container.innerHTML = '';
+  if (history.length === 0) {
+    container.innerHTML = '<span style="font-size:.8rem;color:var(--text2)">No colors saved yet</span>';
+    return;
+  }
+  history.forEach(hex => {
+    const swatch = document.createElement('div');
+    swatch.className = 'history-swatch';
+    swatch.style.backgroundColor = hex;
+    swatch.innerHTML = '<span class="tooltip">' + hex + '</span>';
+    swatch.onclick = () => {
+      navigator.clipboard.writeText(hex).then(() => showToast('Copied ' + hex));
+    };
+    container.appendChild(swatch);
+  });
+}
+
+function saveHistory() {
+  try { localStorage.setItem('ntool_color_mixer_history', JSON.stringify(history)); } catch(e) {}
+}
+
+function loadHistory() {
+  try {
+    const saved = localStorage.getItem('ntool_color_mixer_history');
+    if (saved) history = JSON.parse(saved);
+  } catch(e) {}
+  renderHistory();
+}
+
+function clearHistory() {
+  history = [];
+  saveHistory();
+  renderHistory();
+  showToast('History cleared');
+}
+
+/* ============= EXPORT ============= */
+function updateExport(result) {
+  const rgb = hexToRgb(result);
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  let css = ':root {\n';
+  css += '  --mixed-color: ' + result.toUpperCase() + ';\n';
+  css += '  --mixed-rgb: ' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ';\n';
+  css += '  --mixed-hsl: ' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%;\n';
+  colors.forEach((c, i) => {
+    css += '  --input-color-' + (i + 1) + ': ' + c.hex.toUpperCase() + ';\n';
+  });
+  css += '  --blend-mode: ' + blendMode + ';\n';
+  css += '}';
+  document.getElementById('exportArea').textContent = css;
+}
+
+function exportCSS() {
+  const css = document.getElementById('exportArea').textContent;
+  navigator.clipboard.writeText(css).then(() => showToast('CSS variables copied'));
+}
+
+/* ============= UTILITIES ============= */
+function copyText(el) {
+  const text = el.querySelector('.value') ? el.querySelector('.value').textContent : el.textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('Copied: ' + text.substring(0, 50)));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+/* START */
+init();
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a color mixer?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A color mixer is a tool that blends two or more colors together to produce a new color. NexTool's Color Mixer supports multiple blending modes (normal, multiply, screen, overlay), adjustable mixing ratios, and outputs in HEX, RGB, and HSL formats."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What blending modes are available?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NexTool's Color Mixer supports four blending modes: Normal (standard linear interpolation), Multiply (darkens by multiplying color values), Screen (lightens by screening color values), and Overlay (combines multiply and screen based on the base color)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I mix more than two colors?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, you can mix up to 8 colors at once. For two colors you get a precise ratio slider, and for 3 or more colors the tool blends them sequentially with equal weighting."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the color mixer free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's Color Mixer is completely free with no signup required. It runs entirely in your browser for maximum privacy and speed. You can also export mixed colors as CSS variables."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
