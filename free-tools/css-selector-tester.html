@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free CSS Selector Tester — Test & Debug Selectors | NexTool</title>
+<meta name="description" content="Free online CSS selector tester. Paste HTML, test selectors in real-time with highlighting, specificity calculator, match count, and cheat sheet. No signup needed.">
+<meta name="keywords" content="CSS selector tester, CSS selector debugger, test CSS selectors, specificity calculator, CSS cheat sheet, free online tool, NexTool">
+<meta property="og:title" content="Free CSS Selector Tester — Test & Debug Selectors | NexTool">
+<meta property="og:description" content="Test CSS selectors against HTML in real-time. Highlighting, specificity calculator, match count, cheat sheet. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/css-selector-tester.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/css-selector-tester.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free CSS Selector Tester — Test & Debug Selectors | NexTool">
+<meta name="twitter:description" content="Test CSS selectors against HTML in real-time. Free online tool by NexTool.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool CSS Selector Tester","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online CSS selector tester with real-time highlighting, specificity calculator, and cheat sheet."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#f97316;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1400px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.matched{background:var(--green)}
+.status-dot.error{background:var(--red)}
+.status-dot.empty{background:var(--border)}
+.main-layout{display:grid;grid-template-columns:1fr 300px;gap:1rem;min-height:600px}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:500px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto}
+textarea.code-input{width:100%;height:100%;min-height:200px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:none;outline:none;line-height:1.7;tab-size:2}
+textarea.code-input::placeholder{color:var(--text2);opacity:.5}
+/* SELECTOR INPUT AREA */
+.selector-area{margin-bottom:1rem}
+.selector-row{display:flex;gap:.5rem;margin-bottom:.5rem;align-items:center}
+.selector-input{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Courier New',monospace;font-size:.9rem;padding:.6rem 1rem;border-radius:8px;outline:none;transition:border-color .2s}
+.selector-input:focus{border-color:var(--primary)}
+.selector-input.error{border-color:var(--red)}
+.selector-input.matched{border-color:var(--green)}
+.add-selector-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:.4rem .8rem;border-radius:8px;font-size:.75rem;cursor:pointer;transition:all .2s;font-family:inherit}
+.add-selector-btn:hover{border-color:var(--primary);color:var(--text)}
+.remove-btn{background:none;border:none;color:var(--red);font-size:1.1rem;cursor:pointer;padding:.3rem .5rem;opacity:.5;transition:opacity .2s;line-height:1}
+.remove-btn:hover{opacity:1}
+/* SPECIFICITY */
+.specificity-badge{display:inline-flex;gap:2px;font-size:.7rem;font-weight:600;margin-left:.5rem}
+.specificity-badge span{padding:2px 5px;border-radius:3px;min-width:20px;text-align:center}
+.spec-a{background:rgba(239,68,68,.2);color:var(--red)}
+.spec-b{background:rgba(234,179,8,.2);color:var(--yellow)}
+.spec-c{background:rgba(34,197,94,.2);color:var(--green)}
+/* MATCH INFO */
+.match-count{font-size:.8rem;color:var(--green);font-weight:600;margin-left:.5rem}
+.match-count.zero{color:var(--text2)}
+/* PREVIEW PANEL */
+.preview-frame{padding:1rem;background:#fff;color:#000;min-height:300px;font-family:sans-serif;font-size:14px;line-height:1.6;border-radius:0 0 var(--radius) var(--radius)}
+.preview-frame *{max-width:100%}
+/* MATCHED ELEMENTS INFO */
+.matched-details{padding:1rem;font-size:.8rem;overflow-y:auto;max-height:400px}
+.match-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem;font-family:'Courier New',monospace;font-size:.78rem;line-height:1.5;cursor:pointer;transition:border-color .2s}
+.match-item:hover{border-color:var(--primary)}
+.match-item .tag-name{color:var(--cyan);font-weight:600}
+.match-item .attr-name{color:var(--yellow)}
+.match-item .attr-val{color:var(--green)}
+.match-item .class-name{color:var(--accent)}
+.match-item .match-index{color:var(--text2);font-size:.7rem;display:block;margin-bottom:4px}
+.match-item .generated-selector{display:block;margin-top:6px;padding:4px 8px;background:rgba(99,102,241,.08);border-radius:4px;color:var(--primary);font-size:.72rem;cursor:pointer}
+.match-item .generated-selector:hover{background:rgba(99,102,241,.15)}
+/* HIGHLIGHT IN PREVIEW */
+.cst-highlight{outline:2px solid #6366f1!important;outline-offset:1px;background:rgba(99,102,241,.15)!important;position:relative}
+.cst-highlight::after{content:attr(data-cst-label);position:absolute;top:-18px;left:0;font-size:10px;background:#6366f1;color:#fff;padding:1px 6px;border-radius:3px;font-family:Inter,sans-serif;white-space:nowrap;z-index:10;pointer-events:none}
+.cst-click-highlight{outline:2px dashed #ec4899!important;outline-offset:1px;background:rgba(236,72,153,.1)!important}
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:1rem}
+.sidebar-panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.sidebar-panel .panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);background:rgba(26,26,36,0.5);cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
+.sidebar-panel .panel-header .chevron{transition:transform .2s;font-size:.7rem}
+.sidebar-panel .panel-header .chevron.open{transform:rotate(180deg)}
+.sidebar-body{padding:.8rem;overflow:auto}
+.sidebar-body.collapsed{display:none}
+.cheat-item{padding:.4rem .6rem;margin-bottom:.3rem;border-radius:6px;cursor:pointer;transition:background .15s;font-size:.78rem}
+.cheat-item:hover{background:rgba(99,102,241,.1)}
+.cheat-item code{color:var(--primary);font-family:'Courier New',monospace;font-size:.76rem;display:block}
+.cheat-item .desc{color:var(--text2);font-size:.7rem;margin-top:2px}
+.cheat-section{font-size:.7rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;padding:.4rem .6rem;margin-top:.5rem}
+.cheat-section:first-child{margin-top:0}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* TABS */
+.tab-row{display:flex;gap:0;border-bottom:1px solid var(--border)}
+.tab-btn{background:none;border:none;color:var(--text2);padding:.5rem 1rem;font-size:.78rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:inherit}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .main-layout{grid-template-columns:1fr}
+  .sidebar{display:grid;grid-template-columns:1fr 1fr;order:-1}
+}
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .sidebar{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>CSS Selector Tester</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Paste HTML and test CSS selectors in real-time. See matched elements highlighted, view specificity scores, inspect element details, and use the built-in cheat sheet. Supports testing multiple selectors at once. 100% client-side.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <!-- Selector Input Area -->
+  <div class="selector-area">
+    <div id="selectorRows">
+      <div class="selector-row" data-index="0">
+        <input type="text" class="selector-input" placeholder="Enter CSS selector, e.g. div.container > p.intro" spellcheck="false" oninput="runSelectors()" data-index="0">
+        <span class="match-count zero" data-index="0">0 matches</span>
+        <span class="specificity-badge" data-index="0"></span>
+      </div>
+    </div>
+    <button class="add-selector-btn" onclick="addSelectorRow()">+ Add Selector</button>
+  </div>
+
+  <div class="toolbar">
+    <button onclick="loadSample()">Load Sample HTML</button>
+    <button onclick="clearAll()">Clear All</button>
+    <button onclick="copyMatches()">Copy Matched Details</button>
+    <button id="clickModeBtn" onclick="toggleClickMode()">Click-to-Select: OFF</button>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Paste HTML and enter a selector to begin</span>
+  </div>
+
+  <div class="main-layout">
+    <div>
+      <div class="panels">
+        <div class="panel">
+          <div class="panel-header"><span>HTML Input</span><span id="lineCount"></span></div>
+          <div class="panel-body">
+            <textarea class="code-input" id="htmlInput" placeholder='Paste your HTML here...&#10;&#10;Example:&#10;<div class="container">&#10;  <h1>Title</h1>&#10;  <p class="intro">Hello world</p>&#10;</div>' spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="tab-row" style="border:none;margin:-0.6rem -1rem;padding:0">
+              <button class="tab-btn active" onclick="switchTab('preview',this)">Preview</button>
+              <button class="tab-btn" onclick="switchTab('matches',this)">Matched Elements</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div id="previewTab">
+              <div class="preview-frame" id="previewFrame"></div>
+            </div>
+            <div id="matchesTab" style="display:none">
+              <div class="matched-details" id="matchedDetails">
+                <p style="color:var(--text2);padding:1rem;font-size:.85rem">Enter a selector and paste HTML to see matched elements here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-panel">
+        <div class="panel-header" onclick="toggleSidebar('specificity')">
+          <span>Specificity Calculator</span>
+          <span class="chevron open" id="chevron-specificity">&#9660;</span>
+        </div>
+        <div class="sidebar-body" id="body-specificity">
+          <div id="specificityDisplay" style="text-align:center;padding:.5rem">
+            <div style="font-size:.75rem;color:var(--text2);margin-bottom:.5rem">Enter a selector to see specificity</div>
+            <div id="specScoreDisplay" style="font-size:2rem;font-weight:800;letter-spacing:4px;color:var(--text)">-,-,-</div>
+            <div id="specBreakdown" style="font-size:.7rem;color:var(--text2);margin-top:.5rem"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-panel">
+        <div class="panel-header" onclick="toggleSidebar('cheatsheet')">
+          <span>Selector Cheat Sheet</span>
+          <span class="chevron open" id="chevron-cheatsheet">&#9660;</span>
+        </div>
+        <div class="sidebar-body" id="body-cheatsheet" style="max-height:400px;overflow-y:auto">
+          <div class="cheat-section">Basic</div>
+          <div class="cheat-item" onclick="useCheat('*')"><code>*</code><div class="desc">Universal selector</div></div>
+          <div class="cheat-item" onclick="useCheat('div')"><code>element</code><div class="desc">Type selector</div></div>
+          <div class="cheat-item" onclick="useCheat('.class')"><code>.class</code><div class="desc">Class selector</div></div>
+          <div class="cheat-item" onclick="useCheat('#id')"><code>#id</code><div class="desc">ID selector</div></div>
+
+          <div class="cheat-section">Combinators</div>
+          <div class="cheat-item" onclick="useCheat('div p')"><code>A B</code><div class="desc">Descendant</div></div>
+          <div class="cheat-item" onclick="useCheat('div > p')"><code>A > B</code><div class="desc">Direct child</div></div>
+          <div class="cheat-item" onclick="useCheat('h1 + p')"><code>A + B</code><div class="desc">Adjacent sibling</div></div>
+          <div class="cheat-item" onclick="useCheat('h1 ~ p')"><code>A ~ B</code><div class="desc">General sibling</div></div>
+
+          <div class="cheat-section">Attribute</div>
+          <div class="cheat-item" onclick="useCheat('[href]')"><code>[attr]</code><div class="desc">Has attribute</div></div>
+          <div class="cheat-item" onclick="useCheat('[type=&quot;text&quot;]')"><code>[attr=&quot;val&quot;]</code><div class="desc">Exact match</div></div>
+          <div class="cheat-item" onclick="useCheat('[class~=&quot;intro&quot;]')"><code>[attr~=&quot;val&quot;]</code><div class="desc">Contains word</div></div>
+          <div class="cheat-item" onclick="useCheat('[href^=&quot;https&quot;]')"><code>[attr^=&quot;val&quot;]</code><div class="desc">Starts with</div></div>
+          <div class="cheat-item" onclick="useCheat('[href$=&quot;.pdf&quot;]')"><code>[attr$=&quot;val&quot;]</code><div class="desc">Ends with</div></div>
+          <div class="cheat-item" onclick="useCheat('[class*=&quot;btn&quot;]')"><code>[attr*=&quot;val&quot;]</code><div class="desc">Contains substring</div></div>
+
+          <div class="cheat-section">Pseudo-classes</div>
+          <div class="cheat-item" onclick="useCheat(':first-child')"><code>:first-child</code><div class="desc">First child element</div></div>
+          <div class="cheat-item" onclick="useCheat(':last-child')"><code>:last-child</code><div class="desc">Last child element</div></div>
+          <div class="cheat-item" onclick="useCheat(':nth-child(2)')"><code>:nth-child(n)</code><div class="desc">Nth child</div></div>
+          <div class="cheat-item" onclick="useCheat(':nth-of-type(odd)')"><code>:nth-of-type(n)</code><div class="desc">Nth of type</div></div>
+          <div class="cheat-item" onclick="useCheat(':not(.hidden)')"><code>:not(sel)</code><div class="desc">Negation</div></div>
+          <div class="cheat-item" onclick="useCheat(':empty')"><code>:empty</code><div class="desc">No children</div></div>
+          <div class="cheat-item" onclick="useCheat(':only-child')"><code>:only-child</code><div class="desc">Sole child</div></div>
+          <div class="cheat-item" onclick="useCheat(':has(> img)')"><code>:has(sel)</code><div class="desc">Has matching descendant</div></div>
+
+          <div class="cheat-section">Pseudo-elements</div>
+          <div class="cheat-item" onclick="useCheat('p::first-line')"><code>::first-line</code><div class="desc">First line of text</div></div>
+          <div class="cheat-item" onclick="useCheat('p::first-letter')"><code>::first-letter</code><div class="desc">First letter</div></div>
+          <div class="cheat-item" onclick="useCheat('div::before')"><code>::before</code><div class="desc">Before content</div></div>
+          <div class="cheat-item" onclick="useCheat('div::after')"><code>::after</code><div class="desc">After content</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const htmlInput = document.getElementById('htmlInput');
+const previewFrame = document.getElementById('previewFrame');
+const matchedDetails = document.getElementById('matchedDetails');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const lineCount = document.getElementById('lineCount');
+const specScoreDisplay = document.getElementById('specScoreDisplay');
+const specBreakdown = document.getElementById('specBreakdown');
+
+let selectorCount = 1;
+let clickMode = false;
+let debounceTimer = null;
+
+/* ── Debounce ── */
+function debounce(fn, ms) { return function(...a) { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => fn(...a), ms); }; }
+
+/* ── HTML Input Handler ── */
+htmlInput.addEventListener('input', debounce(function() {
+  updateLineCount();
+  renderPreview();
+  runSelectors();
+}, 250));
+
+function updateLineCount() {
+  const lines = htmlInput.value.split('\n').length;
+  lineCount.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+
+/* ── Render HTML Preview ── */
+function renderPreview() {
+  const html = htmlInput.value.trim();
+  if (!html) {
+    previewFrame.innerHTML = '<p style="color:#999;font-style:italic;padding:1rem">Paste HTML above to see preview</p>';
+    return;
+  }
+  previewFrame.innerHTML = html;
+}
+
+/* ── Run All Selectors ── */
+function runSelectors() {
+  const html = htmlInput.value.trim();
+  if (!html) {
+    statusDot.className = 'status-dot empty';
+    statusText.textContent = 'Paste HTML and enter a selector to begin';
+    matchedDetails.innerHTML = '<p style="color:var(--text2);padding:1rem;font-size:.85rem">Enter a selector and paste HTML to see matched elements here.</p>';
+    specScoreDisplay.textContent = '-,-,-';
+    specBreakdown.textContent = '';
+    return;
+  }
+
+  // Make sure preview is rendered
+  if (!previewFrame.children.length || previewFrame.textContent.includes('Paste HTML')) {
+    renderPreview();
+  }
+
+  // Remove old highlights
+  previewFrame.querySelectorAll('.cst-highlight').forEach(el => {
+    el.classList.remove('cst-highlight');
+    el.removeAttribute('data-cst-label');
+  });
+
+  const rows = document.querySelectorAll('.selector-row');
+  let totalMatches = 0;
+  let allMatchedEls = [];
+  let hasError = false;
+  let firstSelector = '';
+
+  rows.forEach((row, idx) => {
+    const input = row.querySelector('.selector-input');
+    const countSpan = row.querySelector('.match-count');
+    const specSpan = row.querySelector('.specificity-badge');
+    const selector = input.value.trim();
+
+    if (!selector) {
+      input.className = 'selector-input';
+      countSpan.textContent = '0 matches';
+      countSpan.className = 'match-count zero';
+      specSpan.innerHTML = '';
+      return;
+    }
+
+    if (idx === 0) firstSelector = selector;
+
+    try {
+      // Strip pseudo-elements for querySelectorAll (they cannot be matched)
+      const cleanSelector = stripPseudoElements(selector);
+      const matches = previewFrame.querySelectorAll(cleanSelector);
+      const count = matches.length;
+      totalMatches += count;
+
+      input.className = 'selector-input' + (count > 0 ? ' matched' : '');
+      countSpan.textContent = count + ' match' + (count !== 1 ? 'es' : '');
+      countSpan.className = 'match-count' + (count === 0 ? ' zero' : '');
+
+      // Highlight matched elements
+      matches.forEach((el, mi) => {
+        el.classList.add('cst-highlight');
+        el.setAttribute('data-cst-label', selector + ' [' + (mi + 1) + ']');
+        allMatchedEls.push({ el, selector, index: mi });
+      });
+
+      // Specificity
+      const spec = calculateSpecificity(selector);
+      specSpan.innerHTML = '<span class="spec-a">' + spec[0] + '</span><span class="spec-b">' + spec[1] + '</span><span class="spec-c">' + spec[2] + '</span>';
+
+    } catch (e) {
+      input.className = 'selector-input error';
+      countSpan.textContent = 'Invalid';
+      countSpan.className = 'match-count zero';
+      specSpan.innerHTML = '';
+      hasError = true;
+    }
+  });
+
+  // Update status
+  if (hasError) {
+    statusDot.className = 'status-dot error';
+    statusText.textContent = 'Invalid selector detected';
+  } else if (totalMatches > 0) {
+    statusDot.className = 'status-dot matched';
+    statusText.textContent = totalMatches + ' element' + (totalMatches !== 1 ? 's' : '') + ' matched';
+  } else {
+    statusDot.className = 'status-dot empty';
+    statusText.textContent = 'No elements matched';
+  }
+
+  // Update specificity display for first selector
+  if (firstSelector) {
+    try {
+      const spec = calculateSpecificity(firstSelector);
+      specScoreDisplay.textContent = spec[0] + ',' + spec[1] + ',' + spec[2];
+      specBreakdown.innerHTML = buildSpecBreakdown(firstSelector);
+    } catch (e) {
+      specScoreDisplay.textContent = 'ERR';
+      specBreakdown.textContent = 'Invalid selector';
+    }
+  } else {
+    specScoreDisplay.textContent = '-,-,-';
+    specBreakdown.textContent = '';
+  }
+
+  // Update matched details panel
+  renderMatchedDetails(allMatchedEls);
+}
+
+/* ── Strip pseudo-elements for querySelectorAll ── */
+function stripPseudoElements(sel) {
+  return sel.replace(/::(before|after|first-line|first-letter|marker|selection|placeholder|backdrop|cue|grammar-error|spelling-error|target-text)/gi, '');
+}
+
+/* ── Specificity Calculator ── */
+function calculateSpecificity(selector) {
+  let a = 0, b = 0, c = 0;
+
+  // Handle comma-separated selectors: return the highest
+  const parts = splitSelectors(selector);
+  if (parts.length > 1) {
+    let max = [0, 0, 0];
+    parts.forEach(p => {
+      const s = calculateSpecificity(p.trim());
+      if (s[0] > max[0] || (s[0] === max[0] && s[1] > max[1]) || (s[0] === max[0] && s[1] === max[1] && s[2] > max[2])) max = s;
+    });
+    return max;
+  }
+
+  let sel = selector.trim();
+
+  // Remove pseudo-elements (count as c=1 each)
+  sel = sel.replace(/::(before|after|first-line|first-letter|marker|selection|placeholder|backdrop|cue)/gi, () => { c++; return ''; });
+
+  // Remove :not() content but count what's inside
+  sel = sel.replace(/:not\(([^)]+)\)/g, (_, inner) => {
+    const innerSpec = calculateSpecificity(inner);
+    a += innerSpec[0]; b += innerSpec[1]; c += innerSpec[2];
+    return '';
+  });
+
+  // Remove :has() content but count what's inside
+  sel = sel.replace(/:has\(([^)]+)\)/g, (_, inner) => {
+    const innerSpec = calculateSpecificity(inner);
+    a += innerSpec[0]; b += innerSpec[1]; c += innerSpec[2];
+    return '';
+  });
+
+  // Remove :is() and :where() - :where() has 0 specificity, :is() counts highest
+  sel = sel.replace(/:where\([^)]*\)/g, '');
+  sel = sel.replace(/:is\(([^)]+)\)/g, (_, inner) => {
+    const innerSpec = calculateSpecificity(inner);
+    a += innerSpec[0]; b += innerSpec[1]; c += innerSpec[2];
+    return '';
+  });
+
+  // Remove attribute selectors (count as b=1 each)
+  sel = sel.replace(/\[[^\]]*\]/g, () => { b++; return ''; });
+
+  // Count IDs
+  const ids = sel.match(/#[a-zA-Z_-][\w-]*/g);
+  if (ids) a += ids.length;
+
+  // Count classes
+  const classes = sel.match(/\.[a-zA-Z_-][\w-]*/g);
+  if (classes) b += classes.length;
+
+  // Count pseudo-classes (not pseudo-elements)
+  const pseudoClasses = sel.match(/:[a-zA-Z][\w-]*(?:\([^)]*\))?/g);
+  if (pseudoClasses) b += pseudoClasses.length;
+
+  // Remove IDs, classes, pseudo-classes for type counting
+  sel = sel.replace(/#[a-zA-Z_-][\w-]*/g, '');
+  sel = sel.replace(/\.[a-zA-Z_-][\w-]*/g, '');
+  sel = sel.replace(/:[a-zA-Z][\w-]*(?:\([^)]*\))?/g, '');
+
+  // Count type selectors (elements)
+  const types = sel.match(/(?:^|[\s>+~])([a-zA-Z][\w-]*)/g);
+  if (types) c += types.length;
+
+  return [a, b, c];
+}
+
+function splitSelectors(sel) {
+  // Simple comma split (not inside parentheses)
+  const result = [];
+  let depth = 0, current = '';
+  for (let i = 0; i < sel.length; i++) {
+    const ch = sel[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    else if (ch === ',' && depth === 0) {
+      result.push(current);
+      current = '';
+      continue;
+    }
+    current += ch;
+  }
+  if (current) result.push(current);
+  return result;
+}
+
+function buildSpecBreakdown(selector) {
+  const parts = [];
+  const ids = selector.match(/#[a-zA-Z_-][\w-]*/g);
+  const classes = selector.match(/\.[a-zA-Z_-][\w-]*/g);
+  const attrs = selector.match(/\[[^\]]*\]/g);
+  const pseudoClasses = selector.match(/:[a-zA-Z][\w-]*(?:\([^)]*\))?/g);
+  const pseudoEls = selector.match(/::[a-zA-Z-]+/g);
+
+  if (ids) parts.push('<span style="color:var(--red)">' + ids.length + ' ID' + (ids.length > 1 ? 's' : '') + '</span>');
+  if (classes) parts.push('<span style="color:var(--yellow)">' + classes.length + ' class' + (classes.length > 1 ? 'es' : '') + '</span>');
+  if (attrs) parts.push('<span style="color:var(--yellow)">' + attrs.length + ' attr' + (attrs.length > 1 ? 's' : '') + '</span>');
+  if (pseudoClasses) parts.push('<span style="color:var(--yellow)">' + pseudoClasses.length + ' pseudo-class' + (pseudoClasses.length > 1 ? 'es' : '') + '</span>');
+  if (pseudoEls) parts.push('<span style="color:var(--green)">' + pseudoEls.length + ' pseudo-element' + (pseudoEls.length > 1 ? 's' : '') + '</span>');
+
+  return parts.length ? parts.join(' + ') : 'Type selectors only';
+}
+
+/* ── Render Matched Element Details ── */
+function renderMatchedDetails(matchedEls) {
+  if (!matchedEls.length) {
+    matchedDetails.innerHTML = '<p style="color:var(--text2);padding:1rem;font-size:.85rem">No elements matched. Try a different selector.</p>';
+    return;
+  }
+
+  let html = '';
+  matchedEls.forEach((item, i) => {
+    const el = item.el;
+    const tag = el.tagName.toLowerCase();
+    const classes = el.className ? el.className.toString().replace('cst-highlight', '').replace('cst-click-highlight', '').trim() : '';
+    const id = el.id || '';
+    const attrs = [];
+
+    for (let j = 0; j < el.attributes.length; j++) {
+      const attr = el.attributes[j];
+      if (attr.name === 'class' || attr.name === 'data-cst-label') continue;
+      attrs.push(attr.name + (attr.value ? '="' + escapeHtml(attr.value) + '"' : ''));
+    }
+
+    const genSelector = generateSelector(el);
+
+    html += '<div class="match-item" onclick="scrollToMatch(' + i + ')">';
+    html += '<span class="match-index">Match #' + (i + 1) + ' via: ' + escapeHtml(item.selector) + '</span>';
+    html += '<span class="tag-name">&lt;' + tag + '</span>';
+    if (id) html += ' <span class="attr-name">id</span>=<span class="attr-val">"' + escapeHtml(id) + '"</span>';
+    if (classes) html += ' <span class="attr-name">class</span>=<span class="class-name">"' + escapeHtml(classes) + '"</span>';
+    attrs.forEach(a => {
+      if (!a.startsWith('id=') && !a.startsWith('class=')) {
+        const eqIdx = a.indexOf('=');
+        if (eqIdx > -1) {
+          html += ' <span class="attr-name">' + escapeHtml(a.substring(0, eqIdx)) + '</span>=<span class="attr-val">' + escapeHtml(a.substring(eqIdx + 1)) + '</span>';
+        } else {
+          html += ' <span class="attr-name">' + escapeHtml(a) + '</span>';
+        }
+      }
+    });
+    html += '<span class="tag-name">&gt;</span>';
+    // Text content preview
+    const textContent = el.textContent.trim().substring(0, 80);
+    if (textContent) {
+      html += '<div style="color:var(--text2);font-size:.7rem;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(textContent) + (el.textContent.trim().length > 80 ? '...' : '') + '</div>';
+    }
+    html += '<span class="generated-selector" onclick="event.stopPropagation();copySelectorToClipboard(\'' + escapeAttr(genSelector) + '\')" title="Click to copy generated selector">' + escapeHtml(genSelector) + '</span>';
+    html += '</div>';
+  });
+
+  matchedDetails.innerHTML = html;
+}
+
+/* ── Generate a unique selector for an element ── */
+function generateSelector(el) {
+  if (el.id) return '#' + el.id;
+
+  const parts = [];
+  let current = el;
+  let depth = 0;
+
+  while (current && current !== previewFrame && depth < 5) {
+    let part = current.tagName.toLowerCase();
+    if (current.id) {
+      parts.unshift('#' + current.id);
+      break;
+    }
+    const cls = current.className ? current.className.toString().replace('cst-highlight', '').replace('cst-click-highlight', '').trim() : '';
+    if (cls) {
+      part += '.' + cls.split(/\s+/).filter(c => c).join('.');
+    } else {
+      // Add nth-child if needed for uniqueness
+      const parent = current.parentElement;
+      if (parent) {
+        const siblings = Array.from(parent.children).filter(c => c.tagName === current.tagName);
+        if (siblings.length > 1) {
+          const idx = siblings.indexOf(current) + 1;
+          part += ':nth-of-type(' + idx + ')';
+        }
+      }
+    }
+    parts.unshift(part);
+    current = current.parentElement;
+    depth++;
+  }
+
+  return parts.join(' > ');
+}
+
+/* ── Scroll to matched element in preview ── */
+function scrollToMatch(index) {
+  const highlights = previewFrame.querySelectorAll('.cst-highlight');
+  if (highlights[index]) {
+    highlights[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    highlights[index].style.outline = '3px solid var(--pink)';
+    setTimeout(() => { highlights[index].style.outline = '2px solid #6366f1'; }, 1500);
+  }
+}
+
+/* ── Click-to-Select Mode ── */
+function toggleClickMode() {
+  clickMode = !clickMode;
+  const btn = document.getElementById('clickModeBtn');
+  btn.textContent = 'Click-to-Select: ' + (clickMode ? 'ON' : 'OFF');
+  btn.classList.toggle('active', clickMode);
+  previewFrame.style.cursor = clickMode ? 'crosshair' : 'default';
+}
+
+previewFrame.addEventListener('click', function(e) {
+  if (!clickMode) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  // Remove previous click highlights
+  previewFrame.querySelectorAll('.cst-click-highlight').forEach(el => el.classList.remove('cst-click-highlight'));
+
+  const target = e.target;
+  if (target === previewFrame) return;
+
+  target.classList.add('cst-click-highlight');
+
+  // Generate a selector for the clicked element
+  const selector = generateSelector(target);
+
+  // Put it in the first selector input
+  const firstInput = document.querySelector('.selector-input[data-index="0"]');
+  if (firstInput) {
+    firstInput.value = selector;
+    runSelectors();
+  }
+
+  showToast('Selector generated: ' + selector);
+});
+
+/* ── Add/Remove Selector Rows ── */
+function addSelectorRow() {
+  const container = document.getElementById('selectorRows');
+  const idx = selectorCount++;
+  const row = document.createElement('div');
+  row.className = 'selector-row';
+  row.dataset.index = idx;
+  row.innerHTML = '<input type="text" class="selector-input" placeholder="Enter another CSS selector..." spellcheck="false" oninput="runSelectors()" data-index="' + idx + '">' +
+    '<span class="match-count zero" data-index="' + idx + '">0 matches</span>' +
+    '<span class="specificity-badge" data-index="' + idx + '"></span>' +
+    '<button class="remove-btn" onclick="removeSelectorRow(this)" title="Remove this selector">&times;</button>';
+  container.appendChild(row);
+  row.querySelector('.selector-input').focus();
+}
+
+function removeSelectorRow(btn) {
+  const row = btn.closest('.selector-row');
+  row.remove();
+  runSelectors();
+}
+
+/* ── Tab Switching ── */
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('previewTab').style.display = tab === 'preview' ? '' : 'none';
+  document.getElementById('matchesTab').style.display = tab === 'matches' ? '' : 'none';
+}
+
+/* ── Sidebar Toggle ── */
+function toggleSidebar(id) {
+  const body = document.getElementById('body-' + id);
+  const chevron = document.getElementById('chevron-' + id);
+  body.classList.toggle('collapsed');
+  chevron.classList.toggle('open');
+}
+
+/* ── Cheat Sheet: Use Selector ── */
+function useCheat(sel) {
+  const firstInput = document.querySelector('.selector-input[data-index="0"]');
+  if (firstInput) {
+    firstInput.value = sel;
+    runSelectors();
+  }
+}
+
+/* ── Load Sample HTML ── */
+function loadSample() {
+  htmlInput.value = `<div class="container" id="main">
+  <header class="header">
+    <h1 class="title">Welcome to NexTool</h1>
+    <nav class="nav-menu">
+      <a href="/" class="nav-link active">Home</a>
+      <a href="/about" class="nav-link">About</a>
+      <a href="/contact" class="nav-link">Contact</a>
+    </nav>
+  </header>
+
+  <main class="content">
+    <article class="post" data-category="tutorial">
+      <h2 class="post-title">Getting Started with CSS</h2>
+      <p class="intro">Learn the basics of CSS selectors.</p>
+      <p>CSS selectors let you target HTML elements.</p>
+      <ul class="tag-list">
+        <li class="tag">CSS</li>
+        <li class="tag featured">Selectors</li>
+        <li class="tag">Tutorial</li>
+      </ul>
+    </article>
+
+    <article class="post" data-category="reference">
+      <h2 class="post-title">Selector Reference</h2>
+      <p class="intro">A complete guide to CSS selectors.</p>
+      <div class="code-block">
+        <code>.class-name { color: red; }</code>
+      </div>
+    </article>
+
+    <aside class="sidebar-widget">
+      <h3>Related Tools</h3>
+      <ul>
+        <li><a href="/tool-1">CSS Formatter</a></li>
+        <li><a href="/tool-2">CSS Minifier</a></li>
+        <li><a href="/tool-3" class="featured">Specificity Calc</a></li>
+      </ul>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2026 NexTool</p>
+  </footer>
+</div>`;
+  updateLineCount();
+  renderPreview();
+
+  // Set a default selector
+  const firstInput = document.querySelector('.selector-input[data-index="0"]');
+  if (firstInput) {
+    firstInput.value = '.post .intro';
+    runSelectors();
+  }
+}
+
+/* ── Clear All ── */
+function clearAll() {
+  htmlInput.value = '';
+  previewFrame.innerHTML = '<p style="color:#999;font-style:italic;padding:1rem">Paste HTML above to see preview</p>';
+  matchedDetails.innerHTML = '<p style="color:var(--text2);padding:1rem;font-size:.85rem">Enter a selector and paste HTML to see matched elements here.</p>';
+  document.querySelectorAll('.selector-input').forEach(input => input.value = '');
+  document.querySelectorAll('.match-count').forEach(span => { span.textContent = '0 matches'; span.className = 'match-count zero'; });
+  document.querySelectorAll('.specificity-badge').forEach(span => span.innerHTML = '');
+  statusDot.className = 'status-dot empty';
+  statusText.textContent = 'Paste HTML and enter a selector to begin';
+  lineCount.textContent = '';
+  specScoreDisplay.textContent = '-,-,-';
+  specBreakdown.textContent = '';
+}
+
+/* ── Copy Matches ── */
+function copyMatches() {
+  const items = document.querySelectorAll('.match-item');
+  if (!items.length) { showToast('Nothing to copy'); return; }
+  let text = '';
+  items.forEach((item, i) => {
+    text += 'Match #' + (i + 1) + ': ' + item.textContent.trim().replace(/\s+/g, ' ') + '\n';
+  });
+  navigator.clipboard.writeText(text).then(() => showToast('Matched details copied'));
+}
+
+function copySelectorToClipboard(sel) {
+  navigator.clipboard.writeText(sel).then(() => showToast('Selector copied: ' + sel));
+}
+
+/* ── Helpers ── */
+function escapeHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function escapeAttr(s) { return s.replace(/'/g, "\\'").replace(/"/g, '\\"'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* Tab key support in textarea */
+htmlInput.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = htmlInput.selectionStart, end = htmlInput.selectionEnd;
+    htmlInput.value = htmlInput.value.substring(0, start) + '  ' + htmlInput.value.substring(end);
+    htmlInput.selectionStart = htmlInput.selectionEnd = start + 2;
+  }
+});
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a CSS selector tester?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A CSS selector tester lets you paste HTML markup and test CSS selectors against it in real-time. You can see which elements match, view specificity scores, and debug complex selectors before using them in production code."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does CSS specificity work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CSS specificity is a scoring system with three components: IDs (a), classes/attributes/pseudo-classes (b), and type selectors/pseudo-elements (c). A selector like #main .title has specificity 1,1,0. Higher specificity wins when multiple rules conflict."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I test multiple CSS selectors at once?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's CSS Selector Tester supports testing multiple selectors simultaneously. Click 'Add Selector' to add more rows. Each selector shows its own match count and specificity, and all matches are highlighted in the preview."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this CSS selector tester free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, it is completely free with no signup required. The tool runs entirely in your browser for maximum privacy. No data is sent to any server."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>

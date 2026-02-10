@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Accessibility Checker — WCAG 2.1 HTML Audit | NexTool</title>
+<meta name="description" content="Free WCAG 2.1 accessibility checker. Paste HTML to find missing alt text, heading hierarchy issues, form labels, ARIA roles, color contrast, and more. Score out of 100.">
+<meta name="keywords" content="accessibility checker, WCAG 2.1, a11y audit, HTML accessibility, alt text checker, heading hierarchy, ARIA validator, free online tool, NexTool">
+<meta property="og:title" content="Free Accessibility Checker — WCAG 2.1 Audit | NexTool">
+<meta property="og:description" content="Paste HTML and instantly audit for WCAG 2.1 accessibility issues. Errors, warnings, fix suggestions, and score out of 100.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/accessibility-checker.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/accessibility-checker.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Accessibility Checker — WCAG 2.1 Audit | NexTool">
+<meta name="twitter:description" content="Audit HTML for WCAG 2.1 accessibility issues. Free, client-side, no signup.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Accessibility Checker","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free WCAG 2.1 accessibility checker. Paste HTML to audit for missing alt text, heading hierarchy, form labels, ARIA roles, and more."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#f97316;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+/* SCORE */
+.score-section{display:flex;gap:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.score-card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;flex:1;min-width:200px;text-align:center}
+.score-ring{position:relative;width:120px;height:120px;margin:0 auto 1rem}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring circle{fill:none;stroke-width:8}
+.score-ring .bg{stroke:var(--surface2)}
+.score-ring .fg{stroke-linecap:round;transition:stroke-dashoffset .8s ease-out,stroke .4s}
+.score-value{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;font-weight:800}
+.score-label{font-size:.85rem;color:var(--text2);font-weight:500}
+.summary-card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;flex:2;min-width:280px}
+.summary-card h3{font-size:1rem;font-weight:700;margin-bottom:1rem}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem}
+.summary-item{padding:.75rem;border-radius:8px;text-align:center}
+.summary-item .count{font-size:1.5rem;font-weight:800}
+.summary-item .label{font-size:.75rem;color:var(--text2);font-weight:500;margin-top:.25rem}
+.err-bg{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.15)}
+.err-bg .count{color:var(--red)}
+.warn-bg{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.15)}
+.warn-bg .count{color:var(--orange)}
+.notice-bg{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.15)}
+.notice-bg .count{color:var(--cyan)}
+.pass-bg{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.15)}
+.pass-bg .count{color:var(--green)}
+/* PANELS */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:500px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto}
+#htmlInput{width:100%;height:100%;min-height:400px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:none;outline:none;line-height:1.7;tab-size:2}
+#htmlInput::placeholder{color:var(--text2);opacity:.5}
+/* RESULTS */
+.results-area{padding:1rem;min-height:400px}
+.results-empty{color:var(--text2);text-align:center;padding:3rem 1rem;font-size:.9rem}
+.results-empty svg{display:block;margin:0 auto 1rem;opacity:.3}
+/* FILTER TABS */
+.filter-tabs{display:flex;gap:.35rem;padding:.5rem 1rem;border-bottom:1px solid var(--border);background:rgba(26,26,36,0.3);flex-wrap:wrap}
+.filter-tab{background:transparent;border:1px solid transparent;color:var(--text2);padding:.3rem .7rem;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.filter-tab:hover{background:var(--surface2)}
+.filter-tab.active{background:var(--surface2);border-color:var(--border);color:var(--text)}
+.filter-tab .badge{display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;border-radius:9px;font-size:.65rem;margin-left:.3rem;padding:0 5px}
+.badge-error{background:rgba(239,68,68,.2);color:var(--red)}
+.badge-warning{background:rgba(249,115,22,.2);color:var(--orange)}
+.badge-notice{background:rgba(34,211,238,.2);color:var(--cyan)}
+.badge-pass{background:rgba(34,197,94,.2);color:var(--green)}
+/* ISSUE CARD */
+.issue-card{padding:1rem;border-bottom:1px solid rgba(42,42,58,.5);transition:background .2s}
+.issue-card:hover{background:rgba(99,102,241,.03)}
+.issue-card:last-child{border-bottom:none}
+.issue-header{display:flex;align-items:flex-start;gap:.75rem;margin-bottom:.5rem}
+.issue-severity{flex-shrink:0;padding:.2rem .5rem;border-radius:4px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.sev-error{background:rgba(239,68,68,.15);color:var(--red)}
+.sev-warning{background:rgba(249,115,22,.15);color:var(--orange)}
+.sev-notice{background:rgba(34,211,238,.15);color:var(--cyan)}
+.issue-wcag{flex-shrink:0;padding:.2rem .5rem;border-radius:4px;font-size:.65rem;font-weight:700;background:rgba(99,102,241,.12);color:#818cf8}
+.issue-title{font-size:.85rem;font-weight:600;flex:1}
+.issue-body{font-size:.8rem;color:var(--text2);line-height:1.6}
+.issue-element{display:block;margin:.5rem 0;padding:.5rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-family:'Courier New',monospace;font-size:.75rem;color:#c084fc;overflow-x:auto;white-space:pre;max-height:80px}
+.issue-fix{margin-top:.5rem;padding:.5rem .75rem;background:rgba(34,197,94,.06);border-left:3px solid var(--green);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--green)}
+.issue-fix strong{color:#4ade80}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .score-section{flex-direction:column}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro &mdash; $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>Accessibility Checker</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Paste your HTML and instantly audit it against WCAG 2.1 guidelines. Check for missing alt text, heading hierarchy, form labels, ARIA roles, color contrast references, link text, lang attributes, and tab order. Get a score out of 100 with severity-categorized issues and fix suggestions. 100% client-side, no data leaves your browser.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button onclick="runAudit()" title="Run accessibility audit">Run Audit</button>
+    <button onclick="copyReport()" title="Copy report to clipboard">Copy Report</button>
+    <button onclick="downloadReport()" title="Download report as text">Download Report</button>
+    <button onclick="clearAll()" title="Clear everything">Clear</button>
+    <button onclick="loadSample()" title="Load sample HTML with issues">Load Sample</button>
+  </div>
+
+  <div class="score-section" id="scoreSection" style="display:none">
+    <div class="score-card">
+      <div class="score-ring">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle class="bg" cx="60" cy="60" r="52"/>
+          <circle class="fg" id="scoreCircle" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+        </svg>
+        <div class="score-value" id="scoreValue">--</div>
+      </div>
+      <div class="score-label">Accessibility Score</div>
+    </div>
+    <div class="summary-card">
+      <h3>Audit Summary</h3>
+      <div class="summary-grid">
+        <div class="summary-item err-bg"><div class="count" id="errorCount">0</div><div class="label">Errors</div></div>
+        <div class="summary-item warn-bg"><div class="count" id="warnCount">0</div><div class="label">Warnings</div></div>
+        <div class="summary-item notice-bg"><div class="count" id="noticeCount">0</div><div class="label">Notices</div></div>
+        <div class="summary-item pass-bg"><div class="count" id="passCount">0</div><div class="label">Checks Passed</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-header"><span>HTML Input</span><span id="lineCount"></span></div>
+      <div class="panel-body">
+        <textarea id="htmlInput" placeholder="Paste your HTML here...&#10;&#10;Example:&#10;<!DOCTYPE html>&#10;<html>&#10;<head><title>My Page</title></head>&#10;<body>&#10;  <img src=&quot;photo.jpg&quot;>&#10;  <h3>Welcome</h3>&#10;  <a href=&quot;#&quot;>Click here</a>&#10;</body>&#10;</html>" spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span>Audit Results</span><span id="issueTotal"></span></div>
+      <div class="filter-tabs" id="filterTabs" style="display:none">
+        <button class="filter-tab active" data-filter="all">All</button>
+        <button class="filter-tab" data-filter="error">Errors <span class="badge badge-error" id="filterErrorBadge">0</span></button>
+        <button class="filter-tab" data-filter="warning">Warnings <span class="badge badge-warning" id="filterWarnBadge">0</span></button>
+        <button class="filter-tab" data-filter="notice">Notices <span class="badge badge-notice" id="filterNoticeBadge">0</span></button>
+      </div>
+      <div class="panel-body" id="outputPanel">
+        <div class="results-area" id="resultsArea">
+          <div class="results-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            Paste HTML and click <strong>Run Audit</strong> to check accessibility
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 &mdash; Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro &mdash; $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const input = document.getElementById('htmlInput');
+const resultsArea = document.getElementById('resultsArea');
+const scoreSection = document.getElementById('scoreSection');
+const filterTabs = document.getElementById('filterTabs');
+const lineCountEl = document.getElementById('lineCount');
+const issueTotalEl = document.getElementById('issueTotal');
+let lastIssues = [];
+let lastPassed = 0;
+let lastScore = 0;
+let currentFilter = 'all';
+
+input.addEventListener('input', function() {
+  const lines = input.value.split('\n').length;
+  lineCountEl.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+});
+
+/* Tab key support */
+input.addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = input.selectionStart, end = input.selectionEnd;
+    input.value = input.value.substring(0, start) + '  ' + input.value.substring(end);
+    input.selectionStart = input.selectionEnd = start + 2;
+  }
+});
+
+/* Filter tab clicks */
+document.getElementById('filterTabs').addEventListener('click', function(e) {
+  const tab = e.target.closest('.filter-tab');
+  if (!tab) return;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentFilter = tab.dataset.filter;
+  renderIssues(lastIssues);
+});
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function truncateEl(html, max) {
+  if (!html) return '';
+  const s = html.replace(/\s+/g, ' ').trim();
+  return s.length > max ? s.substring(0, max) + '...' : s;
+}
+
+function getOuterSnippet(el) {
+  if (!el || !el.outerHTML) return '';
+  let h = el.outerHTML;
+  if (el.innerHTML && el.innerHTML.length > 60) {
+    h = el.outerHTML.replace(el.innerHTML, '...');
+  }
+  return truncateEl(h, 200);
+}
+
+/* ============ WCAG CHECKS ============ */
+
+function runAudit() {
+  const raw = input.value.trim();
+  if (!raw) { showToast('Paste HTML first'); return; }
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(raw, 'text/html');
+  const issues = [];
+  let passed = 0;
+  const totalChecks = { count: 0 };
+
+  function addIssue(severity, wcag, title, description, element, fix) {
+    issues.push({ severity, wcag, title, description, element: element || '', fix });
+  }
+
+  function check(pass, severity, wcag, title, desc, el, fix) {
+    totalChecks.count++;
+    if (pass) { passed++; }
+    else { addIssue(severity, wcag, title, desc, el, fix); }
+  }
+
+  // 1. LANG ATTRIBUTE (WCAG 3.1.1 - Level A)
+  const htmlEl = doc.querySelector('html');
+  const langVal = htmlEl ? htmlEl.getAttribute('lang') : null;
+  check(
+    langVal && langVal.trim().length > 0,
+    'error', 'A (3.1.1)',
+    'Missing lang attribute on <html>',
+    'The <html> element must have a lang attribute to identify the language of the page. Screen readers use this to select the correct pronunciation.',
+    htmlEl ? getOuterSnippet(htmlEl).split('>')[0] + '>' : '<html>',
+    'Add a lang attribute: <html lang="en">'
+  );
+
+  // 2. PAGE TITLE (WCAG 2.4.2 - Level A)
+  const titleEl = doc.querySelector('title');
+  const titleText = titleEl ? titleEl.textContent.trim() : '';
+  check(
+    titleText.length > 0,
+    'error', 'A (2.4.2)',
+    'Missing or empty page <title>',
+    'Every page must have a descriptive <title> element. It is the first thing announced by screen readers and appears in browser tabs and search results.',
+    '',
+    'Add a descriptive title: <title>My Page Title</title>'
+  );
+
+  // 3. IMAGES - ALT ATTRIBUTES (WCAG 1.1.1 - Level A)
+  const images = doc.querySelectorAll('img');
+  let imgAllHaveAlt = true;
+  images.forEach(function(img) {
+    const alt = img.getAttribute('alt');
+    totalChecks.count++;
+    if (alt === null) {
+      imgAllHaveAlt = false;
+      addIssue('error', 'A (1.1.1)', 'Image missing alt attribute',
+        'Every <img> must have an alt attribute. For decorative images, use alt="" (empty). For informative images, describe the content.',
+        getOuterSnippet(img),
+        'Add alt="description of image" or alt="" for decorative images');
+    } else if (alt.trim() === '' && !img.getAttribute('role') && !img.closest('a, button')) {
+      passed++;
+      // Empty alt on non-linked images is valid (decorative)
+    } else if (alt.trim().length > 0) {
+      passed++;
+      // Check for suspicious alt text
+      const suspiciousAlts = ['image', 'photo', 'picture', 'img', 'untitled', 'screenshot'];
+      if (suspiciousAlts.indexOf(alt.trim().toLowerCase()) !== -1) {
+        addIssue('warning', 'A (1.1.1)', 'Non-descriptive alt text: "' + esc(alt) + '"',
+          'Alt text should describe the content or function of the image, not just say "image" or "photo".',
+          getOuterSnippet(img),
+          'Replace with a meaningful description of what the image shows');
+      }
+    } else {
+      passed++;
+    }
+  });
+  if (images.length === 0) { totalChecks.count++; passed++; }
+
+  // 4. HEADING HIERARCHY (WCAG 1.3.1 - Level A, 2.4.6 - Level AA)
+  const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  const headingLevels = [];
+  headings.forEach(function(h) { headingLevels.push(parseInt(h.tagName.charAt(1))); });
+
+  // Check for h1
+  const h1Count = doc.querySelectorAll('h1').length;
+  check(
+    h1Count === 1,
+    h1Count === 0 ? 'error' : 'warning',
+    'A (1.3.1)',
+    h1Count === 0 ? 'No <h1> heading found' : 'Multiple <h1> headings found (' + h1Count + ')',
+    h1Count === 0
+      ? 'Every page should have exactly one <h1> heading that describes the main content of the page.'
+      : 'Pages should typically have only one <h1>. Multiple <h1> elements can confuse screen reader users about the page structure.',
+    '',
+    h1Count === 0 ? 'Add one <h1> element describing the page content' : 'Keep one <h1> and demote others to <h2> or lower'
+  );
+
+  // Check heading skip levels
+  for (let i = 1; i < headingLevels.length; i++) {
+    totalChecks.count++;
+    if (headingLevels[i] - headingLevels[i-1] > 1) {
+      addIssue('warning', 'A (1.3.1)',
+        'Heading level skipped: h' + headingLevels[i-1] + ' to h' + headingLevels[i],
+        'Headings should follow a logical hierarchy without skipping levels. Going from <h' + headingLevels[i-1] + '> to <h' + headingLevels[i] + '> skips ' + (headingLevels[i] - headingLevels[i-1] - 1) + ' level(s).',
+        '<h' + headingLevels[i] + '>...</h' + headingLevels[i] + '>',
+        'Use <h' + (headingLevels[i-1] + 1) + '> instead, or add the missing heading levels in between');
+    } else {
+      passed++;
+    }
+  }
+
+  // Check first heading is h1
+  if (headingLevels.length > 0 && headingLevels[0] !== 1) {
+    totalChecks.count++;
+    addIssue('warning', 'A (1.3.1)',
+      'First heading is not <h1> (found <h' + headingLevels[0] + '>)',
+      'The first heading on a page should be an <h1> to establish the document outline.',
+      '<h' + headingLevels[0] + '>',
+      'Make the first heading an <h1>');
+  } else if (headingLevels.length > 0) {
+    totalChecks.count++; passed++;
+  }
+
+  // Check empty headings
+  headings.forEach(function(h) {
+    totalChecks.count++;
+    if (h.textContent.trim() === '') {
+      addIssue('error', 'AA (2.4.6)', 'Empty heading element',
+        'Heading elements must contain text content. Empty headings confuse screen reader users navigating by headings.',
+        getOuterSnippet(h),
+        'Add descriptive text inside the heading or remove the empty heading element');
+    } else { passed++; }
+  });
+
+  // 5. FORM LABELS (WCAG 1.3.1, 4.1.2 - Level A)
+  const formInputs = doc.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]), select, textarea');
+  formInputs.forEach(function(inp) {
+    totalChecks.count++;
+    const id = inp.getAttribute('id');
+    const ariaLabel = inp.getAttribute('aria-label');
+    const ariaLabelledby = inp.getAttribute('aria-labelledby');
+    const title = inp.getAttribute('title');
+    const hasLabel = (id && doc.querySelector('label[for="' + id + '"]')) || inp.closest('label');
+    if (hasLabel || ariaLabel || ariaLabelledby || title) {
+      passed++;
+    } else {
+      addIssue('error', 'A (1.3.1)',
+        'Form input missing label',
+        'Every form control must have an associated label. This can be a <label> element with a matching "for" attribute, a wrapping <label>, an aria-label, or aria-labelledby.',
+        getOuterSnippet(inp),
+        'Add <label for="inputId">Label text</label> or use aria-label="Label text"');
+    }
+  });
+  if (formInputs.length === 0) { totalChecks.count++; passed++; }
+
+  // 6. LINK TEXT (WCAG 2.4.4 - Level A)
+  const links = doc.querySelectorAll('a');
+  const badLinkTexts = ['click here', 'here', 'read more', 'more', 'link', 'this'];
+  links.forEach(function(a) {
+    totalChecks.count++;
+    const text = a.textContent.trim();
+    const ariaLabel = a.getAttribute('aria-label');
+    const img = a.querySelector('img[alt]');
+    const effectiveText = ariaLabel || text || (img ? img.getAttribute('alt') : '');
+
+    if (!effectiveText || effectiveText.length === 0) {
+      addIssue('error', 'A (2.4.4)', 'Link has no accessible text',
+        'Links must have discernible text for screen readers. This can be text content, aria-label, or an image with alt text inside the link.',
+        getOuterSnippet(a),
+        'Add descriptive text inside the link or use aria-label="description"');
+    } else if (badLinkTexts.indexOf(effectiveText.toLowerCase()) !== -1) {
+      addIssue('warning', 'A (2.4.4)', 'Non-descriptive link text: "' + esc(effectiveText) + '"',
+        'Link text should describe the destination or purpose. Generic text like "click here" or "read more" does not help users understand where the link goes.',
+        getOuterSnippet(a),
+        'Replace with descriptive text, e.g., "View our pricing plans" instead of "click here"');
+    } else {
+      passed++;
+    }
+  });
+
+  // Check for links with href="#" or javascript:void
+  links.forEach(function(a) {
+    const href = a.getAttribute('href');
+    if (href === '#' || (href && href.startsWith('javascript:'))) {
+      totalChecks.count++;
+      addIssue('warning', 'A (2.1.1)',
+        'Link uses "' + esc(truncateEl(href, 40)) + '" as href',
+        'Using href="#" or javascript: URIs is an accessibility anti-pattern. If the element triggers an action, use a <button> instead.',
+        getOuterSnippet(a),
+        'Use a <button> element for actions, or provide a valid URL for navigation');
+    }
+  });
+  if (links.length === 0) { totalChecks.count++; passed++; }
+
+  // 7. ARIA ROLES & ATTRIBUTES (WCAG 4.1.2 - Level A)
+  const validRoles = ['alert','alertdialog','application','article','banner','button','cell','checkbox',
+    'columnheader','combobox','complementary','contentinfo','definition','dialog','directory','document',
+    'feed','figure','form','grid','gridcell','group','heading','img','link','list','listbox','listitem',
+    'log','main','marquee','math','menu','menubar','menuitem','menuitemcheckbox','menuitemradio','meter',
+    'navigation','none','note','option','presentation','progressbar','radio','radiogroup','region',
+    'row','rowgroup','rowheader','scrollbar','search','searchbox','separator','slider','spinbutton',
+    'status','switch','tab','table','tablist','tabpanel','term','textbox','timer','toolbar','tooltip',
+    'tree','treegrid','treeitem'];
+
+  const ariaEls = doc.querySelectorAll('[role]');
+  ariaEls.forEach(function(el) {
+    totalChecks.count++;
+    const role = el.getAttribute('role').trim().toLowerCase();
+    if (validRoles.indexOf(role) === -1) {
+      addIssue('error', 'A (4.1.2)', 'Invalid ARIA role: "' + esc(role) + '"',
+        'The role "' + esc(role) + '" is not a valid WAI-ARIA role. Invalid roles are ignored by assistive technology.',
+        getOuterSnippet(el),
+        'Use a valid ARIA role from the WAI-ARIA specification, or remove the role attribute');
+    } else { passed++; }
+  });
+
+  // Check for aria-hidden on focusable elements
+  const ariaHidden = doc.querySelectorAll('[aria-hidden="true"]');
+  ariaHidden.forEach(function(el) {
+    const focusable = el.querySelectorAll('a[href], button, input, select, textarea, [tabindex]');
+    if (focusable.length > 0 || el.matches('a[href], button, input, select, textarea, [tabindex]')) {
+      totalChecks.count++;
+      addIssue('error', 'A (4.1.2)',
+        'aria-hidden="true" on focusable element',
+        'Elements with aria-hidden="true" are removed from the accessibility tree but can still receive keyboard focus, creating a confusing experience.',
+        getOuterSnippet(el),
+        'Remove aria-hidden="true" or add tabindex="-1" to prevent focus');
+    }
+  });
+
+  // 8. TAB ORDER (WCAG 2.4.3 - Level A)
+  const tabindexEls = doc.querySelectorAll('[tabindex]');
+  tabindexEls.forEach(function(el) {
+    totalChecks.count++;
+    const val = parseInt(el.getAttribute('tabindex'));
+    if (val > 0) {
+      addIssue('warning', 'A (2.4.3)',
+        'Positive tabindex value: ' + val,
+        'Using tabindex values greater than 0 creates a custom tab order that overrides the natural document flow. This is almost always confusing for keyboard users.',
+        getOuterSnippet(el),
+        'Use tabindex="0" to add elements to natural tab order, or tabindex="-1" to remove them. Avoid positive values.');
+    } else { passed++; }
+  });
+
+  // 9. COLOR / CONTRAST REFERENCES (WCAG 1.4.3 - Level AA)
+  const inlineStyles = doc.querySelectorAll('[style]');
+  let contrastWarnings = 0;
+  inlineStyles.forEach(function(el) {
+    const style = el.getAttribute('style').toLowerCase();
+    if ((style.indexOf('color') !== -1 || style.indexOf('background') !== -1) && el.textContent.trim()) {
+      totalChecks.count++;
+      contrastWarnings++;
+      if (contrastWarnings <= 5) {
+        addIssue('notice', 'AA (1.4.3)',
+          'Inline color styling detected - verify contrast',
+          'This element uses inline color or background styles. WCAG AA requires a minimum contrast ratio of 4.5:1 for normal text and 3:1 for large text. Use a contrast checker to verify.',
+          getOuterSnippet(el),
+          'Verify foreground/background color contrast ratio meets WCAG AA (4.5:1 for normal text, 3:1 for large text)');
+      }
+    }
+  });
+  if (contrastWarnings > 5) {
+    addIssue('notice', 'AA (1.4.3)',
+      contrastWarnings + ' elements with inline color styling found',
+      'Multiple elements use inline color or background styles. Review each to ensure sufficient color contrast ratios.',
+      '',
+      'Use the NexTool Color Contrast Checker to verify each color pair');
+  }
+  if (contrastWarnings === 0) { totalChecks.count++; passed++; }
+
+  // 10. BUTTONS (WCAG 4.1.2 - Level A)
+  const buttons = doc.querySelectorAll('button, [role="button"], input[type="submit"], input[type="button"]');
+  buttons.forEach(function(btn) {
+    totalChecks.count++;
+    const text = btn.textContent.trim();
+    const ariaLabel = btn.getAttribute('aria-label');
+    const title = btn.getAttribute('title');
+    const value = btn.getAttribute('value');
+    if (!text && !ariaLabel && !title && !value) {
+      addIssue('error', 'A (4.1.2)', 'Button has no accessible name',
+        'Buttons must have an accessible name. This can be text content, aria-label, title, or value attribute.',
+        getOuterSnippet(btn),
+        'Add text inside the button, or use aria-label="description"');
+    } else { passed++; }
+  });
+
+  // 11. TABLES (WCAG 1.3.1 - Level A)
+  const tables = doc.querySelectorAll('table');
+  tables.forEach(function(table) {
+    const th = table.querySelectorAll('th');
+    totalChecks.count++;
+    if (th.length === 0) {
+      addIssue('warning', 'A (1.3.1)', 'Data table missing header cells',
+        'If this is a data table, it should use <th> elements to define column and/or row headers. This helps screen readers associate data cells with their headers.',
+        '<table>...</table>',
+        'Add <th> elements for column/row headers, or use role="presentation" if this is a layout table');
+    } else { passed++; }
+
+    // Check for caption
+    totalChecks.count++;
+    if (!table.querySelector('caption') && !table.getAttribute('aria-label') && !table.getAttribute('aria-labelledby')) {
+      addIssue('notice', 'A (1.3.1)', 'Table missing caption or label',
+        'Tables should have a <caption> element or aria-label to describe their purpose.',
+        '<table>...</table>',
+        'Add <caption>Description of table</caption> as the first child of <table>');
+    } else { passed++; }
+  });
+
+  // 12. DOCUMENT LANDMARKS (WCAG 1.3.1 - Level A)
+  const hasMain = doc.querySelector('main, [role="main"]');
+  const hasNav = doc.querySelector('nav, [role="navigation"]');
+  check(
+    hasMain !== null,
+    'notice', 'A (1.3.1)',
+    'No <main> landmark found',
+    'Using a <main> element or role="main" helps screen reader users quickly navigate to the primary content of the page.',
+    '',
+    'Wrap your primary content in a <main> element'
+  );
+  if (links.length > 3) {
+    check(
+      hasNav !== null,
+      'notice', 'A (1.3.1)',
+      'No <nav> landmark found',
+      'Pages with multiple links should use a <nav> element to identify navigation regions. This helps screen reader users find and skip navigation.',
+      '',
+      'Wrap navigation links in a <nav> element'
+    );
+  }
+
+  // 13. META VIEWPORT (WCAG 1.4.4 - Level AA)
+  const metaViewport = doc.querySelector('meta[name="viewport"]');
+  if (metaViewport) {
+    const content = (metaViewport.getAttribute('content') || '').toLowerCase();
+    totalChecks.count++;
+    if (content.indexOf('user-scalable=no') !== -1 || content.indexOf('maximum-scale=1') !== -1) {
+      addIssue('error', 'AA (1.4.4)',
+        'Viewport disables user scaling',
+        'Setting user-scalable=no or maximum-scale=1 prevents users from zooming in. Many users with low vision rely on zoom functionality.',
+        getOuterSnippet(metaViewport),
+        'Remove user-scalable=no and maximum-scale=1 from the viewport meta tag');
+    } else { passed++; }
+  }
+
+  // 14. AUTOPLAY MEDIA (WCAG 1.4.2 - Level A)
+  const autoplayMedia = doc.querySelectorAll('video[autoplay], audio[autoplay]');
+  autoplayMedia.forEach(function(media) {
+    totalChecks.count++;
+    const muted = media.hasAttribute('muted');
+    if (!muted) {
+      addIssue('error', 'A (1.4.2)',
+        'Autoplaying media without muted attribute',
+        'Audio that plays automatically can be disruptive, especially for screen reader users. If autoplay is necessary, the media should be muted by default.',
+        getOuterSnippet(media),
+        'Add the muted attribute, or remove autoplay, or provide a way to stop/pause the audio within 3 seconds');
+    } else { passed++; }
+  });
+
+  // 15. SKIP NAVIGATION (WCAG 2.4.1 - Level A)
+  const skipLink = doc.querySelector('a[href^="#main"], a[href^="#content"], .skip-link, .skip-nav, [class*="skip"]');
+  if (headings.length > 3 || links.length > 5) {
+    check(
+      skipLink !== null,
+      'notice', 'A (2.4.1)',
+      'No skip navigation link found',
+      'Pages with many navigation links should provide a skip link that allows keyboard users to bypass repeated content and jump to the main content.',
+      '',
+      'Add a skip link as the first element in <body>: <a href="#main" class="skip-link">Skip to main content</a>'
+    );
+  }
+
+  // 16. DUPLICATE IDS (WCAG 4.1.1 - Level A)
+  const allIds = doc.querySelectorAll('[id]');
+  const idMap = {};
+  allIds.forEach(function(el) {
+    const id = el.getAttribute('id');
+    if (id) { idMap[id] = (idMap[id] || 0) + 1; }
+  });
+  let dupeFound = false;
+  for (const id in idMap) {
+    if (idMap[id] > 1) {
+      totalChecks.count++;
+      dupeFound = true;
+      addIssue('error', 'A (4.1.1)',
+        'Duplicate id: "' + esc(id) + '" (' + idMap[id] + ' times)',
+        'The id attribute must be unique within a page. Duplicate IDs can break label associations and ARIA references.',
+        '',
+        'Ensure each id value is unique across the entire page');
+    }
+  }
+  if (!dupeFound) { totalChecks.count++; passed++; }
+
+  // 17. EMPTY TABLE HEADERS
+  const thEls = doc.querySelectorAll('th');
+  thEls.forEach(function(th) {
+    totalChecks.count++;
+    if (th.textContent.trim() === '' && !th.getAttribute('aria-label')) {
+      addIssue('warning', 'A (1.3.1)', 'Empty table header cell',
+        'Table header cells (<th>) should contain text to describe the column or row they represent.',
+        getOuterSnippet(th),
+        'Add descriptive text inside the <th> element');
+    } else { passed++; }
+  });
+
+  // 18. IFRAME TITLES (WCAG 4.1.2 - Level A)
+  const iframes = doc.querySelectorAll('iframe');
+  iframes.forEach(function(iframe) {
+    totalChecks.count++;
+    const title = iframe.getAttribute('title');
+    if (!title || title.trim() === '') {
+      addIssue('error', 'A (4.1.2)', 'iframe missing title attribute',
+        'Every <iframe> must have a title attribute that describes its content. Screen readers announce the title so users know what the iframe contains.',
+        getOuterSnippet(iframe),
+        'Add title="Description of iframe content" to the <iframe> element');
+    } else { passed++; }
+  });
+
+  // Calculate score
+  const total = totalChecks.count;
+  const score = total > 0 ? Math.round((passed / total) * 100) : 100;
+  lastScore = score;
+  lastIssues = issues;
+  lastPassed = passed;
+
+  // Show results
+  showScore(score, issues, passed);
+  renderIssues(issues);
+  filterTabs.style.display = 'flex';
+  scoreSection.style.display = 'flex';
+
+  const errC = issues.filter(i => i.severity === 'error').length;
+  const warnC = issues.filter(i => i.severity === 'warning').length;
+  const notC = issues.filter(i => i.severity === 'notice').length;
+  document.getElementById('filterErrorBadge').textContent = errC;
+  document.getElementById('filterWarnBadge').textContent = warnC;
+  document.getElementById('filterNoticeBadge').textContent = notC;
+  issueTotalEl.textContent = issues.length + ' issue' + (issues.length !== 1 ? 's' : '');
+}
+
+function showScore(score, issues, passed) {
+  const circle = document.getElementById('scoreCircle');
+  const circumference = 326.73;
+  const offset = circumference - (score / 100) * circumference;
+  circle.style.strokeDashoffset = offset;
+
+  let color;
+  if (score >= 90) color = 'var(--green)';
+  else if (score >= 70) color = 'var(--yellow)';
+  else if (score >= 50) color = 'var(--orange)';
+  else color = 'var(--red)';
+  circle.style.stroke = color;
+
+  document.getElementById('scoreValue').textContent = score;
+  document.getElementById('scoreValue').style.color = color;
+
+  const errC = issues.filter(i => i.severity === 'error').length;
+  const warnC = issues.filter(i => i.severity === 'warning').length;
+  const notC = issues.filter(i => i.severity === 'notice').length;
+  document.getElementById('errorCount').textContent = errC;
+  document.getElementById('warnCount').textContent = warnC;
+  document.getElementById('noticeCount').textContent = notC;
+  document.getElementById('passCount').textContent = passed;
+}
+
+function renderIssues(issues) {
+  const filtered = currentFilter === 'all' ? issues : issues.filter(i => i.severity === currentFilter);
+  if (filtered.length === 0) {
+    if (issues.length === 0 && lastScore > 0) {
+      resultsArea.innerHTML = '<div class="results-empty" style="color:var(--green)"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:1"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>All checks passed! Your HTML looks accessible.</div>';
+    } else if (currentFilter !== 'all') {
+      resultsArea.innerHTML = '<div class="results-empty">No ' + currentFilter + ' issues found.</div>';
+    }
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(function(issue) {
+    const sevClass = 'sev-' + issue.severity;
+    html += '<div class="issue-card" data-severity="' + issue.severity + '">';
+    html += '<div class="issue-header">';
+    html += '<span class="issue-severity ' + sevClass + '">' + issue.severity + '</span>';
+    html += '<span class="issue-wcag">WCAG ' + issue.wcag + '</span>';
+    html += '<span class="issue-title">' + esc(issue.title) + '</span>';
+    html += '</div>';
+    html += '<div class="issue-body">';
+    html += '<p>' + esc(issue.description) + '</p>';
+    if (issue.element) {
+      html += '<code class="issue-element">' + esc(issue.element) + '</code>';
+    }
+    html += '<div class="issue-fix"><strong>Fix:</strong> ' + esc(issue.fix) + '</div>';
+    html += '</div>';
+    html += '</div>';
+  });
+  resultsArea.innerHTML = html;
+}
+
+function generateReportText() {
+  if (lastIssues.length === 0 && lastScore === 0) return '';
+  const errC = lastIssues.filter(i => i.severity === 'error').length;
+  const warnC = lastIssues.filter(i => i.severity === 'warning').length;
+  const notC = lastIssues.filter(i => i.severity === 'notice').length;
+
+  let report = 'ACCESSIBILITY AUDIT REPORT\n';
+  report += 'Generated by NexTool Accessibility Checker\n';
+  report += '==========================================\n\n';
+  report += 'Score: ' + lastScore + '/100\n';
+  report += 'Errors: ' + errC + ' | Warnings: ' + warnC + ' | Notices: ' + notC + ' | Passed: ' + lastPassed + '\n\n';
+
+  if (errC > 0) {
+    report += '--- ERRORS ---\n\n';
+    lastIssues.filter(i => i.severity === 'error').forEach(function(issue, idx) {
+      report += (idx + 1) + '. [WCAG ' + issue.wcag + '] ' + issue.title + '\n';
+      report += '   ' + issue.description + '\n';
+      if (issue.element) report += '   Element: ' + issue.element + '\n';
+      report += '   Fix: ' + issue.fix + '\n\n';
+    });
+  }
+  if (warnC > 0) {
+    report += '--- WARNINGS ---\n\n';
+    lastIssues.filter(i => i.severity === 'warning').forEach(function(issue, idx) {
+      report += (idx + 1) + '. [WCAG ' + issue.wcag + '] ' + issue.title + '\n';
+      report += '   ' + issue.description + '\n';
+      if (issue.element) report += '   Element: ' + issue.element + '\n';
+      report += '   Fix: ' + issue.fix + '\n\n';
+    });
+  }
+  if (notC > 0) {
+    report += '--- NOTICES ---\n\n';
+    lastIssues.filter(i => i.severity === 'notice').forEach(function(issue, idx) {
+      report += (idx + 1) + '. [WCAG ' + issue.wcag + '] ' + issue.title + '\n';
+      report += '   ' + issue.description + '\n';
+      if (issue.element) report += '   Element: ' + issue.element + '\n';
+      report += '   Fix: ' + issue.fix + '\n\n';
+    });
+  }
+  return report;
+}
+
+function copyReport() {
+  const report = generateReportText();
+  if (!report) { showToast('Run an audit first'); return; }
+  navigator.clipboard.writeText(report).then(function() { showToast('Report copied to clipboard'); });
+}
+
+function downloadReport() {
+  const report = generateReportText();
+  if (!report) { showToast('Run an audit first'); return; }
+  const blob = new Blob([report], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'accessibility-report.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Downloaded accessibility-report.txt');
+}
+
+function clearAll() {
+  input.value = '';
+  lastIssues = [];
+  lastPassed = 0;
+  lastScore = 0;
+  currentFilter = 'all';
+  resultsArea.innerHTML = '<div class="results-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>Paste HTML and click <strong>Run Audit</strong> to check accessibility</div>';
+  scoreSection.style.display = 'none';
+  filterTabs.style.display = 'none';
+  lineCountEl.textContent = '';
+  issueTotalEl.textContent = '';
+  document.querySelectorAll('.filter-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelector('.filter-tab[data-filter="all"]').classList.add('active');
+}
+
+function loadSample() {
+  input.value = '<!DOCTYPE html>\n<html>\n<head>\n  <meta name="viewport" content="width=device-width, user-scalable=no">\n  <title></title>\n</head>\n<body>\n  <div class="header">\n    <a href="/"><img src="logo.png"></a>\n    <a href="/about">About</a>\n    <a href="/products">Products</a>\n    <a href="/contact">Contact</a>\n    <a href="#">Click here</a>\n  </div>\n\n  <h3>Welcome to Our Website</h3>\n  <p style="color: #999; background: #fff;">Some light gray text on white background.</p>\n\n  <h5>Our Services</h5>\n  <img src="services.jpg">\n  <img src="team.jpg" alt="photo">\n\n  <form>\n    <input type="text" id="name" placeholder="Your name">\n    <input type="email" placeholder="Email address">\n    <select id="country">\n      <option>Select country</option>\n    </select>\n    <button></button>\n  </form>\n\n  <table>\n    <tr><td>Product</td><td>Price</td></tr>\n    <tr><td>Widget A</td><td>$10</td></tr>\n    <tr><td>Widget B</td><td>$20</td></tr>\n  </table>\n\n  <div role="bannerz">Site footer</div>\n  <div id="main">Main content</div>\n  <div id="main">Duplicate ID</div>\n  <div tabindex="5">Custom tab order</div>\n  <div aria-hidden="true"><button>Hidden but focusable</button></div>\n  <iframe src="https://example.com/embed"></iframe>\n  <video autoplay src="promo.mp4"></video>\n</body>\n</html>';
+  const lines = input.value.split('\n').length;
+  lineCountEl.textContent = lines + ' lines';
+  runAudit();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a WCAG accessibility checker?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A WCAG accessibility checker audits HTML code against the Web Content Accessibility Guidelines (WCAG) 2.1 to find issues that prevent people with disabilities from using your website. NexTool's checker finds missing alt text, heading hierarchy problems, unlabeled form controls, invalid ARIA roles, and more."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What WCAG levels does this tool check?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NexTool's Accessibility Checker tests against WCAG 2.1 Level A (must-fix) and Level AA (should-fix) criteria. Each issue shows its WCAG level and specific success criterion so you know exactly what to prioritize."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this accessibility checker free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's Accessibility Checker is completely free. It runs entirely in your browser with no server calls, so your HTML code never leaves your device. No signup or download required."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What accessibility issues does this tool detect?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The tool checks for missing alt attributes on images, heading hierarchy problems, unlabeled form controls, non-descriptive link text, invalid ARIA roles, missing lang attribute, tab order issues, duplicate IDs, missing page title, table accessibility, iframe titles, viewport zoom restrictions, autoplay media, skip navigation links, and inline color contrast references."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
