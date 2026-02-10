@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free YAML Editor — Edit, Validate &amp; Convert YAML Online | NexTool</title>
+<meta name="description" content="Free online YAML editor with syntax highlighting, real-time validation, YAML/JSON conversion, tree view, and templates for Docker, Kubernetes, GitHub Actions.">
+<meta name="keywords" content="YAML editor, YAML validator, YAML to JSON, JSON to YAML, YAML syntax highlighting, Docker Compose YAML, Kubernetes YAML, GitHub Actions YAML, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free YAML Editor — Edit, Validate & Convert | NexTool">
+<meta property="og:description" content="Interactive YAML editor with validation, syntax highlighting, tree view, JSON conversion, and DevOps templates. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/yaml-editor.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/yaml-editor.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free YAML Editor — Edit, Validate & Convert | NexTool">
+<meta name="twitter:description" content="Interactive YAML editor with real-time validation, tree view, JSON conversion, and DevOps templates. Free online tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool YAML Editor","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online YAML editor with syntax highlighting, real-time validation, YAML/JSON conversion, tree view, and DevOps templates."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#fb923c;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+/* TABS */
+.tab-bar{display:flex;gap:0;margin-bottom:1rem;background:var(--surface2);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.tab-bar button{flex:1;padding:.6rem 1rem;background:none;border:none;color:var(--text2);font-weight:600;font-size:.8rem;cursor:pointer;font-family:inherit;transition:all .2s}
+.tab-bar button:hover{color:var(--text)}
+.tab-bar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
+/* TOOLBAR */
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar select{appearance:none;padding-right:1.8rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.toolbar .spacer{flex:1}
+/* STATUS */
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.valid{background:var(--green)}
+.status-dot.invalid{background:var(--red)}
+.status-dot.empty{background:var(--border)}
+/* PANELS */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:500px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-header-actions{display:flex;gap:.4rem}
+.panel-header-actions button{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.75rem;font-weight:600;font-family:inherit;padding:2px 6px;border-radius:4px;transition:color .2s}
+.panel-header-actions button:hover{color:var(--primary)}
+.panel-body{flex:1;position:relative;overflow:auto}
+/* EDITOR */
+.editor-wrap{position:relative;width:100%;height:100%;min-height:400px}
+.editor-lines{position:absolute;left:0;top:0;bottom:0;width:40px;padding:1rem 4px 1rem 0;text-align:right;color:var(--text2);font-family:'Courier New',monospace;font-size:.8rem;line-height:1.7;user-select:none;opacity:.4;overflow:hidden;pointer-events:none}
+.editor-lines .err-line{color:var(--red);opacity:1;font-weight:700}
+#yamlInput{width:100%;height:100%;min-height:400px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem 1rem 1rem 48px;resize:none;outline:none;line-height:1.7;tab-size:2}
+#yamlInput::placeholder{color:var(--text2);opacity:.5}
+/* OUTPUT */
+.output-area{padding:1rem;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.7;white-space:pre-wrap;word-break:break-all;min-height:400px}
+/* SYNTAX HIGHLIGHTING */
+.hl-key{color:#67e8f9}.hl-str{color:#4ade80}.hl-num{color:var(--orange)}.hl-bool{color:#c084fc}.hl-null{color:#6b7280}.hl-comment{color:#64748b;font-style:italic}.hl-punct{color:var(--text2)}.hl-anchor{color:var(--pink)}
+/* TREE VIEW */
+.tree{padding:1rem;font-size:.85rem}
+.tree-item{margin-left:1.2rem;border-left:1px solid var(--border);padding-left:.6rem}
+.tree-key{color:#67e8f9;font-weight:600;cursor:default}
+.tree-toggle{cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:.3rem;padding:2px 0}
+.tree-toggle::before{content:'';display:inline-block;width:0;height:0;border-left:5px solid var(--text2);border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s}
+.tree-toggle.open::before{transform:rotate(90deg)}
+.tree-children{overflow:hidden}
+.tree-children.collapsed{max-height:0!important;overflow:hidden}
+.tree-val-str{color:#4ade80}.tree-val-num{color:var(--orange)}.tree-val-bool{color:#c084fc}.tree-val-null{color:#6b7280}
+.tree-bracket{color:var(--text2);font-size:.75rem;margin-left:.3rem}
+/* ERROR */
+.error-display{padding:1rem;color:var(--red);font-size:.85rem;font-family:'Courier New',monospace;white-space:pre-wrap}
+.error-display .error-line{background:rgba(239,68,68,.1);border-left:3px solid var(--red);padding:.3rem .6rem;margin:.3rem 0;border-radius:4px}
+/* TEMPLATES DROPDOWN */
+.template-menu{position:relative;display:inline-block}
+.template-menu .template-list{display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;min-width:260px;z-index:50;box-shadow:0 12px 40px rgba(0,0,0,.5);max-height:340px;overflow-y:auto}
+.template-menu.open .template-list{display:block}
+.template-list button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);padding:.6rem 1rem;font-size:.8rem;font-family:inherit;cursor:pointer;transition:background .15s}
+.template-list button:hover{background:rgba(99,102,241,.1)}
+.template-list button .tmpl-cat{display:block;font-size:.7rem;color:var(--text2);margin-top:2px}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .tab-bar{flex-wrap:wrap}
+  .tab-bar button{font-size:.72rem;padding:.5rem .6rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>YAML Editor</span></h1>
+  <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Edit, validate, and convert YAML in your browser. Real-time error detection, syntax highlighting, tree view, JSON conversion, and ready-made templates for Docker Compose, Kubernetes, and GitHub Actions. No signup required.</p>
+</section>
+
+<div class="tool-container fade-in">
+
+  <div class="tab-bar">
+    <button class="active" id="tabEdit" onclick="switchTab('edit')">Edit YAML</button>
+    <button id="tabYamlJson" onclick="switchTab('yaml2json')">YAML to JSON</button>
+    <button id="tabJsonYaml" onclick="switchTab('json2yaml')">JSON to YAML</button>
+  </div>
+
+  <div class="toolbar">
+    <button onclick="prettifyYAML()" title="Format with consistent indentation">Prettify</button>
+    <button onclick="minifyYAML()" title="Remove extra whitespace">Minify</button>
+    <button onclick="copyOutput()" title="Copy output to clipboard">Copy</button>
+    <button onclick="downloadOutput()" title="Download output file">Download</button>
+    <select id="indentSelect" onchange="processInput()">
+      <option value="2">2 spaces</option>
+      <option value="4">4 spaces</option>
+      <option value="8">8 spaces</option>
+    </select>
+    <button id="viewToggle" onclick="toggleTreeView()" title="Toggle tree view">Tree View</button>
+    <div class="template-menu" id="templateMenu">
+      <button onclick="toggleTemplateMenu()" title="Insert a template">Templates</button>
+      <div class="template-list" id="templateList"></div>
+    </div>
+    <span class="spacer"></span>
+    <button onclick="clearAll()" title="Clear everything">Clear</button>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Paste or type YAML to begin</span>
+    <span id="sizeInfo" style="margin-left:auto"></span>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-header">
+        <span id="inputLabel">YAML Input</span>
+        <div class="panel-header-actions">
+          <span id="lineCount"></span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="editor-wrap">
+          <div class="editor-lines" id="editorLines"></div>
+          <textarea id="yamlInput" placeholder="# Paste or type your YAML here...&#10;&#10;name: my-project&#10;version: 1.0.0&#10;services:&#10;  web:&#10;    image: nginx:latest&#10;    ports:&#10;      - &quot;80:80&quot;" spellcheck="false"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span id="outputLabel">Output</span>
+        <div class="panel-header-actions">
+          <span id="outputInfo"></span>
+        </div>
+      </div>
+      <div class="panel-body" id="outputPanel">
+        <div class="output-area" id="formattedOutput"></div>
+        <div class="tree" id="treeOutput" style="display:none"></div>
+        <div class="error-display" id="errorOutput" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ STATE ============ */
+const input = document.getElementById('yamlInput');
+const formattedOutput = document.getElementById('formattedOutput');
+const treeOutput = document.getElementById('treeOutput');
+const errorOutput = document.getElementById('errorOutput');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const sizeInfo = document.getElementById('sizeInfo');
+const lineCount = document.getElementById('lineCount');
+const outputLabel = document.getElementById('outputLabel');
+const outputInfo = document.getElementById('outputInfo');
+const inputLabel = document.getElementById('inputLabel');
+const editorLines = document.getElementById('editorLines');
+const viewToggle = document.getElementById('viewToggle');
+
+let isTreeView = false;
+let lastParsed = null;
+let lastOutputText = '';
+let currentTab = 'edit'; // 'edit', 'yaml2json', 'json2yaml'
+
+/* ============ TEMPLATES ============ */
+const TEMPLATES = [
+  { name: 'Docker Compose (Web + DB)', cat: 'Docker Compose', yaml: `version: "3.9"\nservices:\n  web:\n    image: nginx:alpine\n    ports:\n      - "80:80"\n    volumes:\n      - ./html:/usr/share/nginx/html\n    depends_on:\n      - db\n    restart: unless-stopped\n  db:\n    image: postgres:16\n    environment:\n      POSTGRES_DB: myapp\n      POSTGRES_USER: admin\n      POSTGRES_PASSWORD: secret\n    volumes:\n      - pgdata:/var/lib/postgresql/data\n    ports:\n      - "5432:5432"\nvolumes:\n  pgdata:` },
+  { name: 'Docker Compose (Node + Redis)', cat: 'Docker Compose', yaml: `version: "3.9"\nservices:\n  app:\n    build: .\n    ports:\n      - "3000:3000"\n    environment:\n      REDIS_URL: redis://cache:6379\n    depends_on:\n      - cache\n  cache:\n    image: redis:7-alpine\n    ports:\n      - "6379:6379"` },
+  { name: 'GitHub Actions (Node CI)', cat: 'GitHub Actions', yaml: `name: Node.js CI\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    strategy:\n      matrix:\n        node-version: [18.x, 20.x]\n    steps:\n      - uses: actions/checkout@v4\n      - name: Use Node.js \${{ matrix.node-version }}\n        uses: actions/setup-node@v4\n        with:\n          node-version: \${{ matrix.node-version }}\n          cache: npm\n      - run: npm ci\n      - run: npm run build --if-present\n      - run: npm test` },
+  { name: 'GitHub Actions (Deploy to Pages)', cat: 'GitHub Actions', yaml: `name: Deploy to GitHub Pages\non:\n  push:\n    branches: [main]\npermissions:\n  contents: read\n  pages: write\n  id-token: write\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    environment:\n      name: github-pages\n      url: \${{ steps.deployment.outputs.page_url }}\n    steps:\n      - uses: actions/checkout@v4\n      - name: Setup Pages\n        uses: actions/configure-pages@v4\n      - name: Upload artifact\n        uses: actions/upload-pages-artifact@v3\n        with:\n          path: ./dist\n      - name: Deploy to GitHub Pages\n        id: deployment\n        uses: actions/deploy-pages@v4` },
+  { name: 'Kubernetes Deployment', cat: 'Kubernetes', yaml: `apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-app\n  labels:\n    app: my-app\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: my-app\n  template:\n    metadata:\n      labels:\n        app: my-app\n    spec:\n      containers:\n        - name: my-app\n          image: my-app:latest\n          ports:\n            - containerPort: 8080\n          resources:\n            requests:\n              memory: "128Mi"\n              cpu: "250m"\n            limits:\n              memory: "256Mi"\n              cpu: "500m"\n          readinessProbe:\n            httpGet:\n              path: /health\n              port: 8080\n            initialDelaySeconds: 5\n            periodSeconds: 10` },
+  { name: 'Kubernetes Service + Ingress', cat: 'Kubernetes', yaml: `apiVersion: v1\nkind: Service\nmetadata:\n  name: my-app-service\nspec:\n  selector:\n    app: my-app\n  ports:\n    - protocol: TCP\n      port: 80\n      targetPort: 8080\n  type: ClusterIP\n---\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: my-app-ingress\n  annotations:\n    nginx.ingress.kubernetes.io/rewrite-target: /\nspec:\n  rules:\n    - host: myapp.example.com\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: my-app-service\n                port:\n                  number: 80` },
+  { name: 'Kubernetes ConfigMap + Secret', cat: 'Kubernetes', yaml: `apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: app-config\ndata:\n  DATABASE_HOST: db.example.com\n  DATABASE_PORT: "5432"\n  LOG_LEVEL: info\n---\napiVersion: v1\nkind: Secret\nmetadata:\n  name: app-secrets\ntype: Opaque\nstringData:\n  DATABASE_PASSWORD: my-secret-password\n  API_KEY: abc123def456` },
+  { name: 'Ansible Playbook', cat: 'Ansible', yaml: `---\n- name: Configure web servers\n  hosts: webservers\n  become: true\n  vars:\n    http_port: 80\n    app_name: my-app\n  tasks:\n    - name: Install nginx\n      apt:\n        name: nginx\n        state: present\n        update_cache: true\n    - name: Start nginx\n      service:\n        name: nginx\n        state: started\n        enabled: true\n    - name: Copy config\n      template:\n        src: nginx.conf.j2\n        dest: /etc/nginx/nginx.conf\n      notify: Restart nginx\n  handlers:\n    - name: Restart nginx\n      service:\n        name: nginx\n        state: restarted` },
+  { name: 'CloudFormation (S3 Bucket)', cat: 'AWS CloudFormation', yaml: `AWSTemplateFormatVersion: "2010-09-09"\nDescription: S3 static website hosting\nResources:\n  WebsiteBucket:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: my-website-bucket\n      WebsiteConfiguration:\n        IndexDocument: index.html\n        ErrorDocument: error.html\n      PublicAccessBlockConfiguration:\n        BlockPublicAcls: false\n  BucketPolicy:\n    Type: AWS::S3::BucketPolicy\n    Properties:\n      Bucket: !Ref WebsiteBucket\n      PolicyDocument:\n        Statement:\n          - Effect: Allow\n            Principal: "*"\n            Action: s3:GetObject\n            Resource: !Sub "\${WebsiteBucket.Arn}/*"\nOutputs:\n  WebsiteURL:\n    Value: !GetAtt WebsiteBucket.WebsiteURL` },
+  { name: 'OpenAPI 3.0 Skeleton', cat: 'OpenAPI', yaml: `openapi: 3.0.3\ninfo:\n  title: My API\n  description: A sample API\n  version: 1.0.0\nservers:\n  - url: https://api.example.com/v1\npaths:\n  /users:\n    get:\n      summary: List users\n      operationId: listUsers\n      parameters:\n        - name: limit\n          in: query\n          schema:\n            type: integer\n            default: 20\n      responses:\n        "200":\n          description: Successful response\n          content:\n            application/json:\n              schema:\n                type: array\n                items:\n                  $ref: "#/components/schemas/User"\ncomponents:\n  schemas:\n    User:\n      type: object\n      properties:\n        id:\n          type: integer\n        name:\n          type: string\n        email:\n          type: string\n          format: email` }
+];
+
+/* ============ INIT TEMPLATES DROPDOWN ============ */
+(function initTemplates() {
+  const list = document.getElementById('templateList');
+  TEMPLATES.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.innerHTML = t.name + '<span class="tmpl-cat">' + t.cat + '</span>';
+    btn.addEventListener('click', () => {
+      if (currentTab === 'json2yaml') switchTab('edit');
+      input.value = t.yaml;
+      inputLabel.textContent = 'YAML Input';
+      updateLineNumbers();
+      processInput();
+      toggleTemplateMenu(true);
+      showToast('Template loaded: ' + t.name);
+    });
+    list.appendChild(btn);
+  });
+})();
+
+function toggleTemplateMenu(forceClose) {
+  const menu = document.getElementById('templateMenu');
+  if (forceClose === true) { menu.classList.remove('open'); return; }
+  menu.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('templateMenu');
+  if (!menu.contains(e.target)) menu.classList.remove('open');
+});
+
+/* ============ TAB SWITCHING ============ */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+  if (tab === 'edit') {
+    document.getElementById('tabEdit').classList.add('active');
+    inputLabel.textContent = 'YAML Input';
+    outputLabel.textContent = isTreeView ? 'Tree View' : 'Output';
+    input.placeholder = '# Paste or type your YAML here...\n\nname: my-project\nversion: 1.0.0';
+  } else if (tab === 'yaml2json') {
+    document.getElementById('tabYamlJson').classList.add('active');
+    inputLabel.textContent = 'YAML Input';
+    outputLabel.textContent = 'JSON Output';
+    input.placeholder = '# Paste YAML here to convert to JSON...';
+    if (isTreeView) { isTreeView = false; viewToggle.classList.remove('active'); }
+  } else if (tab === 'json2yaml') {
+    document.getElementById('tabJsonYaml').classList.add('active');
+    inputLabel.textContent = 'JSON Input';
+    outputLabel.textContent = 'YAML Output';
+    input.placeholder = '{\n  "name": "my-project",\n  "version": "1.0.0"\n}';
+    if (isTreeView) { isTreeView = false; viewToggle.classList.remove('active'); }
+  }
+  processInput();
+}
+
+/* ============ INPUT HANDLING ============ */
+input.addEventListener('input', debounce(processInput, 250));
+input.addEventListener('input', updateLineNumbers);
+input.addEventListener('scroll', syncScroll);
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function updateLineNumbers() {
+  const lines = input.value.split('\n');
+  const count = lines.length;
+  lineCount.textContent = count + ' line' + (count !== 1 ? 's' : '');
+  // Build line numbers
+  let html = '';
+  for (let i = 1; i <= count; i++) {
+    html += '<div>' + i + '</div>';
+  }
+  editorLines.innerHTML = html;
+}
+
+function syncScroll() {
+  editorLines.scrollTop = input.scrollTop;
+}
+
+function markErrorLine(lineNum) {
+  const divs = editorLines.querySelectorAll('div');
+  if (lineNum > 0 && lineNum <= divs.length) {
+    divs[lineNum - 1].classList.add('err-line');
+  }
+}
+
+/* ============ MAIN PROCESSING ============ */
+function processInput() {
+  const raw = input.value.trim();
+  if (!raw) {
+    clearOutputs();
+    statusDot.className = 'status-dot empty';
+    statusText.textContent = 'Paste or type ' + (currentTab === 'json2yaml' ? 'JSON' : 'YAML') + ' to begin';
+    sizeInfo.textContent = '';
+    return;
+  }
+  sizeInfo.textContent = formatBytes(new Blob([raw]).size);
+
+  if (currentTab === 'json2yaml') {
+    processJsonToYaml(raw);
+  } else if (currentTab === 'yaml2json') {
+    processYamlToJson(raw);
+  } else {
+    processYamlEdit(raw);
+  }
+}
+
+function processYamlEdit(raw) {
+  try {
+    const parsed = jsyaml.load(raw);
+    lastParsed = parsed;
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid YAML';
+    if (isTreeView) {
+      renderTree(parsed);
+    } else {
+      const indent = getIndent();
+      const out = jsyaml.dump(parsed, { indent: indent, lineWidth: -1, noRefs: true, sortKeys: false });
+      lastOutputText = out;
+      formattedOutput.innerHTML = highlightYAML(out);
+      showPanel('formatted');
+      outputInfo.textContent = out.split('\n').length + ' lines';
+    }
+  } catch (e) {
+    statusDot.className = 'status-dot invalid';
+    statusText.textContent = 'Invalid YAML';
+    showYamlError(e, raw);
+    lastParsed = null;
+  }
+}
+
+function processYamlToJson(raw) {
+  try {
+    const parsed = jsyaml.load(raw);
+    lastParsed = parsed;
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid YAML — Converted to JSON';
+    const indent = getIndent();
+    const json = JSON.stringify(parsed, null, indent);
+    lastOutputText = json;
+    formattedOutput.innerHTML = highlightJSON(json);
+    showPanel('formatted');
+    outputInfo.textContent = json.split('\n').length + ' lines';
+  } catch (e) {
+    statusDot.className = 'status-dot invalid';
+    statusText.textContent = 'Invalid YAML';
+    showYamlError(e, raw);
+    lastParsed = null;
+  }
+}
+
+function processJsonToYaml(raw) {
+  try {
+    const parsed = JSON.parse(raw);
+    lastParsed = parsed;
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid JSON — Converted to YAML';
+    const indent = getIndent();
+    const yaml = jsyaml.dump(parsed, { indent: indent, lineWidth: -1, noRefs: true, sortKeys: false });
+    lastOutputText = yaml;
+    formattedOutput.innerHTML = highlightYAML(yaml);
+    showPanel('formatted');
+    outputInfo.textContent = yaml.split('\n').length + ' lines';
+  } catch (e) {
+    statusDot.className = 'status-dot invalid';
+    statusText.textContent = 'Invalid JSON';
+    showJsonError(e, raw);
+    lastParsed = null;
+  }
+}
+
+/* ============ PRETTIFY / MINIFY ============ */
+function prettifyYAML() {
+  if (!input.value.trim()) return;
+  if (currentTab === 'json2yaml') {
+    try {
+      const parsed = JSON.parse(input.value);
+      const indent = getIndent();
+      const yaml = jsyaml.dump(parsed, { indent: indent, lineWidth: -1, noRefs: true, sortKeys: false });
+      lastOutputText = yaml;
+      lastParsed = parsed;
+      formattedOutput.innerHTML = highlightYAML(yaml);
+      showPanel('formatted');
+      statusDot.className = 'status-dot valid';
+      statusText.textContent = 'Valid JSON — Prettified YAML output';
+      outputInfo.textContent = yaml.split('\n').length + ' lines';
+    } catch (e) { showJsonError(e, input.value); }
+    return;
+  }
+  try {
+    const parsed = jsyaml.load(input.value);
+    lastParsed = parsed;
+    const indent = getIndent();
+    const pretty = jsyaml.dump(parsed, { indent: indent, lineWidth: -1, noRefs: true, sortKeys: false });
+    input.value = pretty;
+    updateLineNumbers();
+    lastOutputText = pretty;
+    if (currentTab === 'yaml2json') {
+      const json = JSON.stringify(parsed, null, indent);
+      lastOutputText = json;
+      formattedOutput.innerHTML = highlightJSON(json);
+    } else if (isTreeView) {
+      renderTree(parsed);
+    } else {
+      formattedOutput.innerHTML = highlightYAML(pretty);
+    }
+    showPanel(isTreeView ? 'tree' : 'formatted');
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid YAML — Prettified';
+    outputInfo.textContent = (isTreeView ? '' : lastOutputText.split('\n').length + ' lines');
+  } catch (e) {
+    showYamlError(e, input.value);
+  }
+}
+
+function minifyYAML() {
+  if (!input.value.trim()) return;
+  if (currentTab === 'json2yaml') {
+    try {
+      const parsed = JSON.parse(input.value);
+      input.value = JSON.stringify(parsed);
+      updateLineNumbers();
+      processInput();
+    } catch (e) { showJsonError(e, input.value); }
+    return;
+  }
+  try {
+    const parsed = jsyaml.load(input.value);
+    lastParsed = parsed;
+    // YAML minification: use flowLevel 0 for inline, minimal indent
+    const minified = jsyaml.dump(parsed, { flowLevel: 0, lineWidth: -1, noRefs: true });
+    lastOutputText = minified;
+    formattedOutput.innerHTML = highlightYAML(minified);
+    showPanel('formatted');
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid YAML — Minified (flow style)';
+    outputInfo.textContent = formatBytes(new Blob([minified]).size);
+    if (isTreeView) { isTreeView = false; viewToggle.classList.remove('active'); outputLabel.textContent = 'Output'; }
+  } catch (e) {
+    showYamlError(e, input.value);
+  }
+}
+
+/* ============ SYNTAX HIGHLIGHTING ============ */
+function highlightYAML(yaml) {
+  return escapeHtml(yaml)
+    .replace(/^(\s*)(#.*)$/gm, '$1<span class="hl-comment">$2</span>')
+    .replace(/^(\s*)([\w][^:\n]*?)(:)/gm, '$1<span class="hl-key">$2</span><span class="hl-punct">$3</span>')
+    .replace(/^(\s*- )/gm, '<span class="hl-punct">$1</span>')
+    .replace(/: (true|false)$/gm, ': <span class="hl-bool">$1</span>')
+    .replace(/: (null|~)$/gm, ': <span class="hl-null">$1</span>')
+    .replace(/: (-?\d+\.?\d*(?:e[+-]?\d+)?)$/gm, ': <span class="hl-num">$1</span>')
+    .replace(/: ("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')$/gm, ': <span class="hl-str">$1</span>')
+    .replace(/(&amp;\w+|&lt;&lt;|\*\w+)/g, '<span class="hl-anchor">$1</span>');
+}
+
+function highlightJSON(json) {
+  return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|\bnull\b|[{}\[\],])/g, match => {
+      let cls = 'hl-num';
+      if (/^"/.test(match)) {
+        cls = /:$/.test(match) ? 'hl-key' : 'hl-str';
+      } else if (/true|false/.test(match)) {
+        cls = 'hl-bool';
+      } else if (/null/.test(match)) {
+        cls = 'hl-null';
+      } else if (/[{}\[\],]/.test(match)) {
+        cls = 'hl-punct';
+      }
+      return '<span class="' + cls + '">' + match + '</span>';
+    });
+}
+
+/* ============ ERROR DISPLAY ============ */
+function showYamlError(e, raw) {
+  let html = '<strong>YAML Validation Error</strong>\n\n';
+  html += '<div class="error-line">' + escapeHtml(e.message) + '</div>\n';
+  const mark = e.mark;
+  if (mark && typeof mark.line === 'number') {
+    const lineNum = mark.line + 1;
+    html += '\nError near line ' + lineNum + ', column ' + (mark.column + 1) + ':\n';
+    const lines = raw.split('\n');
+    const start = Math.max(0, lineNum - 3);
+    const end = Math.min(lines.length, lineNum + 2);
+    for (let i = start; i < end; i++) {
+      const marker = i === lineNum - 1 ? ' >>> ' : '     ';
+      html += '<span style="color:' + (i === lineNum - 1 ? 'var(--red)' : 'var(--text2)') + '">' + marker + (i + 1) + ' | ' + escapeHtml(lines[i]) + '</span>\n';
+    }
+    markErrorLine(lineNum);
+  }
+  errorOutput.innerHTML = html;
+  showPanel('error');
+}
+
+function showJsonError(e, raw) {
+  const msg = e.message;
+  let lineNum = null;
+  const posMatch = msg.match(/position\s+(\d+)/i);
+  if (posMatch) {
+    const pos = parseInt(posMatch[1]);
+    lineNum = raw.substring(0, pos).split('\n').length;
+  }
+  let html = '<strong>JSON Validation Error</strong>\n\n';
+  html += '<div class="error-line">' + escapeHtml(msg) + '</div>\n';
+  if (lineNum) {
+    html += '\nError near line ' + lineNum + ':\n';
+    const lines = raw.split('\n');
+    const start = Math.max(0, lineNum - 3);
+    const end = Math.min(lines.length, lineNum + 2);
+    for (let i = start; i < end; i++) {
+      const marker = i === lineNum - 1 ? ' >>> ' : '     ';
+      html += '<span style="color:' + (i === lineNum - 1 ? 'var(--red)' : 'var(--text2)') + '">' + marker + (i + 1) + ' | ' + escapeHtml(lines[i]) + '</span>\n';
+    }
+    markErrorLine(lineNum);
+  }
+  errorOutput.innerHTML = html;
+  showPanel('error');
+}
+
+/* ============ TREE VIEW ============ */
+function toggleTreeView() {
+  if (currentTab !== 'edit') { showToast('Tree view is available in Edit YAML mode'); return; }
+  isTreeView = !isTreeView;
+  viewToggle.classList.toggle('active', isTreeView);
+  outputLabel.textContent = isTreeView ? 'Tree View' : 'Output';
+  if (isTreeView && lastParsed !== null && lastParsed !== undefined) renderTree(lastParsed);
+  else if (!isTreeView && lastParsed !== null && lastParsed !== undefined) processInput();
+}
+
+function renderTree(data) {
+  treeOutput.innerHTML = '';
+  if (data === null || data === undefined || typeof data !== 'object') {
+    treeOutput.innerHTML = '<div style="color:var(--text2);padding:.5rem">Scalar value: ' + renderScalarHTML(data) + '</div>';
+  } else {
+    treeOutput.appendChild(buildTreeNode('root', data, true));
+  }
+  showPanel('tree');
+}
+
+function buildTreeNode(key, value, isRoot) {
+  const wrap = document.createElement('div');
+  if (!isRoot) wrap.className = 'tree-item';
+  if (value !== null && typeof value === 'object') {
+    const isArr = Array.isArray(value);
+    const entries = isArr ? value : Object.keys(value);
+    const count = isArr ? value.length : entries.length;
+    const toggle = document.createElement('span');
+    toggle.className = 'tree-toggle open';
+    let label = '';
+    if (!isRoot) label = '<span class="tree-key">' + escapeHtml(String(key)) + '</span>: ';
+    label += '<span class="tree-bracket">' + (isArr ? '[' : '{') + ' ' + count + (count === 1 ? ' item' : ' items') + '</span>';
+    toggle.innerHTML = label;
+    wrap.appendChild(toggle);
+    const children = document.createElement('div');
+    children.className = 'tree-children';
+    if (isArr) {
+      value.forEach((v, i) => children.appendChild(buildTreeNode(i, v, false)));
+    } else {
+      for (const k of entries) children.appendChild(buildTreeNode(k, value[k], false));
+    }
+    wrap.appendChild(children);
+    toggle.addEventListener('click', () => {
+      toggle.classList.toggle('open');
+      children.classList.toggle('collapsed');
+    });
+  } else {
+    wrap.innerHTML = '<span class="tree-key">' + escapeHtml(String(key)) + '</span>: ' + renderScalarHTML(value);
+  }
+  return wrap;
+}
+
+function renderScalarHTML(value) {
+  if (typeof value === 'string') return '<span class="tree-val-str">"' + escapeHtml(value) + '"</span>';
+  if (typeof value === 'number') return '<span class="tree-val-num">' + value + '</span>';
+  if (typeof value === 'boolean') return '<span class="tree-val-bool">' + value + '</span>';
+  return '<span class="tree-val-null">null</span>';
+}
+
+/* ============ PANEL MANAGEMENT ============ */
+function showPanel(which) {
+  formattedOutput.style.display = which === 'formatted' ? '' : 'none';
+  treeOutput.style.display = which === 'tree' ? '' : 'none';
+  errorOutput.style.display = which === 'error' ? '' : 'none';
+}
+
+function clearOutputs() {
+  formattedOutput.innerHTML = '';
+  treeOutput.innerHTML = '';
+  errorOutput.innerHTML = '';
+  outputInfo.textContent = '';
+  formattedOutput.style.display = '';
+  treeOutput.style.display = 'none';
+  errorOutput.style.display = 'none';
+}
+
+function clearAll() {
+  input.value = '';
+  lastParsed = null;
+  lastOutputText = '';
+  clearOutputs();
+  statusDot.className = 'status-dot empty';
+  statusText.textContent = 'Paste or type ' + (currentTab === 'json2yaml' ? 'JSON' : 'YAML') + ' to begin';
+  sizeInfo.textContent = '';
+  lineCount.textContent = '';
+  editorLines.innerHTML = '';
+  if (isTreeView) { isTreeView = false; viewToggle.classList.remove('active'); outputLabel.textContent = 'Output'; }
+}
+
+/* ============ COPY / DOWNLOAD ============ */
+function copyOutput() {
+  if (!lastOutputText && lastParsed === null) { showToast('Nothing to copy'); return; }
+  const text = lastOutputText || '';
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+function downloadOutput() {
+  if (!lastOutputText && lastParsed === null) { showToast('No output to download'); return; }
+  const text = lastOutputText || '';
+  let ext = '.yaml';
+  let mime = 'text/yaml';
+  if (currentTab === 'yaml2json') { ext = '.json'; mime = 'application/json'; }
+  const blob = new Blob([text], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'output' + ext;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Downloaded output' + ext);
+}
+
+/* ============ UTILITIES ============ */
+function getIndent() {
+  return parseInt(document.getElementById('indentSelect').value) || 2;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024, sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* Tab key support */
+input.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = input.selectionStart, end = input.selectionEnd;
+    const indent = ' '.repeat(getIndent());
+    if (e.shiftKey) {
+      // Outdent: remove leading spaces on selected lines
+      const before = input.value.substring(0, start);
+      const selected = input.value.substring(start, end);
+      const after = input.value.substring(end);
+      const lineStart = before.lastIndexOf('\n') + 1;
+      const prefix = input.value.substring(lineStart, start);
+      const fullSelected = prefix + selected;
+      const outdented = fullSelected.replace(new RegExp('^' + ' '.repeat(Math.min(getIndent(), 8)), 'gm'), '');
+      input.value = input.value.substring(0, lineStart) + outdented + after;
+      input.selectionStart = lineStart;
+      input.selectionEnd = lineStart + outdented.length;
+    } else {
+      input.value = input.value.substring(0, start) + indent + input.value.substring(end);
+      input.selectionStart = input.selectionEnd = start + indent.length;
+    }
+    updateLineNumbers();
+    processInput();
+  }
+});
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+/* Initialize line numbers */
+updateLineNumbers();
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a YAML editor?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A YAML editor is a tool for writing and editing YAML (YAML Ain't Markup Language) files with features like syntax highlighting, validation, and error detection. NexTool's YAML Editor runs entirely in your browser and provides real-time validation, tree view, and JSON conversion."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I convert YAML to JSON with this tool?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's YAML Editor supports bidirectional conversion between YAML and JSON. Switch to the YAML to JSON or JSON to YAML tab to convert between formats instantly with syntax highlighting."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the YAML editor include templates?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, the editor includes ready-made templates for Docker Compose, GitHub Actions, Kubernetes Deployments, Services, ConfigMaps, Ansible Playbooks, AWS CloudFormation, and OpenAPI specifications. Click the Templates button to browse and insert them."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this YAML editor free to use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's YAML Editor is completely free with no signup required. It runs 100% in your browser so your data never leaves your machine. All features including validation, conversion, tree view, and templates are available at no cost."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Cron Job Monitor — Visualize Schedules | NexTool</title>
+<meta name="description" content="Free cron job monitor and schedule visualizer. Parse cron expressions, view calendar and timeline, detect overlaps, export to iCal. 100% client-side.">
+<meta name="keywords" content="cron job monitor, cron visualizer, cron schedule, crontab viewer, cron calendar, cron overlap detector, free cron tool, NexTool">
+<meta property="og:title" content="Free Cron Job Monitor & Schedule Visualizer | NexTool">
+<meta property="og:description" content="Visualize cron schedules on a calendar and timeline. Detect overlaps, describe in plain English, export to iCal. Free online tool.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/cron-job-monitor.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/cron-job-monitor.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Cron Job Monitor & Schedule Visualizer | NexTool">
+<meta name="twitter:description" content="Visualize cron schedules, detect overlaps, export to iCal. Free online tool by NexTool.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Cron Job Monitor","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free cron job monitor and schedule visualizer with calendar view, timeline, overlap detection, and iCal export."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#f97316;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+/* JOB INPUT */
+.job-input-area{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.job-row{display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem}
+.input-group{display:flex;flex-direction:column;gap:.3rem}
+.input-group label{font-size:.75rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.input-group input,.input-group select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.5rem .75rem;border-radius:8px;font-size:.85rem;font-family:inherit;outline:none;transition:border-color .2s}
+.input-group input:focus{border-color:var(--primary)}
+.cron-input{font-family:'Courier New',monospace!important;font-size:1rem!important;width:220px;letter-spacing:1px}
+.job-name-input{width:160px}
+.color-input{width:44px;height:36px;padding:2px!important;cursor:pointer;border-radius:8px!important}
+.num-input{width:80px}
+.btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.5rem 1rem;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap}
+.btn:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.btn-primary:hover{opacity:.9;border-color:transparent}
+.btn-danger{color:var(--red);border-color:rgba(239,68,68,.3)}
+.btn-danger:hover{background:rgba(239,68,68,.12);border-color:var(--red)}
+/* PRESETS */
+.presets{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem}
+.preset{background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:.3rem .7rem;border-radius:6px;font-size:.72rem;cursor:pointer;transition:all .2s;font-family:inherit}
+.preset:hover{border-color:var(--primary);color:var(--text)}
+.preset code{font-family:'Courier New',monospace;color:var(--cyan);margin-right:.3rem}
+/* JOB LIST */
+.job-list{margin-bottom:1.5rem}
+.job-chip{display:inline-flex;align-items:center;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.4rem .8rem;margin:0 .4rem .4rem 0;font-size:.8rem;transition:all .2s}
+.job-chip .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.job-chip .cron-text{font-family:'Courier New',monospace;color:var(--cyan);font-size:.75rem}
+.job-chip .remove-job{background:none;border:none;color:var(--text2);cursor:pointer;font-size:1rem;padding:0 2px;line-height:1;transition:color .2s}
+.job-chip .remove-job:hover{color:var(--red)}
+/* DESCRIPTION */
+.description-panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem}
+.description-panel h3{font-size:.85rem;font-weight:700;color:var(--text2);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.5px}
+.desc-item{display:flex;align-items:flex-start;gap:.75rem;padding:.5rem 0;border-bottom:1px solid rgba(42,42,58,.5)}
+.desc-item:last-child{border-bottom:none}
+.desc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.desc-name{font-weight:600;font-size:.85rem;min-width:100px}
+.desc-text{color:var(--text2);font-size:.85rem}
+.desc-cron{font-family:'Courier New',monospace;color:var(--cyan);font-size:.78rem;margin-left:.5rem}
+/* OVERLAP */
+.overlap-panel{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem}
+.overlap-panel.clear{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.2)}
+.overlap-panel h3{font-size:.85rem;font-weight:700;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.5px}
+.overlap-panel.clear h3{color:var(--green)}
+.overlap-panel:not(.clear) h3{color:var(--red)}
+.overlap-item{font-size:.82rem;color:var(--text2);padding:.3rem 0}
+.overlap-item strong{color:var(--text)}
+/* TABS */
+.view-tabs{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.view-tab{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:.45rem 1rem;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.view-tab:hover{border-color:var(--primary);color:var(--text)}
+.view-tab.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+/* PANELS */
+.view-panel{display:none}
+.view-panel.active{display:block}
+/* NEXT RUNS TABLE */
+.runs-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.runs-table th{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--border);color:var(--text2);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px}
+.runs-table td{padding:.5rem .75rem;border-bottom:1px solid rgba(42,42,58,.3)}
+.runs-table tr:hover td{background:rgba(99,102,241,.05)}
+.run-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:.4rem}
+.run-relative{color:var(--text2);font-size:.75rem}
+/* CALENDAR */
+.cal-controls{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.cal-controls .cal-title{font-size:1rem;font-weight:700;min-width:180px}
+.cal-grid{display:grid;gap:2px;margin-bottom:1rem}
+.cal-grid.weekly{grid-template-columns:60px repeat(24,1fr)}
+.cal-grid.monthly{grid-template-columns:repeat(7,1fr)}
+.cal-cell{min-height:28px;border-radius:4px;font-size:.65rem;display:flex;align-items:center;justify-content:center;position:relative;transition:background .15s}
+.cal-header{background:var(--surface2);color:var(--text2);font-weight:600;font-size:.65rem}
+.cal-day-label{background:var(--surface);color:var(--text2);font-weight:600;font-size:.7rem;justify-content:flex-start;padding-left:6px}
+.cal-empty{background:var(--surface)}
+.cal-cell.has-jobs{cursor:pointer}
+.cal-cell .cal-dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
+.cal-cell .cal-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.cal-cell.today{outline:2px solid var(--primary);outline-offset:-1px}
+.cal-tooltip{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.5rem .75rem;font-size:.72rem;white-space:nowrap;z-index:50;display:none;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.cal-cell:hover .cal-tooltip{display:block}
+/* TIMELINE */
+.timeline-container{overflow-x:auto;padding-bottom:1rem}
+.timeline-row{display:flex;align-items:center;margin-bottom:.75rem;gap:.75rem}
+.timeline-label{min-width:120px;font-size:.8rem;font-weight:600;flex-shrink:0}
+.timeline-bar-wrap{flex:1;height:28px;background:var(--surface);border-radius:6px;position:relative;overflow:hidden;min-width:400px}
+.timeline-mark{position:absolute;top:0;height:100%;min-width:2px;border-radius:2px;opacity:.7;transition:opacity .15s}
+.timeline-mark:hover{opacity:1}
+.timeline-hour-labels{display:flex;margin-left:calc(120px + .75rem);min-width:400px}
+.timeline-hour-labels span{flex:1;font-size:.6rem;color:var(--text2);text-align:center}
+/* EXPORT */
+.export-section{display:flex;gap:.5rem;margin-top:1.5rem;flex-wrap:wrap}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .job-row{flex-direction:column;align-items:stretch}
+  .cron-input{width:100%!important}
+  .job-name-input{width:100%!important}
+  .cal-grid.weekly{overflow-x:auto}
+  .timeline-bar-wrap{min-width:250px}
+  .timeline-hour-labels{min-width:250px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro &mdash; $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>Cron Job Monitor</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Visualize cron job schedules on a calendar and timeline. Add multiple jobs, detect overlaps, get plain-English descriptions, and export to iCal or JSON. 100% client-side, no data leaves your browser.</p>
+</section>
+
+<div class="tool-container fade-in">
+
+  <!-- JOB INPUT -->
+  <div class="job-input-area">
+    <div class="presets">
+      <span style="font-size:.72rem;color:var(--text2);font-weight:600;margin-right:.3rem">Presets:</span>
+      <button class="preset" onclick="setPreset('* * * * *')"><code>* * * * *</code> Every minute</button>
+      <button class="preset" onclick="setPreset('*/5 * * * *')"><code>*/5 * * * *</code> Every 5 min</button>
+      <button class="preset" onclick="setPreset('0 * * * *')"><code>0 * * * *</code> Hourly</button>
+      <button class="preset" onclick="setPreset('0 0 * * *')"><code>0 0 * * *</code> Daily midnight</button>
+      <button class="preset" onclick="setPreset('0 9 * * 1-5')"><code>0 9 * * 1-5</code> Weekdays 9am</button>
+      <button class="preset" onclick="setPreset('0 0 * * 0')"><code>0 0 * * 0</code> Weekly Sunday</button>
+      <button class="preset" onclick="setPreset('0 0 1 * *')"><code>0 0 1 * *</code> Monthly 1st</button>
+      <button class="preset" onclick="setPreset('30 2 * * *')"><code>30 2 * * *</code> Daily 2:30am</button>
+    </div>
+    <div class="job-row">
+      <div class="input-group">
+        <label for="cronExpr">Cron Expression</label>
+        <input type="text" id="cronExpr" class="cron-input" placeholder="*/15 * * * *" value="0 9 * * 1-5" spellcheck="false">
+      </div>
+      <div class="input-group">
+        <label for="jobName">Job Name</label>
+        <input type="text" id="jobName" class="job-name-input" placeholder="My Job" value="Morning Report">
+      </div>
+      <div class="input-group">
+        <label for="jobColor">Color</label>
+        <input type="color" id="jobColor" class="color-input" value="#6366f1">
+      </div>
+      <div class="input-group">
+        <label for="numRuns">Next Runs</label>
+        <input type="number" id="numRuns" class="num-input" value="20" min="1" max="200">
+      </div>
+      <button class="btn btn-primary" onclick="addJob()">Add Job</button>
+      <button class="btn" onclick="clearAllJobs()">Clear All</button>
+    </div>
+    <div id="parseError" style="color:var(--red);font-size:.8rem;margin-top:.25rem;display:none"></div>
+  </div>
+
+  <!-- JOB LIST -->
+  <div class="job-list" id="jobList"></div>
+
+  <!-- DESCRIPTION -->
+  <div class="description-panel" id="descPanel" style="display:none">
+    <h3>Schedule Descriptions</h3>
+    <div id="descContent"></div>
+  </div>
+
+  <!-- OVERLAP -->
+  <div id="overlapPanel" style="display:none"></div>
+
+  <!-- VIEW TABS -->
+  <div class="view-tabs" id="viewTabs" style="display:none">
+    <button class="view-tab active" data-view="runs" onclick="switchView('runs')">Next Runs</button>
+    <button class="view-tab" data-view="weekly" onclick="switchView('weekly')">Weekly Calendar</button>
+    <button class="view-tab" data-view="monthly" onclick="switchView('monthly')">Monthly Calendar</button>
+    <button class="view-tab" data-view="timeline" onclick="switchView('timeline')">Timeline</button>
+  </div>
+
+  <!-- NEXT RUNS VIEW -->
+  <div class="view-panel active" id="view-runs">
+    <div style="background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+      <table class="runs-table">
+        <thead><tr><th>Job</th><th>Next Run</th><th>Date</th><th>Day</th><th>Relative</th></tr></thead>
+        <tbody id="runsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- WEEKLY CALENDAR VIEW -->
+  <div class="view-panel" id="view-weekly">
+    <div style="background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;overflow-x:auto">
+      <div class="cal-controls">
+        <button class="btn" onclick="shiftWeek(-1)">&larr; Prev</button>
+        <span class="cal-title" id="weekTitle"></span>
+        <button class="btn" onclick="shiftWeek(1)">Next &rarr;</button>
+        <button class="btn" onclick="shiftWeek(0)">This Week</button>
+      </div>
+      <div id="weeklyGrid"></div>
+    </div>
+  </div>
+
+  <!-- MONTHLY CALENDAR VIEW -->
+  <div class="view-panel" id="view-monthly">
+    <div style="background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem">
+      <div class="cal-controls">
+        <button class="btn" onclick="shiftMonth(-1)">&larr; Prev</button>
+        <span class="cal-title" id="monthTitle"></span>
+        <button class="btn" onclick="shiftMonth(1)">Next &rarr;</button>
+        <button class="btn" onclick="shiftMonth(0)">This Month</button>
+      </div>
+      <div id="monthlyGrid"></div>
+    </div>
+  </div>
+
+  <!-- TIMELINE VIEW -->
+  <div class="view-panel" id="view-timeline">
+    <div style="background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem">
+      <h3 style="font-size:.85rem;font-weight:700;color:var(--text2);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.5px">24-Hour Timeline (Today)</h3>
+      <div class="timeline-container" id="timelineContainer"></div>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="export-section" id="exportSection" style="display:none">
+    <button class="btn" onclick="exportJSON()">Export JSON</button>
+    <button class="btn" onclick="exportICal()">Export iCal (.ics)</button>
+    <button class="btn" onclick="copySchedule()">Copy Schedule</button>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 &mdash; Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro &mdash; $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================== CRON PARSER ==================== */
+const MONTH_NAMES = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAY_NAMES_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function parseCronField(field, min, max) {
+  const values = new Set();
+  const parts = field.split(',');
+  for (const part of parts) {
+    if (part === '*') {
+      for (let i = min; i <= max; i++) values.add(i);
+    } else if (part.includes('/')) {
+      const [range, stepStr] = part.split('/');
+      const step = parseInt(stepStr, 10);
+      if (isNaN(step) || step <= 0) throw new Error('Invalid step: ' + part);
+      let start = min, end = max;
+      if (range !== '*') {
+        if (range.includes('-')) {
+          const [a, b] = range.split('-').map(Number);
+          start = a; end = b;
+        } else {
+          start = parseInt(range, 10);
+        }
+      }
+      for (let i = start; i <= end; i += step) values.add(i);
+    } else if (part.includes('-')) {
+      const [a, b] = part.split('-').map(Number);
+      if (isNaN(a) || isNaN(b)) throw new Error('Invalid range: ' + part);
+      for (let i = a; i <= b; i++) values.add(i);
+    } else {
+      const v = parseInt(part, 10);
+      if (isNaN(v)) throw new Error('Invalid value: ' + part);
+      values.add(v);
+    }
+  }
+  return [...values].filter(v => v >= min && v <= max).sort((a, b) => a - b);
+}
+
+function parseCron(expr) {
+  const parts = expr.trim().split(/\s+/);
+  if (parts.length !== 5) throw new Error('Cron expression must have exactly 5 fields (minute hour dom month dow)');
+  const minutes = parseCronField(parts[0], 0, 59);
+  const hours = parseCronField(parts[1], 0, 23);
+  const doms = parseCronField(parts[2], 1, 31);
+  const months = parseCronField(parts[3], 1, 12);
+  let dows = parseCronField(parts[4], 0, 7);
+  // Normalize day 7 (Sunday) to 0
+  if (dows.includes(7)) { dows.push(0); dows = [...new Set(dows)].filter(v => v <= 6).sort((a,b)=>a-b); }
+  const isDomWild = parts[2] === '*';
+  const isDowWild = parts[4] === '*';
+  return { minutes, hours, doms, months, dows, isDomWild, isDowWild, raw: parts };
+}
+
+function getNextRuns(parsed, count, fromDate) {
+  const { minutes, hours, doms, months, dows, isDomWild, isDowWild } = parsed;
+  const runs = [];
+  const d = new Date(fromDate || Date.now());
+  d.setSeconds(0, 0);
+  d.setMinutes(d.getMinutes() + 1);
+  const maxIter = 525960; // ~1 year of minutes
+  let iter = 0;
+  while (runs.length < count && iter < maxIter) {
+    iter++;
+    if (!months.includes(d.getMonth() + 1)) {
+      d.setMonth(d.getMonth() + 1, 1);
+      d.setHours(0, 0, 0, 0);
+      continue;
+    }
+    const domMatch = doms.includes(d.getDate());
+    const dowMatch = dows.includes(d.getDay());
+    // If both dom and dow are restricted (not wild), match either
+    // If only one is restricted, match that one
+    let dayOk;
+    if (!isDomWild && !isDowWild) {
+      dayOk = domMatch || dowMatch;
+    } else if (!isDomWild) {
+      dayOk = domMatch;
+    } else if (!isDowWild) {
+      dayOk = dowMatch;
+    } else {
+      dayOk = true;
+    }
+    if (!dayOk) {
+      d.setDate(d.getDate() + 1);
+      d.setHours(0, 0, 0, 0);
+      continue;
+    }
+    if (!hours.includes(d.getHours())) {
+      // Jump to next valid hour
+      const nextH = hours.find(h => h > d.getHours());
+      if (nextH !== undefined) {
+        d.setHours(nextH, minutes[0], 0, 0);
+      } else {
+        d.setDate(d.getDate() + 1);
+        d.setHours(0, 0, 0, 0);
+      }
+      continue;
+    }
+    if (!minutes.includes(d.getMinutes())) {
+      const nextM = minutes.find(m => m > d.getMinutes());
+      if (nextM !== undefined) {
+        d.setMinutes(nextM, 0, 0);
+      } else {
+        d.setHours(d.getHours() + 1, 0, 0, 0);
+      }
+      continue;
+    }
+    runs.push(new Date(d));
+    d.setMinutes(d.getMinutes() + 1);
+  }
+  return runs;
+}
+
+/* ==================== NATURAL LANGUAGE ==================== */
+function describeCron(expr) {
+  try {
+    const p = parseCron(expr);
+    const parts = p.raw;
+    let desc = '';
+    // Minutes
+    if (parts[0] === '*') desc = 'Every minute';
+    else if (parts[0].startsWith('*/')) desc = 'Every ' + parts[0].split('/')[1] + ' minutes';
+    else {
+      const mins = p.minutes;
+      if (mins.length === 1) desc = 'At minute ' + mins[0];
+      else desc = 'At minutes ' + mins.join(', ');
+    }
+    // Hours
+    if (parts[1] === '*') desc += ', every hour';
+    else if (parts[1].startsWith('*/')) desc += ', every ' + parts[1].split('/')[1] + ' hours';
+    else {
+      const hrs = p.hours;
+      if (hrs.length === 1) {
+        const h = hrs[0];
+        const ampm = h === 0 ? '12:00 AM' : h < 12 ? h + ':00 AM' : h === 12 ? '12:00 PM' : (h - 12) + ':00 PM';
+        if (p.minutes.length === 1) {
+          const m = p.minutes[0];
+          const timeStr = (h % 12 || 12) + ':' + String(m).padStart(2, '0') + (h < 12 ? ' AM' : ' PM');
+          desc = 'At ' + timeStr;
+        } else {
+          desc += ' past ' + ampm.split(':')[0] + (h < 12 ? ' AM' : ' PM');
+        }
+      } else {
+        desc += ' past hours ' + hrs.map(h => h === 0 ? '12AM' : h < 12 ? h + 'AM' : h === 12 ? '12PM' : (h-12) + 'PM').join(', ');
+      }
+    }
+    // DOM
+    if (parts[2] !== '*') {
+      if (parts[2].startsWith('*/')) desc += ', every ' + parts[2].split('/')[1] + ' days';
+      else desc += ', on day ' + p.doms.join(', ') + ' of the month';
+    }
+    // Month
+    if (parts[3] !== '*') {
+      if (parts[3].startsWith('*/')) desc += ', every ' + parts[3].split('/')[1] + ' months';
+      else desc += ' in ' + p.months.map(m => MONTH_NAMES[m]).join(', ');
+    }
+    // DOW
+    if (parts[4] !== '*') {
+      desc += ', on ' + p.dows.map(d => DAY_NAMES_FULL[d]).join(', ');
+    }
+    return desc;
+  } catch (e) {
+    return 'Invalid expression';
+  }
+}
+
+/* ==================== JOB MANAGEMENT ==================== */
+let jobs = [];
+let weekOffset = 0;
+let monthOffset = 0;
+const JOB_COLORS = ['#6366f1','#22c55e','#f97316','#ec4899','#22d3ee','#eab308','#a855f7','#ef4444','#14b8a6','#f43f5e'];
+let colorIndex = 0;
+
+function setPreset(expr) {
+  document.getElementById('cronExpr').value = expr;
+}
+
+function addJob() {
+  const expr = document.getElementById('cronExpr').value.trim();
+  const name = document.getElementById('jobName').value.trim() || ('Job ' + (jobs.length + 1));
+  const color = document.getElementById('jobColor').value;
+  const errEl = document.getElementById('parseError');
+  try {
+    const parsed = parseCron(expr);
+    errEl.style.display = 'none';
+    jobs.push({ expr, name, color, parsed, id: Date.now() });
+    // Cycle to next color
+    colorIndex = (colorIndex + 1) % JOB_COLORS.length;
+    document.getElementById('jobColor').value = JOB_COLORS[colorIndex];
+    document.getElementById('jobName').value = '';
+    renderAll();
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function removeJob(id) {
+  jobs = jobs.filter(j => j.id !== id);
+  renderAll();
+}
+
+function clearAllJobs() {
+  jobs = [];
+  colorIndex = 0;
+  document.getElementById('jobColor').value = JOB_COLORS[0];
+  renderAll();
+}
+
+function renderAll() {
+  renderJobList();
+  renderDescriptions();
+  renderOverlaps();
+  renderNextRuns();
+  renderWeekly();
+  renderMonthly();
+  renderTimeline();
+  const hasJobs = jobs.length > 0;
+  document.getElementById('viewTabs').style.display = hasJobs ? 'flex' : 'none';
+  document.getElementById('exportSection').style.display = hasJobs ? 'flex' : 'none';
+  document.getElementById('descPanel').style.display = hasJobs ? '' : 'none';
+}
+
+function renderJobList() {
+  const el = document.getElementById('jobList');
+  if (!jobs.length) { el.innerHTML = ''; return; }
+  el.innerHTML = jobs.map(j =>
+    '<span class="job-chip"><span class="dot" style="background:'+j.color+'"></span>' +
+    '<span>'+esc(j.name)+'</span><span class="cron-text">'+esc(j.expr)+'</span>' +
+    '<button class="remove-job" onclick="removeJob('+j.id+')" title="Remove">&times;</button></span>'
+  ).join('');
+}
+
+function renderDescriptions() {
+  const el = document.getElementById('descContent');
+  if (!jobs.length) { el.innerHTML = ''; return; }
+  el.innerHTML = jobs.map(j =>
+    '<div class="desc-item"><span class="desc-dot" style="background:'+j.color+'"></span>' +
+    '<span class="desc-name">'+esc(j.name)+'</span><span class="desc-text">' +
+    esc(describeCron(j.expr)) + '<span class="desc-cron">'+esc(j.expr)+'</span></span></div>'
+  ).join('');
+}
+
+/* ==================== OVERLAP DETECTION ==================== */
+function renderOverlaps() {
+  const panel = document.getElementById('overlapPanel');
+  if (jobs.length < 2) { panel.style.display = 'none'; return; }
+  const now = new Date();
+  const windowMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+  const overlaps = [];
+  for (let i = 0; i < jobs.length; i++) {
+    const runsA = getNextRuns(jobs[i].parsed, 200, now);
+    const setA = new Set(runsA.map(d => Math.floor(d.getTime() / 60000)));
+    for (let k = i + 1; k < jobs.length; k++) {
+      const runsB = getNextRuns(jobs[k].parsed, 200, now);
+      const common = runsB.filter(d => {
+        const t = Math.floor(d.getTime() / 60000);
+        return setA.has(t) && (d.getTime() - now.getTime() < windowMs);
+      });
+      if (common.length > 0) {
+        overlaps.push({ a: jobs[i], b: jobs[k], times: common.slice(0, 5), total: common.length });
+      }
+    }
+  }
+  panel.style.display = '';
+  if (overlaps.length === 0) {
+    panel.className = 'overlap-panel clear';
+    panel.innerHTML = '<h3>No Schedule Conflicts</h3><div style="font-size:.82rem;color:var(--text2)">No overlapping executions detected in the next 7 days.</div>';
+  } else {
+    panel.className = 'overlap-panel';
+    panel.innerHTML = '<h3>Schedule Conflicts Detected</h3>' + overlaps.map(o =>
+      '<div class="overlap-item"><strong>'+esc(o.a.name)+' &amp; '+esc(o.b.name)+'</strong> overlap ' +
+      o.total + ' time(s) in the next 7 days. Next: ' +
+      o.times.slice(0, 3).map(t => fmtShort(t)).join(', ') + '</div>'
+    ).join('');
+  }
+}
+
+/* ==================== NEXT RUNS ==================== */
+function renderNextRuns() {
+  const body = document.getElementById('runsBody');
+  if (!jobs.length) { body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:2rem">Add a cron job above to see upcoming runs</td></tr>'; return; }
+  const n = parseInt(document.getElementById('numRuns').value, 10) || 20;
+  const now = new Date();
+  let allRuns = [];
+  for (const j of jobs) {
+    const runs = getNextRuns(j.parsed, n, now);
+    for (const r of runs) {
+      allRuns.push({ date: r, job: j });
+    }
+  }
+  allRuns.sort((a, b) => a.date - b.date);
+  allRuns = allRuns.slice(0, n * jobs.length > 200 ? 200 : n * jobs.length);
+  body.innerHTML = allRuns.map(r => {
+    const d = r.date;
+    return '<tr><td><span class="run-dot" style="background:'+r.job.color+'"></span>'+esc(r.job.name)+'</td>' +
+      '<td>'+fmtTime(d)+'</td><td>'+fmtDate(d)+'</td><td>'+DAY_NAMES[d.getDay()]+'</td>' +
+      '<td class="run-relative">'+relTime(d, now)+'</td></tr>';
+  }).join('');
+}
+
+/* ==================== WEEKLY CALENDAR ==================== */
+function shiftWeek(dir) {
+  if (dir === 0) weekOffset = 0;
+  else weekOffset += dir;
+  renderWeekly();
+}
+
+function renderWeekly() {
+  if (!jobs.length) return;
+  const now = new Date();
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + weekOffset * 7);
+  startOfWeek.setHours(0, 0, 0, 0);
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(endOfWeek.getDate() + 7);
+
+  document.getElementById('weekTitle').textContent = fmtDateShort(startOfWeek) + ' - ' + fmtDateShort(new Date(endOfWeek.getTime() - 86400000));
+
+  // Build run map: day -> hour -> [job colors]
+  const runMap = {};
+  for (const j of jobs) {
+    const runs = getNextRuns(j.parsed, 500, startOfWeek);
+    for (const r of runs) {
+      if (r >= endOfWeek) break;
+      if (r < startOfWeek) continue;
+      const key = r.getDay() + '-' + r.getHours();
+      if (!runMap[key]) runMap[key] = [];
+      if (!runMap[key].includes(j.color)) runMap[key].push(j.color);
+    }
+  }
+
+  let html = '<div class="cal-grid weekly">';
+  // Header row
+  html += '<div class="cal-cell cal-header"></div>';
+  for (let h = 0; h < 24; h++) {
+    html += '<div class="cal-cell cal-header">' + (h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : (h-12) + 'p') + '</div>';
+  }
+  // Day rows
+  for (let d = 0; d < 7; d++) {
+    const dayDate = new Date(startOfWeek);
+    dayDate.setDate(dayDate.getDate() + d);
+    const isToday = dayDate.toDateString() === now.toDateString();
+    html += '<div class="cal-cell cal-day-label' + (isToday ? ' today' : '') + '">' + DAY_NAMES[d] + ' ' + dayDate.getDate() + '</div>';
+    for (let h = 0; h < 24; h++) {
+      const key = d + '-' + h;
+      const colors = runMap[key] || [];
+      if (colors.length > 0) {
+        html += '<div class="cal-cell has-jobs" style="background:' + colors[0] + '33">' +
+          '<div class="cal-dots">' + colors.map(c => '<div class="cal-dot" style="background:'+c+'"></div>').join('') + '</div>' +
+          '</div>';
+      } else {
+        html += '<div class="cal-cell cal-empty"></div>';
+      }
+    }
+  }
+  html += '</div>';
+  document.getElementById('weeklyGrid').innerHTML = html;
+}
+
+/* ==================== MONTHLY CALENDAR ==================== */
+function shiftMonth(dir) {
+  if (dir === 0) monthOffset = 0;
+  else monthOffset += dir;
+  renderMonthly();
+}
+
+function renderMonthly() {
+  if (!jobs.length) return;
+  const now = new Date();
+  const viewDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  document.getElementById('monthTitle').textContent = MONTH_NAMES[month + 1] + ' ' + year;
+
+  // Build run map: date -> [job info]
+  const startDate = new Date(year, month, 1);
+  const endDate = new Date(year, month + 1, 1);
+  const runMap = {};
+  for (const j of jobs) {
+    const runs = getNextRuns(j.parsed, 1000, startDate);
+    for (const r of runs) {
+      if (r >= endDate) break;
+      const key = r.getDate();
+      if (!runMap[key]) runMap[key] = { colors: [], count: 0 };
+      if (!runMap[key].colors.includes(j.color)) runMap[key].colors.push(j.color);
+      runMap[key].count++;
+    }
+  }
+
+  let html = '<div class="cal-grid monthly">';
+  // Headers
+  for (const d of DAY_NAMES) {
+    html += '<div class="cal-cell cal-header">' + d + '</div>';
+  }
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    html += '<div class="cal-cell cal-empty" style="min-height:48px"></div>';
+  }
+  // Day cells
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d === now.getDate() && month === now.getMonth() && year === now.getFullYear();
+    const info = runMap[d];
+    if (info) {
+      html += '<div class="cal-cell has-jobs' + (isToday ? ' today' : '') + '" style="min-height:48px;flex-direction:column;background:' + info.colors[0] + '1a;border:1px solid ' + info.colors[0] + '33">' +
+        '<div style="font-size:.72rem;font-weight:600">' + d + '</div>' +
+        '<div class="cal-dots">' + info.colors.map(c => '<div class="cal-dot" style="background:'+c+'"></div>').join('') + '</div>' +
+        '<div style="font-size:.55rem;color:var(--text2)">' + info.count + ' run' + (info.count !== 1 ? 's' : '') + '</div></div>';
+    } else {
+      html += '<div class="cal-cell cal-empty' + (isToday ? ' today' : '') + '" style="min-height:48px"><div style="font-size:.72rem;color:var(--text2)">' + d + '</div></div>';
+    }
+  }
+  html += '</div>';
+  document.getElementById('monthlyGrid').innerHTML = html;
+}
+
+/* ==================== TIMELINE ==================== */
+function renderTimeline() {
+  const container = document.getElementById('timelineContainer');
+  if (!jobs.length) { container.innerHTML = ''; return; }
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayEnd = new Date(todayStart.getTime() + 86400000);
+
+  let html = '';
+  for (const j of jobs) {
+    const runs = getNextRuns(j.parsed, 1440, todayStart);
+    const todayRuns = runs.filter(r => r >= todayStart && r < todayEnd);
+    html += '<div class="timeline-row"><div class="timeline-label"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+j.color+';margin-right:6px"></span>' + esc(j.name) + '</div>';
+    html += '<div class="timeline-bar-wrap">';
+    // Current time marker
+    const nowPct = ((now - todayStart) / 86400000) * 100;
+    html += '<div style="position:absolute;left:'+nowPct+'%;top:0;height:100%;width:1px;background:var(--red);z-index:2" title="Now"></div>';
+    for (const r of todayRuns) {
+      const pct = ((r - todayStart) / 86400000) * 100;
+      html += '<div class="timeline-mark" style="left:'+pct+'%;width:3px;background:'+j.color+'" title="'+fmtTime(r)+'"></div>';
+    }
+    html += '</div></div>';
+  }
+  // Hour labels
+  html += '<div class="timeline-hour-labels">';
+  for (let h = 0; h < 24; h++) {
+    html += '<span>' + (h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : (h-12) + 'p') + '</span>';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+/* ==================== VIEW SWITCHING ==================== */
+function switchView(view) {
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active', p.id === 'view-' + view));
+}
+
+/* ==================== EXPORT ==================== */
+function exportJSON() {
+  if (!jobs.length) return;
+  const n = parseInt(document.getElementById('numRuns').value, 10) || 20;
+  const data = jobs.map(j => {
+    const runs = getNextRuns(j.parsed, n);
+    return {
+      name: j.name,
+      expression: j.expr,
+      description: describeCron(j.expr),
+      color: j.color,
+      nextRuns: runs.map(r => r.toISOString())
+    };
+  });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  downloadBlob(blob, 'cron-schedule.json');
+  showToast('Exported JSON');
+}
+
+function exportICal() {
+  if (!jobs.length) return;
+  const n = parseInt(document.getElementById('numRuns').value, 10) || 20;
+  let ical = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//NexTool//Cron Job Monitor//EN\r\nCALSCALE:GREGORIAN\r\n';
+  for (const j of jobs) {
+    const runs = getNextRuns(j.parsed, n);
+    for (const r of runs) {
+      const endTime = new Date(r.getTime() + 60000); // 1 minute duration
+      ical += 'BEGIN:VEVENT\r\n';
+      ical += 'DTSTART:' + icalDate(r) + '\r\n';
+      ical += 'DTEND:' + icalDate(endTime) + '\r\n';
+      ical += 'SUMMARY:' + j.name + '\r\n';
+      ical += 'DESCRIPTION:Cron: ' + j.expr + '\\n' + describeCron(j.expr) + '\r\n';
+      ical += 'UID:' + r.getTime() + '-' + j.name.replace(/\s/g, '') + '@nextool.app\r\n';
+      ical += 'END:VEVENT\r\n';
+    }
+  }
+  ical += 'END:VCALENDAR\r\n';
+  const blob = new Blob([ical], { type: 'text/calendar' });
+  downloadBlob(blob, 'cron-schedule.ics');
+  showToast('Exported iCal');
+}
+
+function copySchedule() {
+  if (!jobs.length) return;
+  const n = parseInt(document.getElementById('numRuns').value, 10) || 20;
+  let text = 'Cron Job Schedule\n' + '='.repeat(50) + '\n\n';
+  for (const j of jobs) {
+    text += j.name + '  [' + j.expr + ']\n';
+    text += describeCron(j.expr) + '\n';
+    const runs = getNextRuns(j.parsed, n);
+    text += 'Next ' + runs.length + ' runs:\n';
+    runs.forEach((r, i) => {
+      text += '  ' + (i + 1) + '. ' + r.toLocaleString() + '\n';
+    });
+    text += '\n';
+  }
+  navigator.clipboard.writeText(text).then(() => showToast('Schedule copied to clipboard'));
+}
+
+/* ==================== HELPERS ==================== */
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function fmtTime(d) {
+  const h = d.getHours(), m = d.getMinutes();
+  return (h % 12 || 12) + ':' + String(m).padStart(2, '0') + (h < 12 ? ' AM' : ' PM');
+}
+
+function fmtDate(d) {
+  return MONTH_NAMES[d.getMonth() + 1] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+
+function fmtDateShort(d) {
+  return MONTH_NAMES[d.getMonth() + 1] + ' ' + d.getDate();
+}
+
+function fmtShort(d) {
+  return MONTH_NAMES[d.getMonth() + 1] + ' ' + d.getDate() + ' ' + fmtTime(d);
+}
+
+function relTime(d, now) {
+  const diff = d - now;
+  if (diff < 0) return 'past';
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'now';
+  if (mins < 60) return mins + 'm';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ' + (mins % 60) + 'm';
+  const days = Math.floor(hrs / 24);
+  return days + 'd ' + (hrs % 24) + 'h';
+}
+
+function icalDate(d) {
+  return d.getFullYear() +
+    String(d.getMonth() + 1).padStart(2, '0') +
+    String(d.getDate()).padStart(2, '0') + 'T' +
+    String(d.getHours()).padStart(2, '0') +
+    String(d.getMinutes()).padStart(2, '0') +
+    String(d.getSeconds()).padStart(2, '0');
+}
+
+function downloadBlob(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ==================== KEYBOARD SHORTCUT ==================== */
+document.getElementById('cronExpr').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addJob();
+});
+
+/* ==================== INIT ==================== */
+// Add default job on load
+addJob();
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a cron job monitor?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A cron job monitor visualizes when scheduled cron jobs will run. NexTool's Cron Job Monitor parses standard 5-field cron expressions, shows the next execution times, displays schedules on weekly and monthly calendars, and detects conflicts between multiple jobs."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I read a cron expression?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A cron expression has 5 fields: minute (0-59), hour (0-23), day of month (1-31), month (1-12), day of week (0-7). The asterisk (*) means 'every', a slash (/) means 'step', a dash (-) means 'range', and commas separate multiple values. For example, '0 9 * * 1-5' means 'at 9:00 AM, Monday through Friday'."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I monitor multiple cron jobs at once?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's Cron Job Monitor supports multiple jobs with different colors. Add as many cron expressions as you need, and the tool will display all schedules on the calendar and timeline views. It also automatically detects scheduling conflicts where two or more jobs run at the same time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I export my cron schedule?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, you can export your cron schedule as a JSON file or as an iCal (.ics) file that can be imported into Google Calendar, Apple Calendar, Outlook, and other calendar applications. You can also copy the full schedule as plain text."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>

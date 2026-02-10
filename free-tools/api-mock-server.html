@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free API Mock Server — Define Mock Endpoints & Responses | NexTool</title>
+<meta name="description" content="Free API mock server tool. Define mock endpoints with custom JSON responses, status codes, headers, and delays. Generate curl commands and export configurations.">
+<meta name="keywords" content="API mock server, mock API, mock endpoints, API testing, mock responses, REST API mock, free developer tool, NexTool">
+<meta property="og:title" content="Free API Mock Server — Mock Endpoints & Responses | NexTool">
+<meta property="og:description" content="Define mock API endpoints with custom responses, status codes, headers, and delays. Export and share mock configs. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/api-mock-server.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/api-mock-server.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free API Mock Server — Mock Endpoints & Responses | NexTool">
+<meta name="twitter:description" content="Define mock API endpoints with custom responses, status codes, and delays. Free online tool by NexTool.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool API Mock Server","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online API mock server tool. Define mock endpoints with custom JSON responses, status codes, headers, and simulated delays."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#f97316;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+/* TOOLBAR */
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select,.toolbar label{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+/* PANELS */
+.main-grid{display:grid;grid-template-columns:340px 1fr;gap:1rem;min-height:600px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;overflow:auto;padding:1rem}
+/* ENDPOINT LIST */
+.endpoint-list{display:flex;flex-direction:column;gap:.5rem}
+.ep-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .8rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.5rem}
+.ep-item:hover{border-color:var(--primary)}
+.ep-item.selected{border-color:var(--primary);background:rgba(99,102,241,.1)}
+.ep-method{font-size:.65rem;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.ep-method.GET{background:rgba(34,197,94,.15);color:var(--green)}
+.ep-method.POST{background:rgba(99,102,241,.15);color:var(--primary)}
+.ep-method.PUT{background:rgba(234,179,8,.15);color:var(--yellow)}
+.ep-method.DELETE{background:rgba(239,68,68,.15);color:var(--red)}
+.ep-method.PATCH{background:rgba(249,115,22,.15);color:var(--orange)}
+.ep-path{font-size:.8rem;font-family:'Courier New',monospace;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.ep-status{font-size:.7rem;color:var(--text2);flex-shrink:0}
+.ep-del{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.9rem;padding:2px 4px;transition:color .2s;flex-shrink:0}
+.ep-del:hover{color:var(--red)}
+/* EDITOR */
+.editor-section{margin-bottom:1.2rem}
+.editor-section label{display:block;font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.5px}
+.editor-row{display:flex;gap:.5rem;align-items:center}
+.editor-row select,.editor-row input,.editor-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .7rem;border-radius:8px;font-size:.85rem;font-family:inherit;outline:none;transition:border-color .2s;width:100%}
+.editor-row select:focus,.editor-row input:focus,.editor-input:focus,.editor-textarea:focus{border-color:var(--primary)}
+.editor-row select{width:auto;min-width:90px;appearance:none;padding-right:1.8rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.editor-textarea{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.7rem;border-radius:8px;font-size:.8rem;font-family:'Courier New',monospace;outline:none;transition:border-color .2s;width:100%;resize:vertical;min-height:120px;line-height:1.6;tab-size:2}
+/* HEADERS LIST */
+.headers-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.4rem}
+.header-row{display:flex;gap:.4rem;align-items:center}
+.header-row input{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.35rem .5rem;border-radius:6px;font-size:.78rem;font-family:'Courier New',monospace;outline:none}
+.header-row input:focus{border-color:var(--primary)}
+.header-del{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.85rem;padding:2px}
+.header-del:hover{color:var(--red)}
+.add-header-btn{background:none;border:1px dashed var(--border);color:var(--text2);padding:.3rem .6rem;border-radius:6px;font-size:.75rem;cursor:pointer;transition:all .2s;width:100%;text-align:center}
+.add-header-btn:hover{border-color:var(--primary);color:var(--primary)}
+/* DELAY SLIDER */
+.delay-wrap{display:flex;align-items:center;gap:.6rem}
+.delay-wrap input[type="range"]{flex:1;accent-color:var(--primary);height:4px}
+.delay-val{font-size:.8rem;color:var(--cyan);font-weight:600;min-width:50px;text-align:right}
+/* BUTTONS */
+.btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:.35rem}
+.btn:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.btn-primary:hover{opacity:.9;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--accent))}
+.btn-sm{padding:.3rem .6rem;font-size:.75rem}
+/* PREVIEW */
+.preview-block{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem;position:relative}
+.preview-label{font-size:.7rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem}
+.preview-code{font-family:'Courier New',monospace;font-size:.8rem;line-height:1.6;white-space:pre-wrap;word-break:break-all;color:var(--text)}
+.preview-copy{position:absolute;top:.6rem;right:.6rem;background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:.25rem .5rem;border-radius:6px;font-size:.7rem;cursor:pointer;transition:all .2s}
+.preview-copy:hover{border-color:var(--primary);color:var(--primary)}
+/* SYNTAX */
+.hl-key{color:#c084fc}.hl-str{color:#4ade80}.hl-num{color:var(--cyan)}.hl-bool{color:var(--yellow)}.hl-null{color:#6b7280}.hl-brace{color:var(--text2)}
+/* STATUS BADGE */
+.status-badge{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:4px}
+.status-badge.s2xx{background:rgba(34,197,94,.15);color:var(--green)}
+.status-badge.s3xx{background:rgba(234,179,8,.15);color:var(--yellow)}
+.status-badge.s4xx{background:rgba(239,68,68,.15);color:var(--red)}
+.status-badge.s5xx{background:rgba(249,115,22,.15);color:var(--orange)}
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3rem 1rem;color:var(--text2)}
+.empty-state .icon{font-size:2.5rem;margin-bottom:.75rem;opacity:.4}
+.empty-state p{font-size:.85rem;margin-bottom:.75rem}
+/* GENERATE MENU */
+.gen-menu{position:relative;display:inline-block}
+.gen-dropdown{display:none;position:absolute;top:100%;left:0;margin-top:.3rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.3rem;min-width:180px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.gen-dropdown.show{display:block}
+.gen-dropdown button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);padding:.4rem .6rem;border-radius:6px;font-size:.8rem;cursor:pointer;transition:background .15s;font-family:inherit}
+.gen-dropdown button:hover{background:rgba(99,102,241,.12)}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .main-grid{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .editor-row{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>API Mock Server</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Define mock API endpoints with custom JSON responses, status codes, headers, and simulated delays. Generate curl commands, export shareable configurations, and create sample data for users, products, and posts. 100% client-side, no signup required.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button class="btn-primary btn" onclick="addEndpoint()">+ New Endpoint</button>
+    <div class="gen-menu">
+      <button class="btn" onclick="toggleGenMenu()" id="genBtn">Generate Sample</button>
+      <div class="gen-dropdown" id="genDropdown">
+        <button onclick="generateSample('users')">Users API (CRUD)</button>
+        <button onclick="generateSample('products')">Products API (CRUD)</button>
+        <button onclick="generateSample('posts')">Blog Posts API (CRUD)</button>
+        <button onclick="generateSample('auth')">Auth API (Login/Register)</button>
+        <button onclick="generateSample('comments')">Comments API</button>
+      </div>
+    </div>
+    <button class="btn" onclick="importConfig()">Import</button>
+    <button class="btn" onclick="exportConfig()">Export All</button>
+    <button class="btn" onclick="clearAll()">Clear All</button>
+    <span style="margin-left:auto;font-size:.75rem;color:var(--text2)" id="endpointCount">0 endpoints</span>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT: Endpoint List -->
+    <div class="panel">
+      <div class="panel-header"><span>Endpoints</span></div>
+      <div class="panel-body" id="endpointList">
+        <div class="empty-state" id="emptyState">
+          <div class="icon">&#x1f4e1;</div>
+          <p>No endpoints defined yet.<br>Click "New Endpoint" or generate a sample API.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Editor & Preview -->
+    <div class="panel">
+      <div class="panel-header"><span id="editorTitle">Endpoint Editor</span><span id="editorInfo"></span></div>
+      <div class="panel-body" id="editorPanel">
+        <div class="empty-state" id="editorEmpty">
+          <div class="icon">&#x270f;&#xfe0f;</div>
+          <p>Select an endpoint to edit, or create a new one.</p>
+        </div>
+        <div id="editorContent" style="display:none">
+          <!-- Method + Path -->
+          <div class="editor-section">
+            <label>Method & Path</label>
+            <div class="editor-row">
+              <select id="epMethod" onchange="updateEndpoint()">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+                <option value="PATCH">PATCH</option>
+              </select>
+              <input type="text" id="epPath" placeholder="/api/users" oninput="updateEndpoint()" spellcheck="false">
+            </div>
+          </div>
+
+          <!-- Status Code -->
+          <div class="editor-section">
+            <label>Status Code</label>
+            <div class="editor-row">
+              <select id="epStatus" onchange="updateEndpoint()">
+                <option value="200">200 OK</option>
+                <option value="201">201 Created</option>
+                <option value="204">204 No Content</option>
+                <option value="301">301 Moved Permanently</option>
+                <option value="302">302 Found</option>
+                <option value="304">304 Not Modified</option>
+                <option value="400">400 Bad Request</option>
+                <option value="401">401 Unauthorized</option>
+                <option value="403">403 Forbidden</option>
+                <option value="404">404 Not Found</option>
+                <option value="405">405 Method Not Allowed</option>
+                <option value="409">409 Conflict</option>
+                <option value="422">422 Unprocessable Entity</option>
+                <option value="429">429 Too Many Requests</option>
+                <option value="500">500 Internal Server Error</option>
+                <option value="502">502 Bad Gateway</option>
+                <option value="503">503 Service Unavailable</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Response Delay -->
+          <div class="editor-section">
+            <label>Response Delay</label>
+            <div class="delay-wrap">
+              <input type="range" id="epDelay" min="0" max="5000" step="100" value="0" oninput="updateDelay()">
+              <span class="delay-val" id="delayVal">0ms</span>
+            </div>
+          </div>
+
+          <!-- Response Headers -->
+          <div class="editor-section">
+            <label>Response Headers</label>
+            <div class="headers-list" id="headersList"></div>
+            <button class="add-header-btn" onclick="addHeader()">+ Add Header</button>
+          </div>
+
+          <!-- Response Body -->
+          <div class="editor-section">
+            <label>Response Body (JSON)</label>
+            <textarea class="editor-textarea" id="epBody" placeholder='{"message": "Hello World"}' oninput="updateEndpoint()" spellcheck="false" rows="8"></textarea>
+            <div style="display:flex;gap:.4rem;margin-top:.4rem">
+              <button class="btn btn-sm" onclick="formatBody()">Format</button>
+              <button class="btn btn-sm" onclick="minifyBody()">Minify</button>
+              <button class="btn btn-sm" onclick="validateBody()">Validate</button>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="editor-section">
+            <label>Description (optional)</label>
+            <input class="editor-input" type="text" id="epDesc" placeholder="Get all users" oninput="updateEndpoint()" spellcheck="false">
+          </div>
+
+          <!-- Preview: Curl Command -->
+          <div class="preview-block">
+            <div class="preview-label">cURL Command</div>
+            <button class="preview-copy" onclick="copyCurl()">Copy</button>
+            <div class="preview-code" id="curlPreview"></div>
+          </div>
+
+          <!-- Preview: Response -->
+          <div class="preview-block">
+            <div class="preview-label">Response Preview</div>
+            <button class="preview-copy" onclick="copyResponse()">Copy</button>
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+              <span class="status-badge" id="previewStatus"></span>
+              <span style="font-size:.75rem;color:var(--text2)" id="previewDelay"></span>
+            </div>
+            <div class="preview-code" id="responsePreview"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal (hidden file input) -->
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== STATE ===== */
+let endpoints = [];
+let selectedId = null;
+let nextId = 1;
+
+/* ===== FAKE DATA GENERATORS ===== */
+const FIRST_NAMES = ['Emma','Liam','Olivia','Noah','Ava','Ethan','Sophia','Mason','Isabella','James','Mia','Logan','Charlotte','Lucas','Amelia','Alexander','Harper','Daniel','Evelyn','Henry'];
+const LAST_NAMES = ['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez','Wilson','Anderson','Taylor','Thomas','Moore','Jackson','Martin','Lee','Thompson','White'];
+const DOMAINS = ['gmail.com','outlook.com','yahoo.com','proton.me','icloud.com'];
+const PRODUCT_NAMES = ['Ultra Widget','Pro Gadget','Smart Sensor','Power Module','Nano Controller','Flex Adapter','Turbo Engine','Eco Battery','Quantum Chip','Hyper Drive'];
+const PRODUCT_CATS = ['Electronics','Hardware','Software','Accessories','Components'];
+const POST_TITLES = ['Getting Started with REST APIs','10 Tips for Better Code','Understanding Microservices','A Guide to WebSockets','Building Scalable Systems','Docker Best Practices','GraphQL vs REST','CI/CD Pipeline Tutorial','Serverless Architecture','API Security Essentials'];
+const POST_TAGS = [['api','rest','tutorial'],['coding','tips','best-practices'],['microservices','architecture'],['websockets','realtime'],['scalability','architecture'],['docker','devops'],['graphql','api'],['ci-cd','devops'],['serverless','cloud'],['security','api']];
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randEl(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randId() { return crypto.randomUUID ? crypto.randomUUID().split('-')[0] : Math.random().toString(36).substr(2,8); }
+function randDate(startYear, endYear) {
+  var s = new Date(startYear,0,1).getTime(), e = new Date(endYear,11,31).getTime();
+  return new Date(s + Math.random()*(e-s)).toISOString();
+}
+function randEmail(first, last) { return (first+'.'+last).toLowerCase()+'@'+randEl(DOMAINS); }
+function randPrice() { return +(Math.random()*499+0.99).toFixed(2); }
+
+function genUsers(count) {
+  var arr = [];
+  for (var i = 0; i < count; i++) {
+    var fn = randEl(FIRST_NAMES), ln = randEl(LAST_NAMES);
+    arr.push({id:i+1, firstName:fn, lastName:ln, email:randEmail(fn,ln), age:randInt(18,65), role:randEl(['admin','user','moderator','editor']), active:Math.random()>0.2, avatar:'https://api.dicebear.com/7.x/initials/svg?seed='+fn+'+'+ln, createdAt:randDate(2023,2026)});
+  }
+  return arr;
+}
+function genProducts(count) {
+  var arr = [];
+  for (var i = 0; i < count; i++) {
+    var name = randEl(PRODUCT_NAMES)+' '+randEl(['X','Pro','Max','Lite','Plus','S','Mini']);
+    arr.push({id:i+1, name:name, slug:name.toLowerCase().replace(/\s+/g,'-'), price:randPrice(), currency:'USD', category:randEl(PRODUCT_CATS), inStock:Math.random()>0.15, rating:+(Math.random()*4+1).toFixed(1), reviewCount:randInt(0,500), sku:'SKU-'+randId().toUpperCase(), createdAt:randDate(2024,2026)});
+  }
+  return arr;
+}
+function genPosts(count) {
+  var arr = [];
+  for (var i = 0; i < count; i++) {
+    var idx = i % POST_TITLES.length;
+    arr.push({id:i+1, title:POST_TITLES[idx], slug:POST_TITLES[idx].toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,''), excerpt:'This article covers '+POST_TITLES[idx].toLowerCase()+' with practical examples and real-world patterns.', author:randEl(FIRST_NAMES)+' '+randEl(LAST_NAMES), tags:POST_TAGS[idx], published:Math.random()>0.1, readTime:randInt(3,15)+' min', createdAt:randDate(2024,2026), updatedAt:randDate(2025,2026)});
+  }
+  return arr;
+}
+function genComments(count) {
+  var arr = [];
+  for (var i = 0; i < count; i++) {
+    arr.push({id:i+1, postId:randInt(1,10), author:randEl(FIRST_NAMES)+' '+randEl(LAST_NAMES), body:'This is a sample comment with some meaningful content about the topic at hand.', likes:randInt(0,50), createdAt:randDate(2025,2026)});
+  }
+  return arr;
+}
+
+/* ===== ENDPOINT MANAGEMENT ===== */
+function addEndpoint(method, path, status, body, headers, delay, desc) {
+  var ep = {
+    id: nextId++,
+    method: method || 'GET',
+    path: path || '/api/resource',
+    status: status || '200',
+    body: body || '{\n  "message": "Success"\n}',
+    headers: headers || [{ key: 'Content-Type', value: 'application/json' }],
+    delay: delay || 0,
+    desc: desc || ''
+  };
+  endpoints.push(ep);
+  selectEndpoint(ep.id);
+  renderList();
+  return ep;
+}
+
+function removeEndpoint(id, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  endpoints = endpoints.filter(function(ep){ return ep.id !== id; });
+  if (selectedId === id) {
+    selectedId = null;
+    showEditor(false);
+  }
+  renderList();
+}
+
+function selectEndpoint(id) {
+  selectedId = id;
+  var ep = getSelected();
+  if (!ep) { showEditor(false); return; }
+  showEditor(true);
+  document.getElementById('epMethod').value = ep.method;
+  document.getElementById('epPath').value = ep.path;
+  document.getElementById('epStatus').value = ep.status;
+  document.getElementById('epBody').value = ep.body;
+  document.getElementById('epDelay').value = ep.delay;
+  document.getElementById('delayVal').textContent = ep.delay + 'ms';
+  document.getElementById('epDesc').value = ep.desc || '';
+  renderHeaders(ep.headers);
+  updatePreviews();
+  renderList();
+}
+
+function getSelected() {
+  return endpoints.find(function(ep){ return ep.id === selectedId; });
+}
+
+function showEditor(show) {
+  document.getElementById('editorEmpty').style.display = show ? 'none' : '';
+  document.getElementById('editorContent').style.display = show ? '' : 'none';
+}
+
+function updateEndpoint() {
+  var ep = getSelected();
+  if (!ep) return;
+  ep.method = document.getElementById('epMethod').value;
+  ep.path = document.getElementById('epPath').value;
+  ep.status = document.getElementById('epStatus').value;
+  ep.body = document.getElementById('epBody').value;
+  ep.desc = document.getElementById('epDesc').value;
+  updatePreviews();
+  renderList();
+}
+
+function updateDelay() {
+  var ep = getSelected();
+  var val = parseInt(document.getElementById('epDelay').value);
+  document.getElementById('delayVal').textContent = val + 'ms';
+  if (ep) { ep.delay = val; updatePreviews(); }
+}
+
+/* ===== HEADERS ===== */
+function renderHeaders(headers) {
+  var container = document.getElementById('headersList');
+  container.innerHTML = '';
+  headers.forEach(function(h, i) {
+    var row = document.createElement('div');
+    row.className = 'header-row';
+    row.innerHTML = '<input type="text" placeholder="Header name" value="'+escHtml(h.key)+'" oninput="updateHeader('+i+',\'key\',this.value)" spellcheck="false">' +
+      '<input type="text" placeholder="Value" value="'+escHtml(h.value)+'" oninput="updateHeader('+i+',\'value\',this.value)" spellcheck="false">' +
+      '<button class="header-del" onclick="removeHeader('+i+')" title="Remove">&times;</button>';
+    container.appendChild(row);
+  });
+}
+
+function addHeader() {
+  var ep = getSelected();
+  if (!ep) return;
+  ep.headers.push({ key: '', value: '' });
+  renderHeaders(ep.headers);
+}
+
+function removeHeader(idx) {
+  var ep = getSelected();
+  if (!ep) return;
+  ep.headers.splice(idx, 1);
+  renderHeaders(ep.headers);
+  updatePreviews();
+}
+
+function updateHeader(idx, field, val) {
+  var ep = getSelected();
+  if (!ep || !ep.headers[idx]) return;
+  ep.headers[idx][field] = val;
+  updatePreviews();
+}
+
+/* ===== RENDER LIST ===== */
+function renderList() {
+  var container = document.getElementById('endpointList');
+  var empty = document.getElementById('emptyState');
+  if (endpoints.length === 0) {
+    empty.style.display = '';
+    container.querySelectorAll('.ep-item').forEach(function(el){ el.remove(); });
+    document.getElementById('endpointCount').textContent = '0 endpoints';
+    return;
+  }
+  empty.style.display = 'none';
+  // Remove old items
+  container.querySelectorAll('.ep-item').forEach(function(el){ el.remove(); });
+  endpoints.forEach(function(ep) {
+    var item = document.createElement('div');
+    item.className = 'ep-item' + (ep.id === selectedId ? ' selected' : '');
+    item.onclick = function() { selectEndpoint(ep.id); };
+    var sc = parseInt(ep.status);
+    var scClass = sc >= 500 ? 's5xx' : sc >= 400 ? 's4xx' : sc >= 300 ? 's3xx' : 's2xx';
+    item.innerHTML = '<span class="ep-method '+ep.method+'">'+ep.method+'</span>' +
+      '<span class="ep-path">'+escHtml(ep.path)+'</span>' +
+      '<span class="status-badge '+scClass+'">'+ep.status+'</span>' +
+      '<button class="ep-del" onclick="removeEndpoint('+ep.id+',event)" title="Delete">&times;</button>';
+    container.appendChild(item);
+  });
+  document.getElementById('endpointCount').textContent = endpoints.length + ' endpoint' + (endpoints.length !== 1 ? 's' : '');
+}
+
+/* ===== PREVIEWS ===== */
+function updatePreviews() {
+  var ep = getSelected();
+  if (!ep) return;
+  // Status badge
+  var sc = parseInt(ep.status);
+  var scClass = sc >= 500 ? 's5xx' : sc >= 400 ? 's4xx' : sc >= 300 ? 's3xx' : 's2xx';
+  var previewStatus = document.getElementById('previewStatus');
+  previewStatus.className = 'status-badge ' + scClass;
+  previewStatus.textContent = ep.status;
+  // Delay
+  document.getElementById('previewDelay').textContent = ep.delay > 0 ? '(+' + ep.delay + 'ms delay)' : '';
+  // Curl
+  var baseUrl = 'https://mock.example.com';
+  var curl = 'curl';
+  if (ep.method !== 'GET') curl += ' -X ' + ep.method;
+  curl += ' "' + baseUrl + ep.path + '"';
+  ep.headers.forEach(function(h) {
+    if (h.key) curl += ' \\\n  -H "' + h.key + ': ' + h.value + '"';
+  });
+  if (['POST','PUT','PATCH'].indexOf(ep.method) !== -1) {
+    curl += " \\\n  -d '" + (ep.body || '{}') + "'";
+  }
+  document.getElementById('curlPreview').textContent = curl;
+  // Response body
+  var bodyStr = ep.body || '';
+  try {
+    var parsed = JSON.parse(bodyStr);
+    document.getElementById('responsePreview').innerHTML = syntaxHighlight(JSON.stringify(parsed, null, 2));
+  } catch (e) {
+    document.getElementById('responsePreview').textContent = bodyStr;
+  }
+  // Editor title
+  document.getElementById('editorTitle').textContent = ep.method + ' ' + ep.path;
+  document.getElementById('editorInfo').textContent = ep.desc || '';
+}
+
+/* ===== BODY HELPERS ===== */
+function formatBody() {
+  var ta = document.getElementById('epBody');
+  try {
+    var obj = JSON.parse(ta.value);
+    ta.value = JSON.stringify(obj, null, 2);
+    updateEndpoint();
+    showToast('Body formatted');
+  } catch (e) {
+    showToast('Invalid JSON: ' + e.message);
+  }
+}
+
+function minifyBody() {
+  var ta = document.getElementById('epBody');
+  try {
+    var obj = JSON.parse(ta.value);
+    ta.value = JSON.stringify(obj);
+    updateEndpoint();
+    showToast('Body minified');
+  } catch (e) {
+    showToast('Invalid JSON: ' + e.message);
+  }
+}
+
+function validateBody() {
+  var ta = document.getElementById('epBody');
+  try {
+    JSON.parse(ta.value);
+    showToast('Valid JSON');
+  } catch (e) {
+    showToast('Invalid JSON: ' + e.message);
+  }
+}
+
+/* ===== GENERATE SAMPLES ===== */
+function generateSample(type) {
+  closeGenMenu();
+  if (type === 'users') {
+    var users = genUsers(5);
+    addEndpoint('GET', '/api/users', '200', JSON.stringify(users, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 0, 'List all users');
+    addEndpoint('GET', '/api/users/:id', '200', JSON.stringify(users[0], null, 2), [{ key: 'Content-Type', value: 'application/json' }], 0, 'Get user by ID');
+    addEndpoint('POST', '/api/users', '201', JSON.stringify({ id: 6, firstName: 'New', lastName: 'User', email: 'new@example.com', message: 'User created successfully' }, null, 2), [{ key: 'Content-Type', value: 'application/json' }, { key: 'Location', value: '/api/users/6' }], 200, 'Create a new user');
+    addEndpoint('PUT', '/api/users/:id', '200', JSON.stringify({ id: 1, firstName: 'Updated', lastName: 'User', email: 'updated@example.com', message: 'User updated successfully' }, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 100, 'Update user by ID');
+    addEndpoint('DELETE', '/api/users/:id', '204', '', [{ key: 'Content-Type', value: 'application/json' }], 0, 'Delete user by ID');
+    selectEndpoint(endpoints[0].id);
+  } else if (type === 'products') {
+    var products = genProducts(8);
+    addEndpoint('GET', '/api/products', '200', JSON.stringify(products, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 0, 'List all products');
+    addEndpoint('GET', '/api/products/:id', '200', JSON.stringify(products[0], null, 2), [{ key: 'Content-Type', value: 'application/json' }], 0, 'Get product by ID');
+    addEndpoint('POST', '/api/products', '201', JSON.stringify({ id: 9, name: 'New Product', price: 29.99, message: 'Product created' }, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 300, 'Create a new product');
+    addEndpoint('PUT', '/api/products/:id', '200', JSON.stringify({ id: 1, name: 'Updated Product', price: 39.99, message: 'Product updated' }, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 100, 'Update product by ID');
+    addEndpoint('DELETE', '/api/products/:id', '204', '', [{ key: 'Content-Type', value: 'application/json' }], 0, 'Delete product by ID');
+    selectEndpoint(endpoints[endpoints.length - 5].id);
+  } else if (type === 'posts') {
+    var posts = genPosts(6);
+    addEndpoint('GET', '/api/posts', '200', JSON.stringify(posts, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 0, 'List all posts');
+    addEndpoint('GET', '/api/posts/:id', '200', JSON.stringify(posts[0], null, 2), [{ key: 'Content-Type', value: 'application/json' }], 0, 'Get post by ID');
+    addEndpoint('POST', '/api/posts', '201', JSON.stringify({ id: 7, title: 'New Post', slug: 'new-post', message: 'Post created' }, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 200, 'Create a new post');
+    addEndpoint('PATCH', '/api/posts/:id', '200', JSON.stringify({ id: 1, title: 'Updated Title', message: 'Post updated' }, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 100, 'Update post fields');
+    addEndpoint('DELETE', '/api/posts/:id', '204', '', [{ key: 'Content-Type', value: 'application/json' }], 0, 'Delete post by ID');
+    selectEndpoint(endpoints[endpoints.length - 5].id);
+  } else if (type === 'auth') {
+    addEndpoint('POST', '/api/auth/register', '201', JSON.stringify({ id: 1, email: 'user@example.com', token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzA5MDAwMDAwfQ.mock-signature', message: 'Registration successful' }, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 500, 'Register a new user');
+    addEndpoint('POST', '/api/auth/login', '200', JSON.stringify({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzA5MDAwMDAwfQ.mock-signature', refreshToken: 'rt_mock_'+randId(), expiresIn: 3600, user: { id: 1, email: 'user@example.com', role: 'user' } }, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 300, 'Login with credentials');
+    addEndpoint('POST', '/api/auth/refresh', '200', JSON.stringify({ token: 'eyJhbGciOiJIUzI1NiJ9.new-token.mock', expiresIn: 3600 }, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 100, 'Refresh access token');
+    addEndpoint('POST', '/api/auth/logout', '200', JSON.stringify({ message: 'Logged out successfully' }, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 0, 'Logout');
+    addEndpoint('GET', '/api/auth/me', '200', JSON.stringify({ id: 1, email: 'user@example.com', firstName: 'John', lastName: 'Doe', role: 'user', createdAt: '2025-01-15T10:30:00Z' }, null, 2), [{ key: 'Content-Type', value: 'application/json' }, { key: 'Authorization', value: 'Bearer <token>' }], 0, 'Get current user profile');
+    selectEndpoint(endpoints[endpoints.length - 5].id);
+  } else if (type === 'comments') {
+    var comments = genComments(10);
+    addEndpoint('GET', '/api/posts/:postId/comments', '200', JSON.stringify(comments, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 0, 'Get comments for a post');
+    addEndpoint('POST', '/api/posts/:postId/comments', '201', JSON.stringify({ id: 11, postId: 1, author: 'Jane Doe', body: 'Great article!', likes: 0, createdAt: new Date().toISOString() }, null, 2), [{ key: 'Content-Type', value: 'application/json' }], 200, 'Add comment to a post');
+    addEndpoint('DELETE', '/api/comments/:id', '204', '', [{ key: 'Content-Type', value: 'application/json' }], 0, 'Delete comment by ID');
+    selectEndpoint(endpoints[endpoints.length - 3].id);
+  }
+  showToast('Generated ' + type + ' API endpoints');
+}
+
+/* ===== IMPORT / EXPORT ===== */
+function exportConfig() {
+  if (endpoints.length === 0) { showToast('No endpoints to export'); return; }
+  var config = {
+    name: 'NexTool API Mock Configuration',
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    baseUrl: 'https://mock.example.com',
+    endpoints: endpoints.map(function(ep) {
+      return {
+        method: ep.method,
+        path: ep.path,
+        status: parseInt(ep.status),
+        delay: ep.delay,
+        description: ep.desc,
+        headers: ep.headers.reduce(function(obj, h) { if (h.key) obj[h.key] = h.value; return obj; }, {}),
+        body: (function() { try { return JSON.parse(ep.body); } catch(e) { return ep.body; } })()
+      };
+    })
+  };
+  var blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'api-mock-config.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Exported ' + endpoints.length + ' endpoints');
+}
+
+function importConfig() {
+  document.getElementById('importFile').click();
+}
+
+function handleImport(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var config = JSON.parse(e.target.result);
+      var items = config.endpoints || config;
+      if (!Array.isArray(items)) { showToast('Invalid config format'); return; }
+      items.forEach(function(item) {
+        var headers = [];
+        if (item.headers) {
+          if (Array.isArray(item.headers)) {
+            headers = item.headers;
+          } else {
+            Object.keys(item.headers).forEach(function(k) {
+              headers.push({ key: k, value: item.headers[k] });
+            });
+          }
+        }
+        if (headers.length === 0) headers.push({ key: 'Content-Type', value: 'application/json' });
+        var bodyStr = '';
+        if (item.body !== undefined && item.body !== null) {
+          bodyStr = typeof item.body === 'string' ? item.body : JSON.stringify(item.body, null, 2);
+        }
+        addEndpoint(
+          item.method || 'GET',
+          item.path || item.url || '/api/resource',
+          String(item.status || item.statusCode || 200),
+          bodyStr,
+          headers,
+          item.delay || 0,
+          item.description || item.desc || ''
+        );
+      });
+      showToast('Imported ' + items.length + ' endpoints');
+    } catch (err) {
+      showToast('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+/* ===== COPY ===== */
+function copyCurl() {
+  var text = document.getElementById('curlPreview').textContent;
+  navigator.clipboard.writeText(text).then(function() { showToast('cURL command copied'); });
+}
+
+function copyResponse() {
+  var ep = getSelected();
+  if (!ep) return;
+  navigator.clipboard.writeText(ep.body || '').then(function() { showToast('Response body copied'); });
+}
+
+/* ===== CLEAR ===== */
+function clearAll() {
+  if (endpoints.length > 0 && !confirm('Remove all ' + endpoints.length + ' endpoints?')) return;
+  endpoints = [];
+  selectedId = null;
+  nextId = 1;
+  showEditor(false);
+  renderList();
+  showToast('All endpoints cleared');
+}
+
+/* ===== DROPDOWN ===== */
+function toggleGenMenu() {
+  document.getElementById('genDropdown').classList.toggle('show');
+}
+function closeGenMenu() {
+  document.getElementById('genDropdown').classList.remove('show');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.gen-menu')) closeGenMenu();
+});
+
+/* ===== SYNTAX HIGHLIGHT ===== */
+function syntaxHighlight(json) {
+  return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|\bnull\b|[{}\[\],])/g, function(match) {
+      var cls = 'hl-num';
+      if (/^"/.test(match)) {
+        cls = /:$/.test(match) ? 'hl-key' : 'hl-str';
+      } else if (/true|false/.test(match)) {
+        cls = 'hl-bool';
+      } else if (/null/.test(match)) {
+        cls = 'hl-null';
+      } else if (/[{}\[\],]/.test(match)) {
+        cls = 'hl-brace';
+      }
+      return '<span class="' + cls + '">' + match + '</span>';
+    });
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ===== TOAST ===== */
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+/* ===== FADE IN ===== */
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+
+/* ===== PERSIST TO LOCALSTORAGE ===== */
+function saveState() {
+  try {
+    localStorage.setItem('nextool_mock_endpoints', JSON.stringify(endpoints));
+    localStorage.setItem('nextool_mock_nextId', nextId);
+  } catch(e) {}
+}
+function loadState() {
+  try {
+    var stored = localStorage.getItem('nextool_mock_endpoints');
+    var storedId = localStorage.getItem('nextool_mock_nextId');
+    if (stored) {
+      endpoints = JSON.parse(stored);
+      nextId = storedId ? parseInt(storedId) : (endpoints.length > 0 ? Math.max.apply(null, endpoints.map(function(ep){return ep.id;})) + 1 : 1);
+      renderList();
+      if (endpoints.length > 0) selectEndpoint(endpoints[0].id);
+    }
+  } catch(e) {}
+}
+
+// Auto-save on changes
+var origAdd = addEndpoint;
+var origUpdate = updateEndpoint;
+var origDelay = updateDelay;
+
+var _saveTimeout;
+function debounceSave() { clearTimeout(_saveTimeout); _saveTimeout = setTimeout(saveState, 500); }
+
+// Wrap update functions for auto-save
+var _origUpdateEndpoint = updateEndpoint;
+updateEndpoint = function() { _origUpdateEndpoint(); debounceSave(); };
+var _origUpdateDelay = updateDelay;
+updateDelay = function() { _origUpdateDelay(); debounceSave(); };
+
+// Observer for add/remove (save after render)
+var _origRenderList = renderList;
+renderList = function() { _origRenderList(); debounceSave(); };
+
+// Init
+loadState();
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is an API mock server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "An API mock server simulates real API endpoints by returning predefined responses. It helps developers test frontend applications, prototype APIs, and demonstrate API behavior without needing a real backend. NexTool's mock server runs entirely in your browser."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I export mock API configurations?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, you can export all your mock endpoints as a JSON configuration file. This file includes methods, paths, status codes, headers, response bodies, and delay settings. You can share it with teammates or import it later."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does this tool generate realistic sample data?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, the tool includes built-in generators for Users, Products, Blog Posts, Auth endpoints, and Comments. Each generates realistic data with names, emails, prices, dates, and more — all created client-side with no external API calls."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this API mock server free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's API Mock Server is completely free. No signup, no download, and no server required. Everything runs in your browser for maximum privacy and speed."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>

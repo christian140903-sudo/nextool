@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free NPM Package Analyzer — Audit Dependencies | NexTool</title>
+<meta name="description" content="Free npm package.json analyzer. Audit dependencies, detect duplicates, estimate bundle size, check licenses, find security risks. 100% client-side, no signup.">
+<meta name="keywords" content="npm package analyzer, package.json audit, dependency analyzer, bundle size estimator, npm security check, license checker, free online tool, NexTool">
+<meta property="og:title" content="Free NPM Package Analyzer | NexTool">
+<meta property="og:description" content="Analyze your package.json dependencies instantly. Bundle size, security risks, duplicates, licenses. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/npm-package-analyzer.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/npm-package-analyzer.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free NPM Package Analyzer | NexTool">
+<meta name="twitter:description" content="Analyze your package.json dependencies instantly. Free online tool by NexTool.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool NPM Package Analyzer","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online npm package.json analyzer with dependency auditing, bundle size estimation, and security checks."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#f97316;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.valid{background:var(--green)}
+.status-dot.invalid{background:var(--red)}
+.status-dot.empty{background:var(--border)}
+/* PANELS */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:500px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto}
+#pkgInput{width:100%;height:100%;min-height:400px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:none;outline:none;line-height:1.7;tab-size:2}
+#pkgInput::placeholder{color:var(--text2);opacity:.5}
+.results{padding:1rem;font-family:'Inter',sans-serif;font-size:.85rem;overflow-y:auto;min-height:400px}
+/* SUMMARY CARDS */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;margin-bottom:1.2rem}
+.summary-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.8rem;text-align:center}
+.summary-card .sc-val{font-size:1.6rem;font-weight:800;line-height:1.2}
+.summary-card .sc-label{font-size:.7rem;color:var(--text2);margin-top:.15rem;text-transform:uppercase;letter-spacing:.5px}
+.sc-green{color:var(--green)}
+.sc-yellow{color:var(--yellow)}
+.sc-red{color:var(--red)}
+.sc-cyan{color:var(--cyan)}
+.sc-primary{color:var(--primary)}
+.sc-accent{color:var(--accent)}
+.sc-orange{color:var(--orange)}
+/* SECTIONS */
+.section-block{margin-bottom:1.2rem}
+.section-title{font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem}
+.section-title .st-icon{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0}
+.st-red{background:rgba(239,68,68,.15);color:var(--red)}
+.st-yellow{background:rgba(234,179,8,.15);color:var(--yellow)}
+.st-green{background:rgba(34,197,94,.15);color:var(--green)}
+.st-cyan{background:rgba(34,211,238,.15);color:var(--cyan)}
+.st-primary{background:rgba(99,102,241,.15);color:var(--primary)}
+.st-accent{background:rgba(168,85,247,.15);color:var(--accent)}
+/* ITEMS */
+.dep-item{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;border-radius:6px;margin-bottom:.25rem;font-size:.8rem;background:rgba(26,26,36,0.4)}
+.dep-item:hover{background:rgba(99,102,241,.06)}
+.dep-name{font-weight:600;color:var(--text);flex:1;font-family:'Courier New',monospace;font-size:.78rem}
+.dep-ver{color:var(--text2);font-family:'Courier New',monospace;font-size:.75rem}
+.dep-size{color:var(--cyan);font-size:.72rem;min-width:50px;text-align:right}
+.dep-license{font-size:.68rem;padding:1px 6px;border-radius:4px;font-weight:500}
+.lic-mit{background:rgba(34,197,94,.12);color:var(--green)}
+.lic-apache{background:rgba(34,211,238,.12);color:var(--cyan)}
+.lic-isc{background:rgba(99,102,241,.12);color:var(--primary)}
+.lic-bsd{background:rgba(168,85,247,.12);color:var(--accent)}
+.lic-gpl{background:rgba(239,68,68,.12);color:var(--red)}
+.lic-unknown{background:rgba(148,163,184,.1);color:var(--text2)}
+/* BADGES */
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:600;margin-left:.25rem}
+.badge-risk{background:rgba(239,68,68,.15);color:var(--red)}
+.badge-warn{background:rgba(234,179,8,.15);color:var(--yellow)}
+.badge-ok{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-info{background:rgba(99,102,241,.15);color:var(--primary)}
+/* ISSUE ROWS */
+.issue-row{display:flex;align-items:flex-start;gap:.5rem;padding:.5rem .6rem;border-radius:6px;margin-bottom:.3rem;font-size:.8rem;line-height:1.4}
+.issue-row.risk{background:rgba(239,68,68,.06);border-left:3px solid var(--red)}
+.issue-row.warn{background:rgba(234,179,8,.06);border-left:3px solid var(--yellow)}
+.issue-row.info{background:rgba(99,102,241,.06);border-left:3px solid var(--primary)}
+.issue-row.ok{background:rgba(34,197,94,.06);border-left:3px solid var(--green)}
+.issue-icon{flex-shrink:0;width:16px;text-align:center}
+.issue-text{flex:1}
+.issue-text strong{font-weight:600}
+/* OPTIMIZE BLOCK */
+.optimize-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-top:.5rem;white-space:pre-wrap;font-family:'Courier New',monospace;font-size:.78rem;color:var(--text);line-height:1.6;max-height:300px;overflow-y:auto;position:relative}
+.copy-opt{position:absolute;top:.5rem;right:.5rem;background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:.3rem .6rem;border-radius:6px;font-size:.7rem;cursor:pointer;font-family:inherit}
+.copy-opt:hover{border-color:var(--primary);color:var(--text)}
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:300px;color:var(--text2);text-align:center;padding:2rem}
+.empty-state .es-icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+.empty-state p{font-size:.85rem;max-width:280px}
+/* SCORE BAR */
+.score-bar{width:100%;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-top:.3rem}
+.score-fill{height:100%;border-radius:4px;transition:width .5s}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>NPM Package Analyzer</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Paste your package.json to instantly audit dependencies. Get bundle size estimates, detect overlapping packages, find security risks, check licenses, and receive optimized suggestions. Runs entirely in your browser.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button onclick="analyzePackage()" title="Analyze dependencies">Analyze</button>
+    <button onclick="copyResults()" title="Copy analysis report">Copy Report</button>
+    <button onclick="downloadReport()" title="Download report as text">Download Report</button>
+    <button onclick="generateOptimized()" title="Generate optimized package.json">Optimize</button>
+    <button onclick="clearAll()" title="Clear input and output">Clear</button>
+    <button onclick="loadSample()" title="Load sample package.json">Sample</button>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Paste package.json to begin</span>
+    <span id="sizeInfo" style="margin-left:auto"></span>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-header"><span>package.json Input</span><span id="lineCount"></span></div>
+      <div class="panel-body">
+        <textarea id="pkgInput" placeholder='Paste your package.json here...&#10;&#10;Example:&#10;{&#10;  "name": "my-app",&#10;  "dependencies": {&#10;    "react": "^18.2.0",&#10;    "next": "^14.0.0"&#10;  }&#10;}' spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span id="outputLabel">Analysis</span><span id="outputInfo"></span></div>
+      <div class="panel-body results" id="resultsPanel">
+        <div class="empty-state" id="emptyState">
+          <div class="es-icon">&#128230;</div>
+          <p>Paste a package.json on the left and click <strong>Analyze</strong> to audit your dependencies.</p>
+        </div>
+        <div id="analysisOutput" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const input = document.getElementById('pkgInput');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const sizeInfo = document.getElementById('sizeInfo');
+const lineCount = document.getElementById('lineCount');
+const outputLabel = document.getElementById('outputLabel');
+const outputInfo = document.getElementById('outputInfo');
+const emptyState = document.getElementById('emptyState');
+const analysisOutput = document.getElementById('analysisOutput');
+let lastParsed = null;
+let lastReport = '';
+
+input.addEventListener('input', debounce(autoCheck, 400));
+input.addEventListener('input', updateLineCount);
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function updateLineCount() {
+  const lines = input.value.split('\n').length;
+  lineCount.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024, sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ==================== KNOWLEDGE DATABASES ==================== */
+
+// Estimated minified+gzipped sizes in KB for popular packages
+const BUNDLE_SIZES = {
+  'react':6.4,'react-dom':42,'next':90,'vue':34,'angular':62,'svelte':2,'@angular/core':90,
+  'lodash':71,'underscore':7,'ramda':50,'lodash-es':71,
+  'moment':67,'dayjs':2.9,'date-fns':18,'luxon':23,
+  'axios':14,'node-fetch':3,'got':48,'superagent':18,'ky':3.5,
+  'express':33,'fastify':18,'koa':8,'hapi':45,'@hapi/hapi':45,
+  'jquery':30,'zepto':10,
+  'webpack':200,'rollup':25,'vite':15,'parcel':120,'esbuild':0.4,
+  'typescript':3400,'ts-node':12,
+  'babel-core':20,'@babel/core':22,
+  'tailwindcss':20,'bootstrap':25,'bulma':10,'foundation-sites':30,
+  'three':150,'d3':80,'chart.js':60,'recharts':45,'plotly.js':1000,
+  'socket.io':30,'ws':3,'socket.io-client':20,
+  'mongoose':120,'sequelize':150,'typeorm':200,'prisma':15,'knex':30,
+  'redux':2,'mobx':16,'zustand':1,'recoil':22,'@reduxjs/toolkit':12,
+  'rxjs':30,'immer':6,
+  'chalk':5,'ora':8,'inquirer':18,'commander':6,'yargs':12,
+  'jest':500,'mocha':60,'chai':20,'vitest':40,'ava':30,
+  'eslint':200,'prettier':120,'stylelint':80,
+  'dotenv':1,'cross-env':0.5,
+  'uuid':2,'nanoid':0.5,'cuid':1,
+  'bcrypt':10,'bcryptjs':6,'argon2':15,
+  'jsonwebtoken':8,'passport':5,'passport-local':1,
+  'nodemon':20,'concurrently':5,'pm2':60,
+  'cheerio':30,'puppeteer':2,'playwright':3,
+  'sharp':25,'jimp':50,'imagemin':5,
+  'winston':18,'pino':5,'morgan':3,'bunyan':12,
+  'cors':1,'helmet':3,'compression':2,'body-parser':3,
+  'formik':15,'react-hook-form':9,'yup':15,'zod':3,'joi':30,
+  'styled-components':16,'emotion':8,'@emotion/react':8,'@emotion/styled':4,
+  'material-ui':90,'@mui/material':90,'@chakra-ui/react':60,'antd':120,
+  'framer-motion':30,'react-spring':18,'gsap':25,
+  'i18next':8,'react-i18next':4,
+  'graphql':40,'apollo-server':50,'@apollo/client':35,
+  'firebase':90,'aws-sdk':200,'@aws-sdk/client-s3':20,
+  'stripe':30,'paypal-rest-sdk':15,
+  'next-auth':20,'@auth/core':12,
+  'react-router':10,'react-router-dom':12,'wouter':1.5,
+  'swr':5,'react-query':12,'@tanstack/react-query':12,
+  'storybook':150,'@storybook/react':150,
+  'husky':2,'lint-staged':8,
+  'request':100,'node-gyp':15,
+  'left-pad':0.1,'is-odd':0.1,'is-even':0.1,'is-number':0.1,
+  'colors':6,'debug':3,'semver':4,'glob':8,'minimatch':3,
+  'fs-extra':6,'mkdirp':1,'rimraf':2,'del':4,
+  'async':8,'bluebird':20,'p-queue':2,
+  'crypto-js':15,'tweetnacl':4,
+  'marked':10,'markdown-it':20,'remark':15,
+  'highlight.js':40,'prismjs':8,
+  'sass':150,'less':60,'postcss':5,'autoprefixer':8,
+  'webpack-dev-server':80,'webpack-cli':40,
+  'babel-loader':2,'css-loader':3,'style-loader':1,'file-loader':1,
+  'html-webpack-plugin':10,'mini-css-extract-plugin':5,
+};
+
+// Known license info for popular packages
+const PKG_LICENSES = {
+  'react':'MIT','react-dom':'MIT','next':'MIT','vue':'MIT','angular':'MIT','svelte':'MIT',
+  'lodash':'MIT','underscore':'MIT','ramda':'MIT','moment':'MIT','dayjs':'MIT','date-fns':'MIT','luxon':'MIT',
+  'axios':'MIT','node-fetch':'MIT','express':'MIT','fastify':'MIT','koa':'MIT',
+  'jquery':'MIT','typescript':'Apache-2.0','webpack':'MIT','rollup':'MIT','vite':'MIT',
+  'tailwindcss':'MIT','bootstrap':'MIT','three':'MIT','d3':'ISC','chart.js':'MIT',
+  'mongoose':'MIT','sequelize':'MIT','typeorm':'MIT','prisma':'Apache-2.0','knex':'MIT',
+  'redux':'MIT','mobx':'MIT','zustand':'MIT','rxjs':'Apache-2.0',
+  'jest':'MIT','mocha':'MIT','vitest':'MIT','eslint':'MIT','prettier':'MIT',
+  'dotenv':'BSD-2-Clause','uuid':'MIT','nanoid':'MIT','bcrypt':'MIT','bcryptjs':'MIT',
+  'jsonwebtoken':'MIT','passport':'MIT','nodemon':'MIT','pm2':'AGPL-3.0',
+  'puppeteer':'Apache-2.0','playwright':'Apache-2.0','sharp':'Apache-2.0',
+  'winston':'MIT','pino':'MIT','cors':'MIT','helmet':'MIT',
+  'formik':'Apache-2.0','yup':'MIT','zod':'MIT','joi':'BSD-3-Clause',
+  'styled-components':'MIT','antd':'MIT','firebase':'Apache-2.0',
+  'aws-sdk':'Apache-2.0','stripe':'MIT','graphql':'MIT',
+  'react-router':'MIT','react-router-dom':'MIT','swr':'MIT',
+  'husky':'MIT','lint-staged':'MIT','chalk':'MIT','commander':'MIT',
+  'glob':'ISC','minimatch':'ISC','semver':'ISC','debug':'MIT',
+  'fs-extra':'MIT','rimraf':'ISC','async':'MIT','bluebird':'MIT',
+  'sass':'MIT','less':'Apache-2.0','postcss':'MIT','autoprefixer':'MIT',
+  'marked':'MIT','highlight.js':'BSD-3-Clause','prismjs':'MIT',
+  'cheerio':'MIT','socket.io':'MIT','ws':'MIT',
+  'cross-env':'MIT','concurrently':'MIT','immer':'MIT',
+  'framer-motion':'MIT','gsap':'Standard (Paid)','storybook':'MIT',
+  '@storybook/react':'MIT','i18next':'MIT','@apollo/client':'MIT',
+  '@mui/material':'MIT','@chakra-ui/react':'MIT','@emotion/react':'MIT',
+  '@tanstack/react-query':'MIT','next-auth':'ISC','@auth/core':'ISC',
+  'left-pad':'WTFPL','request':'Apache-2.0','colors':'MIT',
+  'crypto-js':'MIT','argon2':'MIT','@babel/core':'MIT',
+  'esbuild':'MIT','parcel':'MIT',
+};
+
+// Packages with known security concerns
+const SECURITY_RISKS = {
+  'event-stream': {level:'high',reason:'Previously compromised with malicious code (flatmap-stream incident)'},
+  'ua-parser-js': {level:'medium',reason:'Had supply chain attack in 2021'},
+  'coa': {level:'medium',reason:'Had supply chain attack in 2021'},
+  'rc': {level:'medium',reason:'Had supply chain attack in 2021'},
+  'colors': {level:'medium',reason:'Author intentionally corrupted package in protest (v1.4.1+)'},
+  'faker': {level:'medium',reason:'Author intentionally corrupted package in protest'},
+  'node-ipc': {level:'high',reason:'Author added protestware that could delete files'},
+  'request': {level:'low',reason:'Deprecated since 2020, no longer maintained or patched'},
+  'left-pad': {level:'low',reason:'Trivial package, famously caused npm incident'},
+  'is-odd': {level:'low',reason:'Trivial one-liner, unnecessary dependency'},
+  'is-even': {level:'low',reason:'Trivial one-liner, depends on is-odd'},
+  'is-number': {level:'low',reason:'Trivial one-liner, unnecessary dependency'},
+  'eval': {level:'high',reason:'Evaluates arbitrary code strings, severe security risk'},
+  'serialize-javascript': {level:'medium',reason:'Had prototype pollution vulnerability'},
+  'lodash': {level:'low',reason:'Large bundle, many utilities available natively in modern JS'},
+  'moment': {level:'low',reason:'Deprecated by maintainers in favor of alternatives like Luxon or Day.js'},
+  'underscore': {level:'low',reason:'Largely superseded by native ES6+ methods'},
+  'jquery': {level:'low',reason:'Usually unnecessary in modern frameworks (React, Vue, etc.)'},
+};
+
+// Overlapping / duplicate purpose packages
+const OVERLAP_GROUPS = [
+  {name:'Date/Time',packages:['moment','dayjs','date-fns','luxon'],suggestion:'Pick one: dayjs (smallest) or date-fns (tree-shakable)'},
+  {name:'HTTP Client',packages:['axios','node-fetch','got','superagent','ky','request'],suggestion:'Pick one: fetch (native), axios (popular), or ky (tiny)'},
+  {name:'State Management',packages:['redux','mobx','zustand','recoil','@reduxjs/toolkit'],suggestion:'Pick one: zustand (simplest) or @reduxjs/toolkit (full-featured)'},
+  {name:'CSS Framework',packages:['tailwindcss','bootstrap','bulma','foundation-sites'],suggestion:'Pick one: tailwindcss (utility-first) or bootstrap (components)'},
+  {name:'Bundler',packages:['webpack','rollup','vite','parcel','esbuild'],suggestion:'Vite or esbuild for speed; webpack for complex configs'},
+  {name:'Testing',packages:['jest','mocha','vitest','ava'],suggestion:'Pick one: vitest (fast, Vite-native) or jest (established)'},
+  {name:'Logging',packages:['winston','pino','morgan','bunyan'],suggestion:'Pick one: pino (fastest) or winston (most features)'},
+  {name:'Validation',packages:['yup','zod','joi'],suggestion:'Pick one: zod (TypeScript-first) or yup (popular)'},
+  {name:'CSS-in-JS',packages:['styled-components','@emotion/react','@emotion/styled'],suggestion:'Pick one: emotion (lighter) or styled-components (popular)'},
+  {name:'ID Generation',packages:['uuid','nanoid','cuid'],suggestion:'Pick one: nanoid (smallest) or uuid (standard)'},
+  {name:'Password Hashing',packages:['bcrypt','bcryptjs','argon2'],suggestion:'Pick one: argon2 (strongest) or bcryptjs (pure JS)'},
+  {name:'Animation',packages:['framer-motion','react-spring','gsap'],suggestion:'Pick one: framer-motion (React) or gsap (generic)'},
+  {name:'Markdown',packages:['marked','markdown-it','remark'],suggestion:'Pick one: marked (fastest) or remark (pluggable)'},
+  {name:'Form Handling',packages:['formik','react-hook-form'],suggestion:'react-hook-form (better performance, smaller bundle)'},
+  {name:'Data Fetching',packages:['swr','react-query','@tanstack/react-query'],suggestion:'Pick one: @tanstack/react-query (most features) or swr (simpler)'},
+  {name:'UI Library',packages:['@mui/material','antd','@chakra-ui/react'],suggestion:'Pick one based on your design needs'},
+  {name:'Router',packages:['react-router','react-router-dom','wouter'],suggestion:'wouter (tiny) or react-router-dom (full-featured)'},
+  {name:'Lodash-style',packages:['lodash','lodash-es','underscore','ramda'],suggestion:'Use native JS methods or lodash-es with tree-shaking'},
+  {name:'Process Manager',packages:['nodemon','pm2','concurrently'],suggestion:'nodemon (dev), pm2 (production), concurrently (parallel scripts)'},
+  {name:'File System',packages:['fs-extra','mkdirp','rimraf','del'],suggestion:'fs-extra replaces mkdirp+rimraf; or use native fs.rm/fs.mkdir'},
+  {name:'Promise',packages:['bluebird','async','p-queue'],suggestion:'Native Promises + async/await are sufficient for most cases'},
+];
+
+// Deprecated / outdated package name patterns
+const OUTDATED_PATTERNS = [
+  {old:'babel-core',replacement:'@babel/core',reason:'babel-core is the legacy name'},
+  {old:'babel-cli',replacement:'@babel/cli',reason:'Scoped packages since Babel 7'},
+  {old:'babel-preset-env',replacement:'@babel/preset-env',reason:'Scoped packages since Babel 7'},
+  {old:'babel-loader',replacement:'babel-loader (latest)',reason:'Ensure version >= 8 for Babel 7 compatibility'},
+  {old:'request',replacement:'node-fetch, axios, or got',reason:'Deprecated since February 2020'},
+  {old:'node-sass',replacement:'sass (Dart Sass)',reason:'node-sass is deprecated, use Dart Sass'},
+  {old:'tslint',replacement:'eslint + @typescript-eslint',reason:'TSLint has been deprecated since 2019'},
+  {old:'istanbul',replacement:'nyc or c8',reason:'istanbul CLI is deprecated'},
+  {old:'jade',replacement:'pug',reason:'jade was renamed to pug'},
+  {old:'bower',replacement:'npm/yarn',reason:'Bower is deprecated'},
+  {old:'grunt',replacement:'npm scripts or modern bundlers',reason:'Grunt is largely obsolete'},
+  {old:'gulp',replacement:'npm scripts or Vite',reason:'Gulp usage has declined significantly'},
+  {old:'material-ui',replacement:'@mui/material',reason:'Renamed to @mui/material in MUI v5'},
+  {old:'@material-ui/core',replacement:'@mui/material',reason:'Renamed in MUI v5'},
+  {old:'react-router',replacement:'react-router-dom',reason:'Use react-router-dom for web projects'},
+  {old:'querystring',replacement:'URLSearchParams (native)',reason:'querystring is a legacy Node.js API'},
+  {old:'left-pad',replacement:'String.prototype.padStart() (native)',reason:'No longer needed since ES2017'},
+  {old:'mkdirp',replacement:'fs.mkdirSync(path, {recursive:true})',reason:'Native since Node.js 10.12'},
+  {old:'rimraf',replacement:'fs.rmSync(path, {recursive:true})',reason:'Native since Node.js 14.14'},
+  {old:'aws-sdk',replacement:'@aws-sdk/* (v3 modular)',reason:'AWS SDK v2 is in maintenance mode'},
+  {old:'enzyme',replacement:'@testing-library/react',reason:'Enzyme is incompatible with React 18+'},
+];
+
+/* ==================== ANALYSIS ENGINE ==================== */
+
+function autoCheck() {
+  const raw = input.value.trim();
+  if (!raw) {
+    statusDot.className = 'status-dot empty';
+    statusText.textContent = 'Paste package.json to begin';
+    sizeInfo.textContent = '';
+    return;
+  }
+  sizeInfo.textContent = formatBytes(new Blob([raw]).size);
+  try {
+    const parsed = JSON.parse(raw);
+    lastParsed = parsed;
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid JSON';
+  } catch (e) {
+    statusDot.className = 'status-dot invalid';
+    statusText.textContent = 'Invalid JSON: ' + e.message;
+    lastParsed = null;
+  }
+}
+
+function analyzePackage() {
+  const raw = input.value.trim();
+  if (!raw) { showToast('Paste a package.json first'); return; }
+  let pkg;
+  try {
+    pkg = JSON.parse(raw);
+    lastParsed = pkg;
+  } catch (e) {
+    statusDot.className = 'status-dot invalid';
+    statusText.textContent = 'Invalid JSON';
+    showToast('Invalid JSON: ' + e.message);
+    return;
+  }
+
+  statusDot.className = 'status-dot valid';
+
+  const deps = pkg.dependencies || {};
+  const devDeps = pkg.devDependencies || {};
+  const peerDeps = pkg.peerDependencies || {};
+  const optDeps = pkg.optionalDependencies || {};
+  const allDeps = {...deps, ...devDeps, ...peerDeps, ...optDeps};
+  const depNames = Object.keys(deps);
+  const devDepNames = Object.keys(devDeps);
+  const allNames = Object.keys(allDeps);
+
+  // Bundle size estimation
+  let totalSize = 0;
+  let knownCount = 0;
+  const sizeMap = {};
+  allNames.forEach(name => {
+    const baseName = name.replace(/^@[^/]+\//, '').toLowerCase();
+    const fullName = name.toLowerCase();
+    const size = BUNDLE_SIZES[fullName] || BUNDLE_SIZES[baseName] || null;
+    if (size !== null) { totalSize += size; knownCount++; sizeMap[name] = size; }
+  });
+
+  // Security analysis
+  const securityIssues = [];
+  allNames.forEach(name => {
+    const lName = name.toLowerCase();
+    if (SECURITY_RISKS[lName]) {
+      securityIssues.push({pkg: name, ...SECURITY_RISKS[lName]});
+    }
+  });
+
+  // Outdated patterns
+  const outdatedIssues = [];
+  allNames.forEach(name => {
+    const lName = name.toLowerCase();
+    OUTDATED_PATTERNS.forEach(p => {
+      if (lName === p.old.toLowerCase()) {
+        outdatedIssues.push({pkg: name, replacement: p.replacement, reason: p.reason});
+      }
+    });
+  });
+
+  // Overlap detection
+  const overlapIssues = [];
+  OVERLAP_GROUPS.forEach(group => {
+    const found = group.packages.filter(p => allNames.some(n => n.toLowerCase() === p.toLowerCase()));
+    if (found.length >= 2) {
+      overlapIssues.push({name: group.name, packages: found, suggestion: group.suggestion});
+    }
+  });
+
+  // License analysis
+  const licenseMap = {};
+  allNames.forEach(name => {
+    const lName = name.toLowerCase();
+    const baseName = name.replace(/^@[^/]+\//, '').toLowerCase();
+    const lic = PKG_LICENSES[lName] || PKG_LICENSES[baseName] || 'Unknown';
+    if (!licenseMap[lic]) licenseMap[lic] = [];
+    licenseMap[lic].push(name);
+  });
+
+  // Health score (0-100)
+  let score = 100;
+  securityIssues.forEach(i => { score -= i.level === 'high' ? 15 : i.level === 'medium' ? 8 : 3; });
+  outdatedIssues.forEach(() => { score -= 5; });
+  overlapIssues.forEach(() => { score -= 5; });
+  if (totalSize > 500) score -= 10;
+  if (totalSize > 1000) score -= 10;
+  if (depNames.length > 30) score -= 5;
+  if (depNames.length > 50) score -= 10;
+  const hasGPL = Object.keys(licenseMap).some(l => l.toUpperCase().includes('GPL') || l.toUpperCase().includes('AGPL'));
+  if (hasGPL) score -= 5;
+  score = Math.max(0, Math.min(100, score));
+
+  const scoreColor = score >= 80 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+  const scoreLabel = score >= 80 ? 'Healthy' : score >= 50 ? 'Needs Attention' : 'At Risk';
+
+  statusText.textContent = pkg.name ? esc(pkg.name) + ' analyzed' : 'Analysis complete';
+  outputInfo.textContent = allNames.length + ' packages';
+
+  // Build HTML
+  let html = '';
+
+  // Summary cards
+  html += '<div class="summary-grid">';
+  html += '<div class="summary-card"><div class="sc-val sc-primary">' + depNames.length + '</div><div class="sc-label">Dependencies</div></div>';
+  html += '<div class="summary-card"><div class="sc-val sc-accent">' + devDepNames.length + '</div><div class="sc-label">Dev Dependencies</div></div>';
+  html += '<div class="summary-card"><div class="sc-val sc-cyan">' + (totalSize > 1024 ? (totalSize/1024).toFixed(1) + ' MB' : totalSize.toFixed(0) + ' KB') + '</div><div class="sc-label">Est. Bundle (gzip)</div></div>';
+  html += '<div class="summary-card"><div class="sc-val" style="color:' + scoreColor + '">' + score + '</div><div class="sc-label">Health Score</div></div>';
+  html += '</div>';
+
+  // Score bar
+  html += '<div class="section-block">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem"><span style="font-size:.75rem;font-weight:600">Health: ' + scoreLabel + '</span><span style="font-size:.7rem;color:var(--text2)">' + score + '/100</span></div>';
+  html += '<div class="score-bar"><div class="score-fill" style="width:' + score + '%;background:' + scoreColor + '"></div></div>';
+  html += '</div>';
+
+  // Security risks
+  if (securityIssues.length) {
+    html += '<div class="section-block">';
+    html += '<div class="section-title"><span class="st-icon st-red">!</span> Security Risks (' + securityIssues.length + ')</div>';
+    securityIssues.forEach(i => {
+      const cls = i.level === 'high' ? 'risk' : i.level === 'medium' ? 'warn' : 'info';
+      const icon = i.level === 'high' ? '&#9888;' : i.level === 'medium' ? '&#9888;' : '&#9432;';
+      html += '<div class="issue-row ' + cls + '"><span class="issue-icon">' + icon + '</span><div class="issue-text"><strong>' + esc(i.pkg) + '</strong> <span class="badge badge-' + cls + '">' + i.level.toUpperCase() + '</span><br>' + esc(i.reason) + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Overlapping packages
+  if (overlapIssues.length) {
+    html += '<div class="section-block">';
+    html += '<div class="section-title"><span class="st-icon st-yellow">&#8596;</span> Overlapping Packages (' + overlapIssues.length + ')</div>';
+    overlapIssues.forEach(i => {
+      html += '<div class="issue-row warn"><span class="issue-icon">&#128260;</span><div class="issue-text"><strong>' + esc(i.name) + ':</strong> ' + i.packages.map(p => '<code style="background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:.75rem">' + esc(p) + '</code>').join(' + ') + '<br><span style="color:var(--text2)">' + esc(i.suggestion) + '</span></div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Outdated patterns
+  if (outdatedIssues.length) {
+    html += '<div class="section-block">';
+    html += '<div class="section-title"><span class="st-icon st-yellow">&#8634;</span> Outdated Patterns (' + outdatedIssues.length + ')</div>';
+    outdatedIssues.forEach(i => {
+      html += '<div class="issue-row warn"><span class="issue-icon">&#128260;</span><div class="issue-text"><strong>' + esc(i.pkg) + '</strong> &#8594; <code style="background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:.75rem">' + esc(i.replacement) + '</code><br><span style="color:var(--text2)">' + esc(i.reason) + '</span></div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Bundle size breakdown (top 15)
+  const sizeEntries = Object.entries(sizeMap).sort((a,b) => b[1] - a[1]).slice(0, 15);
+  if (sizeEntries.length) {
+    html += '<div class="section-block">';
+    html += '<div class="section-title"><span class="st-icon st-cyan">&#9881;</span> Largest Packages (est. gzipped)</div>';
+    const maxSize = sizeEntries[0][1];
+    sizeEntries.forEach(([name, size]) => {
+      const pct = (size / maxSize * 100).toFixed(0);
+      const barColor = size > 100 ? 'var(--red)' : size > 30 ? 'var(--yellow)' : 'var(--green)';
+      html += '<div class="dep-item">';
+      html += '<span class="dep-name">' + esc(name) + '</span>';
+      html += '<div style="width:80px;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:' + barColor + ';border-radius:3px"></div></div>';
+      html += '<span class="dep-size">' + (size >= 1024 ? (size/1024).toFixed(1) + ' MB' : size.toFixed(1) + ' KB') + '</span>';
+      html += '</div>';
+    });
+    if (knownCount < allNames.length) {
+      html += '<div style="font-size:.7rem;color:var(--text2);margin-top:.3rem">Sizes known for ' + knownCount + '/' + allNames.length + ' packages. Estimates are minified+gzipped.</div>';
+    }
+    html += '</div>';
+  }
+
+  // License breakdown
+  const licenseEntries = Object.entries(licenseMap).sort((a,b) => b[1].length - a[1].length);
+  if (licenseEntries.length) {
+    html += '<div class="section-block">';
+    html += '<div class="section-title"><span class="st-icon st-primary">&#9878;</span> License Summary</div>';
+    licenseEntries.forEach(([lic, pkgs]) => {
+      const licClass = lic.includes('MIT') ? 'lic-mit' : lic.includes('Apache') ? 'lic-apache' : lic.includes('ISC') ? 'lic-isc' : lic.includes('BSD') ? 'lic-bsd' : (lic.includes('GPL') || lic.includes('AGPL')) ? 'lic-gpl' : 'lic-unknown';
+      const warning = (lic.includes('GPL') || lic.includes('AGPL')) ? ' <span class="badge badge-warn">copyleft</span>' : '';
+      html += '<div class="dep-item"><span class="dep-license ' + licClass + '">' + esc(lic) + '</span>' + warning + '<span style="flex:1"></span><span style="color:var(--text2);font-size:.75rem">' + pkgs.length + ' pkg' + (pkgs.length > 1 ? 's' : '') + '</span></div>';
+      html += '<div style="padding:0 .6rem .3rem .6rem;font-size:.72rem;color:var(--text2);line-height:1.6">' + pkgs.map(p => esc(p)).join(', ') + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Dependency list
+  if (depNames.length) {
+    html += '<div class="section-block">';
+    html += '<div class="section-title"><span class="st-icon st-green">&#9654;</span> Dependencies (' + depNames.length + ')</div>';
+    depNames.forEach(name => {
+      const ver = deps[name];
+      const size = sizeMap[name];
+      const lName = name.toLowerCase();
+      const baseName = name.replace(/^@[^/]+\//, '').toLowerCase();
+      const lic = PKG_LICENSES[lName] || PKG_LICENSES[baseName] || '';
+      const licClass = lic.includes('MIT') ? 'lic-mit' : lic.includes('Apache') ? 'lic-apache' : lic.includes('ISC') ? 'lic-isc' : lic.includes('BSD') ? 'lic-bsd' : lic.includes('GPL') ? 'lic-gpl' : 'lic-unknown';
+      html += '<div class="dep-item"><span class="dep-name">' + esc(name) + '</span>';
+      if (lic) html += '<span class="dep-license ' + licClass + '">' + esc(lic) + '</span>';
+      if (size) html += '<span class="dep-size">' + size.toFixed(1) + ' KB</span>';
+      html += '<span class="dep-ver">' + esc(ver) + '</span></div>';
+    });
+    html += '</div>';
+  }
+
+  if (devDepNames.length) {
+    html += '<div class="section-block">';
+    html += '<div class="section-title"><span class="st-icon st-accent">&#9654;</span> Dev Dependencies (' + devDepNames.length + ')</div>';
+    devDepNames.forEach(name => {
+      const ver = devDeps[name];
+      html += '<div class="dep-item"><span class="dep-name">' + esc(name) + '</span><span class="dep-ver">' + esc(ver) + '</span></div>';
+    });
+    html += '</div>';
+  }
+
+  // No issues found
+  if (!securityIssues.length && !overlapIssues.length && !outdatedIssues.length) {
+    html += '<div class="issue-row ok"><span class="issue-icon">&#10003;</span><div class="issue-text"><strong>No major issues found.</strong> Your dependencies look clean.</div></div>';
+  }
+
+  emptyState.style.display = 'none';
+  analysisOutput.style.display = 'block';
+  analysisOutput.innerHTML = html;
+
+  // Build text report
+  lastReport = buildTextReport(pkg, depNames, devDepNames, allNames, totalSize, score, scoreLabel, securityIssues, overlapIssues, outdatedIssues, licenseMap);
+}
+
+function buildTextReport(pkg, depNames, devDepNames, allNames, totalSize, score, scoreLabel, securityIssues, overlapIssues, outdatedIssues, licenseMap) {
+  let r = '=== NPM Package Analysis Report ===\n';
+  r += 'Generated by NexTool (https://nextool.app/free-tools/npm-package-analyzer.html)\n\n';
+  if (pkg.name) r += 'Package: ' + pkg.name + (pkg.version ? ' v' + pkg.version : '') + '\n';
+  r += 'Dependencies: ' + depNames.length + '\n';
+  r += 'Dev Dependencies: ' + devDepNames.length + '\n';
+  r += 'Total packages: ' + allNames.length + '\n';
+  r += 'Estimated bundle size (gzip): ' + (totalSize > 1024 ? (totalSize/1024).toFixed(1) + ' MB' : totalSize.toFixed(0) + ' KB') + '\n';
+  r += 'Health Score: ' + score + '/100 (' + scoreLabel + ')\n\n';
+
+  if (securityIssues.length) {
+    r += '--- SECURITY RISKS ---\n';
+    securityIssues.forEach(i => { r += '[' + i.level.toUpperCase() + '] ' + i.pkg + ': ' + i.reason + '\n'; });
+    r += '\n';
+  }
+  if (overlapIssues.length) {
+    r += '--- OVERLAPPING PACKAGES ---\n';
+    overlapIssues.forEach(i => { r += i.name + ': ' + i.packages.join(' + ') + '\n  -> ' + i.suggestion + '\n'; });
+    r += '\n';
+  }
+  if (outdatedIssues.length) {
+    r += '--- OUTDATED PATTERNS ---\n';
+    outdatedIssues.forEach(i => { r += i.pkg + ' -> ' + i.replacement + '\n  ' + i.reason + '\n'; });
+    r += '\n';
+  }
+  r += '--- LICENSES ---\n';
+  Object.entries(licenseMap).forEach(([lic, pkgs]) => {
+    r += lic + ' (' + pkgs.length + '): ' + pkgs.join(', ') + '\n';
+  });
+  return r;
+}
+
+function generateOptimized() {
+  if (!lastParsed) { showToast('Analyze a package.json first'); return; }
+  const pkg = JSON.parse(JSON.stringify(lastParsed));
+  const allDeps = {...(pkg.dependencies || {}), ...(pkg.devDependencies || {})};
+  const allNames = Object.keys(allDeps);
+  let changes = [];
+
+  // Apply outdated pattern fixes to deps
+  if (pkg.dependencies) {
+    OUTDATED_PATTERNS.forEach(p => {
+      if (pkg.dependencies[p.old]) {
+        changes.push('Removed ' + p.old + ' (replace with ' + p.replacement + ')');
+        delete pkg.dependencies[p.old];
+      }
+    });
+  }
+  if (pkg.devDependencies) {
+    OUTDATED_PATTERNS.forEach(p => {
+      if (pkg.devDependencies[p.old]) {
+        changes.push('Removed ' + p.old + ' from devDeps (replace with ' + p.replacement + ')');
+        delete pkg.devDependencies[p.old];
+      }
+    });
+  }
+
+  // Remove high-risk packages
+  Object.keys(SECURITY_RISKS).forEach(risky => {
+    if (SECURITY_RISKS[risky].level === 'high') {
+      if (pkg.dependencies && pkg.dependencies[risky]) {
+        changes.push('Removed ' + risky + ' (high security risk)');
+        delete pkg.dependencies[risky];
+      }
+      if (pkg.devDependencies && pkg.devDependencies[risky]) {
+        changes.push('Removed ' + risky + ' from devDeps (high security risk)');
+        delete pkg.devDependencies[risky];
+      }
+    }
+  });
+
+  // Remove trivial packages
+  ['left-pad','is-odd','is-even','is-number'].forEach(trivial => {
+    if (pkg.dependencies && pkg.dependencies[trivial]) {
+      changes.push('Removed ' + trivial + ' (use native JS)');
+      delete pkg.dependencies[trivial];
+    }
+  });
+
+  const optimized = JSON.stringify(pkg, null, 2);
+
+  let html = '<div class="section-block">';
+  html += '<div class="section-title"><span class="st-icon st-green">&#10003;</span> Optimized package.json</div>';
+  if (changes.length) {
+    html += '<div style="margin-bottom:.5rem">';
+    changes.forEach(c => {
+      html += '<div class="issue-row ok"><span class="issue-icon">&#10003;</span><div class="issue-text">' + esc(c) + '</div></div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div class="issue-row ok"><span class="issue-icon">&#10003;</span><div class="issue-text">No automatic optimizations needed. Check the overlap and outdated suggestions above for manual improvements.</div></div>';
+  }
+  html += '<div class="optimize-block"><button class="copy-opt" onclick="copyOptimized()">Copy</button>' + esc(optimized) + '</div>';
+  html += '</div>';
+
+  emptyState.style.display = 'none';
+  analysisOutput.style.display = 'block';
+  // Append or replace optimize section
+  const existing = analysisOutput.querySelector('.optimize-section');
+  if (existing) existing.remove();
+  const wrapper = document.createElement('div');
+  wrapper.className = 'optimize-section';
+  wrapper.innerHTML = html;
+  analysisOutput.appendChild(wrapper);
+
+  showToast(changes.length ? changes.length + ' optimization(s) applied' : 'No automatic optimizations needed');
+}
+
+function copyOptimized() {
+  const block = document.querySelector('.optimize-block');
+  if (!block) return;
+  const text = block.textContent.replace('Copy', '').trim();
+  navigator.clipboard.writeText(text).then(() => showToast('Optimized package.json copied'));
+}
+
+function copyResults() {
+  if (!lastReport) { showToast('Nothing to copy. Run analysis first.'); return; }
+  navigator.clipboard.writeText(lastReport).then(() => showToast('Report copied to clipboard'));
+}
+
+function downloadReport() {
+  if (!lastReport) { showToast('Nothing to download. Run analysis first.'); return; }
+  const blob = new Blob([lastReport], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'npm-analysis-report.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Downloaded npm-analysis-report.txt');
+}
+
+function clearAll() {
+  input.value = '';
+  lastParsed = null;
+  lastReport = '';
+  emptyState.style.display = '';
+  analysisOutput.style.display = 'none';
+  analysisOutput.innerHTML = '';
+  statusDot.className = 'status-dot empty';
+  statusText.textContent = 'Paste package.json to begin';
+  sizeInfo.textContent = '';
+  lineCount.textContent = '';
+  outputInfo.textContent = '';
+}
+
+function loadSample() {
+  input.value = JSON.stringify({
+    "name": "my-webapp",
+    "version": "2.1.0",
+    "description": "A sample web application with common dependencies",
+    "license": "MIT",
+    "dependencies": {
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0",
+      "next": "^14.0.4",
+      "axios": "^1.6.2",
+      "node-fetch": "^3.3.2",
+      "moment": "^2.30.1",
+      "dayjs": "^1.11.10",
+      "lodash": "^4.17.21",
+      "redux": "^5.0.1",
+      "zustand": "^4.4.7",
+      "formik": "^2.4.5",
+      "react-hook-form": "^7.49.2",
+      "yup": "^1.3.3",
+      "zod": "^3.22.4",
+      "styled-components": "^6.1.2",
+      "@emotion/react": "^11.11.3",
+      "request": "^2.88.2",
+      "colors": "^1.4.0",
+      "left-pad": "^1.3.0",
+      "jsonwebtoken": "^9.0.2",
+      "stripe": "^14.11.0",
+      "uuid": "^9.0.0",
+      "dotenv": "^16.3.1"
+    },
+    "devDependencies": {
+      "typescript": "^5.3.3",
+      "jest": "^29.7.0",
+      "vitest": "^1.1.3",
+      "eslint": "^8.56.0",
+      "prettier": "^3.1.1",
+      "node-sass": "^9.0.0",
+      "tslint": "^6.1.3",
+      "nodemon": "^3.0.2",
+      "husky": "^8.0.3",
+      "lint-staged": "^15.2.0",
+      "@babel/core": "^7.23.7"
+    }
+  }, null, 2);
+  updateLineCount();
+  autoCheck();
+  analyzePackage();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* INPUT: Tab key support */
+input.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = input.selectionStart, end = input.selectionEnd;
+    input.value = input.value.substring(0, start) + '  ' + input.value.substring(end);
+    input.selectionStart = input.selectionEnd = start + 2;
+  }
+});
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What does the NPM Package Analyzer do?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NexTool's NPM Package Analyzer parses your package.json file and provides a comprehensive audit: dependency counts, estimated bundle sizes, security risk detection, overlapping package warnings, outdated pattern identification, license analysis, and a health score. It runs 100% in your browser."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How accurate are the bundle size estimates?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bundle size estimates are based on known minified+gzipped sizes for hundreds of popular npm packages. They provide a useful approximation but actual sizes depend on tree-shaking, bundler configuration, and which parts of a package you import. For exact measurements, use tools like bundlephobia.com."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my package.json data sent to any server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The entire analysis runs client-side in your browser. Your package.json data never leaves your machine. There are no API calls, no tracking of your dependencies, and no server-side processing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What security risks does the analyzer detect?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The analyzer checks for packages known to have had supply chain attacks (like event-stream, ua-parser-js), intentionally corrupted packages (like colors, faker), deprecated packages with unpatched vulnerabilities (like request), and trivial packages that add unnecessary attack surface (like left-pad, is-odd)."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
