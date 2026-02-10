@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Code Diff Viewer — Compare Code Side by Side | NexTool</title>
+<meta name="description" content="Free online code diff viewer. Compare two code files side by side with syntax highlighting, unified/split view, line numbers, and patch export. No signup required.">
+<meta name="keywords" content="code diff viewer, diff checker, code comparison, unified diff, split diff, patch format, free online tool, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free Code Diff Viewer — Compare Code Side by Side | NexTool">
+<meta property="og:description" content="Compare code files with highlighted diffs, unified/split view, statistics, and patch export. 100% free, runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/code-diff-viewer.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/code-diff-viewer.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Code Diff Viewer — Compare Code Side by Side | NexTool">
+<meta name="twitter:description" content="Compare code files with highlighted diffs, unified/split view, statistics, and patch export. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Code Diff Viewer","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online code diff viewer with syntax highlighting, unified/split view, line numbers, statistics, and patch export."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7);--add-bg:rgba(34,197,94,.12);--add-border:rgba(34,197,94,.3);--del-bg:rgba(239,68,68,.12);--del-border:rgba(239,68,68,.3);--mod-bg:rgba(234,179,8,.08);--mod-border:rgba(234,179,8,.2)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1400px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select,.toolbar label{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover,.toolbar label:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar select{appearance:none;padding-right:1.8rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.toolbar .sep{width:1px;height:24px;background:var(--border);margin:0 .25rem}
+.toolbar label{cursor:pointer;display:flex;align-items:center;gap:.4rem}
+.toolbar label input[type="file"]{display:none}
+/* STATS BAR */
+.stats-bar{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2);padding:.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.stat{display:flex;align-items:center;gap:.35rem}
+.stat-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.stat-dot.added{background:var(--green)}
+.stat-dot.removed{background:var(--red)}
+.stat-dot.changed{background:var(--yellow)}
+.stat-dot.unchanged{background:var(--border)}
+.stat-val{font-weight:600;color:var(--text)}
+.lang-badge{margin-left:auto;background:rgba(99,102,241,.15);color:#818cf8;padding:2px 10px;border-radius:6px;font-weight:600;font-size:.75rem;text-transform:uppercase}
+/* INPUT PANELS */
+.input-panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.input-panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-header .file-info{font-weight:400;font-size:.75rem;color:var(--text2)}
+.code-input{width:100%;min-height:260px;background:transparent;border:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;padding:1rem;resize:vertical;outline:none;line-height:1.7;tab-size:2}
+.code-input::placeholder{color:var(--text2);opacity:.5}
+/* DIFF OUTPUT */
+.diff-output{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.diff-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.diff-body{overflow:auto;max-height:600px;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.7}
+/* UNIFIED VIEW */
+.diff-table{width:100%;border-collapse:collapse}
+.diff-table td{padding:0 12px;white-space:pre;vertical-align:top}
+.diff-table .ln{width:1px;white-space:nowrap;color:#4a4a5a;text-align:right;padding:0 8px;user-select:none;border-right:1px solid var(--border);font-size:.75rem;min-width:40px}
+.diff-table .ln-old{border-right:none;padding-right:4px}
+.diff-table .ln-new{padding-left:4px}
+.diff-table .prefix{width:1px;white-space:nowrap;padding:0 6px;user-select:none;color:var(--text2)}
+.diff-table .code-cell{white-space:pre-wrap;word-break:break-all}
+.diff-row-add{background:var(--add-bg)}
+.diff-row-add .prefix{color:var(--green)}
+.diff-row-add .code-cell{color:#86efac}
+.diff-row-del{background:var(--del-bg)}
+.diff-row-del .prefix{color:var(--red)}
+.diff-row-del .code-cell{color:#fca5a5}
+.diff-row-mod{background:var(--mod-bg)}
+.diff-row-ctx{}
+/* SPLIT VIEW */
+.split-container{display:grid;grid-template-columns:1fr 1fr}
+.split-pane{overflow:auto;border-right:1px solid var(--border)}
+.split-pane:last-child{border-right:none}
+.split-pane .diff-table{width:100%}
+/* COLLAPSIBLE SECTIONS */
+.collapse-bar{background:rgba(99,102,241,.06);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px 12px;cursor:pointer;user-select:none;color:var(--text2);font-size:.75rem;text-align:center;transition:background .2s}
+.collapse-bar:hover{background:rgba(99,102,241,.12)}
+.collapsed-rows{display:none}
+.collapsed-rows.expanded{display:table-row-group}
+/* INLINE CHAR DIFF */
+.char-add{background:rgba(34,197,94,.25);border-radius:2px;padding:0 1px}
+.char-del{background:rgba(239,68,68,.25);border-radius:2px;padding:0 1px;text-decoration:line-through}
+/* EMPTY STATE */
+.empty-state{padding:4rem 2rem;text-align:center;color:var(--text2);font-size:.9rem}
+.empty-state svg{width:64px;height:64px;margin-bottom:1rem;opacity:.3}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* DROP ZONE */
+.drop-active{border-color:var(--primary)!important;background:rgba(99,102,241,.06)!important}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .input-panels{grid-template-columns:1fr}
+  .split-container{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .stats-bar{flex-direction:column;align-items:flex-start;gap:.5rem}
+  .lang-badge{margin-left:0}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>Code Diff Viewer</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Compare two code files side by side with syntax-highlighted diffs. Supports unified and split view, line numbers, collapsible unchanged sections, patch export, and automatic language detection. Runs entirely in your browser -- no uploads, no server calls.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button id="btnCompare" onclick="computeDiff()" title="Compare the two inputs">Compare</button>
+    <div class="sep"></div>
+    <button id="btnSplit" class="active" onclick="setView('split')" title="Side-by-side view">Split View</button>
+    <button id="btnUnified" onclick="setView('unified')" title="Unified diff view">Unified View</button>
+    <div class="sep"></div>
+    <button onclick="toggleCollapse()" id="btnCollapse" title="Collapse unchanged sections">Collapse Unchanged</button>
+    <button onclick="copyPatch()" title="Copy diff as unified patch format">Copy Patch</button>
+    <button onclick="downloadPatch()" title="Download diff as .patch file">Download .patch</button>
+    <div class="sep"></div>
+    <select id="ctxLines" onchange="computeDiff()" title="Context lines around changes">
+      <option value="3">3 context lines</option>
+      <option value="5">5 context lines</option>
+      <option value="10">10 context lines</option>
+      <option value="all" selected>Show all lines</option>
+    </select>
+    <button onclick="clearAll()" title="Clear both inputs and output">Clear</button>
+    <button onclick="loadSample()" title="Load a sample diff">Sample</button>
+    <button onclick="swapInputs()" title="Swap original and modified">Swap</button>
+  </div>
+
+  <div class="input-panels">
+    <div class="input-panel" id="panelOrig">
+      <div class="panel-header">
+        <span>Original</span>
+        <span>
+          <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;background:none;border:none;padding:0;font-size:.75rem;color:var(--text2)">
+            Upload <input type="file" id="fileOrig" onchange="loadFile(event,'orig')" accept=".txt,.js,.ts,.py,.html,.css,.json,.xml,.yaml,.yml,.md,.java,.go,.rs,.c,.cpp,.h,.rb,.php,.sh,.sql,.swift,.kt">
+          </label>
+          <span class="file-info" id="origInfo"></span>
+        </span>
+      </div>
+      <textarea class="code-input" id="inputOrig" placeholder="Paste original code here...&#10;&#10;Or drag & drop a file" spellcheck="false"></textarea>
+    </div>
+    <div class="input-panel" id="panelMod">
+      <div class="panel-header">
+        <span>Modified</span>
+        <span>
+          <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;background:none;border:none;padding:0;font-size:.75rem;color:var(--text2)">
+            Upload <input type="file" id="fileMod" onchange="loadFile(event,'mod')" accept=".txt,.js,.ts,.py,.html,.css,.json,.xml,.yaml,.yml,.md,.java,.go,.rs,.c,.cpp,.h,.rb,.php,.sh,.sql,.swift,.kt">
+          </label>
+          <span class="file-info" id="modInfo"></span>
+        </span>
+      </div>
+      <textarea class="code-input" id="inputMod" placeholder="Paste modified code here...&#10;&#10;Or drag & drop a file" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="stats-bar" id="statsBar" style="display:none">
+    <div class="stat"><span class="stat-dot added"></span> Added: <span class="stat-val" id="statAdded">0</span></div>
+    <div class="stat"><span class="stat-dot removed"></span> Removed: <span class="stat-val" id="statRemoved">0</span></div>
+    <div class="stat"><span class="stat-dot changed"></span> Changed: <span class="stat-val" id="statChanged">0</span></div>
+    <div class="stat"><span class="stat-dot unchanged"></span> Unchanged: <span class="stat-val" id="statUnchanged">0</span></div>
+    <span class="lang-badge" id="langBadge" style="display:none"></span>
+  </div>
+
+  <div class="diff-output" id="diffOutput">
+    <div class="diff-header">
+      <span id="diffLabel">Diff Output</span>
+      <span id="diffInfo"></span>
+    </div>
+    <div class="diff-body" id="diffBody">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v18m-9-9h18"/></svg>
+        <p>Paste or upload code in both panels, then click <strong>Compare</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 150+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 150+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">150+ Free Tools</a>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== STATE ===== */
+let viewMode = 'split';
+let diffResult = null;
+let collapseEnabled = false;
+let lastPatch = '';
+
+const inputOrig = document.getElementById('inputOrig');
+const inputMod = document.getElementById('inputMod');
+const diffBody = document.getElementById('diffBody');
+const diffLabel = document.getElementById('diffLabel');
+const diffInfo = document.getElementById('diffInfo');
+const statsBar = document.getElementById('statsBar');
+
+/* ===== DIFF ALGORITHM (Myers) ===== */
+function myersDiff(a, b) {
+  const N = a.length, M = b.length;
+  if (N === 0 && M === 0) return [];
+  if (N === 0) return b.map(line => ({ type: 'add', val: line }));
+  if (M === 0) return a.map(line => ({ type: 'del', val: line }));
+
+  const MAX = N + M;
+  const vSize = 2 * MAX + 1;
+  const v = new Int32Array(vSize);
+  const trace = [];
+
+  for (let i = 0; i < vSize; i++) v[i] = 0;
+
+  for (let d = 0; d <= MAX; d++) {
+    const snap = new Int32Array(v);
+    trace.push(snap);
+    for (let k = -d; k <= d; k += 2) {
+      let x;
+      const ki = k + MAX;
+      if (k === -d || (k !== d && v[ki - 1] < v[ki + 1])) {
+        x = v[ki + 1];
+      } else {
+        x = v[ki - 1] + 1;
+      }
+      let y = x - k;
+      while (x < N && y < M && a[x] === b[y]) {
+        x++; y++;
+      }
+      v[ki] = x;
+      if (x >= N && y >= M) {
+        return buildResult(trace, a, b, N, M, MAX);
+      }
+    }
+  }
+  return [];
+}
+
+function buildResult(trace, a, b, N, M, MAX) {
+  let x = N, y = M;
+  const edits = [];
+
+  for (let d = trace.length - 1; d >= 0; d--) {
+    const v = trace[d];
+    const k = x - y;
+    const ki = k + MAX;
+    let prevK;
+    if (k === -d || (k !== d && v[ki - 1] < v[ki + 1])) {
+      prevK = k + 1;
+    } else {
+      prevK = k - 1;
+    }
+    const prevX = v[prevK + MAX];
+    const prevY = prevX - prevK;
+
+    while (x > prevX && y > prevY) {
+      x--; y--;
+      edits.unshift({ type: 'eq', oldIdx: x, newIdx: y, val: a[x] });
+    }
+    if (d > 0) {
+      if (x === prevX) {
+        edits.unshift({ type: 'add', newIdx: prevY, val: b[prevY] });
+        y--;
+      } else {
+        edits.unshift({ type: 'del', oldIdx: prevX, val: a[prevX] });
+        x--;
+      }
+    }
+  }
+  return edits;
+}
+
+/* ===== GROUP EDITS INTO HUNKS ===== */
+function groupEdits(edits) {
+  const hunks = [];
+  let currentHunk = [];
+  for (const e of edits) {
+    currentHunk.push(e);
+  }
+  return currentHunk;
+}
+
+/* ===== INLINE CHAR DIFF ===== */
+function charDiff(oldStr, newStr) {
+  const dp = [];
+  const oLen = oldStr.length, nLen = newStr.length;
+  for (let i = 0; i <= oLen; i++) {
+    dp[i] = [i];
+    for (let j = 1; j <= nLen; j++) {
+      if (i === 0) { dp[i][j] = j; continue; }
+      if (oldStr[i-1] === newStr[j-1]) dp[i][j] = dp[i-1][j-1];
+      else dp[i][j] = 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    }
+  }
+  const ops = [];
+  let i = oLen, j = nLen;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && oldStr[i-1] === newStr[j-1]) {
+      ops.unshift({ type: 'eq', ch: oldStr[i-1] }); i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j-1] <= dp[i-1][j])) {
+      ops.unshift({ type: 'add', ch: newStr[j-1] }); j--;
+    } else {
+      ops.unshift({ type: 'del', ch: oldStr[i-1] }); i--;
+    }
+  }
+  return ops;
+}
+
+function renderCharDiff(oldStr, newStr) {
+  if (oldStr.length > 500 || newStr.length > 500) {
+    return { oldHtml: esc(oldStr), newHtml: esc(newStr) };
+  }
+  const ops = charDiff(oldStr, newStr);
+  let oldHtml = '', newHtml = '';
+  for (const op of ops) {
+    if (op.type === 'eq') {
+      oldHtml += esc(op.ch);
+      newHtml += esc(op.ch);
+    } else if (op.type === 'del') {
+      oldHtml += '<span class="char-del">' + esc(op.ch) + '</span>';
+    } else {
+      newHtml += '<span class="char-add">' + esc(op.ch) + '</span>';
+    }
+  }
+  return { oldHtml, newHtml };
+}
+
+/* ===== COMPUTE DIFF ===== */
+function computeDiff() {
+  const origText = inputOrig.value;
+  const modText = inputMod.value;
+  if (!origText && !modText) { showToast('Paste code in both panels first'); return; }
+
+  const origLines = origText.split('\n');
+  const modLines = modText.split('\n');
+  const edits = myersDiff(origLines, modLines);
+  diffResult = edits;
+
+  let added = 0, removed = 0, changed = 0, unchanged = 0;
+  const processed = [];
+  let i = 0;
+  while (i < edits.length) {
+    if (edits[i].type === 'eq') {
+      unchanged++;
+      processed.push(edits[i]);
+      i++;
+    } else if (edits[i].type === 'del' && i + 1 < edits.length && edits[i+1].type === 'add') {
+      changed++;
+      processed.push({ type: 'mod', oldVal: edits[i].val, newVal: edits[i+1].val, oldIdx: edits[i].oldIdx, newIdx: edits[i+1].newIdx });
+      i += 2;
+    } else if (edits[i].type === 'del') {
+      removed++;
+      processed.push(edits[i]);
+      i++;
+    } else {
+      added++;
+      processed.push(edits[i]);
+      i++;
+    }
+  }
+
+  document.getElementById('statAdded').textContent = added;
+  document.getElementById('statRemoved').textContent = removed;
+  document.getElementById('statChanged').textContent = changed;
+  document.getElementById('statUnchanged').textContent = unchanged;
+  statsBar.style.display = '';
+
+  const lang = detectLang(origText || modText);
+  const langBadge = document.getElementById('langBadge');
+  if (lang) {
+    langBadge.textContent = lang;
+    langBadge.style.display = '';
+  } else {
+    langBadge.style.display = 'none';
+  }
+
+  lastPatch = generatePatch(origLines, modLines, edits);
+
+  if (viewMode === 'split') renderSplit(processed);
+  else renderUnified(processed);
+
+  const totalChanges = added + removed + changed;
+  diffInfo.textContent = totalChanges === 0 ? 'Files are identical' : totalChanges + ' change' + (totalChanges !== 1 ? 's' : '');
+  diffLabel.textContent = viewMode === 'split' ? 'Split Diff' : 'Unified Diff';
+}
+
+/* ===== RENDER SPLIT VIEW ===== */
+function renderSplit(processed) {
+  let oldLn = 0, newLn = 0;
+  let leftRows = [], rightRows = [];
+  const groups = groupForCollapse(processed);
+
+  let html = '<div class="split-container"><div class="split-pane"><table class="diff-table"><tbody>';
+  let html2 = '</tbody></table></div><div class="split-pane"><table class="diff-table"><tbody>';
+  let leftHtml = '', rightHtml = '';
+
+  for (const group of groups) {
+    if (group.collapsed && collapseEnabled) {
+      const count = group.items.length;
+      const barId = 'cb_' + oldLn;
+      leftHtml += '<tr><td colspan="3" class="collapse-bar" onclick="toggleSection(\'' + barId + '\',this)">... ' + count + ' unchanged lines (click to expand) ...</td></tr>';
+      rightHtml += '<tr><td colspan="3" class="collapse-bar" onclick="toggleSection(\'' + barId + '_r\',this)">... ' + count + ' unchanged lines (click to expand) ...</td></tr>';
+      leftHtml += '<tbody class="collapsed-rows" id="' + barId + '">';
+      rightHtml += '<tbody class="collapsed-rows" id="' + barId + '_r">';
+      for (const item of group.items) {
+        oldLn++; newLn++;
+        leftHtml += '<tr class="diff-row-ctx"><td class="ln">' + oldLn + '</td><td class="prefix"> </td><td class="code-cell">' + esc(item.val) + '</td></tr>';
+        rightHtml += '<tr class="diff-row-ctx"><td class="ln">' + newLn + '</td><td class="prefix"> </td><td class="code-cell">' + esc(item.val) + '</td></tr>';
+      }
+      leftHtml += '</tbody>';
+      rightHtml += '</tbody>';
+    } else {
+      for (const item of group.items) {
+        if (item.type === 'eq') {
+          oldLn++; newLn++;
+          leftHtml += '<tr class="diff-row-ctx"><td class="ln">' + oldLn + '</td><td class="prefix"> </td><td class="code-cell">' + esc(item.val) + '</td></tr>';
+          rightHtml += '<tr class="diff-row-ctx"><td class="ln">' + newLn + '</td><td class="prefix"> </td><td class="code-cell">' + esc(item.val) + '</td></tr>';
+        } else if (item.type === 'del') {
+          oldLn++;
+          leftHtml += '<tr class="diff-row-del"><td class="ln">' + oldLn + '</td><td class="prefix">-</td><td class="code-cell">' + esc(item.val) + '</td></tr>';
+          rightHtml += '<tr class="diff-row-del" style="visibility:hidden"><td class="ln"></td><td class="prefix"></td><td class="code-cell"></td></tr>';
+        } else if (item.type === 'add') {
+          newLn++;
+          leftHtml += '<tr class="diff-row-add" style="visibility:hidden"><td class="ln"></td><td class="prefix"></td><td class="code-cell"></td></tr>';
+          rightHtml += '<tr class="diff-row-add"><td class="ln">' + newLn + '</td><td class="prefix">+</td><td class="code-cell">' + esc(item.val) + '</td></tr>';
+        } else if (item.type === 'mod') {
+          oldLn++; newLn++;
+          const cd = renderCharDiff(item.oldVal, item.newVal);
+          leftHtml += '<tr class="diff-row-del"><td class="ln">' + oldLn + '</td><td class="prefix">-</td><td class="code-cell">' + cd.oldHtml + '</td></tr>';
+          rightHtml += '<tr class="diff-row-add"><td class="ln">' + newLn + '</td><td class="prefix">+</td><td class="code-cell">' + cd.newHtml + '</td></tr>';
+        }
+      }
+    }
+  }
+
+  html += leftHtml + '</tbody></table></div><div class="split-pane"><table class="diff-table"><tbody>' + rightHtml + '</tbody></table></div></div>';
+  diffBody.innerHTML = html;
+
+  syncScroll();
+}
+
+/* ===== RENDER UNIFIED VIEW ===== */
+function renderUnified(processed) {
+  let oldLn = 0, newLn = 0;
+  const groups = groupForCollapse(processed);
+
+  let html = '<table class="diff-table"><tbody>';
+
+  for (const group of groups) {
+    if (group.collapsed && collapseEnabled) {
+      const count = group.items.length;
+      const barId = 'ucb_' + oldLn;
+      html += '<tr><td colspan="4" class="collapse-bar" onclick="toggleSection(\'' + barId + '\',this)">... ' + count + ' unchanged lines (click to expand) ...</td></tr>';
+      html += '<tbody class="collapsed-rows" id="' + barId + '">';
+      for (const item of group.items) {
+        oldLn++; newLn++;
+        html += '<tr class="diff-row-ctx"><td class="ln ln-old">' + oldLn + '</td><td class="ln ln-new">' + newLn + '</td><td class="prefix"> </td><td class="code-cell">' + esc(item.val) + '</td></tr>';
+      }
+      html += '</tbody>';
+    } else {
+      for (const item of group.items) {
+        if (item.type === 'eq') {
+          oldLn++; newLn++;
+          html += '<tr class="diff-row-ctx"><td class="ln ln-old">' + oldLn + '</td><td class="ln ln-new">' + newLn + '</td><td class="prefix"> </td><td class="code-cell">' + esc(item.val) + '</td></tr>';
+        } else if (item.type === 'del') {
+          oldLn++;
+          html += '<tr class="diff-row-del"><td class="ln ln-old">' + oldLn + '</td><td class="ln ln-new"></td><td class="prefix">-</td><td class="code-cell">' + esc(item.val) + '</td></tr>';
+        } else if (item.type === 'add') {
+          newLn++;
+          html += '<tr class="diff-row-add"><td class="ln ln-old"></td><td class="ln ln-new">' + newLn + '</td><td class="prefix">+</td><td class="code-cell">' + esc(item.val) + '</td></tr>';
+        } else if (item.type === 'mod') {
+          oldLn++; newLn++;
+          const cd = renderCharDiff(item.oldVal, item.newVal);
+          html += '<tr class="diff-row-del"><td class="ln ln-old">' + oldLn + '</td><td class="ln ln-new"></td><td class="prefix">-</td><td class="code-cell">' + cd.oldHtml + '</td></tr>';
+          html += '<tr class="diff-row-add"><td class="ln ln-old"></td><td class="ln ln-new">' + newLn + '</td><td class="prefix">+</td><td class="code-cell">' + cd.newHtml + '</td></tr>';
+        }
+      }
+    }
+  }
+
+  html += '</tbody></table>';
+  diffBody.innerHTML = html;
+}
+
+/* ===== COLLAPSE GROUPING ===== */
+function groupForCollapse(processed) {
+  const threshold = 6;
+  const groups = [];
+  let eqBuf = [];
+
+  function flushEq() {
+    if (eqBuf.length === 0) return;
+    if (eqBuf.length > threshold && collapseEnabled) {
+      const head = eqBuf.slice(0, 3);
+      const mid = eqBuf.slice(3, eqBuf.length - 3);
+      const tail = eqBuf.slice(eqBuf.length - 3);
+      if (head.length) groups.push({ collapsed: false, items: head });
+      if (mid.length) groups.push({ collapsed: true, items: mid });
+      if (tail.length) groups.push({ collapsed: false, items: tail });
+    } else {
+      groups.push({ collapsed: false, items: eqBuf });
+    }
+    eqBuf = [];
+  }
+
+  for (const item of processed) {
+    if (item.type === 'eq') {
+      eqBuf.push(item);
+    } else {
+      flushEq();
+      groups.push({ collapsed: false, items: [item] });
+    }
+  }
+  flushEq();
+  return groups;
+}
+
+function toggleSection(id, el) {
+  const sec = document.getElementById(id);
+  if (!sec) return;
+  sec.classList.toggle('expanded');
+  if (sec.classList.contains('expanded')) {
+    el.textContent = '... (click to collapse) ...';
+  } else {
+    const rows = sec.querySelectorAll('tr');
+    el.textContent = '... ' + rows.length + ' unchanged lines (click to expand) ...';
+  }
+}
+
+/* ===== SYNC SCROLL FOR SPLIT ===== */
+function syncScroll() {
+  const panes = diffBody.querySelectorAll('.split-pane');
+  if (panes.length < 2) return;
+  let syncing = false;
+  panes[0].addEventListener('scroll', function() {
+    if (syncing) return;
+    syncing = true;
+    panes[1].scrollTop = panes[0].scrollTop;
+    panes[1].scrollLeft = panes[0].scrollLeft;
+    syncing = false;
+  });
+  panes[1].addEventListener('scroll', function() {
+    if (syncing) return;
+    syncing = true;
+    panes[0].scrollTop = panes[1].scrollTop;
+    panes[0].scrollLeft = panes[1].scrollLeft;
+    syncing = false;
+  });
+}
+
+/* ===== GENERATE UNIFIED PATCH ===== */
+function generatePatch(origLines, modLines, edits) {
+  let patch = '--- original\n+++ modified\n';
+  let oldLn = 0, newLn = 0;
+  const lines = [];
+  for (const e of edits) {
+    if (e.type === 'eq') {
+      oldLn++; newLn++;
+      lines.push(' ' + e.val);
+    } else if (e.type === 'del') {
+      oldLn++;
+      lines.push('-' + e.val);
+    } else if (e.type === 'add') {
+      newLn++;
+      lines.push('+' + e.val);
+    }
+  }
+  patch += '@@ -1,' + origLines.length + ' +1,' + modLines.length + ' @@\n';
+  patch += lines.join('\n');
+  return patch;
+}
+
+/* ===== VIEW TOGGLE ===== */
+function setView(mode) {
+  viewMode = mode;
+  document.getElementById('btnSplit').classList.toggle('active', mode === 'split');
+  document.getElementById('btnUnified').classList.toggle('active', mode === 'unified');
+  if (diffResult) computeDiff();
+}
+
+function toggleCollapse() {
+  collapseEnabled = !collapseEnabled;
+  document.getElementById('btnCollapse').classList.toggle('active', collapseEnabled);
+  if (diffResult) computeDiff();
+}
+
+/* ===== LANGUAGE DETECTION ===== */
+function detectLang(code) {
+  if (!code) return null;
+  const first500 = code.substring(0, 500);
+  const patterns = [
+    [/^\s*<(!DOCTYPE|html|head|body|div|span|p\b|a\b|script|link|meta)/mi, 'HTML'],
+    [/^\s*import\s+.*\s+from\s+['"]|^\s*export\s+(default\s+)?(function|class|const|let|var)/m, 'JavaScript'],
+    [/^\s*(interface|type|enum)\s+\w+|:\s*(string|number|boolean|any)\b/m, 'TypeScript'],
+    [/^\s*(def |class |import |from |print\(|if __name__)/m, 'Python'],
+    [/^\s*(func |package |import\s*\(|var\s+\w+\s+\w+|:=)/m, 'Go'],
+    [/^\s*(fn |let\s+mut |use\s+|impl\s+|struct\s+\w+\s*\{|pub\s+fn)/m, 'Rust'],
+    [/^\s*(public|private|protected)\s+(static\s+)?(void|int|String|class)/m, 'Java'],
+    [/^\s*#include\s*[<"]|^\s*(int|void|char|float|double)\s+\w+\s*\(/m, 'C/C++'],
+    [/^\s*(require|module\.exports|console\.log)/m, 'JavaScript'],
+    [/^\s*\{[\s\S]*"[\w]+":\s*/m, 'JSON'],
+    [/^\s*[\w-]+\s*:\s*[^{;]+;/m, 'CSS'],
+    [/^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP)\s/mi, 'SQL'],
+    [/^\s*#!\s*\/.*\b(bash|sh|zsh)\b|^\s*(echo|export|alias|source)\s/m, 'Shell'],
+    [/^\s*(class\s+\w+|def\s+\w+|require\s+['"]|puts\s)/m, 'Ruby'],
+    [/^\s*(<\?php|namespace\s+|use\s+\w+\\)/m, 'PHP'],
+    [/^\s*apiVersion:|^\s*kind:\s/m, 'YAML'],
+    [/^\s*<\?xml/m, 'XML'],
+    [/^\s*#{1,6}\s|^\s*\*{1,3}[^*]+\*{1,3}|^\s*-\s+\[[ x]\]/m, 'Markdown'],
+  ];
+  for (const [re, lang] of patterns) {
+    if (re.test(first500)) return lang;
+  }
+  return 'Plain Text';
+}
+
+/* ===== FILE UPLOAD ===== */
+function loadFile(event, target) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const textarea = target === 'orig' ? inputOrig : inputMod;
+    textarea.value = e.target.result;
+    const infoEl = document.getElementById(target === 'orig' ? 'origInfo' : 'modInfo');
+    infoEl.textContent = file.name + ' (' + formatBytes(file.size) + ')';
+  };
+  reader.readAsText(file);
+}
+
+/* ===== DRAG AND DROP ===== */
+function setupDragDrop(panel, textarea, infoId) {
+  panel.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    panel.classList.add('drop-active');
+  });
+  panel.addEventListener('dragleave', function() {
+    panel.classList.remove('drop-active');
+  });
+  panel.addEventListener('drop', function(e) {
+    e.preventDefault();
+    panel.classList.remove('drop-active');
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      textarea.value = ev.target.result;
+      document.getElementById(infoId).textContent = file.name + ' (' + formatBytes(file.size) + ')';
+    };
+    reader.readAsText(file);
+  });
+}
+setupDragDrop(document.getElementById('panelOrig'), inputOrig, 'origInfo');
+setupDragDrop(document.getElementById('panelMod'), inputMod, 'modInfo');
+
+/* ===== COPY / DOWNLOAD PATCH ===== */
+function copyPatch() {
+  if (!lastPatch) { showToast('Run a diff comparison first'); return; }
+  navigator.clipboard.writeText(lastPatch).then(function() { showToast('Patch copied to clipboard'); });
+}
+
+function downloadPatch() {
+  if (!lastPatch) { showToast('Run a diff comparison first'); return; }
+  const blob = new Blob([lastPatch], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'diff.patch';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Downloaded diff.patch');
+}
+
+/* ===== SWAP / CLEAR / SAMPLE ===== */
+function swapInputs() {
+  const tmp = inputOrig.value;
+  inputOrig.value = inputMod.value;
+  inputMod.value = tmp;
+  const tmpInfo = document.getElementById('origInfo').textContent;
+  document.getElementById('origInfo').textContent = document.getElementById('modInfo').textContent;
+  document.getElementById('modInfo').textContent = tmpInfo;
+  showToast('Inputs swapped');
+}
+
+function clearAll() {
+  inputOrig.value = '';
+  inputMod.value = '';
+  diffResult = null;
+  lastPatch = '';
+  diffBody.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v18m-9-9h18"/></svg><p>Paste or upload code in both panels, then click <strong>Compare</strong></p></div>';
+  statsBar.style.display = 'none';
+  diffInfo.textContent = '';
+  document.getElementById('origInfo').textContent = '';
+  document.getElementById('modInfo').textContent = '';
+  collapseEnabled = false;
+  document.getElementById('btnCollapse').classList.remove('active');
+}
+
+function loadSample() {
+  inputOrig.value = 'function greet(name) {\n  console.log("Hello, " + name);\n  return true;\n}\n\nconst users = ["Alice", "Bob"];\n\nfor (let i = 0; i < users.length; i++) {\n  greet(users[i]);\n}\n\n// End of file';
+  inputMod.value = 'function greet(name, greeting = "Hello") {\n  const message = `${greeting}, ${name}!`;\n  console.log(message);\n  return message;\n}\n\nconst users = ["Alice", "Bob", "Charlie"];\n\nfor (const user of users) {\n  greet(user);\n}\n\n// Updated with template literals\n// End of file';
+  document.getElementById('origInfo').textContent = 'sample-original.js';
+  document.getElementById('modInfo').textContent = 'sample-modified.js';
+  computeDiff();
+}
+
+/* ===== HELPERS ===== */
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024, sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+/* ===== TAB KEY SUPPORT ===== */
+[inputOrig, inputMod].forEach(function(el) {
+  el.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = el.selectionStart, end = el.selectionEnd;
+      el.value = el.value.substring(0, start) + '  ' + el.value.substring(end);
+      el.selectionStart = el.selectionEnd = start + 2;
+    }
+  });
+});
+
+/* ===== KEYBOARD SHORTCUT ===== */
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    computeDiff();
+  }
+});
+
+/* ===== FADE IN ===== */
+const observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a code diff viewer?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A code diff viewer compares two versions of text or code and highlights the differences. Lines that were added, removed, or changed are color-coded so you can quickly see what changed between versions."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is NexTool's Code Diff Viewer free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, it is completely free with no signup required. It runs entirely in your browser, so your code never leaves your machine."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between unified and split diff view?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Split view shows the original and modified files side by side in two panes. Unified view shows all changes in a single pane with removed lines prefixed by minus signs and added lines prefixed by plus signs, similar to the output of git diff."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I export the diff as a patch file?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, you can copy the diff in unified patch format or download it as a .patch file. This is compatible with standard patch tools and can be applied using git apply."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
