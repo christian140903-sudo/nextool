@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Speech API: Text-to-Speech Guide for Devs | NexTool</title>
+    <meta name="description" content="Complete Web Speech API tutorial. Build text-to-speech features with SpeechSynthesis, control voices, pitch, and rate. Includes SSML, accessibility patterns, and code.">
+    <meta name="keywords" content="web speech api, text to speech javascript, speechsynthesis api, tts web, speech synthesis tutorial, ssml, text to speech browser, javascript tts, accessibility speech, voice api">
+    <meta name="author" content="NexTool Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/text-to-speech-web-api-guide.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Web Speech API: Complete Text-to-Speech Guide for Developers">
+    <meta property="og:description" content="Build text-to-speech features with the Web Speech API. SpeechSynthesis, voice selection, SSML, and accessibility patterns with working code.">
+    <meta property="og:url" content="https://nextool.app/blog/text-to-speech-web-api-guide.html">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/text-to-speech-web-api-guide-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-14T09:00:00Z">
+    <meta property="article:modified_time" content="2026-02-14T09:00:00Z">
+    <meta property="article:author" content="NexTool Team">
+    <meta property="article:section" content="Tutorial">
+    <meta property="article:tag" content="Web API">
+    <meta property="article:tag" content="Text-to-Speech">
+    <meta property="article:tag" content="Accessibility">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Web Speech API: Complete Text-to-Speech Guide for Developers">
+    <meta name="twitter:description" content="Build text-to-speech with the Web Speech API. SpeechSynthesis, voice control, SSML, and accessibility.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/text-to-speech-web-api-guide-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Web Speech API: Complete Text-to-Speech Guide for Developers",
+        "description": "Complete Web Speech API tutorial. Build text-to-speech features with SpeechSynthesis, control voices, pitch, and rate. Includes SSML, accessibility patterns, and code.",
+        "image": "https://nextool.app/assets/images/blog/text-to-speech-web-api-guide-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool Team",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-14T09:00:00Z",
+        "dateModified": "2026-02-14T09:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/text-to-speech-web-api-guide.html"
+        },
+        "wordCount": 2800,
+        "keywords": ["web speech api", "text to speech", "speechsynthesis", "tts", "ssml", "accessibility", "javascript"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Text-to-Speech Web API Guide",
+                "item": "https://nextool.app/blog/text-to-speech-web-api-guide.html"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is the Web Speech API and which browsers support it?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The Web Speech API is a browser-native JavaScript API that provides two capabilities: SpeechSynthesis (text-to-speech) and SpeechRecognition (speech-to-text). The SpeechSynthesis API converts text into spoken audio using voices provided by the operating system or browser. It is supported in Chrome 33+, Firefox 49+, Safari 7+, Edge 14+, and all Chromium-based browsers including Opera and Brave. Mobile support includes iOS Safari 7+ and Android Chrome 33+. SpeechRecognition has more limited support, primarily in Chromium-based browsers. No plugins, downloads, or API keys are required. The synthesis runs entirely on the client device using the OS speech engine."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I get a list of available voices in the Web Speech API?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Use window.speechSynthesis.getVoices() to get an array of SpeechSynthesisVoice objects. Important: on many browsers (especially Chrome), the voices list is loaded asynchronously and getVoices() returns an empty array on the first call. You must listen for the 'voiceschanged' event: speechSynthesis.addEventListener('voiceschanged', () => { const voices = speechSynthesis.getVoices(); }). Each voice object has properties: name (display name), lang (BCP 47 language tag like 'en-US'), localService (boolean, true if the voice runs locally), and voiceURI (unique identifier). The number of available voices depends on the operating system: macOS typically has 60-80 voices, Windows 10+ has 20-40, Android and iOS have 30-50. Some browsers also offer cloud-based voices with higher quality."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I control the speed, pitch, and volume of speech synthesis?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. The SpeechSynthesisUtterance object has three properties for controlling speech output: rate (speed, range 0.1 to 10, default 1), pitch (range 0 to 2, default 1), and volume (range 0 to 1, default 1). Example: const utterance = new SpeechSynthesisUtterance('Hello'); utterance.rate = 1.2; utterance.pitch = 0.8; utterance.volume = 0.9; speechSynthesis.speak(utterance). A rate of 1.5 to 2.0 is commonly used for speed reading features. Pitch values below 1 produce a deeper voice, above 1 a higher voice. These properties work consistently across all browsers that support the SpeechSynthesis API, though the exact audio quality varies by voice and platform."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I use the Web Speech API for accessibility?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The Web Speech API can enhance accessibility in several ways: reading page content aloud for users with visual impairments or reading difficulties, providing audio feedback for form validation errors, announcing dynamic content changes (like notifications or live updates), and offering a 'read aloud' button for long-form articles. When implementing, always make speech features opt-in (never auto-play speech), provide visible controls to pause, resume, and stop speech, respect the user's preferred voice and rate settings, and ensure the feature works alongside screen readers rather than replacing them. Use ARIA live regions (aria-live='polite') for dynamic announcements, and consider the Web Speech API as a supplement to, not a replacement for, proper semantic HTML and ARIA attributes."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is SSML and does the Web Speech API support it?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "SSML (Speech Synthesis Markup Language) is an XML-based markup language that gives fine-grained control over speech output, including pauses, emphasis, pronunciation, prosody, and phonetic spelling. The Web Speech API's SpeechSynthesis does NOT support SSML natively in any browser as of 2026. The spec mentions SSML in passing, but no browser has implemented it. If you need SSML support in the browser, you have two options: use a cloud-based TTS service (Google Cloud Text-to-Speech, Amazon Polly, Azure Cognitive Services) that accepts SSML input and returns audio, or simulate basic SSML features by splitting text at pause points and creating multiple utterances with different pitch and rate settings. For server-side applications, all major cloud TTS APIs fully support SSML."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Why does speechSynthesis.speak() not work on mobile browsers?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Mobile browsers require a user gesture (tap, click) before allowing speech synthesis. This is a security measure to prevent websites from auto-playing audio. If you call speechSynthesis.speak() without a preceding user interaction (for example, on page load or in a setTimeout), it will be silently blocked. The fix is to always trigger speech from a click or tap event handler: button.addEventListener('click', () => { speechSynthesis.speak(utterance); }). On iOS Safari specifically, there is an additional quirk: you must call speechSynthesis.speak() at least once (even with an empty utterance) in a user gesture handler before subsequent calls will work. A common pattern is to 'unlock' the audio context on the first user interaction: document.addEventListener('click', () => { speechSynthesis.speak(new SpeechSynthesisUtterance('')); }, { once: true })."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #050508;
+            --surface: #0a0a0f;
+            --surface-2: #1a1a24;
+            --surface-3: #232330;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --accent: #a855f7;
+            --accent-hover: #c084fc;
+            --text: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #1e1e2e;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --code-bg: #0d0d14;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 800px;
+            --header-height: 64px;
+        }
+
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.75; font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .nav { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: rgba(5, 5, 8, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .nav-inner { width: 100%; max-width: 1200px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.25rem; }
+        .nav-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 800; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: var(--primary); color: #fff !important; padding: 8px 20px; border-radius: 8px; font-weight: 600; transition: background 0.2s, transform 0.2s; }
+        .nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        .article-wrapper { max-width: var(--max-width); margin: 0 auto; padding: calc(var(--header-height) + 48px) 24px 80px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap; }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .breadcrumb a:hover { color: var(--primary); }
+
+        .article-header { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+        .article-category { display: inline-block; background: rgba(168, 85, 247, 0.12); color: var(--accent); padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .article-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.15; color: var(--text); margin-bottom: 16px; letter-spacing: -0.03em; }
+        .article-subtitle { font-size: 1.2rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+        .article-meta { display: flex; align-items: center; gap: 20px; color: var(--text-muted); font-size: 0.875rem; flex-wrap: wrap; }
+        .article-meta-item { display: flex; align-items: center; gap: 6px; }
+        .article-meta-item svg { width: 16px; height: 16px; opacity: 0.7; }
+
+        .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; margin-bottom: 48px; }
+        .toc-title { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .toc-list { list-style: none; counter-reset: toc; }
+        .toc-list li { counter-increment: toc; margin-bottom: 8px; }
+        .toc-list li a { color: var(--text-secondary); text-decoration: none; font-size: 0.925rem; display: flex; align-items: baseline; gap: 10px; transition: color 0.2s, padding-left 0.2s; padding: 4px 0; }
+        .toc-list li a::before { content: counter(toc, decimal-leading-zero); color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); min-width: 20px; }
+        .toc-list li a:hover { color: var(--primary); padding-left: 4px; }
+
+        .article-content h2 { font-size: 1.75rem; font-weight: 700; color: var(--text); margin-top: 56px; margin-bottom: 20px; letter-spacing: -0.02em; line-height: 1.3; padding-top: 16px; border-top: 1px solid var(--border); }
+        .article-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+        .article-content h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin-top: 36px; margin-bottom: 14px; line-height: 1.35; }
+        .article-content h4 { font-size: 1.1rem; font-weight: 600; color: var(--text-secondary); margin-top: 28px; margin-bottom: 12px; }
+        .article-content p { margin-bottom: 20px; color: var(--text-secondary); line-height: 1.8; }
+        .article-content a { color: var(--primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+        .article-content a:hover { border-bottom-color: var(--primary); }
+        .article-content strong { color: var(--text); font-weight: 600; }
+        .article-content ul, .article-content ol { margin-bottom: 20px; padding-left: 24px; color: var(--text-secondary); }
+        .article-content li { margin-bottom: 10px; line-height: 1.7; }
+        .article-content li::marker { color: var(--primary); }
+        .article-content blockquote { border-left: 3px solid var(--accent); background: var(--surface); padding: 16px 24px; margin: 28px 0; border-radius: 0 8px 8px 0; font-style: italic; color: var(--text-secondary); }
+        .article-content blockquote p:last-child { margin-bottom: 0; }
+        .article-content hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+        .article-content pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; overflow-x: auto; margin: 24px 0; }
+        .article-content pre code { font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.65; color: var(--text); background: none; padding: 0; border-radius: 0; }
+        .article-content code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface); color: var(--accent); padding: 2px 8px; border-radius: 5px; }
+        .code-label { display: inline-block; background: var(--surface-2); color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem; padding: 2px 10px; border-radius: 6px 6px 0 0; margin-bottom: -1px; position: relative; top: 1px; }
+
+        .article-content table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.925rem; }
+        .article-content thead th { background: var(--surface); color: var(--text); font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--border); }
+        .article-content tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+        .article-content tbody tr:hover { background: var(--surface); }
+
+        .info-box { background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+        .info-box.warning { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); }
+        .info-box.danger { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); }
+        .info-box.success { background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2); }
+        .info-box-title { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .info-box p { color: var(--text-secondary); font-size: 0.925rem; margin-bottom: 0; }
+
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 28px 0; }
+        .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; color: var(--text); transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; gap: 8px; }
+        .tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1); }
+        .tool-card-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .tool-card-name { font-weight: 600; font-size: 0.95rem; }
+        .tool-card-desc { font-size: 0.825rem; color: var(--text-muted); line-height: 1.5; }
+
+        .cta-box { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; padding: 40px 32px; text-align: center; margin: 48px 0; }
+        .cta-box h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+        .cta-box p { color: var(--text-secondary); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-button { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; }
+        .cta-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3); }
+        .cta-button.secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); margin-left: 12px; }
+        .cta-button.secondary:hover { background: rgba(99, 102, 241, 0.1); }
+
+        .faq-section { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border); }
+        .faq-section h2 { margin-top: 0 !important; padding-top: 0 !important; border-top: none !important; }
+        .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-question { width: 100%; background: none; border: none; color: var(--text); padding: 20px 24px; font-size: 1rem; font-weight: 600; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-sans); transition: background 0.2s; }
+        .faq-question:hover { background: var(--surface-2); }
+        .faq-question .icon { transition: transform 0.3s; font-size: 1.25rem; color: var(--text-muted); flex-shrink: 0; margin-left: 16px; }
+        .faq-item.open .faq-question .icon { transform: rotate(45deg); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .faq-answer-inner { padding: 0 24px 20px; color: var(--text-secondary); line-height: 1.7; }
+
+        .author-box { display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 48px 0; }
+        .author-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .author-info h4 { font-weight: 600; margin-bottom: 4px; }
+        .author-info p { color: var(--text-muted); font-size: 0.875rem; margin: 0; line-height: 1.5; }
+
+        .footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-wrapper { padding: calc(var(--header-height) + 24px) 16px 60px; }
+            .article-title { font-size: 1.75rem; }
+            .tool-grid { grid-template-columns: 1fr; }
+            .cta-box { padding: 28px 20px; }
+            .cta-button.secondary { margin-left: 0; margin-top: 12px; }
+            .author-box { flex-direction: column; text-align: center; }
+            .article-content pre { padding: 16px; border-radius: 8px; }
+            .article-content h2 { font-size: 1.4rem; }
+            .article-content h3 { font-size: 1.15rem; }
+            .article-content table { display: block; overflow-x: auto; }
+        }
+        @media (max-width: 480px) {
+            .article-title { font-size: 1.5rem; }
+            .toc { padding: 18px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="https://nextool.app" class="nav-logo">
+                <div class="nav-logo-icon">N</div>
+                NexTool
+            </a>
+            <ul class="nav-links">
+                <li><a href="https://nextool.app/#services">Tools</a></li>
+                <li><a href="https://nextool.app/free-tools/">Free Tools</a></li>
+                <li><a href="https://nextool.app/blog/">Blog</a></li>
+                <li><a href="https://nextool.app/#contact" class="nav-cta">Browse Tools</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Article -->
+    <article class="article-wrapper" itemscope itemtype="https://schema.org/Article">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="https://nextool.app">Home</a>
+            <span class="separator">/</span>
+            <a href="https://nextool.app/blog/">Blog</a>
+            <span class="separator">/</span>
+            <span>Text-to-Speech Web API Guide</span>
+        </nav>
+
+        <!-- Header -->
+        <header class="article-header">
+            <span class="article-category">Tutorial</span>
+            <h1 class="article-title" itemprop="headline">Web Speech API: Complete Text-to-Speech Guide for Developers</h1>
+            <p class="article-subtitle">The Web Speech API lets you add text-to-speech to any web app without external services or API keys. This guide covers SpeechSynthesis from basic usage to production-ready implementation, including voice selection, event handling, accessibility, and cross-browser quirks.</p>
+            <div class="article-meta">
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span>17 min read</span>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <time datetime="2026-02-14" itemprop="datePublished">February 14, 2026</time>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span itemprop="author">NexTool Team</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- TOC -->
+        <nav class="toc" aria-label="Table of Contents">
+            <div class="toc-title">Table of Contents</div>
+            <ol class="toc-list">
+                <li><a href="#introduction">What the Web Speech API Does</a></li>
+                <li><a href="#basic-usage">Basic Text-to-Speech in 5 Lines</a></li>
+                <li><a href="#voices">Voice Selection and Management</a></li>
+                <li><a href="#controls">Controlling Rate, Pitch, and Volume</a></li>
+                <li><a href="#events">Event Handling and Progress Tracking</a></li>
+                <li><a href="#long-text">Handling Long Text and Chunking</a></li>
+                <li><a href="#ssml">SSML and Advanced Speech Control</a></li>
+                <li><a href="#accessibility">Accessibility Use Cases</a></li>
+                <li><a href="#cross-browser">Cross-Browser Quirks and Fixes</a></li>
+                <li><a href="#complete-component">Complete Read-Aloud Component</a></li>
+                <li><a href="#tools">Speech and Text Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </nav>
+
+        <!-- Content -->
+        <div class="article-content" itemprop="articleBody">
+
+            <h2 id="introduction">What the Web Speech API Does</h2>
+
+            <p>The Web Speech API is a browser-native JavaScript API with two halves: <strong>SpeechSynthesis</strong> (text-to-speech) and <strong>SpeechRecognition</strong> (speech-to-text). This guide focuses on SpeechSynthesis &mdash; converting text into spoken audio using voices provided by the operating system.</p>
+
+            <p>No API keys. No external services. No npm packages. The browser talks using the same speech engine that powers your OS's built-in screen reader and voice assistant. All processing happens on the client device, which means zero latency, zero cost, and full privacy.</p>
+
+            <h3>Browser Support</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Browser</th>
+                        <th>SpeechSynthesis</th>
+                        <th>SpeechRecognition</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Chrome 33+</td>
+                        <td>Full support</td>
+                        <td>Full support (webkitSpeechRecognition)</td>
+                    </tr>
+                    <tr>
+                        <td>Firefox 49+</td>
+                        <td>Full support</td>
+                        <td>Limited (flag required)</td>
+                    </tr>
+                    <tr>
+                        <td>Safari 7+</td>
+                        <td>Full support</td>
+                        <td>14.1+ (partial)</td>
+                    </tr>
+                    <tr>
+                        <td>Edge 14+</td>
+                        <td>Full support</td>
+                        <td>Full support (Chromium-based)</td>
+                    </tr>
+                    <tr>
+                        <td>iOS Safari</td>
+                        <td>7+ (with quirks)</td>
+                        <td>14.5+ (partial)</td>
+                    </tr>
+                    <tr>
+                        <td>Android Chrome</td>
+                        <td>33+ (with quirks)</td>
+                        <td>Full support</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>Try the API right now with NexTool's <a href="/free-tools/text-to-speech.html">Text-to-Speech</a> tool. Paste any text, select a voice, and hear it spoken &mdash; all in your browser.</p>
+
+            <h2 id="basic-usage">Basic Text-to-Speech in 5 Lines</h2>
+
+            <div class="code-label">javascript &mdash; Minimal TTS</div>
+<pre><code>// Create an utterance (the thing to speak)
+const utterance = new SpeechSynthesisUtterance('Hello, world!');
+
+// Speak it
+speechSynthesis.speak(utterance);
+
+// That's it. The browser is now talking.</code></pre>
+
+            <p>The <code>SpeechSynthesisUtterance</code> object represents a single piece of text to be spoken. The <code>speechSynthesis</code> object (available on <code>window</code>) is the controller that manages the speech queue, voice selection, and playback state.</p>
+
+            <div class="code-label">javascript &mdash; Basic Controls</div>
+<pre><code>// Pause speech
+speechSynthesis.pause();
+
+// Resume speech
+speechSynthesis.resume();
+
+// Stop speech (clears the queue)
+speechSynthesis.cancel();
+
+// Check if currently speaking
+console.log(speechSynthesis.speaking);  // true or false
+
+// Check if paused
+console.log(speechSynthesis.paused);    // true or false
+
+// Check if there are pending utterances
+console.log(speechSynthesis.pending);   // true or false</code></pre>
+
+            <h2 id="voices">Voice Selection and Management</h2>
+
+            <p>Every operating system comes with a different set of voices. macOS typically provides 60-80 voices across 40+ languages. Windows 10/11 has 20-40 voices. Mobile platforms have 30-50. Some browsers also offer cloud-based voices with higher quality (Chrome's Google voices, for example).</p>
+
+            <h3>Loading Voices (The Async Trap)</h3>
+
+            <p>On most browsers, <code>speechSynthesis.getVoices()</code> returns an empty array on the first call. The voice list is loaded asynchronously. You must listen for the <code>voiceschanged</code> event.</p>
+
+            <div class="code-label">javascript &mdash; Reliable Voice Loading</div>
+<pre><code>function getVoices() {
+  return new Promise((resolve) => {
+    let voices = speechSynthesis.getVoices();
+
+    if (voices.length > 0) {
+      resolve(voices);
+      return;
+    }
+
+    // Voices not loaded yet. Wait for the event.
+    speechSynthesis.addEventListener('voiceschanged', () => {
+      voices = speechSynthesis.getVoices();
+      resolve(voices);
+    }, { once: true });
+  });
+}
+
+// Usage
+const voices = await getVoices();
+console.log(`Found ${voices.length} voices`);
+
+// List all English voices
+const englishVoices = voices.filter(v => v.lang.startsWith('en'));
+englishVoices.forEach(v => {
+  console.log(`${v.name} (${v.lang}) ${v.localService ? '[local]' : '[cloud]'}`);
+});</code></pre>
+
+            <h3>Selecting a Voice</h3>
+
+            <div class="code-label">javascript &mdash; Choose a Specific Voice</div>
+<pre><code>const voices = await getVoices();
+
+// Find a specific voice by name
+const preferred = voices.find(v => v.name === 'Google UK English Female')
+  || voices.find(v => v.name.includes('Samantha'))
+  || voices.find(v => v.lang === 'en-US');
+
+const utterance = new SpeechSynthesisUtterance('Hello from a specific voice.');
+utterance.voice = preferred;
+speechSynthesis.speak(utterance);</code></pre>
+
+            <h3>Voice Object Properties</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>name</code></td>
+                        <td>string</td>
+                        <td>Human-readable voice name (e.g., "Google UK English Female")</td>
+                    </tr>
+                    <tr>
+                        <td><code>lang</code></td>
+                        <td>string</td>
+                        <td>BCP 47 language tag (e.g., "en-US", "de-DE", "ja-JP")</td>
+                    </tr>
+                    <tr>
+                        <td><code>localService</code></td>
+                        <td>boolean</td>
+                        <td>true = runs locally (offline-capable), false = cloud-based</td>
+                    </tr>
+                    <tr>
+                        <td><code>voiceURI</code></td>
+                        <td>string</td>
+                        <td>Unique identifier for the voice</td>
+                    </tr>
+                    <tr>
+                        <td><code>default</code></td>
+                        <td>boolean</td>
+                        <td>true if this is the browser's default voice for the language</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>Need to analyze the text before speaking it? NexTool's <a href="/free-tools/text-analyzer.html">Text Analyzer</a> gives you word count, character count, reading time, and readability scores instantly.</p>
+
+            <h2 id="controls">Controlling Rate, Pitch, and Volume</h2>
+
+            <div class="code-label">javascript &mdash; Speech Parameters</div>
+<pre><code>const utterance = new SpeechSynthesisUtterance('This demonstrates rate, pitch, and volume control.');
+
+// Rate: 0.1 (very slow) to 10 (very fast). Default: 1
+utterance.rate = 1.3;  // Slightly faster than normal
+
+// Pitch: 0 (lowest) to 2 (highest). Default: 1
+utterance.pitch = 0.9; // Slightly deeper voice
+
+// Volume: 0 (silent) to 1 (loudest). Default: 1
+utterance.volume = 0.8;
+
+// Language (overrides voice's default language)
+utterance.lang = 'en-US';
+
+speechSynthesis.speak(utterance);</code></pre>
+
+            <h3>Practical Rate Settings</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rate</th>
+                        <th>Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0.7 - 0.9</td>
+                        <td>Accessibility: users who need slower speech</td>
+                    </tr>
+                    <tr>
+                        <td>1.0</td>
+                        <td>Default: natural conversational speed</td>
+                    </tr>
+                    <tr>
+                        <td>1.2 - 1.5</td>
+                        <td>Speed reading: experienced listeners, podcast-style</td>
+                    </tr>
+                    <tr>
+                        <td>1.5 - 2.0</td>
+                        <td>Power users: familiar with accelerated speech</td>
+                    </tr>
+                    <tr>
+                        <td>2.0+</td>
+                        <td>Screen reader users: trained to process fast speech</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="events">Event Handling and Progress Tracking</h2>
+
+            <p>SpeechSynthesisUtterance fires events at key moments during speech. These are essential for building a proper UI with progress indicators, word highlighting, and state management.</p>
+
+            <div class="code-label">javascript &mdash; Utterance Events</div>
+<pre><code>const utterance = new SpeechSynthesisUtterance('The quick brown fox jumps over the lazy dog.');
+
+// Fired when speech starts
+utterance.onstart = (event) => {
+  console.log('Started speaking');
+};
+
+// Fired when speech ends normally
+utterance.onend = (event) => {
+  console.log(`Finished. Elapsed: ${event.elapsedTime}ms`);
+};
+
+// Fired when speech is paused
+utterance.onpause = (event) => {
+  console.log('Paused at character:', event.charIndex);
+};
+
+// Fired when speech resumes after pause
+utterance.onresume = (event) => {
+  console.log('Resumed');
+};
+
+// Fired at word boundaries (not all browsers)
+utterance.onboundary = (event) => {
+  if (event.name === 'word') {
+    const word = utterance.text.substring(
+      event.charIndex,
+      event.charIndex + event.charLength
+    );
+    console.log(`Word: "${word}" at char ${event.charIndex}`);
+    // Use this for word-by-word highlighting
+  }
+};
+
+// Fired on error
+utterance.onerror = (event) => {
+  console.error('Speech error:', event.error);
+  // Common errors: 'canceled', 'interrupted', 'network', 'synthesis-failed'
+};
+
+speechSynthesis.speak(utterance);</code></pre>
+
+            <h3>Word Highlighting</h3>
+
+            <p>The <code>boundary</code> event provides the character index and length of each word as it is spoken. You can use this to highlight the current word in the UI.</p>
+
+            <div class="code-label">javascript &mdash; Highlight Words as They Are Spoken</div>
+<pre><code>function speakWithHighlighting(text, containerEl) {
+  // Wrap each word in a span
+  const words = text.split(/(\s+)/);
+  containerEl.innerHTML = words.map((word, i) =>
+    word.trim() ? `&lt;span data-index="${i}"&gt;${word}&lt;/span&gt;` : word
+  ).join('');
+
+  const utterance = new SpeechSynthesisUtterance(text);
+
+  utterance.onboundary = (event) => {
+    if (event.name !== 'word') return;
+
+    // Remove previous highlight
+    containerEl.querySelectorAll('.speaking').forEach(el =>
+      el.classList.remove('speaking')
+    );
+
+    // Find the span containing this character index
+    const charIndex = event.charIndex;
+    let currentIndex = 0;
+    for (const span of containerEl.querySelectorAll('span[data-index]')) {
+      const end = currentIndex + span.textContent.length;
+      if (charIndex >= currentIndex && charIndex < end) {
+        span.classList.add('speaking');
+        span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      }
+      currentIndex = end + 1; // +1 for the space
+    }
+  };
+
+  utterance.onend = () => {
+    containerEl.querySelectorAll('.speaking').forEach(el =>
+      el.classList.remove('speaking')
+    );
+  };
+
+  speechSynthesis.speak(utterance);
+}
+
+// CSS: .speaking { background: rgba(99, 102, 241, 0.3); border-radius: 3px; }</code></pre>
+
+            <div class="info-box">
+                <div class="info-box-title">Boundary Events Are Not Universal</div>
+                <p>The <code>boundary</code> event fires reliably in Chrome and Edge (Chromium) but is less consistent in Firefox and Safari. Always design your UI to work without word highlighting as a fallback, and test on your target browsers.</p>
+            </div>
+
+            <h2 id="long-text">Handling Long Text and Chunking</h2>
+
+            <p>Chrome has a known issue: speech stops after approximately 200-300 characters (or about 15 seconds) of continuous speech. This is a bug that has persisted for years. The workaround is to split long text into chunks and speak them sequentially.</p>
+
+            <div class="code-label">javascript &mdash; Chunked Speech for Long Text</div>
+<pre><code>function speakLongText(text, options = {}) {
+  const { voice, rate = 1, pitch = 1, volume = 1 } = options;
+
+  // Split on sentence boundaries
+  const chunks = text.match(/[^.!?]+[.!?]+/g) || [text];
+
+  let currentIndex = 0;
+  let isPaused = false;
+  let isCancelled = false;
+
+  function speakNext() {
+    if (isCancelled || currentIndex >= chunks.length) return;
+
+    const utterance = new SpeechSynthesisUtterance(chunks[currentIndex].trim());
+    if (voice) utterance.voice = voice;
+    utterance.rate = rate;
+    utterance.pitch = pitch;
+    utterance.volume = volume;
+
+    utterance.onend = () => {
+      currentIndex++;
+      if (!isPaused && !isCancelled) {
+        speakNext();
+      }
+    };
+
+    utterance.onerror = (event) => {
+      if (event.error !== 'canceled') {
+        console.error('Chunk error:', event.error);
+        currentIndex++;
+        speakNext(); // Skip failed chunk
+      }
+    };
+
+    speechSynthesis.speak(utterance);
+  }
+
+  speakNext();
+
+  // Return control object
+  return {
+    pause() {
+      isPaused = true;
+      speechSynthesis.pause();
+    },
+    resume() {
+      isPaused = false;
+      speechSynthesis.resume();
+    },
+    cancel() {
+      isCancelled = true;
+      speechSynthesis.cancel();
+    },
+    get progress() {
+      return currentIndex / chunks.length;
+    }
+  };
+}</code></pre>
+
+            <h2 id="ssml">SSML and Advanced Speech Control</h2>
+
+            <p><strong>SSML</strong> (Speech Synthesis Markup Language) is an XML-based language that provides fine-grained control over speech: pauses, emphasis, pronunciation, prosody changes, phonetic spelling, and more.</p>
+
+            <div class="info-box warning">
+                <div class="info-box-title">SSML Is Not Supported in the Web Speech API</div>
+                <p>Despite being mentioned in the W3C specification, no browser implements SSML parsing for the SpeechSynthesis API as of February 2026. If you pass SSML tags in the utterance text, the browser will speak the tags literally as text.</p>
+            </div>
+
+            <h3>Simulating SSML Features</h3>
+
+            <p>You can approximate some SSML features by creating multiple utterances with different parameters.</p>
+
+            <div class="code-label">javascript &mdash; Simulating Pauses and Emphasis</div>
+<pre><code>// Simulate a pause by inserting a short silent utterance
+function speakWithPause(before, after, pauseMs = 500) {
+  const u1 = new SpeechSynthesisUtterance(before);
+  const pause = new SpeechSynthesisUtterance('');
+  const u2 = new SpeechSynthesisUtterance(after);
+
+  // The pause duration is approximate
+  u1.onend = () => {
+    setTimeout(() => speechSynthesis.speak(u2), pauseMs);
+  };
+
+  speechSynthesis.speak(u1);
+}
+
+// Simulate emphasis by changing rate and pitch
+function speakWithEmphasis(normal, emphasized, afterEmphasis) {
+  const u1 = new SpeechSynthesisUtterance(normal);
+
+  const u2 = new SpeechSynthesisUtterance(emphasized);
+  u2.rate = 0.85;   // Slightly slower
+  u2.pitch = 1.15;  // Slightly higher pitch
+  u2.volume = 1;    // Full volume
+
+  const u3 = new SpeechSynthesisUtterance(afterEmphasis);
+
+  speechSynthesis.speak(u1);
+  speechSynthesis.speak(u2);
+  speechSynthesis.speak(u3);
+}
+
+// Example: "Please do NOT press the red button"
+speakWithEmphasis('Please do ', 'NOT', ' press the red button.');</code></pre>
+
+            <h3>Cloud TTS with SSML Support</h3>
+
+            <p>If you need full SSML support, use a cloud-based TTS API. These accept SSML input and return audio files.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>SSML Support</th>
+                        <th>Free Tier</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Google Cloud TTS</td>
+                        <td>Full SSML + custom lexicons</td>
+                        <td>1M characters/month</td>
+                    </tr>
+                    <tr>
+                        <td>Amazon Polly</td>
+                        <td>Full SSML + Neural voices</td>
+                        <td>5M characters/month (12 months)</td>
+                    </tr>
+                    <tr>
+                        <td>Azure Cognitive Services</td>
+                        <td>Full SSML + Viseme data</td>
+                        <td>500K characters/month</td>
+                    </tr>
+                    <tr>
+                        <td>ElevenLabs</td>
+                        <td>Partial (prosody only)</td>
+                        <td>10K characters/month</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="accessibility">Accessibility Use Cases</h2>
+
+            <p>The SpeechSynthesis API is a powerful accessibility tool when used correctly. Here are the most impactful use cases and the patterns to implement them well.</p>
+
+            <h3>1. Read Aloud for Articles</h3>
+
+            <p>A "Read aloud" button on blog posts and documentation helps users with visual impairments, reading difficulties (dyslexia), or those who simply prefer audio. It also enables multitasking &mdash; users can listen while doing something else.</p>
+
+            <div class="code-label">javascript &mdash; Article Read-Aloud Button</div>
+<pre><code>class ArticleReader {
+  constructor(articleSelector) {
+    this.article = document.querySelector(articleSelector);
+    this.controller = null;
+    this.isPlaying = false;
+  }
+
+  getArticleText() {
+    // Get text content, skip code blocks and nav elements
+    const clone = this.article.cloneNode(true);
+    clone.querySelectorAll('pre, code, nav, .toc, .cta-box').forEach(el => el.remove());
+    return clone.textContent.replace(/\s+/g, ' ').trim();
+  }
+
+  play() {
+    if (this.isPlaying) {
+      speechSynthesis.resume();
+      return;
+    }
+
+    const text = this.getArticleText();
+    this.controller = speakLongText(text, {
+      rate: parseFloat(localStorage.getItem('tts-rate') || '1'),
+      voice: this.getPreferredVoice()
+    });
+    this.isPlaying = true;
+  }
+
+  pause() {
+    if (this.controller) this.controller.pause();
+  }
+
+  stop() {
+    if (this.controller) this.controller.cancel();
+    this.isPlaying = false;
+  }
+
+  getPreferredVoice() {
+    const savedName = localStorage.getItem('tts-voice');
+    if (!savedName) return null;
+    return speechSynthesis.getVoices().find(v => v.name === savedName);
+  }
+}</code></pre>
+
+            <h3>2. Form Validation Feedback</h3>
+
+            <div class="code-label">javascript &mdash; Speak Validation Errors</div>
+<pre><code>function announceError(fieldName, message) {
+  // Visual feedback first
+  showVisualError(fieldName, message);
+
+  // Audio feedback (only if user has opted in)
+  if (localStorage.getItem('tts-feedback') === 'true') {
+    const utterance = new SpeechSynthesisUtterance(
+      `Error in ${fieldName}: ${message}`
+    );
+    utterance.rate = 1.1;
+    utterance.volume = 0.8;
+    speechSynthesis.speak(utterance);
+  }
+}
+
+// Usage
+announceError('email', 'Please enter a valid email address');</code></pre>
+
+            <h3>3. Live Content Announcements</h3>
+
+            <div class="code-label">javascript &mdash; Announce Dynamic Updates</div>
+<pre><code>// For notifications, chat messages, stock tickers, etc.
+function announceUpdate(message, priority = 'polite') {
+  // ARIA live region (works with screen readers)
+  const liveRegion = document.getElementById('live-announcements');
+  liveRegion.setAttribute('aria-live', priority);
+  liveRegion.textContent = message;
+
+  // Speech synthesis (for users who have enabled it)
+  if (userPrefersAudioFeedback()) {
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = 1.2;
+    speechSynthesis.speak(utterance);
+  }
+}</code></pre>
+
+            <div class="info-box success">
+                <div class="info-box-title">Accessibility Best Practices</div>
+                <p>Always make speech features opt-in. Never auto-play speech on page load. Provide visible controls to pause, resume, and stop. Let users choose their preferred voice and speed. Store preferences in localStorage. Ensure the feature works alongside screen readers rather than replacing them.</p>
+            </div>
+
+            <p>Count words and estimate reading time for your content with NexTool's <a href="/free-tools/word-counter.html">Word Counter</a> &mdash; useful for calculating speech duration before users press play.</p>
+
+            <h2 id="cross-browser">Cross-Browser Quirks and Fixes</h2>
+
+            <p>The Web Speech API has excellent browser coverage but inconsistent behavior. Here are the issues you will encounter and how to work around them.</p>
+
+            <h3>1. Chrome: Speech Stops After ~15 Seconds</h3>
+
+            <p>Chrome cancels utterances that run too long. Use the chunking approach from the <a href="#long-text">Handling Long Text</a> section to split text into sentence-length utterances.</p>
+
+            <h3>2. iOS Safari: Requires User Gesture</h3>
+
+            <p>iOS Safari blocks <code>speechSynthesis.speak()</code> unless triggered by a user tap. Additionally, you need to "unlock" the speech engine with an initial call.</p>
+
+            <div class="code-label">javascript &mdash; iOS Safari Unlock</div>
+<pre><code>// Call this on the first user interaction to unlock iOS speech
+function unlockSpeechSynthesis() {
+  const utterance = new SpeechSynthesisUtterance('');
+  speechSynthesis.speak(utterance);
+}
+
+// Add to first click/tap handler
+document.addEventListener('click', unlockSpeechSynthesis, { once: true });</code></pre>
+
+            <h3>3. Firefox: No Boundary Events</h3>
+
+            <p>Firefox does not fire <code>boundary</code> events consistently. If you rely on word highlighting, provide a visual-only fallback (e.g., a progress bar based on elapsed time) for Firefox users.</p>
+
+            <h3>4. Safari: Voice List Timing</h3>
+
+            <p>Safari sometimes does not fire the <code>voiceschanged</code> event. Use a polling fallback.</p>
+
+            <div class="code-label">javascript &mdash; Reliable Voice Loading (All Browsers)</div>
+<pre><code>function getVoicesReliable(timeout = 3000) {
+  return new Promise((resolve) => {
+    let voices = speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      resolve(voices);
+      return;
+    }
+
+    // Listen for the event
+    const handler = () => {
+      voices = speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        clearInterval(pollId);
+        clearTimeout(timeoutId);
+        resolve(voices);
+      }
+    };
+
+    speechSynthesis.addEventListener('voiceschanged', handler, { once: true });
+
+    // Poll as fallback (Safari)
+    const pollId = setInterval(() => {
+      voices = speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        clearInterval(pollId);
+        clearTimeout(timeoutId);
+        speechSynthesis.removeEventListener('voiceschanged', handler);
+        resolve(voices);
+      }
+    }, 100);
+
+    // Timeout fallback
+    const timeoutId = setTimeout(() => {
+      clearInterval(pollId);
+      speechSynthesis.removeEventListener('voiceschanged', handler);
+      resolve(speechSynthesis.getVoices()); // Return whatever we have
+    }, timeout);
+  });
+}</code></pre>
+
+            <h3>5. All Browsers: Queue Management</h3>
+
+            <p>Speech utterances are queued. If you call <code>speak()</code> multiple times without <code>cancel()</code>, all utterances play sequentially. Always cancel before speaking new content if you want to interrupt.</p>
+
+            <div class="code-label">javascript &mdash; Interrupt Current Speech</div>
+<pre><code>function speakImmediate(text, options = {}) {
+  // Cancel anything currently speaking
+  speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  Object.assign(utterance, options);
+  speechSynthesis.speak(utterance);
+}</code></pre>
+
+            <div class="cta-box">
+                <h3>Try Text-to-Speech in Your Browser</h3>
+                <p>NexTool's free Text-to-Speech tool lets you paste any text, choose a voice, adjust speed and pitch, and listen instantly. No signup needed.</p>
+                <a href="/free-tools/text-to-speech.html" class="cta-button">Open Text-to-Speech</a>
+                <a href="/free-tools/speech-to-text.html" class="cta-button secondary">Speech to Text</a>
+            </div>
+
+            <h2 id="complete-component">Complete Read-Aloud Component</h2>
+
+            <p>Here is a production-ready read-aloud component that handles all the cross-browser quirks, chunking, and user preferences.</p>
+
+            <div class="code-label">javascript &mdash; Production Read-Aloud Component</div>
+<pre><code>class ReadAloud {
+  #state = 'idle'; // idle | playing | paused
+  #chunks = [];
+  #currentChunk = 0;
+  #voice = null;
+  #rate = 1;
+  #pitch = 1;
+
+  constructor(options = {}) {
+    this.onStateChange = options.onStateChange || (() => {});
+    this.onProgress = options.onProgress || (() => {});
+    this.onWord = options.onWord || (() => {});
+
+    // Load saved preferences
+    this.#rate = parseFloat(localStorage.getItem('ra-rate') || '1');
+    this.#pitch = parseFloat(localStorage.getItem('ra-pitch') || '1');
+
+    // Preload voices
+    getVoicesReliable().then(voices => {
+      const savedVoice = localStorage.getItem('ra-voice');
+      this.#voice = voices.find(v => v.name === savedVoice) || null;
+    });
+  }
+
+  speak(text) {
+    this.stop();
+    // Split on sentence boundaries, keep punctuation
+    this.#chunks = text.match(/[^.!?\n]+[.!?\n]+|[^.!?\n]+$/g) || [text];
+    this.#currentChunk = 0;
+    this.#state = 'playing';
+    this.onStateChange(this.#state);
+    this.#speakNext();
+  }
+
+  #speakNext() {
+    if (this.#state !== 'playing' || this.#currentChunk >= this.#chunks.length) {
+      if (this.#currentChunk >= this.#chunks.length) {
+        this.#state = 'idle';
+        this.onStateChange(this.#state);
+      }
+      return;
+    }
+
+    const text = this.#chunks[this.#currentChunk].trim();
+    if (!text) {
+      this.#currentChunk++;
+      this.#speakNext();
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    if (this.#voice) utterance.voice = this.#voice;
+    utterance.rate = this.#rate;
+    utterance.pitch = this.#pitch;
+
+    utterance.onboundary = (e) => {
+      if (e.name === 'word') this.onWord(e.charIndex, e.charLength);
+    };
+
+    utterance.onend = () => {
+      this.#currentChunk++;
+      this.onProgress(this.#currentChunk / this.#chunks.length);
+      this.#speakNext();
+    };
+
+    utterance.onerror = (e) => {
+      if (e.error !== 'canceled') {
+        this.#currentChunk++;
+        this.#speakNext();
+      }
+    };
+
+    speechSynthesis.speak(utterance);
+  }
+
+  pause() {
+    speechSynthesis.pause();
+    this.#state = 'paused';
+    this.onStateChange(this.#state);
+  }
+
+  resume() {
+    speechSynthesis.resume();
+    this.#state = 'playing';
+    this.onStateChange(this.#state);
+  }
+
+  stop() {
+    speechSynthesis.cancel();
+    this.#chunks = [];
+    this.#currentChunk = 0;
+    this.#state = 'idle';
+    this.onStateChange(this.#state);
+  }
+
+  setRate(rate) {
+    this.#rate = Math.max(0.1, Math.min(10, rate));
+    localStorage.setItem('ra-rate', String(this.#rate));
+  }
+
+  setVoice(voiceName) {
+    const voices = speechSynthesis.getVoices();
+    this.#voice = voices.find(v => v.name === voiceName) || null;
+    if (this.#voice) localStorage.setItem('ra-voice', this.#voice.name);
+  }
+
+  get state() { return this.#state; }
+  get progress() { return this.#chunks.length ? this.#currentChunk / this.#chunks.length : 0; }
+}</code></pre>
+
+            <h2 id="tools">Speech and Text Tools</h2>
+
+            <div class="tool-grid">
+                <a href="/free-tools/text-to-speech.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F50A;</div>
+                    <div class="tool-card-name">Text-to-Speech</div>
+                    <div class="tool-card-desc">Convert any text to speech in your browser. Choose from dozens of voices, adjust speed and pitch.</div>
+                </a>
+                <a href="/free-tools/speech-to-text.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F3A4;</div>
+                    <div class="tool-card-name">Speech-to-Text</div>
+                    <div class="tool-card-desc">Transcribe speech to text in real time using your microphone. Supports multiple languages.</div>
+                </a>
+                <a href="/free-tools/text-analyzer.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CA;</div>
+                    <div class="tool-card-name">Text Analyzer</div>
+                    <div class="tool-card-desc">Count words, characters, sentences, and paragraphs. Calculate reading time and readability scores.</div>
+                </a>
+                <a href="/free-tools/word-counter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F522;</div>
+                    <div class="tool-card-name">Word Counter</div>
+                    <div class="tool-card-desc">Count words and characters in real time. Estimate reading and speaking time for your content.</div>
+                </a>
+                <a href="/free-tools/text-case-converter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F524;</div>
+                    <div class="tool-card-name">Text Case Converter</div>
+                    <div class="tool-card-desc">Convert text between UPPER, lower, Title, Sentence, camelCase, and other formats.</div>
+                </a>
+                <a href="/free-tools/text-diff.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4DD;</div>
+                    <div class="tool-card-name">Text Diff</div>
+                    <div class="tool-card-desc">Compare two text blocks and see differences highlighted. Useful for reviewing transcription accuracy.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the Web Speech API and which browsers support it?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>The Web Speech API is a browser-native JavaScript API that provides two capabilities: SpeechSynthesis (text-to-speech) and SpeechRecognition (speech-to-text). The SpeechSynthesis API converts text into spoken audio using voices provided by the operating system or browser. It is supported in Chrome 33+, Firefox 49+, Safari 7+, Edge 14+, and all Chromium-based browsers including Opera and Brave. Mobile support includes iOS Safari 7+ and Android Chrome 33+. No plugins, downloads, or API keys are required.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I get a list of available voices in the Web Speech API?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Use <code>window.speechSynthesis.getVoices()</code> to get an array of SpeechSynthesisVoice objects. Important: on many browsers (especially Chrome), the voices list is loaded asynchronously and getVoices() returns an empty array on the first call. You must listen for the <code>voiceschanged</code> event. Each voice object has properties: name (display name), lang (BCP 47 language tag like "en-US"), localService (boolean, true if the voice runs locally), and voiceURI (unique identifier). The number of available voices depends on the operating system: macOS typically has 60-80, Windows 10+ has 20-40.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Can I control the speed, pitch, and volume of speech synthesis?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Yes. The SpeechSynthesisUtterance object has three properties for controlling speech output: rate (speed, range 0.1 to 10, default 1), pitch (range 0 to 2, default 1), and volume (range 0 to 1, default 1). A rate of 1.5 to 2.0 is commonly used for speed reading features. Pitch values below 1 produce a deeper voice, above 1 a higher voice. These properties work consistently across all browsers that support the SpeechSynthesis API, though the exact audio quality varies by voice and platform.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I use the Web Speech API for accessibility?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>The Web Speech API can enhance accessibility by reading page content aloud for users with visual impairments or reading difficulties, providing audio feedback for form validation errors, announcing dynamic content changes, and offering a "read aloud" button for long-form articles. When implementing, always make speech features opt-in (never auto-play speech), provide visible controls to pause, resume, and stop, respect the user's preferred voice and rate settings, and ensure the feature works alongside screen readers rather than replacing them.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is SSML and does the Web Speech API support it?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>SSML (Speech Synthesis Markup Language) is an XML-based markup language that gives fine-grained control over speech output, including pauses, emphasis, pronunciation, and prosody. The Web Speech API's SpeechSynthesis does NOT support SSML natively in any browser as of 2026. If you need SSML support in the browser, use a cloud-based TTS service (Google Cloud Text-to-Speech, Amazon Polly, Azure Cognitive Services) that accepts SSML input and returns audio, or simulate basic features by splitting text and creating multiple utterances with different parameters.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Why does speechSynthesis.speak() not work on mobile browsers?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Mobile browsers require a user gesture (tap, click) before allowing speech synthesis. This is a security measure to prevent websites from auto-playing audio. If you call speechSynthesis.speak() without a preceding user interaction, it will be silently blocked. The fix is to always trigger speech from a click or tap event handler. On iOS Safari specifically, you must call speechSynthesis.speak() at least once (even with an empty utterance) in a user gesture handler before subsequent calls will work. A common pattern is to "unlock" the audio context on the first user interaction.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author -->
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>NexTool Team</h4>
+                <p>We build free developer tools including text-to-speech, speech-to-text, and text analysis utilities. Over 150 tools, all browser-based, no signup required.</p>
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="cta-box">
+            <h3>150+ Developer Tools, One Place</h3>
+            <p>NexTool Pro ($29) unlocks clean output, enhanced features, and unlimited workspace. One payment, lifetime access.</p>
+            <a href="https://nextool.app/free-tools/pro-upgrade.html" class="cta-button">Get NexTool Pro &mdash; $29</a>
+            <a href="/free-tools/" class="cta-button secondary">Try Free Tools</a>
+        </div>
+
+    </article>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="https://nextool.app">Home</a>
+                <a href="https://nextool.app/#services">Tools</a>
+                <a href="https://nextool.app/free-tools/">Free Tools</a>
+                <a href="https://nextool.app/blog/">Blog</a>
+                <a href="https://nextool.app/#contact">Contact</a>
+            </div>
+            <p>&copy; 2026 NexTool. All rights reserved. 150+ free developer tools.</p>
+        </div>
+    </footer>
+
+    <!-- FAQ Script -->
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <!-- Revenue Scripts -->
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>
