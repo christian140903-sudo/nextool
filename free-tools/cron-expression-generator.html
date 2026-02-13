@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Cron Expression Generator — Build Cron Schedules | NexTool</title>
+<meta name="description" content="Free cron expression generator and parser. Build cron schedules visually with next execution preview and human-readable descriptions. No signup required.">
+<meta name="keywords" content="cron expression generator, cron job builder, crontab generator, cron schedule maker, cron parser">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free Cron Expression Generator | NexTool">
+<meta property="og:description" content="Build cron schedules visually with next execution preview and human-readable descriptions. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/cron-expression-generator.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/cron-expression-generator.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Cron Expression Generator | NexTool">
+<meta name="twitter:description" content="Build cron schedules visually with next execution preview. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Cron Expression Generator","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free cron expression generator and parser. Build cron schedules visually with next execution preview and human-readable descriptions."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:900px;margin:0 auto;padding:0 1.5rem 3rem}
+/* EXPRESSION DISPLAY */
+.expr-display{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;text-align:center}
+.expr-label{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:.75rem;font-weight:600}
+.expr-value{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:500;color:#fff;letter-spacing:4px;margin-bottom:.75rem;word-break:break-all}
+.expr-human{color:var(--text2);font-size:.9rem;min-height:1.4em}
+.expr-actions{display:flex;justify-content:center;gap:.5rem;margin-top:1rem}
+.expr-actions button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.4rem 1rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.expr-actions button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+/* PARSE INPUT */
+.parse-row{display:flex;gap:.5rem;margin-bottom:1.5rem}
+.parse-row input{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.55rem 1rem;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:.9rem;outline:none;transition:border-color .2s}
+.parse-row input:focus{border-color:var(--primary)}
+.parse-row input::placeholder{color:var(--text2);opacity:.5}
+.parse-row button{background:linear-gradient(135deg,var(--primary),var(--accent));border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:opacity .2s}
+.parse-row button:hover{opacity:.9}
+/* PRESETS */
+.presets{margin-bottom:1.5rem}
+.presets-label{font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:.5rem}
+.preset-grid{display:flex;flex-wrap:wrap;gap:.4rem}
+.preset-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.35rem .75rem;border-radius:8px;font-size:.75rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.preset-btn:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.preset-btn.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+/* BUILDER */
+.builder{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.5rem}
+.field-card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;display:flex;flex-direction:column;align-items:center;transition:border-color .2s}
+.field-card:hover{border-color:rgba(99,102,241,.3)}
+.field-name{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:.25rem;font-weight:600}
+.field-range{font-size:.65rem;color:var(--text2);margin-bottom:.5rem;opacity:.7}
+.field-card select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.4rem .5rem;border-radius:6px;font-size:.8rem;font-family:inherit;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .4rem center;padding-right:1.4rem;margin-bottom:.4rem}
+.field-card select:focus{border-color:var(--primary)}
+.field-card input[type="text"]{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.4rem .5rem;border-radius:6px;font-size:.8rem;font-family:'JetBrains Mono',monospace;outline:none;text-align:center;transition:border-color .2s}
+.field-card input[type="text"]:focus{border-color:var(--primary)}
+.field-card input[type="text"]::placeholder{color:var(--text2);opacity:.5}
+/* NEXT RUNS */
+.next-runs{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem}
+.next-runs-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+.next-runs-title{font-size:.85rem;font-weight:700;color:var(--text)}
+.next-runs-tz{font-size:.7rem;color:var(--text2)}
+.run-list{list-style:none}
+.run-item{display:flex;align-items:center;gap:.75rem;padding:.4rem 0;border-bottom:1px solid rgba(42,42,58,.5);font-size:.8rem}
+.run-item:last-child{border-bottom:none}
+.run-num{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:600;color:var(--text2);flex-shrink:0}
+.run-date{color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem}
+.run-rel{color:var(--text2);font-size:.7rem;margin-left:auto}
+/* CHEAT SHEET */
+.cheat-sheet{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem}
+.cheat-title{font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.cheat-title::after{content:'';display:inline-block;width:0;height:0;border-left:5px solid var(--text2);border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .2s}
+.cheat-title.open::after{transform:rotate(90deg)}
+.cheat-body{display:none;overflow:hidden}
+.cheat-body.open{display:block}
+.cheat-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.cheat-table th{text-align:left;color:var(--text2);font-weight:600;padding:.4rem .6rem;border-bottom:1px solid var(--border);font-size:.7rem;text-transform:uppercase;letter-spacing:.5px}
+.cheat-table td{padding:.4rem .6rem;color:var(--text);border-bottom:1px solid rgba(42,42,58,.3)}
+.cheat-table code{font-family:'JetBrains Mono',monospace;background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.75rem;color:var(--cyan)}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .builder{grid-template-columns:repeat(2,1fr)}
+  .builder .field-card:last-child{grid-column:span 2}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .expr-value{font-size:1.4rem;letter-spacing:2px}
+  .parse-row{flex-direction:column}
+}
+@media(max-width:480px){
+  .builder{grid-template-columns:1fr}
+  .builder .field-card:last-child{grid-column:span 1}
+  .preset-grid{gap:.3rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro &mdash; $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>Cron Expression Generator</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Build cron schedules visually with dropdowns and presets. See the next 10 execution times, get human-readable descriptions, and parse existing cron expressions. All free, no signup required.</p>
+</section>
+
+<div class="tool-container fade-in">
+
+  <!-- Expression Display -->
+  <div class="expr-display">
+    <div class="expr-label">Cron Expression</div>
+    <div class="expr-value" id="cronExpr">* * * * *</div>
+    <div class="expr-human" id="cronHuman">Every minute</div>
+    <div class="expr-actions">
+      <button onclick="copyExpr()">Copy Expression</button>
+      <button onclick="resetBuilder()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Reverse Parser -->
+  <div class="parse-row">
+    <input type="text" id="parseInput" placeholder="Paste a cron expression to parse (e.g. 0 9 * * 1-5)" spellcheck="false">
+    <button onclick="parseCron()">Parse</button>
+  </div>
+
+  <!-- Presets -->
+  <div class="presets">
+    <div class="presets-label">Quick Presets</div>
+    <div class="preset-grid" id="presetGrid"></div>
+  </div>
+
+  <!-- Visual Builder -->
+  <div class="builder" id="builder">
+    <div class="field-card">
+      <div class="field-name">Minute</div>
+      <div class="field-range">0 &ndash; 59</div>
+      <select id="minuteType" onchange="updateField('minute')">
+        <option value="*">Every minute</option>
+        <option value="specific">Specific minute</option>
+        <option value="range">Range</option>
+        <option value="step">Every N minutes</option>
+      </select>
+      <input type="text" id="minuteVal" value="*" placeholder="*" onchange="buildExpression()" oninput="buildExpression()">
+    </div>
+    <div class="field-card">
+      <div class="field-name">Hour</div>
+      <div class="field-range">0 &ndash; 23</div>
+      <select id="hourType" onchange="updateField('hour')">
+        <option value="*">Every hour</option>
+        <option value="specific">Specific hour</option>
+        <option value="range">Range</option>
+        <option value="step">Every N hours</option>
+      </select>
+      <input type="text" id="hourVal" value="*" placeholder="*" onchange="buildExpression()" oninput="buildExpression()">
+    </div>
+    <div class="field-card">
+      <div class="field-name">Day of Month</div>
+      <div class="field-range">1 &ndash; 31</div>
+      <select id="domType" onchange="updateField('dom')">
+        <option value="*">Every day</option>
+        <option value="specific">Specific day</option>
+        <option value="range">Range</option>
+        <option value="step">Every N days</option>
+      </select>
+      <input type="text" id="domVal" value="*" placeholder="*" onchange="buildExpression()" oninput="buildExpression()">
+    </div>
+    <div class="field-card">
+      <div class="field-name">Month</div>
+      <div class="field-range">1 &ndash; 12</div>
+      <select id="monthType" onchange="updateField('month')">
+        <option value="*">Every month</option>
+        <option value="specific">Specific month</option>
+        <option value="range">Range</option>
+        <option value="step">Every N months</option>
+      </select>
+      <input type="text" id="monthVal" value="*" placeholder="*" onchange="buildExpression()" oninput="buildExpression()">
+    </div>
+    <div class="field-card">
+      <div class="field-name">Day of Week</div>
+      <div class="field-range">0 &ndash; 6 (Sun&ndash;Sat)</div>
+      <select id="dowType" onchange="updateField('dow')">
+        <option value="*">Every day</option>
+        <option value="specific">Specific day(s)</option>
+        <option value="range">Range</option>
+        <option value="step">Every N days</option>
+      </select>
+      <input type="text" id="dowVal" value="*" placeholder="*" onchange="buildExpression()" oninput="buildExpression()">
+    </div>
+  </div>
+
+  <!-- Next 10 Runs -->
+  <div class="next-runs">
+    <div class="next-runs-header">
+      <div class="next-runs-title">Next 10 Execution Times</div>
+      <div class="next-runs-tz" id="tzLabel"></div>
+    </div>
+    <ol class="run-list" id="runList"></ol>
+  </div>
+
+  <!-- Cheat Sheet -->
+  <div class="cheat-sheet">
+    <div class="cheat-title" id="cheatToggle" onclick="toggleCheat()">Cron Syntax Cheat Sheet</div>
+    <div class="cheat-body" id="cheatBody">
+      <table class="cheat-table">
+        <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+        <tr><td><code>*</code></td><td>Any value</td><td><code>* * * * *</code> = every minute</td></tr>
+        <tr><td><code>,</code></td><td>List separator</td><td><code>1,15 * * * *</code> = minute 1 and 15</td></tr>
+        <tr><td><code>-</code></td><td>Range</td><td><code>0 9-17 * * *</code> = hours 9 through 17</td></tr>
+        <tr><td><code>/</code></td><td>Step</td><td><code>*/15 * * * *</code> = every 15 minutes</td></tr>
+      </table>
+      <table class="cheat-table" style="margin-top:1rem">
+        <tr><th>Field</th><th>Range</th><th>Special</th></tr>
+        <tr><td>Minute</td><td>0 &ndash; 59</td><td><code>* , - /</code></td></tr>
+        <tr><td>Hour</td><td>0 &ndash; 23</td><td><code>* , - /</code></td></tr>
+        <tr><td>Day of Month</td><td>1 &ndash; 31</td><td><code>* , - /</code></td></tr>
+        <tr><td>Month</td><td>1 &ndash; 12</td><td><code>* , - /</code></td></tr>
+        <tr><td>Day of Week</td><td>0 &ndash; 6 (Sun=0)</td><td><code>* , - /</code></td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 213+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 &mdash; Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 213+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">213+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro &mdash; $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =============================================
+   CRON EXPRESSION GENERATOR — Pure Client-Side
+   ============================================= */
+
+// --- Constants ---
+var MONTHS = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+// --- Presets ---
+var PRESETS = [
+  {label:'Every minute',    expr:'* * * * *'},
+  {label:'Every 5 minutes', expr:'*/5 * * * *'},
+  {label:'Every 15 minutes',expr:'*/15 * * * *'},
+  {label:'Every 30 minutes',expr:'*/30 * * * *'},
+  {label:'Every hour',      expr:'0 * * * *'},
+  {label:'Every 6 hours',   expr:'0 */6 * * *'},
+  {label:'Every 12 hours',  expr:'0 */12 * * *'},
+  {label:'Daily at midnight',expr:'0 0 * * *'},
+  {label:'Daily at noon',   expr:'0 12 * * *'},
+  {label:'Daily at 9 AM',   expr:'0 9 * * *'},
+  {label:'Weekdays at 9 AM',expr:'0 9 * * 1-5'},
+  {label:'Weekly on Monday', expr:'0 0 * * 1'},
+  {label:'Monthly on 1st',  expr:'0 0 1 * *'},
+  {label:'Monthly on 15th', expr:'0 0 15 * *'},
+  {label:'Yearly on Jan 1', expr:'0 0 1 1 *'},
+  {label:'Every weekday',   expr:'0 0 * * 1-5'},
+  {label:'Weekends only',   expr:'0 0 * * 0,6'}
+];
+
+var activePreset = -1;
+
+// --- Init ---
+function init() {
+  // Render presets
+  var grid = document.getElementById('presetGrid');
+  PRESETS.forEach(function(p, i) {
+    var btn = document.createElement('button');
+    btn.className = 'preset-btn';
+    btn.textContent = p.label;
+    btn.onclick = function() { applyPreset(i); };
+    grid.appendChild(btn);
+  });
+  // Set timezone label
+  var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  document.getElementById('tzLabel').textContent = 'Timezone: ' + tz;
+  // Initial build
+  buildExpression();
+  // Mark "Every minute" as active
+  applyPreset(0);
+}
+
+function applyPreset(idx) {
+  activePreset = idx;
+  var btns = document.querySelectorAll('.preset-btn');
+  btns.forEach(function(b, i) { b.classList.toggle('active', i === idx); });
+  var parts = PRESETS[idx].expr.split(/\s+/);
+  if (parts.length === 5) {
+    setFieldFromValue('minute', parts[0]);
+    setFieldFromValue('hour', parts[1]);
+    setFieldFromValue('dom', parts[2]);
+    setFieldFromValue('month', parts[3]);
+    setFieldFromValue('dow', parts[4]);
+    buildExpression();
+  }
+}
+
+function setFieldFromValue(field, val) {
+  var typeEl = document.getElementById(field === 'dom' ? 'domType' : field === 'dow' ? 'dowType' : field + 'Type');
+  var valEl = document.getElementById(field === 'dom' ? 'domVal' : field === 'dow' ? 'dowVal' : field + 'Val');
+  if (val === '*') {
+    typeEl.value = '*';
+  } else if (val.indexOf('/') !== -1) {
+    typeEl.value = 'step';
+  } else if (val.indexOf('-') !== -1) {
+    typeEl.value = 'range';
+  } else {
+    typeEl.value = 'specific';
+  }
+  valEl.value = val;
+}
+
+function updateField(field) {
+  var typeEl = document.getElementById(field === 'dom' ? 'domType' : field === 'dow' ? 'dowType' : field + 'Type');
+  var valEl = document.getElementById(field === 'dom' ? 'domVal' : field === 'dow' ? 'dowVal' : field + 'Val');
+  var type = typeEl.value;
+  if (type === '*') {
+    valEl.value = '*';
+  } else if (type === 'specific') {
+    valEl.value = field === 'minute' ? '0' : field === 'hour' ? '9' : field === 'dom' ? '1' : field === 'month' ? '1' : '1';
+  } else if (type === 'range') {
+    valEl.value = field === 'minute' ? '0-30' : field === 'hour' ? '9-17' : field === 'dom' ? '1-15' : field === 'month' ? '1-6' : '1-5';
+  } else if (type === 'step') {
+    valEl.value = field === 'minute' ? '*/5' : field === 'hour' ? '*/2' : field === 'dom' ? '*/2' : field === 'month' ? '*/3' : '*/2';
+  }
+  buildExpression();
+}
+
+function buildExpression() {
+  var m = document.getElementById('minuteVal').value.trim() || '*';
+  var h = document.getElementById('hourVal').value.trim() || '*';
+  var d = document.getElementById('domVal').value.trim() || '*';
+  var mo = document.getElementById('monthVal').value.trim() || '*';
+  var dw = document.getElementById('dowVal').value.trim() || '*';
+  var expr = m + ' ' + h + ' ' + d + ' ' + mo + ' ' + dw;
+  document.getElementById('cronExpr').textContent = expr;
+  document.getElementById('cronHuman').textContent = describeCron(expr);
+  computeNextRuns(expr);
+  // Clear preset active state when manually editing
+  clearPresetHighlight(expr);
+}
+
+function clearPresetHighlight(expr) {
+  var match = -1;
+  for (var i = 0; i < PRESETS.length; i++) {
+    if (PRESETS[i].expr === expr) { match = i; break; }
+  }
+  var btns = document.querySelectorAll('.preset-btn');
+  btns.forEach(function(b, i) { b.classList.toggle('active', i === match); });
+}
+
+function parseCron() {
+  var raw = document.getElementById('parseInput').value.trim();
+  if (!raw) { showToast('Enter a cron expression to parse'); return; }
+  var parts = raw.split(/\s+/);
+  if (parts.length < 5) { showToast('Invalid: need 5 fields (minute hour day month weekday)'); return; }
+  // Take first 5 fields
+  parts = parts.slice(0, 5);
+  setFieldFromValue('minute', parts[0]);
+  setFieldFromValue('hour', parts[1]);
+  setFieldFromValue('dom', parts[2]);
+  setFieldFromValue('month', parts[3]);
+  setFieldFromValue('dow', parts[4]);
+  buildExpression();
+  showToast('Cron expression parsed');
+}
+
+function resetBuilder() {
+  setFieldFromValue('minute', '*');
+  setFieldFromValue('hour', '*');
+  setFieldFromValue('dom', '*');
+  setFieldFromValue('month', '*');
+  setFieldFromValue('dow', '*');
+  document.getElementById('parseInput').value = '';
+  buildExpression();
+}
+
+function copyExpr() {
+  var text = document.getElementById('cronExpr').textContent;
+  navigator.clipboard.writeText(text).then(function() { showToast('Copied: ' + text); });
+}
+
+// --- Human-readable description ---
+function describeCron(expr) {
+  var parts = expr.split(/\s+/);
+  if (parts.length !== 5) return 'Invalid cron expression';
+  var m = parts[0], h = parts[1], d = parts[2], mo = parts[3], dw = parts[4];
+  var desc = [];
+
+  // Minute
+  if (m === '*') {
+    desc.push('Every minute');
+  } else if (m.indexOf('*/') === 0) {
+    desc.push('Every ' + m.slice(2) + ' minutes');
+  } else if (m.indexOf('-') !== -1 && m.indexOf('/') === -1) {
+    desc.push('Minutes ' + m);
+  } else if (m.indexOf(',') !== -1) {
+    desc.push('At minutes ' + m);
+  } else {
+    desc.push('At minute ' + m);
+  }
+
+  // Hour
+  if (h === '*') {
+    if (m !== '*' && m.indexOf('*/') !== 0) desc.push('of every hour');
+  } else if (h.indexOf('*/') === 0) {
+    desc.push('every ' + h.slice(2) + ' hours');
+  } else if (h.indexOf('-') !== -1 && h.indexOf('/') === -1) {
+    desc.push('during hours ' + h);
+  } else if (h.indexOf(',') !== -1) {
+    desc.push('at hours ' + h);
+  } else {
+    // format as AM/PM
+    var hr = parseInt(h, 10);
+    if (!isNaN(hr)) {
+      var ampm = hr >= 12 ? 'PM' : 'AM';
+      var h12 = hr % 12 || 12;
+      var minStr = (m !== '*' && m.indexOf('/') === -1 && m.indexOf('-') === -1) ? ':' + (parseInt(m,10) < 10 ? '0' + parseInt(m,10) : m) : '';
+      desc = ['At ' + h12 + minStr + ' ' + ampm];
+    } else {
+      desc.push('at hour ' + h);
+    }
+  }
+
+  // Day of month
+  if (d !== '*') {
+    if (d.indexOf('*/') === 0) {
+      desc.push('every ' + d.slice(2) + ' days');
+    } else if (d.indexOf('-') !== -1) {
+      desc.push('on days ' + d + ' of the month');
+    } else if (d.indexOf(',') !== -1) {
+      desc.push('on days ' + d + ' of the month');
+    } else {
+      desc.push('on day ' + d + ' of the month');
+    }
+  }
+
+  // Month
+  if (mo !== '*') {
+    if (mo.indexOf('*/') === 0) {
+      desc.push('every ' + mo.slice(2) + ' months');
+    } else if (mo.indexOf('-') !== -1) {
+      var moParts = mo.split('-');
+      var m1 = parseInt(moParts[0], 10);
+      var m2 = parseInt(moParts[1], 10);
+      if (!isNaN(m1) && !isNaN(m2) && MONTHS[m1] && MONTHS[m2]) {
+        desc.push('in ' + MONTHS[m1] + ' through ' + MONTHS[m2]);
+      } else {
+        desc.push('in months ' + mo);
+      }
+    } else if (mo.indexOf(',') !== -1) {
+      var moList = mo.split(',').map(function(x) { var n = parseInt(x,10); return MONTHS[n] || x; });
+      desc.push('in ' + moList.join(', '));
+    } else {
+      var moN = parseInt(mo, 10);
+      desc.push('in ' + (MONTHS[moN] || mo));
+    }
+  }
+
+  // Day of week
+  if (dw !== '*') {
+    if (dw.indexOf('*/') === 0) {
+      desc.push('every ' + dw.slice(2) + ' days of the week');
+    } else if (dw.indexOf('-') !== -1 && dw.indexOf('/') === -1) {
+      var dwParts = dw.split('-');
+      var d1 = parseInt(dwParts[0], 10);
+      var d2 = parseInt(dwParts[1], 10);
+      if (!isNaN(d1) && !isNaN(d2) && DAYS[d1] && DAYS[d2]) {
+        desc.push('on ' + DAYS[d1] + ' through ' + DAYS[d2]);
+      } else {
+        desc.push('on days ' + dw + ' of the week');
+      }
+    } else if (dw.indexOf(',') !== -1) {
+      var dwList = dw.split(',').map(function(x) { var n = parseInt(x,10); return DAYS_SHORT[n] || x; });
+      desc.push('on ' + dwList.join(', '));
+    } else {
+      var dwN = parseInt(dw, 10);
+      desc.push('on ' + (DAYS[dwN] || dw));
+    }
+  }
+
+  return desc.join(', ');
+}
+
+// --- Next execution times calculator ---
+function computeNextRuns(expr) {
+  var list = document.getElementById('runList');
+  var parts = expr.split(/\s+/);
+  if (parts.length !== 5) {
+    list.innerHTML = '<li class="run-item" style="color:var(--red)">Invalid cron expression</li>';
+    return;
+  }
+
+  try {
+    var minutes = expandField(parts[0], 0, 59);
+    var hours = expandField(parts[1], 0, 23);
+    var doms = expandField(parts[2], 1, 31);
+    var months = expandField(parts[3], 1, 12);
+    var dows = expandField(parts[4], 0, 6);
+  } catch (e) {
+    list.innerHTML = '<li class="run-item" style="color:var(--red)">Error parsing expression: ' + escHtml(e.message) + '</li>';
+    return;
+  }
+
+  var results = [];
+  var now = new Date();
+  var cursor = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes() + 1, 0, 0);
+  var maxIter = 525960; // 1 year of minutes
+  var iter = 0;
+
+  while (results.length < 10 && iter < maxIter) {
+    var cm = cursor.getMinutes();
+    var ch = cursor.getHours();
+    var cd = cursor.getDate();
+    var cmo = cursor.getMonth() + 1;
+    var cdw = cursor.getDay();
+
+    if (months.indexOf(cmo) !== -1 && doms.indexOf(cd) !== -1 && dows.indexOf(cdw) !== -1 && hours.indexOf(ch) !== -1 && minutes.indexOf(cm) !== -1) {
+      results.push(new Date(cursor));
+    }
+
+    cursor.setMinutes(cursor.getMinutes() + 1);
+    iter++;
+  }
+
+  if (results.length === 0) {
+    list.innerHTML = '<li class="run-item" style="color:var(--text2)">No executions found within the next year</li>';
+    return;
+  }
+
+  list.innerHTML = results.map(function(d, i) {
+    return '<li class="run-item"><span class="run-num">' + (i + 1) + '</span><span class="run-date">' + formatDate(d) + '</span><span class="run-rel">' + relativeTime(d, now) + '</span></li>';
+  }).join('');
+}
+
+function expandField(field, min, max) {
+  if (field === '*') {
+    return range(min, max);
+  }
+
+  var result = [];
+  var parts = field.split(',');
+  for (var i = 0; i < parts.length; i++) {
+    var part = parts[i].trim();
+    if (part.indexOf('/') !== -1) {
+      var stepParts = part.split('/');
+      var step = parseInt(stepParts[1], 10);
+      if (isNaN(step) || step <= 0) throw new Error('Invalid step: ' + part);
+      var start = min;
+      if (stepParts[0] !== '*') {
+        if (stepParts[0].indexOf('-') !== -1) {
+          var rp = stepParts[0].split('-');
+          start = parseInt(rp[0], 10);
+          var end = parseInt(rp[1], 10);
+          for (var s = start; s <= end; s += step) {
+            if (s >= min && s <= max) result.push(s);
+          }
+          continue;
+        }
+        start = parseInt(stepParts[0], 10);
+        if (isNaN(start)) start = min;
+      }
+      for (var s = start; s <= max; s += step) {
+        if (s >= min) result.push(s);
+      }
+    } else if (part.indexOf('-') !== -1) {
+      var rParts = part.split('-');
+      var rStart = parseInt(rParts[0], 10);
+      var rEnd = parseInt(rParts[1], 10);
+      if (isNaN(rStart) || isNaN(rEnd)) throw new Error('Invalid range: ' + part);
+      for (var r = rStart; r <= rEnd; r++) {
+        if (r >= min && r <= max) result.push(r);
+      }
+    } else {
+      var num = parseInt(part, 10);
+      if (isNaN(num)) throw new Error('Invalid value: ' + part);
+      if (num >= min && num <= max) result.push(num);
+    }
+  }
+
+  return result.length > 0 ? result : range(min, max);
+}
+
+function range(start, end) {
+  var arr = [];
+  for (var i = start; i <= end; i++) arr.push(i);
+  return arr;
+}
+
+function formatDate(d) {
+  var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate() + ' ' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function relativeTime(future, now) {
+  var diff = Math.floor((future - now) / 1000);
+  if (diff < 60) return 'in ' + diff + 's';
+  if (diff < 3600) return 'in ' + Math.floor(diff / 60) + ' min';
+  if (diff < 86400) {
+    var h = Math.floor(diff / 3600);
+    var m = Math.floor((diff % 3600) / 60);
+    return 'in ' + h + 'h' + (m > 0 ? ' ' + m + 'm' : '');
+  }
+  var days = Math.floor(diff / 86400);
+  if (days === 1) return 'in 1 day';
+  if (days < 30) return 'in ' + days + ' days';
+  var mos = Math.floor(days / 30);
+  return 'in ~' + mos + ' month' + (mos > 1 ? 's' : '');
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// --- Cheat Sheet Toggle ---
+function toggleCheat() {
+  var title = document.getElementById('cheatToggle');
+  var body = document.getElementById('cheatBody');
+  title.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+// --- Toast ---
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+// --- Parse input on Enter ---
+document.getElementById('parseInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') parseCron();
+});
+
+// --- Fade-in observer ---
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+
+// --- Start ---
+init();
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a cron expression?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A cron expression is a string of five fields (minute, hour, day of month, month, day of week) that defines a schedule for automated tasks. For example, '0 9 * * 1-5' means 'at 9:00 AM every weekday'. Cron expressions are used in Unix/Linux crontab, CI/CD pipelines, cloud schedulers, and many other systems."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I read a cron expression?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Read a cron expression from left to right: minute (0-59), hour (0-23), day of month (1-31), month (1-12), day of week (0-6, Sunday=0). Use * for 'any', / for steps (e.g., */5 = every 5), - for ranges (e.g., 9-17), and , for lists (e.g., 1,15). Paste any expression into NexTool's generator to see it explained."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this cron generator free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's Cron Expression Generator is completely free. No signup, no download required. It runs entirely in your browser for maximum privacy and speed. You can build, parse, and preview cron schedules with no limits."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I see when my cron job will run next?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's Cron Expression Generator shows the next 10 execution times for any cron expression, calculated in your local timezone. This helps you verify your schedule is correct before deploying it to your server or CI/CD system."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
