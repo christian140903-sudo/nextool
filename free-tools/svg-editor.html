@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free SVG Editor & Optimizer — Edit, Minify SVGs | NexTool</title>
+<meta name="description" content="Free online SVG editor and optimizer. Paste or upload SVG, preview live, optimize/minify, extract colors, convert to Data URI or Base64. No signup required.">
+<meta name="keywords" content="SVG editor, SVG optimizer, SVG minifier, SVG to Base64, SVG to Data URI, SVG preview, free online tool, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free SVG Editor & Optimizer — Edit, Minify SVGs | NexTool">
+<meta property="og:description" content="Edit, optimize, and convert SVG files online. Live preview, minify, extract colors, export as Data URI or Base64. Free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/svg-editor.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/svg-editor.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free SVG Editor & Optimizer — Edit, Minify SVGs | NexTool">
+<meta name="twitter:description" content="Edit, optimize, and convert SVG files. Live preview, minify, extract colors. Free tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool SVG Editor & Optimizer","applicationCategory":"DesignApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online SVG editor and optimizer. Live preview, minify, extract colors, convert to Data URI, Base64, and CSS background-image."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar label{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover,.toolbar label:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar input[type="file"]{display:none}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2);flex-wrap:wrap}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.valid{background:var(--green)}.status-dot.invalid{background:var(--red)}.status-dot.empty{background:var(--border)}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:400px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto}
+#svgInput{width:100%;height:100%;min-height:350px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:none;outline:none;line-height:1.7;tab-size:2}
+#svgInput::placeholder{color:var(--text2);opacity:.5}
+.preview-area{display:flex;align-items:center;justify-content:center;min-height:350px;padding:1rem;background:repeating-conic-gradient(#1a1a24 0% 25%,#111118 0% 50%) 50%/20px 20px}
+.preview-area svg{max-width:100%;max-height:400px}
+.info-panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-top:1rem}
+.info-panel h3{font-size:.85rem;font-weight:700;margin-bottom:.5rem;color:var(--text2)}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem}
+.info-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .8rem}
+.info-card .label{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.2rem}
+.info-card .value{font-size:.95rem;font-weight:700;color:var(--text)}
+.info-card .value.green{color:var(--green)}
+.info-card .value.red{color:var(--red)}
+.colors-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
+.color-swatch{width:32px;height:32px;border-radius:6px;border:2px solid var(--border);cursor:pointer;transition:transform .2s;position:relative}
+.color-swatch:hover{transform:scale(1.15)}
+.color-swatch::after{content:attr(data-color);position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:.65rem;color:var(--text2);white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
+.color-swatch:hover::after{opacity:1}
+.output-section{margin-top:1rem}
+.output-section h3{font-size:.85rem;font-weight:700;margin-bottom:.5rem;color:var(--text2)}
+.output-tabs{display:flex;gap:.4rem;margin-bottom:.5rem}
+.output-tab{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.35rem .7rem;border-radius:8px;font-size:.75rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.output-tab:hover{border-color:var(--primary)}
+.output-tab.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.output-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.75rem;font-family:'Courier New',monospace;font-size:.8rem;line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow:auto;color:var(--text);position:relative}
+.copy-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:.3rem .6rem;border-radius:6px;font-size:.7rem;cursor:pointer;font-family:inherit;transition:all .2s}
+.copy-btn:hover{border-color:var(--primary);color:var(--primary)}
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .info-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>SVG Editor</span> & Optimizer</h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Paste or upload SVG code, preview it live, optimize/minify to reduce file size, extract colors, and convert to Data URI, Base64, or CSS background-image. Everything runs in your browser. No uploads to any server.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button onclick="optimizeSVG()" title="Optimize and minify SVG">Optimize</button>
+    <button onclick="beautifySVG()" title="Format SVG with indentation">Beautify</button>
+    <button onclick="copyOutput('svg')" title="Copy SVG to clipboard">Copy SVG</button>
+    <button onclick="downloadSVG()" title="Download SVG file">Download</button>
+    <label title="Upload SVG file">Upload SVG<input type="file" id="fileInput" accept=".svg,image/svg+xml" onchange="handleUpload(event)"></label>
+    <button onclick="loadSample()" title="Load sample SVG">Sample</button>
+    <button onclick="clearAll()" title="Clear everything">Clear</button>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Paste or upload an SVG</span>
+    <span id="sizeInfo" style="margin-left:auto"></span>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-header"><span>SVG Code</span><span id="lineCount"></span></div>
+      <div class="panel-body">
+        <textarea id="svgInput" placeholder='Paste your SVG code here or use the Upload button...&#10;&#10;Example:&#10;<svg viewBox="0 0 100 100">&#10;  <circle cx="50" cy="50" r="40" fill="#6366f1"/>&#10;</svg>' spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span>Preview</span></div>
+      <div class="panel-body">
+        <div class="preview-area" id="previewArea">
+          <p style="color:var(--text2);font-size:.85rem">Preview will appear here</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Panel -->
+  <div class="info-panel" id="infoPanel" style="display:none">
+    <h3>File Info</h3>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Original Size</div><div class="value" id="origSize">--</div></div>
+      <div class="info-card"><div class="label">Optimized Size</div><div class="value green" id="optSize">--</div></div>
+      <div class="info-card"><div class="label">Reduction</div><div class="value" id="reduction">--</div></div>
+      <div class="info-card"><div class="label">Elements</div><div class="value" id="elemCount">--</div></div>
+    </div>
+    <h3 style="margin-top:1rem">Colors Used</h3>
+    <div class="colors-row" id="colorsRow"><span style="color:var(--text2);font-size:.8rem">No colors detected</span></div>
+  </div>
+
+  <!-- Output Section -->
+  <div class="output-section" id="outputSection" style="display:none">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+      <h3 style="margin:0">Export</h3>
+      <div class="output-tabs">
+        <button class="output-tab active" onclick="setOutputTab('datauri',this)">Data URI</button>
+        <button class="output-tab" onclick="setOutputTab('base64',this)">Base64</button>
+        <button class="output-tab" onclick="setOutputTab('css',this)">CSS bg-image</button>
+      </div>
+      <button class="copy-btn" onclick="copyOutput('export')" style="margin-left:auto">Copy</button>
+    </div>
+    <div class="output-box" id="exportOutput"></div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 220+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 220+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">220+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const svgInput = document.getElementById('svgInput');
+const previewArea = document.getElementById('previewArea');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const sizeInfo = document.getElementById('sizeInfo');
+const lineCount = document.getElementById('lineCount');
+let currentSVG = '';
+let optimizedSVG = '';
+let currentExportTab = 'datauri';
+
+svgInput.addEventListener('input', debounce(processInput, 300));
+svgInput.addEventListener('input', updateLineCount);
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function updateLineCount() {
+  const lines = svgInput.value.split('\n').length;
+  lineCount.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024, sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function processInput() {
+  const raw = svgInput.value.trim();
+  if (!raw) {
+    clearPreview();
+    return;
+  }
+  sizeInfo.textContent = formatBytes(new Blob([raw]).size);
+
+  if (!raw.includes('<svg')) {
+    statusDot.className = 'status-dot invalid';
+    statusText.textContent = 'No <svg> element found';
+    previewArea.innerHTML = '<p style="color:var(--red);font-size:.85rem">Invalid SVG: no &lt;svg&gt; element found</p>';
+    return;
+  }
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(raw, 'image/svg+xml');
+    const error = doc.querySelector('parsererror');
+    if (error) {
+      statusDot.className = 'status-dot invalid';
+      statusText.textContent = 'SVG parse error';
+      previewArea.innerHTML = '<p style="color:var(--red);font-size:.85rem">Parse error: ' + error.textContent.substring(0, 200) + '</p>';
+      return;
+    }
+
+    currentSVG = raw;
+    optimizedSVG = '';
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid SVG';
+    previewArea.innerHTML = raw;
+    extractInfo(raw);
+    updateExport();
+  } catch (e) {
+    statusDot.className = 'status-dot invalid';
+    statusText.textContent = 'Error: ' + e.message;
+  }
+}
+
+function extractInfo(svg) {
+  document.getElementById('infoPanel').style.display = '';
+  document.getElementById('outputSection').style.display = '';
+
+  const origBytes = new Blob([svg]).size;
+  document.getElementById('origSize').textContent = formatBytes(origBytes);
+
+  if (optimizedSVG) {
+    const optBytes = new Blob([optimizedSVG]).size;
+    document.getElementById('optSize').textContent = formatBytes(optBytes);
+    const pct = ((1 - optBytes / origBytes) * 100).toFixed(1);
+    document.getElementById('reduction').textContent = pct + '%';
+    document.getElementById('reduction').className = 'value ' + (pct > 0 ? 'green' : '');
+  } else {
+    document.getElementById('optSize').textContent = '--';
+    document.getElementById('reduction').textContent = '--';
+  }
+
+  // Count elements
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svg, 'image/svg+xml');
+  const allEls = doc.querySelectorAll('*');
+  document.getElementById('elemCount').textContent = allEls.length;
+
+  // Extract colors
+  const colors = new Set();
+  const colorAttrs = ['fill', 'stroke', 'stop-color', 'flood-color', 'lighting-color'];
+  allEls.forEach(el => {
+    colorAttrs.forEach(attr => {
+      const val = el.getAttribute(attr);
+      if (val && val !== 'none' && val !== 'inherit' && val !== 'currentColor' && !val.startsWith('url(')) {
+        colors.add(val.toLowerCase());
+      }
+    });
+    // Also check inline style
+    const style = el.getAttribute('style');
+    if (style) {
+      const matches = style.match(/(fill|stroke|color)\s*:\s*([^;]+)/gi);
+      if (matches) {
+        matches.forEach(m => {
+          const val = m.split(':')[1].trim();
+          if (val && val !== 'none' && val !== 'inherit') colors.add(val.toLowerCase());
+        });
+      }
+    }
+  });
+
+  const colorsRow = document.getElementById('colorsRow');
+  if (colors.size === 0) {
+    colorsRow.innerHTML = '<span style="color:var(--text2);font-size:.8rem">No colors detected</span>';
+  } else {
+    colorsRow.innerHTML = '';
+    colors.forEach(c => {
+      const swatch = document.createElement('div');
+      swatch.className = 'color-swatch';
+      swatch.style.background = c;
+      swatch.setAttribute('data-color', c);
+      swatch.title = 'Click to copy: ' + c;
+      swatch.onclick = () => {
+        navigator.clipboard.writeText(c).then(() => showToast('Copied: ' + c));
+      };
+      colorsRow.appendChild(swatch);
+    });
+  }
+}
+
+function optimizeSVG() {
+  if (!currentSVG) { showToast('No SVG to optimize'); return; }
+
+  let svg = currentSVG;
+
+  // Remove XML declaration
+  svg = svg.replace(/<\?xml[^?]*\?>/gi, '');
+  // Remove DOCTYPE
+  svg = svg.replace(/<!DOCTYPE[^>]*>/gi, '');
+  // Remove comments
+  svg = svg.replace(/<!--[\s\S]*?-->/g, '');
+  // Remove metadata
+  svg = svg.replace(/<metadata[\s\S]*?<\/metadata>/gi, '');
+  // Remove editor namespace attrs
+  svg = svg.replace(/\s+xmlns:(?:sodipodi|inkscape|dc|cc|rdf|sketch|xlink)="[^"]*"/gi, '');
+  svg = svg.replace(/\s+(?:sodipodi|inkscape|sketch):[a-z-]+="[^"]*"/gi, '');
+  // Remove data- attributes
+  svg = svg.replace(/\s+data-[a-z-]+="[^"]*"/gi, '');
+  // Remove empty id attributes
+  svg = svg.replace(/\s+id=""/g, '');
+  // Remove unnecessary whitespace between tags
+  svg = svg.replace(/>\s+</g, '><');
+  // Trim whitespace in attribute values
+  svg = svg.replace(/\s{2,}/g, ' ');
+  // Remove leading/trailing whitespace
+  svg = svg.trim();
+  // Remove empty groups
+  svg = svg.replace(/<g>\s*<\/g>/gi, '');
+  // Remove title and desc elements
+  svg = svg.replace(/<title>[\s\S]*?<\/title>/gi, '');
+  svg = svg.replace(/<desc>[\s\S]*?<\/desc>/gi, '');
+
+  optimizedSVG = svg;
+  svgInput.value = svg;
+  updateLineCount();
+
+  statusDot.className = 'status-dot valid';
+  statusText.textContent = 'SVG optimized';
+  previewArea.innerHTML = svg;
+
+  const origBytes = new Blob([currentSVG]).size;
+  const optBytes = new Blob([svg]).size;
+  sizeInfo.textContent = formatBytes(optBytes);
+  document.getElementById('optSize').textContent = formatBytes(optBytes);
+  const pct = ((1 - optBytes / origBytes) * 100).toFixed(1);
+  document.getElementById('reduction').textContent = pct + '%';
+  document.getElementById('reduction').className = 'value green';
+
+  extractInfo(svg);
+  updateExport();
+  showToast('Optimized: ' + pct + '% smaller');
+}
+
+function beautifySVG() {
+  if (!svgInput.value.trim()) { showToast('No SVG to beautify'); return; }
+  const raw = svgInput.value.trim();
+  let formatted = '';
+  let indent = 0;
+  const parts = raw.replace(/>\s*</g, '>\n<').split('\n');
+  parts.forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    if (line.match(/^<\//) ) indent = Math.max(0, indent - 1);
+    formatted += '  '.repeat(indent) + line + '\n';
+    if (line.match(/^<[^\/!?][^>]*[^\/]>$/) && !line.match(/^<(circle|rect|line|ellipse|polygon|polyline|path|use|image|br|hr|img|input|meta|link)/i)) {
+      indent++;
+    }
+  });
+  svgInput.value = formatted.trim();
+  updateLineCount();
+  processInput();
+  showToast('SVG beautified');
+}
+
+function setOutputTab(tab, btn) {
+  currentExportTab = tab;
+  document.querySelectorAll('.output-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateExport();
+}
+
+function updateExport() {
+  const svg = svgInput.value.trim();
+  if (!svg) return;
+  const output = document.getElementById('exportOutput');
+
+  if (currentExportTab === 'datauri') {
+    output.textContent = 'data:image/svg+xml,' + encodeURIComponent(svg);
+  } else if (currentExportTab === 'base64') {
+    output.textContent = btoa(unescape(encodeURIComponent(svg)));
+  } else if (currentExportTab === 'css') {
+    output.textContent = "background-image: url(\"data:image/svg+xml," + encodeURIComponent(svg) + "\");";
+  }
+}
+
+function copyOutput(type) {
+  let text;
+  if (type === 'svg') {
+    text = svgInput.value;
+  } else {
+    text = document.getElementById('exportOutput').textContent;
+  }
+  if (!text) { showToast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+function downloadSVG() {
+  const svg = svgInput.value.trim();
+  if (!svg) { showToast('No SVG to download'); return; }
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'optimized.svg';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Downloaded optimized.svg');
+}
+
+function handleUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    svgInput.value = e.target.result;
+    updateLineCount();
+    processInput();
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function loadSample() {
+  svgInput.value = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">\n  <!-- NexTool Logo Sample -->\n  <defs>\n    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">\n      <stop offset="0%" stop-color="#6366f1"/>\n      <stop offset="100%" stop-color="#a855f7"/>\n    </linearGradient>\n  </defs>\n  <rect width="200" height="200" rx="32" fill="#0a0a1a"/>\n  <circle cx="70" cy="100" r="35" fill="url(#grad)" opacity="0.9"/>\n  <circle cx="130" cy="100" r="35" fill="#ec4899" opacity="0.7"/>\n  <rect x="60" y="140" width="80" height="8" rx="4" fill="#22c55e" opacity="0.8"/>\n  <text x="100" y="185" text-anchor="middle" fill="#e4e4eb" font-family="Inter,sans-serif" font-size="14" font-weight="700">NexTool</text>\n</svg>';
+  updateLineCount();
+  processInput();
+}
+
+function clearAll() {
+  svgInput.value = '';
+  currentSVG = '';
+  optimizedSVG = '';
+  clearPreview();
+  document.getElementById('infoPanel').style.display = 'none';
+  document.getElementById('outputSection').style.display = 'none';
+}
+
+function clearPreview() {
+  previewArea.innerHTML = '<p style="color:var(--text2);font-size:.85rem">Preview will appear here</p>';
+  statusDot.className = 'status-dot empty';
+  statusText.textContent = 'Paste or upload an SVG';
+  sizeInfo.textContent = '';
+  lineCount.textContent = '';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+svgInput.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = svgInput.selectionStart, end = svgInput.selectionEnd;
+    svgInput.value = svgInput.value.substring(0, start) + '  ' + svgInput.value.substring(end);
+    svgInput.selectionStart = svgInput.selectionEnd = start + 2;
+  }
+});
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What does the SVG Editor & Optimizer do?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The SVG Editor & Optimizer lets you paste or upload SVG code, see a live preview, optimize/minify the SVG to reduce file size, extract all colors used in the SVG, and export the SVG as a Data URI, Base64 string, or CSS background-image property."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does SVG optimization work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The optimizer removes unnecessary metadata, comments, editor-specific attributes (from Inkscape, Sketch, etc.), empty groups, XML declarations, and excessive whitespace. This typically reduces SVG file size by 10-50% without changing the visual appearance."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the SVG Editor free to use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's SVG Editor & Optimizer is completely free. It runs entirely in your browser with no server uploads. Your SVG data stays private. No signup or account required."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I convert SVG to Base64 or Data URI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, the tool provides one-click conversion to Data URI (for inline use in HTML), Base64 encoding, and CSS background-image syntax. Each format can be copied to clipboard with a single click."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
