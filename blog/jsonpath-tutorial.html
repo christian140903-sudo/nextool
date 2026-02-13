@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSONPath Tutorial: Query JSON Like a Pro (2026) | NexTool</title>
+<meta name="description" content="Master JSONPath syntax with practical examples. Learn $, @, *, .., and filter expressions to query JSON data from APIs, configs, and databases.">
+<meta name="keywords" content="jsonpath tutorial, jsonpath syntax, jsonpath examples, query json, jsonpath filter, jsonpath operators, jsonpath vs jq, json query language, jsonpath expressions, jsonpath online">
+<meta name="author" content="NexTool Team">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nextool.app/blog/jsonpath-tutorial.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="JSONPath Tutorial: Query JSON Like a Pro (2026)">
+<meta property="og:description" content="Master JSONPath syntax with practical examples. Learn to query JSON data from APIs, configs, and databases.">
+<meta property="og:url" content="https://nextool.app/blog/jsonpath-tutorial.html">
+<meta property="og:site_name" content="NexTool">
+<meta property="article:published_time" content="2026-02-13T10:00:00Z">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="JSONPath Tutorial: Query JSON Like a Pro (2026)">
+<meta name="twitter:description" content="Master JSONPath syntax with practical examples. Learn to query JSON data from APIs, configs, and databases.">
+
+<!-- JSON-LD: Article -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "JSONPath Tutorial: Query JSON Like a Pro (2026)",
+    "description": "Master JSONPath syntax with practical examples. Learn $, @, *, .., and filter expressions to query JSON data from APIs, configs, and databases.",
+    "author": {"@type": "Organization", "name": "NexTool Team", "url": "https://nextool.app"},
+    "publisher": {"@type": "Organization", "name": "NexTool", "logo": {"@type": "ImageObject", "url": "https://nextool.app/images/logo.png"}},
+    "datePublished": "2026-02-13T10:00:00Z",
+    "dateModified": "2026-02-13T10:00:00Z",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "https://nextool.app/blog/jsonpath-tutorial.html"},
+    "keywords": "jsonpath tutorial, jsonpath syntax, jsonpath examples, query json, jsonpath filter expressions",
+    "wordCount": 2800,
+    "articleSection": "Developer Tools"
+}
+</script>
+
+<!-- JSON-LD: BreadcrumbList -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app"},
+        {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://nextool.app/blog/"},
+        {"@type": "ListItem", "position": 3, "name": "JSONPath Tutorial", "item": "https://nextool.app/blog/jsonpath-tutorial.html"}
+    ]
+}
+</script>
+
+<!-- JSON-LD: FAQPage -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "What is JSONPath?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "JSONPath is a query language for extracting data from JSON documents, similar to how XPath queries XML. It uses a path syntax starting with $ (the root element) and supports operators like dot notation ($.store.book), bracket notation ($['store']['book']), wildcards (*), recursive descent (..), array slicing ([0:5]), and filter expressions (?(@.price < 10)). JSONPath is standardized in RFC 9535."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is the difference between JSONPath and jq?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "JSONPath is a query language focused on selecting and extracting data from JSON. jq is a full-featured command-line JSON processor that can select, transform, filter, sort, group, and construct new JSON. JSONPath is simpler to learn and is available as a library in every major programming language. jq is more powerful but has a steeper learning curve and is primarily a command-line tool. Use JSONPath when you need to extract values from JSON in application code. Use jq when you need to transform JSON in shell scripts or pipelines."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How do I filter JSON arrays with JSONPath?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Use filter expressions with the ?() syntax. The @ symbol refers to the current element being evaluated. For example, $.users[?(@.age > 18)] selects all users older than 18. $.products[?(@.price < 50 && @.inStock == true)] selects products under $50 that are in stock. You can use comparison operators (==, !=, <, >, <=, >=) and logical operators (&& for AND, || for OR) inside filters."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Is JSONPath standardized?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. JSONPath was formalized as RFC 9535 (published February 2024) by the IETF. Before the RFC, JSONPath implementations varied between languages, leading to inconsistent behavior with edge cases like filter expressions and recursive descent. The RFC standardizes the syntax, semantics, and expected output for all operators. When choosing a JSONPath library, check whether it conforms to RFC 9535 for consistent cross-platform behavior."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Can I test JSONPath expressions online?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. You can use free online tools to test JSONPath expressions against your JSON data in the browser. Paste your JSON into a tool like NexTool JSON Viewer, write your JSONPath expression, and see the matched results instantly. This is the fastest way to develop and debug JSONPath queries before embedding them in your application code. Browser-based tools process your data client-side, so no data leaves your machine."
+            }
+        }
+    ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050508;
+  --surface: #111118;
+  --surface-2: #1a1a24;
+  --surface-3: #222233;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --accent: #a855f7;
+  --pink: #ec4899;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --border: #1e1e2e;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--primary-hover); }
+
+/* ===== NAVBAR ===== */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(5,5,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-size: 1.4rem; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+.nav-links a { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: #fff; }
+.nav-cta {
+  background: var(--primary); color: #fff !important; padding: 0.5rem 1.2rem;
+  border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+  transition: background 0.2s, transform 0.2s;
+}
+.nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+.nav-mobile-toggle { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+/* ===== ARTICLE HERO ===== */
+.article-hero {
+  padding: 8rem 2rem 3rem;
+  max-width: 900px; margin: 0 auto; text-align: center;
+}
+.article-meta {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.article-category {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; padding: 0.3rem 0.9rem; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.article-date, .article-reading-time { color: var(--text-dim); font-size: 0.85rem; }
+.article-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; line-height: 1.15;
+  color: #fff; margin-bottom: 1.2rem;
+}
+.article-hero h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.article-subtitle { color: var(--text-muted); font-size: 1.15rem; max-width: 680px; margin: 0 auto; }
+
+/* ===== LAYOUT ===== */
+.article-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  align-items: start;
+}
+
+/* ===== TOC SIDEBAR ===== */
+.toc-sidebar {
+  position: sticky; top: 84px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+}
+.toc-title {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 0.8rem;
+}
+.toc-list { list-style: none; }
+.toc-list li { margin-bottom: 0.4rem; }
+.toc-list a {
+  color: var(--text-muted); font-size: 0.8rem; display: block;
+  padding: 0.25rem 0.5rem; border-radius: 6px; border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+.toc-list a:hover, .toc-list a.active {
+  color: var(--primary); border-left-color: var(--primary); background: rgba(99,102,241,0.06);
+}
+
+/* ===== ARTICLE CONTENT ===== */
+.article-content { max-width: 720px; }
+.article-content h2 {
+  font-size: 1.6rem; font-weight: 800; color: #fff;
+  margin: 2.5rem 0 1rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.article-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.article-content h3 {
+  font-size: 1.2rem; font-weight: 700; color: #fff; margin: 2rem 0 0.8rem;
+}
+.article-content p { margin-bottom: 1.2rem; color: var(--text); }
+.article-content ul, .article-content ol {
+  margin: 0 0 1.5rem 1.2rem; color: var(--text);
+}
+.article-content li { margin-bottom: 0.5rem; }
+.article-content strong { color: #fff; }
+.article-content blockquote {
+  border-left: 3px solid var(--primary); padding: 1rem 1.5rem;
+  background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1.5rem 0; color: var(--text-muted); font-style: italic;
+}
+.article-content code {
+  background: var(--surface-2); padding: 0.15rem 0.45rem; border-radius: 4px;
+  font-size: 0.9em; color: var(--pink);
+}
+.article-content pre {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.2rem; overflow-x: auto; margin: 1.5rem 0;
+}
+.article-content pre code { background: none; padding: 0; color: var(--text); }
+
+/* ===== KEY TAKEAWAY ===== */
+.key-takeaway {
+  background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(99,102,241,0.05));
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+}
+.key-takeaway-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--success); margin-bottom: 0.4rem;
+}
+
+/* ===== OPERATOR TABLE ===== */
+.op-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+}
+.op-table th {
+  background: var(--surface-2);
+  color: #fff;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--border);
+}
+.op-table td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.op-table tr:hover td { background: rgba(99,102,241,0.04); }
+.op-table code { font-size: 0.85em; }
+
+/* ===== CTA BOX ===== */
+.cta-box {
+  background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.08));
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+.cta-box h3 { color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 0.6rem; }
+.cta-box p { color: var(--text-muted); margin-bottom: 1.2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+.cta-button {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; font-weight: 700; padding: 0.75rem 2rem;
+  border-radius: 10px; font-size: 0.95rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(99,102,241,0.35);
+  color: #fff;
+}
+
+/* ===== AUTHOR BOX ===== */
+.author-box {
+  display: flex; gap: 1.2rem; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem; margin: 2.5rem 0;
+}
+.author-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.author-info h4 { color: #fff; font-weight: 700; margin-bottom: 0.2rem; }
+.author-info p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+
+/* ===== RELATED ARTICLES ===== */
+.related-articles { margin: 3rem 0; }
+.related-articles h3 { color: #fff; font-weight: 800; font-size: 1.3rem; margin-bottom: 1.2rem; }
+.related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+.related-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.2rem;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.related-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.related-card-cat {
+  font-size: 0.7rem; text-transform: uppercase; font-weight: 700;
+  letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.5rem;
+}
+.related-card h4 { color: #fff; font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; line-height: 1.4; }
+.related-card p { color: var(--text-dim); font-size: 0.82rem; }
+
+/* ===== FOOTER ===== */
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 3rem 2rem 1.5rem;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+}
+.footer-col h4 {
+  color: #fff; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.footer-col a { display: block; color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.4rem; }
+.footer-col a:hover { color: var(--primary); }
+.footer-brand {
+  font-size: 1.2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+.footer-brand-desc { color: var(--text-dim); font-size: 0.82rem; line-height: 1.5; }
+.footer-bottom {
+  text-align: center; padding-top: 1.5rem;
+  border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.8rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .article-layout { grid-template-columns: 1fr; }
+  .toc-sidebar { position: static; margin-bottom: 1rem; }
+}
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .nav-mobile-toggle { display: block; }
+  .article-hero { padding: 6rem 1rem 2rem; }
+  .article-layout { padding: 0 1rem 3rem; }
+  .author-box { flex-direction: column; text-align: center; }
+  .op-table { font-size: 0.8rem; }
+  .op-table th, .op-table td { padding: 0.5rem 0.6rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">NexTool</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/free-tools/">Tools</a></li>
+    <li><a href="/free-tools/">Free Tools</a></li>
+    <li><a href="/pro.html">Pro</a></li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/pro.html" class="nav-cta">NexTool Pro</a></li>
+  </ul>
+  <button class="nav-mobile-toggle" aria-label="Menu">&#9776;</button>
+</nav>
+
+<!-- HERO -->
+<header class="article-hero">
+  <div class="article-meta">
+    <span class="article-category">Developer Tools</span>
+    <span class="article-date">February 13, 2026</span>
+    <span class="article-reading-time">15 min read</span>
+  </div>
+  <h1>JSONPath Tutorial: <span>Query JSON Like a Pro</span></h1>
+  <p class="article-subtitle">Master the JSONPath query language with practical examples. Learn every operator, write filter expressions, extract data from real API responses, and see how JSONPath compares to jq.</p>
+</header>
+
+<!-- ARTICLE LAYOUT -->
+<div class="article-layout">
+
+  <!-- TOC SIDEBAR -->
+  <aside class="toc-sidebar">
+    <div class="toc-title">Table of Contents</div>
+    <ul class="toc-list">
+      <li><a href="#what-is-jsonpath">What Is JSONPath</a></li>
+      <li><a href="#operators">All JSONPath Operators</a></li>
+      <li><a href="#basic-queries">Basic Queries</a></li>
+      <li><a href="#filter-expressions">Filter Expressions</a></li>
+      <li><a href="#array-slicing">Array Slicing</a></li>
+      <li><a href="#recursive-descent">Recursive Descent</a></li>
+      <li><a href="#real-world-examples">Real-World API Examples</a></li>
+      <li><a href="#jsonpath-vs-jq">JSONPath vs jq</a></li>
+      <li><a href="#libraries">JSONPath Libraries</a></li>
+      <li><a href="#best-practices">Best Practices</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </aside>
+
+  <!-- ARTICLE CONTENT -->
+  <article class="article-content">
+
+    <h2 id="what-is-jsonpath">What Is JSONPath and Why You Need It</h2>
+
+    <p>JSONPath is a query language for JSON data. It lets you write an expression that extracts specific values from a JSON document without writing custom parsing code. Think of it as XPath for XML, but for JSON.</p>
+
+    <p>Here is the problem JSONPath solves. You have an API response with 200 lines of nested JSON. You need the email address of every user whose account is active. Without JSONPath, you write a loop, check conditions, and extract values manually. With JSONPath, you write one expression:</p>
+
+    <pre><code>$.users[?(@.active == true)].email</code></pre>
+
+    <p>That expression says: start at the root (<code>$</code>), go into the <code>users</code> array, filter for elements where <code>active</code> is <code>true</code>, and return the <code>email</code> field from each match. One line, no loops, no conditionals.</p>
+
+    <p>JSONPath is used in:</p>
+
+    <ul>
+      <li><strong>API testing</strong> -- asserting that specific values exist in JSON responses (Postman, REST Assured, Karate)</li>
+      <li><strong>Configuration management</strong> -- extracting values from JSON config files in CI/CD pipelines</li>
+      <li><strong>Data extraction</strong> -- pulling specific fields from large JSON datasets or database query results</li>
+      <li><strong>Kubernetes</strong> -- <code>kubectl get pods -o jsonpath='{.items[*].metadata.name}'</code> uses JSONPath natively</li>
+      <li><strong>Monitoring and logging</strong> -- extracting metrics from JSON-structured logs</li>
+    </ul>
+
+    <p>JSONPath was formalized as <strong>RFC 9535</strong> (published February 2024), giving it an official specification after years of informal use with varying implementations. If you work with JSON regularly, JSONPath is a tool you should know. Let us start with the operators.</p>
+
+    <h2 id="operators">The Complete JSONPath Operator Reference</h2>
+
+    <p>Every JSONPath expression starts with <code>$</code>, which represents the root of the JSON document. From there, you use operators to navigate the structure and select values. Here is every operator you can use. To test these interactively, paste any JSON into the <a href="/free-tools/json-viewer.html">NexTool JSON Viewer</a> and explore the structure visually.</p>
+
+    <table class="op-table">
+      <thead>
+        <tr>
+          <th>Operator</th>
+          <th>Description</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>$</code></td><td>Root element (the entire document)</td><td><code>$</code></td></tr>
+        <tr><td><code>.</code></td><td>Child operator (dot notation)</td><td><code>$.store.book</code></td></tr>
+        <tr><td><code>['...']</code></td><td>Child operator (bracket notation)</td><td><code>$['store']['book']</code></td></tr>
+        <tr><td><code>[n]</code></td><td>Array index (zero-based)</td><td><code>$.book[0]</code></td></tr>
+        <tr><td><code>[start:end]</code></td><td>Array slice</td><td><code>$.book[0:3]</code></td></tr>
+        <tr><td><code>[start:end:step]</code></td><td>Array slice with step</td><td><code>$.book[0:10:2]</code></td></tr>
+        <tr><td><code>*</code></td><td>Wildcard (all children)</td><td><code>$.store.*</code></td></tr>
+        <tr><td><code>..</code></td><td>Recursive descent (search all levels)</td><td><code>$..price</code></td></tr>
+        <tr><td><code>?()</code></td><td>Filter expression</td><td><code>$[?(@.age > 18)]</code></td></tr>
+        <tr><td><code>@</code></td><td>Current element (inside filters)</td><td><code>?(@.price &lt; 10)</code></td></tr>
+        <tr><td><code>,</code></td><td>Union (multiple indices or names)</td><td><code>$.book[0,2,4]</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Key Concept</div>
+      <p><strong><code>$</code> is the root, <code>@</code> is the current element.</strong> Every JSONPath expression starts with <code>$</code>. The <code>@</code> symbol is only used inside filter expressions <code>?(...)</code> and refers to the element being evaluated. Master these two symbols and the rest follows naturally.</p>
+    </div>
+
+    <h2 id="basic-queries">Basic Queries: Navigating JSON Structure</h2>
+
+    <p>Let us work through progressively complex queries using a sample JSON document. This is a simplified version of the classic "bookstore" example used in the JSONPath specification.</p>
+
+    <pre><code>{
+  "store": {
+    "book": [
+      {
+        "category": "fiction",
+        "author": "Herman Melville",
+        "title": "Moby Dick",
+        "isbn": "0-553-21311-3",
+        "price": 8.99
+      },
+      {
+        "category": "fiction",
+        "author": "J.R.R. Tolkien",
+        "title": "The Lord of the Rings",
+        "isbn": "0-395-19395-8",
+        "price": 22.99
+      },
+      {
+        "category": "reference",
+        "author": "Douglas Crockford",
+        "title": "JavaScript: The Good Parts",
+        "isbn": "978-0596517748",
+        "price": 15.99
+      },
+      {
+        "category": "fiction",
+        "author": "Ursula K. Le Guin",
+        "title": "A Wizard of Earthsea",
+        "isbn": "978-0547722023",
+        "price": 7.50
+      }
+    ],
+    "bicycle": {
+      "color": "red",
+      "price": 399.99
+    }
+  }
+}</code></pre>
+
+    <p>Now let us query it. Paste this JSON into the <a href="/free-tools/json-formatter.html">NexTool JSON Formatter</a> to see it properly indented, then try these expressions.</p>
+
+    <h3>Dot Notation</h3>
+    <pre><code>$.store.bicycle.color        // "red"
+$.store.book[0].title        // "Moby Dick"
+$.store.book[1].author       // "J.R.R. Tolkien"</code></pre>
+
+    <h3>Bracket Notation</h3>
+    <pre><code>$['store']['bicycle']['price']   // 399.99
+$['store']['book'][2]['title']   // "JavaScript: The Good Parts"</code></pre>
+
+    <p>Bracket notation is required when property names contain spaces, dots, or special characters: <code>$['my property']</code>, <code>$['key.with.dots']</code>.</p>
+
+    <h3>Wildcard</h3>
+    <pre><code>$.store.book[*].title
+// ["Moby Dick", "The Lord of the Rings",
+//  "JavaScript: The Good Parts", "A Wizard of Earthsea"]
+
+$.store.*
+// Returns both the book array AND the bicycle object</code></pre>
+
+    <h3>Array Indexing</h3>
+    <pre><code>$.store.book[0]           // First book (Moby Dick)
+$.store.book[-1]          // Last book (A Wizard of Earthsea)
+$.store.book[0,2]         // First and third books</code></pre>
+
+    <h2 id="filter-expressions">Filter Expressions: The Power of JSONPath</h2>
+
+    <p>Filter expressions are the most powerful feature of JSONPath. They let you select elements that match a condition, just like a SQL <code>WHERE</code> clause.</p>
+
+    <h3>Comparison Operators</h3>
+    <pre><code>// Books cheaper than $10
+$.store.book[?(@.price &lt; 10)]
+// Returns: Moby Dick ($8.99), A Wizard of Earthsea ($7.50)
+
+// Books in the fiction category
+$.store.book[?(@.category == "fiction")]
+// Returns: Moby Dick, The Lord of the Rings, A Wizard of Earthsea
+
+// Books NOT in fiction
+$.store.book[?(@.category != "fiction")]
+// Returns: JavaScript: The Good Parts</code></pre>
+
+    <h3>Logical Operators</h3>
+    <pre><code>// Fiction books under $10
+$.store.book[?(@.category == "fiction" &amp;&amp; @.price &lt; 10)]
+// Returns: Moby Dick, A Wizard of Earthsea
+
+// Books that are fiction OR under $10
+$.store.book[?(@.category == "fiction" || @.price &lt; 10)]
+// Returns: all fiction books plus any under $10</code></pre>
+
+    <h3>Existence Check</h3>
+    <pre><code>// Books that have an ISBN field
+$.store.book[?(@.isbn)]
+// Returns: all four books (they all have ISBN)
+
+// Use this to filter out incomplete records in real data</code></pre>
+
+    <h3>String Matching</h3>
+    <pre><code>// Books by authors containing "Tolkien"
+$.store.book[?(@.author =~ /Tolkien/)]
+
+// Note: regex support varies between implementations.
+// RFC 9535 does not include regex. Check your library's docs.</code></pre>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Pro Tip</div>
+      <p><strong>Always validate your JSON before writing queries.</strong> If your JSON has syntax errors (missing commas, unquoted keys, trailing commas), JSONPath expressions will fail silently or produce unexpected results. Run your data through a <a href="/free-tools/json-formatter.html">JSON formatter</a> first to catch issues.</p>
+    </div>
+
+    <h2 id="array-slicing">Array Slicing</h2>
+
+    <p>Array slicing lets you extract a range of elements from an array using the <code>[start:end:step]</code> syntax. This works like Python list slicing.</p>
+
+    <pre><code>$.store.book[0:2]       // First two books (index 0 and 1)
+$.store.book[1:3]       // Second and third books
+$.store.book[:2]        // First two books (start defaults to 0)
+$.store.book[2:]        // Third book onwards (end defaults to length)
+$.store.book[-2:]       // Last two books
+$.store.book[::2]       // Every other book (step of 2)</code></pre>
+
+    <p>Slicing is particularly useful when working with paginated API responses or when you only need a subset of a large array.</p>
+
+    <h2 id="recursive-descent">Recursive Descent: Search All Levels</h2>
+
+    <p>The <code>..</code> operator searches through all levels of nesting to find a key, regardless of how deep it is in the structure. This is powerful when you know what key you want but not where it lives.</p>
+
+    <pre><code>// Find ALL prices in the entire document
+$..price
+// [8.99, 22.99, 15.99, 7.50, 399.99]
+// Includes book prices AND bicycle price
+
+// Find ALL authors at any nesting level
+$..author
+// ["Herman Melville", "J.R.R. Tolkien",
+//  "Douglas Crockford", "Ursula K. Le Guin"]
+
+// Find all ISBN values anywhere in the document
+$..isbn
+// ["0-553-21311-3", "0-395-19395-8",
+//  "978-0596517748", "978-0547722023"]</code></pre>
+
+    <p>Recursive descent is the operator that saves the most code. Without it, you would need to know the exact path to every price field in a deeply nested document. With <code>..</code>, you say "find this key anywhere" and JSONPath does the work.</p>
+
+    <blockquote>Use <code>..</code> with caution on large documents. It traverses the entire tree, which can be slow on deeply nested structures with thousands of nodes. For performance-critical code, prefer explicit paths when you know the structure.</blockquote>
+
+    <h2 id="real-world-examples">Real-World API Examples</h2>
+
+    <p>Let us apply JSONPath to data structures you actually encounter in production. These examples use realistic API responses that you can validate with the <a href="/free-tools/json-viewer.html">NexTool JSON Viewer</a>.</p>
+
+    <h3>GitHub API: Extract Repository Names</h3>
+    <pre><code>// Response from: GET /users/{username}/repos
+// Extract all repo names
+$[*].name
+
+// Repos with more than 100 stars
+$[?(@.stargazers_count &gt; 100)].full_name
+
+// Repos that are not forks
+$[?(@.fork == false)].name
+
+// Languages used across all repos
+$[*].language</code></pre>
+
+    <h3>Kubernetes: Pod Queries</h3>
+    <pre><code>// All pod names
+$.items[*].metadata.name
+
+// Pods in "Running" state
+$.items[?(@.status.phase == "Running")].metadata.name
+
+// Container images across all pods
+$.items[*].spec.containers[*].image
+
+// Resource limits for all containers
+$..resources.limits</code></pre>
+
+    <h3>E-Commerce API: Product Queries</h3>
+    <pre><code>// Sample response
+{
+  "products": [
+    {"name": "Laptop", "price": 999, "category": "electronics", "inStock": true, "rating": 4.5},
+    {"name": "Keyboard", "price": 79, "category": "electronics", "inStock": true, "rating": 4.8},
+    {"name": "Desk", "price": 249, "category": "furniture", "inStock": false, "rating": 4.2},
+    {"name": "Monitor", "price": 449, "category": "electronics", "inStock": true, "rating": 4.6}
+  ]
+}
+
+// In-stock electronics under $500
+$.products[?(@.category == "electronics" &amp;&amp; @.inStock == true &amp;&amp; @.price &lt; 500)]
+
+// Products rated 4.5 or higher
+$.products[?(@.rating &gt;= 4.5)].name
+// ["Laptop", "Keyboard", "Monitor"]
+
+// All unique categories (get all, deduplicate in code)
+$.products[*].category</code></pre>
+
+    <p>If you need to convert any of these JSON responses to CSV for analysis in a spreadsheet, the <a href="/free-tools/json-to-csv.html">NexTool JSON to CSV converter</a> handles nested structures automatically.</p>
+
+    <h2 id="jsonpath-vs-jq">JSONPath vs jq: Which Should You Use?</h2>
+
+    <p>JSONPath and jq solve overlapping but distinct problems. Here is how they compare.</p>
+
+    <table class="op-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>JSONPath</th>
+          <th>jq</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Primary use</td><td>Select / extract data</td><td>Select, transform, construct data</td></tr>
+        <tr><td>Learning curve</td><td>Low (XPath-like)</td><td>Medium-high (its own language)</td></tr>
+        <tr><td>Environment</td><td>Libraries in all languages</td><td>Primarily command line</td></tr>
+        <tr><td>Data transformation</td><td>Not supported</td><td>Full support (map, reduce, sort, group)</td></tr>
+        <tr><td>Filter expressions</td><td>Basic comparisons</td><td>Full programming logic</td></tr>
+        <tr><td>Output format</td><td>Array of matched values</td><td>Any JSON structure</td></tr>
+        <tr><td>Standardized</td><td>RFC 9535</td><td>No formal standard</td></tr>
+        <tr><td>String operations</td><td>Limited</td><td>Full (split, join, regex, format)</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Use JSONPath when:</strong></p>
+    <ul>
+      <li>You need to extract values from JSON in application code (JavaScript, Python, Java, etc.)</li>
+      <li>You are writing API tests and need assertions on response structure</li>
+      <li>You want a simple, standardized query language that works across platforms</li>
+      <li>You are working with Kubernetes <code>kubectl</code> or similar tools that support JSONPath natively</li>
+    </ul>
+
+    <p><strong>Use jq when:</strong></p>
+    <ul>
+      <li>You need to transform JSON, not just extract from it</li>
+      <li>You are building shell scripts or CLI pipelines</li>
+      <li>You need to construct new JSON objects from existing data</li>
+      <li>You need complex operations like sorting, grouping, or string manipulation</li>
+    </ul>
+
+    <h3>The Same Query in Both</h3>
+    <pre><code>// "Get titles of fiction books under $10"
+
+// JSONPath
+$.store.book[?(@.category == "fiction" &amp;&amp; @.price &lt; 10)].title
+
+// jq
+.store.book[] | select(.category == "fiction" and .price &lt; 10) | .title</code></pre>
+
+    <p>Both produce the same result. JSONPath is shorter. jq is more readable for complex logic. Choose based on your context.</p>
+
+    <h2 id="libraries">JSONPath Libraries by Language</h2>
+
+    <h3>JavaScript / Node.js</h3>
+    <pre><code>// jsonpath-plus (RFC 9535 compliant)
+npm install jsonpath-plus
+
+import { JSONPath } from 'jsonpath-plus';
+
+const data = { store: { book: [/* ... */] } };
+const result = JSONPath({ path: '$.store.book[?(@.price &lt; 10)].title', json: data });
+console.log(result);
+// ["Moby Dick", "A Wizard of Earthsea"]</code></pre>
+
+    <h3>Python</h3>
+    <pre><code># jsonpath-ng
+pip install jsonpath-ng
+
+from jsonpath_ng.ext import parse
+
+data = {"store": {"book": [{"title": "Moby Dick", "price": 8.99}, ...]}}
+expr = parse("$.store.book[?price &lt; 10].title")
+matches = [match.value for match in expr.find(data)]
+print(matches)
+# ["Moby Dick", "A Wizard of Earthsea"]</code></pre>
+
+    <h3>Java</h3>
+    <pre><code>// Jayway JsonPath
+// Maven: com.jayway.jsonpath:json-path:2.9.0
+
+import com.jayway.jsonpath.JsonPath;
+
+String json = "{ ... }";
+List&lt;String&gt; titles = JsonPath.read(json, "$.store.book[?(@.price &lt; 10)].title");
+System.out.println(titles);
+// [Moby Dick, A Wizard of Earthsea]</code></pre>
+
+    <h3>Go</h3>
+    <pre><code>// PaesslerAG/jsonpath
+// go get github.com/PaesslerAG/jsonpath
+
+import "github.com/PaesslerAG/jsonpath"
+
+result, err := jsonpath.Get("$.store.book[0].title", data)
+// result: "Moby Dick"</code></pre>
+
+    <p>When working with JSON schemas to validate the structure before querying, the <a href="/free-tools/json-schema-generator.html">NexTool JSON Schema Generator</a> can auto-generate a schema from any JSON sample. And if you need to convert between JSON and YAML before or after querying, the <a href="/free-tools/json-to-yaml.html">JSON to YAML converter</a> handles that instantly.</p>
+
+    <h2 id="best-practices">Best Practices for JSONPath Queries</h2>
+
+    <h3>1. Use Explicit Paths Over Recursive Descent</h3>
+    <p>Prefer <code>$.store.book[*].price</code> over <code>$..price</code> when you know the structure. Recursive descent is convenient but slower on large documents and can match keys you did not intend if the same key name appears at different levels.</p>
+
+    <h3>2. Validate JSON Before Querying</h3>
+    <p>Always validate your JSON input before running queries. Invalid JSON causes JSONPath libraries to throw unhelpful errors or return empty results. Use a <a href="/free-tools/json-formatter.html">JSON validator</a> to check for syntax errors first.</p>
+
+    <h3>3. Handle Empty Results Gracefully</h3>
+    <p>JSONPath returns an empty array when no elements match a query. Always check for empty results in your code rather than assuming the query will always match. This is especially important for filter expressions where the data might not contain any matching elements.</p>
+
+    <h3>4. Be Aware of Implementation Differences</h3>
+    <p>Despite RFC 9535, older JSONPath libraries may behave differently with edge cases. Test your expressions in the target library before deploying. Pay particular attention to: negative array indices, regex in filters, nested filter expressions, and whitespace handling.</p>
+
+    <h3>5. Use Bracket Notation for Special Characters</h3>
+    <p>Dot notation only works for simple property names (letters, numbers, underscores). For keys with spaces, dots, hyphens, or unicode characters, use bracket notation: <code>$['my-key']</code>, <code>$['key with spaces']</code>.</p>
+
+    <h3>6. Combine with JSON Schema for Robustness</h3>
+    <p>If you are writing JSONPath queries against API responses, validate the response against a JSON schema first. This ensures the structure matches your expectations and prevents JSONPath queries from silently returning wrong results due to API changes.</p>
+
+    <div class="cta-box">
+      <h3>Explore and Validate Your JSON Data</h3>
+      <p>Paste your JSON, view the structure, validate the syntax, and test your queries. All in the browser, all free.</p>
+      <a href="/free-tools/json-viewer.html" class="cta-button">Open NexTool JSON Viewer</a>
+    </div>
+
+    <h2 id="faq">Frequently Asked Questions</h2>
+
+    <h3>What is JSONPath?</h3>
+    <p>JSONPath is a query language for extracting data from JSON documents, similar to how XPath queries XML. It uses a path syntax starting with <code>$</code> (the root element) and supports operators like dot notation (<code>$.store.book</code>), bracket notation (<code>$['store']['book']</code>), wildcards (<code>*</code>), recursive descent (<code>..</code>), array slicing (<code>[0:5]</code>), and filter expressions (<code>?(@.price &lt; 10)</code>). JSONPath is standardized in RFC 9535.</p>
+
+    <h3>What is the difference between JSONPath and jq?</h3>
+    <p>JSONPath is a query language focused on selecting and extracting data from JSON. jq is a full-featured command-line JSON processor that can select, transform, filter, sort, group, and construct new JSON. JSONPath is simpler to learn and available as a library in every major language. jq is more powerful but has a steeper learning curve. Use JSONPath in application code; use jq in shell scripts and pipelines.</p>
+
+    <h3>How do I filter JSON arrays with JSONPath?</h3>
+    <p>Use filter expressions with the <code>?()</code> syntax. The <code>@</code> symbol refers to the current element being evaluated. For example, <code>$.users[?(@.age &gt; 18)]</code> selects all users older than 18. <code>$.products[?(@.price &lt; 50 &amp;&amp; @.inStock == true)]</code> selects products under $50 that are in stock. You can use comparison operators (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>) and logical operators (<code>&amp;&amp;</code>, <code>||</code>) inside filters.</p>
+
+    <h3>Is JSONPath standardized?</h3>
+    <p>Yes. JSONPath was formalized as RFC 9535 (published February 2024) by the IETF. Before the RFC, implementations varied between languages. The RFC standardizes the syntax, semantics, and expected output for all operators. When choosing a JSONPath library, check whether it conforms to RFC 9535 for consistent cross-platform behavior.</p>
+
+    <h3>Can I test JSONPath expressions online?</h3>
+    <p>Yes. Paste your JSON into a tool like <a href="/free-tools/json-viewer.html">NexTool JSON Viewer</a> and explore the structure visually. You can also validate JSON syntax with the <a href="/free-tools/json-formatter.html">NexTool JSON Formatter</a> before writing queries. Browser-based tools process your data client-side, so no data leaves your machine.</p>
+
+    <!-- CTA Box -->
+    <div class="cta-box">
+      <h3>Explore 150+ Free Developer Tools</h3>
+      <p>JSON Viewer is just the start. NexTool has free tools for formatting, validation, conversion, regex, CSS, and much more.</p>
+      <a href="/free-tools/" class="cta-button">Browse All Free Tools</a>
+    </div>
+
+    <!-- AUTHOR BOX -->
+    <div class="author-box">
+      <div class="author-avatar">NT</div>
+      <div class="author-info">
+        <h4>NexTool Team</h4>
+        <p>We build free, privacy-first developer tools. Our mission is to make the tools you reach for every day faster, cleaner, and more respectful of your data.</p>
+      </div>
+    </div>
+
+    <!-- RELATED ARTICLES -->
+    <div class="related-articles">
+      <h3>Related Articles</h3>
+      <div class="related-grid">
+        <a href="/blog/how-to-format-json-complete-guide.html" class="related-card">
+          <div class="related-card-cat">Developer Tools</div>
+          <h4>How to Format JSON: The Complete Guide</h4>
+          <p>Everything you need to know about formatting, validating, and beautifying JSON data.</p>
+        </a>
+        <a href="/blog/json-schema-validation-complete-guide.html" class="related-card">
+          <div class="related-card-cat">Developer Tools</div>
+          <h4>JSON Schema Validation: Complete Guide</h4>
+          <p>Learn to write JSON Schemas that validate structure, types, and constraints.</p>
+        </a>
+        <a href="/blog/api-testing-guide.html" class="related-card">
+          <div class="related-card-cat">API Development</div>
+          <h4>API Testing Guide for Developers</h4>
+          <p>How to test REST APIs effectively with practical examples and free tools.</p>
+        </a>
+      </div>
+    </div>
+
+  </article>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="footer-brand">NexTool</div>
+      <p class="footer-brand-desc">150+ free developer tools for developers and designers. Browser-based, no signup.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Free Tools</h4>
+      <a href="/free-tools/">All 150+ Tools</a>
+      <a href="/free-tools/json-formatter.html">JSON Formatter</a>
+      <a href="/free-tools/json-viewer.html">JSON Viewer</a>
+      <a href="/free-tools/json-to-csv.html">JSON to CSV</a>
+      <a href="/free-tools/regex-playground.html">Regex Tester</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+      <a href="/blog/">Blog</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="mailto:christianjunbucher@gmail.com">Email Us</a>
+      <a href="/imprint.html">Imprint</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+// TOC active state
+const tocLinks = document.querySelectorAll('.toc-list a');
+const sections = document.querySelectorAll('.article-content h2[id]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  tocLinks.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+// Mobile nav toggle
+document.querySelector('.nav-mobile-toggle')?.addEventListener('click', () => {
+  const links = document.querySelector('.nav-links');
+  links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+  links.style.flexDirection = 'column';
+  links.style.position = 'absolute';
+  links.style.top = '64px';
+  links.style.right = '1rem';
+  links.style.background = 'var(--surface)';
+  links.style.padding = '1rem';
+  links.style.borderRadius = '12px';
+  links.style.border = '1px solid var(--border)';
+});
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>
