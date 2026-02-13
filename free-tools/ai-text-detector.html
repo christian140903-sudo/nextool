@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free AI Text Detector — Detect AI-Written Content | NexTool</title>
+<meta name="description" content="Free AI text detector. Analyze if text was written by AI or human using heuristic analysis including perplexity, burstiness, vocabulary diversity, and filler phrase detection.">
+<meta name="keywords" content="ai text detector, ai content detector, chatgpt detector, ai writing detector, detect ai text">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free AI Text Detector — Detect AI-Written Content | NexTool">
+<meta property="og:description" content="Analyze if text was written by AI or human. Uses heuristic analysis including perplexity, burstiness, and vocabulary diversity. 100% free, no signup.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/ai-text-detector.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/ai-text-detector.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free AI Text Detector — Detect AI-Written Content | NexTool">
+<meta name="twitter:description" content="Detect AI-generated text using heuristic analysis. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool AI Text Detector","applicationCategory":"UtilitiesApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free AI text detector that analyzes whether text was written by AI or a human using heuristic analysis."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#f97316;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:900px;margin:0 auto;padding:0 1.5rem 3rem}
+.input-panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+#textInput{width:100%;min-height:220px;background:transparent;border:none;color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:.9rem;padding:1rem;resize:vertical;outline:none;line-height:1.7}
+#textInput::placeholder{color:var(--text2);opacity:.5}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.5rem 1.2rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.primary-btn{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff;padding:.5rem 2rem}
+.toolbar button.primary-btn:hover{opacity:.9;transform:translateY(-1px)}
+.char-count{margin-left:auto;font-size:.8rem;color:var(--text2)}
+/* RESULTS */
+.results{display:none}
+.results.visible{display:block}
+/* GAUGE */
+.gauge-section{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;text-align:center;margin-bottom:1.5rem}
+.gauge-container{position:relative;width:220px;height:130px;margin:0 auto 1.5rem;overflow:hidden}
+.gauge-bg{width:220px;height:110px;border-radius:110px 110px 0 0;background:var(--surface2);border:3px solid var(--border);border-bottom:none;position:absolute;top:0;left:0}
+.gauge-fill{width:214px;height:107px;border-radius:107px 107px 0 0;position:absolute;top:3px;left:3px;overflow:hidden;transform-origin:bottom center}
+.gauge-fill-inner{width:214px;height:107px;border-radius:107px 107px 0 0;background:conic-gradient(from 0.75turn at 50% 100%, var(--green) 0%, var(--yellow) 25%, var(--orange) 37.5%, var(--red) 50%);transform-origin:bottom center;transform:rotate(0deg);transition:transform 1s cubic-bezier(.22,1,.36,1)}
+.gauge-mask{width:160px;height:80px;border-radius:80px 80px 0 0;background:var(--bg);position:absolute;top:23px;left:30px;z-index:2}
+.gauge-needle{width:3px;height:90px;background:var(--text);position:absolute;bottom:0;left:50%;transform-origin:bottom center;transform:translateX(-50%) rotate(-90deg);transition:transform 1s cubic-bezier(.22,1,.36,1);z-index:3;border-radius:3px}
+.gauge-needle::after{content:'';width:12px;height:12px;border-radius:50%;background:var(--text);position:absolute;bottom:-6px;left:50%;transform:translateX(-50%)}
+.gauge-center{position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:4}
+.gauge-score{font-size:2.5rem;font-weight:800;line-height:1}
+.gauge-labels{display:flex;justify-content:space-between;padding:0 10px;margin-top:8px}
+.gauge-labels span{font-size:.7rem;color:var(--text2);font-weight:500}
+.verdict{font-size:1.3rem;font-weight:700;margin-bottom:.5rem}
+.verdict-detail{color:var(--text2);font-size:.9rem;max-width:500px;margin:0 auto}
+/* METRICS */
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.metric-card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;transition:border-color .2s}
+.metric-card:hover{border-color:rgba(99,102,241,.3)}
+.metric-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+.metric-name{font-size:.85rem;font-weight:600;color:var(--text)}
+.metric-badge{font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.3px}
+.metric-badge.human{background:rgba(34,197,94,.15);color:var(--green)}
+.metric-badge.mixed{background:rgba(234,179,8,.15);color:var(--yellow)}
+.metric-badge.ai{background:rgba(239,68,68,.15);color:var(--red)}
+.metric-bar-track{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:.6rem}
+.metric-bar-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.22,1,.36,1);width:0}
+.metric-value{font-size:.8rem;color:var(--text2);margin-bottom:.4rem}
+.metric-explain{font-size:.75rem;color:var(--text2);opacity:.7;line-height:1.4}
+/* DETAIL SECTION */
+.detail-section{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.detail-section h3{font-size:1rem;font-weight:700;margin-bottom:1rem}
+.phrase-list{display:flex;flex-wrap:wrap;gap:.4rem}
+.phrase-tag{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:3px 10px;border-radius:6px;font-size:.75rem;font-weight:500}
+.phrase-tag.neutral{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.2);color:var(--primary)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem}
+.stat-item{text-align:center;padding:.75rem;background:var(--surface2);border-radius:8px}
+.stat-value{font-size:1.2rem;font-weight:700;color:var(--text)}
+.stat-label{font-size:.7rem;color:var(--text2);margin-top:2px}
+/* HOW IT WORKS */
+.how-section{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.how-section h3{font-size:1rem;font-weight:700;margin-bottom:1rem}
+.how-section p{font-size:.85rem;color:var(--text2);line-height:1.7;margin-bottom:.75rem}
+.how-section p:last-child{margin-bottom:0}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* DISCLAIMER */
+.disclaimer{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1.5rem;font-size:.8rem;color:var(--yellow);line-height:1.5}
+.disclaimer strong{color:var(--yellow)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .metrics-grid{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){
+  .gauge-container{width:180px;height:108px}
+  .gauge-bg{width:180px;height:90px;border-radius:90px 90px 0 0}
+  .gauge-fill{width:174px;height:87px;border-radius:87px 87px 0 0}
+  .gauge-fill-inner{width:174px;height:87px;border-radius:87px 87px 0 0}
+  .gauge-mask{width:130px;height:65px;border-radius:65px 65px 0 0;top:20px;left:25px}
+  .gauge-needle{height:72px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>AI Text Detector</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Paste any text and analyze whether it was likely written by AI (ChatGPT, Claude, Gemini) or a human. Uses heuristic analysis including sentence variation, vocabulary diversity, filler phrase detection, and burstiness scoring. 100% client-side, no data sent anywhere.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="input-panel">
+    <div class="panel-header"><span>Paste your text</span><span id="charCount">0 characters</span></div>
+    <textarea id="textInput" placeholder="Paste the text you want to analyze here...&#10;&#10;For best results, use at least 100 words. The more text you provide, the more accurate the analysis will be." spellcheck="false"></textarea>
+  </div>
+
+  <div class="toolbar">
+    <button class="primary-btn" onclick="analyzeText()" id="analyzeBtn">Analyze Text</button>
+    <button onclick="clearAll()">Clear</button>
+    <button onclick="loadSampleAI()">Sample: AI Text</button>
+    <button onclick="loadSampleHuman()">Sample: Human Text</button>
+    <span class="char-count" id="wordCount">0 words</span>
+  </div>
+
+  <div class="results" id="results">
+    <div class="disclaimer">
+      <strong>Disclaimer:</strong> This tool uses heuristic pattern analysis and is not 100% accurate. It cannot definitively determine if text was written by AI. Use results as one data point among many. False positives and false negatives are possible.
+    </div>
+
+    <!-- GAUGE -->
+    <div class="gauge-section">
+      <div class="gauge-container">
+        <div class="gauge-bg"></div>
+        <div class="gauge-fill">
+          <div class="gauge-fill-inner" id="gaugeFill"></div>
+        </div>
+        <div class="gauge-mask"></div>
+        <div class="gauge-needle" id="gaugeNeedle"></div>
+        <div class="gauge-center">
+          <div class="gauge-score" id="gaugeScore">0%</div>
+        </div>
+      </div>
+      <div class="gauge-labels">
+        <span>Human</span>
+        <span>Uncertain</span>
+        <span>AI Generated</span>
+      </div>
+      <div class="verdict" id="verdict">--</div>
+      <div class="verdict-detail" id="verdictDetail">Paste text and click Analyze to get results.</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="detail-section">
+      <h3>Text Statistics</h3>
+      <div class="stats-grid" id="statsGrid"></div>
+    </div>
+
+    <!-- METRICS -->
+    <div class="metrics-grid" id="metricsGrid"></div>
+
+    <!-- DETECTED PHRASES -->
+    <div class="detail-section" id="phrasesSection" style="display:none">
+      <h3>Detected AI Filler Phrases</h3>
+      <div class="phrase-list" id="phraseList"></div>
+    </div>
+
+    <!-- DETECTED TRANSITIONS -->
+    <div class="detail-section" id="transitionsSection" style="display:none">
+      <h3>Overused Transition Words</h3>
+      <div class="phrase-list" id="transitionList"></div>
+    </div>
+  </div>
+
+  <div class="how-section fade-in">
+    <h3>How does AI text detection work?</h3>
+    <p>This tool analyzes multiple linguistic patterns to estimate whether text was generated by an AI model. It does not use any AI or machine learning itself -- it relies entirely on statistical heuristics that exploit known differences between human and AI writing styles.</p>
+    <p><strong>Sentence Length Variation:</strong> Human writers naturally vary their sentence lengths -- mixing short punchy sentences with longer complex ones. AI models tend to produce more uniform sentence lengths.</p>
+    <p><strong>Vocabulary Diversity (Type-Token Ratio):</strong> Humans use a wider variety of words relative to text length. AI often relies on a narrower vocabulary with more repetition of common terms.</p>
+    <p><strong>Burstiness:</strong> Human writing has "bursts" of complexity followed by simpler passages. AI text tends to maintain a steady, predictable level of complexity throughout.</p>
+    <p><strong>Filler Phrase Detection:</strong> AI models frequently use phrases like "It's important to note," "In today's digital landscape," and "Let's dive in." The density of these phrases is a strong signal.</p>
+    <p><strong>Transition Word Density:</strong> AI overuses transition words like "Furthermore," "Moreover," and "Additionally" to create an appearance of logical flow.</p>
+    <p><strong>Average Word Length &amp; Syllable Patterns:</strong> AI models tend toward medium-length words and avoid both very short colloquial words and very long specialized vocabulary.</p>
+    <p><strong>Paragraph Uniformity:</strong> AI-generated text tends to have paragraphs of similar length, while human writing naturally varies paragraph sizes.</p>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 213+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 213+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">213+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const textInput = document.getElementById('textInput');
+const charCountEl = document.getElementById('charCount');
+const wordCountEl = document.getElementById('wordCount');
+const resultsEl = document.getElementById('results');
+
+textInput.addEventListener('input', updateCounts);
+
+function updateCounts() {
+  const text = textInput.value;
+  charCountEl.textContent = text.length.toLocaleString() + ' characters';
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  wordCountEl.textContent = words.toLocaleString() + ' words';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function clearAll() {
+  textInput.value = '';
+  resultsEl.classList.remove('visible');
+  updateCounts();
+}
+
+// AI-typical filler phrases
+const AI_PHRASES = [
+  "it's important to note", "it is important to note",
+  "it's worth noting", "it is worth noting",
+  "it's worth mentioning", "it is worth mentioning",
+  "in today's digital landscape", "in today's world",
+  "in today's fast-paced", "in today's ever-evolving",
+  "in the realm of", "in the world of",
+  "dive into", "let's dive in", "dive deep",
+  "delve into", "let's delve",
+  "it's crucial to", "it is crucial to",
+  "it's essential to", "it is essential to",
+  "plays a crucial role", "plays a vital role", "plays a key role", "plays a pivotal role",
+  "navigating the complexities",
+  "in conclusion",
+  "to summarize",
+  "at the end of the day",
+  "stands as a testament",
+  "serves as a reminder",
+  "a testament to",
+  "the landscape of",
+  "ever-evolving",
+  "leverage the power",
+  "harness the power",
+  "unlock the potential",
+  "game-changer", "game changer",
+  "at its core",
+  "on the other hand",
+  "having said that",
+  "that being said",
+  "with that said",
+  "it goes without saying",
+  "needless to say",
+  "as we navigate",
+  "when it comes to",
+  "the bottom line is",
+  "in this article",
+  "in this guide",
+  "in this comprehensive",
+  "in this blog post",
+  "without further ado",
+  "look no further",
+  "whether you're a seasoned",
+  "whether you're a beginner",
+  "from beginners to experts",
+  "take your .* to the next level",
+  "embark on",
+  "foster a sense of",
+  "foster collaboration",
+  "a myriad of",
+  "plethora of",
+  "multifaceted",
+  "comprehensive guide",
+  "holistic approach",
+  "paradigm shift",
+  "cutting-edge",
+  "state-of-the-art",
+  "robust and scalable",
+  "seamless integration",
+  "streamline your",
+  "elevate your",
+  "empower you",
+  "revolutionize",
+  "transformative",
+  "groundbreaking"
+];
+
+// Transition words commonly overused by AI
+const TRANSITION_WORDS = [
+  "furthermore", "moreover", "additionally", "consequently",
+  "nevertheless", "nonetheless", "however", "therefore",
+  "thus", "hence", "accordingly", "subsequently",
+  "in addition", "as a result", "for instance",
+  "for example", "in particular", "specifically",
+  "notably", "significantly", "importantly",
+  "conversely", "alternatively", "meanwhile",
+  "in contrast", "on the contrary", "in essence"
+];
+
+function countSyllables(word) {
+  word = word.toLowerCase().replace(/[^a-z]/g, '');
+  if (word.length <= 2) return 1;
+  word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+  word = word.replace(/^y/, '');
+  const m = word.match(/[aeiouy]{1,2}/g);
+  return m ? m.length : 1;
+}
+
+function getSentences(text) {
+  return text.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 5);
+}
+
+function getWords(text) {
+  return text.toLowerCase().replace(/[^a-z\s'-]/g, ' ').split(/\s+/).filter(w => w.length > 0);
+}
+
+function getParagraphs(text) {
+  return text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 20);
+}
+
+function standardDeviation(arr) {
+  if (arr.length < 2) return 0;
+  const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+  const sq = arr.map(x => (x - mean) ** 2);
+  return Math.sqrt(sq.reduce((a, b) => a + b, 0) / arr.length);
+}
+
+function coefficientOfVariation(arr) {
+  if (arr.length < 2) return 0;
+  const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+  if (mean === 0) return 0;
+  return standardDeviation(arr) / mean;
+}
+
+// --- ANALYSIS METRICS ---
+
+function analyzeSentenceLengthVariation(text) {
+  const sentences = getSentences(text);
+  if (sentences.length < 3) return { score: 50, raw: 0, detail: 'Not enough sentences' };
+  const lengths = sentences.map(s => s.split(/\s+/).length);
+  const cv = coefficientOfVariation(lengths);
+  // Human CV typically > 0.45, AI typically 0.2-0.4
+  let score;
+  if (cv >= 0.6) score = 10;       // very human
+  else if (cv >= 0.5) score = 25;
+  else if (cv >= 0.4) score = 40;
+  else if (cv >= 0.35) score = 55;
+  else if (cv >= 0.3) score = 65;
+  else if (cv >= 0.25) score = 75;
+  else score = 90;                   // very AI-like
+
+  return {
+    score,
+    raw: cv,
+    detail: 'CV: ' + cv.toFixed(3) + ' | Sentences: ' + sentences.length + ' | Avg length: ' + (lengths.reduce((a,b)=>a+b,0)/lengths.length).toFixed(1) + ' words'
+  };
+}
+
+function analyzeVocabularyDiversity(text) {
+  const words = getWords(text);
+  if (words.length < 20) return { score: 50, raw: 0, detail: 'Not enough words' };
+  const unique = new Set(words);
+  // Use root TTR (Guiraud's Index) which is less sensitive to text length
+  const guiraud = unique.size / Math.sqrt(words.length);
+  // Human writing: Guiraud > 7, AI: typically 5-7
+  let score;
+  if (guiraud >= 9) score = 10;
+  else if (guiraud >= 8) score = 20;
+  else if (guiraud >= 7) score = 35;
+  else if (guiraud >= 6.5) score = 50;
+  else if (guiraud >= 6) score = 60;
+  else if (guiraud >= 5.5) score = 70;
+  else if (guiraud >= 5) score = 80;
+  else score = 90;
+
+  const ttr = (unique.size / words.length * 100).toFixed(1);
+  return {
+    score,
+    raw: guiraud,
+    detail: 'Guiraud Index: ' + guiraud.toFixed(2) + ' | TTR: ' + ttr + '% | Unique: ' + unique.size + '/' + words.length
+  };
+}
+
+function analyzeBurstiness(text) {
+  const sentences = getSentences(text);
+  if (sentences.length < 5) return { score: 50, raw: 0, detail: 'Not enough sentences' };
+
+  // Measure complexity per sentence (avg word length + syllable density)
+  const complexities = sentences.map(s => {
+    const words = s.split(/\s+/).filter(w => w.length > 0);
+    if (words.length === 0) return 0;
+    const avgLen = words.reduce((a, w) => a + w.length, 0) / words.length;
+    const avgSyl = words.reduce((a, w) => a + countSyllables(w), 0) / words.length;
+    return avgLen * 0.5 + avgSyl * 2;
+  });
+
+  const cv = coefficientOfVariation(complexities);
+  // Human burstiness CV > 0.2, AI typically < 0.15
+  let score;
+  if (cv >= 0.3) score = 10;
+  else if (cv >= 0.25) score = 20;
+  else if (cv >= 0.2) score = 35;
+  else if (cv >= 0.17) score = 50;
+  else if (cv >= 0.14) score = 65;
+  else if (cv >= 0.11) score = 78;
+  else score = 90;
+
+  return {
+    score,
+    raw: cv,
+    detail: 'Complexity CV: ' + cv.toFixed(3) + ' | Measured across ' + sentences.length + ' sentences'
+  };
+}
+
+function analyzeFillerPhrases(text) {
+  const lower = text.toLowerCase();
+  const wordCount = getWords(text).length;
+  if (wordCount < 20) return { score: 50, raw: 0, found: [], detail: 'Not enough text' };
+
+  const found = [];
+  for (const phrase of AI_PHRASES) {
+    if (phrase.includes('.*')) {
+      const regex = new RegExp(phrase, 'gi');
+      if (regex.test(lower)) found.push(phrase.replace('.*', '...'));
+    } else {
+      if (lower.includes(phrase)) found.push(phrase);
+    }
+  }
+
+  const density = found.length / (wordCount / 100);
+  // 0 phrases per 100 words = very human, 3+ = very AI
+  let score;
+  if (density <= 0) score = 5;
+  else if (density <= 0.3) score = 15;
+  else if (density <= 0.6) score = 30;
+  else if (density <= 1.0) score = 45;
+  else if (density <= 1.5) score = 60;
+  else if (density <= 2.5) score = 75;
+  else score = 92;
+
+  return {
+    score,
+    raw: density,
+    found,
+    detail: found.length + ' phrases found | Density: ' + density.toFixed(2) + ' per 100 words'
+  };
+}
+
+function analyzeTransitionDensity(text) {
+  const lower = text.toLowerCase();
+  const wordCount = getWords(text).length;
+  if (wordCount < 20) return { score: 50, raw: 0, found: [], detail: 'Not enough text' };
+
+  const found = [];
+  const counts = {};
+  for (const tw of TRANSITION_WORDS) {
+    const regex = new RegExp('\\b' + tw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+    const matches = lower.match(regex);
+    if (matches) {
+      counts[tw] = matches.length;
+      found.push(tw + (matches.length > 1 ? ' (' + matches.length + 'x)' : ''));
+    }
+  }
+
+  const totalTransitions = Object.values(counts).reduce((a, b) => a + b, 0);
+  const density = totalTransitions / (wordCount / 100);
+  // Human: ~0.5-1.5 per 100 words, AI: 2-5+
+  let score;
+  if (density <= 0.3) score = 10;
+  else if (density <= 0.7) score = 20;
+  else if (density <= 1.2) score = 35;
+  else if (density <= 1.8) score = 50;
+  else if (density <= 2.5) score = 65;
+  else if (density <= 3.5) score = 78;
+  else score = 90;
+
+  return {
+    score,
+    raw: density,
+    found,
+    detail: totalTransitions + ' transitions | Density: ' + density.toFixed(2) + ' per 100 words'
+  };
+}
+
+function analyzeWordLengthPattern(text) {
+  const words = getWords(text);
+  if (words.length < 20) return { score: 50, raw: 0, detail: 'Not enough text' };
+
+  const avgLen = words.reduce((a, w) => a + w.length, 0) / words.length;
+  const stdDev = standardDeviation(words.map(w => w.length));
+
+  // AI tends toward avgLen 4.5-5.5 with low stdDev
+  // Human writing has more variation
+  let score = 50;
+
+  // Check if average is suspiciously uniform (AI sweet spot)
+  if (avgLen >= 4.3 && avgLen <= 5.5) score += 15;
+  else score -= 10;
+
+  // Low stdDev = more AI-like
+  if (stdDev < 2.2) score += 15;
+  else if (stdDev < 2.5) score += 5;
+  else score -= 10;
+
+  score = Math.max(5, Math.min(95, score));
+
+  return {
+    score,
+    raw: avgLen,
+    detail: 'Avg length: ' + avgLen.toFixed(2) + ' chars | Std dev: ' + stdDev.toFixed(2)
+  };
+}
+
+function analyzeParagraphUniformity(text) {
+  const paragraphs = getParagraphs(text);
+  if (paragraphs.length < 3) return { score: 50, raw: 0, detail: 'Not enough paragraphs (need 3+)' };
+
+  const lengths = paragraphs.map(p => p.split(/\s+/).length);
+  const cv = coefficientOfVariation(lengths);
+
+  // Human CV typically > 0.5, AI tends to write similar-length paragraphs
+  let score;
+  if (cv >= 0.7) score = 10;
+  else if (cv >= 0.55) score = 25;
+  else if (cv >= 0.4) score = 40;
+  else if (cv >= 0.3) score = 55;
+  else if (cv >= 0.2) score = 70;
+  else score = 85;
+
+  return {
+    score,
+    raw: cv,
+    detail: 'Paragraph CV: ' + cv.toFixed(3) + ' | ' + paragraphs.length + ' paragraphs | Avg: ' + (lengths.reduce((a,b)=>a+b,0)/lengths.length).toFixed(0) + ' words'
+  };
+}
+
+function analyzeText() {
+  const text = textInput.value.trim();
+  if (!text) {
+    showToast('Please paste some text first');
+    return;
+  }
+
+  const words = getWords(text);
+  if (words.length < 30) {
+    showToast('Please provide at least 30 words for meaningful analysis');
+    return;
+  }
+
+  // Run all analyses
+  const sentenceVar = analyzeSentenceLengthVariation(text);
+  const vocabDiv = analyzeVocabularyDiversity(text);
+  const burstiness = analyzeBurstiness(text);
+  const fillerPhrases = analyzeFillerPhrases(text);
+  const transitions = analyzeTransitionDensity(text);
+  const wordLen = analyzeWordLengthPattern(text);
+  const paraUniform = analyzeParagraphUniformity(text);
+
+  // Weighted aggregate score
+  const weights = {
+    sentenceVar: 0.18,
+    vocabDiv: 0.15,
+    burstiness: 0.18,
+    fillerPhrases: 0.20,
+    transitions: 0.12,
+    wordLen: 0.07,
+    paraUniform: 0.10
+  };
+
+  const aiScore = Math.round(
+    sentenceVar.score * weights.sentenceVar +
+    vocabDiv.score * weights.vocabDiv +
+    burstiness.score * weights.burstiness +
+    fillerPhrases.score * weights.fillerPhrases +
+    transitions.score * weights.transitions +
+    wordLen.score * weights.wordLen +
+    paraUniform.score * weights.paraUniform
+  );
+
+  // Render results
+  resultsEl.classList.add('visible');
+  renderGauge(aiScore);
+  renderStats(text, words);
+  renderMetrics([
+    { name: 'Sentence Length Variation', data: sentenceVar, explain: 'Measures how much sentence lengths vary. Humans write with more variety -- mixing short and long sentences naturally. AI tends toward uniform sentence length.' },
+    { name: 'Vocabulary Diversity', data: vocabDiv, explain: 'Uses Guiraud\'s Index to measure unique word usage relative to text length. Richer vocabulary suggests human authorship.' },
+    { name: 'Burstiness', data: burstiness, explain: 'Measures variation in sentence complexity. Humans write in "bursts" -- alternating between simple and complex passages. AI maintains steady complexity.' },
+    { name: 'AI Filler Phrases', data: fillerPhrases, explain: 'Detects phrases commonly used by AI models like "It\'s important to note," "In today\'s digital landscape," and similar patterns.' },
+    { name: 'Transition Word Density', data: transitions, explain: 'Counts formal transition words (Furthermore, Moreover, Additionally). AI overuses these to create an appearance of logical flow.' },
+    { name: 'Word Length Pattern', data: wordLen, explain: 'Analyzes average word length and distribution. AI tends toward medium-length words, avoiding very short or very long words.' },
+    { name: 'Paragraph Uniformity', data: paraUniform, explain: 'Measures how similar paragraph lengths are. AI tends to produce paragraphs of similar size, while humans vary naturally.' }
+  ]);
+  renderPhrases(fillerPhrases.found);
+  renderTransitions(transitions.found);
+
+  // Scroll to results
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderGauge(score) {
+  const needle = document.getElementById('gaugeNeedle');
+  const scoreEl = document.getElementById('gaugeScore');
+  const verdictEl = document.getElementById('verdict');
+  const detailEl = document.getElementById('verdictDetail');
+
+  // Map score (0-100) to needle angle (-90 to 90 degrees)
+  const angle = -90 + (score / 100) * 180;
+  needle.style.transform = 'translateX(-50%) rotate(' + angle + 'deg)';
+
+  scoreEl.textContent = score + '%';
+
+  // Color the score
+  let color;
+  if (score <= 25) color = 'var(--green)';
+  else if (score <= 45) color = 'var(--yellow)';
+  else if (score <= 65) color = 'var(--orange)';
+  else color = 'var(--red)';
+  scoreEl.style.color = color;
+
+  // Verdict
+  let verdict, detail;
+  if (score <= 15) {
+    verdict = 'Likely Human-Written';
+    detail = 'This text shows strong indicators of human authorship: natural sentence variation, diverse vocabulary, and organic flow patterns.';
+  } else if (score <= 30) {
+    verdict = 'Mostly Human-Written';
+    detail = 'This text appears predominantly human-written, though some patterns are slightly uniform. Could be well-edited human writing.';
+  } else if (score <= 45) {
+    verdict = 'Possibly Human with AI Assistance';
+    detail = 'Mixed signals detected. This could be human text that was edited or refined by AI, or naturally formal human writing.';
+  } else if (score <= 60) {
+    verdict = 'Uncertain -- Could Be Either';
+    detail = 'The text shows a mix of human and AI-like patterns. Difficult to determine origin with confidence. Consider additional analysis.';
+  } else if (score <= 75) {
+    verdict = 'Likely AI-Generated';
+    detail = 'Multiple AI-like patterns detected: uniform structure, common AI phrases, and predictable complexity. Possibly AI-generated or heavily AI-edited.';
+  } else if (score <= 90) {
+    verdict = 'Highly Likely AI-Generated';
+    detail = 'Strong AI signals across multiple metrics: filler phrases, uniform sentences, low burstiness, and predictable vocabulary patterns.';
+  } else {
+    verdict = 'Almost Certainly AI-Generated';
+    detail = 'Overwhelming AI indicators: heavy use of AI filler phrases, extremely uniform writing patterns, and low linguistic diversity.';
+  }
+
+  verdictEl.textContent = verdict;
+  verdictEl.style.color = color;
+  detailEl.textContent = detail;
+}
+
+function renderStats(text, words) {
+  const sentences = getSentences(text);
+  const paragraphs = getParagraphs(text);
+  const syllables = words.reduce((a, w) => a + countSyllables(w), 0);
+  const avgSyllables = (syllables / words.length).toFixed(1);
+  const unique = new Set(words);
+
+  const stats = [
+    { value: words.length.toLocaleString(), label: 'Words' },
+    { value: sentences.length, label: 'Sentences' },
+    { value: paragraphs.length, label: 'Paragraphs' },
+    { value: unique.size.toLocaleString(), label: 'Unique Words' },
+    { value: avgSyllables, label: 'Avg Syllables/Word' },
+    { value: text.length.toLocaleString(), label: 'Characters' }
+  ];
+
+  document.getElementById('statsGrid').innerHTML = stats.map(s =>
+    '<div class="stat-item"><div class="stat-value">' + s.value + '</div><div class="stat-label">' + s.label + '</div></div>'
+  ).join('');
+}
+
+function renderMetrics(metrics) {
+  const grid = document.getElementById('metricsGrid');
+  grid.innerHTML = metrics.map(m => {
+    const s = m.data.score;
+    let badgeClass, badgeText, barColor;
+    if (s <= 30) {
+      badgeClass = 'human'; badgeText = 'Human'; barColor = 'var(--green)';
+    } else if (s <= 60) {
+      badgeClass = 'mixed'; badgeText = 'Mixed'; barColor = 'var(--yellow)';
+    } else {
+      badgeClass = 'ai'; badgeText = 'AI-like'; barColor = 'var(--red)';
+    }
+
+    return '<div class="metric-card">' +
+      '<div class="metric-header"><span class="metric-name">' + m.name + '</span><span class="metric-badge ' + badgeClass + '">' + badgeText + '</span></div>' +
+      '<div class="metric-bar-track"><div class="metric-bar-fill" style="width:' + s + '%;background:' + barColor + '"></div></div>' +
+      '<div class="metric-value">' + m.data.detail + '</div>' +
+      '<div class="metric-explain">' + m.explain + '</div>' +
+      '</div>';
+  }).join('');
+
+  // Animate bars
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      grid.querySelectorAll('.metric-bar-fill').forEach(bar => {
+        bar.style.width = bar.style.width; // trigger reflow
+      });
+    });
+  });
+}
+
+function renderPhrases(found) {
+  const section = document.getElementById('phrasesSection');
+  const list = document.getElementById('phraseList');
+  if (found.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+  list.innerHTML = found.map(p =>
+    '<span class="phrase-tag">' + escapeHtml(p) + '</span>'
+  ).join('');
+}
+
+function renderTransitions(found) {
+  const section = document.getElementById('transitionsSection');
+  const list = document.getElementById('transitionList');
+  if (found.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+  list.innerHTML = found.map(p =>
+    '<span class="phrase-tag neutral">' + escapeHtml(p) + '</span>'
+  ).join('');
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function loadSampleAI() {
+  textInput.value = `Artificial intelligence has revolutionized the way we interact with technology in today's digital landscape. It's important to note that AI systems have become increasingly sophisticated, leveraging the power of machine learning to deliver unprecedented results across various industries.
+
+Furthermore, the integration of AI into everyday applications has streamlined workflows and enhanced productivity for millions of users worldwide. Moreover, these advancements have paved the way for innovative solutions that were previously thought impossible.
+
+In today's fast-paced world, businesses must embrace AI-driven strategies to remain competitive. Additionally, organizations that fail to adopt these cutting-edge technologies risk falling behind their more forward-thinking counterparts.
+
+The transformative potential of artificial intelligence cannot be overstated. It plays a crucial role in shaping the future of healthcare, education, finance, and countless other sectors. As we navigate the complexities of this technological revolution, it's essential to consider both the opportunities and challenges that lie ahead.
+
+In conclusion, AI represents a paradigm shift in how we approach problem-solving and innovation. Whether you're a seasoned professional or a beginner exploring this field, understanding the fundamentals of AI is crucial for success in the modern era. The journey toward a more intelligent future has only just begun, and the possibilities are truly limitless.`;
+  updateCounts();
+  analyzeText();
+}
+
+function loadSampleHuman() {
+  textInput.value = `I tried using ChatGPT for my homework last week. Bad idea. The teacher spotted it immediately -- she said it "read like a Wikipedia article on steroids." Fair enough.
+
+Here's the thing though. I actually know a lot about the topic (Roman history, if you care). My own writing would have been better! But I was lazy. And tired. And the assignment was due at midnight.
+
+So yeah. Lesson learned.
+
+What bugs me is how everyone at school is doing it now. Like, EVERYONE. My friend Jake turned in a 2000-word essay that he definitely did not write. The man struggles to text in complete sentences. Suddenly he's writing "Furthermore, the socioeconomic implications of the Roman Republic's transition to an Empire..." Sure, Jake. Sure.
+
+The weird part? Teachers can't always tell. Some of them don't even check. Others use those detector tools but I've heard they're not super reliable.
+
+I dunno. It feels like we're all just pretending at this point. The students pretend they wrote it. The teachers pretend they don't know. And somewhere in the middle, actual learning just... dies?
+
+Anyway. Back to writing my own essays. It sucks but at least they sound like me.`;
+  updateCounts();
+  analyzeText();
+}
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does the AI text detector work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NexTool's AI Text Detector uses heuristic analysis to compare writing patterns against known differences between human and AI writing. It analyzes sentence length variation, vocabulary diversity (type-token ratio), burstiness, filler phrase density, transition word usage, word length patterns, and paragraph uniformity."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this AI detector 100% accurate?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No AI text detector is 100% accurate, including this one. It uses statistical heuristics and should be treated as one signal among many. Well-edited AI text or formal human writing can produce false positives or negatives."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my text sent to a server for analysis?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. All analysis runs entirely in your browser using JavaScript. No text is ever sent to any server. Your data stays completely private."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many words do I need for accurate detection?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "For best results, provide at least 100 words. The minimum is 30 words. Longer texts give more reliable results because the statistical patterns have more data to work with."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
