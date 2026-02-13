@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Decode JWT Tokens Without Sharing Your Secrets | NexTool</title>
+<meta name="description" content="Learn how to decode JWT tokens safely using client-side tools. Understand JWT structure, why server-side decoders are a security risk, and how to inspect tokens without exposing your secrets.">
+<meta name="keywords" content="jwt decoder online, decode jwt token, jwt debugger, jwt token decoder, decode json web token, jwt parser, jwt inspector, client-side jwt decoder, jwt security">
+<meta name="author" content="NexTool Team">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+<link rel="canonical" href="https://nextool.app/blog/decode-jwt-tokens-safely.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to Decode JWT Tokens Without Sharing Your Secrets">
+<meta property="og:description" content="Decode JWT tokens safely with client-side tools. Learn JWT structure, avoid leaking secrets, and inspect tokens the right way.">
+<meta property="og:url" content="https://nextool.app/blog/decode-jwt-tokens-safely.html">
+<meta property="og:site_name" content="NexTool">
+<meta property="og:image" content="https://nextool.app/assets/og-blog-decode-jwt-safely.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="article:published_time" content="2026-02-13T09:00:00Z">
+<meta property="article:modified_time" content="2026-02-13T09:00:00Z">
+<meta property="article:author" content="NexTool Team">
+<meta property="article:section" content="Security">
+<meta property="article:tag" content="JWT">
+<meta property="article:tag" content="Security">
+<meta property="article:tag" content="Authentication">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to Decode JWT Tokens Without Sharing Your Secrets">
+<meta name="twitter:description" content="Decode JWT tokens safely with client-side tools. Learn JWT structure and avoid leaking secrets.">
+<meta name="twitter:image" content="https://nextool.app/assets/og-blog-decode-jwt-safely.png">
+
+<!-- JSON-LD: Article -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How to Decode JWT Tokens Without Sharing Your Secrets",
+    "description": "Learn how to decode JWT tokens safely using client-side tools. Understand JWT structure, why server-side decoders are a security risk, and how to inspect tokens without exposing your secrets.",
+    "image": "https://nextool.app/assets/og-blog-decode-jwt-safely.png",
+    "author": {"@type": "Organization", "name": "NexTool Team", "url": "https://nextool.app"},
+    "publisher": {"@type": "Organization", "name": "NexTool", "logo": {"@type": "ImageObject", "url": "https://nextool.app/images/logo.png"}},
+    "datePublished": "2026-02-13T09:00:00Z",
+    "dateModified": "2026-02-13T09:00:00Z",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "https://nextool.app/blog/decode-jwt-tokens-safely.html"},
+    "keywords": "jwt decoder online, decode jwt token, jwt debugger, jwt security, client-side jwt decoder",
+    "wordCount": 2100,
+    "articleSection": "Security"
+}
+</script>
+
+<!-- JSON-LD: BreadcrumbList -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app"},
+        {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://nextool.app/blog/"},
+        {"@type": "ListItem", "position": 3, "name": "Decode JWT Tokens Safely", "item": "https://nextool.app/blog/decode-jwt-tokens-safely.html"}
+    ]
+}
+</script>
+
+<!-- JSON-LD: FAQPage -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Is it safe to paste a JWT token into an online decoder?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "It depends on whether the decoder processes the token in your browser or sends it to a server. Client-side decoders like NexTool JWT Decoder parse the token entirely in your browser using JavaScript. Your token never leaves your machine. Server-side decoders transmit your token to their backend, which means the server operator could log it. To verify, open your browser's DevTools Network tab while pasting the token. If no outbound request is made, the tool is client-side and safe."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Can you decode a JWT without the secret key?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. The header and payload of a JWT are only Base64URL-encoded, not encrypted. Anyone with the token can decode and read them. The signature section requires the secret key to verify, but not to read the header and payload. This is by design: JWTs are meant to carry readable claims. The signature ensures the claims have not been tampered with, but it does not hide them. This is why you should never put sensitive data like passwords or credit card numbers directly in a JWT payload."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is the difference between decoding and verifying a JWT?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Decoding a JWT means reading its header and payload by Base64URL-decoding the first two segments. This does not require any secret or key. Verifying a JWT means checking that the signature is valid, which proves the token was issued by a trusted party and has not been modified. Verification requires the signing key: the secret for HMAC algorithms (HS256) or the public key for RSA/ECDSA algorithms (RS256, ES256). Online decoders show you the decoded content. Verification should be done server-side in your application code."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How do I decode a JWT in JavaScript without a library?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Split the token on dots to get three parts (header, payload, signature). Base64URL-decode the first two parts and parse as JSON. In code: const [headerB64, payloadB64] = token.split('.'); const header = JSON.parse(atob(headerB64.replace(/-/g, '+').replace(/_/g, '/'))); const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'))); This gives you the decoded header and payload objects. Note that atob handles standard Base64, so you need to convert Base64URL characters first (replace - with + and _ with /)."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Why should I not put sensitive data in a JWT payload?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Because the JWT payload is only encoded (Base64URL), not encrypted. Anyone who obtains the token can decode and read every claim in the payload. JWTs are often stored in browser localStorage or cookies and transmitted in HTTP headers, making them accessible to browser extensions, network intermediaries, and anyone with access to the client. Store only non-sensitive identifiers (user ID, role, expiration) in the payload. Keep passwords, payment details, and PII in your database, not in the token."
+            }
+        }
+    ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050508;
+  --surface: #111118;
+  --surface-2: #1a1a24;
+  --surface-3: #222233;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --accent: #a855f7;
+  --pink: #ec4899;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --border: #1e1e2e;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--primary-hover); }
+
+/* ===== NAVBAR ===== */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(5,5,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-size: 1.4rem; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+.nav-links a { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: #fff; }
+.nav-cta {
+  background: var(--primary); color: #fff !important; padding: 0.5rem 1.2rem;
+  border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+  transition: background 0.2s, transform 0.2s;
+}
+.nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+.nav-mobile-toggle { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+/* ===== ARTICLE HERO ===== */
+.article-hero {
+  padding: 8rem 2rem 3rem;
+  max-width: 900px; margin: 0 auto; text-align: center;
+}
+.article-meta {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.article-category {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; padding: 0.3rem 0.9rem; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.article-date, .article-reading-time { color: var(--text-dim); font-size: 0.85rem; }
+.article-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; line-height: 1.15;
+  color: #fff; margin-bottom: 1.2rem;
+}
+.article-hero h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.article-subtitle { color: var(--text-muted); font-size: 1.15rem; max-width: 680px; margin: 0 auto; }
+
+/* ===== LAYOUT ===== */
+.article-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  align-items: start;
+}
+
+/* ===== TOC SIDEBAR ===== */
+.toc-sidebar {
+  position: sticky; top: 84px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+}
+.toc-title {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 0.8rem;
+}
+.toc-list { list-style: none; }
+.toc-list li { margin-bottom: 0.4rem; }
+.toc-list a {
+  color: var(--text-muted); font-size: 0.8rem; display: block;
+  padding: 0.25rem 0.5rem; border-radius: 6px; border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+.toc-list a:hover, .toc-list a.active {
+  color: var(--primary); border-left-color: var(--primary); background: rgba(99,102,241,0.06);
+}
+
+/* ===== ARTICLE CONTENT ===== */
+.article-content { max-width: 720px; }
+.article-content h2 {
+  font-size: 1.6rem; font-weight: 800; color: #fff;
+  margin: 2.5rem 0 1rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.article-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.article-content h3 {
+  font-size: 1.2rem; font-weight: 700; color: #fff; margin: 2rem 0 0.8rem;
+}
+.article-content p { margin-bottom: 1.2rem; color: var(--text); }
+.article-content ul, .article-content ol {
+  margin: 0 0 1.5rem 1.2rem; color: var(--text);
+}
+.article-content li { margin-bottom: 0.5rem; }
+.article-content strong { color: #fff; }
+.article-content blockquote {
+  border-left: 3px solid var(--primary); padding: 1rem 1.5rem;
+  background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1.5rem 0; color: var(--text-muted); font-style: italic;
+}
+.article-content code {
+  background: var(--surface-2); padding: 0.15rem 0.45rem; border-radius: 4px;
+  font-size: 0.9em; color: var(--pink); font-family: 'JetBrains Mono', monospace;
+}
+.article-content pre {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.2rem; overflow-x: auto; margin: 1.5rem 0; font-family: 'JetBrains Mono', monospace;
+}
+.article-content pre code { background: none; padding: 0; color: var(--text); font-size: 0.85rem; line-height: 1.8; }
+
+/* ===== KEY TAKEAWAY ===== */
+.key-takeaway {
+  background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(99,102,241,0.05));
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+}
+.key-takeaway-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--success); margin-bottom: 0.4rem;
+}
+
+/* ===== WARNING BOX ===== */
+.warning-box {
+  background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(239,68,68,0.05));
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+}
+.warning-box-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--warning); margin-bottom: 0.4rem;
+}
+
+/* ===== CTA BOX ===== */
+.cta-box {
+  background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.08));
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+.cta-box h3 { color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 0.6rem; }
+.cta-box p { color: var(--text-muted); margin-bottom: 1.2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+.cta-button {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; font-weight: 700; padding: 0.75rem 2rem;
+  border-radius: 10px; font-size: 0.95rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(99,102,241,0.35);
+  color: #fff;
+}
+
+/* ===== JWT ANATOMY ===== */
+.jwt-anatomy {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+.jwt-anatomy .jwt-part {
+  display: inline;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  word-break: break-all;
+}
+.jwt-part.header { color: #ef4444; }
+.jwt-part.payload { color: #a855f7; }
+.jwt-part.signature { color: #22c55e; }
+.jwt-part.dot { color: var(--text-dim); }
+.jwt-legend {
+  display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap;
+}
+.jwt-legend span {
+  font-size: 0.78rem; font-weight: 600;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.jwt-legend .dot-header { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; }
+.jwt-legend .dot-payload { width: 10px; height: 10px; border-radius: 50%; background: #a855f7; }
+.jwt-legend .dot-signature { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; }
+
+/* ===== AUTHOR BOX ===== */
+.author-box {
+  display: flex; gap: 1.2rem; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem; margin: 2.5rem 0;
+}
+.author-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.author-info h4 { color: #fff; font-weight: 700; margin-bottom: 0.2rem; }
+.author-info p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+
+/* ===== RELATED ARTICLES ===== */
+.related-articles { margin: 3rem 0; }
+.related-articles h3 { color: #fff; font-weight: 800; font-size: 1.3rem; margin-bottom: 1.2rem; }
+.related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+.related-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.2rem;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.related-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.related-card-cat {
+  font-size: 0.7rem; text-transform: uppercase; font-weight: 700;
+  letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.5rem;
+}
+.related-card h4 { color: #fff; font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; line-height: 1.4; }
+.related-card p { color: var(--text-dim); font-size: 0.82rem; }
+
+/* ===== FOOTER ===== */
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 3rem 2rem 1.5rem;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+}
+.footer-col h4 {
+  color: #fff; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.footer-col a { display: block; color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.4rem; }
+.footer-col a:hover { color: var(--primary); }
+.footer-brand {
+  font-size: 1.2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+.footer-brand-desc { color: var(--text-dim); font-size: 0.82rem; line-height: 1.5; }
+.footer-bottom {
+  text-align: center; padding-top: 1.5rem;
+  border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.8rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .article-layout { grid-template-columns: 1fr; }
+  .toc-sidebar { position: static; margin-bottom: 1rem; }
+}
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .nav-mobile-toggle { display: block; }
+  .article-hero { padding: 6rem 1rem 2rem; }
+  .article-layout { padding: 0 1rem 3rem; }
+  .author-box { flex-direction: column; text-align: center; }
+  .jwt-legend { flex-direction: column; gap: 0.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">NexTool</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/free-tools/">Tools</a></li>
+    <li><a href="/free-tools/">Free Tools</a></li>
+    <li><a href="/pro.html">Pro</a></li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/pro.html" class="nav-cta">NexTool Pro</a></li>
+  </ul>
+  <button class="nav-mobile-toggle" aria-label="Menu">&#9776;</button>
+</nav>
+
+<!-- HERO -->
+<header class="article-hero">
+  <div class="article-meta">
+    <span class="article-category">Security</span>
+    <span class="article-date">February 13, 2026</span>
+    <span class="article-reading-time">10 min read</span>
+  </div>
+  <h1>How to Decode JWT Tokens <span>Without Sharing Your Secrets</span></h1>
+  <p class="article-subtitle">Most online JWT decoders send your token to a server. Here is why that matters, how JWT decoding actually works, and how to inspect tokens without exposing credentials.</p>
+</header>
+
+<!-- ARTICLE LAYOUT -->
+<div class="article-layout">
+
+  <!-- TOC SIDEBAR -->
+  <aside class="toc-sidebar">
+    <div class="toc-title">Table of Contents</div>
+    <ul class="toc-list">
+      <li><a href="#the-problem">The Problem</a></li>
+      <li><a href="#jwt-anatomy">JWT Anatomy</a></li>
+      <li><a href="#decode-vs-verify">Decode vs. Verify</a></li>
+      <li><a href="#client-side">Client-Side Decoding</a></li>
+      <li><a href="#code-examples">Code Examples</a></li>
+      <li><a href="#what-not-to-do">What Not to Put in a JWT</a></li>
+      <li><a href="#tool-comparison">Decoder Tool Comparison</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#summary">Summary</a></li>
+    </ul>
+  </aside>
+
+  <!-- ARTICLE CONTENT -->
+  <article class="article-content">
+
+    <h2 id="the-problem">The Problem: You Are Probably Leaking Tokens</h2>
+
+    <p>Here is a scenario that plays out thousands of times a day. A developer is debugging an authentication issue. They copy a JWT from a request header, open the first "jwt decoder online" result in Google, and paste the token. The decoded header and payload appear. The bug becomes obvious. The developer fixes it and moves on.</p>
+
+    <p>What they probably did not check: whether that decoder sent their token to a server.</p>
+
+    <p>Many popular JWT decoders -- including some of the most well-known ones -- transmit the token to a backend for processing. This means the server operator has a copy of your token. Depending on the token's expiration and the system's security model, that token might still be valid. It might contain a user ID, email address, role, or other claims that are useful for impersonation or reconnaissance.</p>
+
+    <p>The fix is straightforward: <strong>use a JWT decoder that runs entirely in your browser</strong>. Decoding a JWT is a trivial operation (it is just Base64URL decoding). There is zero technical reason for it to require a server. If a decoder sends your token anywhere, that is a design choice, not a necessity -- and it is a choice that works against your interests.</p>
+
+    <div class="warning-box">
+      <div class="warning-box-label">Security Warning</div>
+      <p>Never paste a valid, unexpired JWT into an online decoder unless you have verified that the tool processes data client-side only. Open DevTools > Network tab and watch for outbound requests. If you see one, your token has been transmitted.</p>
+    </div>
+
+    <h2 id="jwt-anatomy">JWT Anatomy: What You Are Actually Decoding</h2>
+
+    <p>A JSON Web Token is a string with three parts, separated by dots. Here is a real (example) token with its three segments color-coded:</p>
+
+    <div class="jwt-anatomy">
+      <span class="jwt-part header">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span><span class="jwt-part dot">.</span><span class="jwt-part payload">eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiYWRtaW4ifQ</span><span class="jwt-part dot">.</span><span class="jwt-part signature">SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</span>
+      <div class="jwt-legend">
+        <span><span class="dot-header"></span> Header (algorithm + type)</span>
+        <span><span class="dot-payload"></span> Payload (claims / data)</span>
+        <span><span class="dot-signature"></span> Signature (integrity proof)</span>
+      </div>
+    </div>
+
+    <h3>Part 1: Header</h3>
+    <p>The header is a JSON object, Base64URL-encoded. It tells you which algorithm was used to sign the token and the token type. Decoding the red segment above gives you:</p>
+
+    <pre><code>{
+  "alg": "HS256",
+  "typ": "JWT"
+}</code></pre>
+
+    <p>Common algorithms you will see: <code>HS256</code> (HMAC with SHA-256, symmetric key), <code>RS256</code> (RSA with SHA-256, asymmetric key pair), and <code>ES256</code> (ECDSA with P-256 curve). The algorithm determines how the signature is created and verified.</p>
+
+    <h3>Part 2: Payload</h3>
+    <p>The payload is also a Base64URL-encoded JSON object. It contains the <strong>claims</strong> -- the actual data the token carries. Decoding the purple segment gives you:</p>
+
+    <pre><code>{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "iat": 1516239022,
+  "role": "admin"
+}</code></pre>
+
+    <p>Standard claims defined in the JWT spec include:</p>
+    <ul>
+      <li><code>sub</code> (subject) -- who the token is about, usually a user ID</li>
+      <li><code>iss</code> (issuer) -- who issued the token</li>
+      <li><code>aud</code> (audience) -- who the token is intended for</li>
+      <li><code>exp</code> (expiration) -- Unix timestamp when the token expires</li>
+      <li><code>iat</code> (issued at) -- Unix timestamp when the token was created</li>
+      <li><code>nbf</code> (not before) -- Unix timestamp before which the token is invalid</li>
+      <li><code>jti</code> (JWT ID) -- unique identifier for the token</li>
+    </ul>
+
+    <p>You can also add any custom claims you want. In the example above, <code>role</code> is a custom claim.</p>
+
+    <h3>Part 3: Signature</h3>
+    <p>The signature is created by taking the encoded header, the encoded payload, a secret key, and the algorithm specified in the header, and running them through the signing function. The signature allows the <em>receiver</em> to verify that the token has not been tampered with.</p>
+
+    <p>Critically: <strong>the signature does not encrypt anything</strong>. The header and payload are readable by anyone. The signature only proves authenticity and integrity.</p>
+
+    <div class="key-takeaway">
+      <div class="key-takeaway-label">Key Takeaway</div>
+      <p>Decoding a JWT requires zero secrets. The header and payload are just Base64URL-encoded JSON. <em>Verifying</em> a JWT requires the signing key. These are two completely different operations, and an online decoder only needs to do the first one.</p>
+    </div>
+
+    <h2 id="decode-vs-verify">Decode vs. Verify: Why the Distinction Matters</h2>
+
+    <p>This is the most misunderstood aspect of JWTs. Let us be precise:</p>
+
+    <ul>
+      <li><strong>Decoding</strong> = reading the header and payload by Base64URL-decoding them. No key needed. Anyone can do it. This is what a <a href="/free-tools/jwt-decoder.html">JWT decoder tool</a> does.</li>
+      <li><strong>Verifying</strong> = checking that the signature is valid, which proves the token was issued by a trusted party and was not modified in transit. This <em>requires</em> the secret key (for HMAC) or the public key (for RSA/ECDSA).</li>
+    </ul>
+
+    <p>When you paste a JWT into an online decoder, all it needs to do is decode. There is no reason for the tool to ask for your secret key (unless it also offers verification, which should be optional). And there is absolutely no reason for the tool to send the token to a server -- decoding is a few lines of JavaScript that run in milliseconds.</p>
+
+    <p>If a tool sends your token to a server to "decode" it, something is wrong. Either the tool is poorly architected, or it is collecting tokens. Neither is acceptable when you are debugging production authentication.</p>
+
+    <h2 id="client-side">Why Client-Side Decoding Is the Only Sane Default</h2>
+
+    <p>When you need to <strong>decode a JWT token</strong> during development or debugging, the safest approach is a tool that never transmits your token. <a href="/free-tools/jwt-decoder.html">NexTool's JWT Decoder</a> is built exactly this way: the entire decoding operation runs in JavaScript in your browser. Your token never leaves your machine.</p>
+
+    <p>Here is how to verify that any decoder tool is truly client-side:</p>
+
+    <ol>
+      <li>Open the tool in your browser.</li>
+      <li>Open DevTools (F12 or Cmd+Option+I).</li>
+      <li>Go to the Network tab.</li>
+      <li>Clear the log.</li>
+      <li>Paste a JWT and trigger decoding.</li>
+      <li>Check the Network tab. If zero requests were made (other than pre-existing analytics or fonts), the tool is client-side.</li>
+    </ol>
+
+    <p>You can even disconnect from the internet after the page loads. If the tool still works, it is definitively client-side.</p>
+
+    <h2 id="code-examples">Code Examples: Decode JWTs in Any Language</h2>
+
+    <p>If you prefer to decode JWTs in code rather than using an online tool, here are copy-paste examples for the most common languages.</p>
+
+    <h3>JavaScript (Browser or Node.js)</h3>
+
+    <pre><code>function decodeJWT(token) {
+  const [headerB64, payloadB64, signature] = token.split('.');
+
+  // Base64URL -> Base64 -> decode
+  const decode = (str) =&gt; {
+    const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    const json = atob(base64);
+    return JSON.parse(json);
+  };
+
+  return {
+    header: decode(headerB64),
+    payload: decode(payloadB64),
+    signature: signature
+  };
+}
+
+// Usage
+const token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.abc123';
+const decoded = decodeJWT(token);
+console.log(decoded.header);   // { alg: "HS256" }
+console.log(decoded.payload);  // { sub: "1234" }</code></pre>
+
+    <h3>Python</h3>
+
+    <pre><code>import base64
+import json
+
+def decode_jwt(token):
+    parts = token.split('.')
+    if len(parts) != 3:
+        raise ValueError('Invalid JWT: expected 3 parts')
+
+    def decode_part(part):
+        # Add padding if needed
+        padding = 4 - len(part) % 4
+        if padding != 4:
+            part += '=' * padding
+        decoded = base64.urlsafe_b64decode(part)
+        return json.loads(decoded)
+
+    return {
+        'header': decode_part(parts[0]),
+        'payload': decode_part(parts[1]),
+    }
+
+# Usage
+token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.abc123'
+decoded = decode_jwt(token)
+print(decoded['header'])   # {'alg': 'HS256'}
+print(decoded['payload'])  # {'sub': '1234'}</code></pre>
+
+    <h3>Go</h3>
+
+    <pre><code>package main
+
+import (
+    "encoding/base64"
+    "encoding/json"
+    "fmt"
+    "strings"
+)
+
+func decodeJWTPart(part string) (map[string]interface{}, error) {
+    decoded, err := base64.RawURLEncoding.DecodeString(part)
+    if err != nil {
+        return nil, err
+    }
+    var result map[string]interface{}
+    err = json.Unmarshal(decoded, &amp;result)
+    return result, err
+}
+
+func main() {
+    token := "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.abc123"
+    parts := strings.Split(token, ".")
+
+    header, _ := decodeJWTPart(parts[0])
+    payload, _ := decodeJWTPart(parts[1])
+
+    fmt.Println("Header:", header)
+    fmt.Println("Payload:", payload)
+}</code></pre>
+
+    <h3>Bash (with base64 and jq)</h3>
+
+    <pre><code># Decode JWT header
+echo "eyJhbGciOiJIUzI1NiJ9" | base64 -d 2&gt;/dev/null | jq .
+
+# Decode full JWT (extract payload)
+TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.abc123"
+echo "$TOKEN" | cut -d. -f2 | base64 -d 2&gt;/dev/null | jq .
+
+# One-liner: decode and pretty-print the payload
+jwt_decode() { echo "$1" | cut -d. -f2 | base64 -d 2&gt;/dev/null | jq .; }
+jwt_decode "$TOKEN"</code></pre>
+
+    <p>Every one of these examples does the same thing: split on dots, Base64URL-decode, parse JSON. That is it. No libraries, no secrets, no network calls. This is why there is no technical justification for an online decoder to send your token to a server.</p>
+
+    <div class="cta-box">
+      <h3>Decode JWTs Instantly, Privately</h3>
+      <p>NexTool's JWT Decoder runs 100% in your browser. Paste a token, see the header, payload, and expiration. Your data never leaves your machine.</p>
+      <a href="/free-tools/jwt-decoder.html" class="cta-button">Open JWT Decoder</a>
+    </div>
+
+    <h2 id="what-not-to-do">What You Should Never Put in a JWT Payload</h2>
+
+    <p>Because JWTs are only encoded and not encrypted, the payload is readable by anyone who has the token. This means anyone with access to the client (browser JavaScript, mobile app memory, network logs) can read every claim. Here is what does not belong in a JWT:</p>
+
+    <ul>
+      <li><strong>Passwords or password hashes.</strong> Never. Not even hashed. The token is not the right place.</li>
+      <li><strong>Credit card numbers or financial data.</strong> Use a tokenized payment processor instead.</li>
+      <li><strong>Personally identifiable information (PII) beyond what is necessary.</strong> A user ID is fine. A full address and social security number is not.</li>
+      <li><strong>Internal system secrets.</strong> Database connection strings, API keys for other services, or encryption keys should never appear in a JWT.</li>
+      <li><strong>Large data blobs.</strong> JWTs are sent with every request in the Authorization header. A 50 KB payload adds 50 KB to every API call.</li>
+    </ul>
+
+    <p>What <em>should</em> go in a JWT payload: a user identifier (<code>sub</code>), role or permissions, expiration time (<code>exp</code>), issuer (<code>iss</code>), and any minimal claims the consuming service needs to make authorization decisions without a database lookup.</p>
+
+    <div class="warning-box">
+      <div class="warning-box-label">Common Mistake</div>
+      <p>Many developers store the user's email in the JWT for convenience. This is borderline -- an email is PII but is often already known to the client. The risk is that JWTs get logged, cached, and stored in places you do not control (browser storage, proxy logs, error reporting services). Every claim you add is a claim that might leak. Be deliberate about what you include.</p>
+    </div>
+
+    <h2 id="tool-comparison">JWT Decoder Tool Comparison</h2>
+
+    <p>Here is how the most popular online JWT decoders compare on the things that actually matter:</p>
+
+    <ul>
+      <li><strong><a href="/free-tools/jwt-decoder.html">NexTool JWT Decoder</a></strong> -- Fully client-side, zero ads, clean interface, instant decode with header/payload/signature breakdown, expiration timestamp conversion. Part of <a href="/free-tools/">150+ free tools</a>.</li>
+      <li><strong>jwt.io</strong> -- The most well-known JWT tool. Decodes client-side and offers optional signature verification. Clean interface. However, the signature verification feature encourages pasting your secret key into a browser, which is risky if the page ever adds server-side features or gets compromised.</li>
+      <li><strong>jwt.ms</strong> (Microsoft) -- Client-side decoder designed for Azure AD tokens. Good for decoding tokens from Microsoft identity platforms but has a narrow focus.</li>
+      <li><strong>token.dev</strong> -- Modern interface, client-side, supports multiple token formats. Clean design but less established.</li>
+    </ul>
+
+    <p>For routine decoding during development and debugging, <a href="/free-tools/jwt-decoder.html">NexTool's JWT Decoder</a> gives you the fastest workflow: paste the token, see the decoded output immediately, check the expiration in human-readable format, and move on. No account, no configuration, no risk.</p>
+
+    <h2 id="faq">Frequently Asked Questions</h2>
+
+    <h3>Is it safe to paste a JWT token into an online decoder?</h3>
+    <p>It depends on whether the decoder processes the token in your browser or sends it to a server. Client-side decoders like <a href="/free-tools/jwt-decoder.html">NexTool JWT Decoder</a> parse the token entirely in your browser using JavaScript. Your token never leaves your machine. Server-side decoders transmit your token to their backend, which means the server operator could log it. To verify, open your browser's DevTools Network tab while pasting the token. If no outbound request is made, the tool is client-side and safe.</p>
+
+    <h3>Can you decode a JWT without the secret key?</h3>
+    <p>Yes. The header and payload of a JWT are only Base64URL-encoded, not encrypted. Anyone with the token can decode and read them. The signature section requires the secret key to <em>verify</em>, but not to read the header and payload. This is by design: JWTs are meant to carry readable claims. The signature ensures the claims have not been tampered with, but it does not hide them. This is why you should never put sensitive data like passwords or credit card numbers directly in a JWT payload.</p>
+
+    <h3>What is the difference between decoding and verifying a JWT?</h3>
+    <p><strong>Decoding</strong> means reading the header and payload by Base64URL-decoding the first two segments. No key required. <strong>Verifying</strong> means checking that the signature is valid, proving the token was issued by a trusted party and has not been modified. Verification requires the signing key: the shared secret for HMAC algorithms (HS256) or the public key for RSA/ECDSA algorithms (RS256, ES256). Online decoders show you the decoded content. Verification should be done server-side in your application code.</p>
+
+    <h3>How do I decode a JWT in JavaScript without a library?</h3>
+    <p>Split the token on dots to get three parts. Base64URL-decode the first two parts and parse as JSON. The key code: <code>const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))</code>. The <code>replace</code> calls convert Base64URL characters back to standard Base64 before <code>atob</code> decodes them. This works in any modern browser and in Node.js with a Buffer-based alternative to <code>atob</code>.</p>
+
+    <h3>Why should I not put sensitive data in a JWT payload?</h3>
+    <p>Because the JWT payload is only encoded (Base64URL), not encrypted. Anyone who obtains the token can decode and read every claim. JWTs are often stored in browser localStorage or cookies and transmitted in HTTP headers, making them accessible to browser extensions, network intermediaries, and anyone with access to the client. Store only non-sensitive identifiers (user ID, role, expiration) in the payload. Keep passwords, payment details, and PII in your database, not in the token.</p>
+
+    <h2 id="summary">Summary</h2>
+
+    <p>Decoding a JWT is a trivial operation -- split on dots, Base64URL-decode, parse JSON. It requires zero secrets and zero network calls. If an online decoder sends your token to a server, it is doing something unnecessary and potentially dangerous.</p>
+
+    <p>The rules are simple:</p>
+
+    <ol>
+      <li><strong>Always use a client-side decoder.</strong> Verify by checking the Network tab in DevTools.</li>
+      <li><strong>Never paste your signing secret into a web tool</strong> unless you fully trust it and understand the risk.</li>
+      <li><strong>Keep JWT payloads minimal.</strong> Only include the claims the consuming service actually needs.</li>
+      <li><strong>Do signature verification in your backend code</strong>, not in a browser tool.</li>
+      <li><strong>Treat every JWT as readable by anyone.</strong> Design your claims accordingly.</li>
+    </ol>
+
+    <p><a href="/free-tools/jwt-decoder.html">NexTool's JWT Decoder</a> does exactly what a JWT decoder should do: decode, display, and stay out of your way. No server calls, no secret key prompts, no tracking. It is part of NexTool's collection of <a href="/free-tools/">150+ free developer tools</a>, all built with the same privacy-first principle.</p>
+
+    <div class="cta-box">
+      <h3>Need More Developer Tools?</h3>
+      <p>JWT decoding is one of 150+ free tools on NexTool. Explore <a href="/free-tools/base64.html">Base64 encoding</a>, <a href="/free-tools/json-formatter.html">JSON formatting</a>, <a href="/free-tools/password-strength-checker.html">password strength checking</a>, and more.</p>
+      <a href="/free-tools/" class="cta-button">Browse All Free Tools</a>
+    </div>
+
+    <!-- AUTHOR BOX -->
+    <div class="author-box">
+      <div class="author-avatar">NT</div>
+      <div class="author-info">
+        <h4>NexTool Team</h4>
+        <p>We build free, privacy-first developer tools. Our mission is to make the tools you reach for every day faster, cleaner, and more respectful of your data.</p>
+      </div>
+    </div>
+
+    <!-- RELATED ARTICLES -->
+    <div class="related-articles">
+      <h3>Related Articles</h3>
+      <div class="related-grid">
+        <a href="/blog/jwt-security-best-practices-guide.html" class="related-card">
+          <div class="related-card-cat">Security</div>
+          <h4>JWT Security Best Practices Guide</h4>
+          <p>Everything you need to know about securing JWT-based authentication, from algorithm selection to token storage.</p>
+        </a>
+        <a href="/blog/encoding-hashing-explained.html" class="related-card">
+          <div class="related-card-cat">Developer Guide</div>
+          <h4>Encoding vs. Hashing vs. Encryption Explained</h4>
+          <p>Understand the fundamental differences between encoding, hashing, and encryption with real examples.</p>
+        </a>
+        <a href="/blog/web-security-checklist.html" class="related-card">
+          <div class="related-card-cat">Security</div>
+          <h4>Web Security Checklist for Developers</h4>
+          <p>A practical checklist covering the security measures every web application should implement.</p>
+        </a>
+      </div>
+    </div>
+
+  </article>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="footer-brand">NexTool</div>
+      <p class="footer-brand-desc">150+ free developer tools for developers and designers. Browser-based, no signup.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Free Tools</h4>
+      <a href="/free-tools/">All 150+ Tools</a>
+      <a href="/free-tools/jwt-decoder.html">JWT Decoder</a>
+      <a href="/free-tools/json-formatter.html">JSON Formatter</a>
+      <a href="/free-tools/base64.html">Base64 Encoder</a>
+      <a href="/free-tools/regex-playground.html">Regex Tester</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+      <a href="/blog/">Blog</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="mailto:christianjunbucher@gmail.com">Email Us</a>
+      <a href="/imprint.html">Imprint</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+// TOC active state
+const tocLinks = document.querySelectorAll('.toc-list a');
+const sections = document.querySelectorAll('.article-content h2[id]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  tocLinks.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+// Mobile nav toggle
+document.querySelector('.nav-mobile-toggle')?.addEventListener('click', () => {
+  const links = document.querySelector('.nav-links');
+  links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+  links.style.flexDirection = 'column';
+  links.style.position = 'absolute';
+  links.style.top = '64px';
+  links.style.right = '1rem';
+  links.style.background = 'var(--surface)';
+  links.style.padding = '1rem';
+  links.style.borderRadius = '12px';
+  links.style.border = '1px solid var(--border)';
+});
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>
