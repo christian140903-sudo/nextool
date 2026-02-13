@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Color Palette Generator — Create Palettes | NexTool</title>
+<meta name="description" content="Free color palette generator with harmony modes: analogous, complementary, triadic, monochromatic. Export as CSS, Tailwind, or SCSS variables. Contrast checker included.">
+<meta name="keywords" content="color palette generator, color scheme, CSS colors, Tailwind colors, SCSS variables, free tool, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free Color Palette Generator | NexTool">
+<meta property="og:description" content="Generate harmonious color palettes instantly. Export as CSS, Tailwind, or SCSS. Free online tool by NexTool.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/color-palette-generator.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/color-palette-generator.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Color Palette Generator | NexTool">
+<meta name="twitter:description" content="Generate harmonious color palettes. Export as CSS, Tailwind, SCSS. Free online tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Color Palette Generator","applicationCategory":"DesignApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free color palette generator with harmony modes, export options, and accessibility contrast checker."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+.tool-container{max-width:1100px;margin:0 auto;padding:0 1.5rem 3rem}
+.controls{display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:1.5rem;align-items:center;justify-content:center}
+.controls label{font-size:.8rem;color:var(--text2);font-weight:500;display:flex;align-items:center;gap:.4rem}
+.controls input[type="color"]{width:44px;height:34px;border:2px solid var(--border);border-radius:8px;cursor:pointer;background:var(--surface);padding:2px}
+.controls select,.controls button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.controls select{appearance:none;padding-right:1.8rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.controls button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.controls button.gen-btn{background:linear-gradient(135deg,var(--primary),var(--accent));border:none;color:#fff;font-weight:600;padding:.5rem 1.2rem}
+.controls button.gen-btn:hover{opacity:.9}
+.palette-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:2rem}
+.color-card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.color-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.color-swatch{height:120px;position:relative}
+.color-swatch .contrast-badges{position:absolute;bottom:6px;left:6px;display:flex;gap:4px}
+.contrast-badge{padding:2px 6px;border-radius:4px;font-size:.6rem;font-weight:700;letter-spacing:.5px}
+.contrast-badge.pass{background:rgba(34,197,94,.9);color:#000}
+.contrast-badge.fail{background:rgba(239,68,68,.8);color:#fff}
+.color-info{padding:.75rem}
+.color-info .hex{font-size:.9rem;font-weight:700;font-family:'Courier New',monospace;margin-bottom:.25rem}
+.color-info .rgb,.color-info .hsl{font-size:.7rem;color:var(--text2);font-family:'Courier New',monospace;line-height:1.5}
+.export-section{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:2rem}
+.export-tabs{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.export-tabs button{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:.4rem .8rem;border-radius:8px;font-size:.75rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.export-tabs button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.export-code{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:'Courier New',monospace;font-size:.8rem;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-all;max-height:300px;overflow:auto;position:relative}
+.export-copy{position:absolute;top:.5rem;right:.5rem;background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:6px;font-size:.7rem;cursor:pointer;transition:all .2s;font-family:inherit}
+.export-copy:hover{border-color:var(--primary);color:var(--text)}
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media(max-width:768px){
+  .palette-grid{grid-template-columns:repeat(2,1fr)}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .controls{gap:.4rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>Color Palette</span> Generator</h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Generate harmonious color palettes using color theory. Choose a base color and harmony mode, then export as CSS variables, Tailwind config, or SCSS. Includes WCAG contrast checking for accessibility.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="controls">
+    <label>Base Color: <input type="color" id="baseColor" value="#6366f1"></label>
+    <select id="harmonyMode">
+      <option value="analogous">Analogous</option>
+      <option value="complementary">Complementary</option>
+      <option value="triadic">Triadic</option>
+      <option value="tetradic">Tetradic</option>
+      <option value="monochromatic">Monochromatic</option>
+      <option value="split-complementary">Split Complementary</option>
+      <option value="random">Random</option>
+    </select>
+    <select id="paletteSize">
+      <option value="5">5 Colors</option>
+      <option value="6" selected>6 Colors</option>
+      <option value="7">7 Colors</option>
+      <option value="8">8 Colors</option>
+    </select>
+    <button class="gen-btn" onclick="generate()">Generate</button>
+    <button onclick="randomBase()">Random Base</button>
+    <button onclick="copyAll()">Copy All HEX</button>
+  </div>
+
+  <div class="palette-grid" id="paletteGrid"></div>
+
+  <div class="export-section" id="exportSection" style="display:none">
+    <div class="export-tabs">
+      <button class="active" onclick="setExport('css',this)">CSS Variables</button>
+      <button onclick="setExport('tailwind',this)">Tailwind Config</button>
+      <button onclick="setExport('scss',this)">SCSS Variables</button>
+    </div>
+    <div style="position:relative">
+      <pre class="export-code" id="exportCode"></pre>
+      <button class="export-copy" onclick="copyExport()">Copy</button>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 215+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 215+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">215+ Free Tools</a>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentPalette = [];
+let currentExport = 'css';
+
+/* Color conversion utilities */
+function hexToRgb(hex) {
+  hex = hex.replace('#','');
+  return { r: parseInt(hex.substr(0,2),16), g: parseInt(hex.substr(2,2),16), b: parseInt(hex.substr(4,2),16) };
+}
+
+function rgbToHex(r,g,b) {
+  return '#' + [r,g,b].map(x => Math.max(0,Math.min(255,Math.round(x))).toString(16).padStart(2,'0')).join('');
+}
+
+function rgbToHsl(r,g,b) {
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h,s,l=(max+min)/2;
+  if(max===min){h=s=0}else{
+    const d=max-min;
+    s=l>.5?d/(2-max-min):d/(max+min);
+    switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break}
+  }
+  return {h:Math.round(h*360),s:Math.round(s*100),l:Math.round(l*100)};
+}
+
+function hslToRgb(h,s,l) {
+  h/=360; s/=100; l/=100;
+  let r,g,b;
+  if(s===0){r=g=b=l}else{
+    function hue2rgb(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p}
+    const q=l<.5?l*(1+s):l+s-l*s;const p=2*l-q;
+    r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);
+  }
+  return {r:Math.round(r*255),g:Math.round(g*255),b:Math.round(b*255)};
+}
+
+function luminance(r,g,b) {
+  const [rs,gs,bs] = [r,g,b].map(c => {c/=255; return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)});
+  return .2126*rs+.7152*gs+.0722*bs;
+}
+
+function contrastRatio(rgb1,rgb2) {
+  const l1=luminance(rgb1.r,rgb1.g,rgb1.b);
+  const l2=luminance(rgb2.r,rgb2.g,rgb2.b);
+  const lighter=Math.max(l1,l2), darker=Math.min(l1,l2);
+  return (lighter+.05)/(darker+.05);
+}
+
+/* Palette generation */
+function generatePalette(baseHex, mode, count) {
+  const rgb = hexToRgb(baseHex);
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  let colors = [];
+
+  switch(mode) {
+    case 'analogous': {
+      const spread = 30;
+      for (let i=0;i<count;i++) {
+        const offset = (i - Math.floor(count/2)) * spread / (count-1) * 2;
+        const h = (hsl.h + offset + 360) % 360;
+        const sVar = hsl.s + (i%2===0?-5:5);
+        const lVar = hsl.l + (i - Math.floor(count/2)) * 6;
+        colors.push(hslToHex(h, clamp(sVar,10,100), clamp(lVar,15,90)));
+      }
+      break;
+    }
+    case 'complementary': {
+      const compH = (hsl.h + 180) % 360;
+      const half = Math.ceil(count/2);
+      for (let i=0;i<half;i++) {
+        const lVar = hsl.l + (i - Math.floor(half/2)) * 10;
+        colors.push(hslToHex(hsl.h, clamp(hsl.s + (i*3 - 5),10,100), clamp(lVar,15,90)));
+      }
+      for (let i=0;i<count-half;i++) {
+        const lVar = hsl.l + (i - Math.floor((count-half)/2)) * 10;
+        colors.push(hslToHex(compH, clamp(hsl.s + (i*3 - 3),10,100), clamp(lVar,15,90)));
+      }
+      break;
+    }
+    case 'triadic': {
+      const angles = [0, 120, 240];
+      let perGroup = Math.floor(count/3);
+      let extra = count - perGroup*3;
+      for (let a=0;a<3;a++) {
+        const h = (hsl.h + angles[a]) % 360;
+        const gc = perGroup + (a<extra?1:0);
+        for (let i=0;i<gc;i++) {
+          const lVar = hsl.l + (i*12 - 6);
+          colors.push(hslToHex(h, clamp(hsl.s - i*4,15,100), clamp(lVar,15,90)));
+        }
+      }
+      break;
+    }
+    case 'tetradic': {
+      const angles = [0, 90, 180, 270];
+      let perGroup = Math.floor(count/4);
+      let extra = count - perGroup*4;
+      for (let a=0;a<4;a++) {
+        const h = (hsl.h + angles[a]) % 360;
+        const gc = perGroup + (a<extra?1:0);
+        for (let i=0;i<gc;i++) {
+          const lVar = hsl.l + (i*14 - 7);
+          colors.push(hslToHex(h, clamp(hsl.s - i*5,15,100), clamp(lVar,15,90)));
+        }
+      }
+      break;
+    }
+    case 'monochromatic': {
+      const step = 70 / (count-1 || 1);
+      const startL = Math.max(15, hsl.l - (count-1)*step/2);
+      for (let i=0;i<count;i++) {
+        const l = startL + i*step;
+        const sVar = hsl.s - (Math.abs(l - 50) * 0.3);
+        colors.push(hslToHex(hsl.h, clamp(sVar,5,100), clamp(l,10,95)));
+      }
+      break;
+    }
+    case 'split-complementary': {
+      const angles = [0, 150, 210];
+      let perGroup = Math.floor(count/3);
+      let extra = count - perGroup*3;
+      for (let a=0;a<3;a++) {
+        const h = (hsl.h + angles[a]) % 360;
+        const gc = perGroup + (a<extra?1:0);
+        for (let i=0;i<gc;i++) {
+          const lVar = hsl.l + (i*12 - 6);
+          colors.push(hslToHex(h, clamp(hsl.s - i*4,15,100), clamp(lVar,15,90)));
+        }
+      }
+      break;
+    }
+    case 'random': {
+      colors.push(baseHex);
+      for (let i=1;i<count;i++) {
+        const h = Math.floor(Math.random()*360);
+        const s = 40 + Math.floor(Math.random()*50);
+        const l = 30 + Math.floor(Math.random()*45);
+        colors.push(hslToHex(h,s,l));
+      }
+      break;
+    }
+  }
+  return colors.slice(0, count);
+}
+
+function hslToHex(h,s,l) {
+  const rgb = hslToRgb(h,s,l);
+  return rgbToHex(rgb.r,rgb.g,rgb.b);
+}
+
+function clamp(v,min,max) { return Math.max(min,Math.min(max,v)); }
+
+function generate() {
+  const base = document.getElementById('baseColor').value;
+  const mode = document.getElementById('harmonyMode').value;
+  const count = parseInt(document.getElementById('paletteSize').value);
+  currentPalette = generatePalette(base, mode, count);
+  renderPalette();
+  renderExport();
+  document.getElementById('exportSection').style.display = '';
+}
+
+function randomBase() {
+  const h = Math.floor(Math.random()*360);
+  const s = 50 + Math.floor(Math.random()*40);
+  const l = 35 + Math.floor(Math.random()*30);
+  const hex = hslToHex(h,s,l);
+  document.getElementById('baseColor').value = hex;
+  generate();
+}
+
+function renderPalette() {
+  const grid = document.getElementById('paletteGrid');
+  grid.innerHTML = '';
+  currentPalette.forEach((hex, i) => {
+    const rgb = hexToRgb(hex);
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    const whiteContrast = contrastRatio(rgb, {r:255,g:255,b:255});
+    const blackContrast = contrastRatio(rgb, {r:0,g:0,b:0});
+
+    const card = document.createElement('div');
+    card.className = 'color-card';
+    card.onclick = () => { navigator.clipboard.writeText(hex).then(() => showToast('Copied ' + hex)); };
+    card.innerHTML = `
+      <div class="color-swatch" style="background:${hex}">
+        <div class="contrast-badges">
+          <span class="contrast-badge ${whiteContrast>=4.5?'pass':'fail'}" style="color:#fff;background:rgba(${whiteContrast>=4.5?'34,197,94':'239,68,68'},.85)">W ${whiteContrast.toFixed(1)}</span>
+          <span class="contrast-badge ${blackContrast>=4.5?'pass':'fail'}" style="color:#000;background:rgba(${blackContrast>=4.5?'34,197,94':'239,68,68'},.85)">B ${blackContrast.toFixed(1)}</span>
+        </div>
+      </div>
+      <div class="color-info">
+        <div class="hex">${hex.toUpperCase()}</div>
+        <div class="rgb">rgb(${rgb.r}, ${rgb.g}, ${rgb.b})</div>
+        <div class="hsl">hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)</div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function setExport(mode, btn) {
+  currentExport = mode;
+  document.querySelectorAll('.export-tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderExport();
+}
+
+function renderExport() {
+  const el = document.getElementById('exportCode');
+  let code = '';
+  switch(currentExport) {
+    case 'css':
+      code = ':root {\n' + currentPalette.map((hex, i) => `  --color-${i + 1}: ${hex};`).join('\n') + '\n}';
+      break;
+    case 'tailwind':
+      code = 'module.exports = {\n  theme: {\n    extend: {\n      colors: {\n        palette: {\n' +
+        currentPalette.map((hex, i) => `          ${(i+1)*100}: '${hex}',`).join('\n') +
+        '\n        }\n      }\n    }\n  }\n}';
+      break;
+    case 'scss':
+      code = currentPalette.map((hex, i) => `$color-${i + 1}: ${hex};`).join('\n') +
+        '\n\n$palette: (' + currentPalette.map((hex, i) => `\n  color-${i + 1}: $color-${i + 1},`).join('') + '\n);';
+      break;
+  }
+  el.textContent = code;
+}
+
+function copyExport() {
+  const code = document.getElementById('exportCode').textContent;
+  navigator.clipboard.writeText(code).then(() => showToast('Export code copied'));
+}
+
+function copyAll() {
+  if (!currentPalette.length) { showToast('Generate a palette first'); return; }
+  navigator.clipboard.writeText(currentPalette.join('\n')).then(() => showToast('All colors copied'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* IntersectionObserver fade-in */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+/* Generate on load */
+generate();
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a color palette generator?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A color palette generator creates harmonious sets of colors based on color theory principles. You pick a base color, choose a harmony mode (like analogous, complementary, or triadic), and the tool generates colors that work well together for web design, UI design, branding, and more."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What color harmony modes are available?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NexTool's Color Palette Generator supports 7 modes: Analogous (adjacent hues), Complementary (opposite hues), Triadic (three evenly spaced hues), Tetradic (four evenly spaced), Monochromatic (single hue with varying lightness), Split Complementary, and Random. Each produces a different visual relationship."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I export the palette for my CSS or Tailwind project?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, you can export your palette as CSS custom properties (variables), Tailwind CSS config, or SCSS variables. Simply click the export format tab and copy the generated code directly into your project."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the tool check color accessibility contrast?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, each color card displays WCAG contrast ratios against white (W) and black (B) text. A ratio of 4.5:1 or higher passes AA compliance for normal text. The badges show green for passing and red for failing, so you can quickly identify accessible text color pairings."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
