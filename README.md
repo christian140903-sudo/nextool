@@ -1,10 +1,10 @@
 <div align="center">
 
-# 🛠️ NexTool — 213+ Free Developer Tools
+# 🛠️ NexTool — 220+ Free Developer Tools
 
 **Browser-based tools that run 100% client-side. Your data never leaves your browser.**
 
-[![Tools](https://img.shields.io/badge/Tools-213%2B-6366f1?style=flat-square)](https://nextool.app/free-tools/)
+[![Tools](https://img.shields.io/badge/Tools-220%2B-6366f1?style=flat-square)](https://nextool.app/free-tools/)
 [![Client-Side](https://img.shields.io/badge/Processing-100%25%20Client--Side-22c55e?style=flat-square)](#)
 [![No Signup](https://img.shields.io/badge/Signup-Not%20Required-f59e0b?style=flat-square)](#)
 [![No Tracking](https://img.shields.io/badge/Tracking-Zero-ef4444?style=flat-square)](#)
@@ -20,7 +20,7 @@
 Every developer has that moment: you need to quickly format JSON, decode a JWT, or generate a UUID. You google it, and get hit with cookie consent popups, signup walls, and "processing your data on our server."
 
 **NexTool is different:**
-- ✅ **213+ tools** — and growing every week
+- ✅ **220+ tools** — and growing every week
 - ✅ **100% client-side** — your data never leaves your browser
 - ✅ **No signup** — just open and use
 - ✅ **No tracking** — zero analytics on your data
@@ -34,15 +34,15 @@ Every developer has that moment: you need to quickly format JSON, decode a JWT, 
 |----------|-------|---------------|
 | **Code Formatters** | 15+ | JSON, CSS, HTML, JavaScript, SQL, XML, YAML, Python |
 | **Converters** | 25+ | JSON↔CSV, JSON↔XML, YAML↔JSON, Base64, URL Encode, Markdown↔HTML |
-| **Generators** | 20+ | Password, UUID, QR Code, Lorem Ipsum, Barcode, Favicon |
+| **Generators** | 25+ | Password, UUID, QR Code, Lorem Ipsum, Barcode, Favicon, Color Palette |
 | **Security** | 15+ | Hash Generator, JWT Decoder, HMAC, Password Strength, CSP Builder |
-| **CSS & Design** | 15+ | Flexbox, Grid, Gradient, Box Shadow, Color Picker, Font Preview |
+| **CSS & Design** | 20+ | Flexbox, Grid, Gradient, Box Shadow, Color Picker, Font Preview, SVG Editor |
 | **SEO & Web** | 15+ | Meta Tag Analyzer, OG Preview, Schema Markup, Sitemap Generator |
 | **Image Tools** | 10+ | Compressor, Resizer, Converter, Color Palette Extractor |
 | **Calculators** | 15+ | Color Contrast, Percentage, Date, Subnet, Aspect Ratio |
 | **Productivity** | 10+ | Pomodoro, Notepad, Whiteboard, Typing Test, Stopwatch |
-| **API & Dev** | 15+ | Regex Tester, Diff Checker, API Builder, cURL to Code |
-| **And more...** | 60+ | PDF Tools, Encoding, Text Manipulation, Data Analysis |
+| **API & Dev** | 20+ | Regex Tester, Diff Checker, API Builder, cURL to Code, JS Minifier |
+| **And more...** | 50+ | PDF Tools, Encoding, Text Manipulation, Data Analysis |
 
 ## Most Popular Tools
 
@@ -55,9 +55,10 @@ Every developer has that moment: you need to quickly format JSON, decode a JWT, 
 - [**Password Generator**](https://nextool.app/free-tools/password-generator.html) — Cryptographically secure passwords
 - [**Base64 Encoder**](https://nextool.app/free-tools/base64-encoder-decoder.html) — Encode/decode Base64 strings
 - [**Color Picker**](https://nextool.app/free-tools/color-picker.html) — Pick colors with HEX, RGB, HSL
-- [**QR Code Generator**](https://nextool.app/free-tools/qr-code-generator.html) — Create QR codes from any text
+- [**SVG Editor**](https://nextool.app/free-tools/svg-editor.html) — Edit, optimize, minify SVG files
+- [**JavaScript Minifier**](https://nextool.app/free-tools/javascript-minifier.html) — Minify & beautify JavaScript
 
-[→ Browse all 213+ tools](https://nextool.app/free-tools/)
+[→ Browse all 220+ tools](https://nextool.app/free-tools/)
 
 ## Tech Stack
 
@@ -73,7 +74,7 @@ One-time payment. No subscription. No renewals.
 
 | Feature | Free | Pro |
 |---------|------|-----|
-| All 213+ tools | ✅ | ✅ |
+| All 220+ tools | ✅ | ✅ |
 | Client-side processing | ✅ | ✅ |
 | No signup required | ✅ | ✅ |
 | Clean output (no watermarks) | — | ✅ |
@@ -88,7 +89,7 @@ One-time payment. No subscription. No renewals.
 
 ## Blog
 
-66+ articles on web development, tools, and productivity:
+72+ articles on web development, tools, and productivity:
 [nextool.app/blog/](https://nextool.app/blog/)
 
 ## License
