@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Hooks Complete Guide: useState, useEffect &amp; Beyond (2026) | NexTool</title>
+    <meta name="description" content="Master every React Hook in 2026: useState, useEffect, useContext, useReducer, useCallback, useMemo, useRef, custom hooks, and React 19 hooks like use() and useOptimistic. Code examples, best practices, and common mistakes.">
+    <meta name="keywords" content="react hooks, usestate, useeffect, usecontext, usereducer, usecallback, usememo, useref, custom hooks, react hooks tutorial, react hooks guide, react 19 hooks, useoptimistic, useformstatus, react 2026">
+    <meta name="author" content="NexTool Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/react-hooks-guide.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="React Hooks Complete Guide: useState, useEffect &amp; Beyond (2026)">
+    <meta property="og:description" content="Master every React Hook with practical code examples, performance patterns, React 19 hooks, and custom hooks you can use today.">
+    <meta property="og:url" content="https://nextool.app/blog/react-hooks-guide.html">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/react-hooks-guide-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-14T10:00:00Z">
+    <meta property="article:modified_time" content="2026-02-14T10:00:00Z">
+    <meta property="article:author" content="NexTool Team">
+    <meta property="article:section" content="Tutorial">
+    <meta property="article:tag" content="React">
+    <meta property="article:tag" content="JavaScript">
+    <meta property="article:tag" content="Hooks">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="React Hooks Complete Guide: useState, useEffect &amp; Beyond (2026)">
+    <meta name="twitter:description" content="Every React Hook explained with code. useState, useEffect, useRef, useMemo, useCallback, useContext, custom hooks, and React 19 hooks.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/react-hooks-guide-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "React Hooks Complete Guide: useState, useEffect & Beyond (2026)",
+        "description": "Master every React Hook in 2026: useState, useEffect, useContext, useReducer, useCallback, useMemo, useRef, custom hooks, and React 19 hooks like use() and useOptimistic.",
+        "image": "https://nextool.app/assets/images/blog/react-hooks-guide-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool Team",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-14T10:00:00Z",
+        "dateModified": "2026-02-14T10:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/react-hooks-guide.html"
+        },
+        "wordCount": 3400,
+        "keywords": ["react hooks", "usestate", "useeffect", "usecontext", "usereducer", "usecallback", "usememo", "useref", "custom hooks", "react 19 hooks", "react 2026"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "React Hooks Guide",
+                "item": "https://nextool.app/blog/react-hooks-guide.html"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What are React Hooks and why should I use them?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "React Hooks are functions that let you use state, lifecycle behavior, context, and other React features inside function components without writing classes. Introduced in React 16.8, hooks are now the standard way to build React applications. They simplify code by eliminating class boilerplate, make logic reusable through custom hooks, and compose better than higher-order components or render props. As of 2026, the React team recommends function components with hooks for all new code, and class components are considered legacy."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the difference between useMemo and useCallback?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "useMemo caches the result of a computation: useMemo(() => expensiveCalc(a, b), [a, b]) returns the cached value and only recalculates when a or b changes. useCallback caches the function itself: useCallback((x) => x + a, [a]) returns the same function reference as long as a stays the same. In practice, useCallback(fn, deps) is equivalent to useMemo(() => fn, deps). Use useMemo for expensive calculations you want to skip on re-renders. Use useCallback for stable function references, typically when passing callbacks to child components wrapped in React.memo."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I avoid infinite loops with useEffect?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Infinite loops happen when your useEffect updates a value that is in its own dependency array. For example, if the effect calls setState(count + 1) and count is a dependency, the state change triggers a re-render, which triggers the effect again. To fix this: use the functional updater form setState(prev => prev + 1) so you do not need count in the dependency array; wrap objects and arrays with useMemo so they have stable references; use a ref instead of state if you do not need to trigger a re-render; and always specify the correct dependency array. The eslint-plugin-react-hooks catches most of these at development time."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "When should I use useRef instead of useState?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Use useRef when you need to store a value that persists across renders but should not trigger a re-render when it changes. Common use cases include referencing DOM elements for focus or measurement, storing previous values, holding interval or timeout IDs, and tracking mounted state. Use useState when changing the value should update the UI. The key difference: updating a ref (ref.current = newValue) is silent, while calling a state setter (setValue(newValue)) triggers a re-render. If the screen needs to reflect the change, use state. If you just need to remember something, use a ref."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Should I wrap every function in useCallback?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. useCallback adds overhead: the hook call itself, the dependency comparison, and the cached reference. It only helps when the stable function reference prevents unnecessary work, specifically when the function is passed as a prop to a child wrapped in React.memo, or when it appears in the dependency array of another hook. If a function is only used inside the same component, useCallback adds complexity with no benefit. Write code without useCallback first, then add it where you measure a real performance problem. The React Compiler (React 19+) can automatically memoize in many cases, reducing the need for manual useCallback."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What new hooks did React 19 introduce?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "React 19 introduced several new hooks. use() reads resources like Promises and context during render, replacing useEffect for data fetching when used with Suspense. useFormStatus() gives child components access to the status of a parent form (pending, data, method, action) without prop drilling. useFormState() connects a form action to state that updates when the form is submitted. useOptimistic() lets you show an optimistic UI state while an async action is in progress, automatically reverting if it fails. React 19 also includes the React Compiler which can auto-memoize, reducing the need for manual useMemo and useCallback."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg:#050508;--surface:#0a0a0f;--surface-2:#1a1a24;--surface-3:#232330;--primary:#6366f1;--primary-hover:#818cf8;--accent:#a855f7;--accent-hover:#c084fc;--text:#e2e8f0;--text-secondary:#94a3b8;--text-muted:#64748b;--border:#1e1e2e;--success:#22c55e;--warning:#f59e0b;--error:#ef4444;--code-bg:#0d0d14;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:800px;--header-height:64px; }
+        html { scroll-behavior:smooth;-webkit-text-size-adjust:100%; }
+        body { font-family:var(--font-sans);background:var(--bg);color:var(--text);line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden; }
+        ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+        .nav{position:fixed;top:0;left:0;right:0;height:var(--header-height);background:rgba(5,5,8,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:1000;display:flex;align-items:center;justify-content:center}.nav-inner{width:100%;max-width:1200px;padding:0 24px;display:flex;align-items:center;justify-content:space-between}.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:700;font-size:1.25rem}.nav-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.875rem;font-weight:800;color:#fff}.nav-links{display:flex;align-items:center;gap:28px;list-style:none}.nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}.nav-cta{background:var(--primary);color:#fff!important;padding:8px 20px;border-radius:8px;font-weight:600;transition:background .2s,transform .2s}.nav-cta:hover{background:var(--primary-hover);transform:translateY(-1px)}
+        .article-wrapper{max-width:var(--max-width);margin:0 auto;padding:calc(var(--header-height) + 48px) 24px 80px}.breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:32px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}.breadcrumb a{color:var(--text-secondary);text-decoration:none;transition:color .2s}.breadcrumb a:hover{color:var(--primary)}
+        .article-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}.article-category{display:inline-block;background:rgba(168,85,247,.12);color:var(--accent);padding:4px 14px;border-radius:20px;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}.article-title{font-size:clamp(2rem,5vw,3rem);font-weight:800;line-height:1.15;color:var(--text);margin-bottom:16px;letter-spacing:-.03em}.article-subtitle{font-size:1.2rem;color:var(--text-secondary);line-height:1.6;margin-bottom:24px}.article-meta{display:flex;align-items:center;gap:20px;color:var(--text-muted);font-size:.875rem;flex-wrap:wrap}.article-meta-item{display:flex;align-items:center;gap:6px}
+        .toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:48px}.toc-title{font-size:.85rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}.toc-list{list-style:none;counter-reset:toc}.toc-list li{counter-increment:toc;margin-bottom:8px}.toc-list li a{color:var(--text-secondary);text-decoration:none;font-size:.925rem;display:flex;align-items:baseline;gap:10px;transition:color .2s,padding-left .2s;padding:4px 0}.toc-list li a::before{content:counter(toc,decimal-leading-zero);color:var(--text-muted);font-size:.8rem;font-family:var(--font-mono);min-width:20px}.toc-list li a:hover{color:var(--primary);padding-left:4px}
+        .article-content h2{font-size:1.75rem;font-weight:700;color:var(--text);margin-top:56px;margin-bottom:20px;letter-spacing:-.02em;line-height:1.3;padding-top:16px;border-top:1px solid var(--border)}.article-content h2:first-child{margin-top:0;padding-top:0;border-top:none}.article-content h3{font-size:1.3rem;font-weight:600;color:var(--text);margin-top:36px;margin-bottom:14px;line-height:1.35}.article-content h4{font-size:1.1rem;font-weight:600;color:var(--text-secondary);margin-top:28px;margin-bottom:12px}.article-content p{margin-bottom:20px;color:var(--text-secondary);line-height:1.8}.article-content a{color:var(--primary);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}.article-content a:hover{border-bottom-color:var(--primary)}.article-content strong{color:var(--text);font-weight:600}.article-content ul,.article-content ol{margin-bottom:20px;padding-left:24px;color:var(--text-secondary)}.article-content li{margin-bottom:10px;line-height:1.7}.article-content li::marker{color:var(--primary)}.article-content blockquote{border-left:3px solid var(--accent);background:var(--surface);padding:16px 24px;margin:28px 0;border-radius:0 8px 8px 0;font-style:italic;color:var(--text-secondary)}.article-content blockquote p:last-child{margin-bottom:0}.article-content hr{border:none;border-top:1px solid var(--border);margin:48px 0}
+        .article-content pre{background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:20px 24px;overflow-x:auto;margin:24px 0}.article-content pre code{font-family:var(--font-mono);font-size:.875rem;line-height:1.65;color:var(--text);background:none;padding:0;border-radius:0}.article-content code{font-family:var(--font-mono);font-size:.85em;background:var(--surface);color:var(--accent);padding:2px 8px;border-radius:5px}
+        .info-box{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:12px;padding:20px 24px;margin:28px 0}.info-box.warning{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2)}.info-box.danger{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2)}.info-box.success{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2)}.info-box-title{font-weight:700;margin-bottom:8px;font-size:.9rem;display:flex;align-items:center;gap:8px}.info-box p{color:var(--text-secondary);font-size:.925rem;margin-bottom:0}
+        .tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin:28px 0}.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:var(--text);transition:border-color .2s,transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:8px}.tool-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,102,241,.1)}.tool-card-icon{font-size:1.5rem;margin-bottom:4px}.tool-card-name{font-weight:600;font-size:.95rem}.tool-card-desc{font-size:.825rem;color:var(--text-muted);line-height:1.5}
+        .cta-box{background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(168,85,247,.1));border:1px solid rgba(99,102,241,.25);border-radius:16px;padding:40px 32px;text-align:center;margin:48px 0}.cta-box h3{font-size:1.5rem;font-weight:700;margin-bottom:12px;color:var(--text)}.cta-box p{color:var(--text-secondary);margin-bottom:24px;max-width:500px;margin-left:auto;margin-right:auto}.cta-button{display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1rem;transition:background .2s,transform .2s,box-shadow .2s}.cta-button:hover{background:var(--primary-hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(99,102,241,.3)}.cta-button.secondary{background:transparent;border:1px solid var(--primary);color:var(--primary);margin-left:12px}.cta-button.secondary:hover{background:rgba(99,102,241,.1)}
+        .faq-section{margin-top:56px;padding-top:32px;border-top:1px solid var(--border)}.faq-section h2{margin-top:0!important;padding-top:0!important;border-top:none!important}.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}.faq-question{width:100%;background:none;border:none;color:var(--text);padding:20px 24px;font-size:1rem;font-weight:600;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-sans);transition:background .2s}.faq-question:hover{background:var(--surface-2)}.faq-question .icon{transition:transform .3s;font-size:1.25rem;color:var(--text-muted);flex-shrink:0;margin-left:16px}.faq-item.open .faq-question .icon{transform:rotate(45deg)}.faq-answer{max-height:0;overflow:hidden;transition:max-height .3s ease}.faq-answer-inner{padding:0 24px 20px;color:var(--text-secondary);line-height:1.7}
+        .author-box{display:flex;align-items:center;gap:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin:48px 0}.author-avatar{width:64px;height:64px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff;flex-shrink:0}.author-info h4{font-weight:600;margin-bottom:4px}.author-info p{color:var(--text-muted);font-size:.875rem;margin:0;line-height:1.5}
+        .footer{border-top:1px solid var(--border);padding:48px 24px;text-align:center;color:var(--text-muted);font-size:.85rem}.footer-inner{max-width:1200px;margin:0 auto}.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}.footer-links a{color:var(--text-secondary);text-decoration:none;transition:color .2s}.footer-links a:hover{color:var(--primary)}
+        @media(max-width:768px){.nav-links{display:none}.article-wrapper{padding:calc(var(--header-height) + 24px) 16px 60px}.article-title{font-size:1.75rem}.tool-grid{grid-template-columns:1fr}.cta-box{padding:28px 20px}.cta-button.secondary{margin-left:0;margin-top:12px}.author-box{flex-direction:column;text-align:center}.article-content pre{padding:16px;border-radius:8px}.article-content h2{font-size:1.4rem}.article-content h3{font-size:1.15rem}}
+        @media(max-width:480px){.article-title{font-size:1.5rem}.toc{padding:18px 20px}}
+    </style>
+</head>
+<body>
+
+    <nav class="nav"><div class="nav-inner"><a href="/" class="nav-logo"><span class="nav-logo-icon">NT</span>NexTool</a><ul class="nav-links"><li><a href="/">Home</a></li><li><a href="/free-tools/">Free Tools</a></li><li><a href="/blog/" class="active">Blog</a></li><li><a href="/free-tools/pro-upgrade.html" class="nav-cta">Get Pro</a></li></ul></div></nav>
+
+    <article class="article-wrapper">
+
+        <div class="breadcrumb">
+            <a href="/">Home</a> <span>/</span>
+            <a href="/blog/">Blog</a> <span>/</span>
+            <span>React Hooks Guide</span>
+        </div>
+
+        <header class="article-header">
+            <span class="article-category">React</span>
+            <h1 class="article-title">React Hooks Complete Guide: useState, useEffect &amp; Beyond (2026)</h1>
+            <p class="article-subtitle">A practical guide to every React Hook you will actually use. Covers the core hooks, performance hooks, React 19 additions like use() and useOptimistic, custom hook patterns, common mistakes, and the rules that govern them all.</p>
+            <div class="article-meta">
+                <span class="article-meta-item">February 14, 2026</span>
+                <span class="article-meta-item">26 min read</span>
+                <span class="article-meta-item">NexTool Team</span>
+            </div>
+        </header>
+
+        <div class="toc">
+            <div class="toc-title">In This Guide</div>
+            <ol class="toc-list">
+                <li><a href="#what-are-hooks">What Are React Hooks?</a></li>
+                <li><a href="#usestate">useState: Managing Component State</a></li>
+                <li><a href="#useeffect">useEffect: Side Effects and Lifecycle</a></li>
+                <li><a href="#usecontext">useContext: Sharing State Without Props</a></li>
+                <li><a href="#usereducer">useReducer: Complex State Logic</a></li>
+                <li><a href="#useref">useRef: Refs and Mutable Values</a></li>
+                <li><a href="#performance">Performance Hooks: useMemo and useCallback</a></li>
+                <li><a href="#react19">React 19 Hooks: use, useOptimistic, useFormStatus</a></li>
+                <li><a href="#custom">Building Custom Hooks</a></li>
+                <li><a href="#mistakes">Common Mistakes and How to Fix Them</a></li>
+                <li><a href="#tools">Related Developer Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </div>
+
+        <div class="article-content">
+
+            <p>React Hooks changed how developers build user interfaces. Since their introduction in React 16.8, hooks have become the standard way to manage state, handle side effects, and share logic between components. Class components still work, but the React team has been clear: function components with hooks are the path forward.</p>
+
+            <p>This guide covers every hook you will encounter in a modern React codebase, from the foundational <code>useState</code> and <code>useEffect</code> to React 19 additions like <code>use()</code> and <code>useOptimistic</code>. Each section includes code you can copy into a project and start using immediately.</p>
+
+            <div class="info-box">
+                <p><strong>Format your React code.</strong> The <a href="/free-tools/javascript-formatter.html">JavaScript Formatter</a> auto-formats JSX and JavaScript with consistent indentation and spacing. Paste, format, copy.</p>
+            </div>
+
+            <h2 id="what-are-hooks">What Are React Hooks?</h2>
+
+            <p>Hooks are regular JavaScript functions that let you "hook into" React features from function components. They follow two rules:</p>
+
+            <ol>
+                <li><strong>Only call hooks at the top level.</strong> Do not call hooks inside loops, conditions, or nested functions. React relies on the call order being the same on every render to correctly associate state with each hook call.</li>
+                <li><strong>Only call hooks from React functions.</strong> Call hooks from function components or from other custom hooks. Do not call them from regular JavaScript functions.</li>
+            </ol>
+
+            <p>These rules exist because React tracks hooks by their position in the call sequence. If you put a <code>useState</code> inside an <code>if</code> block, the call sequence changes between renders, and React cannot match state to the correct hook.</p>
+
+            <p>The <code>eslint-plugin-react-hooks</code> package enforces both rules automatically. If you are using Create React App, Next.js, or Vite with the React plugin, it is already configured.</p>
+
+            <h2 id="usestate">useState: Managing Component State</h2>
+
+            <p><code>useState</code> is the most fundamental hook. It declares a state variable and gives you a function to update it.</p>
+
+<pre><code>import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Count: {count}&lt;/p&gt;
+      &lt;button onClick={() =&gt; setCount(count + 1)}&gt;Increment&lt;/button&gt;
+      &lt;button onClick={() =&gt; setCount(0)}&gt;Reset&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+
+            <h3>Functional Updates</h3>
+
+            <p>When the new state depends on the previous state, use the functional form. This avoids stale closures when multiple updates happen in the same render cycle.</p>
+
+<pre><code>// Correct: functional update
+setCount(prev =&gt; prev + 1);
+
+// Risky: might use stale value in async handlers
+setCount(count + 1);</code></pre>
+
+            <h3>Objects and Arrays as State</h3>
+
+            <p>React uses <code>Object.is</code> for equality checks. If you mutate an object and pass the same reference, React skips the re-render. Always create a new object or array.</p>
+
+<pre><code>const [user, setUser] = useState({ name: 'Jane', role: 'dev' });
+
+// Correct: spread to create new object
+setUser(prev =&gt; ({ ...prev, role: 'admin' }));
+
+// Wrong: mutation (React won't re-render)
+user.role = 'admin';
+setUser(user);</code></pre>
+
+            <h3>Lazy Initialization</h3>
+
+            <p>If computing the initial value is expensive, pass a function instead of a value. React calls it only on the first render.</p>
+
+<pre><code>// This reads localStorage on every render (wasteful)
+const [theme, setTheme] = useState(localStorage.getItem('theme'));
+
+// This reads localStorage only once
+const [theme, setTheme] = useState(() =&gt; localStorage.getItem('theme'));</code></pre>
+
+            <h2 id="useeffect">useEffect: Side Effects and Lifecycle</h2>
+
+            <p><code>useEffect</code> runs code after the component renders. It handles data fetching, subscriptions, DOM manipulation, and anything else that interacts with the world outside of rendering.</p>
+
+<pre><code>import { useState, useEffect } from 'react';
+
+function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+
+  useEffect(() =&gt; {
+    let cancelled = false;
+
+    async function fetchUser() {
+      const res = await fetch(`/api/users/${userId}`);
+      const data = await res.json();
+      if (!cancelled) setUser(data);
+    }
+
+    fetchUser();
+
+    // Cleanup: runs before re-running or unmounting
+    return () =&gt; { cancelled = true; };
+  }, [userId]); // Only re-run when userId changes
+
+  if (!user) return &lt;p&gt;Loading...&lt;/p&gt;;
+  return &lt;h1&gt;{user.name}&lt;/h1&gt;;
+}</code></pre>
+
+            <h3>The Dependency Array</h3>
+
+            <ul>
+                <li><strong>No array:</strong> Effect runs after every render. Rarely what you want.</li>
+                <li><strong>Empty array <code>[]</code>:</strong> Effect runs once on mount and cleanup runs on unmount. Equivalent to <code>componentDidMount</code> + <code>componentWillUnmount</code>.</li>
+                <li><strong>With dependencies <code>[a, b]</code>:</strong> Effect runs when <code>a</code> or <code>b</code> changes (shallow comparison with <code>Object.is</code>).</li>
+            </ul>
+
+            <h3>Cleanup Functions</h3>
+
+            <p>Return a function from useEffect to clean up subscriptions, timers, or abort controllers. React calls the cleanup before running the effect again and when the component unmounts.</p>
+
+<pre><code>useEffect(() =&gt; {
+  const controller = new AbortController();
+
+  fetch('/api/data', { signal: controller.signal })
+    .then(res =&gt; res.json())
+    .then(setData)
+    .catch(err =&gt; {
+      if (err.name !== 'AbortError') console.error(err);
+    });
+
+  return () =&gt; controller.abort();
+}, []);</code></pre>
+
+            <div class="info-box warning">
+                <div class="info-box-title">React 19 and Data Fetching</div>
+                <p>In React 19+, the recommended pattern for data fetching is using the <code>use()</code> hook with Suspense boundaries rather than useEffect. useEffect remains the right tool for subscriptions, event listeners, and DOM side effects.</p>
+            </div>
+
+            <h2 id="usecontext">useContext: Sharing State Without Props</h2>
+
+            <p><code>useContext</code> reads a value from a React context, eliminating the need to pass props through intermediate components (prop drilling).</p>
+
+<pre><code>import { createContext, useContext, useState } from 'react';
+
+const ThemeContext = createContext('light');
+
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+  return (
+    &lt;ThemeContext.Provider value={{ theme, setTheme }}&gt;
+      {children}
+    &lt;/ThemeContext.Provider&gt;
+  );
+}
+
+function ThemeToggle() {
+  const { theme, setTheme } = useContext(ThemeContext);
+  return (
+    &lt;button onClick={() =&gt; setTheme(theme === 'light' ? 'dark' : 'light')}&gt;
+      Current: {theme}
+    &lt;/button&gt;
+  );
+}</code></pre>
+
+            <p>When the context value changes, every component that calls <code>useContext</code> for that context re-renders. For frequently-changing values, consider splitting into multiple contexts or using external state libraries like Zustand or Jotai that allow subscribing to specific slices.</p>
+
+            <h2 id="usereducer">useReducer: Complex State Logic</h2>
+
+            <p><code>useReducer</code> is an alternative to <code>useState</code> for state that involves multiple sub-values or when the next state depends on the previous state in complex ways.</p>
+
+<pre><code>import { useReducer } from 'react';
+
+const initialState = { count: 0, step: 1 };
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { ...state, count: state.count + state.step };
+    case 'decrement':
+      return { ...state, count: state.count - state.step };
+    case 'setStep':
+      return { ...state, step: action.payload };
+    case 'reset':
+      return initialState;
+    default:
+      throw new Error(`Unknown action: ${action.type}`);
+  }
+}
+
+function StepCounter() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Count: {state.count} (step: {state.step})&lt;/p&gt;
+      &lt;button onClick={() =&gt; dispatch({ type: 'increment' })}&gt;+&lt;/button&gt;
+      &lt;button onClick={() =&gt; dispatch({ type: 'decrement' })}&gt;-&lt;/button&gt;
+      &lt;input
+        type="number"
+        value={state.step}
+        onChange={e =&gt; dispatch({ type: 'setStep', payload: +e.target.value })}
+      /&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+
+            <p>A practical rule: if your <code>useState</code> updater functions are getting complex or you have multiple related state variables that change together, switch to <code>useReducer</code>. The reducer centralizes state transitions in one testable function.</p>
+
+            <h2 id="useref">useRef: Refs and Mutable Values</h2>
+
+            <p><code>useRef</code> creates a mutable object whose <code>.current</code> property persists across renders without triggering re-renders when changed.</p>
+
+            <h3>DOM References</h3>
+
+<pre><code>import { useRef } from 'react';
+
+function SearchInput() {
+  const inputRef = useRef(null);
+
+  function handleClick() {
+    inputRef.current.focus();
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;input ref={inputRef} type="text" placeholder="Search..." /&gt;
+      &lt;button onClick={handleClick}&gt;Focus Input&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+
+            <h3>Storing Previous Values</h3>
+
+<pre><code>function usePrevious(value) {
+  const ref = useRef();
+  useEffect(() =&gt; {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
+function PriceDisplay({ price }) {
+  const prevPrice = usePrevious(price);
+  const direction = price &gt; prevPrice ? 'up' : price &lt; prevPrice ? 'down' : '';
+  return &lt;span className={direction}&gt;${price}&lt;/span&gt;;
+}</code></pre>
+
+            <h3>Storing Interval IDs</h3>
+
+<pre><code>function Timer() {
+  const [seconds, setSeconds] = useState(0);
+  const intervalRef = useRef(null);
+
+  function start() {
+    if (intervalRef.current) return;
+    intervalRef.current = setInterval(() =&gt; {
+      setSeconds(prev =&gt; prev + 1);
+    }, 1000);
+  }
+
+  function stop() {
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
+  }
+
+  useEffect(() =&gt; {
+    return () =&gt; clearInterval(intervalRef.current);
+  }, []);
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;{seconds}s&lt;/p&gt;
+      &lt;button onClick={start}&gt;Start&lt;/button&gt;
+      &lt;button onClick={stop}&gt;Stop&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+
+            <h2 id="performance">Performance Hooks: useMemo and useCallback</h2>
+
+            <h3>useMemo</h3>
+
+            <p><code>useMemo</code> caches the result of a computation. It recalculates only when its dependencies change.</p>
+
+<pre><code>import { useMemo } from 'react';
+
+function ProductList({ products, filterTerm }) {
+  const filtered = useMemo(() =&gt; {
+    return products.filter(p =&gt;
+      p.name.toLowerCase().includes(filterTerm.toLowerCase())
+    );
+  }, [products, filterTerm]);
+
+  return (
+    &lt;ul&gt;
+      {filtered.map(p =&gt; &lt;li key={p.id}&gt;{p.name}&lt;/li&gt;)}
+    &lt;/ul&gt;
+  );
+}</code></pre>
+
+            <h3>useCallback</h3>
+
+            <p><code>useCallback</code> caches a function definition. It returns the same function reference as long as the dependencies have not changed. This is useful when passing callbacks to memoized child components.</p>
+
+<pre><code>import { useCallback, memo } from 'react';
+
+const ExpensiveChild = memo(function ExpensiveChild({ onClick, label }) {
+  console.log(`Rendering: ${label}`);
+  return &lt;button onClick={onClick}&gt;{label}&lt;/button&gt;;
+});
+
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  // Without useCallback, this creates a new function on every render,
+  // causing ExpensiveChild to re-render every time
+  const handleClick = useCallback(() =&gt; {
+    console.log('Button clicked');
+  }, []);
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Count: {count}&lt;/p&gt;
+      &lt;button onClick={() =&gt; setCount(c =&gt; c + 1)}&gt;Increment&lt;/button&gt;
+      &lt;ExpensiveChild onClick={handleClick} label="Action" /&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+
+            <div class="info-box">
+                <p><strong>Do not optimize prematurely.</strong> Both <code>useMemo</code> and <code>useCallback</code> add overhead. Use them when you measure a performance problem, not on every value and function. The React Compiler in React 19+ can auto-memoize in many cases, making manual memoization less necessary.</p>
+            </div>
+
+            <h2 id="react19">React 19 Hooks: use, useOptimistic, useFormStatus</h2>
+
+            <h3>use()</h3>
+
+            <p>The <code>use</code> hook reads a resource (a Promise or a context) during render. Unlike <code>useEffect</code>, it integrates with Suspense for a declarative loading pattern.</p>
+
+<pre><code>import { use, Suspense } from 'react';
+
+async function fetchUser(id) {
+  const res = await fetch(`/api/users/${id}`);
+  return res.json();
+}
+
+function UserProfile({ userPromise }) {
+  const user = use(userPromise);
+  return &lt;h1&gt;{user.name}&lt;/h1&gt;;
+}
+
+function App() {
+  const [userId, setUserId] = useState(1);
+  const userPromise = fetchUser(userId);
+
+  return (
+    &lt;Suspense fallback={&lt;p&gt;Loading...&lt;/p&gt;}&gt;
+      &lt;UserProfile userPromise={userPromise} /&gt;
+    &lt;/Suspense&gt;
+  );
+}</code></pre>
+
+            <p><code>use()</code> is unique among hooks because it can be called inside conditionals and loops. It suspends the component until the Promise resolves, and React shows the nearest Suspense fallback while waiting.</p>
+
+            <h3>useOptimistic</h3>
+
+            <p>Shows an optimistic UI update while an async action is in progress. If the action fails, React automatically reverts to the previous state.</p>
+
+<pre><code>import { useOptimistic } from 'react';
+
+function TodoList({ todos, addTodoAction }) {
+  const [optimisticTodos, addOptimistic] = useOptimistic(
+    todos,
+    (currentTodos, newTodo) =&gt; [...currentTodos, { ...newTodo, pending: true }]
+  );
+
+  async function handleSubmit(formData) {
+    const title = formData.get('title');
+    addOptimistic({ id: Date.now(), title });
+    await addTodoAction(title);
+  }
+
+  return (
+    &lt;div&gt;
+      {optimisticTodos.map(todo =&gt; (
+        &lt;p key={todo.id} style={{ opacity: todo.pending ? 0.5 : 1 }}&gt;
+          {todo.title}
+        &lt;/p&gt;
+      ))}
+      &lt;form action={handleSubmit}&gt;
+        &lt;input name="title" /&gt;
+        &lt;button type="submit"&gt;Add&lt;/button&gt;
+      &lt;/form&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+
+            <h3>useFormStatus</h3>
+
+            <p>Provides the status of a parent form to child components. This avoids prop drilling for form submission state.</p>
+
+<pre><code>import { useFormStatus } from 'react-dom';
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    &lt;button type="submit" disabled={pending}&gt;
+      {pending ? 'Saving...' : 'Save'}
+    &lt;/button&gt;
+  );
+}
+
+function ContactForm({ submitAction }) {
+  return (
+    &lt;form action={submitAction}&gt;
+      &lt;input name="email" type="email" required /&gt;
+      &lt;textarea name="message" required /&gt;
+      &lt;SubmitButton /&gt;
+    &lt;/form&gt;
+  );
+}</code></pre>
+
+            <p>For validating your JSX output or converting between HTML and JSX during development, the <a href="/free-tools/html-to-jsx.html">HTML to JSX Converter</a> handles the transformation instantly.</p>
+
+            <h2 id="custom">Building Custom Hooks</h2>
+
+            <p>Custom hooks extract reusable logic into a function. The only rule: the function name must start with <code>use</code>.</p>
+
+            <h3>useLocalStorage</h3>
+
+<pre><code>function useLocalStorage(key, initialValue) {
+  const [value, setValue] = useState(() =&gt; {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
+
+  useEffect(() =&gt; {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+
+  return [value, setValue];
+}
+
+// Usage
+function Settings() {
+  const [theme, setTheme] = useLocalStorage('theme', 'dark');
+  return &lt;button onClick={() =&gt; setTheme(t =&gt; t === 'dark' ? 'light' : 'dark')}&gt;{theme}&lt;/button&gt;;
+}</code></pre>
+
+            <h3>useDebounce</h3>
+
+<pre><code>function useDebounce(value, delay) {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() =&gt; {
+    const timer = setTimeout(() =&gt; setDebounced(value), delay);
+    return () =&gt; clearTimeout(timer);
+  }, [value, delay]);
+
+  return debounced;
+}
+
+// Usage: debounce a search query
+function Search() {
+  const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 300);
+
+  useEffect(() =&gt; {
+    if (debouncedQuery) {
+      fetch(`/api/search?q=${debouncedQuery}`).then(/* ... */);
+    }
+  }, [debouncedQuery]);
+
+  return &lt;input value={query} onChange={e =&gt; setQuery(e.target.value)} /&gt;;
+}</code></pre>
+
+            <h3>useMediaQuery</h3>
+
+<pre><code>function useMediaQuery(query) {
+  const [matches, setMatches] = useState(
+    () =&gt; window.matchMedia(query).matches
+  );
+
+  useEffect(() =&gt; {
+    const mql = window.matchMedia(query);
+    const handler = (e) =&gt; setMatches(e.matches);
+
+    mql.addEventListener('change', handler);
+    return () =&gt; mql.removeEventListener('change', handler);
+  }, [query]);
+
+  return matches;
+}
+
+// Usage
+function Layout() {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  return isMobile ? &lt;MobileNav /&gt; : &lt;DesktopNav /&gt;;
+}</code></pre>
+
+            <h2 id="mistakes">Common Mistakes and How to Fix Them</h2>
+
+            <h3>1. Missing Dependencies in useEffect</h3>
+
+<pre><code>// Bug: stale closure, count is always 0
+useEffect(() =&gt; {
+  const id = setInterval(() =&gt; setCount(count + 1), 1000);
+  return () =&gt; clearInterval(id);
+}, []);
+
+// Fix: functional updater
+useEffect(() =&gt; {
+  const id = setInterval(() =&gt; setCount(c =&gt; c + 1), 1000);
+  return () =&gt; clearInterval(id);
+}, []);</code></pre>
+
+            <h3>2. Creating Objects in the Dependency Array</h3>
+
+<pre><code>// Bug: options is a new object every render, effect runs infinitely
+function App() {
+  const options = { method: 'GET' };
+
+  useEffect(() =&gt; {
+    fetch('/api/data', options);
+  }, [options]); // new reference every render!
+
+  // Fix: useMemo or move inside effect
+  const options = useMemo(() =&gt; ({ method: 'GET' }), []);
+}</code></pre>
+
+            <h3>3. Mutating State Directly</h3>
+
+<pre><code>// Bug: mutation, React doesn't detect the change
+const [items, setItems] = useState([1, 2, 3]);
+items.push(4);
+setItems(items); // same reference, no re-render
+
+// Fix: create a new array
+setItems(prev =&gt; [...prev, 4]);</code></pre>
+
+            <h3>4. Forgetting Cleanup in useEffect</h3>
+
+<pre><code>// Bug: memory leak if component unmounts during fetch
+useEffect(() =&gt; {
+  fetch('/api/data').then(r =&gt; r.json()).then(setData);
+}, []);
+
+// Fix: abort controller
+useEffect(() =&gt; {
+  const controller = new AbortController();
+  fetch('/api/data', { signal: controller.signal })
+    .then(r =&gt; r.json())
+    .then(setData)
+    .catch(() =&gt; {});
+  return () =&gt; controller.abort();
+}, []);</code></pre>
+
+            <h3>5. Using useEffect for Derived State</h3>
+
+<pre><code>// Anti-pattern: useEffect to sync derived state
+const [firstName, setFirstName] = useState('Jane');
+const [lastName, setLastName] = useState('Doe');
+const [fullName, setFullName] = useState('');
+
+useEffect(() =&gt; {
+  setFullName(`${firstName} ${lastName}`);
+}, [firstName, lastName]);
+
+// Fix: just compute it during render
+const fullName = `${firstName} ${lastName}`;
+// Or useMemo if the computation is expensive
+const fullName = useMemo(() =&gt; `${firstName} ${lastName}`, [firstName, lastName]);</code></pre>
+
+            <p>The <a href="/free-tools/eslint-config-generator.html">ESLint Config Generator</a> can scaffold an ESLint configuration with the React hooks plugin enabled, catching many of these mistakes at development time.</p>
+
+            <!-- Tools Section -->
+            <h2 id="tools">Related Developer Tools</h2>
+
+            <p>Free browser-based tools to complement your React development workflow.</p>
+
+            <div class="tool-grid">
+                <a href="/free-tools/javascript-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4DD;</div>
+                    <div class="tool-card-name">JavaScript Formatter</div>
+                    <div class="tool-card-desc">Auto-format JavaScript and JSX with consistent indentation. Paste messy code, get clean output.</div>
+                </a>
+                <a href="/free-tools/html-to-jsx.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F504;</div>
+                    <div class="tool-card-name">HTML to JSX Converter</div>
+                    <div class="tool-card-desc">Convert HTML snippets to valid JSX. Handles class to className, style objects, and self-closing tags.</div>
+                </a>
+                <a href="/free-tools/typescript-playground.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4BB;</div>
+                    <div class="tool-card-name">TypeScript Playground</div>
+                    <div class="tool-card-desc">Write and compile TypeScript in your browser. Test types for hooks, props, and state.</div>
+                </a>
+                <a href="/free-tools/eslint-config-generator.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F6E0;</div>
+                    <div class="tool-card-name">ESLint Config Generator</div>
+                    <div class="tool-card-desc">Generate ESLint configurations with React hooks rules, TypeScript support, and Prettier integration.</div>
+                </a>
+                <a href="/free-tools/json-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CB;</div>
+                    <div class="tool-card-name">JSON Formatter</div>
+                    <div class="tool-card-desc">Format and validate JSON. Essential for debugging API responses and state objects in React apps.</div>
+                </a>
+                <a href="/free-tools/regex-tester.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F50D;</div>
+                    <div class="tool-card-name">Regex Tester</div>
+                    <div class="tool-card-desc">Test regular expressions with live matching. Useful for form validation patterns in React components.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <!-- FAQ Section -->
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What are React Hooks and why should I use them?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>React Hooks are functions that let you use state, lifecycle behavior, context, and other React features inside function components without writing classes. Introduced in React 16.8, hooks are now the standard way to build React applications. They simplify code by eliminating class boilerplate, make logic reusable through custom hooks, and compose better than higher-order components or render props. As of 2026, the React team recommends function components with hooks for all new code, and class components are considered legacy.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between useMemo and useCallback?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p><code>useMemo</code> caches the result of a computation: <code>useMemo(() =&gt; expensiveCalc(a, b), [a, b])</code> returns the cached value and only recalculates when a or b changes. <code>useCallback</code> caches the function itself: <code>useCallback((x) =&gt; x + a, [a])</code> returns the same function reference as long as a stays the same. In practice, <code>useCallback(fn, deps)</code> is equivalent to <code>useMemo(() =&gt; fn, deps)</code>. Use useMemo for expensive calculations you want to skip on re-renders. Use useCallback for stable function references, typically when passing callbacks to child components wrapped in React.memo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I avoid infinite loops with useEffect?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Infinite loops happen when your useEffect updates a value that is in its own dependency array. For example, if the effect calls <code>setState(count + 1)</code> and <code>count</code> is a dependency, the state change triggers a re-render, which triggers the effect again. To fix this: use the functional updater form <code>setState(prev =&gt; prev + 1)</code> so you do not need count in the dependency array; wrap objects and arrays with useMemo so they have stable references; use a ref instead of state if you do not need to trigger a re-render; and always specify the correct dependency array. The <code>eslint-plugin-react-hooks</code> catches most of these at development time.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>When should I use useRef instead of useState?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Use <code>useRef</code> when you need to store a value that persists across renders but should not trigger a re-render when it changes. Common use cases include referencing DOM elements for focus or measurement, storing previous values, holding interval or timeout IDs, and tracking mounted state. Use <code>useState</code> when changing the value should update the UI. The key difference: updating a ref (<code>ref.current = newValue</code>) is silent, while calling a state setter (<code>setValue(newValue)</code>) triggers a re-render. If the screen needs to reflect the change, use state. If you just need to remember something, use a ref.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Should I wrap every function in useCallback?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>No. <code>useCallback</code> adds overhead: the hook call itself, the dependency comparison, and the cached reference. It only helps when the stable function reference prevents unnecessary work, specifically when the function is passed as a prop to a child wrapped in <code>React.memo</code>, or when it appears in the dependency array of another hook. If a function is only used inside the same component, useCallback adds complexity with no benefit. Write code without useCallback first, then add it where you measure a real performance problem. The React Compiler in React 19+ can automatically memoize in many cases, reducing the need for manual useCallback.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What new hooks did React 19 introduce?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>React 19 introduced several new hooks. <code>use()</code> reads resources like Promises and context during render, replacing useEffect for data fetching when used with Suspense. <code>useFormStatus()</code> gives child components access to the status of a parent form (pending, data, method, action) without prop drilling. <code>useFormState()</code> connects a form action to state that updates when the form is submitted. <code>useOptimistic()</code> lets you show an optimistic UI state while an async action is in progress, automatically reverting if it fails. React 19 also includes the React Compiler which can auto-memoize, reducing the need for manual useMemo and useCallback.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author -->
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>NexTool Team</h4>
+                <p>We build free developer tools including JavaScript formatters, HTML-to-JSX converters, TypeScript playgrounds, and 150+ more. All browser-based, no signup required.</p>
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="cta-box">
+            <h3>150+ Developer Tools, One Place</h3>
+            <p>NexTool Pro ($29) unlocks clean output, enhanced features, and unlimited workspace across every tool. One payment, lifetime access.</p>
+            <a href="/free-tools/pro-upgrade.html" class="cta-button">Get NexTool Pro &mdash; $29</a>
+            <a href="/free-tools/" class="cta-button secondary">Try Free Tools</a>
+        </div>
+
+    </article>
+
+    <footer class="footer"><div class="footer-inner"><div class="footer-links"><a href="/">Home</a><a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="mailto:christianjunbucher@gmail.com">Contact</a></div><p>&copy; 2026 NexTool. All rights reserved. 227+ free developer tools.</p></div></footer>
+
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>
