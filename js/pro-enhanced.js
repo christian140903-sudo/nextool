@@ -137,7 +137,7 @@
       '<div class="ntpe-gate-card">' +
       '<div class="ntpe-gate-icon">\u2728</div>' +
       '<div class="ntpe-gate-title">' + featureName + ' is a Pro feature</div>' +
-      '<div class="ntpe-gate-text">NexTool Pro unlocks tool history, themes, focus mode, and clean output across all 213+ tools. One-time $29.</div>' +
+      '<div class="ntpe-gate-text">NexTool Pro unlocks tool history, themes, focus mode, and clean output across all 228+ tools. One-time $29.</div>' +
       '<a href="/pro.html" class="ntpe-gate-btn">Get NexTool Pro \u2192</a>' +
       '<button class="ntpe-gate-close">Maybe later</button>' +
       '</div>';
