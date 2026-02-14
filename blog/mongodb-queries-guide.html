@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB Query Guide: CRUD, Aggregation &amp; Indexes (2026) | NexTool</title>
+    <meta name="description" content="Complete MongoDB query guide for 2026. Master CRUD operations, query operators, the aggregation pipeline, indexes, schema design patterns, and performance optimization with copy-paste examples.">
+    <meta name="keywords" content="mongodb queries, mongodb query guide, mongodb find, mongodb aggregation, mongodb indexes, mongodb crud, mongodb operators, mongodb schema design, mongodb performance, mongodb tutorial 2026">
+    <meta name="author" content="NexTool Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/mongodb-queries-guide.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="MongoDB Query Guide: CRUD, Aggregation &amp; Indexes (2026)">
+    <meta property="og:description" content="Master MongoDB queries. CRUD operations, query operators, aggregation pipeline stages, index strategies, schema design patterns, and performance tips with real examples.">
+    <meta property="og:url" content="https://nextool.app/blog/mongodb-queries-guide.html">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/mongodb-queries-guide-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-14T10:00:00Z">
+    <meta property="article:modified_time" content="2026-02-14T10:00:00Z">
+    <meta property="article:author" content="NexTool Team">
+    <meta property="article:section" content="Database">
+    <meta property="article:tag" content="MongoDB">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="NoSQL">
+    <meta property="article:tag" content="Queries">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MongoDB Query Guide: CRUD, Aggregation &amp; Indexes (2026)">
+    <meta name="twitter:description" content="Master MongoDB queries. CRUD, aggregation pipeline, index strategies, schema design, and performance optimization with copy-paste examples.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/mongodb-queries-guide-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "MongoDB Query Guide: CRUD, Aggregation & Indexes (2026)",
+        "description": "Complete MongoDB query guide for 2026. Master CRUD operations, query operators, the aggregation pipeline, indexes, schema design patterns, and performance optimization with copy-paste examples.",
+        "image": "https://nextool.app/assets/images/blog/mongodb-queries-guide-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool Team",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-14T10:00:00Z",
+        "dateModified": "2026-02-14T10:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/mongodb-queries-guide.html"
+        },
+        "wordCount": 3100,
+        "keywords": ["mongodb queries", "mongodb query guide", "mongodb find", "mongodb aggregation", "mongodb indexes", "mongodb crud", "mongodb operators", "mongodb schema design", "mongodb performance"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "MongoDB Query Guide",
+                "item": "https://nextool.app/blog/mongodb-queries-guide.html"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is the difference between MongoDB find and aggregate?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "find() is for simple queries: filtering documents, selecting specific fields, sorting, and limiting results. It returns documents as they are stored (with optional projection). aggregate() is for complex data processing: grouping, reshaping, computing new fields, joining collections with $lookup, and multi-step transformations. Use find() when you need to retrieve documents with basic filtering. Use aggregate() when you need to transform data, calculate statistics, group by fields, or combine data from multiple collections. aggregate() processes documents through a pipeline of stages, where each stage transforms the data before passing it to the next."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do MongoDB indexes work and when should I create one?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "MongoDB indexes are B-tree data structures that store a sorted subset of your documents' fields. Without an index, MongoDB must scan every document in a collection (a collection scan) to find matches. With an index, MongoDB uses the sorted structure to find matching documents in logarithmic time. Create an index on any field you frequently query, sort by, or use in aggregation pipeline stages. The _id field is indexed automatically. Use compound indexes for queries that filter on multiple fields. Use explain() to check if your queries use indexes. Do not over-index: each index consumes RAM and slows down write operations because every insert and update must also update all relevant indexes."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Should I embed documents or use references in MongoDB?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Embed when the related data is always accessed together, the relationship is one-to-few, the embedded data does not grow unboundedly, and you need atomic operations on the parent and child. Use references when the related data is accessed independently, the relationship is one-to-many or many-to-many, the related document is large or frequently updated, or you need to avoid document size limits (16MB). For example, embed an address inside a user document. Use a reference for a user's order history that grows over time. The hybrid approach (embed frequently accessed fields and reference the full document) often works best for read-heavy applications."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I improve MongoDB query performance?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Start with indexes: use explain('executionStats') to identify slow queries and create indexes on filtered and sorted fields. Use compound indexes that match your query patterns and follow the ESR rule (Equality, Sort, Range) for field ordering. Use projection to return only the fields you need instead of entire documents. Avoid $regex queries without a prefix anchor (they cannot use indexes efficiently). For aggregation pipelines, put $match and $project stages as early as possible to reduce the data flowing through later stages. Monitor with db.currentOp() to find long-running queries. Set appropriate read preferences for read-heavy workloads. Consider schema redesign if queries consistently require $lookup across collections, as denormalization often outperforms joins in MongoDB."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the MongoDB aggregation pipeline and how do I use it?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The aggregation pipeline processes documents through a series of stages. Each stage transforms the documents and passes the results to the next stage. Common stages include $match (filter documents), $group (aggregate values by a key), $project (reshape documents and compute fields), $sort (order results), $lookup (join with another collection), $unwind (flatten arrays), and $limit. Pipelines are defined as an array of stage objects: db.collection.aggregate([stage1, stage2, ...]). The order of stages matters for both correctness and performance. Always place $match stages first to reduce the number of documents processed by later stages. The pipeline can handle complex analytics, reporting, and data transformation that would require multiple queries in other databases."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I handle transactions in MongoDB?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "MongoDB supports multi-document ACID transactions since version 4.0 (replica sets) and 4.2 (sharded clusters). Start a session, begin a transaction, perform operations, then commit or abort. In the Node.js driver: const session = client.startSession(); session.startTransaction(); try { await collection1.updateOne(filter, update, { session }); await collection2.insertOne(doc, { session }); await session.commitTransaction(); } catch (error) { await session.abortTransaction(); } finally { session.endSession(); }. Transactions have a 60-second default timeout and add overhead. Design your schema to minimize the need for transactions. Single-document operations are always atomic in MongoDB, so embedding related data in one document often eliminates the need for multi-document transactions."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #050508;
+            --surface: #0a0a0f;
+            --surface-2: #1a1a24;
+            --surface-3: #232330;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --accent: #a855f7;
+            --accent-hover: #c084fc;
+            --text: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #1e1e2e;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --code-bg: #0d0d14;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 800px;
+            --header-height: 64px;
+        }
+
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.75; font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .nav { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: rgba(5, 5, 8, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .nav-inner { width: 100%; max-width: 1200px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.25rem; }
+        .nav-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 800; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: var(--primary); color: #fff !important; padding: 8px 20px; border-radius: 8px; font-weight: 600; transition: background 0.2s, transform 0.2s; }
+        .nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        .article-wrapper { max-width: var(--max-width); margin: 0 auto; padding: calc(var(--header-height) + 48px) 24px 80px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap; }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .breadcrumb a:hover { color: var(--primary); }
+
+        .article-header { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+        .article-category { display: inline-block; background: rgba(168, 85, 247, 0.12); color: var(--accent); padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .article-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.15; color: var(--text); margin-bottom: 16px; letter-spacing: -0.03em; }
+        .article-subtitle { font-size: 1.2rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+        .article-meta { display: flex; align-items: center; gap: 20px; color: var(--text-muted); font-size: 0.875rem; flex-wrap: wrap; }
+        .article-meta-item { display: flex; align-items: center; gap: 6px; }
+        .article-meta-item svg { width: 16px; height: 16px; opacity: 0.7; }
+
+        .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; margin-bottom: 48px; }
+        .toc-title { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .toc-list { list-style: none; counter-reset: toc; }
+        .toc-list li { counter-increment: toc; margin-bottom: 8px; }
+        .toc-list li a { color: var(--text-secondary); text-decoration: none; font-size: 0.925rem; display: flex; align-items: baseline; gap: 10px; transition: color 0.2s, padding-left 0.2s; padding: 4px 0; }
+        .toc-list li a::before { content: counter(toc, decimal-leading-zero); color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); min-width: 20px; }
+        .toc-list li a:hover { color: var(--primary); padding-left: 4px; }
+
+        .article-content h2 { font-size: 1.75rem; font-weight: 700; color: var(--text); margin-top: 56px; margin-bottom: 20px; letter-spacing: -0.02em; line-height: 1.3; padding-top: 16px; border-top: 1px solid var(--border); }
+        .article-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+        .article-content h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin-top: 36px; margin-bottom: 14px; line-height: 1.35; }
+        .article-content h4 { font-size: 1.1rem; font-weight: 600; color: var(--text-secondary); margin-top: 28px; margin-bottom: 12px; }
+        .article-content p { margin-bottom: 20px; color: var(--text-secondary); line-height: 1.8; }
+        .article-content a { color: var(--primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+        .article-content a:hover { border-bottom-color: var(--primary); }
+        .article-content strong { color: var(--text); font-weight: 600; }
+        .article-content ul, .article-content ol { margin-bottom: 20px; padding-left: 24px; color: var(--text-secondary); }
+        .article-content li { margin-bottom: 10px; line-height: 1.7; }
+        .article-content li::marker { color: var(--primary); }
+        .article-content blockquote { border-left: 3px solid var(--accent); background: var(--surface); padding: 16px 24px; margin: 28px 0; border-radius: 0 8px 8px 0; font-style: italic; color: var(--text-secondary); }
+        .article-content blockquote p:last-child { margin-bottom: 0; }
+        .article-content hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+        .article-content pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; overflow-x: auto; margin: 24px 0; }
+        .article-content pre code { font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.65; color: var(--text); background: none; padding: 0; border-radius: 0; }
+        .article-content code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface); color: var(--accent); padding: 2px 8px; border-radius: 5px; }
+        .code-label { display: inline-block; background: var(--surface-2); color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem; padding: 2px 10px; border-radius: 6px 6px 0 0; margin-bottom: -1px; position: relative; top: 1px; }
+
+        .article-content table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.925rem; }
+        .article-content thead th { background: var(--surface); color: var(--text); font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--border); }
+        .article-content tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+        .article-content tbody tr:hover { background: var(--surface); }
+
+        .info-box { background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+        .info-box.warning { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); }
+        .info-box.danger { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); }
+        .info-box.success { background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2); }
+        .info-box-title { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .info-box p { color: var(--text-secondary); font-size: 0.925rem; margin-bottom: 0; }
+
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 28px 0; }
+        .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; color: var(--text); transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; gap: 8px; }
+        .tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1); }
+        .tool-card-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .tool-card-name { font-weight: 600; font-size: 0.95rem; }
+        .tool-card-desc { font-size: 0.825rem; color: var(--text-muted); line-height: 1.5; }
+
+        .cta-box { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; padding: 40px 32px; text-align: center; margin: 48px 0; }
+        .cta-box h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+        .cta-box p { color: var(--text-secondary); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-button { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; }
+        .cta-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3); }
+        .cta-button.secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); margin-left: 12px; }
+        .cta-button.secondary:hover { background: rgba(99, 102, 241, 0.1); }
+
+        .faq-section { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border); }
+        .faq-section h2 { margin-top: 0 !important; padding-top: 0 !important; border-top: none !important; }
+        .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-question { width: 100%; background: none; border: none; color: var(--text); padding: 20px 24px; font-size: 1rem; font-weight: 600; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-sans); transition: background 0.2s; }
+        .faq-question:hover { background: var(--surface-2); }
+        .faq-question .icon { transition: transform 0.3s; font-size: 1.25rem; color: var(--text-muted); flex-shrink: 0; margin-left: 16px; }
+        .faq-item.open .faq-question .icon { transform: rotate(45deg); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .faq-answer-inner { padding: 0 24px 20px; color: var(--text-secondary); line-height: 1.7; }
+
+        .author-box { display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 48px 0; }
+        .author-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .author-info h4 { font-weight: 600; margin-bottom: 4px; }
+        .author-info p { color: var(--text-muted); font-size: 0.875rem; margin: 0; line-height: 1.5; }
+
+        .footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-wrapper { padding: calc(var(--header-height) + 24px) 16px 60px; }
+            .article-title { font-size: 1.75rem; }
+            .tool-grid { grid-template-columns: 1fr; }
+            .cta-box { padding: 28px 20px; }
+            .cta-button.secondary { margin-left: 0; margin-top: 12px; }
+            .author-box { flex-direction: column; text-align: center; }
+            .article-content pre { padding: 16px; border-radius: 8px; }
+            .article-content h2 { font-size: 1.4rem; }
+            .article-content h3 { font-size: 1.15rem; }
+            .article-content table { display: block; overflow-x: auto; }
+        }
+        @media (max-width: 480px) {
+            .article-title { font-size: 1.5rem; }
+            .toc { padding: 18px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="https://nextool.app" class="nav-logo">
+                <div class="nav-logo-icon">N</div>
+                NexTool
+            </a>
+            <ul class="nav-links">
+                <li><a href="https://nextool.app/#services">Tools</a></li>
+                <li><a href="https://nextool.app/free-tools/">Free Tools</a></li>
+                <li><a href="https://nextool.app/blog/">Blog</a></li>
+                <li><a href="https://nextool.app/#contact" class="nav-cta">Browse Tools</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Article -->
+    <article class="article-wrapper" itemscope itemtype="https://schema.org/Article">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="https://nextool.app">Home</a>
+            <span class="separator">/</span>
+            <a href="https://nextool.app/blog/">Blog</a>
+            <span class="separator">/</span>
+            <span>MongoDB Query Guide</span>
+        </nav>
+
+        <!-- Header -->
+        <header class="article-header">
+            <span class="article-category">Database</span>
+            <h1 class="article-title" itemprop="headline">MongoDB Query Guide: CRUD, Aggregation &amp; Indexes (2026)</h1>
+            <p class="article-subtitle">Everything you need to query MongoDB effectively &mdash; from basic CRUD operations to advanced aggregation pipelines, index strategies, schema design patterns, and the performance optimizations that make queries fast at scale.</p>
+            <div class="article-meta">
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span>24 min read</span>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <time datetime="2026-02-14" itemprop="datePublished">February 14, 2026</time>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span itemprop="author">NexTool Team</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- TOC -->
+        <nav class="toc" aria-label="Table of Contents">
+            <div class="toc-title">Table of Contents</div>
+            <ol class="toc-list">
+                <li><a href="#crud">CRUD Operations</a></li>
+                <li><a href="#operators">Query Operators</a></li>
+                <li><a href="#projection">Projection and Sorting</a></li>
+                <li><a href="#aggregation">Aggregation Pipeline</a></li>
+                <li><a href="#advanced-agg">Advanced Aggregation Stages</a></li>
+                <li><a href="#indexes">Indexes and Performance</a></li>
+                <li><a href="#schema">Schema Design Patterns</a></li>
+                <li><a href="#transactions">Transactions</a></li>
+                <li><a href="#optimization">Query Optimization</a></li>
+                <li><a href="#migration">SQL to MongoDB Mapping</a></li>
+                <li><a href="#tools">Related Developer Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </nav>
+
+        <!-- Content -->
+        <div class="article-content" itemprop="articleBody">
+
+            <h2 id="crud">CRUD Operations</h2>
+
+            <p>CRUD stands for Create, Read, Update, Delete &mdash; the four fundamental database operations. MongoDB uses JSON-like documents instead of rows and tables, which makes these operations feel natural for JavaScript and Node.js developers.</p>
+
+            <h3>Create (Insert)</h3>
+
+            <div class="code-label">javascript &mdash; Insert operations</div>
+<pre><code>// Insert a single document
+db.users.insertOne({
+  name: "Sarah Chen",
+  email: "sarah@example.com",
+  role: "developer",
+  skills: ["JavaScript", "Python", "MongoDB"],
+  address: {
+    city: "San Francisco",
+    state: "CA",
+    country: "US"
+  },
+  createdAt: new Date()
+})
+
+// Insert multiple documents
+db.users.insertMany([
+  {
+    name: "Alex Rivera",
+    email: "alex@example.com",
+    role: "designer",
+    skills: ["Figma", "CSS", "React"],
+    createdAt: new Date()
+  },
+  {
+    name: "Jordan Park",
+    email: "jordan@example.com",
+    role: "developer",
+    skills: ["Go", "Kubernetes", "PostgreSQL"],
+    createdAt: new Date()
+  }
+])
+
+// Insert with write concern (wait for majority replication)
+db.orders.insertOne(
+  { product: "NexTool Pro", amount: 29, currency: "USD" },
+  { writeConcern: { w: "majority", j: true } }
+)</code></pre>
+
+            <h3>Read (Find)</h3>
+
+            <div class="code-label">javascript &mdash; Find operations</div>
+<pre><code>// Find all documents in a collection
+db.users.find()
+
+// Find with a filter
+db.users.find({ role: "developer" })
+
+// Find one document
+db.users.findOne({ email: "sarah@example.com" })
+
+// Find with nested field (dot notation)
+db.users.find({ "address.city": "San Francisco" })
+
+// Find documents where array contains a value
+db.users.find({ skills: "MongoDB" })
+
+// Find with multiple conditions (implicit AND)
+db.users.find({
+  role: "developer",
+  "address.country": "US"
+})
+
+// Count matching documents
+db.users.countDocuments({ role: "developer" })
+
+// Check if any document matches
+db.users.findOne({ email: "sarah@example.com" }) !== null</code></pre>
+
+            <h3>Update</h3>
+
+            <div class="code-label">javascript &mdash; Update operations</div>
+<pre><code>// Update a single document
+db.users.updateOne(
+  { email: "sarah@example.com" },
+  {
+    $set: { role: "senior-developer", updatedAt: new Date() },
+    $push: { skills: "TypeScript" }
+  }
+)
+
+// Update multiple documents
+db.users.updateMany(
+  { role: "developer" },
+  { $set: { department: "Engineering" } }
+)
+
+// Upsert (insert if not found, update if found)
+db.users.updateOne(
+  { email: "new@example.com" },
+  {
+    $set: { name: "New User", role: "member" },
+    $setOnInsert: { createdAt: new Date() }
+  },
+  { upsert: true }
+)
+
+// Replace entire document (keep _id)
+db.users.replaceOne(
+  { email: "sarah@example.com" },
+  {
+    name: "Sarah Chen",
+    email: "sarah@example.com",
+    role: "engineering-lead",
+    skills: ["JavaScript", "Python", "MongoDB", "TypeScript"],
+    updatedAt: new Date()
+  }
+)
+
+// Find and update atomically (returns the document)
+db.users.findOneAndUpdate(
+  { email: "sarah@example.com" },
+  { $inc: { loginCount: 1 }, $set: { lastLogin: new Date() } },
+  { returnDocument: "after" }
+)</code></pre>
+
+            <h3>Delete</h3>
+
+            <div class="code-label">javascript &mdash; Delete operations</div>
+<pre><code>// Delete a single document
+db.users.deleteOne({ email: "old@example.com" })
+
+// Delete multiple documents
+db.users.deleteMany({ role: "inactive" })
+
+// Delete all documents in a collection (keep the collection)
+db.users.deleteMany({})
+
+// Find and delete atomically (returns the deleted document)
+db.queue.findOneAndDelete(
+  { status: "pending" },
+  { sort: { priority: -1, createdAt: 1 } }
+)
+
+// Drop entire collection (faster than deleteMany for large collections)
+db.tempData.drop()</code></pre>
+
+            <h2 id="operators">Query Operators</h2>
+
+            <p>MongoDB query operators let you express complex conditions beyond simple equality. They start with <code>$</code> and cover comparison, logical, element, array, and regex matching.</p>
+
+            <h3>Comparison Operators</h3>
+
+            <div class="code-label">javascript &mdash; Comparison operators</div>
+<pre><code>// Greater than / less than
+db.products.find({ price: { $gt: 10 } })        // price > 10
+db.products.find({ price: { $gte: 10 } })       // price >= 10
+db.products.find({ price: { $lt: 50 } })        // price < 50
+db.products.find({ price: { $lte: 50 } })       // price <= 50
+
+// Not equal
+db.users.find({ role: { $ne: "admin" } })
+
+// Range (combine operators)
+db.products.find({ price: { $gte: 10, $lte: 50 } })
+
+// In a set of values
+db.users.find({ role: { $in: ["developer", "designer"] } })
+
+// Not in a set
+db.users.find({ status: { $nin: ["banned", "deleted"] } })</code></pre>
+
+            <h3>Logical Operators</h3>
+
+            <div class="code-label">javascript &mdash; Logical operators</div>
+<pre><code>// OR: match any condition
+db.users.find({
+  $or: [
+    { role: "admin" },
+    { "permissions.canDelete": true }
+  ]
+})
+
+// AND: match all conditions (explicit, for same field)
+db.products.find({
+  $and: [
+    { price: { $gt: 10 } },
+    { price: { $lt: 100 } }
+  ]
+})
+
+// NOT: invert a condition
+db.users.find({
+  age: { $not: { $lt: 18 } }
+})
+
+// NOR: match none of the conditions
+db.users.find({
+  $nor: [
+    { status: "banned" },
+    { status: "suspended" }
+  ]
+})</code></pre>
+
+            <h3>Element and Array Operators</h3>
+
+            <div class="code-label">javascript &mdash; Element and array operators</div>
+<pre><code>// Field exists
+db.users.find({ phone: { $exists: true } })
+
+// Field type check
+db.data.find({ value: { $type: "string" } })
+
+// Array contains all specified values
+db.users.find({ skills: { $all: ["JavaScript", "React"] } })
+
+// Array has exact size
+db.users.find({ skills: { $size: 3 } })
+
+// Match array element conditions
+db.orders.find({
+  items: {
+    $elemMatch: {
+      product: "NexTool Pro",
+      quantity: { $gte: 2 }
+    }
+  }
+})
+
+// Regex pattern matching
+db.users.find({ name: { $regex: /^sarah/i } })
+
+// Regex with options
+db.articles.find({
+  title: { $regex: "mongodb", $options: "i" }
+})</code></pre>
+
+            <p>When building and testing complex regex patterns for MongoDB queries, the <a href="/free-tools/regex-playground.html">Regex Playground</a> lets you write, test, and debug regular expressions in real time before using them in your queries.</p>
+
+            <h2 id="projection">Projection and Sorting</h2>
+
+            <p>Projection controls which fields are returned. Sorting controls the order. Both are essential for query performance and reducing data transfer.</p>
+
+            <div class="code-label">javascript &mdash; Projection and sorting</div>
+<pre><code>// Include only specific fields (1 = include)
+db.users.find(
+  { role: "developer" },
+  { name: 1, email: 1, skills: 1 }
+)
+// Returns: { _id, name, email, skills }
+
+// Exclude specific fields (0 = exclude)
+db.users.find(
+  { role: "developer" },
+  { password: 0, internalNotes: 0 }
+)
+
+// Exclude _id
+db.users.find(
+  { role: "developer" },
+  { name: 1, email: 1, _id: 0 }
+)
+
+// Sort ascending (1) and descending (-1)
+db.users.find().sort({ createdAt: -1 })            // newest first
+db.products.find().sort({ price: 1, name: 1 })     // cheapest first, then by name
+
+// Limit results
+db.users.find().sort({ createdAt: -1 }).limit(10)
+
+// Skip + limit (pagination)
+const page = 3
+const pageSize = 20
+db.users.find()
+  .sort({ createdAt: -1 })
+  .skip((page - 1) * pageSize)
+  .limit(pageSize)
+
+// Distinct values
+db.users.distinct("role")
+// ["developer", "designer", "admin", "manager"]</code></pre>
+
+            <div class="info-box warning">
+                <div class="info-box-title">Avoid skip() for Large Offsets</div>
+                <p><code>skip()</code> becomes slow with large values because MongoDB still reads and discards the skipped documents. For large collections, use range-based pagination with an indexed field: <code>db.users.find({ _id: { $gt: lastSeenId } }).limit(20)</code>.</p>
+            </div>
+
+            <h2 id="aggregation">Aggregation Pipeline</h2>
+
+            <p>The aggregation pipeline processes documents through a sequence of stages. Each stage transforms the data and passes results to the next. It is MongoDB's most powerful feature for analytics, reporting, and complex data transformation.</p>
+
+            <h3>Core Pipeline Stages</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Purpose</th>
+                        <th>SQL Equivalent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>$match</code></td>
+                        <td>Filter documents</td>
+                        <td><code>WHERE</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>$group</code></td>
+                        <td>Aggregate by key</td>
+                        <td><code>GROUP BY</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>$project</code></td>
+                        <td>Reshape documents, compute fields</td>
+                        <td><code>SELECT</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>$sort</code></td>
+                        <td>Order results</td>
+                        <td><code>ORDER BY</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>$limit</code></td>
+                        <td>Restrict result count</td>
+                        <td><code>LIMIT</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>$lookup</code></td>
+                        <td>Join with another collection</td>
+                        <td><code>LEFT JOIN</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>$unwind</code></td>
+                        <td>Flatten arrays into documents</td>
+                        <td><code>UNNEST</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>$addFields</code></td>
+                        <td>Add computed fields</td>
+                        <td>Computed column</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Pipeline Examples</h3>
+
+            <div class="code-label">javascript &mdash; Sales analytics pipeline</div>
+<pre><code>// Total revenue per product category this month
+db.orders.aggregate([
+  // Stage 1: Filter to current month
+  {
+    $match: {
+      createdAt: {
+        $gte: new Date("2026-02-01"),
+        $lt: new Date("2026-03-01")
+      },
+      status: "completed"
+    }
+  },
+  // Stage 2: Flatten the items array
+  { $unwind: "$items" },
+  // Stage 3: Group by category, sum revenue
+  {
+    $group: {
+      _id: "$items.category",
+      totalRevenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+      orderCount: { $sum: 1 },
+      avgOrderValue: { $avg: { $multiply: ["$items.price", "$items.quantity"] } }
+    }
+  },
+  // Stage 4: Sort by revenue descending
+  { $sort: { totalRevenue: -1 } },
+  // Stage 5: Reshape the output
+  {
+    $project: {
+      category: "$_id",
+      totalRevenue: { $round: ["$totalRevenue", 2] },
+      orderCount: 1,
+      avgOrderValue: { $round: ["$avgOrderValue", 2] },
+      _id: 0
+    }
+  }
+])</code></pre>
+
+            <div class="code-label">javascript &mdash; User activity report</div>
+<pre><code>// Top 10 most active users with their latest activity
+db.activities.aggregate([
+  {
+    $match: {
+      timestamp: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+    }
+  },
+  {
+    $group: {
+      _id: "$userId",
+      activityCount: { $sum: 1 },
+      lastActivity: { $max: "$timestamp" },
+      actions: { $addToSet: "$action" }
+    }
+  },
+  { $sort: { activityCount: -1 } },
+  { $limit: 10 },
+  // Join with users collection
+  {
+    $lookup: {
+      from: "users",
+      localField: "_id",
+      foreignField: "_id",
+      as: "user"
+    }
+  },
+  { $unwind: "$user" },
+  {
+    $project: {
+      name: "$user.name",
+      email: "$user.email",
+      activityCount: 1,
+      lastActivity: 1,
+      uniqueActions: { $size: "$actions" },
+      _id: 0
+    }
+  }
+])</code></pre>
+
+            <h2 id="advanced-agg">Advanced Aggregation Stages</h2>
+
+            <h3>$lookup: Collection Joins</h3>
+
+            <div class="code-label">javascript &mdash; $lookup with pipeline</div>
+<pre><code>// Join orders with products (advanced pipeline syntax)
+db.orders.aggregate([
+  {
+    $lookup: {
+      from: "products",
+      let: { productIds: "$items.productId" },
+      pipeline: [
+        {
+          $match: {
+            $expr: { $in: ["$_id", "$$productIds"] }
+          }
+        },
+        {
+          $project: { name: 1, price: 1, category: 1 }
+        }
+      ],
+      as: "productDetails"
+    }
+  }
+])</code></pre>
+
+            <h3>$bucket: Histogram Grouping</h3>
+
+            <div class="code-label">javascript &mdash; $bucket for distribution analysis</div>
+<pre><code>// Group users by age ranges
+db.users.aggregate([
+  {
+    $bucket: {
+      groupBy: "$age",
+      boundaries: [0, 18, 25, 35, 50, 65, 120],
+      default: "Unknown",
+      output: {
+        count: { $sum: 1 },
+        avgIncome: { $avg: "$income" },
+        users: { $push: "$name" }
+      }
+    }
+  }
+])</code></pre>
+
+            <h3>$facet: Multiple Pipelines in Parallel</h3>
+
+            <div class="code-label">javascript &mdash; $facet for dashboard data</div>
+<pre><code>// Get multiple aggregations in a single query
+db.products.aggregate([
+  {
+    $facet: {
+      priceStats: [
+        {
+          $group: {
+            _id: null,
+            avgPrice: { $avg: "$price" },
+            minPrice: { $min: "$price" },
+            maxPrice: { $max: "$price" },
+            totalProducts: { $sum: 1 }
+          }
+        }
+      ],
+      byCategory: [
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ],
+      topRated: [
+        { $sort: { rating: -1 } },
+        { $limit: 5 },
+        { $project: { name: 1, rating: 1, price: 1 } }
+      ]
+    }
+  }
+])</code></pre>
+
+            <p>When you need to format and inspect the JSON output from aggregation queries, the <a href="/free-tools/json-formatter.html">JSON Formatter</a> handles deeply nested MongoDB results with syntax highlighting and a collapsible tree view.</p>
+
+            <h2 id="indexes">Indexes and Performance</h2>
+
+            <p>Indexes are the single most important factor in MongoDB query performance. Without an index on a queried field, MongoDB performs a collection scan &mdash; reading every document to find matches. With a proper index, the same query uses a B-tree lookup that is orders of magnitude faster.</p>
+
+            <h3>Creating Indexes</h3>
+
+            <div class="code-label">javascript &mdash; Index creation</div>
+<pre><code>// Single field index
+db.users.createIndex({ email: 1 })          // ascending
+db.users.createIndex({ createdAt: -1 })     // descending
+
+// Unique index (enforces uniqueness)
+db.users.createIndex({ email: 1 }, { unique: true })
+
+// Compound index (multiple fields)
+db.orders.createIndex({ userId: 1, createdAt: -1 })
+
+// Partial index (index only matching documents)
+db.orders.createIndex(
+  { createdAt: -1 },
+  { partialFilterExpression: { status: "active" } }
+)
+
+// TTL index (auto-delete after expiry)
+db.sessions.createIndex(
+  { expiresAt: 1 },
+  { expireAfterSeconds: 0 }
+)
+
+// Text index (full-text search)
+db.articles.createIndex({
+  title: "text",
+  body: "text",
+  tags: "text"
+})
+
+// Wildcard index (index all fields in a sub-document)
+db.logs.createIndex({ "metadata.$**": 1 })</code></pre>
+
+            <h3>Index Management</h3>
+
+            <div class="code-label">javascript &mdash; Index management commands</div>
+<pre><code>// List all indexes on a collection
+db.users.getIndexes()
+
+// Get index sizes
+db.users.stats().indexSizes
+
+// Drop a specific index
+db.users.dropIndex("email_1")
+
+// Drop all indexes (except _id)
+db.users.dropIndexes()
+
+// Rebuild indexes (use during maintenance)
+db.users.reIndex()</code></pre>
+
+            <h3>The ESR Rule for Compound Indexes</h3>
+
+            <p>When designing compound indexes, order fields by <strong>Equality</strong>, <strong>Sort</strong>, <strong>Range</strong>:</p>
+
+            <ol>
+                <li><strong>Equality</strong> fields first &mdash; fields matched with exact values (<code>status: "active"</code>)</li>
+                <li><strong>Sort</strong> fields second &mdash; fields used in <code>.sort()</code></li>
+                <li><strong>Range</strong> fields last &mdash; fields with <code>$gt</code>, <code>$lt</code>, <code>$in</code></li>
+            </ol>
+
+            <div class="code-label">javascript &mdash; ESR index example</div>
+<pre><code>// Query pattern:
+db.orders.find({
+  status: "shipped",           // Equality
+  amount: { $gte: 100 }        // Range
+}).sort({ createdAt: -1 })      // Sort
+
+// Optimal compound index (ESR order):
+db.orders.createIndex({
+  status: 1,       // E: Equality
+  createdAt: -1,   // S: Sort
+  amount: 1        // R: Range
+})</code></pre>
+
+            <h3>Using explain() to Analyze Queries</h3>
+
+            <div class="code-label">javascript &mdash; Query analysis</div>
+<pre><code>// Check if a query uses an index
+db.users.find({ email: "sarah@example.com" }).explain("executionStats")
+
+// Key fields in explain output:
+// - queryPlanner.winningPlan.stage: "IXSCAN" (good) vs "COLLSCAN" (bad)
+// - executionStats.nReturned: documents returned
+// - executionStats.totalDocsExamined: documents scanned
+// - executionStats.executionTimeMillis: query duration
+
+// Ideal: nReturned === totalDocsExamined (no wasted reads)
+// Problem: totalDocsExamined >> nReturned (missing or wrong index)</code></pre>
+
+            <div class="info-box success">
+                <div class="info-box-title">Index Best Practices</div>
+                <p>1) Index every field used in <code>find()</code> filters and <code>sort()</code>. 2) Use compound indexes matching your query patterns. 3) Follow the ESR rule. 4) Monitor with <code>explain("executionStats")</code>. 5) Remove unused indexes (they slow writes). 6) Keep indexes in RAM &mdash; check total index size vs available memory.</p>
+            </div>
+
+            <h2 id="schema">Schema Design Patterns</h2>
+
+            <p>MongoDB is schema-flexible, but that does not mean schemaless. Good schema design is the difference between a fast application and one that requires expensive queries and workarounds. The key decision is embedding vs referencing.</p>
+
+            <h3>Embedding: One-to-Few</h3>
+
+            <div class="code-label">javascript &mdash; Embedded document pattern</div>
+<pre><code>// Embed addresses inside the user document
+// Good when: always accessed together, limited size
+{
+  _id: ObjectId("..."),
+  name: "Sarah Chen",
+  email: "sarah@example.com",
+  addresses: [
+    {
+      type: "home",
+      street: "123 Main St",
+      city: "San Francisco",
+      state: "CA",
+      zip: "94105"
+    },
+    {
+      type: "work",
+      street: "456 Market St",
+      city: "San Francisco",
+      state: "CA",
+      zip: "94102"
+    }
+  ]
+}</code></pre>
+
+            <h3>Referencing: One-to-Many</h3>
+
+            <div class="code-label">javascript &mdash; Reference pattern</div>
+<pre><code>// User document (parent)
+{
+  _id: ObjectId("user123"),
+  name: "Sarah Chen",
+  email: "sarah@example.com"
+}
+
+// Order documents (children reference parent)
+{
+  _id: ObjectId("order456"),
+  userId: ObjectId("user123"),
+  items: [
+    { productId: ObjectId("prod789"), quantity: 1, price: 29 }
+  ],
+  total: 29,
+  status: "completed",
+  createdAt: ISODate("2026-02-14T10:00:00Z")
+}
+
+// Query with $lookup join
+db.users.aggregate([
+  { $match: { _id: ObjectId("user123") } },
+  {
+    $lookup: {
+      from: "orders",
+      localField: "_id",
+      foreignField: "userId",
+      as: "orders"
+    }
+  }
+])</code></pre>
+
+            <h3>Hybrid: Subset Pattern</h3>
+
+            <div class="code-label">javascript &mdash; Subset pattern (embed frequently accessed data)</div>
+<pre><code>// Product document with embedded review summary
+{
+  _id: ObjectId("prod789"),
+  name: "NexTool Pro",
+  price: 29,
+  // Embed the 3 most recent reviews (subset)
+  recentReviews: [
+    { author: "Alex", rating: 5, text: "Essential toolkit", date: ISODate("2026-02-10") },
+    { author: "Jordan", rating: 5, text: "Saves hours every week", date: ISODate("2026-02-08") },
+    { author: "Taylor", rating: 4, text: "Great value", date: ISODate("2026-02-05") }
+  ],
+  // Summary stats (denormalized)
+  reviewStats: {
+    count: 142,
+    avgRating: 4.8
+  }
+}
+
+// Full reviews live in a separate collection
+// reviews: { productId, author, rating, text, date }</code></pre>
+
+            <p>If you are migrating from SQL and need to convert queries, the <a href="/free-tools/sql-to-mongodb.html">SQL to MongoDB Converter</a> translates SELECT, INSERT, UPDATE, and DELETE statements into MongoDB query syntax.</p>
+
+            <h2 id="transactions">Transactions</h2>
+
+            <p>MongoDB supports multi-document ACID transactions for operations that must succeed or fail together. Single-document operations are always atomic, but when you need to update multiple documents or collections atomically, use a transaction.</p>
+
+            <div class="code-label">javascript &mdash; Node.js transaction example</div>
+<pre><code>const { MongoClient } = require('mongodb')
+
+async function transferFunds(fromId, toId, amount) {
+  const client = new MongoClient(process.env.MONGODB_URI)
+  const session = client.startSession()
+
+  try {
+    await session.withTransaction(async () => {
+      const accounts = client.db('banking').collection('accounts')
+
+      // Debit sender
+      const sender = await accounts.findOneAndUpdate(
+        { _id: fromId, balance: { $gte: amount } },
+        { $inc: { balance: -amount } },
+        { session, returnDocument: 'after' }
+      )
+
+      if (!sender) {
+        throw new Error('Insufficient funds or account not found')
+      }
+
+      // Credit receiver
+      await accounts.updateOne(
+        { _id: toId },
+        { $inc: { balance: amount } },
+        { session }
+      )
+
+      // Record the transfer
+      await client.db('banking').collection('transfers').insertOne(
+        {
+          from: fromId,
+          to: toId,
+          amount,
+          timestamp: new Date()
+        },
+        { session }
+      )
+    })
+
+    console.log('Transfer completed')
+  } catch (error) {
+    console.error('Transfer failed:', error.message)
+  } finally {
+    await session.endSession()
+    await client.close()
+  }
+}</code></pre>
+
+            <div class="info-box">
+                <div class="info-box-title">When to Use Transactions</div>
+                <p>Transactions add latency and complexity. Design your schema to minimize the need for them. Embed related data in a single document when possible (single-document operations are always atomic). Use transactions only when you genuinely need atomicity across multiple documents or collections.</p>
+            </div>
+
+            <h2 id="optimization">Query Optimization</h2>
+
+            <p>Slow MongoDB queries are almost always caused by missing indexes, inefficient query patterns, or poor schema design. Here is a systematic approach to finding and fixing performance problems.</p>
+
+            <h3>Profiling Slow Queries</h3>
+
+            <div class="code-label">javascript &mdash; Query profiling</div>
+<pre><code>// Enable profiler for queries slower than 100ms
+db.setProfilingLevel(1, { slowms: 100 })
+
+// View slow queries
+db.system.profile.find().sort({ ts: -1 }).limit(5).pretty()
+
+// Key fields in profiler output:
+// - millis: execution time
+// - nscanned: documents examined
+// - nreturned: documents returned
+// - planSummary: "COLLSCAN" (bad) or "IXSCAN" (good)
+
+// Disable profiler when done
+db.setProfilingLevel(0)
+
+// View current operations (find long-running queries)
+db.currentOp({ secs_running: { $gt: 5 } })</code></pre>
+
+            <h3>Optimization Techniques</h3>
+
+            <div class="code-label">javascript &mdash; Performance optimizations</div>
+<pre><code>// 1. Use projection to return only needed fields
+// BAD: returns entire documents
+db.users.find({ role: "developer" })
+
+// GOOD: returns only what you need
+db.users.find(
+  { role: "developer" },
+  { name: 1, email: 1, _id: 0 }
+)
+
+// 2. Covered query (index contains all requested fields)
+db.users.createIndex({ role: 1, name: 1, email: 1 })
+db.users.find(
+  { role: "developer" },
+  { name: 1, email: 1, _id: 0 }
+)
+// MongoDB reads ONLY the index, never touches documents
+
+// 3. Use $match early in aggregation pipelines
+// BAD: process everything, then filter
+db.orders.aggregate([
+  { $lookup: { from: "products", ... } },
+  { $match: { status: "active" } }          // filter too late
+])
+
+// GOOD: filter first, then process
+db.orders.aggregate([
+  { $match: { status: "active" } },          // filter early
+  { $lookup: { from: "products", ... } }
+])
+
+// 4. Range-based pagination (fast at any offset)
+// Instead of skip/limit:
+db.posts.find({ _id: { $lt: ObjectId("lastSeenId") } })
+  .sort({ _id: -1 })
+  .limit(20)
+
+// 5. Use bulkWrite for batch operations
+db.users.bulkWrite([
+  { updateOne: { filter: { _id: id1 }, update: { $set: { active: true } } } },
+  { updateOne: { filter: { _id: id2 }, update: { $set: { active: false } } } },
+  { insertOne: { document: { name: "New User", active: true } } }
+])</code></pre>
+
+            <p>When generating TypeScript interfaces from your MongoDB document structure, the <a href="/free-tools/json-to-typescript.html">JSON to TypeScript Converter</a> creates type-safe interfaces from sample JSON documents.</p>
+
+            <h2 id="migration">SQL to MongoDB Mapping</h2>
+
+            <p>If you are coming from a SQL background, this mapping helps translate concepts.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>SQL</th>
+                        <th>MongoDB</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Table</td>
+                        <td>Collection</td>
+                        <td><code>db.users</code></td>
+                    </tr>
+                    <tr>
+                        <td>Row</td>
+                        <td>Document</td>
+                        <td><code>{ name: "Sarah" }</code></td>
+                    </tr>
+                    <tr>
+                        <td>Column</td>
+                        <td>Field</td>
+                        <td><code>name</code>, <code>email</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>SELECT * FROM users WHERE role='dev'</code></td>
+                        <td><code>db.users.find({ role: "dev" })</code></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><code>SELECT name, email FROM users</code></td>
+                        <td><code>db.users.find({}, { name:1, email:1 })</code></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><code>INSERT INTO users VALUES (...)</code></td>
+                        <td><code>db.users.insertOne({...})</code></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><code>UPDATE users SET role='admin' WHERE ...</code></td>
+                        <td><code>db.users.updateOne({...}, { $set: {...} })</code></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><code>DELETE FROM users WHERE ...</code></td>
+                        <td><code>db.users.deleteOne({...})</code></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><code>JOIN</code></td>
+                        <td><code>$lookup</code> (aggregation)</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><code>GROUP BY</code></td>
+                        <td><code>$group</code> (aggregation)</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><code>CREATE INDEX</code></td>
+                        <td><code>db.collection.createIndex()</code></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>For automated SQL-to-MongoDB query conversion, use the <a href="/free-tools/sql-to-mongodb.html">SQL to MongoDB Converter</a> to translate your existing SQL queries into MongoDB syntax.</p>
+
+            <hr>
+
+            <h2 id="tools">Related Developer Tools</h2>
+
+            <div class="tool-grid">
+                <a href="/free-tools/sql-to-mongodb.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F504;</div>
+                    <div class="tool-card-name">SQL to MongoDB Converter</div>
+                    <div class="tool-card-desc">Convert SQL queries to MongoDB syntax. Supports SELECT, INSERT, UPDATE, DELETE, and JOIN translations.</div>
+                </a>
+                <a href="/free-tools/json-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CB;</div>
+                    <div class="tool-card-name">JSON Formatter</div>
+                    <div class="tool-card-desc">Format and inspect MongoDB query results, aggregation output, and document structures with syntax highlighting.</div>
+                </a>
+                <a href="/free-tools/json-schema-generator.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4D0;</div>
+                    <div class="tool-card-name">JSON Schema Generator</div>
+                    <div class="tool-card-desc">Generate JSON Schema from sample MongoDB documents. Use for validation rules and documentation.</div>
+                </a>
+                <a href="/free-tools/json-to-typescript.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4DD;</div>
+                    <div class="tool-card-name">JSON to TypeScript</div>
+                    <div class="tool-card-desc">Generate TypeScript interfaces from MongoDB document samples. Type-safe models from your actual data.</div>
+                </a>
+                <a href="/free-tools/regex-playground.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F50D;</div>
+                    <div class="tool-card-name">Regex Playground</div>
+                    <div class="tool-card-desc">Build and test regex patterns for MongoDB $regex queries. Live matching, capture groups, and flags.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between MongoDB find and aggregate?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p><code>find()</code> is for simple queries: filtering documents, selecting specific fields, sorting, and limiting results. It returns documents as they are stored (with optional projection). <code>aggregate()</code> is for complex data processing: grouping, reshaping, computing new fields, joining collections with <code>$lookup</code>, and multi-step transformations. Use <code>find()</code> when you need to retrieve documents with basic filtering. Use <code>aggregate()</code> when you need to transform data, calculate statistics, group by fields, or combine data from multiple collections. <code>aggregate()</code> processes documents through a pipeline of stages, where each stage transforms the data before passing it to the next.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do MongoDB indexes work and when should I create one?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>MongoDB indexes are B-tree data structures that store a sorted subset of your documents' fields. Without an index, MongoDB must scan every document in a collection (a collection scan) to find matches. With an index, MongoDB uses the sorted structure to find matching documents in logarithmic time. Create an index on any field you frequently query, sort by, or use in aggregation pipeline stages. The <code>_id</code> field is indexed automatically. Use compound indexes for queries that filter on multiple fields. Use <code>explain()</code> to check if your queries use indexes. Do not over-index: each index consumes RAM and slows down write operations because every insert and update must also update all relevant indexes.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Should I embed documents or use references in MongoDB?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Embed when the related data is always accessed together, the relationship is one-to-few, the embedded data does not grow unboundedly, and you need atomic operations on the parent and child. Use references when the related data is accessed independently, the relationship is one-to-many or many-to-many, the related document is large or frequently updated, or you need to avoid document size limits (16MB). For example, embed an address inside a user document. Use a reference for a user's order history that grows over time. The hybrid approach (embed frequently accessed fields and reference the full document) often works best for read-heavy applications.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I improve MongoDB query performance?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Start with indexes: use <code>explain('executionStats')</code> to identify slow queries and create indexes on filtered and sorted fields. Use compound indexes that match your query patterns and follow the ESR rule (Equality, Sort, Range) for field ordering. Use projection to return only the fields you need instead of entire documents. Avoid <code>$regex</code> queries without a prefix anchor (they cannot use indexes efficiently). For aggregation pipelines, put <code>$match</code> and <code>$project</code> stages as early as possible to reduce the data flowing through later stages. Monitor with <code>db.currentOp()</code> to find long-running queries. Set appropriate read preferences for read-heavy workloads. Consider schema redesign if queries consistently require <code>$lookup</code> across collections, as denormalization often outperforms joins in MongoDB.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the MongoDB aggregation pipeline and how do I use it?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>The aggregation pipeline processes documents through a series of stages. Each stage transforms the documents and passes the results to the next stage. Common stages include <code>$match</code> (filter documents), <code>$group</code> (aggregate values by a key), <code>$project</code> (reshape documents and compute fields), <code>$sort</code> (order results), <code>$lookup</code> (join with another collection), <code>$unwind</code> (flatten arrays), and <code>$limit</code>. Pipelines are defined as an array of stage objects: <code>db.collection.aggregate([stage1, stage2, ...])</code>. The order of stages matters for both correctness and performance. Always place <code>$match</code> stages first to reduce the number of documents processed by later stages. The pipeline can handle complex analytics, reporting, and data transformation that would require multiple queries in other databases.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I handle transactions in MongoDB?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>MongoDB supports multi-document ACID transactions since version 4.0 (replica sets) and 4.2 (sharded clusters). Start a session, begin a transaction, perform operations, then commit or abort. In the Node.js driver: <code>const session = client.startSession(); session.startTransaction();</code> then wrap your operations in a try/catch, using <code>{ session }</code> as an option on each operation. Call <code>await session.commitTransaction()</code> on success or <code>await session.abortTransaction()</code> on failure. Transactions have a 60-second default timeout and add overhead. Design your schema to minimize the need for transactions. Single-document operations are always atomic in MongoDB, so embedding related data in one document often eliminates the need for multi-document transactions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author -->
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>NexTool Team</h4>
+                <p>We build free, browser-based developer tools for databases, web development, and DevOps. Over 227 tools, all client-side, no signup required. Our guides are written from real production database experience.</p>
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="cta-box">
+            <h3>227+ Developer Tools, Zero Signup</h3>
+            <p>NexTool Pro gives you clean output, enhanced features, and unlimited workspace. $29 founding member price (regular $49). One payment, lifetime access.</p>
+            <a href="https://nextool.app/free-tools/pro-upgrade.html" class="cta-button">Get NexTool Pro &mdash; $29</a>
+            <a href="/free-tools/" class="cta-button secondary">Try Free Tools</a>
+        </div>
+
+    </article>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="https://nextool.app">Home</a>
+                <a href="https://nextool.app/#services">Tools</a>
+                <a href="https://nextool.app/free-tools/">Free Tools</a>
+                <a href="https://nextool.app/blog/">Blog</a>
+                <a href="https://nextool.app/#contact">Contact</a>
+            </div>
+            <p>&copy; 2026 NexTool. All rights reserved. 227+ free developer tools.</p>
+        </div>
+    </footer>
+
+    <!-- FAQ Script -->
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <!-- Revenue Scripts -->
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>

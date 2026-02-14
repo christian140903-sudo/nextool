@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free IP Subnet Calculator — CIDR, Network Range | NexTool</title>
+<meta name="description" content="Free IP subnet calculator with visual subnet breakdown. Enter IP and CIDR to get network address, broadcast, host range, wildcard mask, and binary view instantly.">
+<meta name="keywords" content="IP subnet calculator, CIDR calculator, subnet mask, network address, broadcast address, wildcard mask, binary IP, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free IP Subnet Calculator — CIDR, Network Range | NexTool">
+<meta property="og:description" content="Calculate subnet details: network address, broadcast, host range, wildcard mask, binary representation. Free online tool.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/ip-subnet-calculator.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/ip-subnet-calculator.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free IP Subnet Calculator — CIDR, Network Range | NexTool">
+<meta name="twitter:description" content="Calculate subnets with visual breakdown. Network, broadcast, hosts, wildcard, binary. Free online tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool IP Subnet Calculator","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free IP subnet calculator with visual subnet breakdown, binary representation, and CIDR notation support."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7);--mono:'JetBrains Mono',monospace}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+.tool-container{max-width:900px;margin:0 auto;padding:0 1.5rem 3rem}
+.input-card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.input-row{display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap}
+.input-group{flex:1;min-width:200px}
+.input-group label{display:block;font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:.4rem}
+.input-group input,.input-group select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem .9rem;border-radius:8px;font-size:.9rem;font-family:var(--mono);outline:none;transition:border-color .2s}
+.input-group input:focus,.input-group select:focus{border-color:var(--primary)}
+.btn{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;padding:.65rem 1.5rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:opacity .2s;font-family:inherit;white-space:nowrap}
+.btn:hover{opacity:.9}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+.btn-secondary:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.presets{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:1rem}
+.preset{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:.3rem .7rem;border-radius:6px;font-size:.75rem;cursor:pointer;transition:all .2s;font-family:var(--mono)}
+.preset:hover{border-color:var(--primary);color:var(--text)}
+.results{display:none}
+.results.show{display:block}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-bottom:1.5rem}
+.result-card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem}
+.result-card h3{font-size:.75rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem}
+.result-value{font-family:var(--mono);font-size:1.1rem;font-weight:600;color:var(--text);word-break:break-all}
+.result-value.highlight{color:var(--primary)}
+.result-sub{font-size:.75rem;color:var(--text2);margin-top:.25rem;font-family:var(--mono)}
+.binary-section{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.binary-section h3{font-size:.85rem;font-weight:700;margin-bottom:1rem;color:var(--text)}
+.binary-row{display:flex;align-items:center;gap:1rem;margin-bottom:.6rem;flex-wrap:wrap}
+.binary-label{font-size:.8rem;font-weight:600;color:var(--text2);min-width:120px}
+.binary-bits{font-family:var(--mono);font-size:.85rem;display:flex;gap:2px;flex-wrap:wrap}
+.bit{display:inline-block;width:18px;height:24px;line-height:24px;text-align:center;border-radius:3px;font-size:.75rem;font-weight:600}
+.bit.network{background:rgba(99,102,241,.25);color:var(--primary)}
+.bit.host{background:rgba(34,197,94,.15);color:var(--green)}
+.bit.sep{width:8px;color:var(--text2)}
+.visual-section{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.visual-section h3{font-size:.85rem;font-weight:700;margin-bottom:1rem;color:var(--text)}
+.subnet-bar{height:40px;border-radius:8px;overflow:hidden;display:flex;margin-bottom:.75rem;border:1px solid var(--border)}
+.subnet-bar .network-part{background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;font-weight:700;min-width:20px;transition:width .3s}
+.subnet-bar .host-part{background:rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:.7rem;font-weight:700;flex:1;min-width:20px}
+.bar-legend{display:flex;gap:1.5rem;font-size:.75rem;color:var(--text2)}
+.bar-legend span{display:flex;align-items:center;gap:.4rem}
+.bar-legend .dot{width:10px;height:10px;border-radius:3px}
+.bar-legend .dot.net{background:var(--primary)}
+.bar-legend .dot.host{background:rgba(34,197,94,.4)}
+.class-badge{display:inline-block;padding:.2rem .6rem;border-radius:6px;font-size:.75rem;font-weight:600;margin-left:.5rem}
+.class-a{background:rgba(99,102,241,.2);color:var(--primary)}
+.class-b{background:rgba(168,85,247,.2);color:var(--accent)}
+.class-c{background:rgba(236,72,153,.2);color:var(--pink)}
+.class-d{background:rgba(234,179,8,.2);color:var(--yellow)}
+.class-e{background:rgba(239,68,68,.2);color:var(--red)}
+.subnet-table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:1rem}
+.subnet-table th{text-align:left;padding:.5rem .75rem;background:var(--surface2);color:var(--text2);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border)}
+.subnet-table td{padding:.5rem .75rem;border-bottom:1px solid rgba(42,42,58,.5);font-family:var(--mono);font-size:.8rem;color:var(--text)}
+.subnet-table tr:hover td{background:rgba(99,102,241,.05)}
+.copy-btn{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.75rem;padding:.2rem .4rem;border-radius:4px;transition:all .2s}
+.copy-btn:hover{color:var(--primary);background:rgba(99,102,241,.1)}
+.error-msg{color:var(--red);font-size:.85rem;margin-top:.5rem;display:none}
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.faq-section{max-width:900px;margin:0 auto;padding:2rem 1.5rem 3rem}
+.faq-section h2{font-size:1.4rem;font-weight:800;margin-bottom:1.5rem;text-align:center}
+.faq-item{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.75rem;overflow:hidden}
+.faq-q{padding:1rem 1.2rem;font-weight:600;font-size:.9rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .2s}
+.faq-q:hover{background:rgba(99,102,241,.05)}
+.faq-q::after{content:'+';font-size:1.2rem;color:var(--text2);transition:transform .2s}
+.faq-item.open .faq-q::after{transform:rotate(45deg)}
+.faq-a{padding:0 1.2rem;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;color:var(--text2);font-size:.85rem;line-height:1.7}
+.faq-item.open .faq-a{max-height:300px;padding:0 1.2rem 1rem}
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .input-row{flex-direction:column}
+  .result-grid{grid-template-columns:1fr}
+  .binary-label{min-width:80px;font-size:.7rem}
+  .bit{width:14px;height:20px;line-height:20px;font-size:.65rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/#contact" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>IP Subnet Calculator</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Enter an IPv4 address with CIDR notation to instantly calculate network address, broadcast address, usable host range, wildcard mask, and see the full binary breakdown with a visual subnet map.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-group" style="flex:2">
+        <label for="ipInput">IP Address</label>
+        <input type="text" id="ipInput" placeholder="192.168.1.100" value="192.168.1.100" spellcheck="false">
+      </div>
+      <div class="input-group" style="flex:0.7">
+        <label for="cidrInput">CIDR / Prefix</label>
+        <select id="cidrInput"></select>
+      </div>
+      <button class="btn" onclick="calculate()" style="margin-bottom:1px">Calculate</button>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="presets">
+      <span style="font-size:.75rem;color:var(--text2);margin-right:.3rem">Common:</span>
+      <button class="preset" onclick="setPreset('10.0.0.0',8)">/8</button>
+      <button class="preset" onclick="setPreset('172.16.0.0',12)">/12</button>
+      <button class="preset" onclick="setPreset('192.168.1.0',24)">/24</button>
+      <button class="preset" onclick="setPreset('192.168.1.0',25)">/25</button>
+      <button class="preset" onclick="setPreset('192.168.1.0',26)">/26</button>
+      <button class="preset" onclick="setPreset('192.168.1.0',27)">/27</button>
+      <button class="preset" onclick="setPreset('192.168.1.0',28)">/28</button>
+      <button class="preset" onclick="setPreset('192.168.1.0',30)">/30</button>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="result-grid" id="resultGrid"></div>
+
+    <div class="visual-section" id="visualSection">
+      <h3>Visual Subnet Breakdown</h3>
+      <div class="subnet-bar" id="subnetBar"></div>
+      <div class="bar-legend">
+        <span><span class="dot net"></span> Network bits (<span id="netBitsCount">0</span>)</span>
+        <span><span class="dot host"></span> Host bits (<span id="hostBitsCount">0</span>)</span>
+      </div>
+    </div>
+
+    <div class="binary-section" id="binarySection">
+      <h3>Binary Representation</h3>
+      <div id="binaryRows"></div>
+    </div>
+
+    <div class="visual-section" id="splitSection" style="display:none">
+      <h3>Subnet Split Table</h3>
+      <p style="font-size:.8rem;color:var(--text2);margin-bottom:.75rem">Split this network into smaller subnets:</p>
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
+        <label style="font-size:.8rem;color:var(--text2)">Split into:</label>
+        <select id="splitSelect" onchange="splitSubnets()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.4rem .7rem;border-radius:6px;font-size:.8rem;font-family:var(--mono)"></select>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="subnet-table" id="splitTable">
+          <thead><tr><th>#</th><th>Network</th><th>First Host</th><th>Last Host</th><th>Broadcast</th><th>Hosts</th></tr></thead>
+          <tbody id="splitBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 220+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 220+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<section class="faq-section fade-in">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <div class="faq-q">What is a subnet calculator?</div>
+    <div class="faq-a">A subnet calculator takes an IP address and CIDR prefix length (like /24) and computes all related subnet information: network address, broadcast address, usable host range, subnet mask, wildcard mask, and total number of hosts. It helps network administrators plan and troubleshoot IP addressing.</div>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <div class="faq-q">What is CIDR notation?</div>
+    <div class="faq-a">CIDR (Classless Inter-Domain Routing) notation uses a slash followed by a number (e.g., /24) to indicate how many bits of the IP address are used for the network portion. A /24 means the first 24 bits are the network, leaving 8 bits for hosts (254 usable addresses). Lower CIDR numbers mean larger networks.</div>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <div class="faq-q">What is the difference between network address and broadcast address?</div>
+    <div class="faq-a">The network address is the first address in a subnet (all host bits set to 0) and identifies the subnet itself. The broadcast address is the last address (all host bits set to 1) and is used to send data to all hosts in the subnet. Neither can be assigned to a device, which is why usable hosts are 2 fewer than total addresses.</div>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <div class="faq-q">Is this tool free to use?</div>
+    <div class="faq-a">Yes, this IP subnet calculator is completely free. It runs entirely in your browser with no data sent to any server. No signup, no limits, no tracking of your IP calculations.</div>
+  </div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">220+ Free Tools</a>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Populate CIDR select
+const cidrSelect = document.getElementById('cidrInput');
+for (let i = 1; i <= 32; i++) {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = '/' + i;
+  if (i === 24) opt.selected = true;
+  cidrSelect.appendChild(opt);
+}
+
+function setPreset(ip, cidr) {
+  document.getElementById('ipInput').value = ip;
+  cidrSelect.value = cidr;
+  calculate();
+}
+
+function parseIP(str) {
+  const parts = str.trim().split('.');
+  if (parts.length !== 4) return null;
+  const nums = parts.map(Number);
+  if (nums.some(n => isNaN(n) || n < 0 || n > 255 || !Number.isInteger(n))) return null;
+  return nums;
+}
+
+function ipToInt(octets) {
+  return ((octets[0] << 24) | (octets[1] << 16) | (octets[2] << 8) | octets[3]) >>> 0;
+}
+
+function intToIP(num) {
+  return [(num >>> 24) & 255, (num >>> 16) & 255, (num >>> 8) & 255, num & 255].join('.');
+}
+
+function intToBinary(num) {
+  return num.toString(2).padStart(32, '0');
+}
+
+function getIPClass(firstOctet) {
+  if (firstOctet < 128) return { name: 'A', cls: 'class-a' };
+  if (firstOctet < 192) return { name: 'B', cls: 'class-b' };
+  if (firstOctet < 224) return { name: 'C', cls: 'class-c' };
+  if (firstOctet < 240) return { name: 'D', cls: 'class-d' };
+  return { name: 'E', cls: 'class-e' };
+}
+
+function isPrivate(ipInt) {
+  const o1 = (ipInt >>> 24) & 255;
+  const o2 = (ipInt >>> 16) & 255;
+  if (o1 === 10) return true;
+  if (o1 === 172 && o2 >= 16 && o2 <= 31) return true;
+  if (o1 === 192 && o2 === 168) return true;
+  return false;
+}
+
+function calculate() {
+  const errorMsg = document.getElementById('errorMsg');
+  const ipStr = document.getElementById('ipInput').value.trim();
+  let cidr = parseInt(cidrSelect.value);
+
+  // Support "ip/cidr" format in IP field
+  let ip = ipStr;
+  if (ipStr.includes('/')) {
+    const parts = ipStr.split('/');
+    ip = parts[0];
+    const c = parseInt(parts[1]);
+    if (!isNaN(c) && c >= 1 && c <= 32) {
+      cidr = c;
+      cidrSelect.value = cidr;
+    }
+  }
+
+  const octets = parseIP(ip);
+  if (!octets) {
+    errorMsg.textContent = 'Invalid IP address. Please enter a valid IPv4 address (e.g. 192.168.1.0).';
+    errorMsg.style.display = 'block';
+    document.getElementById('results').classList.remove('show');
+    return;
+  }
+  errorMsg.style.display = 'none';
+
+  const ipInt = ipToInt(octets);
+  const maskInt = cidr === 0 ? 0 : (0xFFFFFFFF << (32 - cidr)) >>> 0;
+  const wildcardInt = (~maskInt) >>> 0;
+  const networkInt = (ipInt & maskInt) >>> 0;
+  const broadcastInt = (networkInt | wildcardInt) >>> 0;
+  const totalAddresses = Math.pow(2, 32 - cidr);
+  const usableHosts = cidr >= 31 ? (cidr === 32 ? 1 : 2) : totalAddresses - 2;
+  const firstHostInt = cidr >= 31 ? networkInt : (networkInt + 1) >>> 0;
+  const lastHostInt = cidr >= 31 ? broadcastInt : (broadcastInt - 1) >>> 0;
+
+  const ipClass = getIPClass(octets[0]);
+  const priv = isPrivate(ipInt);
+
+  // Build result cards
+  const grid = document.getElementById('resultGrid');
+  const results = [
+    { label: 'IP Address', value: ip, sub: 'Class ' + ipClass.name + (priv ? ' (Private)' : ' (Public)'), badge: ipClass },
+    { label: 'Network Address', value: intToIP(networkInt), sub: intToIP(networkInt) + '/' + cidr },
+    { label: 'Broadcast Address', value: intToIP(broadcastInt), sub: '' },
+    { label: 'Subnet Mask', value: intToIP(maskInt), sub: '/' + cidr + ' (' + cidr + ' bits)' },
+    { label: 'Wildcard Mask', value: intToIP(wildcardInt), sub: '' },
+    { label: 'First Usable Host', value: intToIP(firstHostInt), sub: '' },
+    { label: 'Last Usable Host', value: intToIP(lastHostInt), sub: '' },
+    { label: 'Total Usable Hosts', value: usableHosts.toLocaleString(), sub: totalAddresses.toLocaleString() + ' total addresses', highlight: true },
+  ];
+
+  grid.innerHTML = results.map(r => {
+    let badgeHtml = '';
+    if (r.badge) badgeHtml = '<span class="class-badge ' + r.badge.cls + '">Class ' + r.badge.name + '</span>';
+    return '<div class="result-card"><h3>' + r.label + badgeHtml + '</h3><div class="result-value' + (r.highlight ? ' highlight' : '') + '">' + r.value + ' <button class="copy-btn" onclick="copyText(\'' + r.value + '\')" title="Copy">&#x2398;</button></div>' + (r.sub ? '<div class="result-sub">' + r.sub + '</div>' : '') + '</div>';
+  }).join('');
+
+  // Visual bar
+  const netPct = (cidr / 32) * 100;
+  const hostPct = 100 - netPct;
+  document.getElementById('subnetBar').innerHTML =
+    '<div class="network-part" style="width:' + netPct + '%">' + cidr + ' bits</div>' +
+    '<div class="host-part" style="width:' + hostPct + '%">' + (32 - cidr) + ' bits</div>';
+  document.getElementById('netBitsCount').textContent = cidr;
+  document.getElementById('hostBitsCount').textContent = 32 - cidr;
+
+  // Binary rows
+  const binaryData = [
+    { label: 'IP Address', int: ipInt },
+    { label: 'Subnet Mask', int: maskInt },
+    { label: 'Network', int: networkInt },
+    { label: 'Broadcast', int: broadcastInt },
+    { label: 'Wildcard', int: wildcardInt },
+  ];
+
+  const binaryRows = document.getElementById('binaryRows');
+  binaryRows.innerHTML = binaryData.map(d => {
+    const bits = intToBinary(d.int);
+    let bitsHtml = '';
+    for (let i = 0; i < 32; i++) {
+      if (i > 0 && i % 8 === 0) bitsHtml += '<span class="bit sep">.</span>';
+      const cls = i < cidr ? 'network' : 'host';
+      bitsHtml += '<span class="bit ' + cls + '">' + bits[i] + '</span>';
+    }
+    return '<div class="binary-row"><span class="binary-label">' + d.label + '</span><div class="binary-bits">' + bitsHtml + '</div></div>';
+  }).join('');
+
+  // Split section
+  const splitSection = document.getElementById('splitSection');
+  if (cidr < 30) {
+    splitSection.style.display = '';
+    const splitSelect = document.getElementById('splitSelect');
+    splitSelect.innerHTML = '';
+    for (let newCidr = cidr + 1; newCidr <= Math.min(cidr + 8, 30); newCidr++) {
+      const count = Math.pow(2, newCidr - cidr);
+      const opt = document.createElement('option');
+      opt.value = newCidr;
+      opt.textContent = count + ' subnets (/' + newCidr + ')';
+      splitSelect.appendChild(opt);
+    }
+    // Store for split calculation
+    splitSelect.dataset.networkInt = networkInt;
+    splitSelect.dataset.baseCidr = cidr;
+    splitSubnets();
+  } else {
+    splitSection.style.display = 'none';
+  }
+
+  document.getElementById('results').classList.add('show');
+}
+
+function splitSubnets() {
+  const sel = document.getElementById('splitSelect');
+  const newCidr = parseInt(sel.value);
+  const networkInt = parseInt(sel.dataset.networkInt);
+  const baseCidr = parseInt(sel.dataset.baseCidr);
+  const count = Math.pow(2, newCidr - baseCidr);
+  const subnetSize = Math.pow(2, 32 - newCidr);
+  const usable = newCidr >= 31 ? (newCidr === 32 ? 1 : 2) : subnetSize - 2;
+
+  const body = document.getElementById('splitBody');
+  let html = '';
+  const maxRows = Math.min(count, 64); // limit display
+  for (let i = 0; i < maxRows; i++) {
+    const net = (networkInt + i * subnetSize) >>> 0;
+    const bcast = (net + subnetSize - 1) >>> 0;
+    const first = newCidr >= 31 ? net : (net + 1) >>> 0;
+    const last = newCidr >= 31 ? bcast : (bcast - 1) >>> 0;
+    html += '<tr><td>' + (i + 1) + '</td><td>' + intToIP(net) + '/' + newCidr + '</td><td>' + intToIP(first) + '</td><td>' + intToIP(last) + '</td><td>' + intToIP(bcast) + '</td><td>' + usable.toLocaleString() + '</td></tr>';
+  }
+  if (count > maxRows) {
+    html += '<tr><td colspan="6" style="text-align:center;color:var(--text2);font-style:italic">... and ' + (count - maxRows) + ' more subnets</td></tr>';
+  }
+  body.innerHTML = html;
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('Copied: ' + text));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Auto-calculate on load and on Enter key
+document.getElementById('ipInput').addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+cidrSelect.addEventListener('change', calculate);
+calculate();
+
+// IntersectionObserver fade-in
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a subnet calculator?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A subnet calculator takes an IP address and CIDR prefix length and computes all related subnet information: network address, broadcast address, usable host range, subnet mask, wildcard mask, and total number of hosts."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is CIDR notation?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CIDR (Classless Inter-Domain Routing) notation uses a slash followed by a number (e.g., /24) to indicate how many bits of the IP address are used for the network portion. A /24 means the first 24 bits are the network, leaving 8 bits for hosts."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between network address and broadcast address?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The network address is the first address in a subnet and identifies the subnet itself. The broadcast address is the last address and is used to send data to all hosts in the subnet. Neither can be assigned to a device."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this tool free to use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, this IP subnet calculator is completely free. It runs entirely in your browser with no data sent to any server. No signup, no limits."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
