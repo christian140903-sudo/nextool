@@ -1,609 +1,502 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>chmod Calculator — Unix Permission Calculator Online Free | NexTool</title>
-    <meta name="description" content="Visual chmod calculator. Convert between numeric (octal) and symbolic Unix file permissions. Includes presets, setuid/setgid/sticky bit, and plain English explanations.">
-    <meta property="og:title" content="chmod Calculator — Unix Permission Calculator | NexTool">
-    <meta property="og:description" content="Visual chmod calculator with presets, special permissions, and plain English explanations. Free online Unix permission tool.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://nextool.app/free-tools/chmod-calculator.html">
-    <meta property="og:image" content="https://nextool.app/assets/og-default.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta name="twitter:card" content="summary_large_image">
-    <link rel="canonical" href="https://nextool.app/free-tools/chmod-calculator.html">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "NexTool chmod Calculator",
-        "applicationCategory": "UtilitiesApplication",
-        "operatingSystem": "Any",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-        "description": "Visual Unix file permission calculator. Convert between octal and symbolic notation with presets and plain English explanations."
-    }
-    </script>
-    <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --bg: #050508; --bg-alt: #0a0a12; --surface: #111118; --surface-alt: #1a1a24;
-            --border: rgba(239, 68, 68, 0.15); --border-2: rgba(239, 68, 68, 0.08);
-            --primary: #ef4444; --primary-hover: #f87171; --accent: #a855f7; --pink: #ec4899;
-            --indigo: #6366f1; --success: #22c55e;
-            --text: #e2e8f0; --text-secondary: #94a3b8; --text-dim: #64748b; --white: #ffffff;
-            --max-w: 1200px;
-        }
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
-        body::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(circle at 1px 1px, rgba(239, 68, 68, 0.03) 1px, transparent 0); background-size: 40px 40px; pointer-events: none; z-index: 0; }
-        .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
-        .gradient-text { background: linear-gradient(135deg, var(--primary) 0%, #f97316 50%, #eab308 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .fade-in { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
-        .fade-in.visible { opacity: 1; transform: translateY(0); }
-        .fade-in-delay-1 { transition-delay: 0.1s; }
-        .fade-in-delay-2 { transition-delay: 0.2s; }
-
-        /* Nav */
-        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 16px 0; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: rgba(5, 5, 8, 0.85); border-bottom: 1px solid transparent; transition: all 0.3s; }
-        nav.scrolled { border-bottom-color: rgba(99, 102, 241, 0.15); }
-        .nav-inner { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
-        .nav-logo { font-size: 20px; font-weight: 800; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 8px; }
-        .nav-logo svg { width: 28px; height: 28px; }
-        .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
-        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
-        .nav-links a:hover { color: var(--white); }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s ease; cursor: pointer; border: none; font-family: inherit; }
-        .btn-primary { background: var(--indigo); color: var(--white); }
-        .btn-primary:hover { background: #818cf8; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3); }
-        .nav-cta { display: flex; align-items: center; gap: 12px; }
-        .nav-btn { padding: 8px 16px; font-size: 13px; border-radius: 8px; }
-        .mobile-toggle { display: none; background: none; border: none; color: var(--text); cursor: pointer; padding: 8px; }
-
-        /* Breadcrumb */
-        .breadcrumb { padding: 120px 0 0; font-size: 14px; color: var(--text-dim); }
-        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
-        .breadcrumb a:hover { color: var(--primary); }
-
-        /* Hero */
-        .tool-hero { padding: 40px 0 40px; text-align: center; }
-        .tool-hero h1 { font-size: clamp(32px, 4vw, 48px); font-weight: 900; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px; }
-        .tool-hero p { font-size: 18px; color: var(--text-secondary); line-height: 1.7; max-width: 640px; margin: 0 auto 24px; }
-        .tool-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 100px; font-size: 13px; color: var(--primary); font-weight: 500; margin-bottom: 20px; }
-
-        /* Calculator */
-        .calc-section { padding: 0 0 80px; }
-        .calc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
-        .calc-header { padding: 20px 24px; background: var(--surface-alt); border-bottom: 1px solid var(--border-2); display: flex; align-items: center; justify-content: space-between; }
-        .calc-header h2 { font-size: 16px; font-weight: 700; color: var(--white); }
-        .calc-body { padding: 32px 24px; }
-
-        /* Permission Grid */
-        .perm-grid { display: grid; grid-template-columns: 120px repeat(3, 1fr); gap: 0; margin-bottom: 32px; }
-        .perm-grid-header { padding: 12px 16px; background: var(--surface-alt); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); text-align: center; border-bottom: 1px solid var(--border-2); }
-        .perm-grid-header:first-child { text-align: left; border-radius: 10px 0 0 0; }
-        .perm-grid-header:last-child { border-radius: 0 10px 0 0; }
-        .perm-row-label { padding: 16px; font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; border-bottom: 1px solid var(--border-2); }
-        .perm-cell { display: flex; align-items: center; justify-content: center; padding: 16px; border-bottom: 1px solid var(--border-2); }
-        .perm-checkbox { appearance: none; -webkit-appearance: none; width: 24px; height: 24px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.2s; position: relative; background: var(--bg-alt); }
-        .perm-checkbox:checked { background: var(--primary); border-color: var(--primary); }
-        .perm-checkbox:checked::after { content: ''; position: absolute; left: 7px; top: 3px; width: 6px; height: 12px; border: solid var(--white); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
-        .perm-checkbox:hover { border-color: var(--primary-hover); }
-
-        /* Special Permissions */
-        .special-row { margin-bottom: 32px; }
-        .special-label { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
-        .special-grid { display: flex; gap: 16px; flex-wrap: wrap; }
-        .special-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg-alt); border: 1px solid var(--border-2); border-radius: 10px; cursor: pointer; transition: all 0.2s; }
-        .special-item:hover { border-color: var(--border); }
-        .special-item label { cursor: pointer; font-size: 14px; color: var(--text); }
-
-        /* Output Section */
-        .output-section { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 24px; }
-        .output-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-2); }
-        .output-row:last-child { border-bottom: none; }
-        .output-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
-        .output-value { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 20px; font-weight: 700; color: var(--white); letter-spacing: 0.05em; }
-        .output-value.cmd { font-size: 16px; color: var(--primary); background: rgba(239, 68, 68, 0.08); padding: 8px 16px; border-radius: 8px; }
-        .output-value.ls { font-size: 16px; color: var(--success); }
-        .output-value.explain { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.6; max-width: 500px; text-align: right; }
-
-        /* Octal Input */
-        .octal-input-row { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
-        .octal-input-label { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
-        .octal-input { width: 140px; padding: 12px 16px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 24px; font-weight: 700; text-align: center; background: var(--bg-alt); border: 2px solid var(--border); border-radius: 10px; color: var(--white); outline: none; transition: border-color 0.2s; letter-spacing: 0.1em; }
-        .octal-input:focus { border-color: var(--primary); }
-
-        /* Presets */
-        .presets-section { padding: 0 0 80px; }
-        .presets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-        .preset-card { background: var(--surface); border: 1px solid var(--border-2); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s; }
-        .preset-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(239, 68, 68, 0.1); }
-        .preset-card.active { border-color: var(--primary); background: rgba(239, 68, 68, 0.05); }
-        .preset-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-        .preset-octal { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 20px; font-weight: 800; color: var(--primary); }
-        .preset-symbolic { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; color: var(--text-secondary); }
-        .preset-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
-        .preset-use { font-size: 12px; color: var(--text-secondary); margin-top: 6px; font-weight: 500; }
-
-        /* Copy button */
-        .copy-all-btn { padding: 10px 24px; background: var(--primary); color: var(--white); border: none; border-radius: 10px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; }
-        .copy-all-btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
-        .copy-all-btn.copied { background: var(--success); }
-
-        /* Section headers */
-        .section-header { text-align: center; margin-bottom: 56px; }
-        .section-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); margin-bottom: 12px; }
-        .section-title { font-size: clamp(28px, 4vw, 40px); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 12px; }
-        .section-subtitle { font-size: 17px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; line-height: 1.6; }
-
-        /* Features */
-        .features { padding: 80px 0; background: var(--bg-alt); }
-        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-        .feature-card { background: var(--surface); border: 1px solid var(--border-2); border-radius: 14px; padding: 28px; transition: all 0.3s; }
-        .feature-card:hover { border-color: var(--border); transform: translateY(-2px); }
-        .feature-icon { width: 44px; height: 44px; border-radius: 10px; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 16px; }
-        .feature-card h3 { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
-        .feature-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
-
-        /* CTA */
-        .tool-cta { padding: 100px 0; text-align: center; position: relative; }
-        .tool-cta::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 400px; background: radial-gradient(ellipse, rgba(239, 68, 68, 0.08) 0%, transparent 70%); pointer-events: none; }
-        .tool-cta h2 { font-size: clamp(28px, 4vw, 40px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
-        .tool-cta p { font-size: 17px; color: var(--text-secondary); margin-bottom: 32px; max-width: 480px; margin-left: auto; margin-right: auto; }
-        .tool-cta-btns { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
-
-        /* Footer */
-        footer { border-top: 1px solid rgba(99, 102, 241, 0.08); padding: 64px 0 32px; }
-        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
-        .footer-brand p { font-size: 14px; color: var(--text-dim); line-height: 1.6; margin-top: 16px; max-width: 280px; }
-        .footer-col h4 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text); margin-bottom: 16px; }
-        .footer-col a { display: block; font-size: 14px; color: var(--text-dim); text-decoration: none; padding: 4px 0; transition: color 0.2s; }
-        .footer-col a:hover { color: #818cf8; }
-        .footer-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 32px; border-top: 1px solid rgba(99, 102, 241, 0.08); font-size: 13px; color: var(--text-dim); }
-        .footer-bottom-links { display: flex; gap: 24px; }
-        .footer-bottom-links a { color: var(--text-dim); text-decoration: none; }
-        .footer-bottom-links a:hover { color: var(--text); }
-
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .mobile-toggle { display: block; }
-            .perm-grid { grid-template-columns: 80px repeat(3, 1fr); }
-            .perm-grid-header, .perm-row-label { font-size: 11px; padding: 10px 8px; }
-            .special-grid { flex-direction: column; }
-            .output-row { flex-direction: column; align-items: flex-start; gap: 6px; }
-            .output-value.explain { text-align: left; max-width: 100%; }
-            .features-grid { grid-template-columns: 1fr; }
-            .presets-grid { grid-template-columns: 1fr; }
-            .footer-grid { grid-template-columns: 1fr; }
-            .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
-            .octal-input-row { flex-direction: column; align-items: flex-start; }
-        }
-        @media (max-width: 480px) {
-            .perm-grid { grid-template-columns: 60px repeat(3, 1fr); }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chmod Calculator - Free Online Unix Permission Calculator | NexTool</title>
+<meta name="description" content="Free online chmod calculator. Convert between numeric (755) and symbolic (rwxr-xr-x) Unix file permissions. Interactive checkboxes, common presets, bidirectional editing.">
+<meta name="keywords" content="chmod calculator, unix permissions, file permissions, chmod command, octal permissions, symbolic permissions, linux permissions, free tool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free Chmod Calculator - Unix Permission Calculator | NexTool">
+<meta property="og:description" content="Interactive chmod calculator. Convert between numeric and symbolic Unix permissions instantly. Free online tool.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/chmod-calculator.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/chmod-calculator.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Chmod Calculator | NexTool">
+<meta name="twitter:description" content="Interactive chmod calculator with presets and bidirectional editing. Free online Unix permission tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Chmod Calculator","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online chmod calculator. Convert between numeric and symbolic Unix file permissions with an interactive visual interface."}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Article","headline":"Chmod Calculator - Free Online Unix Permission Calculator","description":"Interactive chmod calculator to convert between numeric and symbolic Unix file permissions.","author":{"@type":"Organization","name":"NexTool"},"publisher":{"@type":"Organization","name":"NexTool","url":"https://nextool.app"},"datePublished":"2026-02-14","dateModified":"2026-02-14"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://nextool.app/"},{"@type":"ListItem","position":2,"name":"Free Tools","item":"https://nextool.app/free-tools/"},{"@type":"ListItem","position":3,"name":"Chmod Calculator","item":"https://nextool.app/free-tools/chmod-calculator.html"}]}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+.tool-container{max-width:900px;margin:0 auto;padding:0 1.5rem 3rem}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1rem}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{padding:1.25rem}
+.perm-grid{width:100%;border-collapse:collapse}
+.perm-grid th,.perm-grid td{padding:.75rem .5rem;text-align:center;border-bottom:1px solid var(--border)}
+.perm-grid th{font-size:.75rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.perm-grid td.role-label{text-align:left;font-weight:600;font-size:.9rem;color:var(--text);min-width:80px}
+.perm-grid input[type="checkbox"]{width:20px;height:20px;accent-color:var(--primary);cursor:pointer;border-radius:4px}
+.perm-grid .octal-cell{font-family:'Courier New',monospace;font-size:1.1rem;font-weight:700;color:var(--cyan);min-width:40px}
+.output-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.output-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center}
+.output-block label{display:block;font-size:.75rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem}
+.output-block .value{font-family:'Courier New',monospace;font-size:1.8rem;font-weight:800;letter-spacing:2px}
+.output-block .value.numeric{color:var(--cyan)}
+.output-block .value.symbolic{color:var(--green)}
+.output-block input{background:transparent;border:none;font-family:'Courier New',monospace;font-size:1.8rem;font-weight:800;letter-spacing:2px;color:var(--cyan);text-align:center;width:100%;outline:none}
+.output-block input:focus{border-bottom:2px solid var(--primary)}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;justify-content:center}
+.toolbar button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.presets{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.preset-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.5rem 1rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Courier New',monospace}
+.preset-btn:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.preset-btn.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.preset-btn .preset-label{display:block;font-family:'Inter',sans-serif;font-size:.65rem;color:var(--text2);font-weight:400;margin-top:2px}
+.preset-btn.active .preset-label{color:rgba(255,255,255,.8)}
+.command-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;font-family:'Courier New',monospace;font-size:.9rem;color:var(--text);display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:1rem}
+.command-box code{flex:1;word-break:break-all}
+.command-box button{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.8rem;padding:.3rem .5rem;transition:color .2s;white-space:nowrap}
+.command-box button:hover{color:var(--primary)}
+.explain{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:1rem;font-size:.85rem;color:var(--text2);line-height:1.8}
+.explain strong{color:var(--text)}
+.explain .perm-r{color:var(--green)}
+.explain .perm-w{color:var(--yellow)}
+.explain .perm-x{color:var(--pink)}
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+.faq-section{max-width:800px;margin:0 auto;padding:2rem 1.5rem}
+.faq-section h2{font-size:1.5rem;font-weight:700;margin-bottom:1.5rem;text-align:center}
+.faq-item{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.75rem;overflow:hidden}
+.faq-q{padding:1rem 1.25rem;cursor:pointer;font-weight:600;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;background:var(--surface);transition:background .2s}
+.faq-q:hover{background:var(--surface2)}
+.faq-q::after{content:'+';font-size:1.2rem;color:var(--text2);transition:transform .2s}
+.faq-item.open .faq-q::after{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 1.25rem;color:var(--text2);font-size:.85rem;line-height:1.7}
+.faq-item.open .faq-a{max-height:300px;padding:0 1.25rem 1rem}
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .output-row{grid-template-columns:1fr}
+  .perm-grid th,.perm-grid td{padding:.5rem .25rem;font-size:.8rem}
+  .perm-grid input[type="checkbox"]{width:18px;height:18px}
+  .output-block .value,.output-block input{font-size:1.4rem}
+}
+</style>
 </head>
 <body>
 
-<nav id="nav">
-    <div class="nav-inner">
-        <a href="/" class="nav-logo">
-            <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="#6366f1"/><path d="M8 10l4 8 4-8 4 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            NexTool
-        </a>
-        <ul class="nav-links">
-            <li><a href="/free-tools/">Free Tools</a></li>
-            <li><a href="/extension.html">Pro</a></li>
-            <li><a href="/blog/">Blog</a></li>
-            <li><a href="/pro.html">Pro — $29</a></li>
-        </ul>
-        <div class="nav-cta">
-            <a href="/pro.html" class="btn btn-primary nav-btn">Get Pro — $29</a>
-        </div>
-        <button class="mobile-toggle" aria-label="Open menu">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-    </div>
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/pro.html" class="nav-cta">Get Pro — $29</a>
+  </div>
 </nav>
 
-<main>
-    <div class="breadcrumb">
-        <div class="container">
-            <a href="/">NexTool</a> &rsaquo; <a href="/free-tools/">Free Tools</a> &rsaquo; chmod Calculator
-        </div>
+<section class="hero fade-in">
+  <h1>Free <span>Chmod Calculator</span></h1>
+  <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Interactive Unix file permission calculator. Toggle checkboxes to set permissions, or type a numeric value like 755. See numeric and symbolic notation side by side with common presets and chmod commands.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="panel">
+    <div class="panel-header"><span>Permission Matrix</span></div>
+    <div class="panel-body">
+      <table class="perm-grid">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Read (4)</th>
+            <th>Write (2)</th>
+            <th>Execute (1)</th>
+            <th>Octal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="role-label">Owner</td>
+            <td><input type="checkbox" id="owner-r" onchange="updateFromCheckboxes()" checked></td>
+            <td><input type="checkbox" id="owner-w" onchange="updateFromCheckboxes()" checked></td>
+            <td><input type="checkbox" id="owner-x" onchange="updateFromCheckboxes()" checked></td>
+            <td class="octal-cell" id="owner-octal">7</td>
+          </tr>
+          <tr>
+            <td class="role-label">Group</td>
+            <td><input type="checkbox" id="group-r" onchange="updateFromCheckboxes()" checked></td>
+            <td><input type="checkbox" id="group-w" onchange="updateFromCheckboxes()"></td>
+            <td><input type="checkbox" id="group-x" onchange="updateFromCheckboxes()" checked></td>
+            <td class="octal-cell" id="group-octal">5</td>
+          </tr>
+          <tr>
+            <td class="role-label">Others</td>
+            <td><input type="checkbox" id="others-r" onchange="updateFromCheckboxes()" checked></td>
+            <td><input type="checkbox" id="others-w" onchange="updateFromCheckboxes()"></td>
+            <td><input type="checkbox" id="others-x" onchange="updateFromCheckboxes()" checked></td>
+            <td class="octal-cell" id="others-octal">5</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+  </div>
 
-    <section class="tool-hero">
-        <div class="container">
-            <div class="fade-in">
-                <div class="tool-badge">&#128274; Unix Permissions</div>
-                <h1>chmod <span class="gradient-text">Calculator</span></h1>
-                <p>Visual Unix file permission calculator. Toggle checkboxes, enter octal values, or pick from common presets. Get the chmod command, symbolic notation, and a plain English explanation instantly.</p>
-            </div>
-        </div>
-    </section>
+  <div class="output-row">
+    <div class="output-block">
+      <label>Numeric (Octal)</label>
+      <input type="text" id="numericInput" value="755" maxlength="4" oninput="updateFromNumeric()" style="border-bottom:2px solid var(--border)">
+    </div>
+    <div class="output-block">
+      <label>Symbolic</label>
+      <div class="value symbolic" id="symbolicOutput">rwxr-xr-x</div>
+    </div>
+  </div>
 
-    <section class="calc-section">
-        <div class="container">
-            <div class="calc-card fade-in">
-                <div class="calc-header">
-                    <h2>Permission Calculator</h2>
-                    <div style="display:flex;gap:8px;">
-                        <button class="copy-all-btn" id="copy-all-btn">Copy chmod command</button>
-                    </div>
-                </div>
-                <div class="calc-body">
-                    <div class="octal-input-row">
-                        <span class="octal-input-label">Enter octal value:</span>
-                        <input type="text" class="octal-input" id="octal-input" value="755" maxlength="4" placeholder="755">
-                    </div>
+  <div class="toolbar" style="margin-bottom:1rem">
+    <button onclick="copyNumeric()">Copy Numeric</button>
+    <button onclick="copySymbolic()">Copy Symbolic</button>
+    <button onclick="copyCommand()">Copy chmod Command</button>
+    <button onclick="resetPerms()">Reset</button>
+  </div>
 
-                    <div class="perm-grid" id="perm-grid">
-                        <div class="perm-grid-header"></div>
-                        <div class="perm-grid-header">Read (4)</div>
-                        <div class="perm-grid-header">Write (2)</div>
-                        <div class="perm-grid-header">Execute (1)</div>
+  <div class="panel">
+    <div class="panel-header"><span>Common Presets</span></div>
+    <div class="panel-body">
+      <div class="presets" id="presets">
+        <button class="preset-btn" onclick="setPreset('644')">644<span class="preset-label">Files default</span></button>
+        <button class="preset-btn active" onclick="setPreset('755')">755<span class="preset-label">Directories</span></button>
+        <button class="preset-btn" onclick="setPreset('777')">777<span class="preset-label">Full access</span></button>
+        <button class="preset-btn" onclick="setPreset('600')">600<span class="preset-label">Owner only</span></button>
+        <button class="preset-btn" onclick="setPreset('700')">700<span class="preset-label">Owner exec</span></button>
+        <button class="preset-btn" onclick="setPreset('664')">664<span class="preset-label">Shared files</span></button>
+        <button class="preset-btn" onclick="setPreset('775')">775<span class="preset-label">Shared dirs</span></button>
+        <button class="preset-btn" onclick="setPreset('400')">400<span class="preset-label">Read-only</span></button>
+        <button class="preset-btn" onclick="setPreset('444')">444<span class="preset-label">Read all</span></button>
+        <button class="preset-btn" onclick="setPreset('666')">666<span class="preset-label">Read/write all</span></button>
+      </div>
+    </div>
+  </div>
 
-                        <div class="perm-row-label">Owner</div>
-                        <div class="perm-cell"><input type="checkbox" class="perm-checkbox" data-who="owner" data-perm="read" checked></div>
-                        <div class="perm-cell"><input type="checkbox" class="perm-checkbox" data-who="owner" data-perm="write" checked></div>
-                        <div class="perm-cell"><input type="checkbox" class="perm-checkbox" data-who="owner" data-perm="execute" checked></div>
+  <div class="command-box">
+    <code id="chmodCommand">chmod 755 filename</code>
+    <button onclick="copyCommand()">Copy</button>
+  </div>
 
-                        <div class="perm-row-label">Group</div>
-                        <div class="perm-cell"><input type="checkbox" class="perm-checkbox" data-who="group" data-perm="read" checked></div>
-                        <div class="perm-cell"><input type="checkbox" class="perm-checkbox" data-who="group" data-perm="write"></div>
-                        <div class="perm-cell"><input type="checkbox" class="perm-checkbox" data-who="group" data-perm="execute" checked></div>
-
-                        <div class="perm-row-label">Others</div>
-                        <div class="perm-cell"><input type="checkbox" class="perm-checkbox" data-who="others" data-perm="read" checked></div>
-                        <div class="perm-cell"><input type="checkbox" class="perm-checkbox" data-who="others" data-perm="write"></div>
-                        <div class="perm-cell"><input type="checkbox" class="perm-checkbox" data-who="others" data-perm="execute" checked></div>
-                    </div>
-
-                    <div class="special-row">
-                        <div class="special-label">Special Permissions</div>
-                        <div class="special-grid">
-                            <div class="special-item">
-                                <input type="checkbox" class="perm-checkbox" id="setuid" data-special="setuid">
-                                <label for="setuid">Setuid (4)</label>
-                            </div>
-                            <div class="special-item">
-                                <input type="checkbox" class="perm-checkbox" id="setgid" data-special="setgid">
-                                <label for="setgid">Setgid (2)</label>
-                            </div>
-                            <div class="special-item">
-                                <input type="checkbox" class="perm-checkbox" id="sticky" data-special="sticky">
-                                <label for="sticky">Sticky Bit (1)</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="output-section">
-                        <div class="output-row">
-                            <span class="output-label">Octal</span>
-                            <span class="output-value" id="out-octal">755</span>
-                        </div>
-                        <div class="output-row">
-                            <span class="output-label">Symbolic</span>
-                            <span class="output-value" id="out-symbolic">rwxr-xr-x</span>
-                        </div>
-                        <div class="output-row">
-                            <span class="output-label">chmod Command</span>
-                            <span class="output-value cmd" id="out-cmd">chmod 755 file.txt</span>
-                        </div>
-                        <div class="output-row">
-                            <span class="output-label">ls -la Preview</span>
-                            <span class="output-value ls" id="out-ls">-rwxr-xr-x  1 user  group  4096 Jan  1 12:00 file.txt</span>
-                        </div>
-                        <div class="output-row">
-                            <span class="output-label">Explanation</span>
-                            <span class="output-value explain" id="out-explain">Owner can read, write, and execute. Group can read and execute. Others can read and execute.</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="presets-section">
-        <div class="container">
-            <div class="section-header fade-in">
-                <div class="section-label">Presets</div>
-                <h2 class="section-title">Common <span class="gradient-text">Permissions</span></h2>
-                <p class="section-subtitle">Click any preset to apply it to the calculator above.</p>
-            </div>
-            <div class="presets-grid" id="presets-grid">
-            </div>
-        </div>
-    </section>
-
-    <section class="features">
-        <div class="container">
-            <div class="section-header fade-in">
-                <div class="section-label">Features</div>
-                <h2 class="section-title">Why This <span class="gradient-text">Calculator</span></h2>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card fade-in">
-                    <div class="feature-icon">&#127918;</div>
-                    <h3>Visual Checkboxes</h3>
-                    <p>Toggle read, write, and execute permissions visually for owner, group, and others. No memorizing octal values needed.</p>
-                </div>
-                <div class="feature-card fade-in fade-in-delay-1">
-                    <div class="feature-icon">&#128260;</div>
-                    <h3>Bidirectional</h3>
-                    <p>Enter an octal number and see checkboxes update, or toggle checkboxes and see the octal value change in real time.</p>
-                </div>
-                <div class="feature-card fade-in fade-in-delay-2">
-                    <div class="feature-icon">&#128172;</div>
-                    <h3>Plain English</h3>
-                    <p>Every permission combination is explained in clear, human-readable language. No Unix manual required.</p>
-                </div>
-                <div class="feature-card fade-in">
-                    <div class="feature-icon">&#9889;</div>
-                    <h3>Special Permissions</h3>
-                    <p>Full support for setuid, setgid, and sticky bit. See how they appear in ls -la output with the correct flags.</p>
-                </div>
-                <div class="feature-card fade-in fade-in-delay-1">
-                    <div class="feature-icon">&#128203;</div>
-                    <h3>Common Presets</h3>
-                    <p>One-click presets for the most used permissions: 644, 755, 777, 600, 400, and more with use-case descriptions.</p>
-                </div>
-                <div class="feature-card fade-in fade-in-delay-2">
-                    <div class="feature-icon">&#128274;</div>
-                    <h3>100% Client-Side</h3>
-                    <p>Everything runs in your browser. Nothing is sent to any server. Works offline too.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="tool-cta">
-        <div class="container fade-in">
-            <h2>Need Server <span class="gradient-text">Automation</span>?</h2>
-            <p>NexTool builds custom automations, deployment scripts, and server management tools.</p>
-            <div class="tool-cta-btns">
-                <a href="/pro.html" class="btn btn-primary" style="padding:14px 32px;font-size:16px;border-radius:12px;">Get Pro — $29</a>
-                <a href="/free-tools/" class="btn btn-secondary" style="padding:14px 32px;font-size:16px;border-radius:12px;border:1px solid rgba(99,102,241,0.15);color:var(--text);">More Free Tools</a>
-            </div>
-        </div>
-    </section>
-</main>
-
-
-<!-- AUTO-LINKED by NexTool Engine -->
-<div style="margin:2rem 0;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
-<p style="font-weight:600;margin-bottom:.5rem">Related Tools</p>
-<p><a href="/free-tools/box-shadow-generator.html" style="color:var(--primary);text-decoration:none">CSS Box Shadow Generator</a> · <a href="/free-tools/emoji-picker.html" style="color:var(--primary);text-decoration:none">Emoji Picker & Search</a> · <a href="/free-tools/meta-tag-generator.html" style="color:var(--primary);text-decoration:none">Meta Tag Generator</a> · <a href="/free-tools/color-palette.html" style="color:var(--primary);text-decoration:none">Free Color Palette Generator</a> · <a href="/free-tools/css-animation-generator.html" style="color:var(--primary);text-decoration:none">CSS Animation Generator - Free Tool</a></p>
+  <div class="explain" id="explanation"></div>
 </div>
 
-<!-- AUTO-LINKED by NexTool Engine -->
-<div style="margin:2rem 0;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
-<p style="font-weight:600;margin-bottom:.5rem">Related Tools</p>
-<p><a href="/free-tools/api-mock-server.html" style="color:var(--primary);text-decoration:none">Free API Mock Server</a> · <a href="/free-tools/favicon-generator.html" style="color:var(--primary);text-decoration:none">Favicon Generator</a> · <a href="/free-tools/git-diff-viewer.html" style="color:var(--primary);text-decoration:none">Free Git Diff Viewer</a></p>
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/pro.html" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 220+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 220+ Free Tools &rarr;</a>
 </div>
-<footer>
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-brand">
-                <a href="/" class="nav-logo">
-                    <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="#6366f1"/><path d="M8 10l4 8 4-8 4 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    NexTool
-                </a>
-                <p>150+ free developer tools. Browser-based, no signup required.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Products</h4>
-                <a href="/free-tools/">220+ Free Tools</a>
-<a href="/pro.html">NexTool Pro</a>
-<a href="/workspace.html">Workspace</a>
-            </div>
-            <div class="footer-col">
-                <h4>Free Tools</h4>
-                <a href="/free-tools/html-to-markdown.html">HTML to Markdown</a>
-                <a href="/free-tools/chmod-calculator.html">chmod Calculator</a>
-                <a href="/free-tools/ip-info.html">IP Lookup</a>
-                <a href="/free-tools/noise-generator.html">Noise Generator</a>
-            </div>
-            <div class="footer-col">
-                <h4>Explore</h4>
-                <a href="/extension.html">NexTool Pro</a>
-                <a href="/pro.html">Pro — $29</a>
-                <a href="/blog/">Blog</a>
-                <a href="/privacy.html">Privacy</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <span>&copy; 2026 NexTool. All rights reserved.</span>
-            <div class="footer-bottom-links">
-                <a href="/privacy.html">Privacy Policy</a>
-                <a href="/terms.html">Terms of Service</a>
-            </div>
-        </div>
+</div>
+</section>
+
+<div style="max-width:900px;margin:2rem auto;padding:0 1.5rem">
+<div style="padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
+<p style="font-weight:600;margin-bottom:.5rem">Related Tools</p>
+<p><a href="/free-tools/crontab-generator.html" style="color:var(--primary);text-decoration:none">Crontab Generator</a> &middot; <a href="/free-tools/htaccess-generator.html" style="color:var(--primary);text-decoration:none">htaccess Generator</a> &middot; <a href="/free-tools/nginx-config-generator.html" style="color:var(--primary);text-decoration:none">Nginx Config Generator</a> &middot; <a href="/free-tools/docker-compose-generator.html" style="color:var(--primary);text-decoration:none">Docker Compose Generator</a></p>
+</div>
+</div>
+
+<section class="faq-section fade-in">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <div class="faq-q">What does chmod 755 mean?</div>
+    <div class="faq-a">chmod 755 gives the owner full permissions (read, write, execute = 7), while the group and others get read and execute permissions (5). This is the most common permission for directories and executable scripts, allowing the owner to modify files while letting others access them.</div>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <div class="faq-q">How do Unix file permissions work?</div>
+    <div class="faq-a">Unix permissions control who can read (r=4), write (w=2), and execute (x=1) files. Each permission has a numeric value, and you add them up for each role: Owner, Group, and Others. For example, read+write = 6, read+execute = 5, and read+write+execute = 7.</div>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <div class="faq-q">What is the difference between numeric and symbolic chmod notation?</div>
+    <div class="faq-a">Numeric notation uses three digits (e.g., 755) where each digit represents permissions for owner, group, and others. Symbolic notation uses letters like rwxr-xr-x where r=read, w=write, x=execute, and - means no permission. Both represent the same permissions in different formats.</div>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <div class="faq-q">When should I use chmod 644 vs 755?</div>
+    <div class="faq-a">Use 644 for regular files (like HTML, CSS, images) where the owner can read and write, but others only need to read. Use 755 for directories and executable files (like scripts) where the execute permission is needed to enter directories or run scripts.</div>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <div class="faq-q">Is chmod 777 safe to use?</div>
+    <div class="faq-a">chmod 777 gives everyone full read, write, and execute permissions, which is a security risk on multi-user systems or web servers. It should generally be avoided in production. Use more restrictive permissions like 755 for directories or 644 for files instead.</div>
+  </div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">220+ Free Tools</a>
+      <a href="/pro.html">NexTool Pro</a>
+      <a href="/workspace.html">Workspace</a>
     </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
 </footer>
 
+<div class="toast" id="toast"></div>
+
 <script>
-(function() {
-    'use strict';
+var roles = ['owner', 'group', 'others'];
+var perms = ['r', 'w', 'x'];
+var permValues = { r: 4, w: 2, x: 1 };
 
-    // --- Nav scroll ---
-    const nav = document.getElementById('nav');
-    window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 20));
-
-    // --- Fade-in ---
-    const obs = new IntersectionObserver((entries) => {
-        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
-
-    // --- Presets ---
-    const presets = [
-        { octal: '777', desc: 'Full permissions for everyone.', use: 'Temporary dev/test files' },
-        { octal: '755', desc: 'Owner full access. Group and others can read and execute.', use: 'Executables, public scripts, web directories' },
-        { octal: '750', desc: 'Owner full access. Group can read and execute. Others denied.', use: 'Team scripts and programs' },
-        { octal: '700', desc: 'Owner full access. Group and others denied.', use: 'Private scripts, SSH keys directory' },
-        { octal: '644', desc: 'Owner can read and write. Group and others can only read.', use: 'HTML, CSS, images, config files' },
-        { octal: '640', desc: 'Owner can read and write. Group can read. Others denied.', use: 'Shared config files' },
-        { octal: '600', desc: 'Owner can read and write. Group and others denied.', use: 'SSH private keys, .env files, secrets' },
-        { octal: '400', desc: 'Owner can only read. Group and others denied.', use: 'Read-only sensitive files, certificates' },
-        { octal: '444', desc: 'Everyone can only read. Nobody can write or execute.', use: 'Published read-only files' },
-        { octal: '555', desc: 'Everyone can read and execute. Nobody can write.', use: 'System binaries you want protected' },
-        { octal: '1777', desc: 'Full access + sticky bit. Users can only delete their own files.', use: '/tmp directory' },
-        { octal: '2755', desc: 'Owner full + setgid. New files inherit group ownership.', use: 'Shared team directories' },
-    ];
-
-    const presetsGrid = document.getElementById('presets-grid');
-    presets.forEach(p => {
-        const sym = octalToSymbolic(p.octal);
-        const card = document.createElement('div');
-        card.className = 'preset-card fade-in';
-        card.innerHTML = `
-            <div class="preset-top">
-                <span class="preset-octal">${p.octal}</span>
-                <span class="preset-symbolic">${sym}</span>
-            </div>
-            <div class="preset-desc">${p.desc}</div>
-            <div class="preset-use">Use: ${p.use}</div>
-        `;
-        card.addEventListener('click', () => applyOctal(p.octal));
-        presetsGrid.appendChild(card);
-        obs.observe(card);
+function getCheckboxState() {
+  var state = {};
+  roles.forEach(function(role) {
+    state[role] = {};
+    perms.forEach(function(p) {
+      state[role][p] = document.getElementById(role + '-' + p).checked;
     });
+  });
+  return state;
+}
 
-    // --- Checkboxes ---
-    const checkboxes = document.querySelectorAll('.perm-checkbox[data-who]');
-    const specials = { setuid: document.getElementById('setuid'), setgid: document.getElementById('setgid'), sticky: document.getElementById('sticky') };
-    const octalInput = document.getElementById('octal-input');
+function calcOctalDigit(roleState) {
+  return (roleState.r ? 4 : 0) + (roleState.w ? 2 : 0) + (roleState.x ? 1 : 0);
+}
 
-    checkboxes.forEach(cb => cb.addEventListener('change', updateFromCheckboxes));
-    Object.values(specials).forEach(cb => cb.addEventListener('change', updateFromCheckboxes));
+function calcSymbolic(state) {
+  var sym = '';
+  roles.forEach(function(role) {
+    sym += state[role].r ? 'r' : '-';
+    sym += state[role].w ? 'w' : '-';
+    sym += state[role].x ? 'x' : '-';
+  });
+  return sym;
+}
 
-    octalInput.addEventListener('input', () => {
-        const val = octalInput.value.replace(/[^0-7]/g, '');
-        octalInput.value = val;
-        if (val.length >= 3) applyOctal(val, true);
+function updateFromCheckboxes() {
+  var state = getCheckboxState();
+  var numeric = '';
+  roles.forEach(function(role) {
+    var digit = calcOctalDigit(state[role]);
+    document.getElementById(role + '-octal').textContent = digit;
+    numeric += digit;
+  });
+  document.getElementById('numericInput').value = numeric;
+  document.getElementById('symbolicOutput').textContent = calcSymbolic(state);
+  document.getElementById('chmodCommand').textContent = 'chmod ' + numeric + ' filename';
+  updatePresetHighlight(numeric);
+  updateExplanation(state, numeric);
+}
+
+function updateFromNumeric() {
+  var val = document.getElementById('numericInput').value.replace(/[^0-7]/g, '');
+  if (val.length > 3) val = val.substring(0, 3);
+  document.getElementById('numericInput').value = val;
+
+  // Pad with zeros on the left
+  while (val.length < 3) val = '0' + val;
+
+  var digits = val.split('').map(Number);
+  var state = {};
+
+  roles.forEach(function(role, i) {
+    var d = digits[i] || 0;
+    state[role] = {
+      r: !!(d & 4),
+      w: !!(d & 2),
+      x: !!(d & 1)
+    };
+    document.getElementById(role + '-r').checked = state[role].r;
+    document.getElementById(role + '-w').checked = state[role].w;
+    document.getElementById(role + '-x').checked = state[role].x;
+    document.getElementById(role + '-octal').textContent = d;
+  });
+
+  document.getElementById('symbolicOutput').textContent = calcSymbolic(state);
+  document.getElementById('chmodCommand').textContent = 'chmod ' + val + ' filename';
+  updatePresetHighlight(val);
+  updateExplanation(state, val);
+}
+
+function setPreset(val) {
+  document.getElementById('numericInput').value = val;
+  updateFromNumeric();
+}
+
+function updatePresetHighlight(val) {
+  document.querySelectorAll('.preset-btn').forEach(function(btn) {
+    var btnVal = btn.textContent.trim().substring(0, 3);
+    btn.classList.toggle('active', btnVal === val);
+  });
+}
+
+function updateExplanation(state, numeric) {
+  var roleNames = { owner: 'Owner', group: 'Group', others: 'Others' };
+  var permNames = { r: 'read', w: 'write', x: 'execute' };
+  var permClasses = { r: 'perm-r', w: 'perm-w', x: 'perm-x' };
+
+  var lines = [];
+  roles.forEach(function(role) {
+    var active = [];
+    perms.forEach(function(p) {
+      if (state[role][p]) {
+        active.push('<span class="' + permClasses[p] + '">' + permNames[p] + '</span>');
+      }
     });
+    var desc = active.length > 0 ? active.join(', ') : '<span style="color:var(--red)">no permissions</span>';
+    lines.push('<strong>' + roleNames[role] + ':</strong> ' + desc);
+  });
 
-    function updateFromCheckboxes() {
-        const perms = { owner: 0, group: 0, others: 0 };
-        checkboxes.forEach(cb => {
-            if (!cb.checked) return;
-            const val = cb.dataset.perm === 'read' ? 4 : cb.dataset.perm === 'write' ? 2 : 1;
-            perms[cb.dataset.who] += val;
-        });
-        let special = 0;
-        if (specials.setuid.checked) special += 4;
-        if (specials.setgid.checked) special += 2;
-        if (specials.sticky.checked) special += 1;
-        const octal = (special > 0 ? String(special) : '') + String(perms.owner) + String(perms.group) + String(perms.others);
-        octalInput.value = octal;
-        updateOutputs(octal);
-    }
+  var html = lines.join('<br>');
 
-    function applyOctal(val, fromInput) {
-        if (!fromInput) octalInput.value = val;
-        const padded = val.padStart(4, '0');
-        const special = parseInt(padded[padded.length - 4]) || 0;
-        const owner = parseInt(padded[padded.length - 3]) || 0;
-        const group = parseInt(padded[padded.length - 2]) || 0;
-        const others = parseInt(padded[padded.length - 1]) || 0;
+  // Security warning
+  if (numeric === '777') {
+    html += '<br><br><span style="color:var(--red);font-weight:600">Warning: 777 gives full access to everyone. Avoid this on production servers.</span>';
+  } else if (parseInt(numeric[2]) >= 6) {
+    html += '<br><br><span style="color:var(--yellow);font-weight:600">Note: Others have write access. Consider if this is necessary.</span>';
+  }
 
-        checkboxes.forEach(cb => {
-            const v = cb.dataset.perm === 'read' ? 4 : cb.dataset.perm === 'write' ? 2 : 1;
-            const who = cb.dataset.who === 'owner' ? owner : cb.dataset.who === 'group' ? group : others;
-            cb.checked = (who & v) !== 0;
-        });
-        specials.setuid.checked = (special & 4) !== 0;
-        specials.setgid.checked = (special & 2) !== 0;
-        specials.sticky.checked = (special & 1) !== 0;
+  document.getElementById('explanation').innerHTML = html;
+}
 
-        updateOutputs(val);
-    }
+function copyNumeric() {
+  var val = document.getElementById('numericInput').value;
+  navigator.clipboard.writeText(val).then(function() { showToast('Numeric permission copied!'); });
+}
 
-    function octalToSymbolic(octal) {
-        const padded = octal.padStart(4, '0');
-        const special = parseInt(padded[padded.length - 4]) || 0;
-        const digits = [parseInt(padded[padded.length - 3]) || 0, parseInt(padded[padded.length - 2]) || 0, parseInt(padded[padded.length - 1]) || 0];
-        let sym = '';
-        const letters = ['r', 'w', 'x'];
-        const vals = [4, 2, 1];
-        digits.forEach((d, i) => {
-            for (let j = 0; j < 3; j++) {
-                if (j === 2) {
-                    // Execute position — may have special
-                    const hasExec = (d & 1) !== 0;
-                    if (i === 0 && (special & 4)) sym += hasExec ? 's' : 'S';
-                    else if (i === 1 && (special & 2)) sym += hasExec ? 's' : 'S';
-                    else if (i === 2 && (special & 1)) sym += hasExec ? 't' : 'T';
-                    else sym += hasExec ? 'x' : '-';
-                } else {
-                    sym += (d & vals[j]) ? letters[j] : '-';
-                }
-            }
-        });
-        return sym;
-    }
+function copySymbolic() {
+  var val = document.getElementById('symbolicOutput').textContent;
+  navigator.clipboard.writeText(val).then(function() { showToast('Symbolic permission copied!'); });
+}
 
-    function updateOutputs(octal) {
-        const sym = octalToSymbolic(octal);
-        document.getElementById('out-octal').textContent = octal;
-        document.getElementById('out-symbolic').textContent = sym;
-        document.getElementById('out-cmd').textContent = 'chmod ' + octal + ' file.txt';
-        document.getElementById('out-ls').textContent = '-' + sym + '  1 user  group  4096 Jan  1 12:00 file.txt';
-        document.getElementById('out-explain').textContent = buildExplanation(octal);
+function copyCommand() {
+  var val = document.getElementById('chmodCommand').textContent;
+  navigator.clipboard.writeText(val).then(function() { showToast('chmod command copied!'); });
+}
 
-        // Highlight active preset
-        document.querySelectorAll('.preset-card').forEach((card, i) => {
-            card.classList.toggle('active', presets[i].octal === octal);
-        });
-    }
+function resetPerms() {
+  setPreset('755');
+}
 
-    function buildExplanation(octal) {
-        const padded = octal.padStart(4, '0');
-        const special = parseInt(padded[padded.length - 4]) || 0;
-        const digits = [parseInt(padded[padded.length - 3]) || 0, parseInt(padded[padded.length - 2]) || 0, parseInt(padded[padded.length - 1]) || 0];
-        const names = ['Owner', 'Group', 'Others'];
-        const parts = [];
-        digits.forEach((d, i) => {
-            const perms = [];
-            if (d & 4) perms.push('read');
-            if (d & 2) perms.push('write');
-            if (d & 1) perms.push('execute');
-            if (perms.length === 0) {
-                parts.push(names[i] + ' has no permissions.');
-            } else {
-                parts.push(names[i] + ' can ' + perms.join(', ').replace(/, ([^,]*)$/, ', and $1') + '.');
-            }
-        });
-        const specParts = [];
-        if (special & 4) specParts.push('Setuid is set (runs as file owner).');
-        if (special & 2) specParts.push('Setgid is set (new files inherit group).');
-        if (special & 1) specParts.push('Sticky bit is set (only owner can delete).');
-        return parts.join(' ') + (specParts.length ? ' ' + specParts.join(' ') : '');
-    }
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
 
-    // --- Copy ---
-    document.getElementById('copy-all-btn').addEventListener('click', function() {
-        const cmd = document.getElementById('out-cmd').textContent;
-        navigator.clipboard.writeText(cmd).then(() => {
-            this.textContent = 'Copied!';
-            this.classList.add('copied');
-            setTimeout(() => { this.textContent = 'Copy chmod command'; this.classList.remove('copied'); }, 2000);
-        });
-    });
+// Init
+updateFromCheckboxes();
 
-    // Initial state
-    applyOctal('755');
-})();
+// IntersectionObserver fade-in
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
 </script>
 <script src="/js/analytics-lite.js" defer></script>
 <script src="/js/revenue.js" defer></script>
 <script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What does chmod 755 mean?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "chmod 755 gives the owner full permissions (read, write, execute = 7), while the group and others get read and execute permissions (5). This is the most common permission for directories and executable scripts."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do Unix file permissions work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Unix permissions control who can read (r=4), write (w=2), and execute (x=1) files. Each permission has a numeric value, and you add them up for each role: Owner, Group, and Others."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between numeric and symbolic chmod notation?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Numeric notation uses three digits (e.g., 755) where each digit represents permissions for owner, group, and others. Symbolic notation uses letters like rwxr-xr-x where r=read, w=write, x=execute."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When should I use chmod 644 vs 755?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use 644 for regular files where the owner can read and write, but others only need to read. Use 755 for directories and executable files where the execute permission is needed."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is chmod 777 safe to use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "chmod 777 gives everyone full read, write, and execute permissions, which is a security risk. It should generally be avoided in production. Use more restrictive permissions like 755 or 644 instead."
+      }
+    }
+  ]
+}
+</script>
 </body>
 </html>
