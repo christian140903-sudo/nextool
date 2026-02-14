@@ -107,10 +107,10 @@ Converters, calculators, generators, validators — [browse all 250+ tools](http
 
 ## What's Next
 
-Building toward 250 tools. Currently working on:
-- More AI/ML tools
-- Developer workflow tools
-- Database tools
+We just crossed 250 tools and aren't stopping. Currently adding:
+- More AI/ML tools (AI Text Detector already live)
+- PDF tools (Merge, Split, Compress, Convert — all browser-based)
+- Audio & Video tools (Audio Converter, Video Compressor)
 
 If you have tool requests, drop them in the comments!
 

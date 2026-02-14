@@ -143,65 +143,13 @@ Check them all: nextool.app/free-tools
 
 ## 6. dev.to Article
 
-**Title:** I Built 228 Free Browser-Based Developer Tools — Here's the Full List
+**Title:** I Built 250+ Free Browser-Based Developer Tools — Here's the Full List
 
-**Tags:** webdev, tools, javascript, opensource
+**Tags:** webdev, tools, javascript, productivity
 
 **Body:**
 
-# I Built 228 Free Browser-Based Developer Tools
-
-Every tool runs 100% in your browser. No login required. No data tracking. No ads.
-
-## Why I Built This
-
-I was tired of:
-- Googling "json formatter online" and getting ad-infested sites
-- Tools that upload my code to their servers
-- Signing up for yet another account just to format some CSS
-
-So I built one clean site with everything.
-
-## Tool Categories
-
-### JSON & Data (15+ tools)
-- [JSON Formatter](https://nextool.app/free-tools/json-formatter.html) — Format, validate, minify
-- [JSON Viewer](https://nextool.app/free-tools/json-viewer.html) — Tree view with search
-- [JSON to CSV](https://nextool.app/free-tools/json-to-csv.html) — Convert JSON to CSV
-- [JSON Schema Generator](https://nextool.app/free-tools/json-schema-generator.html) — Generate schemas from data
-- And 10+ more...
-
-### CSS & Design (25+ tools)
-- [CSS Gradient Generator](https://nextool.app/free-tools/css-gradient-generator.html) — Visual gradient builder
-- [Flexbox Playground](https://nextool.app/free-tools/flexbox-playground.html) — Interactive flexbox editor
-- [Box Shadow Generator](https://nextool.app/free-tools/box-shadow-generator.html) — Visual shadow editor
-- And 20+ more...
-
-### Code Formatting (10+ tools)
-- [SQL Formatter](https://nextool.app/free-tools/sql-formatter.html)
-- [JavaScript Formatter](https://nextool.app/free-tools/javascript-formatter.html)
-- [HTML Beautifier](https://nextool.app/free-tools/html-beautifier.html)
-- And more...
-
-### Security & Encoding (10+ tools)
-- [Password Generator](https://nextool.app/free-tools/password-generator.html) — Crypto-secure passwords
-- [JWT Decoder](https://nextool.app/free-tools/jwt-decoder.html) — Decode without sharing secrets
-- [Hash Generator](https://nextool.app/free-tools/hash-generator.html) — MD5, SHA-256, SHA-512
-
-### And 150+ More
-Color tools, image tools, text tools, network tools, math tools, conversion tools...
-
-**Full list:** [nextool.app/free-tools](https://nextool.app/free-tools/)
-
-## The Privacy Angle
-
-Every tool runs client-side using vanilla JavaScript. Your data never leaves your browser. You can verify this by opening DevTools → Network tab while using any tool. Zero requests to external servers.
-
-## Try It
-
-[nextool.app/free-tools](https://nextool.app/free-tools/)
-
-All tools are free. There's an optional Pro upgrade ($29) for a cleaner experience, but every tool is fully functional without it.
+See DEVTO_ARTICLE.md for the full formatted article (ready to paste into dev.to editor).
 
 ---
 
@@ -280,13 +228,13 @@ https://nextool.app/free-tools/
 
 ---
 
-## POSTING ORDER (updated):
+## POSTING ORDER (updated, priority):
 1. Reddit r/webdev (largest dev audience)
 2. Reddit r/SideProject (supportive community)
-3. Reddit r/pdf (PDF tools = broad appeal)
-4. Reddit r/productivity (non-dev audience)
-5. Hacker News Show HN (can go viral)
-6. Reddit r/InternetIsBeautiful (broad audience)
-7. dev.to article (SEO + community)
+3. Hacker News Show HN (can go viral)
+4. Reddit r/InternetIsBeautiful (broad audience)
+5. Reddit r/pdf (PDF tools = broad appeal)
+6. Reddit r/productivity (non-dev audience)
+7. dev.to article — paste from DEVTO_ARTICLE.md (SEO + community)
 8. Twitter/X thread
 9. Product Hunt (scheduled launch)
