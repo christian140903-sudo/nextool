@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript Utility Types: Complete Guide | NexTool</title>
+    <meta name="description" content="Master every TypeScript utility type: Partial, Required, Pick, Omit, Record, Exclude, Extract, ReturnType, Parameters, Awaited, and more. With real-world examples and custom utility type patterns.">
+    <meta name="keywords" content="typescript utility types, typescript partial, typescript pick, typescript omit, typescript record, typescript exclude, typescript mapped types, typescript conditional types, typescript guide">
+    <meta name="author" content="NexTool Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/typescript-utility-types-guide.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="TypeScript Utility Types: Complete Guide">
+    <meta property="og:description" content="Every TypeScript utility type explained with real-world examples. Partial, Pick, Omit, Record, Exclude, ReturnType, custom mapped types, conditional types, and template literals.">
+    <meta property="og:url" content="https://nextool.app/blog/typescript-utility-types-guide.html">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/typescript-utility-types-guide-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-14T09:00:00Z">
+    <meta property="article:modified_time" content="2026-02-14T09:00:00Z">
+    <meta property="article:author" content="NexTool Team">
+    <meta property="article:section" content="Tutorial">
+    <meta property="article:tag" content="TypeScript">
+    <meta property="article:tag" content="Programming">
+    <meta property="article:tag" content="Types">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TypeScript Utility Types: Complete Guide">
+    <meta name="twitter:description" content="Every TypeScript utility type explained with real-world examples. Partial, Pick, Omit, Record, and custom utility types.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/typescript-utility-types-guide-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "TypeScript Utility Types: Complete Guide",
+        "description": "Master every TypeScript utility type: Partial, Required, Pick, Omit, Record, Exclude, Extract, ReturnType, Parameters, Awaited, and more. With real-world examples and custom utility type patterns.",
+        "image": "https://nextool.app/assets/images/blog/typescript-utility-types-guide-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool Team",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-14T09:00:00Z",
+        "dateModified": "2026-02-14T09:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/typescript-utility-types-guide.html"
+        },
+        "wordCount": 2900,
+        "keywords": ["typescript", "utility types", "partial", "pick", "omit", "record", "mapped types", "conditional types", "template literal types"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "TypeScript Utility Types",
+                "item": "https://nextool.app/blog/typescript-utility-types-guide.html"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What are TypeScript utility types?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "TypeScript utility types are built-in generic types that transform existing types into new ones. Instead of writing repetitive type definitions, you can use utility types like Partial<T> (makes all properties optional), Pick<T, K> (selects specific properties), Omit<T, K> (removes specific properties), and Record<K, V> (creates a type with specified keys and value type). They are built into TypeScript and require no imports. Utility types reduce boilerplate, improve code maintainability, and ensure type safety when you need variations of existing types, such as making fields optional for update operations or selecting a subset of properties for API responses."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the difference between Pick and Omit in TypeScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Pick<T, K> creates a new type by selecting specific properties from type T. Omit<T, K> creates a new type by removing specific properties from type T. They are inverse operations. Use Pick when you want to explicitly list the properties you need (whitelist approach). Use Omit when you want to exclude a few properties from a large type (blacklist approach). For example, if User has 10 properties and you need only name and email, use Pick<User, 'name' | 'email'>. If you need everything except password, use Omit<User, 'password'>. A practical guideline: if you are selecting fewer than half the properties, use Pick. If you are removing fewer than half, use Omit."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I create a custom utility type in TypeScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Custom utility types are created using mapped types and conditional types. A mapped type iterates over keys of a type and transforms each property. For example, type Nullable<T> = { [K in keyof T]: T[K] | null } makes every property nullable. Conditional types use the syntax T extends U ? X : Y to branch based on type relationships. You can combine them: type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>> makes only specific properties optional while keeping the rest required. Start by understanding keyof (gets all keys as a union), in (iterates over a union), and extends (conditional check). These three keywords are the building blocks of all custom utility types."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "When should I use Record vs a regular object type?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Use Record<K, V> when you need a dictionary-like type where all keys have the same value type and the keys come from a specific set. For example, Record<string, number> is a dictionary mapping any string to a number. Record<'draft' | 'published' | 'archived', Article[]> maps three specific status strings to arrays of articles. Use a regular object type (interface or type literal) when properties have different types or when you want to document individual properties. Record is ideal for lookup tables, configuration objects, grouped data, and maps where every value has the same shape. Regular interfaces are better for domain models with distinct fields like User { name: string; age: number; email: string }."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the difference between Exclude and Extract in TypeScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Exclude<T, U> removes members from a union type T that are assignable to U. Extract<T, U> keeps only members from a union type T that are assignable to U. They are opposites. For example, given type Status = 'active' | 'inactive' | 'pending' | 'deleted', Exclude<Status, 'deleted'> gives 'active' | 'inactive' | 'pending' (removes deleted), while Extract<Status, 'active' | 'pending'> gives 'active' | 'pending' (keeps only those two). Exclude is commonly used to remove null or undefined from unions: Exclude<string | null | undefined, null | undefined> gives string. Extract is useful when you want to filter a union to only the types that match a pattern."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What are template literal types in TypeScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Template literal types use the same backtick syntax as JavaScript template literals but at the type level. They create new string literal types by combining existing ones. For example, type Greeting = `hello ${string}` matches any string that starts with 'hello '. Combined with union types, they generate all permutations: type Color = 'red' | 'blue'; type Size = 'sm' | 'lg'; type ClassName = `${Color}-${Size}` produces 'red-sm' | 'red-lg' | 'blue-sm' | 'blue-lg'. TypeScript also provides built-in template literal utility types: Uppercase<T>, Lowercase<T>, Capitalize<T>, and Uncapitalize<T>. Template literal types are powerful for typing CSS class names, API routes, event names, and any string pattern that follows a convention."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #050508;
+            --surface: #0a0a0f;
+            --surface-2: #1a1a24;
+            --surface-3: #232330;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --accent: #a855f7;
+            --accent-hover: #c084fc;
+            --text: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #1e1e2e;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --code-bg: #0d0d14;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 800px;
+            --header-height: 64px;
+        }
+
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.75; font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .nav { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: rgba(5, 5, 8, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .nav-inner { width: 100%; max-width: 1200px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.25rem; }
+        .nav-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 800; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: var(--primary); color: #fff !important; padding: 8px 20px; border-radius: 8px; font-weight: 600; transition: background 0.2s, transform 0.2s; }
+        .nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        .article-wrapper { max-width: var(--max-width); margin: 0 auto; padding: calc(var(--header-height) + 48px) 24px 80px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap; }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .breadcrumb a:hover { color: var(--primary); }
+
+        .article-header { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+        .article-category { display: inline-block; background: rgba(168, 85, 247, 0.12); color: var(--accent); padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .article-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.15; color: var(--text); margin-bottom: 16px; letter-spacing: -0.03em; }
+        .article-subtitle { font-size: 1.2rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+        .article-meta { display: flex; align-items: center; gap: 20px; color: var(--text-muted); font-size: 0.875rem; flex-wrap: wrap; }
+        .article-meta-item { display: flex; align-items: center; gap: 6px; }
+        .article-meta-item svg { width: 16px; height: 16px; opacity: 0.7; }
+
+        .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; margin-bottom: 48px; }
+        .toc-title { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .toc-list { list-style: none; counter-reset: toc; }
+        .toc-list li { counter-increment: toc; margin-bottom: 8px; }
+        .toc-list li a { color: var(--text-secondary); text-decoration: none; font-size: 0.925rem; display: flex; align-items: baseline; gap: 10px; transition: color 0.2s, padding-left 0.2s; padding: 4px 0; }
+        .toc-list li a::before { content: counter(toc, decimal-leading-zero); color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); min-width: 20px; }
+        .toc-list li a:hover { color: var(--primary); padding-left: 4px; }
+
+        .article-content h2 { font-size: 1.75rem; font-weight: 700; color: var(--text); margin-top: 56px; margin-bottom: 20px; letter-spacing: -0.02em; line-height: 1.3; padding-top: 16px; border-top: 1px solid var(--border); }
+        .article-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+        .article-content h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin-top: 36px; margin-bottom: 14px; line-height: 1.35; }
+        .article-content h4 { font-size: 1.1rem; font-weight: 600; color: var(--text-secondary); margin-top: 28px; margin-bottom: 12px; }
+        .article-content p { margin-bottom: 20px; color: var(--text-secondary); line-height: 1.8; }
+        .article-content a { color: var(--primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+        .article-content a:hover { border-bottom-color: var(--primary); }
+        .article-content strong { color: var(--text); font-weight: 600; }
+        .article-content ul, .article-content ol { margin-bottom: 20px; padding-left: 24px; color: var(--text-secondary); }
+        .article-content li { margin-bottom: 10px; line-height: 1.7; }
+        .article-content li::marker { color: var(--primary); }
+        .article-content blockquote { border-left: 3px solid var(--accent); background: var(--surface); padding: 16px 24px; margin: 28px 0; border-radius: 0 8px 8px 0; font-style: italic; color: var(--text-secondary); }
+        .article-content blockquote p:last-child { margin-bottom: 0; }
+        .article-content hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+        .article-content pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; overflow-x: auto; margin: 24px 0; }
+        .article-content pre code { font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.65; color: var(--text); background: none; padding: 0; border-radius: 0; }
+        .article-content code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface); color: var(--accent); padding: 2px 8px; border-radius: 5px; }
+        .code-label { display: inline-block; background: var(--surface-2); color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem; padding: 2px 10px; border-radius: 6px 6px 0 0; margin-bottom: -1px; position: relative; top: 1px; }
+
+        .article-content table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.925rem; }
+        .article-content thead th { background: var(--surface); color: var(--text); font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--border); }
+        .article-content tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+        .article-content tbody tr:hover { background: var(--surface); }
+
+        .info-box { background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+        .info-box.warning { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); }
+        .info-box.danger { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); }
+        .info-box.success { background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2); }
+        .info-box-title { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .info-box p { color: var(--text-secondary); font-size: 0.925rem; margin-bottom: 0; }
+
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 28px 0; }
+        .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; color: var(--text); transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; gap: 8px; }
+        .tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1); }
+        .tool-card-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .tool-card-name { font-weight: 600; font-size: 0.95rem; }
+        .tool-card-desc { font-size: 0.825rem; color: var(--text-muted); line-height: 1.5; }
+
+        .cta-box { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; padding: 40px 32px; text-align: center; margin: 48px 0; }
+        .cta-box h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+        .cta-box p { color: var(--text-secondary); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-button { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; }
+        .cta-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3); }
+        .cta-button.secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); margin-left: 12px; }
+        .cta-button.secondary:hover { background: rgba(99, 102, 241, 0.1); }
+
+        .faq-section { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border); }
+        .faq-section h2 { margin-top: 0 !important; padding-top: 0 !important; border-top: none !important; }
+        .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-question { width: 100%; background: none; border: none; color: var(--text); padding: 20px 24px; font-size: 1rem; font-weight: 600; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-sans); transition: background 0.2s; }
+        .faq-question:hover { background: var(--surface-2); }
+        .faq-question .icon { transition: transform 0.3s; font-size: 1.25rem; color: var(--text-muted); flex-shrink: 0; margin-left: 16px; }
+        .faq-item.open .faq-question .icon { transform: rotate(45deg); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .faq-answer-inner { padding: 0 24px 20px; color: var(--text-secondary); line-height: 1.7; }
+
+        .author-box { display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 48px 0; }
+        .author-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .author-info h4 { font-weight: 600; margin-bottom: 4px; }
+        .author-info p { color: var(--text-muted); font-size: 0.875rem; margin: 0; line-height: 1.5; }
+
+        .footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-wrapper { padding: calc(var(--header-height) + 24px) 16px 60px; }
+            .article-title { font-size: 1.75rem; }
+            .tool-grid { grid-template-columns: 1fr; }
+            .cta-box { padding: 28px 20px; }
+            .cta-button.secondary { margin-left: 0; margin-top: 12px; }
+            .author-box { flex-direction: column; text-align: center; }
+            .article-content pre { padding: 16px; border-radius: 8px; }
+            .article-content h2 { font-size: 1.4rem; }
+            .article-content h3 { font-size: 1.15rem; }
+            .article-content table { display: block; overflow-x: auto; }
+        }
+        @media (max-width: 480px) {
+            .article-title { font-size: 1.5rem; }
+            .toc { padding: 18px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="https://nextool.app" class="nav-logo">
+                <div class="nav-logo-icon">N</div>
+                NexTool
+            </a>
+            <ul class="nav-links">
+                <li><a href="https://nextool.app/#services">Tools</a></li>
+                <li><a href="https://nextool.app/free-tools/">Free Tools</a></li>
+                <li><a href="https://nextool.app/blog/">Blog</a></li>
+                <li><a href="https://nextool.app/#contact" class="nav-cta">Browse Tools</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Article -->
+    <article class="article-wrapper" itemscope itemtype="https://schema.org/Article">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="https://nextool.app">Home</a>
+            <span class="separator">/</span>
+            <a href="https://nextool.app/blog/">Blog</a>
+            <span class="separator">/</span>
+            <span>TypeScript Utility Types</span>
+        </nav>
+
+        <!-- Header -->
+        <header class="article-header">
+            <span class="article-category">Tutorial</span>
+            <h1 class="article-title" itemprop="headline">TypeScript Utility Types: Complete Guide</h1>
+            <p class="article-subtitle">Every built-in utility type explained with practical examples. From Partial and Pick to custom mapped types, conditional types, and template literal types &mdash; the patterns you actually use in production TypeScript.</p>
+            <div class="article-meta">
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span>24 min read</span>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <time datetime="2026-02-14" itemprop="datePublished">February 14, 2026</time>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span itemprop="author">NexTool Team</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- TOC -->
+        <nav class="toc" aria-label="Table of Contents">
+            <div class="toc-title">Table of Contents</div>
+            <ol class="toc-list">
+                <li><a href="#what-are-utility-types">What Are Utility Types</a></li>
+                <li><a href="#partial-required">Partial and Required</a></li>
+                <li><a href="#pick-omit">Pick and Omit</a></li>
+                <li><a href="#record">Record</a></li>
+                <li><a href="#exclude-extract">Exclude and Extract</a></li>
+                <li><a href="#return-type-parameters">ReturnType, Parameters, and Awaited</a></li>
+                <li><a href="#nonnullable-readonly">NonNullable and Readonly</a></li>
+                <li><a href="#mapped-types">Custom Mapped Types</a></li>
+                <li><a href="#conditional-types">Conditional Types</a></li>
+                <li><a href="#template-literal-types">Template Literal Types</a></li>
+                <li><a href="#real-world-patterns">Real-World Patterns</a></li>
+                <li><a href="#tools">TypeScript Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </nav>
+
+        <!-- Content -->
+        <div class="article-content" itemprop="articleBody">
+
+            <h2 id="what-are-utility-types">What Are Utility Types</h2>
+
+            <p>TypeScript ships with a set of generic types that transform other types. These are called <strong>utility types</strong>. Instead of duplicating type definitions with small variations, you derive new types from existing ones.</p>
+
+            <p>Consider a <code>User</code> type. At different points in your application, you might need:</p>
+
+            <ul>
+                <li>A version with all fields optional (for PATCH updates)</li>
+                <li>A version with only <code>name</code> and <code>email</code> (for a contact card)</li>
+                <li>A version without <code>password</code> (for API responses)</li>
+                <li>A version where all fields are required (for database inserts)</li>
+            </ul>
+
+            <p>Without utility types, you would write four separate interfaces. With utility types, you write one and derive the rest.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  avatar?: string;
+  bio?: string;
+}
+
+// All fields optional (for PATCH /users/:id)
+type UserUpdate = Partial&lt;User&gt;;
+
+// Only name and email (for contact cards)
+type UserContact = Pick&lt;User, 'name' | 'email'&gt;;
+
+// Everything except password (for API responses)
+type UserPublic = Omit&lt;User, 'password'&gt;;
+
+// All fields required (for database insert)
+type UserInsert = Required&lt;User&gt;;</code></pre>
+
+            <p>All utility types are built into TypeScript. No imports needed. They work with any TypeScript version from 2.1+ (and later versions added more). You can test all the examples in this article using NexTool's <a href="/free-tools/typescript-playground.html">TypeScript Playground</a>.</p>
+
+            <h2 id="partial-required">Partial and Required</h2>
+
+            <h3>Partial&lt;T&gt;</h3>
+
+            <p><code>Partial&lt;T&gt;</code> makes every property in <code>T</code> optional. This is the most commonly used utility type, and the one you will reach for whenever you write an update function.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>interface Config {
+  host: string;
+  port: number;
+  debug: boolean;
+  logLevel: 'info' | 'warn' | 'error';
+}
+
+// All properties become optional
+type PartialConfig = Partial&lt;Config&gt;;
+// Equivalent to:
+// {
+//   host?: string;
+//   port?: number;
+//   debug?: boolean;
+//   logLevel?: 'info' | 'warn' | 'error';
+// }
+
+function updateConfig(current: Config, updates: Partial&lt;Config&gt;): Config {
+  return { ...current, ...updates };
+}
+
+// Valid: only updating what changed
+updateConfig(defaultConfig, { port: 8080 });
+updateConfig(defaultConfig, { debug: true, logLevel: 'error' });</code></pre>
+
+            <h3>Required&lt;T&gt;</h3>
+
+            <p><code>Required&lt;T&gt;</code> makes every property in <code>T</code> required (removes <code>?</code> modifiers). It is the inverse of Partial.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>interface FormData {
+  name?: string;
+  email?: string;
+  age?: number;
+}
+
+// All properties become required
+type CompleteFormData = Required&lt;FormData&gt;;
+
+function submitForm(data: Required&lt;FormData&gt;): void {
+  // TypeScript guarantees all fields are present
+  console.log(data.name);   // string (not string | undefined)
+  console.log(data.email);  // string
+  console.log(data.age);    // number
+}</code></pre>
+
+            <div class="info-box">
+                <div class="info-box-title">Under the Hood</div>
+                <p>Partial is implemented as <code>type Partial&lt;T&gt; = { [P in keyof T]?: T[P] }</code>. It iterates over every key in T and adds the <code>?</code> modifier. Required does the opposite: <code>{ [P in keyof T]-?: T[P] }</code> &mdash; the <code>-?</code> removes optionality.</p>
+            </div>
+
+            <h2 id="pick-omit">Pick and Omit</h2>
+
+            <h3>Pick&lt;T, K&gt;</h3>
+
+            <p><code>Pick&lt;T, K&gt;</code> creates a new type by selecting specific properties from <code>T</code>. Use it to create focused subtypes.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>interface Article {
+  id: string;
+  title: string;
+  body: string;
+  author: string;
+  createdAt: Date;
+  updatedAt: Date;
+  tags: string[];
+  published: boolean;
+}
+
+// For article list: only the fields needed for a preview card
+type ArticlePreview = Pick&lt;Article, 'id' | 'title' | 'author' | 'createdAt'&gt;;
+
+// For article editor: only the editable fields
+type ArticleEditable = Pick&lt;Article, 'title' | 'body' | 'tags'&gt;;
+
+function renderPreviewCard(article: ArticlePreview): string {
+  return `${article.title} by ${article.author}`;
+  // article.body  &lt;-- Error: Property 'body' does not exist
+}</code></pre>
+
+            <h3>Omit&lt;T, K&gt;</h3>
+
+            <p><code>Omit&lt;T, K&gt;</code> creates a new type by removing specific properties. It is the inverse of Pick.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>// Remove sensitive fields for API response
+type ArticleResponse = Omit&lt;Article, 'body'&gt;;
+
+// Remove auto-generated fields for creation
+type ArticleCreate = Omit&lt;Article, 'id' | 'createdAt' | 'updatedAt'&gt;;
+
+// API endpoint handler
+async function createArticle(data: ArticleCreate): Promise&lt;Article&gt; {
+  return {
+    ...data,
+    id: generateId(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}</code></pre>
+
+            <h3>Pick vs Omit: When to Use Each</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Use</th>
+                        <th>Why</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Need 2-3 fields from a 10-field type</td>
+                        <td>Pick</td>
+                        <td>Shorter to list what you want</td>
+                    </tr>
+                    <tr>
+                        <td>Need 8 fields from a 10-field type</td>
+                        <td>Omit</td>
+                        <td>Shorter to list what you don't want</td>
+                    </tr>
+                    <tr>
+                        <td>Removing sensitive fields</td>
+                        <td>Omit</td>
+                        <td>Explicit about what is excluded</td>
+                    </tr>
+                    <tr>
+                        <td>Creating a focused DTO</td>
+                        <td>Pick</td>
+                        <td>Explicit about what is included</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>If you are working with JSON API responses, the <a href="/free-tools/json-to-typescript.html">JSON to TypeScript</a> converter can generate your base types automatically, then you can derive subtypes with Pick and Omit.</p>
+
+            <h2 id="record">Record</h2>
+
+            <p><code>Record&lt;K, V&gt;</code> creates an object type where all keys are of type <code>K</code> and all values are of type <code>V</code>. It is the utility type for dictionaries and lookup tables.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>// Simple dictionary
+type UserMap = Record&lt;string, User&gt;;
+
+// Enum-keyed lookup
+type StatusMessages = Record&lt;'success' | 'error' | 'pending', string&gt;;
+
+const messages: StatusMessages = {
+  success: 'Operation completed.',
+  error: 'Something went wrong.',
+  pending: 'Processing your request...',
+};
+
+// Grouped data
+type ArticlesByCategory = Record&lt;string, Article[]&gt;;
+
+const articles: ArticlesByCategory = {
+  javascript: [/* ... */],
+  typescript: [/* ... */],
+  css: [/* ... */],
+};</code></pre>
+
+            <h3>Record with Computed Keys</h3>
+
+            <div class="code-label">typescript</div>
+<pre><code>// HTTP status code handler
+type HttpStatus = 200 | 201 | 400 | 401 | 403 | 404 | 500;
+
+type StatusHandlers = Record&lt;HttpStatus, (response: Response) =&gt; void&gt;;
+
+const handlers: StatusHandlers = {
+  200: (res) =&gt; console.log('OK'),
+  201: (res) =&gt; console.log('Created'),
+  400: (res) =&gt; console.error('Bad Request'),
+  401: (res) =&gt; console.error('Unauthorized'),
+  403: (res) =&gt; console.error('Forbidden'),
+  404: (res) =&gt; console.error('Not Found'),
+  500: (res) =&gt; console.error('Server Error'),
+};
+
+// TypeScript ensures every status is handled.
+// Removing any entry causes a compile-time error.</code></pre>
+
+            <h2 id="exclude-extract">Exclude and Extract</h2>
+
+            <p>These two utility types work on <strong>union types</strong>, not object types. They filter members of a union.</p>
+
+            <h3>Exclude&lt;T, U&gt;</h3>
+
+            <p><code>Exclude&lt;T, U&gt;</code> removes from <code>T</code> all members that are assignable to <code>U</code>.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>type AllEvents = 'click' | 'scroll' | 'mousemove' | 'keydown' | 'keyup' | 'resize';
+
+// Remove mouse events
+type KeyboardEvents = Exclude&lt;AllEvents, 'click' | 'scroll' | 'mousemove' | 'resize'&gt;;
+// Result: 'keydown' | 'keyup'
+
+// Remove null and undefined from a union
+type MaybeString = string | null | undefined;
+type DefinitelyString = Exclude&lt;MaybeString, null | undefined&gt;;
+// Result: string</code></pre>
+
+            <h3>Extract&lt;T, U&gt;</h3>
+
+            <p><code>Extract&lt;T, U&gt;</code> keeps only the members of <code>T</code> that are assignable to <code>U</code>. It is the inverse of Exclude.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>type AllEvents = 'click' | 'scroll' | 'mousemove' | 'keydown' | 'keyup' | 'resize';
+
+// Keep only mouse-related events
+type MouseEvents = Extract&lt;AllEvents, 'click' | 'mousemove' | 'scroll'&gt;;
+// Result: 'click' | 'mousemove' | 'scroll'
+
+// Extract function types from a union
+type Mixed = string | number | (() =&gt; void) | ((x: number) =&gt; string);
+type Functions = Extract&lt;Mixed, Function&gt;;
+// Result: (() =&gt; void) | ((x: number) =&gt; string)</code></pre>
+
+            <h2 id="return-type-parameters">ReturnType, Parameters, and Awaited</h2>
+
+            <h3>ReturnType&lt;T&gt;</h3>
+
+            <p><code>ReturnType&lt;T&gt;</code> extracts the return type of a function type. Use it when you need to type a variable to match what a function returns, without hardcoding the type.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>function createUser(name: string, email: string) {
+  return {
+    id: crypto.randomUUID(),
+    name,
+    email,
+    createdAt: new Date(),
+  };
+}
+
+// Extract the return type without writing it manually
+type CreatedUser = ReturnType&lt;typeof createUser&gt;;
+// Result: { id: string; name: string; email: string; createdAt: Date }
+
+// Useful for typing state that holds function results
+let lastCreated: CreatedUser | null = null;</code></pre>
+
+            <h3>Parameters&lt;T&gt;</h3>
+
+            <p><code>Parameters&lt;T&gt;</code> extracts the parameter types of a function as a tuple.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>function sendEmail(to: string, subject: string, body: string, cc?: string[]): void {
+  // ...
+}
+
+type EmailParams = Parameters&lt;typeof sendEmail&gt;;
+// Result: [to: string, subject: string, body: string, cc?: string[]]
+
+// Use it to create wrapper functions with matching signatures
+function logAndSend(...args: Parameters&lt;typeof sendEmail&gt;): void {
+  console.log(`Sending email to ${args[0]}: ${args[1]}`);
+  sendEmail(...args);
+}</code></pre>
+
+            <h3>Awaited&lt;T&gt;</h3>
+
+            <p><code>Awaited&lt;T&gt;</code> unwraps a Promise type to get the resolved value type. Added in TypeScript 4.5.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>async function fetchUser(id: string): Promise&lt;User&gt; {
+  const response = await fetch(`/api/users/${id}`);
+  return response.json();
+}
+
+type FetchedUser = Awaited&lt;ReturnType&lt;typeof fetchUser&gt;&gt;;
+// Result: User  (unwraps Promise&lt;User&gt; to User)
+
+// Works with nested Promises too
+type DeepPromise = Promise&lt;Promise&lt;Promise&lt;string&gt;&gt;&gt;;
+type Resolved = Awaited&lt;DeepPromise&gt;;
+// Result: string</code></pre>
+
+            <h2 id="nonnullable-readonly">NonNullable and Readonly</h2>
+
+            <h3>NonNullable&lt;T&gt;</h3>
+
+            <p><code>NonNullable&lt;T&gt;</code> removes <code>null</code> and <code>undefined</code> from a type. It is a shorthand for <code>Exclude&lt;T, null | undefined&gt;</code>.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>type MaybeUser = User | null | undefined;
+
+type DefiniteUser = NonNullable&lt;MaybeUser&gt;;
+// Result: User
+
+// Common pattern: after null-check guards
+function processUser(user: MaybeUser): void {
+  if (!user) return;
+  // TypeScript narrows to User here, but sometimes
+  // you need the type explicitly for generics
+  const validUser: NonNullable&lt;MaybeUser&gt; = user;
+}</code></pre>
+
+            <h3>Readonly&lt;T&gt;</h3>
+
+            <p><code>Readonly&lt;T&gt;</code> makes every property in <code>T</code> read-only. Attempting to reassign any property causes a compile-time error.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>interface AppConfig {
+  apiUrl: string;
+  maxRetries: number;
+  timeout: number;
+}
+
+const config: Readonly&lt;AppConfig&gt; = {
+  apiUrl: 'https://api.example.com',
+  maxRetries: 3,
+  timeout: 5000,
+};
+
+config.apiUrl = 'https://other.com';
+// Error: Cannot assign to 'apiUrl' because it is a read-only property
+
+// Readonly also works with arrays
+type ReadonlyNumbers = Readonly&lt;number[]&gt;;
+// or: ReadonlyArray&lt;number&gt;
+
+const nums: ReadonlyNumbers = [1, 2, 3];
+nums.push(4);  // Error: Property 'push' does not exist on type 'readonly number[]'</code></pre>
+
+            <h2 id="mapped-types">Custom Mapped Types</h2>
+
+            <p>All built-in utility types are implemented using <strong>mapped types</strong>. Understanding mapped types lets you create your own utility types tailored to your codebase.</p>
+
+            <p>A mapped type iterates over the keys of a type and transforms each property.</p>
+
+            <div class="code-label">typescript &mdash; Mapped Type Syntax</div>
+<pre><code>type MappedType&lt;T&gt; = {
+  [K in keyof T]: TransformedType
+};
+
+// keyof T  = union of all keys in T
+// K in     = iterate over each key
+// T[K]     = the type of the property at key K</code></pre>
+
+            <h3>Practical Custom Utility Types</h3>
+
+            <div class="code-label">typescript</div>
+<pre><code>// Make all properties nullable
+type Nullable&lt;T&gt; = {
+  [K in keyof T]: T[K] | null;
+};
+
+// Make specific properties optional, keep the rest required
+type Optional&lt;T, K extends keyof T&gt; = Omit&lt;T, K&gt; &amp; Partial&lt;Pick&lt;T, K&gt;&gt;;
+
+// Usage:
+type UserWithOptionalAvatar = Optional&lt;User, 'avatar' | 'bio'&gt;;
+
+// Make specific properties required, keep the rest as-is
+type Require&lt;T, K extends keyof T&gt; = Omit&lt;T, K&gt; &amp; Required&lt;Pick&lt;T, K&gt;&gt;;
+
+// Deeply make all properties readonly (recursive)
+type DeepReadonly&lt;T&gt; = {
+  readonly [K in keyof T]: T[K] extends object ? DeepReadonly&lt;T[K]&gt; : T[K];
+};
+
+// Deeply make all properties partial (recursive)
+type DeepPartial&lt;T&gt; = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial&lt;T[K]&gt; : T[K];
+};</code></pre>
+
+            <div class="code-label">typescript &mdash; Key Remapping (TypeScript 4.1+)</div>
+<pre><code>// Prefix all keys with "on"
+type EventHandlers&lt;T&gt; = {
+  [K in keyof T as `on${Capitalize&lt;string &amp; K&gt;}`]: (value: T[K]) =&gt; void;
+};
+
+interface UserFields {
+  name: string;
+  email: string;
+  age: number;
+}
+
+type UserEvents = EventHandlers&lt;UserFields&gt;;
+// Result:
+// {
+//   onName: (value: string) =&gt; void;
+//   onEmail: (value: string) =&gt; void;
+//   onAge: (value: number) =&gt; void;
+// }
+
+// Getters for all properties
+type Getters&lt;T&gt; = {
+  [K in keyof T as `get${Capitalize&lt;string &amp; K&gt;}`]: () =&gt; T[K];
+};
+
+type UserGetters = Getters&lt;UserFields&gt;;
+// Result:
+// {
+//   getName: () =&gt; string;
+//   getEmail: () =&gt; string;
+//   getAge: () =&gt; number;
+// }</code></pre>
+
+            <h2 id="conditional-types">Conditional Types</h2>
+
+            <p>Conditional types use the syntax <code>T extends U ? X : Y</code>. If <code>T</code> is assignable to <code>U</code>, the type resolves to <code>X</code>; otherwise <code>Y</code>. They are the <code>if/else</code> of the type system.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>// Basic conditional
+type IsString&lt;T&gt; = T extends string ? true : false;
+
+type A = IsString&lt;string&gt;;   // true
+type B = IsString&lt;number&gt;;   // false
+
+// Unwrap arrays
+type Flatten&lt;T&gt; = T extends Array&lt;infer Item&gt; ? Item : T;
+
+type Str = Flatten&lt;string[]&gt;;   // string
+type Num = Flatten&lt;number&gt;;     // number (not an array, returns T)
+
+// Unwrap Promises
+type UnwrapPromise&lt;T&gt; = T extends Promise&lt;infer R&gt; ? R : T;
+
+type Result = UnwrapPromise&lt;Promise&lt;string&gt;&gt;;  // string</code></pre>
+
+            <h3>The infer Keyword</h3>
+
+            <p><code>infer</code> declares a type variable within a conditional type. It lets you "capture" part of a type for use in the true branch.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>// Extract the element type from an array
+type ElementOf&lt;T&gt; = T extends (infer E)[] ? E : never;
+
+type A = ElementOf&lt;string[]&gt;;     // string
+type B = ElementOf&lt;[number, string]&gt;; // number | string
+
+// Extract the first argument of a function
+type FirstArg&lt;T&gt; = T extends (first: infer F, ...rest: any[]) =&gt; any ? F : never;
+
+type C = FirstArg&lt;(name: string, age: number) =&gt; void&gt;; // string
+
+// Extract the props type from a React component
+type PropsOf&lt;T&gt; = T extends React.ComponentType&lt;infer P&gt; ? P : never;</code></pre>
+
+            <p>To quickly check how your types resolve, paste them into the <a href="/free-tools/typescript-playground.html">TypeScript Playground</a> and hover over the type aliases to see the resolved type.</p>
+
+            <h2 id="template-literal-types">Template Literal Types</h2>
+
+            <p>Template literal types use backtick syntax at the type level to create string literal types from other string types. Added in TypeScript 4.1.</p>
+
+            <div class="code-label">typescript</div>
+<pre><code>// Basic template literal
+type Greeting = `Hello, ${string}`;
+
+const a: Greeting = "Hello, World";   // OK
+const b: Greeting = "Goodbye, World"; // Error
+
+// Combine with unions to generate all permutations
+type Color = 'red' | 'green' | 'blue';
+type Size = 'sm' | 'md' | 'lg';
+
+type ClassName = `${Color}-${Size}`;
+// Result: 'red-sm' | 'red-md' | 'red-lg'
+//       | 'green-sm' | 'green-md' | 'green-lg'
+//       | 'blue-sm' | 'blue-md' | 'blue-lg'</code></pre>
+
+            <h3>Built-In String Manipulation Types</h3>
+
+            <div class="code-label">typescript</div>
+<pre><code>type Upper = Uppercase&lt;'hello'&gt;;        // 'HELLO'
+type Lower = Lowercase&lt;'HELLO'&gt;;        // 'hello'
+type Cap = Capitalize&lt;'hello'&gt;;          // 'Hello'
+type Uncap = Uncapitalize&lt;'Hello'&gt;;      // 'hello'
+
+// Combine with mapped types
+type CSSVars&lt;T extends string&gt; = `--${Lowercase&lt;T&gt;}`;
+type ThemeVars = CSSVars&lt;'Primary' | 'Accent' | 'Background'&gt;;
+// Result: '--primary' | '--accent' | '--background'</code></pre>
+
+            <h3>Typed Event System</h3>
+
+            <div class="code-label">typescript &mdash; Template Literal Types for Event Emitters</div>
+<pre><code>interface EventMap {
+  user: { id: string; name: string };
+  order: { id: string; total: number };
+  payment: { id: string; amount: number; currency: string };
+}
+
+type EventName = keyof EventMap;
+
+// Generate event method names
+type OnEvent = `on${Capitalize&lt;EventName&gt;}`;
+// Result: 'onUser' | 'onOrder' | 'onPayment'
+
+// Typed event emitter
+interface TypedEmitter {
+  on&lt;E extends EventName&gt;(event: E, handler: (data: EventMap[E]) =&gt; void): void;
+  emit&lt;E extends EventName&gt;(event: E, data: EventMap[E]): void;
+}
+
+// Usage: fully typed events
+const emitter: TypedEmitter = createEmitter();
+
+emitter.on('user', (data) =&gt; {
+  console.log(data.name);  // TypeScript knows data is { id: string; name: string }
+});
+
+emitter.emit('payment', { id: '1', amount: 99, currency: 'USD' });
+emitter.emit('payment', { id: '1', total: 99 });
+// Error: 'total' does not exist, expected 'amount'</code></pre>
+
+            <h2 id="real-world-patterns">Real-World Patterns</h2>
+
+            <h3>API Response Wrapper</h3>
+
+            <div class="code-label">typescript</div>
+<pre><code>// Generic API response type
+type ApiResponse&lt;T&gt; = {
+  data: T;
+  status: number;
+  timestamp: string;
+};
+
+type ApiError = {
+  error: string;
+  code: number;
+  details?: Record&lt;string, string[]&gt;;
+};
+
+type ApiResult&lt;T&gt; = ApiResponse&lt;T&gt; | ApiError;
+
+// Type guard
+function isError&lt;T&gt;(result: ApiResult&lt;T&gt;): result is ApiError {
+  return 'error' in result;
+}
+
+// Usage
+async function getUser(id: string): Promise&lt;ApiResult&lt;UserPublic&gt;&gt; {
+  const res = await fetch(`/api/users/${id}`);
+  return res.json();
+}
+
+const result = await getUser('123');
+if (isError(result)) {
+  console.error(result.error);  // TypeScript narrows to ApiError
+} else {
+  console.log(result.data.name); // TypeScript narrows to ApiResponse&lt;UserPublic&gt;
+}</code></pre>
+
+            <h3>Form Validation Types</h3>
+
+            <div class="code-label">typescript</div>
+<pre><code>// Generate validation error types from a form shape
+type ValidationErrors&lt;T&gt; = {
+  [K in keyof T]?: string[];
+};
+
+interface SignupForm {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+type SignupErrors = ValidationErrors&lt;SignupForm&gt;;
+// Result:
+// {
+//   username?: string[];
+//   email?: string[];
+//   password?: string[];
+//   confirmPassword?: string[];
+// }
+
+function validate(form: SignupForm): SignupErrors {
+  const errors: SignupErrors = {};
+
+  if (form.username.length &lt; 3) {
+    errors.username = ['Username must be at least 3 characters'];
+  }
+  if (form.password !== form.confirmPassword) {
+    errors.confirmPassword = ['Passwords do not match'];
+  }
+
+  return errors;
+}</code></pre>
+
+            <h3>Builder Pattern with Chained Types</h3>
+
+            <div class="code-label">typescript</div>
+<pre><code>// Track which fields have been set at the type level
+type QueryBuilder&lt;T, Set extends keyof T = never&gt; = {
+  select&lt;K extends keyof T&gt;(field: K): QueryBuilder&lt;T, Set | K&gt;;
+  where(condition: Partial&lt;Pick&lt;T, Set&gt;&gt;): QueryBuilder&lt;T, Set&gt;;
+  execute(): Pick&lt;T, Set&gt;[];
+};
+
+// TypeScript tracks which fields you have selected,
+// and only allows where() on those fields.
+const results = db
+  .select('name')
+  .select('email')
+  .where({ name: 'Alice' })  // OK: 'name' is selected
+  .execute();
+  // Returns: { name: string; email: string }[]</code></pre>
+
+            <p>When building complex TypeScript types, it helps to format and compare your JSON data structures. Use the <a href="/free-tools/json-formatter.html">JSON Formatter</a> to clean up API response samples, or the <a href="/free-tools/diff-checker.html">Diff Checker</a> to compare type definitions side by side.</p>
+
+            <div class="cta-box">
+                <h3>Write and Test TypeScript Instantly</h3>
+                <p>NexTool's TypeScript Playground runs in your browser. Test utility types, check inferred types, and experiment with generics &mdash; no setup required.</p>
+                <a href="/free-tools/typescript-playground.html" class="cta-button">Open TypeScript Playground</a>
+                <a href="/free-tools/json-to-typescript.html" class="cta-button secondary">JSON to TypeScript</a>
+            </div>
+
+            <h2 id="tools">TypeScript Tools</h2>
+
+            <div class="tool-grid">
+                <a href="/free-tools/typescript-playground.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4DD;</div>
+                    <div class="tool-card-name">TypeScript Playground</div>
+                    <div class="tool-card-desc">Write, compile, and test TypeScript in your browser. See type inference, errors, and compiled output in real time.</div>
+                </a>
+                <a href="/free-tools/json-to-typescript.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F504;</div>
+                    <div class="tool-card-name">JSON to TypeScript</div>
+                    <div class="tool-card-desc">Paste JSON, get TypeScript interfaces. Handles nested objects, arrays, optional fields, and union types.</div>
+                </a>
+                <a href="/free-tools/json-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CB;</div>
+                    <div class="tool-card-name">JSON Formatter</div>
+                    <div class="tool-card-desc">Format, validate, and minify JSON. Useful for cleaning up API responses before generating TypeScript types.</div>
+                </a>
+                <a href="/free-tools/diff-checker.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F50D;</div>
+                    <div class="tool-card-name">Diff Checker</div>
+                    <div class="tool-card-desc">Compare two code snippets side by side. Spot differences in type definitions and refactored code.</div>
+                </a>
+                <a href="/free-tools/javascript-beautifier.html" class="tool-card">
+                    <div class="tool-card-icon">&#x2728;</div>
+                    <div class="tool-card-name">JavaScript Beautifier</div>
+                    <div class="tool-card-desc">Format and beautify JavaScript and TypeScript code. Fix indentation, spacing, and semicolons.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What are TypeScript utility types?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>TypeScript utility types are built-in generic types that transform existing types into new ones. Instead of writing repetitive type definitions, you can use utility types like Partial&lt;T&gt; (makes all properties optional), Pick&lt;T, K&gt; (selects specific properties), Omit&lt;T, K&gt; (removes specific properties), and Record&lt;K, V&gt; (creates a type with specified keys and value type). They are built into TypeScript and require no imports. Utility types reduce boilerplate, improve code maintainability, and ensure type safety when you need variations of existing types, such as making fields optional for update operations or selecting a subset of properties for API responses.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between Pick and Omit in TypeScript?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Pick&lt;T, K&gt; creates a new type by selecting specific properties from type T. Omit&lt;T, K&gt; creates a new type by removing specific properties from type T. They are inverse operations. Use Pick when you want to explicitly list the properties you need (whitelist approach). Use Omit when you want to exclude a few properties from a large type (blacklist approach). For example, if User has 10 properties and you need only name and email, use Pick&lt;User, 'name' | 'email'&gt;. If you need everything except password, use Omit&lt;User, 'password'&gt;. A practical guideline: if you are selecting fewer than half the properties, use Pick. If you are removing fewer than half, use Omit.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I create a custom utility type in TypeScript?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Custom utility types are created using mapped types and conditional types. A mapped type iterates over keys of a type and transforms each property. For example, type Nullable&lt;T&gt; = { [K in keyof T]: T[K] | null } makes every property nullable. Conditional types use the syntax T extends U ? X : Y to branch based on type relationships. You can combine them: type Optional&lt;T, K extends keyof T&gt; = Omit&lt;T, K&gt; &amp; Partial&lt;Pick&lt;T, K&gt;&gt; makes only specific properties optional while keeping the rest required. Start by understanding keyof (gets all keys as a union), in (iterates over a union), and extends (conditional check). These three keywords are the building blocks of all custom utility types.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>When should I use Record vs a regular object type?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Use Record&lt;K, V&gt; when you need a dictionary-like type where all keys have the same value type and the keys come from a specific set. For example, Record&lt;string, number&gt; is a dictionary mapping any string to a number. Record&lt;'draft' | 'published' | 'archived', Article[]&gt; maps three specific status strings to arrays of articles. Use a regular object type (interface or type literal) when properties have different types or when you want to document individual properties. Record is ideal for lookup tables, configuration objects, grouped data, and maps where every value has the same shape. Regular interfaces are better for domain models with distinct fields like User { name: string; age: number; email: string }.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between Exclude and Extract in TypeScript?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Exclude&lt;T, U&gt; removes members from a union type T that are assignable to U. Extract&lt;T, U&gt; keeps only members from a union type T that are assignable to U. They are opposites. For example, given type Status = 'active' | 'inactive' | 'pending' | 'deleted', Exclude&lt;Status, 'deleted'&gt; gives 'active' | 'inactive' | 'pending' (removes deleted), while Extract&lt;Status, 'active' | 'pending'&gt; gives 'active' | 'pending' (keeps only those two). Exclude is commonly used to remove null or undefined from unions: Exclude&lt;string | null | undefined, null | undefined&gt; gives string. Extract is useful when you want to filter a union to only the types that match a pattern.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What are template literal types in TypeScript?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Template literal types use the same backtick syntax as JavaScript template literals but at the type level. They create new string literal types by combining existing ones. For example, type Greeting = `hello ${string}` matches any string that starts with 'hello '. Combined with union types, they generate all permutations: type Color = 'red' | 'blue'; type Size = 'sm' | 'lg'; type ClassName = `${Color}-${Size}` produces 'red-sm' | 'red-lg' | 'blue-sm' | 'blue-lg'. TypeScript also provides built-in template literal utility types: Uppercase&lt;T&gt;, Lowercase&lt;T&gt;, Capitalize&lt;T&gt;, and Uncapitalize&lt;T&gt;. Template literal types are powerful for typing CSS class names, API routes, event names, and any string pattern that follows a convention.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author -->
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>NexTool Team</h4>
+                <p>We build free developer tools including TypeScript playgrounds, JSON converters, and code formatters. Over 150 tools, all browser-based, no signup required.</p>
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="cta-box">
+            <h3>150+ Developer Tools, One Place</h3>
+            <p>NexTool Pro ($29) unlocks clean output, enhanced features, and unlimited workspace. One payment, lifetime access.</p>
+            <a href="https://nextool.app/free-tools/pro-upgrade.html" class="cta-button">Get NexTool Pro &mdash; $29</a>
+            <a href="/free-tools/" class="cta-button secondary">Try Free Tools</a>
+        </div>
+
+    </article>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="https://nextool.app">Home</a>
+                <a href="https://nextool.app/#services">Tools</a>
+                <a href="https://nextool.app/free-tools/">Free Tools</a>
+                <a href="https://nextool.app/blog/">Blog</a>
+                <a href="https://nextool.app/#contact">Contact</a>
+            </div>
+            <p>&copy; 2026 NexTool. All rights reserved. 150+ free developer tools.</p>
+        </div>
+    </footer>
+
+    <!-- FAQ Script -->
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <!-- Revenue Scripts -->
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>
