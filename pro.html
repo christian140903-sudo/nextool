@@ -119,7 +119,14 @@ nav.scrolled{background:rgba(5,5,8,.92);backdrop-filter:blur(24px);-webkit-backd
 .hero-price{margin-bottom:8px;animation:fadeUp .8s ease .3s both}
 .hero-price .old{font-size:22px;color:var(--dim);text-decoration:line-through;font-weight:500;margin-right:10px}
 .hero-price .current{font-size:36px;font-weight:900;color:#fff}
-.hero-savings{display:inline-flex;padding:5px 16px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:100px;font-size:13px;font-weight:600;color:var(--amber);margin-bottom:36px;animation:fadeUp .8s ease .35s both}
+.hero-savings{display:inline-flex;padding:5px 16px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:100px;font-size:13px;font-weight:600;color:var(--amber);margin-bottom:16px;animation:fadeUp .8s ease .35s both}
+.countdown-wrap{margin-bottom:32px;animation:fadeUp .8s ease .37s both}
+.countdown-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--amber);margin-bottom:10px}
+.countdown{display:flex;justify-content:center;gap:12px}
+.countdown-unit{display:flex;flex-direction:column;align-items:center;min-width:56px}
+.countdown-num{font-size:28px;font-weight:900;color:#fff;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.12);border-radius:10px;padding:6px 12px;line-height:1;font-variant-numeric:tabular-nums}
+.countdown-txt{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
+@media(max-width:480px){.countdown-num{font-size:22px;padding:5px 8px;min-width:44px}}
 .hero-actions{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;animation:fadeUp .8s ease .4s both}
 .hero-trust{display:flex;justify-content:center;gap:28px;margin-top:36px;flex-wrap:wrap;animation:fadeUp .8s ease .5s both}
 .hero-trust-item{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--dim);font-weight:500}
@@ -374,6 +381,15 @@ footer{border-top:1px solid var(--border);padding:52px 0 28px;position:relative;
 <p class="hero-compare">Other tool sites charge $10&ndash;30 <em>per month</em>. NexTool Pro is <strong style="color:#fff">$29 once</strong>.</p>
 <div class="hero-price"><span class="old">$49</span><span class="current">$29</span></div>
 <div class="hero-savings">Save $20 &mdash; Founding Member Price</div>
+<div class="countdown-wrap" id="countdown-wrap">
+<div class="countdown-label">Founding price ends in</div>
+<div class="countdown" id="countdown">
+<div class="countdown-unit"><span class="countdown-num" id="cd-d">00</span><span class="countdown-txt">Days</span></div>
+<div class="countdown-unit"><span class="countdown-num" id="cd-h">00</span><span class="countdown-txt">Hours</span></div>
+<div class="countdown-unit"><span class="countdown-num" id="cd-m">00</span><span class="countdown-txt">Min</span></div>
+<div class="countdown-unit"><span class="countdown-num" id="cd-s">00</span><span class="countdown-txt">Sec</span></div>
+</div>
+</div>
 <div class="hero-actions">
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" class="paypal-form">
 <input type="hidden" name="cmd" value="_xclick">
@@ -990,6 +1006,31 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a){
     var t=document.querySelector(this.getAttribute('href'));
     if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})}
   });
+});
+
+/* ─────────────────────────────────────────────────────────
+   FOUNDING MEMBER COUNTDOWN — Real deadline: March 1, 2026
+   ───────────────────────────────────────────────────────── */
+(function(){
+  var END=new Date('2026-03-01T00:00:00Z').getTime();
+  var dE=document.getElementById('cd-d'),hE=document.getElementById('cd-h'),mE=document.getElementById('cd-m'),sE=document.getElementById('cd-s'),wrap=document.getElementById('countdown-wrap');
+  function pad(n){return n<10?'0'+n:String(n)}
+  function tick(){
+    var now=Date.now(),diff=END-now;
+    if(diff<=0){wrap.innerHTML='<div style="color:var(--amber);font-weight:700;font-size:14px">Founding Member price has ended. Price is now $49.</div>';return}
+    var d=Math.floor(diff/864e5),h=Math.floor(diff%864e5/36e5),m=Math.floor(diff%36e5/6e4),s=Math.floor(diff%6e4/1e3);
+    dE.textContent=pad(d);hE.textContent=pad(h);mE.textContent=pad(m);sE.textContent=pad(s);
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+/* ─────────────────────────────────────────────────────────
+   MOBILE MENU TOGGLE
+   ───────────────────────────────────────────────────────── */
+document.querySelector('.mobile-toggle').addEventListener('click',function(){
+  var links=document.querySelector('.nav-links');
+  links.style.display=links.style.display==='flex'?'none':'flex';
 });
 </script>
 <script src="/js/analytics-lite.js" defer></script>
