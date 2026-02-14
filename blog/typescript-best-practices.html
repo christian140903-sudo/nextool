@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript Best Practices for 2026 | NexTool</title>
+    <meta name="description" content="Master TypeScript best practices in 2026: strict mode, utility types, generics, type guards, discriminated unions, branded types, the satisfies operator, const assertions, and template literal types.">
+    <meta name="keywords" content="typescript best practices, typescript strict mode, typescript generics, typescript utility types, type guards, discriminated unions, branded types, satisfies operator, const assertions, template literal types, typescript 2026">
+    <meta name="author" content="NexTool Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/typescript-best-practices.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="TypeScript Best Practices: A Developer's Guide for 2026">
+    <meta property="og:description" content="The complete guide to writing production-grade TypeScript. Strict mode, generics, utility types, branded types, and the patterns top teams actually use.">
+    <meta property="og:url" content="https://nextool.app/blog/typescript-best-practices.html">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/typescript-best-practices-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-14T09:00:00Z">
+    <meta property="article:modified_time" content="2026-02-14T09:00:00Z">
+    <meta property="article:author" content="NexTool Team">
+    <meta property="article:section" content="Guide">
+    <meta property="article:tag" content="TypeScript">
+    <meta property="article:tag" content="JavaScript">
+    <meta property="article:tag" content="Best Practices">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TypeScript Best Practices: A Developer's Guide for 2026">
+    <meta name="twitter:description" content="Strict mode, generics, utility types, branded types, and the patterns top teams actually use in production TypeScript.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/typescript-best-practices-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "TypeScript Best Practices: A Developer's Guide for 2026",
+        "description": "Master TypeScript best practices in 2026: strict mode, utility types, generics, type guards, discriminated unions, branded types, the satisfies operator, const assertions, and template literal types.",
+        "image": "https://nextool.app/assets/images/blog/typescript-best-practices-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool Team",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-14T09:00:00Z",
+        "dateModified": "2026-02-14T09:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/typescript-best-practices.html"
+        },
+        "wordCount": 2800,
+        "keywords": ["typescript best practices", "typescript strict mode", "typescript generics", "utility types", "type guards", "discriminated unions", "branded types", "satisfies operator", "const assertions", "template literal types"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "TypeScript Best Practices",
+                "item": "https://nextool.app/blog/typescript-best-practices.html"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Should I enable strict mode in TypeScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. Strict mode enables a set of compiler flags including strictNullChecks, noImplicitAny, strictFunctionTypes, and strictPropertyInitialization. These flags catch entire categories of bugs at compile time that would otherwise surface as runtime errors. Every major TypeScript project and framework (Angular, Next.js, SvelteKit) ships with strict mode enabled by default. Starting a new project without strict mode means you will eventually migrate to it anyway, but with a larger codebase and more errors to fix. Enable it from day one in tsconfig.json with \"strict\": true."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the difference between type and interface in TypeScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Interfaces use declaration merging (multiple declarations with the same name are automatically combined) and can only describe object shapes. Types are more flexible: they support unions, intersections, mapped types, conditional types, and primitives. Use interfaces when defining object contracts that consumers might need to extend (like library APIs or plugin systems). Use types for everything else: union types, utility type combinations, function signatures, and complex mapped or conditional types. In practice, most teams pick one as the default and use the other only when its unique feature is needed. Performance-wise, the TypeScript compiler resolves interfaces slightly faster in large projects due to caching, but the difference is negligible for most codebases."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "When should I use generics in TypeScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Use generics when a function, class, or type needs to work with multiple types while preserving the relationship between input and output types. The classic example is a function that takes a value of some type and returns a value of that same type, like an identity function or an array wrapper. Without generics, you would use any (losing type safety) or write separate overloads for each type (losing maintainability). Generics are essential for utility functions (pick, omit, map, filter), data structures (Stack<T>, Queue<T>), API response wrappers (ApiResponse<T>), and Higher-Order Components or hooks that wrap other typed logic. Avoid generics when a concrete type is sufficient or when the generic parameter is only used once, which usually means it adds complexity without value."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What does the satisfies operator do in TypeScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The satisfies operator, introduced in TypeScript 4.9, lets you validate that a value matches a type without widening the inferred type. With a normal type annotation (const x: Type = value), TypeScript uses the declared type and loses any narrower information from the value. With satisfies (const x = value satisfies Type), TypeScript validates that the value conforms to Type but infers the most specific type possible. This is useful for configuration objects where you want both type checking against a schema and autocompletion for the specific literal values. For example, const routes = { home: '/home', about: '/about' } satisfies Record<string, string> ensures every value is a string while preserving the literal key and value types for autocompletion."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do branded types work in TypeScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Branded types (also called nominal types or opaque types) add a phantom property to a type to prevent accidental interchangeability between structurally identical types. For example, UserId and OrderId might both be strings at runtime, but with branding you can make the compiler reject passing a UserId where an OrderId is expected. You create a branded type by intersecting the base type with a unique symbol property: type UserId = string & { readonly __brand: unique symbol }. Then you create values through a constructor function that casts the raw value: function createUserId(id: string): UserId { return id as UserId; }. This pattern is widely used for IDs, currency amounts, validated email addresses, and any domain value where mixing up structurally identical types causes bugs."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What are the most useful TypeScript utility types?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The most commonly used built-in utility types are Partial<T> (makes all properties optional), Required<T> (makes all properties required), Pick<T, Keys> (selects specific properties), Omit<T, Keys> (removes specific properties), Record<Keys, Type> (creates an object type with specified keys and value type), Readonly<T> (makes all properties readonly), ReturnType<T> (extracts a function's return type), and Parameters<T> (extracts a function's parameter types as a tuple). For more advanced use cases, NonNullable<T> removes null and undefined, Awaited<T> unwraps Promise types, Extract<T, U> and Exclude<T, U> filter union members, and Uppercase/Lowercase/Capitalize/Uncapitalize transform string literal types. These utility types compose well together, for example Partial<Pick<User, 'name' | 'email'>> creates a type with optional name and email fields from the User type."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #050508;
+            --surface: #0a0a0f;
+            --surface-2: #1a1a24;
+            --surface-3: #232330;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --accent: #a855f7;
+            --accent-hover: #c084fc;
+            --text: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #1e1e2e;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --code-bg: #0d0d14;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 800px;
+            --header-height: 64px;
+        }
+
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.75; font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .nav { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: rgba(5, 5, 8, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .nav-inner { width: 100%; max-width: 1200px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.25rem; }
+        .nav-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 800; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: var(--primary); color: #fff !important; padding: 8px 20px; border-radius: 8px; font-weight: 600; transition: background 0.2s, transform 0.2s; }
+        .nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        .article-wrapper { max-width: var(--max-width); margin: 0 auto; padding: calc(var(--header-height) + 48px) 24px 80px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap; }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .breadcrumb a:hover { color: var(--primary); }
+
+        .article-header { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+        .article-category { display: inline-block; background: rgba(168, 85, 247, 0.12); color: var(--accent); padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .article-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.15; color: var(--text); margin-bottom: 16px; letter-spacing: -0.03em; }
+        .article-subtitle { font-size: 1.2rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+        .article-meta { display: flex; align-items: center; gap: 20px; color: var(--text-muted); font-size: 0.875rem; flex-wrap: wrap; }
+        .article-meta-item { display: flex; align-items: center; gap: 6px; }
+        .article-meta-item svg { width: 16px; height: 16px; opacity: 0.7; }
+
+        .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; margin-bottom: 48px; }
+        .toc-title { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .toc-list { list-style: none; counter-reset: toc; }
+        .toc-list li { counter-increment: toc; margin-bottom: 8px; }
+        .toc-list li a { color: var(--text-secondary); text-decoration: none; font-size: 0.925rem; display: flex; align-items: baseline; gap: 10px; transition: color 0.2s, padding-left 0.2s; padding: 4px 0; }
+        .toc-list li a::before { content: counter(toc, decimal-leading-zero); color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); min-width: 20px; }
+        .toc-list li a:hover { color: var(--primary); padding-left: 4px; }
+
+        .article-content h2 { font-size: 1.75rem; font-weight: 700; color: var(--text); margin-top: 56px; margin-bottom: 20px; letter-spacing: -0.02em; line-height: 1.3; padding-top: 16px; border-top: 1px solid var(--border); }
+        .article-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+        .article-content h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin-top: 36px; margin-bottom: 14px; line-height: 1.35; }
+        .article-content h4 { font-size: 1.1rem; font-weight: 600; color: var(--text-secondary); margin-top: 28px; margin-bottom: 12px; }
+        .article-content p { margin-bottom: 20px; color: var(--text-secondary); line-height: 1.8; }
+        .article-content a { color: var(--primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+        .article-content a:hover { border-bottom-color: var(--primary); }
+        .article-content strong { color: var(--text); font-weight: 600; }
+        .article-content ul, .article-content ol { margin-bottom: 20px; padding-left: 24px; color: var(--text-secondary); }
+        .article-content li { margin-bottom: 10px; line-height: 1.7; }
+        .article-content li::marker { color: var(--primary); }
+        .article-content blockquote { border-left: 3px solid var(--accent); background: var(--surface); padding: 16px 24px; margin: 28px 0; border-radius: 0 8px 8px 0; font-style: italic; color: var(--text-secondary); }
+        .article-content blockquote p:last-child { margin-bottom: 0; }
+        .article-content hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+        .article-content pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; overflow-x: auto; margin: 24px 0; }
+        .article-content pre code { font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.65; color: var(--text); background: none; padding: 0; border-radius: 0; }
+        .article-content code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface); color: var(--accent); padding: 2px 8px; border-radius: 5px; }
+        .code-label { display: inline-block; background: var(--surface-2); color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem; padding: 2px 10px; border-radius: 6px 6px 0 0; margin-bottom: -1px; position: relative; top: 1px; }
+
+        .article-content table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.925rem; }
+        .article-content thead th { background: var(--surface); color: var(--text); font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--border); }
+        .article-content tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+        .article-content tbody tr:hover { background: var(--surface); }
+
+        .info-box { background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+        .info-box.warning { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); }
+        .info-box.danger { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); }
+        .info-box.success { background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2); }
+        .info-box-title { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .info-box p { color: var(--text-secondary); font-size: 0.925rem; margin-bottom: 0; }
+
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 28px 0; }
+        .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; color: var(--text); transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; gap: 8px; }
+        .tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1); }
+        .tool-card-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .tool-card-name { font-weight: 600; font-size: 0.95rem; }
+        .tool-card-desc { font-size: 0.825rem; color: var(--text-muted); line-height: 1.5; }
+
+        .cta-box { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; padding: 40px 32px; text-align: center; margin: 48px 0; }
+        .cta-box h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+        .cta-box p { color: var(--text-secondary); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-button { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; }
+        .cta-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3); }
+        .cta-button.secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); margin-left: 12px; }
+        .cta-button.secondary:hover { background: rgba(99, 102, 241, 0.1); }
+
+        .faq-section { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border); }
+        .faq-section h2 { margin-top: 0 !important; padding-top: 0 !important; border-top: none !important; }
+        .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-question { width: 100%; background: none; border: none; color: var(--text); padding: 20px 24px; font-size: 1rem; font-weight: 600; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-sans); transition: background 0.2s; }
+        .faq-question:hover { background: var(--surface-2); }
+        .faq-question .icon { transition: transform 0.3s; font-size: 1.25rem; color: var(--text-muted); flex-shrink: 0; margin-left: 16px; }
+        .faq-item.open .faq-question .icon { transform: rotate(45deg); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .faq-answer-inner { padding: 0 24px 20px; color: var(--text-secondary); line-height: 1.7; }
+
+        .author-box { display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 48px 0; }
+        .author-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .author-info h4 { font-weight: 600; margin-bottom: 4px; }
+        .author-info p { color: var(--text-muted); font-size: 0.875rem; margin: 0; line-height: 1.5; }
+
+        .footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-wrapper { padding: calc(var(--header-height) + 24px) 16px 60px; }
+            .article-title { font-size: 1.75rem; }
+            .tool-grid { grid-template-columns: 1fr; }
+            .cta-box { padding: 28px 20px; }
+            .cta-button.secondary { margin-left: 0; margin-top: 12px; }
+            .author-box { flex-direction: column; text-align: center; }
+            .article-content pre { padding: 16px; border-radius: 8px; }
+            .article-content h2 { font-size: 1.4rem; }
+            .article-content h3 { font-size: 1.15rem; }
+            .article-content table { display: block; overflow-x: auto; }
+        }
+        @media (max-width: 480px) {
+            .article-title { font-size: 1.5rem; }
+            .toc { padding: 18px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="https://nextool.app" class="nav-logo">
+                <div class="nav-logo-icon">N</div>
+                NexTool
+            </a>
+            <ul class="nav-links">
+                <li><a href="https://nextool.app/#services">Tools</a></li>
+                <li><a href="https://nextool.app/free-tools/">Free Tools</a></li>
+                <li><a href="https://nextool.app/blog/">Blog</a></li>
+                <li><a href="https://nextool.app/#contact" class="nav-cta">Browse Tools</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Article -->
+    <article class="article-wrapper" itemscope itemtype="https://schema.org/Article">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="https://nextool.app">Home</a>
+            <span class="separator">/</span>
+            <a href="https://nextool.app/blog/">Blog</a>
+            <span class="separator">/</span>
+            <span>TypeScript Best Practices</span>
+        </nav>
+
+        <!-- Header -->
+        <header class="article-header">
+            <span class="article-category">Guide</span>
+            <h1 class="article-title" itemprop="headline">TypeScript Best Practices: A Developer's Guide for 2026</h1>
+            <p class="article-subtitle">From strict mode configuration to advanced patterns like branded types and template literal types &mdash; the TypeScript practices that separate production-ready code from prototype-quality guesswork.</p>
+            <div class="article-meta">
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span>18 min read</span>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <time datetime="2026-02-14" itemprop="datePublished">February 14, 2026</time>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span itemprop="author">NexTool Team</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- TOC -->
+        <nav class="toc" aria-label="Table of Contents">
+            <div class="toc-title">Table of Contents</div>
+            <ol class="toc-list">
+                <li><a href="#strict-mode">Enable Strict Mode from Day One</a></li>
+                <li><a href="#utility-types">Master the Built-in Utility Types</a></li>
+                <li><a href="#generics">Write Better Generics</a></li>
+                <li><a href="#type-guards">Type Guards and Narrowing</a></li>
+                <li><a href="#discriminated-unions">Discriminated Unions for State Machines</a></li>
+                <li><a href="#branded-types">Branded Types for Domain Safety</a></li>
+                <li><a href="#satisfies">The satisfies Operator</a></li>
+                <li><a href="#const-assertions">Const Assertions and Literal Types</a></li>
+                <li><a href="#template-literal-types">Template Literal Types</a></li>
+                <li><a href="#tools">TypeScript Developer Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </nav>
+
+        <!-- Content -->
+        <div class="article-content" itemprop="articleBody">
+
+            <h2 id="strict-mode">Enable Strict Mode from Day One</h2>
+
+            <p>The single highest-impact change you can make in any TypeScript project is enabling strict mode. One flag in <code>tsconfig.json</code> activates a suite of compiler checks that catch bugs before they reach runtime. Without it, TypeScript silently permits patterns that defeat the purpose of using a type system in the first place.</p>
+
+            <div class="code-label">tsconfig.json &mdash; Strict mode</div>
+<pre><code>{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  }
+}</code></pre>
+
+            <p>The <code>"strict": true</code> flag is shorthand for enabling all of the following:</p>
+
+            <ul>
+                <li><strong>strictNullChecks</strong> &mdash; <code>null</code> and <code>undefined</code> are not assignable to every type. You must handle them explicitly.</li>
+                <li><strong>noImplicitAny</strong> &mdash; Parameters without type annotations are errors instead of silently becoming <code>any</code>.</li>
+                <li><strong>strictFunctionTypes</strong> &mdash; Function parameter types are checked contravariantly, catching subtle callback bugs.</li>
+                <li><strong>strictPropertyInitialization</strong> &mdash; Class properties must be initialized in the constructor or declared with a definite assignment assertion.</li>
+                <li><strong>strictBindCallApply</strong> &mdash; <code>bind</code>, <code>call</code>, and <code>apply</code> are type-checked correctly.</li>
+                <li><strong>noImplicitThis</strong> &mdash; <code>this</code> with an implicit <code>any</code> type is an error.</li>
+                <li><strong>useUnknownInCatchVariables</strong> &mdash; Catch clause variables are <code>unknown</code> instead of <code>any</code>.</li>
+                <li><strong>alwaysStrict</strong> &mdash; Emits <code>"use strict"</code> in every output file.</li>
+            </ul>
+
+            <div class="info-box warning">
+                <div class="info-box-title">Migrating an Existing Codebase?</div>
+                <p>If your project does not have strict mode yet, enable the flags one at a time. Start with <code>strictNullChecks</code> (catches the most bugs), then <code>noImplicitAny</code>, then the rest. Fix errors per flag before enabling the next. The <a href="/free-tools/typescript-playground.html">TypeScript Playground</a> is useful for testing how strict mode changes affect specific code snippets.</p>
+            </div>
+
+            <h3>Additional Recommended Flags</h3>
+
+            <p>Beyond strict mode, these flags tighten safety further:</p>
+
+            <div class="code-label">tsconfig.json &mdash; Extra safety</div>
+<pre><code>{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true
+  }
+}</code></pre>
+
+            <p><code>noUncheckedIndexedAccess</code> is particularly valuable. Without it, accessing <code>array[0]</code> returns <code>T</code> even if the array might be empty. With it, the return type is <code>T | undefined</code>, forcing you to handle the missing-element case.</p>
+
+            <h2 id="utility-types">Master the Built-in Utility Types</h2>
+
+            <p>TypeScript ships with over a dozen utility types that transform existing types without rewriting them. Using these instead of manual type definitions keeps your code DRY and makes refactors propagate automatically.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Utility Type</th>
+                        <th>What It Does</th>
+                        <th>Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Partial&lt;T&gt;</code></td>
+                        <td>All properties become optional</td>
+                        <td>Patch/update payloads</td>
+                    </tr>
+                    <tr>
+                        <td><code>Required&lt;T&gt;</code></td>
+                        <td>All properties become required</td>
+                        <td>Validated/complete objects</td>
+                    </tr>
+                    <tr>
+                        <td><code>Pick&lt;T, K&gt;</code></td>
+                        <td>Select specific properties</td>
+                        <td>API response subsets</td>
+                    </tr>
+                    <tr>
+                        <td><code>Omit&lt;T, K&gt;</code></td>
+                        <td>Remove specific properties</td>
+                        <td>Removing internal fields</td>
+                    </tr>
+                    <tr>
+                        <td><code>Record&lt;K, V&gt;</code></td>
+                        <td>Object with keys K and values V</td>
+                        <td>Lookup maps, dictionaries</td>
+                    </tr>
+                    <tr>
+                        <td><code>Readonly&lt;T&gt;</code></td>
+                        <td>All properties become readonly</td>
+                        <td>Immutable state, configs</td>
+                    </tr>
+                    <tr>
+                        <td><code>ReturnType&lt;T&gt;</code></td>
+                        <td>Extract function return type</td>
+                        <td>Inferring from existing functions</td>
+                    </tr>
+                    <tr>
+                        <td><code>Awaited&lt;T&gt;</code></td>
+                        <td>Unwrap Promise types</td>
+                        <td>Async function results</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Composing Utility Types</h3>
+
+            <p>The real power emerges when you combine them. Instead of defining separate types for every variation of your domain model, derive them:</p>
+
+            <div class="code-label">typescript &mdash; Composing utility types</div>
+<pre><code>interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'editor' | 'viewer';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Create payload — no id or timestamps
+type CreateUserPayload = Omit&lt;User, 'id' | 'createdAt' | 'updatedAt'&gt;;
+
+// Update payload — partial, no id
+type UpdateUserPayload = Partial&lt;Omit&lt;User, 'id' | 'createdAt' | 'updatedAt'&gt;&gt;;
+
+// API list response — only summary fields
+type UserSummary = Pick&lt;User, 'id' | 'name' | 'role'&gt;;
+
+// Admin view — everything readonly
+type UserReadonly = Readonly&lt;User&gt;;</code></pre>
+
+            <p>When the <code>User</code> interface changes, every derived type updates automatically. No manual synchronization required. If you work with JSON API responses, the <a href="/free-tools/json-to-typescript.html">JSON to TypeScript Converter</a> can generate initial interfaces from your actual API payloads.</p>
+
+            <h2 id="generics">Write Better Generics</h2>
+
+            <p>Generics let functions and types work with multiple types while preserving the relationship between inputs and outputs. The key is knowing when they add value and when they add noise.</p>
+
+            <h3>Good: Preserving Relationships</h3>
+
+            <div class="code-label">typescript &mdash; Generics that add value</div>
+<pre><code>// Without generics: returns unknown, caller must cast
+function getFirst(arr: unknown[]): unknown {
+  return arr[0];
+}
+
+// With generics: return type matches input type
+function getFirst&lt;T&gt;(arr: T[]): T | undefined {
+  return arr[0];
+}
+
+const num = getFirst([1, 2, 3]);       // number | undefined
+const str = getFirst(['a', 'b', 'c']); // string | undefined</code></pre>
+
+            <h3>Generic Constraints</h3>
+
+            <p>Use <code>extends</code> to restrict what types the generic accepts. This gives you access to properties of the constraint while keeping the function generic:</p>
+
+            <div class="code-label">typescript &mdash; Constrained generics</div>
+<pre><code>interface HasId {
+  id: string;
+}
+
+function findById&lt;T extends HasId&gt;(items: T[], id: string): T | undefined {
+  return items.find(item =&gt; item.id === id);
+}
+
+// Works with any object that has an id property
+const user = findById(users, '123');   // User | undefined
+const order = findById(orders, '456'); // Order | undefined</code></pre>
+
+            <h3>keyof with Generics</h3>
+
+            <div class="code-label">typescript &mdash; Type-safe property access</div>
+<pre><code>function pluck&lt;T, K extends keyof T&gt;(items: T[], key: K): T[K][] {
+  return items.map(item =&gt; item[key]);
+}
+
+const names = pluck(users, 'name');  // string[]
+const roles = pluck(users, 'role');  // ('admin' | 'editor' | 'viewer')[]
+// pluck(users, 'banana');           // Error: 'banana' not in keyof User</code></pre>
+
+            <div class="info-box danger">
+                <div class="info-box-title">Anti-Pattern: Unnecessary Generics</div>
+                <p>If the generic parameter appears only once in the signature, you probably do not need it. <code>function log&lt;T&gt;(value: T): void</code> gains nothing over <code>function log(value: unknown): void</code> because the generic is never reused to create a relationship.</p>
+            </div>
+
+            <h2 id="type-guards">Type Guards and Narrowing</h2>
+
+            <p>TypeScript narrows types inside conditional branches. When you check <code>typeof x === 'string'</code>, the compiler knows <code>x</code> is a <code>string</code> inside that block. You can create custom narrowing logic with type predicates.</p>
+
+            <h3>Built-in Narrowing</h3>
+
+            <div class="code-label">typescript &mdash; typeof and instanceof</div>
+<pre><code>function formatValue(value: string | number | Date): string {
+  if (typeof value === 'string') {
+    return value.toUpperCase();          // string
+  }
+  if (typeof value === 'number') {
+    return value.toFixed(2);             // number
+  }
+  return value.toISOString();            // Date
+}</code></pre>
+
+            <h3>Custom Type Guards</h3>
+
+            <p>For complex types that <code>typeof</code> and <code>instanceof</code> cannot distinguish, write a function that returns a type predicate:</p>
+
+            <div class="code-label">typescript &mdash; Custom type guard</div>
+<pre><code>interface ApiError {
+  code: number;
+  message: string;
+}
+
+interface ApiSuccess&lt;T&gt; {
+  data: T;
+}
+
+type ApiResponse&lt;T&gt; = ApiError | ApiSuccess&lt;T&gt;;
+
+function isApiError(response: ApiResponse&lt;unknown&gt;): response is ApiError {
+  return 'code' in response &amp;&amp; 'message' in response;
+}
+
+// Usage
+const result: ApiResponse&lt;User[]&gt; = await fetchUsers();
+
+if (isApiError(result)) {
+  console.error(result.message); // TypeScript knows this is ApiError
+} else {
+  console.log(result.data);      // TypeScript knows this is ApiSuccess&lt;User[]&gt;
+}</code></pre>
+
+            <p>Type guards are especially useful when parsing JSON from APIs. You can validate the structure at runtime and get compile-time safety for everything downstream. The <a href="/free-tools/json-schema-generator.html">JSON Schema Generator</a> can create validation schemas from sample API responses, which you can then pair with type guard functions.</p>
+
+            <h2 id="discriminated-unions">Discriminated Unions for State Machines</h2>
+
+            <p>A discriminated union is a union of types that share a common literal property (the discriminant). TypeScript uses that property to narrow the type inside conditional branches. This pattern is the cleanest way to model states that carry different data.</p>
+
+            <div class="code-label">typescript &mdash; Discriminated union</div>
+<pre><code>type RequestState&lt;T&gt; =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; data: T }
+  | { status: 'error'; error: string };
+
+function renderUser(state: RequestState&lt;User&gt;) {
+  switch (state.status) {
+    case 'idle':
+      return 'Click to load';
+    case 'loading':
+      return 'Loading...';
+    case 'success':
+      return state.data.name;  // TypeScript knows data exists
+    case 'error':
+      return state.error;      // TypeScript knows error exists
+  }
+}</code></pre>
+
+            <h3>Exhaustiveness Checking</h3>
+
+            <p>Add a <code>never</code> check to guarantee that every variant is handled. If someone adds a new variant to the union, the compiler reports an error at the <code>default</code> case:</p>
+
+            <div class="code-label">typescript &mdash; Exhaustiveness with never</div>
+<pre><code>function assertNever(value: never): never {
+  throw new Error(`Unhandled variant: ${JSON.stringify(value)}`);
+}
+
+function handleState(state: RequestState&lt;User&gt;): string {
+  switch (state.status) {
+    case 'idle':    return 'Idle';
+    case 'loading': return 'Loading';
+    case 'success': return state.data.name;
+    case 'error':   return state.error;
+    default:        return assertNever(state);
+    // If a new variant is added and not handled above,
+    // TypeScript errors here because state is not 'never'
+  }
+}</code></pre>
+
+            <div class="info-box success">
+                <div class="info-box-title">When to Use Discriminated Unions</div>
+                <p>Use them for any data that can be in one of several states with different shapes: API response states, form validation results, payment statuses, notification types, or navigation routes. They replace boolean flag combinations (<code>isLoading &amp;&amp; !hasError</code>) with explicit, type-safe states.</p>
+            </div>
+
+            <h2 id="branded-types">Branded Types for Domain Safety</h2>
+
+            <p>TypeScript uses structural typing. Two types with the same shape are interchangeable, even if they represent different domain concepts. A <code>UserId</code> and an <code>OrderId</code> are both <code>string</code>, so nothing stops you from passing one where the other is expected.</p>
+
+            <p>Branded types add a phantom property that exists only at the type level to break structural compatibility:</p>
+
+            <div class="code-label">typescript &mdash; Branded types</div>
+<pre><code>// Declare branded types
+type UserId = string &amp; { readonly __brand: unique symbol };
+type OrderId = string &amp; { readonly __brand: unique symbol };
+
+// Constructor functions (the only way to create branded values)
+function createUserId(id: string): UserId {
+  // Add validation here if needed
+  return id as UserId;
+}
+
+function createOrderId(id: string): OrderId {
+  return id as OrderId;
+}
+
+// Type-safe functions
+function getUser(id: UserId): User { /* ... */ }
+function getOrder(id: OrderId): Order { /* ... */ }
+
+// Usage
+const userId = createUserId('usr_123');
+const orderId = createOrderId('ord_456');
+
+getUser(userId);    // Works
+getUser(orderId);   // Error: OrderId is not assignable to UserId
+getUser('usr_789'); // Error: string is not assignable to UserId</code></pre>
+
+            <h3>Branded Types for Validated Data</h3>
+
+            <div class="code-label">typescript &mdash; Validation branding</div>
+<pre><code>type Email = string &amp; { readonly __brand: unique symbol };
+type NonEmptyString = string &amp; { readonly __brand: unique symbol };
+
+function validateEmail(input: string): Email | null {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(input) ? (input as Email) : null;
+}
+
+function sendEmail(to: Email, subject: NonEmptyString): void {
+  // Both parameters are guaranteed to be validated
+}
+
+// Calling code MUST validate first
+const email = validateEmail(userInput);
+if (email) {
+  sendEmail(email, subject); // Only reachable with valid email
+}</code></pre>
+
+            <p>This pattern moves validation to the boundary of your system and makes it impossible to use unvalidated data in the core logic.</p>
+
+            <h2 id="satisfies">The satisfies Operator</h2>
+
+            <p>Introduced in TypeScript 4.9, <code>satisfies</code> solves a longstanding tension: you want to validate that a value conforms to a type, but you also want TypeScript to infer the narrowest possible type for autocompletion.</p>
+
+            <h3>The Problem</h3>
+
+            <div class="code-label">typescript &mdash; Type annotation loses specificity</div>
+<pre><code>type RouteConfig = Record&lt;string, { path: string; auth: boolean }&gt;;
+
+// With type annotation: keys are widened to 'string'
+const routes: RouteConfig = {
+  home:    { path: '/',         auth: false },
+  profile: { path: '/profile',  auth: true },
+  admin:   { path: '/admin',    auth: true },
+};
+
+routes.home;     // Works, but TypeScript does not know 'home' is a valid key
+routes.banana;   // No error! Keys are just 'string'</code></pre>
+
+            <h3>The Solution</h3>
+
+            <div class="code-label">typescript &mdash; satisfies preserves specificity</div>
+<pre><code>const routes = {
+  home:    { path: '/',         auth: false },
+  profile: { path: '/profile',  auth: true },
+  admin:   { path: '/admin',    auth: true },
+} satisfies RouteConfig;
+
+routes.home;     // Works, with full autocomplete
+routes.banana;   // Error: Property 'banana' does not exist
+routes.home.path // Type is '/' (literal), not string</code></pre>
+
+            <p>With <code>satisfies</code>, TypeScript validates the value against <code>RouteConfig</code> (catching typos or wrong property types) while preserving the literal types of every key and value. You get both validation and precision.</p>
+
+            <h3>satisfies with as const</h3>
+
+            <div class="code-label">typescript &mdash; Maximum specificity</div>
+<pre><code>const colors = {
+  primary: '#6366f1',
+  accent:  '#a855f7',
+  error:   '#ef4444',
+} as const satisfies Record&lt;string, `#${string}`&gt;;
+
+// colors.primary is type '#6366f1' (literal), not string
+// Every value is validated as a hex color string</code></pre>
+
+            <div class="cta-box">
+                <h3>Test TypeScript Patterns in Your Browser</h3>
+                <p>The NexTool TypeScript Playground lets you write, compile, and test TypeScript code instantly. No setup, no installation, no signup.</p>
+                <a href="/free-tools/typescript-playground.html" class="cta-button">Open TypeScript Playground</a>
+                <a href="/free-tools/json-to-typescript.html" class="cta-button secondary">JSON to TypeScript</a>
+            </div>
+
+            <h2 id="const-assertions">Const Assertions and Literal Types</h2>
+
+            <p>By default, TypeScript widens literal values. <code>const x = 'hello'</code> infers the type <code>'hello'</code>, but <code>let x = 'hello'</code> infers <code>string</code>. For objects and arrays, even <code>const</code> declarations widen the property values because the properties themselves are mutable.</p>
+
+            <div class="code-label">typescript &mdash; as const</div>
+<pre><code>// Without as const: properties are mutable, types are wide
+const config = {
+  api: 'https://api.example.com',
+  timeout: 5000,
+  retries: 3,
+};
+// config.api is type string
+// config.timeout is type number
+
+// With as const: properties are readonly, types are literal
+const config = {
+  api: 'https://api.example.com',
+  timeout: 5000,
+  retries: 3,
+} as const;
+// config.api is type 'https://api.example.com'
+// config.timeout is type 5000</code></pre>
+
+            <h3>as const for Tuples</h3>
+
+            <div class="code-label">typescript &mdash; Tuple inference</div>
+<pre><code>// Without as const: inferred as (string | number)[]
+const pair = ['name', 42];
+
+// With as const: inferred as readonly ['name', 42]
+const pair = ['name', 42] as const;
+// pair[0] is 'name', pair[1] is 42
+
+// Useful for function returns
+function useToggle(initial: boolean) {
+  const [value, setValue] = useState(initial);
+  const toggle = useCallback(() =&gt; setValue(v =&gt; !v), []);
+  return [value, toggle] as const; // readonly [boolean, () =&gt; void]
+}</code></pre>
+
+            <h3>Enum Replacement with as const</h3>
+
+            <div class="code-label">typescript &mdash; Object enum pattern</div>
+<pre><code>// Instead of enum (which has runtime overhead and bundle bloat)
+const Status = {
+  Active: 'active',
+  Inactive: 'inactive',
+  Pending: 'pending',
+} as const;
+
+type Status = typeof Status[keyof typeof Status];
+// type Status = 'active' | 'inactive' | 'pending'
+
+function setStatus(status: Status) { /* ... */ }
+setStatus(Status.Active);  // Works
+setStatus('active');        // Also works
+setStatus('deleted');       // Error</code></pre>
+
+            <p>This pattern gives you named constants (like an enum), union type safety, and zero runtime overhead because the object compiles to plain JavaScript without the synthetic code that TypeScript enums generate.</p>
+
+            <h2 id="template-literal-types">Template Literal Types</h2>
+
+            <p>Template literal types let you create string types using the same template syntax as JavaScript template literals. They are invaluable for APIs that rely on string patterns.</p>
+
+            <div class="code-label">typescript &mdash; Template literal types</div>
+<pre><code>// Basic: string pattern types
+type CssUnit = `${number}${'px' | 'rem' | 'em' | '%' | 'vh' | 'vw'}`;
+
+function setWidth(width: CssUnit) { /* ... */ }
+setWidth('100px');   // OK
+setWidth('2.5rem');  // OK
+setWidth('100');     // Error: not a valid CssUnit
+
+// Event handler pattern
+type EventName = 'click' | 'focus' | 'blur' | 'change';
+type EventHandler = `on${Capitalize&lt;EventName&gt;}`;
+// type EventHandler = 'onClick' | 'onFocus' | 'onBlur' | 'onChange'</code></pre>
+
+            <h3>Dynamic Key Types</h3>
+
+            <div class="code-label">typescript &mdash; Route builder</div>
+<pre><code>type ApiVersion = 'v1' | 'v2';
+type Resource = 'users' | 'orders' | 'products';
+type ApiEndpoint = `/api/${ApiVersion}/${Resource}`;
+// type ApiEndpoint = '/api/v1/users' | '/api/v1/orders' | '/api/v1/products'
+//                  | '/api/v2/users' | '/api/v2/orders' | '/api/v2/products'
+
+function fetchResource(endpoint: ApiEndpoint): Promise&lt;Response&gt; {
+  return fetch(endpoint);
+}
+
+fetchResource('/api/v1/users');    // OK
+fetchResource('/api/v3/users');    // Error: v3 is not valid</code></pre>
+
+            <h3>String Manipulation Types</h3>
+
+            <p>TypeScript provides four intrinsic string manipulation types that work at the type level:</p>
+
+            <div class="code-label">typescript &mdash; String type utilities</div>
+<pre><code>type Upper = Uppercase&lt;'hello'&gt;;       // 'HELLO'
+type Lower = Lowercase&lt;'HELLO'&gt;;       // 'hello'
+type Cap = Capitalize&lt;'hello'&gt;;        // 'Hello'
+type Uncap = Uncapitalize&lt;'Hello'&gt;;    // 'hello'
+
+// Practical: convert snake_case keys to camelCase type
+type CamelCase&lt;S extends string&gt; =
+  S extends `${infer Head}_${infer Tail}`
+    ? `${Head}${Capitalize&lt;CamelCase&lt;Tail&gt;&gt;}`
+    : S;
+
+type Result = CamelCase&lt;'user_first_name'&gt;; // 'userFirstName'</code></pre>
+
+            <p>If you are building an ESLint configuration to enforce consistent naming conventions alongside these type-level patterns, the <a href="/free-tools/eslint-config-generator.html">ESLint Config Generator</a> can produce a TypeScript-aware config with naming convention rules pre-configured.</p>
+
+            <h2 id="tools">TypeScript Developer Tools</h2>
+
+            <div class="tool-grid">
+                <a href="/free-tools/typescript-playground.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F539;</div>
+                    <div class="tool-card-name">TypeScript Playground</div>
+                    <div class="tool-card-desc">Write and compile TypeScript in the browser. See type errors, compiled output, and inferred types in real time.</div>
+                </a>
+                <a href="/free-tools/json-to-typescript.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F504;</div>
+                    <div class="tool-card-name">JSON to TypeScript</div>
+                    <div class="tool-card-desc">Paste JSON from an API response and generate TypeScript interfaces automatically. Handles nested objects and arrays.</div>
+                </a>
+                <a href="/free-tools/json-schema-generator.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CB;</div>
+                    <div class="tool-card-name">JSON Schema Generator</div>
+                    <div class="tool-card-desc">Generate JSON Schema from sample data. Use it alongside type guards for runtime validation that matches your TypeScript types.</div>
+                </a>
+                <a href="/free-tools/eslint-config-generator.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F6E1;</div>
+                    <div class="tool-card-name">ESLint Config Generator</div>
+                    <div class="tool-card-desc">Generate ESLint configurations with TypeScript support, naming conventions, and strict rule presets.</div>
+                </a>
+                <a href="/free-tools/javascript-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4DD;</div>
+                    <div class="tool-card-name">JavaScript Formatter</div>
+                    <div class="tool-card-desc">Format and beautify JavaScript and TypeScript code with configurable indent size, semicolons, and quotes.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Should I enable strict mode in TypeScript?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Yes. Strict mode enables a set of compiler flags including strictNullChecks, noImplicitAny, strictFunctionTypes, and strictPropertyInitialization. These flags catch entire categories of bugs at compile time that would otherwise surface as runtime errors. Every major TypeScript project and framework (Angular, Next.js, SvelteKit) ships with strict mode enabled by default. Starting a new project without strict mode means you will eventually migrate to it anyway, but with a larger codebase and more errors to fix. Enable it from day one in tsconfig.json with "strict": true.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between type and interface in TypeScript?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Interfaces use declaration merging (multiple declarations with the same name are automatically combined) and can only describe object shapes. Types are more flexible: they support unions, intersections, mapped types, conditional types, and primitives. Use interfaces when defining object contracts that consumers might need to extend (like library APIs or plugin systems). Use types for everything else: union types, utility type combinations, function signatures, and complex mapped or conditional types. In practice, most teams pick one as the default and use the other only when its unique feature is needed. Performance-wise, the TypeScript compiler resolves interfaces slightly faster in large projects due to caching, but the difference is negligible for most codebases.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>When should I use generics in TypeScript?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Use generics when a function, class, or type needs to work with multiple types while preserving the relationship between input and output types. The classic example is a function that takes a value of some type and returns a value of that same type, like an identity function or an array wrapper. Without generics, you would use any (losing type safety) or write separate overloads for each type (losing maintainability). Generics are essential for utility functions (pick, omit, map, filter), data structures (Stack&lt;T&gt;, Queue&lt;T&gt;), API response wrappers (ApiResponse&lt;T&gt;), and Higher-Order Components or hooks that wrap other typed logic. Avoid generics when a concrete type is sufficient or when the generic parameter is only used once, which usually means it adds complexity without value.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What does the satisfies operator do in TypeScript?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>The satisfies operator, introduced in TypeScript 4.9, lets you validate that a value matches a type without widening the inferred type. With a normal type annotation (const x: Type = value), TypeScript uses the declared type and loses any narrower information from the value. With satisfies (const x = value satisfies Type), TypeScript validates that the value conforms to Type but infers the most specific type possible. This is useful for configuration objects where you want both type checking against a schema and autocompletion for the specific literal values. For example, const routes = { home: '/home', about: '/about' } satisfies Record&lt;string, string&gt; ensures every value is a string while preserving the literal key and value types for autocompletion.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do branded types work in TypeScript?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Branded types (also called nominal types or opaque types) add a phantom property to a type to prevent accidental interchangeability between structurally identical types. For example, UserId and OrderId might both be strings at runtime, but with branding you can make the compiler reject passing a UserId where an OrderId is expected. You create a branded type by intersecting the base type with a unique symbol property: type UserId = string &amp; { readonly __brand: unique symbol }. Then you create values through a constructor function that casts the raw value: function createUserId(id: string): UserId { return id as UserId; }. This pattern is widely used for IDs, currency amounts, validated email addresses, and any domain value where mixing up structurally identical types causes bugs.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What are the most useful TypeScript utility types?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>The most commonly used built-in utility types are Partial&lt;T&gt; (makes all properties optional), Required&lt;T&gt; (makes all properties required), Pick&lt;T, Keys&gt; (selects specific properties), Omit&lt;T, Keys&gt; (removes specific properties), Record&lt;Keys, Type&gt; (creates an object type with specified keys and value type), Readonly&lt;T&gt; (makes all properties readonly), ReturnType&lt;T&gt; (extracts a function's return type), and Parameters&lt;T&gt; (extracts a function's parameter types as a tuple). For more advanced use cases, NonNullable&lt;T&gt; removes null and undefined, Awaited&lt;T&gt; unwraps Promise types, Extract&lt;T, U&gt; and Exclude&lt;T, U&gt; filter union members, and Uppercase/Lowercase/Capitalize/Uncapitalize transform string literal types. These utility types compose well together, for example Partial&lt;Pick&lt;User, 'name' | 'email'&gt;&gt; creates a type with optional name and email fields from the User type.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author -->
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>NexTool Team</h4>
+                <p>We build free developer tools for TypeScript, JavaScript, JSON, and more. Over 150 tools, all browser-based, no signup required.</p>
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="cta-box">
+            <h3>150+ Developer Tools, One Place</h3>
+            <p>NexTool Pro ($29) unlocks clean output, enhanced features, and unlimited workspace. One payment, lifetime access.</p>
+            <a href="https://nextool.app/free-tools/pro-upgrade.html" class="cta-button">Get NexTool Pro &mdash; $29</a>
+            <a href="/free-tools/" class="cta-button secondary">Try Free Tools</a>
+        </div>
+
+    </article>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="https://nextool.app">Home</a>
+                <a href="https://nextool.app/#services">Tools</a>
+                <a href="https://nextool.app/free-tools/">Free Tools</a>
+                <a href="https://nextool.app/blog/">Blog</a>
+                <a href="https://nextool.app/#contact">Contact</a>
+            </div>
+            <p>&copy; 2026 NexTool. All rights reserved. 150+ free developer tools.</p>
+        </div>
+    </footer>
+
+    <!-- FAQ Script -->
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <!-- Revenue Scripts -->
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>
