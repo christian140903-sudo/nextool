@@ -10,15 +10,12 @@
 if(window.NexToolPro&&window.NexToolPro.active)return;
 
 var P='ntpb_',D=6048e5; // 7 day dismiss
-var PP='/products.html';
+var PP='/pro.html';
 
-// Product catalog
+// Product catalog — matches actual pro.html offerings
 var PRODUCTS=[
-  {id:'kit',name:'MCP Starter Kit',price:19,desc:'Build your own MCP servers with production templates.',anchor:'',icon:'\u{1F4E6}',tags:'d'},
-  {id:'memory',name:'Smart Memory Pro',price:29,desc:'Persistent AI memory. Your agent remembers everything.',anchor:'',icon:'\u{1F9E0}',tags:'dtu'},
-  {id:'nexbot',name:'NexBot Chat Widget',price:39,desc:'AI chat on any site. One script tag, zero API costs.',anchor:'',icon:'\u{1F4AC}',tags:'gmtu'},
-  {id:'nexus',name:'NEXUS Developer Suite',price:49,desc:'28 MCP tools. Memory, codegen, agents, monitoring.',anchor:'',icon:'\u26A1',tags:'d'},
-  {id:'bundle',name:'Complete AI Dev Bundle',price:99,desc:'All 4 products. Save $37. Lifetime updates.',anchor:'#bundle',icon:'\u{1F680}',tags:'dgmtcu'}
+  {id:'pro',name:'NexTool Pro',price:29,desc:'Zero banners, clean output, Pro Toolbar, 4 themes, keyboard shortcuts. $29 one-time.',anchor:'#pricing',icon:'\u26A1',tags:'dgmtcu'},
+  {id:'business',name:'NexTool Business',price:99,desc:'Pro for your team. Up to 5 activations, priority support. $99 one-time.',anchor:'#pricing',icon:'\u{1F680}',tags:'dgmtcu'}
 ];
 
 // Category to product relevance
@@ -30,7 +27,7 @@ function getRelevant(cat){
     return{p:p,s:s};
   });
   scored.sort(function(a,b){return b.s-a.s});
-  return scored.slice(0,2).map(function(x){return x.p});
+  return scored.slice(0,2).map(function(x){return x.p;});
 }
 
 function st(k,v){try{localStorage.setItem(P+k,JSON.stringify(v))}catch(e){}}
@@ -106,9 +103,9 @@ function injectProductSection(page){
 
   var sec=document.createElement('div');
   sec.className='npb-section';
-  var heading=page.type==='tool'?'Level up your workflow':'Recommended tools';
+  var heading=page.type==='tool'?'Love this tool? Go Pro.':'Upgrade your workflow';
   sec.innerHTML='<h3>'+heading+'</h3>'+
-    '<div class="npb-sub">AI-powered developer tools. One-time payments from $19.</div>'+
+    '<div class="npb-sub">No banners, enhanced features, clean output. One-time payment, yours forever.</div>'+
     '<div class="npb-cards">'+products.map(function(p){
       var url=PP+(p.anchor||'');
       return '<a href="'+url+'" class="npb-card">'+
@@ -139,7 +136,7 @@ function showBanner(page){
   if(document.getElementById('nrb'))return;
 
   var product=getRelevant(page.cat)[0];
-  if(!product)product=PRODUCTS[4]; // bundle fallback
+  if(!product)product=PRODUCTS[0]; // Pro fallback
 
   var bar=document.createElement('div');
   bar.className='npb-bar';
