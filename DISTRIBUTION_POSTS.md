@@ -2,12 +2,12 @@
 
 ## 1. Reddit r/webdev (Show Reddit / Project Showcase)
 
-**Title:** I built 228 free browser-based tools for developers — no login, no tracking, everything runs locally
+**Title:** I built 235+ free browser-based tools for developers — no login, no tracking, everything runs locally
 
 **Body:**
 Hey r/webdev,
 
-Over the past few months I've been building NexTool — a collection of 228+ free developer tools that run entirely in your browser. No accounts, no data sent to any server, no tracking.
+Over the past few months I've been building NexTool — a collection of 235+ free developer tools that run entirely in your browser. No accounts, no data sent to any server, no tracking.
 
 **Some highlights:**
 - JSON Formatter, Validator, Viewer, Diff, Path Finder, Schema Generator
@@ -18,7 +18,7 @@ Over the past few months I've been building NexTool — a collection of 228+ fre
 - Code formatters (SQL, HTML, CSS, JavaScript, YAML, XML)
 - Converters (JSON-YAML, CSV-JSON, Markdown-HTML, Unix Timestamp)
 - Security tools (Password Generator, Hash Generator, JWT Decoder)
-- And 180+ more...
+- And 190+ more...
 
 Everything is 100% client-side. Your data never leaves your browser. No ads, no popups.
 
@@ -34,10 +34,10 @@ Would love your feedback on which tools you find most useful and what's missing!
 
 ## 2. Reddit r/InternetIsBeautiful
 
-**Title:** NexTool — 228 free browser-based tools for developers (JSON, CSS, regex, colors, images, code formatting — all local, no login)
+**Title:** NexTool — 235+ free browser-based tools for developers (JSON, CSS, regex, colors, images, code formatting — all local, no login)
 
 **Body:**
-I built a collection of 228+ free online tools that run entirely in your browser:
+I built a collection of 235+ free online tools that run entirely in your browser:
 
 - Format JSON, SQL, CSS, HTML, JavaScript
 - Generate CSS gradients, shadows, animations, flexbox layouts
@@ -55,12 +55,12 @@ https://nextool.app/free-tools/
 
 ## 3. Reddit r/SideProject
 
-**Title:** I built 228 free browser-based developer tools — here's what I learned
+**Title:** I built 235+ free browser-based developer tools — here's what I learned
 
 **Body:**
 Hey r/SideProject!
 
-I've been working on NexTool — a collection of 228+ free browser-based tools for developers. Everything runs client-side, no tracking, no login required.
+I've been working on NexTool — a collection of 235+ free browser-based tools for developers. Everything runs client-side, no tracking, no login required.
 
 **What it is:** One site with every tool a developer commonly needs — JSON formatters, regex testers, CSS generators, color tools, image compressors, code formatters, calculators, converters, and more.
 
@@ -86,10 +86,10 @@ Site: https://nextool.app
 
 ## 4. Hacker News (Show HN)
 
-**Title:** Show HN: NexTool – 228 free browser-based developer tools, all client-side
+**Title:** Show HN: NexTool – 235+ free browser-based developer tools, all client-side
 
 **Body:**
-I built NexTool, a collection of 228+ free online tools for developers. Everything runs in the browser — no data is sent to any server.
+I built NexTool, a collection of 235+ free online tools for developers. Everything runs in the browser — no data is sent to any server.
 
 Tools include: JSON formatter/validator/viewer, regex tester, CSS generators (gradient, flexbox, grid, animation), color tools (palette generator, contrast checker), code formatters (SQL, HTML, CSS, JS), image compressor, SVG optimizer, and 200+ more.
 
@@ -102,7 +102,7 @@ https://nextool.app/free-tools/
 ## 5. Twitter/X Thread
 
 **Tweet 1:**
-I built 228 free browser-based developer tools.
+I built 235+ free browser-based developer tools.
 
 No login. No tracking. Everything runs locally.
 
@@ -133,7 +133,7 @@ Color Contrast Checker — pick two colors, get instant WCAG AA/AAA results. Aut
 nextool.app/free-tools/color-contrast-checker.html
 
 **Tweet 6:**
-All 228+ tools are free, forever. No signup, no credit card.
+All 235+ tools are free, forever. No signup, no credit card.
 
 There's an optional Pro ($29 one-time) for a clean, distraction-free experience.
 
@@ -207,10 +207,10 @@ All tools are free. There's an optional Pro upgrade ($29) for a cleaner experien
 
 ## 7. Product Hunt
 
-**Tagline:** 228 free browser-based developer tools — no login, no tracking
+**Tagline:** 235+ free browser-based developer tools — no login, no tracking
 
 **Description:**
-NexTool is a collection of 228+ free online tools for developers. JSON formatters, CSS generators, regex testers, color tools, image compressors, code formatters, and much more.
+NexTool is a collection of 235+ free online tools for developers. JSON formatters, CSS generators, regex testers, color tools, image compressors, code formatters, and much more.
 
 Every tool runs 100% in your browser. No data is sent to any server. No login required. No ads.
 
@@ -219,7 +219,7 @@ Categories include: JSON & Data, CSS & Design, Code Formatting, Security & Encod
 **Maker Comment:**
 Hi Product Hunt! I built NexTool because I was tired of searching for individual developer tools across different websites, most of which were covered in ads and tracking scripts.
 
-NexTool puts 228+ tools in one clean place. Everything runs in your browser — your data never leaves your device. No accounts, no tracking, no BS.
+NexTool puts 235+ tools in one clean place. Everything runs in your browser — your data never leaves your device. No accounts, no tracking, no BS.
 
 The tools are completely free. There's an optional Pro upgrade ($29 one-time) that removes promotional banners and adds a Pro Toolbar with themes, history, and keyboard shortcuts.
 
@@ -235,5 +235,58 @@ Would love your feedback on which tools you find most useful and what you'd like
 5. dev.to article (SEO + community)
 6. Twitter/X thread
 7. Product Hunt (scheduled launch)
-</content>
-</invoke>
+
+---
+
+## 8. Reddit r/pdf (PDF-focused communities)
+
+**Title:** Free PDF tools that work in your browser — split, merge, compress, convert (no upload to servers)
+
+**Body:**
+I built a set of free PDF tools that run entirely in your browser. Your files never leave your device.
+
+Available tools:
+- **PDF Merge** — Combine multiple PDFs into one
+- **PDF Split** — Extract specific pages or split by range
+- **PDF Compress** — Reduce file size without quality loss
+- **Image to PDF** — Convert JPG/PNG images to PDF
+- **Word to PDF** — Convert DOCX files to PDF
+- **PDF to Image** — Convert PDF pages to PNG/JPG
+
+All free, no signup, no file uploads. Everything processes locally using JavaScript.
+
+https://nextool.app/free-tools/
+
+---
+
+## 9. Reddit r/productivity + r/software
+
+**Title:** 235+ free online tools I built — PDF, converters, calculators, text tools (no signup, runs locally)
+
+**Body:**
+I put together a collection of 235+ free browser tools that anyone can use — not just developers.
+
+Popular ones:
+- PDF tools (merge, split, compress, convert)
+- Unit converters (length, weight, temperature, currency)
+- Text tools (word counter, case converter, lorem ipsum)
+- Calculators (percentage, age, BMI, loan)
+- Generators (QR code, password, UUID, barcode)
+- Image tools (compress, resize, convert)
+
+Everything runs in your browser. No accounts, no data collection, no ads.
+
+https://nextool.app/free-tools/
+
+---
+
+## POSTING ORDER (updated):
+1. Reddit r/webdev (largest dev audience)
+2. Reddit r/SideProject (supportive community)
+3. Reddit r/pdf (PDF tools = broad appeal)
+4. Reddit r/productivity (non-dev audience)
+5. Hacker News Show HN (can go viral)
+6. Reddit r/InternetIsBeautiful (broad audience)
+7. dev.to article (SEO + community)
+8. Twitter/X thread
+9. Product Hunt (scheduled launch)
