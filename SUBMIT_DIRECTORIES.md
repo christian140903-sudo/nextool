@@ -13,7 +13,7 @@
 
 ### 2. Hacker News (Show HN)
 - **URL:** https://news.ycombinator.com/submit
-- **Title:** `Show HN: NexTool -- 228+ Free Browser-Based Developer Tools`
+- **Title:** `Show HN: NexTool -- 245+ Free Browser-Based Developer Tools`
 - **Traffic:** 10M+/mo devs. Post 8-10am ET weekdays.
 - **Account:** Free signup
 

@@ -15,7 +15,7 @@ I was tired of:
 - Creating yet another account just to format some CSS
 - Using 15 different bookmarks for 15 different tools
 
-So I built **NexTool** — one clean site with 245++ developer tools.
+So I built **NexTool** — one clean site with 245+ developer tools.
 
 **The privacy promise:** Everything runs client-side. Open DevTools → Network tab while using any tool. Zero external requests. Your data never leaves your browser.
 
@@ -96,7 +96,7 @@ So I built **NexTool** — one clean site with 245++ developer tools.
 | [HTTP Status Codes](https://nextool.app/free-tools/http-status-codes.html) | Reference for all HTTP codes |
 
 ### And 130+ More...
-Converters, calculators, generators, validators — [browse all 245++ tools](https://nextool.app/free-tools/).
+Converters, calculators, generators, validators — [browse all 245+ tools](https://nextool.app/free-tools/).
 
 ## Built With
 
