@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Query Optimization: A Practical Guide | NexTool</title>
+    <meta name="description" content="Learn how to optimize slow SQL queries with EXPLAIN plans, proper indexing, JOIN strategies, pagination techniques, and caching. Practical examples for PostgreSQL, MySQL, and SQLite.">
+    <meta name="keywords" content="sql query optimization, sql performance, explain plan, sql indexes, sql joins, n+1 query, slow query, sql pagination, database optimization, sql caching">
+    <meta name="author" content="NexTool Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/sql-query-optimization-guide.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="SQL Query Optimization: A Practical Guide">
+    <meta property="og:description" content="Diagnose and fix slow SQL queries with EXPLAIN plans, index strategies, JOIN optimization, and pagination patterns. Real examples for PostgreSQL, MySQL, and SQLite.">
+    <meta property="og:url" content="https://nextool.app/blog/sql-query-optimization-guide.html">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/sql-query-optimization-guide-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-14T09:00:00Z">
+    <meta property="article:modified_time" content="2026-02-14T09:00:00Z">
+    <meta property="article:author" content="NexTool Team">
+    <meta property="article:section" content="Tutorial">
+    <meta property="article:tag" content="SQL">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="Performance">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SQL Query Optimization: A Practical Guide">
+    <meta name="twitter:description" content="Diagnose and fix slow SQL queries with EXPLAIN plans, index strategies, JOIN optimization, and pagination patterns.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/sql-query-optimization-guide-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "SQL Query Optimization: A Practical Guide",
+        "description": "Learn how to optimize slow SQL queries with EXPLAIN plans, proper indexing, JOIN strategies, pagination techniques, and caching. Practical examples for PostgreSQL, MySQL, and SQLite.",
+        "image": "https://nextool.app/assets/images/blog/sql-query-optimization-guide-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool Team",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-14T09:00:00Z",
+        "dateModified": "2026-02-14T09:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/sql-query-optimization-guide.html"
+        },
+        "wordCount": 3200,
+        "keywords": ["sql optimization", "explain plan", "sql indexes", "sql joins", "n+1 query", "slow query diagnosis", "sql pagination", "database performance"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "SQL Query Optimization Guide",
+                "item": "https://nextool.app/blog/sql-query-optimization-guide.html"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "How do I find out why my SQL query is slow?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Run EXPLAIN (or EXPLAIN ANALYZE in PostgreSQL) before your query to see the execution plan. The plan shows how the database reads data: whether it uses indexes or scans entire tables, which join algorithm it picks, and the estimated cost and row counts for each step. Look for Sequential Scans (Seq Scan) on large tables, which usually mean a missing index. Check the estimated rows versus actual rows; a large mismatch indicates stale statistics (run ANALYZE). In MySQL, use EXPLAIN FORMAT=JSON for detailed cost breakdowns. In most cases, the first optimization is adding an index on the columns used in WHERE, JOIN, and ORDER BY clauses."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the N+1 query problem and how do I fix it?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The N+1 problem occurs when your code runs 1 query to fetch a list of N records, then runs N additional queries to fetch related data for each record individually. For example, fetching 100 orders and then running a separate query for each order's customer data results in 101 queries. Fix it by using a JOIN to fetch everything in one query, or by using an IN clause to batch the related lookups into a single query (SELECT * FROM customers WHERE id IN (1, 2, 3, ...)). Most ORMs like Prisma, SQLAlchemy, and ActiveRecord have eager loading features (include, joinedload, includes) that solve this automatically. N+1 is the single most common cause of slow API endpoints in web applications."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "When should I add an index to a database table?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Add an index when a column or combination of columns is frequently used in WHERE clauses, JOIN conditions, or ORDER BY clauses, and the table has enough rows that scanning it is noticeably slow (typically over a few thousand rows). Do not index every column. Each index adds overhead to INSERT, UPDATE, and DELETE operations because the database must maintain the index data structure alongside the table. Composite indexes (on multiple columns) are more efficient than multiple single-column indexes for queries that filter on several columns. The column order in a composite index matters: put the most selective column (the one that filters out the most rows) first. Use EXPLAIN to verify that your queries actually use the indexes you create."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the difference between OFFSET pagination and cursor pagination?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "OFFSET pagination uses LIMIT and OFFSET (e.g., SELECT * FROM posts ORDER BY id LIMIT 20 OFFSET 1000) to skip rows. It is simple but gets slower as the offset increases because the database must scan and discard all skipped rows. At OFFSET 100000 on a large table, performance degrades significantly. Cursor pagination (also called keyset pagination) uses a WHERE clause on an indexed column to start from the last seen value (e.g., SELECT * FROM posts WHERE id > 1000 ORDER BY id LIMIT 20). This is consistently fast regardless of how deep you paginate because it uses the index to jump directly to the right position. Use cursor pagination for any paginated API or infinite scroll. Use OFFSET only for small datasets or when you need random page access (page 1, page 5, page 3)."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Should I use SELECT * in production queries?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. SELECT * fetches all columns from a table, including large text fields, blobs, and columns you do not need. This wastes memory, network bandwidth, and prevents the database from using covering indexes (indexes that contain all the requested columns, allowing the query to be answered entirely from the index without reading the table). Always specify only the columns you need: SELECT id, name, email FROM users. This is especially important for tables with many columns or large column values, and for queries that return many rows. The only acceptable use of SELECT * is during ad-hoc exploration in a database client, never in application code."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I optimize SQL JOINs on large tables?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "First, ensure both sides of the JOIN condition have indexes. A JOIN on orders.customer_id = customers.id needs an index on orders.customer_id and customers.id (the primary key index covers the latter automatically). Second, filter early: add WHERE conditions to reduce the number of rows before the JOIN executes, not after. Third, avoid joining on expressions or functions (e.g., JOIN ON LOWER(a.name) = LOWER(b.name)) because this prevents index usage. Fourth, for queries that only need data from one side of the join, consider using EXISTS instead of JOIN, as it can short-circuit evaluation. Fifth, review the EXPLAIN plan to check which join algorithm the optimizer chose (Nested Loop, Hash Join, Merge Join). Hash Joins are efficient for large unsorted datasets, while Merge Joins work best on pre-sorted data."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #050508;
+            --surface: #0a0a0f;
+            --surface-2: #1a1a24;
+            --surface-3: #232330;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --accent: #a855f7;
+            --accent-hover: #c084fc;
+            --text: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #1e1e2e;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --code-bg: #0d0d14;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 800px;
+            --header-height: 64px;
+        }
+
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.75; font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .nav { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: rgba(5, 5, 8, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .nav-inner { width: 100%; max-width: 1200px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.25rem; }
+        .nav-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 800; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: var(--primary); color: #fff !important; padding: 8px 20px; border-radius: 8px; font-weight: 600; transition: background 0.2s, transform 0.2s; }
+        .nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        .article-wrapper { max-width: var(--max-width); margin: 0 auto; padding: calc(var(--header-height) + 48px) 24px 80px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap; }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .breadcrumb a:hover { color: var(--primary); }
+
+        .article-header { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+        .article-category { display: inline-block; background: rgba(168, 85, 247, 0.12); color: var(--accent); padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .article-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.15; color: var(--text); margin-bottom: 16px; letter-spacing: -0.03em; }
+        .article-subtitle { font-size: 1.2rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+        .article-meta { display: flex; align-items: center; gap: 20px; color: var(--text-muted); font-size: 0.875rem; flex-wrap: wrap; }
+        .article-meta-item { display: flex; align-items: center; gap: 6px; }
+        .article-meta-item svg { width: 16px; height: 16px; opacity: 0.7; }
+
+        .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; margin-bottom: 48px; }
+        .toc-title { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .toc-list { list-style: none; counter-reset: toc; }
+        .toc-list li { counter-increment: toc; margin-bottom: 8px; }
+        .toc-list li a { color: var(--text-secondary); text-decoration: none; font-size: 0.925rem; display: flex; align-items: baseline; gap: 10px; transition: color 0.2s, padding-left 0.2s; padding: 4px 0; }
+        .toc-list li a::before { content: counter(toc, decimal-leading-zero); color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); min-width: 20px; }
+        .toc-list li a:hover { color: var(--primary); padding-left: 4px; }
+
+        .article-content h2 { font-size: 1.75rem; font-weight: 700; color: var(--text); margin-top: 56px; margin-bottom: 20px; letter-spacing: -0.02em; line-height: 1.3; padding-top: 16px; border-top: 1px solid var(--border); }
+        .article-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+        .article-content h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin-top: 36px; margin-bottom: 14px; line-height: 1.35; }
+        .article-content h4 { font-size: 1.1rem; font-weight: 600; color: var(--text-secondary); margin-top: 28px; margin-bottom: 12px; }
+        .article-content p { margin-bottom: 20px; color: var(--text-secondary); line-height: 1.8; }
+        .article-content a { color: var(--primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+        .article-content a:hover { border-bottom-color: var(--primary); }
+        .article-content strong { color: var(--text); font-weight: 600; }
+        .article-content ul, .article-content ol { margin-bottom: 20px; padding-left: 24px; color: var(--text-secondary); }
+        .article-content li { margin-bottom: 10px; line-height: 1.7; }
+        .article-content li::marker { color: var(--primary); }
+        .article-content blockquote { border-left: 3px solid var(--accent); background: var(--surface); padding: 16px 24px; margin: 28px 0; border-radius: 0 8px 8px 0; font-style: italic; color: var(--text-secondary); }
+        .article-content blockquote p:last-child { margin-bottom: 0; }
+        .article-content hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+        .article-content pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; overflow-x: auto; margin: 24px 0; }
+        .article-content pre code { font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.65; color: var(--text); background: none; padding: 0; border-radius: 0; }
+        .article-content code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface); color: var(--accent); padding: 2px 8px; border-radius: 5px; }
+        .code-label { display: inline-block; background: var(--surface-2); color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem; padding: 2px 10px; border-radius: 6px 6px 0 0; margin-bottom: -1px; position: relative; top: 1px; }
+
+        .article-content table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.925rem; }
+        .article-content thead th { background: var(--surface); color: var(--text); font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--border); }
+        .article-content tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+        .article-content tbody tr:hover { background: var(--surface); }
+
+        .info-box { background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+        .info-box.warning { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); }
+        .info-box.danger { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); }
+        .info-box.success { background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2); }
+        .info-box-title { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .info-box p { color: var(--text-secondary); font-size: 0.925rem; margin-bottom: 0; }
+
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 28px 0; }
+        .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; color: var(--text); transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; gap: 8px; }
+        .tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1); }
+        .tool-card-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .tool-card-name { font-weight: 600; font-size: 0.95rem; }
+        .tool-card-desc { font-size: 0.825rem; color: var(--text-muted); line-height: 1.5; }
+
+        .cta-box { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; padding: 40px 32px; text-align: center; margin: 48px 0; }
+        .cta-box h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+        .cta-box p { color: var(--text-secondary); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-button { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; }
+        .cta-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3); }
+        .cta-button.secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); margin-left: 12px; }
+        .cta-button.secondary:hover { background: rgba(99, 102, 241, 0.1); }
+
+        .faq-section { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border); }
+        .faq-section h2 { margin-top: 0 !important; padding-top: 0 !important; border-top: none !important; }
+        .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-question { width: 100%; background: none; border: none; color: var(--text); padding: 20px 24px; font-size: 1rem; font-weight: 600; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-sans); transition: background 0.2s; }
+        .faq-question:hover { background: var(--surface-2); }
+        .faq-question .icon { transition: transform 0.3s; font-size: 1.25rem; color: var(--text-muted); flex-shrink: 0; margin-left: 16px; }
+        .faq-item.open .faq-question .icon { transform: rotate(45deg); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .faq-answer-inner { padding: 0 24px 20px; color: var(--text-secondary); line-height: 1.7; }
+
+        .author-box { display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 48px 0; }
+        .author-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .author-info h4 { font-weight: 600; margin-bottom: 4px; }
+        .author-info p { color: var(--text-muted); font-size: 0.875rem; margin: 0; line-height: 1.5; }
+
+        .footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-wrapper { padding: calc(var(--header-height) + 24px) 16px 60px; }
+            .article-title { font-size: 1.75rem; }
+            .tool-grid { grid-template-columns: 1fr; }
+            .cta-box { padding: 28px 20px; }
+            .cta-button.secondary { margin-left: 0; margin-top: 12px; }
+            .author-box { flex-direction: column; text-align: center; }
+            .article-content pre { padding: 16px; border-radius: 8px; }
+            .article-content h2 { font-size: 1.4rem; }
+            .article-content h3 { font-size: 1.15rem; }
+            .article-content table { display: block; overflow-x: auto; }
+        }
+        @media (max-width: 480px) {
+            .article-title { font-size: 1.5rem; }
+            .toc { padding: 18px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="https://nextool.app" class="nav-logo">
+                <div class="nav-logo-icon">N</div>
+                NexTool
+            </a>
+            <ul class="nav-links">
+                <li><a href="https://nextool.app/#services">Tools</a></li>
+                <li><a href="https://nextool.app/free-tools/">Free Tools</a></li>
+                <li><a href="https://nextool.app/blog/">Blog</a></li>
+                <li><a href="https://nextool.app/#contact" class="nav-cta">Browse Tools</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Article -->
+    <article class="article-wrapper" itemscope itemtype="https://schema.org/Article">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="https://nextool.app">Home</a>
+            <span class="separator">/</span>
+            <a href="https://nextool.app/blog/">Blog</a>
+            <span class="separator">/</span>
+            <span>SQL Query Optimization Guide</span>
+        </nav>
+
+        <!-- Header -->
+        <header class="article-header">
+            <span class="article-category">Tutorial</span>
+            <h1 class="article-title" itemprop="headline">SQL Query Optimization: A Practical Guide</h1>
+            <p class="article-subtitle">Your query takes 4 seconds. It should take 40 milliseconds. This guide shows you how to diagnose slow queries with EXPLAIN, choose the right indexes, fix N+1 problems, optimize JOINs, implement efficient pagination, and decide when caching is the right answer.</p>
+            <div class="article-meta">
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span>24 min read</span>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <time datetime="2026-02-14" itemprop="datePublished">February 14, 2026</time>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span itemprop="author">NexTool Team</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- TOC -->
+        <nav class="toc" aria-label="Table of Contents">
+            <div class="toc-title">Table of Contents</div>
+            <ol class="toc-list">
+                <li><a href="#diagnosis">Diagnosing Slow Queries</a></li>
+                <li><a href="#explain">Reading EXPLAIN Plans</a></li>
+                <li><a href="#indexes">Indexing Strategies</a></li>
+                <li><a href="#joins">Optimizing JOINs</a></li>
+                <li><a href="#n-plus-one">The N+1 Query Problem</a></li>
+                <li><a href="#select-columns">SELECT Only What You Need</a></li>
+                <li><a href="#pagination">Efficient Pagination</a></li>
+                <li><a href="#subqueries">Subqueries vs JOINs vs CTEs</a></li>
+                <li><a href="#caching">When to Cache</a></li>
+                <li><a href="#checklist">Optimization Checklist</a></li>
+                <li><a href="#tools">SQL Developer Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </nav>
+
+        <!-- Content -->
+        <div class="article-content" itemprop="articleBody">
+
+            <h2 id="diagnosis">Diagnosing Slow Queries</h2>
+
+            <p>Before you can optimize a query, you need to know which queries are slow and why. Every major database has tools for this.</p>
+
+            <h3>Finding Slow Queries</h3>
+
+            <p><strong>PostgreSQL:</strong> Enable the <code>pg_stat_statements</code> extension. It tracks every query, its total execution time, number of calls, and average time. Sort by <code>total_exec_time</code> to find your biggest offenders.</p>
+
+            <div class="code-label">sql &mdash; PostgreSQL: Find Slowest Queries</div>
+<pre><code>SELECT query,
+       calls,
+       total_exec_time / 1000 AS total_seconds,
+       mean_exec_time AS avg_ms,
+       rows
+FROM pg_stat_statements
+ORDER BY total_exec_time DESC
+LIMIT 20;</code></pre>
+
+            <p><strong>MySQL:</strong> Enable the slow query log with <code>slow_query_log = 1</code> and <code>long_query_time = 1</code> (in seconds) in your configuration. Every query that exceeds the threshold gets logged. Use <code>mysqldumpslow</code> to summarize the log.</p>
+
+            <div class="code-label">sql &mdash; MySQL: Enable Slow Query Log</div>
+<pre><code>SET GLOBAL slow_query_log = 1;
+SET GLOBAL long_query_time = 1;  -- Log queries slower than 1 second
+SET GLOBAL log_queries_not_using_indexes = 1;  -- Also log full table scans</code></pre>
+
+            <p>Once you know which queries are slow, the next step is always the same: run EXPLAIN.</p>
+
+            <h2 id="explain">Reading EXPLAIN Plans</h2>
+
+            <p>EXPLAIN shows you the database's execution plan &mdash; how it reads data, which indexes it uses, and the estimated cost of each operation. It is the single most important tool for SQL optimization.</p>
+
+            <h3>PostgreSQL: EXPLAIN ANALYZE</h3>
+
+            <div class="code-label">sql &mdash; PostgreSQL EXPLAIN ANALYZE</div>
+<pre><code>EXPLAIN ANALYZE
+SELECT u.name, COUNT(o.id) AS order_count
+FROM users u
+JOIN orders o ON o.user_id = u.id
+WHERE u.created_at &gt; '2025-01-01'
+GROUP BY u.name
+ORDER BY order_count DESC
+LIMIT 10;</code></pre>
+
+            <p>The output shows a tree of operations. Here is what to look for:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>What You See</th>
+                        <th>What It Means</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Seq Scan</strong> on large table</td>
+                        <td>Full table scan (reading every row)</td>
+                        <td>Add an index on the filtered/joined column</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Index Scan</strong> or <strong>Index Only Scan</strong></td>
+                        <td>Using an index (good)</td>
+                        <td>No action needed &mdash; Index Only Scan is the best case</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Nested Loop</strong> with high row count</td>
+                        <td>For each row in table A, scan table B</td>
+                        <td>Check for missing index on the inner table</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hash Join</strong></td>
+                        <td>Build hash table from smaller table, probe with larger</td>
+                        <td>Usually efficient for large joins</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sort</strong> with high cost</td>
+                        <td>Sorting in memory or on disk</td>
+                        <td>Add an index that matches the ORDER BY</td>
+                    </tr>
+                    <tr>
+                        <td>Rows (estimated) far from Rows (actual)</td>
+                        <td>Stale statistics</td>
+                        <td>Run <code>ANALYZE tablename;</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>MySQL: EXPLAIN FORMAT=JSON</h3>
+
+            <div class="code-label">sql &mdash; MySQL EXPLAIN</div>
+<pre><code>EXPLAIN FORMAT=JSON
+SELECT * FROM orders
+WHERE customer_id = 42
+  AND status = 'shipped'
+ORDER BY created_at DESC
+LIMIT 10;</code></pre>
+
+            <p>In MySQL, look for <code>"type": "ALL"</code> (full table scan), <code>"type": "ref"</code> or <code>"type": "range"</code> (index used), and <code>"using_filesort": true</code> (sorting without an index). Format your SQL for readability before analyzing it &mdash; the <a href="/free-tools/sql-formatter.html">SQL Formatter</a> handles indentation, keyword casing, and alignment for complex queries.</p>
+
+            <h2 id="indexes">Indexing Strategies</h2>
+
+            <p>An index is a separate data structure (usually a B-tree) that lets the database find rows without scanning the entire table. Think of it as the index at the back of a textbook &mdash; instead of reading every page, you look up the term and jump to the right page.</p>
+
+            <h3>When to Add an Index</h3>
+
+            <ul>
+                <li><strong>WHERE clauses</strong> &mdash; columns filtered with <code>=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>BETWEEN</code>, <code>IN</code>, <code>LIKE 'prefix%'</code></li>
+                <li><strong>JOIN conditions</strong> &mdash; the foreign key column on the "many" side</li>
+                <li><strong>ORDER BY</strong> &mdash; to avoid expensive sorts</li>
+                <li><strong>GROUP BY</strong> &mdash; to speed up aggregation</li>
+            </ul>
+
+            <h3>Composite Indexes</h3>
+
+            <p>A composite (multi-column) index is often more effective than multiple single-column indexes. Column order matters: the index can be used for queries that filter on the leftmost columns.</p>
+
+            <div class="code-label">sql &mdash; Composite Index</div>
+<pre><code>-- Query pattern: filter by status, then sort by created_at
+SELECT * FROM orders
+WHERE status = 'pending'
+ORDER BY created_at DESC
+LIMIT 20;
+
+-- Index that covers both the filter and the sort
+CREATE INDEX idx_orders_status_created
+ON orders (status, created_at DESC);</code></pre>
+
+            <p>This single index lets the database filter by <code>status = 'pending'</code> and return results already sorted by <code>created_at DESC</code>, eliminating both the table scan and the sort operation.</p>
+
+            <h3>Covering Indexes</h3>
+
+            <p>A covering index includes all the columns a query needs, so the database can answer the query entirely from the index without touching the table. In PostgreSQL, this shows as "Index Only Scan" in the EXPLAIN output.</p>
+
+            <div class="code-label">sql &mdash; Covering Index</div>
+<pre><code>-- Query: only needs id and email
+SELECT id, email FROM users WHERE status = 'active';
+
+-- Covering index: includes all columns the query reads
+CREATE INDEX idx_users_status_covering
+ON users (status) INCLUDE (id, email);</code></pre>
+
+            <div class="info-box warning">
+                <div class="info-box-title">Index Trade-offs</div>
+                <p>Every index speeds up reads but slows down writes. Each INSERT, UPDATE, or DELETE must also update every index on the table. On write-heavy tables, adding too many indexes can make performance worse overall. Measure both read and write performance after adding an index.</p>
+            </div>
+
+            <h2 id="joins">Optimizing JOINs</h2>
+
+            <p>JOINs are the most expensive operation in most queries. Here are the key optimization strategies.</p>
+
+            <h3>1. Index Both Sides of the JOIN</h3>
+
+            <div class="code-label">sql &mdash; Indexed JOIN</div>
+<pre><code>-- Ensure indexes exist on both sides
+CREATE INDEX idx_orders_customer_id ON orders (customer_id);
+-- customers.id is already indexed (primary key)
+
+SELECT c.name, o.total
+FROM customers c
+JOIN orders o ON o.customer_id = c.id
+WHERE c.country = 'US';</code></pre>
+
+            <h3>2. Filter Before Joining</h3>
+
+            <p>Reduce the number of rows before the JOIN executes. The optimizer often does this automatically, but explicit subqueries or CTEs can help with complex queries.</p>
+
+            <div class="code-label">sql &mdash; Filter First, Then Join</div>
+<pre><code>-- Instead of joining all orders then filtering
+SELECT c.name, o.total
+FROM customers c
+JOIN orders o ON o.customer_id = c.id
+WHERE o.created_at &gt; '2025-01-01'
+  AND c.country = 'US';
+
+-- With CTEs for clarity (same performance in most cases)
+WITH recent_orders AS (
+  SELECT customer_id, total
+  FROM orders
+  WHERE created_at &gt; '2025-01-01'
+),
+us_customers AS (
+  SELECT id, name
+  FROM customers
+  WHERE country = 'US'
+)
+SELECT uc.name, ro.total
+FROM us_customers uc
+JOIN recent_orders ro ON ro.customer_id = uc.id;</code></pre>
+
+            <h3>3. Use EXISTS Instead of JOIN for Existence Checks</h3>
+
+            <div class="code-label">sql &mdash; EXISTS vs JOIN</div>
+<pre><code>-- Slower: JOIN fetches all matching rows, then deduplicates
+SELECT DISTINCT c.name
+FROM customers c
+JOIN orders o ON o.customer_id = c.id;
+
+-- Faster: EXISTS stops after finding the first match
+SELECT c.name
+FROM customers c
+WHERE EXISTS (
+  SELECT 1 FROM orders o WHERE o.customer_id = c.id
+);</code></pre>
+
+            <h2 id="n-plus-one">The N+1 Query Problem</h2>
+
+            <p>The N+1 problem is the most common performance issue in web applications that use ORMs. It happens when code fetches a list of N items, then runs a separate query for each item's related data.</p>
+
+            <div class="code-label">pseudocode &mdash; N+1 Problem</div>
+<pre><code>// 1 query: fetch all orders
+orders = db.query("SELECT * FROM orders LIMIT 100")
+
+// 100 queries: fetch customer for each order (BAD)
+for order in orders:
+    customer = db.query("SELECT * FROM customers WHERE id = ?", order.customer_id)
+    print(order.id, customer.name)
+
+// Total: 101 queries for 100 orders</code></pre>
+
+            <h3>Fix 1: Use a JOIN</h3>
+
+            <div class="code-label">sql &mdash; Single Query with JOIN</div>
+<pre><code>SELECT o.id, o.total, c.name AS customer_name
+FROM orders o
+JOIN customers c ON c.id = o.customer_id
+LIMIT 100;
+-- 1 query instead of 101</code></pre>
+
+            <h3>Fix 2: Batch with IN</h3>
+
+            <div class="code-label">sql &mdash; Batch Query</div>
+<pre><code>-- Query 1: fetch orders
+SELECT * FROM orders LIMIT 100;
+
+-- Query 2: fetch all related customers at once
+SELECT * FROM customers WHERE id IN (1, 2, 3, ... 100);
+-- 2 queries instead of 101</code></pre>
+
+            <h3>Fix 3: ORM Eager Loading</h3>
+
+            <div class="code-label">code &mdash; ORM Solutions</div>
+<pre><code>// Prisma (JavaScript/TypeScript)
+const orders = await prisma.order.findMany({
+  include: { customer: true },
+  take: 100,
+});
+
+// SQLAlchemy (Python)
+orders = session.query(Order).options(joinedload(Order.customer)).limit(100).all()
+
+// ActiveRecord (Ruby)
+orders = Order.includes(:customer).limit(100)</code></pre>
+
+            <p>If you are converting query results between formats, the <a href="/free-tools/json-to-csv.html">JSON to CSV Converter</a> can help when exporting database data for analysis in spreadsheets.</p>
+
+            <h2 id="select-columns">SELECT Only What You Need</h2>
+
+            <p><code>SELECT *</code> is the lazy option that costs real performance. It fetches every column, including large TEXT/BLOB fields you might not need, wastes network bandwidth between the database and your application, and prevents the use of covering indexes.</p>
+
+            <div class="code-label">sql &mdash; Specific Columns</div>
+<pre><code>-- Bad: fetches all 30 columns including the large bio TEXT field
+SELECT * FROM users WHERE status = 'active';
+
+-- Good: fetches only the 3 columns you actually display
+SELECT id, name, email FROM users WHERE status = 'active';</code></pre>
+
+            <p>This matters most for queries that return many rows (lists, feeds, exports) and tables with wide schemas or large column values.</p>
+
+            <h2 id="pagination">Efficient Pagination</h2>
+
+            <h3>OFFSET Pagination (Simple but Slow)</h3>
+
+            <div class="code-label">sql &mdash; OFFSET Pagination</div>
+<pre><code>-- Page 1
+SELECT * FROM posts ORDER BY created_at DESC LIMIT 20 OFFSET 0;
+
+-- Page 500 (slow: database scans and discards 9,980 rows)
+SELECT * FROM posts ORDER BY created_at DESC LIMIT 20 OFFSET 9980;</code></pre>
+
+            <p>The problem: the database must read and discard all rows before the offset. At OFFSET 100,000, it reads 100,000 rows just to throw them away.</p>
+
+            <h3>Cursor Pagination (Fast at Any Depth)</h3>
+
+            <div class="code-label">sql &mdash; Cursor Pagination</div>
+<pre><code>-- First page
+SELECT id, title, created_at
+FROM posts
+ORDER BY created_at DESC, id DESC
+LIMIT 20;
+
+-- Next page: use the last item's values as cursor
+SELECT id, title, created_at
+FROM posts
+WHERE (created_at, id) &lt; ('2026-02-10 14:30:00', 4582)
+ORDER BY created_at DESC, id DESC
+LIMIT 20;</code></pre>
+
+            <p>The <code>WHERE</code> clause jumps directly to the right position using the index. Whether you are on page 2 or page 5,000, the query is equally fast. Use a composite index on <code>(created_at DESC, id DESC)</code> to support this pattern.</p>
+
+            <div class="info-box">
+                <div class="info-box-title">When to Use Which</div>
+                <p><strong>Cursor pagination:</strong> APIs, infinite scroll, mobile apps, any case where users paginate sequentially. <strong>OFFSET pagination:</strong> Admin dashboards with small datasets, or when random page access (jump to page 7) is required.</p>
+            </div>
+
+            <h2 id="subqueries">Subqueries vs JOINs vs CTEs</h2>
+
+            <p>Three ways to combine data from multiple tables. Here is when to use each.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Approach</th>
+                        <th>Best For</th>
+                        <th>Watch Out</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>JOIN</strong></td>
+                        <td>Combining rows from related tables</td>
+                        <td>Can produce duplicates with one-to-many relationships</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Correlated Subquery</strong></td>
+                        <td>EXISTS checks, scalar aggregates per row</td>
+                        <td>Runs once per outer row &mdash; can be slow on large result sets</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CTE (WITH)</strong></td>
+                        <td>Breaking complex queries into readable steps</td>
+                        <td>In MySQL &lt;8.0, CTEs are materialized (no optimization through them)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Derived Table</strong></td>
+                        <td>Pre-aggregating data before a JOIN</td>
+                        <td>Optimizer can usually push predicates into derived tables</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="code-label">sql &mdash; CTE for Readability</div>
+<pre><code>WITH monthly_totals AS (
+  SELECT customer_id,
+         DATE_TRUNC('month', created_at) AS month,
+         SUM(total) AS monthly_spend
+  FROM orders
+  WHERE created_at &gt;= '2025-01-01'
+  GROUP BY customer_id, DATE_TRUNC('month', created_at)
+),
+high_spenders AS (
+  SELECT customer_id
+  FROM monthly_totals
+  WHERE monthly_spend &gt; 1000
+  GROUP BY customer_id
+  HAVING COUNT(*) &gt;= 3  -- At least 3 months over $1000
+)
+SELECT c.name, c.email
+FROM customers c
+JOIN high_spenders hs ON hs.customer_id = c.id;</code></pre>
+
+            <p>When migrating data between SQL databases and NoSQL systems, the <a href="/free-tools/sql-to-mongodb.html">SQL to MongoDB Query Converter</a> translates your SQL queries into MongoDB's query syntax.</p>
+
+            <h2 id="caching">When to Cache</h2>
+
+            <p>Caching is not a substitute for query optimization. A cached slow query is still a slow query &mdash; it just fails less often. Optimize the query first, then add caching for frequently-accessed data that changes infrequently.</p>
+
+            <h3>Good Candidates for Caching</h3>
+
+            <ul>
+                <li><strong>Reference data</strong> &mdash; country lists, categories, config values (change rarely, read constantly)</li>
+                <li><strong>Aggregations</strong> &mdash; dashboard metrics, leaderboards, report summaries (expensive to compute, tolerate slight staleness)</li>
+                <li><strong>User sessions</strong> &mdash; auth tokens, permissions (read on every request)</li>
+            </ul>
+
+            <h3>Bad Candidates for Caching</h3>
+
+            <ul>
+                <li><strong>User-specific data that changes frequently</strong> &mdash; inbox counts, real-time notifications (cache invalidation is harder than the original query)</li>
+                <li><strong>Search results</strong> &mdash; too many unique queries to cache effectively</li>
+                <li><strong>Anything that must be 100% consistent</strong> &mdash; financial balances, inventory counts</li>
+            </ul>
+
+            <div class="code-label">pseudocode &mdash; Cache-Aside Pattern</div>
+<pre><code>function getTopProducts() {
+  // 1. Check cache
+  cached = redis.get("top_products")
+  if (cached) return JSON.parse(cached)
+
+  // 2. Cache miss: run query
+  result = db.query(`
+    SELECT p.name, SUM(oi.quantity) AS total_sold
+    FROM products p
+    JOIN order_items oi ON oi.product_id = p.id
+    WHERE oi.created_at > NOW() - INTERVAL '7 days'
+    GROUP BY p.name
+    ORDER BY total_sold DESC
+    LIMIT 10
+  `)
+
+  // 3. Store in cache with TTL
+  redis.setex("top_products", 300, JSON.stringify(result))  // 5 min TTL
+  return result
+}</code></pre>
+
+            <p>To inspect and debug the JSON payloads returned by your cache, the <a href="/free-tools/json-viewer.html">JSON Viewer</a> renders them in an expandable tree with syntax highlighting.</p>
+
+            <h2 id="checklist">Optimization Checklist</h2>
+
+            <p>Run through this checklist whenever you encounter a slow query.</p>
+
+            <ol>
+                <li><strong>Run EXPLAIN ANALYZE</strong> &mdash; understand the execution plan before changing anything</li>
+                <li><strong>Check for Seq Scans</strong> &mdash; add indexes on filtered, joined, and sorted columns</li>
+                <li><strong>Check for N+1 patterns</strong> &mdash; use JOINs or batch queries instead of loops</li>
+                <li><strong>Select only needed columns</strong> &mdash; replace SELECT * with explicit column lists</li>
+                <li><strong>Check statistics freshness</strong> &mdash; run ANALYZE on tables with outdated stats</li>
+                <li><strong>Review JOIN order and conditions</strong> &mdash; ensure indexes exist on both sides</li>
+                <li><strong>Use cursor pagination</strong> &mdash; replace OFFSET with WHERE-based cursors for large datasets</li>
+                <li><strong>Consider covering indexes</strong> &mdash; INCLUDE columns to avoid table lookups</li>
+                <li><strong>Evaluate caching</strong> &mdash; only after the query itself is optimized</li>
+                <li><strong>Test with production-size data</strong> &mdash; queries that are fast on 100 rows may be slow on 10 million</li>
+            </ol>
+
+            <div class="cta-box">
+                <h3>Format, Convert, and Analyze SQL</h3>
+                <p>NexTool's SQL tools help you format complex queries, convert between database syntaxes, and work with JSON data &mdash; all in the browser, no signup needed.</p>
+                <a href="/free-tools/sql-formatter.html" class="cta-button">Open SQL Formatter</a>
+                <a href="/free-tools/json-formatter.html" class="cta-button secondary">JSON Formatter</a>
+            </div>
+
+            <h2 id="tools">SQL Developer Tools</h2>
+
+            <div class="tool-grid">
+                <a href="/free-tools/sql-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4DD;</div>
+                    <div class="tool-card-name">SQL Formatter</div>
+                    <div class="tool-card-desc">Format, indent, and beautify SQL queries. Supports PostgreSQL, MySQL, SQLite, and T-SQL dialects.</div>
+                </a>
+                <a href="/free-tools/sql-to-mongodb.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F504;</div>
+                    <div class="tool-card-name">SQL to MongoDB</div>
+                    <div class="tool-card-desc">Convert SQL queries to MongoDB syntax. Translate SELECT, WHERE, JOIN, and GROUP BY operations.</div>
+                </a>
+                <a href="/free-tools/json-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CB;</div>
+                    <div class="tool-card-name">JSON Formatter</div>
+                    <div class="tool-card-desc">Format and validate JSON data. Inspect API responses and query results with syntax highlighting.</div>
+                </a>
+                <a href="/free-tools/json-to-csv.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CA;</div>
+                    <div class="tool-card-name">JSON to CSV Converter</div>
+                    <div class="tool-card-desc">Convert JSON arrays to CSV for spreadsheet analysis. Handles nested objects and custom delimiters.</div>
+                </a>
+                <a href="/free-tools/json-viewer.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F333;</div>
+                    <div class="tool-card-name">JSON Viewer</div>
+                    <div class="tool-card-desc">Visualize JSON in an expandable tree. Search, filter, and navigate large JSON documents easily.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I find out why my SQL query is slow?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Run EXPLAIN (or EXPLAIN ANALYZE in PostgreSQL) before your query to see the execution plan. The plan shows how the database reads data: whether it uses indexes or scans entire tables, which join algorithm it picks, and the estimated cost and row counts for each step. Look for Sequential Scans (Seq Scan) on large tables, which usually mean a missing index. Check the estimated rows versus actual rows; a large mismatch indicates stale statistics (run ANALYZE). In MySQL, use EXPLAIN FORMAT=JSON for detailed cost breakdowns. In most cases, the first optimization is adding an index on the columns used in WHERE, JOIN, and ORDER BY clauses.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the N+1 query problem and how do I fix it?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>The N+1 problem occurs when your code runs 1 query to fetch a list of N records, then runs N additional queries to fetch related data for each record individually. For example, fetching 100 orders and then running a separate query for each order's customer data results in 101 queries. Fix it by using a JOIN to fetch everything in one query, or by using an IN clause to batch the related lookups into a single query (SELECT * FROM customers WHERE id IN (1, 2, 3, ...)). Most ORMs like Prisma, SQLAlchemy, and ActiveRecord have eager loading features (include, joinedload, includes) that solve this automatically. N+1 is the single most common cause of slow API endpoints in web applications.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>When should I add an index to a database table?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Add an index when a column or combination of columns is frequently used in WHERE clauses, JOIN conditions, or ORDER BY clauses, and the table has enough rows that scanning it is noticeably slow (typically over a few thousand rows). Do not index every column. Each index adds overhead to INSERT, UPDATE, and DELETE operations because the database must maintain the index data structure alongside the table. Composite indexes (on multiple columns) are more efficient than multiple single-column indexes for queries that filter on several columns. The column order in a composite index matters: put the most selective column (the one that filters out the most rows) first. Use EXPLAIN to verify that your queries actually use the indexes you create.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between OFFSET pagination and cursor pagination?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>OFFSET pagination uses LIMIT and OFFSET (e.g., SELECT * FROM posts ORDER BY id LIMIT 20 OFFSET 1000) to skip rows. It is simple but gets slower as the offset increases because the database must scan and discard all skipped rows. At OFFSET 100000 on a large table, performance degrades significantly. Cursor pagination (also called keyset pagination) uses a WHERE clause on an indexed column to start from the last seen value (e.g., SELECT * FROM posts WHERE id > 1000 ORDER BY id LIMIT 20). This is consistently fast regardless of how deep you paginate because it uses the index to jump directly to the right position. Use cursor pagination for any paginated API or infinite scroll. Use OFFSET only for small datasets or when you need random page access (page 1, page 5, page 3).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Should I use SELECT * in production queries?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>No. SELECT * fetches all columns from a table, including large text fields, blobs, and columns you do not need. This wastes memory, network bandwidth, and prevents the database from using covering indexes (indexes that contain all the requested columns, allowing the query to be answered entirely from the index without reading the table). Always specify only the columns you need: SELECT id, name, email FROM users. This is especially important for tables with many columns or large column values, and for queries that return many rows. The only acceptable use of SELECT * is during ad-hoc exploration in a database client, never in application code.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I optimize SQL JOINs on large tables?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>First, ensure both sides of the JOIN condition have indexes. A JOIN on orders.customer_id = customers.id needs an index on orders.customer_id and customers.id (the primary key index covers the latter automatically). Second, filter early: add WHERE conditions to reduce the number of rows before the JOIN executes, not after. Third, avoid joining on expressions or functions (e.g., JOIN ON LOWER(a.name) = LOWER(b.name)) because this prevents index usage. Fourth, for queries that only need data from one side of the join, consider using EXISTS instead of JOIN, as it can short-circuit evaluation. Fifth, review the EXPLAIN plan to check which join algorithm the optimizer chose (Nested Loop, Hash Join, Merge Join). Hash Joins are efficient for large unsorted datasets, while Merge Joins work best on pre-sorted data.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author -->
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>NexTool Team</h4>
+                <p>We build free developer tools for SQL, JSON, APIs, and more. Over 150 tools, all browser-based, no signup required.</p>
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="cta-box">
+            <h3>150+ Developer Tools, One Place</h3>
+            <p>NexTool Pro ($29) unlocks clean output, enhanced features, and unlimited workspace. One payment, lifetime access.</p>
+            <a href="https://nextool.app/free-tools/pro-upgrade.html" class="cta-button">Get NexTool Pro &mdash; $29</a>
+            <a href="/free-tools/" class="cta-button secondary">Try Free Tools</a>
+        </div>
+
+    </article>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="https://nextool.app">Home</a>
+                <a href="https://nextool.app/#services">Tools</a>
+                <a href="https://nextool.app/free-tools/">Free Tools</a>
+                <a href="https://nextool.app/blog/">Blog</a>
+                <a href="https://nextool.app/#contact">Contact</a>
+            </div>
+            <p>&copy; 2026 NexTool. All rights reserved. 150+ free developer tools.</p>
+        </div>
+    </footer>
+
+    <!-- FAQ Script -->
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <!-- Revenue Scripts -->
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>
