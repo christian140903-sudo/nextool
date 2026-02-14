@@ -139,7 +139,7 @@ function showExitModal() {
     '<button class="ntce-ec" aria-label="Close">\u00D7</button>' +
     '<div class="ntce-ei">\uD83C\uDF81</div>' +
     '<h2 class="ntce-eh">Before you go...</h2>' +
-    '<p class="ntce-ep">Get our <strong>free Developer Toolkit</strong> \u2014 cheat sheets for JSON, regex, git + links to all 235+ tools. One email, no spam.</p>' +
+    '<p class="ntce-ep">Get our <strong>free Developer Toolkit</strong> \u2014 cheat sheets for JSON, regex, git + links to all 245+ tools. One email, no spam.</p>' +
     '<form class="ntce-ef" id="ntce-ef">' +
     '<input type="email" placeholder="your@email.com" required autocomplete="email" class="ntce-ein">' +
     '<button type="submit" class="ntce-eb">Send Me the Toolkit \u2192</button>' +
