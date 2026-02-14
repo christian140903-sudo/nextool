@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛠️ NexTool — 245+ Free Developer Tools
+# 🛠️ NexTool — 250+ Free Developer Tools
 
 **Browser-based tools that run 100% client-side. Your data never leaves your browser.**
 
@@ -20,7 +20,7 @@
 Every developer has that moment: you need to quickly format JSON, decode a JWT, or generate a UUID. You google it, and get hit with cookie consent popups, signup walls, and "processing your data on our server."
 
 **NexTool is different:**
-- ✅ **245+ tools** — and growing every week
+- ✅ **250+ tools** — and growing every week
 - ✅ **100% client-side** — your data never leaves your browser
 - ✅ **No signup** — just open and use
 - ✅ **No tracking** — zero analytics on your data
@@ -58,7 +58,7 @@ Every developer has that moment: you need to quickly format JSON, decode a JWT, 
 - [**Color Picker**](https://nextool.app/free-tools/color-picker.html) — Pick colors with HEX, RGB, HSL
 - [**QR Code Generator**](https://nextool.app/free-tools/qr-code-generator.html) — Create QR codes from any text
 
-[→ Browse all 245+ tools](https://nextool.app/free-tools/)
+[→ Browse all 250+ tools](https://nextool.app/free-tools/)
 
 ## Tech Stack
 
@@ -74,7 +74,7 @@ One-time payment. No subscription. No renewals.
 
 | Feature | Free | Pro |
 |---------|------|-----|
-| All 245+ tools | ✅ | ✅ |
+| All 250+ tools | ✅ | ✅ |
 | Client-side processing | ✅ | ✅ |
 | No signup required | ✅ | ✅ |
 | Clean output (no watermarks) | — | ✅ |

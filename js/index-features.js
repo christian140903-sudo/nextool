@@ -1794,7 +1794,7 @@
             if (!overlay || !input || !results) return;
 
             var items = [
-                { title: 'Free Tools', desc: '245+ free browser-based tools', icon: '\uD83D\uDEE0\uFE0F', target: '/free-tools/', type: 'page' },
+                { title: 'Free Tools', desc: '250+ free browser-based tools', icon: '\uD83D\uDEE0\uFE0F', target: '/free-tools/', type: 'page' },
                 { title: 'NexTool Pro', desc: 'Clean output, enhanced features — $29', icon: '\u26A1', target: '/pro.html', type: 'page' },
                 { title: 'Workspace', desc: 'Personal workspace for saved results', icon: '\uD83D\uDCBE', target: '/workspace.html', type: 'page' },
                 { title: 'How It Works', desc: 'Browse, use, chain, save, upgrade', icon: '\uD83D\uDCA1', target: '#process', type: 'section' },
@@ -2054,7 +2054,7 @@
                 'image compression.',
                 'color palettes.',
                 'code conversion.',
-                '245+ free tools.'
+                '250+ free tools.'
             ];
 
             var phraseIdx = 0;

@@ -2,12 +2,12 @@
 
 ## 1. Reddit r/webdev (Show Reddit / Project Showcase)
 
-**Title:** I built 245+ free browser-based tools for developers — no login, no tracking, everything runs locally
+**Title:** I built 250+ free browser-based tools for developers — no login, no tracking, everything runs locally
 
 **Body:**
 Hey r/webdev,
 
-Over the past few months I've been building NexTool — a collection of 245+ free developer tools that run entirely in your browser. No accounts, no data sent to any server, no tracking.
+Over the past few months I've been building NexTool — a collection of 250+ free developer tools that run entirely in your browser. No accounts, no data sent to any server, no tracking.
 
 **Some highlights:**
 - JSON Formatter, Validator, Viewer, Diff, Path Finder, Schema Generator
@@ -34,10 +34,10 @@ Would love your feedback on which tools you find most useful and what's missing!
 
 ## 2. Reddit r/InternetIsBeautiful
 
-**Title:** NexTool — 245+ free browser-based tools for developers (JSON, CSS, regex, colors, images, code formatting — all local, no login)
+**Title:** NexTool — 250+ free browser-based tools for developers (JSON, CSS, regex, colors, images, code formatting — all local, no login)
 
 **Body:**
-I built a collection of 245+ free online tools that run entirely in your browser:
+I built a collection of 250+ free online tools that run entirely in your browser:
 
 - Format JSON, SQL, CSS, HTML, JavaScript
 - Generate CSS gradients, shadows, animations, flexbox layouts
@@ -55,12 +55,12 @@ https://nextool.app/free-tools/
 
 ## 3. Reddit r/SideProject
 
-**Title:** I built 245+ free browser-based developer tools — here's what I learned
+**Title:** I built 250+ free browser-based developer tools — here's what I learned
 
 **Body:**
 Hey r/SideProject!
 
-I've been working on NexTool — a collection of 245+ free browser-based tools for developers. Everything runs client-side, no tracking, no login required.
+I've been working on NexTool — a collection of 250+ free browser-based tools for developers. Everything runs client-side, no tracking, no login required.
 
 **What it is:** One site with every tool a developer commonly needs — JSON formatters, regex testers, CSS generators, color tools, image compressors, code formatters, calculators, converters, and more.
 
@@ -86,10 +86,10 @@ Site: https://nextool.app
 
 ## 4. Hacker News (Show HN)
 
-**Title:** Show HN: NexTool – 245+ free browser-based developer tools, all client-side
+**Title:** Show HN: NexTool – 250+ free browser-based developer tools, all client-side
 
 **Body:**
-I built NexTool, a collection of 245+ free online tools for developers. Everything runs in the browser — no data is sent to any server.
+I built NexTool, a collection of 250+ free online tools for developers. Everything runs in the browser — no data is sent to any server.
 
 Tools include: JSON formatter/validator/viewer, regex tester, CSS generators (gradient, flexbox, grid, animation), color tools (palette generator, contrast checker), code formatters (SQL, HTML, CSS, JS), image compressor, SVG optimizer, and 200+ more.
 
@@ -102,7 +102,7 @@ https://nextool.app/free-tools/
 ## 5. Twitter/X Thread
 
 **Tweet 1:**
-I built 245+ free browser-based developer tools.
+I built 250+ free browser-based developer tools.
 
 No login. No tracking. Everything runs locally.
 
@@ -133,7 +133,7 @@ Color Contrast Checker — pick two colors, get instant WCAG AA/AAA results. Aut
 nextool.app/free-tools/color-contrast-checker.html
 
 **Tweet 6:**
-All 245+ tools are free, forever. No signup, no credit card.
+All 250+ tools are free, forever. No signup, no credit card.
 
 There's an optional Pro ($29 one-time) for a clean, distraction-free experience.
 
@@ -207,10 +207,10 @@ All tools are free. There's an optional Pro upgrade ($29) for a cleaner experien
 
 ## 7. Product Hunt
 
-**Tagline:** 245+ free browser-based developer tools — no login, no tracking
+**Tagline:** 250+ free browser-based developer tools — no login, no tracking
 
 **Description:**
-NexTool is a collection of 245+ free online tools for developers. JSON formatters, CSS generators, regex testers, color tools, image compressors, code formatters, and much more.
+NexTool is a collection of 250+ free online tools for developers. JSON formatters, CSS generators, regex testers, color tools, image compressors, code formatters, and much more.
 
 Every tool runs 100% in your browser. No data is sent to any server. No login required. No ads.
 
@@ -219,7 +219,7 @@ Categories include: JSON & Data, CSS & Design, Code Formatting, Security & Encod
 **Maker Comment:**
 Hi Product Hunt! I built NexTool because I was tired of searching for individual developer tools across different websites, most of which were covered in ads and tracking scripts.
 
-NexTool puts 245+ tools in one clean place. Everything runs in your browser — your data never leaves your device. No accounts, no tracking, no BS.
+NexTool puts 250+ tools in one clean place. Everything runs in your browser — your data never leaves your device. No accounts, no tracking, no BS.
 
 The tools are completely free. There's an optional Pro upgrade ($29 one-time) that removes promotional banners and adds a Pro Toolbar with themes, history, and keyboard shortcuts.
 
@@ -261,10 +261,10 @@ https://nextool.app/free-tools/
 
 ## 9. Reddit r/productivity + r/software
 
-**Title:** 245+ free online tools I built — PDF, converters, calculators, text tools (no signup, runs locally)
+**Title:** 250+ free online tools I built — PDF, converters, calculators, text tools (no signup, runs locally)
 
 **Body:**
-I put together a collection of 245+ free browser tools that anyone can use — not just developers.
+I put together a collection of 250+ free browser tools that anyone can use — not just developers.
 
 Popular ones:
 - PDF tools (merge, split, compress, convert)
