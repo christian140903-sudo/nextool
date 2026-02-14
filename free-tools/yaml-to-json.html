@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YAML to JSON Converter — Free Online Tool | NexTool</title>
+<meta name="description" content="Convert YAML to JSON instantly with this free online tool. Supports nested objects, arrays, anchors, multiline strings. Real-time conversion, syntax highlighting, file upload.">
+<meta name="keywords" content="YAML to JSON, JSON to YAML, YAML converter, JSON converter, free online tool, NexTool, YAML parser, data format converter">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free YAML to JSON Converter | NexTool">
+<meta property="og:description" content="Convert YAML to JSON and back instantly. Real-time conversion, syntax highlighting, drag-drop upload. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/yaml-to-json.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/yaml-to-json.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free YAML to JSON Converter | NexTool">
+<meta name="twitter:description" content="Convert YAML to JSON and back instantly. Free online tool by NexTool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool YAML to JSON Converter","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online YAML to JSON converter with real-time conversion, syntax highlighting, file upload, and bidirectional support."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+/* HERO */
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+/* TOOL */
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button,.toolbar select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(99,102,241,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.toolbar select{appearance:none;padding-right:1.8rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.toolbar .separator{width:1px;height:24px;background:var(--border);margin:0 .25rem}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.valid{background:var(--green)}
+.status-dot.invalid{background:var(--red)}
+.status-dot.empty{background:var(--border)}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:500px}
+.panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+.panel-body{flex:1;position:relative;overflow:auto}
+.input-area{width:100%;height:100%;min-height:400px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:none;outline:none;line-height:1.7;tab-size:2}
+.input-area::placeholder{color:var(--text2);opacity:.5}
+.output-area{padding:1rem;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.7;white-space:pre-wrap;word-break:break-all;min-height:400px}
+/* SYNTAX HIGHLIGHTING */
+.hl-key{color:#c084fc}.hl-str{color:#4ade80}.hl-num{color:var(--cyan)}.hl-bool{color:var(--yellow)}.hl-null{color:#6b7280}.hl-brace{color:var(--text2)}.hl-comma{color:var(--text2)}
+/* YAML HIGHLIGHTING */
+.hl-yaml-key{color:#c084fc}.hl-yaml-str{color:#4ade80}.hl-yaml-num{color:var(--cyan)}.hl-yaml-bool{color:var(--yellow)}.hl-yaml-null{color:#6b7280}.hl-yaml-comment{color:#6b7280;font-style:italic}.hl-yaml-anchor{color:var(--pink)}.hl-yaml-tag{color:var(--accent)}.hl-yaml-dash{color:var(--text2)}
+/* ERROR */
+.error-display{padding:1rem;color:var(--red);font-size:.85rem;font-family:'Courier New',monospace;white-space:pre-wrap}
+.error-display .error-line{background:rgba(239,68,68,.1);border-left:3px solid var(--red);padding:.3rem .6rem;margin:.3rem 0;border-radius:4px}
+/* DIRECTION INDICATOR */
+.direction-btn{display:inline-flex;align-items:center;gap:.4rem}
+.direction-btn svg{transition:transform .3s}
+.direction-btn.reversed svg{transform:rotate(180deg)}
+/* DROP ZONE */
+.drop-overlay{position:absolute;inset:0;background:rgba(99,102,241,.12);border:2px dashed var(--primary);border-radius:var(--radius);display:none;align-items:center;justify-content:center;z-index:10;pointer-events:none}
+.drop-overlay.active{display:flex}
+.drop-overlay span{color:var(--primary);font-size:1rem;font-weight:600}
+/* CTA */
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.3)}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr}
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .toolbar{gap:.35rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">NexTool</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="/pro.html" class="nav-cta">Get Pro — $29</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>YAML to JSON Converter</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Convert between YAML and JSON formats instantly. Supports nested objects, arrays, multiline strings, anchors, aliases, and comments. Real-time conversion with syntax highlighting, file upload, and drag-drop support. No signup required.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button class="direction-btn" id="directionBtn" onclick="toggleDirection()" title="Switch conversion direction">
+      <span id="directionLabel">YAML &rarr; JSON</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16l-4-4 4-4"/><path d="M3 12h18"/><path d="M17 8l4 4-4 4"/></svg>
+    </button>
+    <div class="separator"></div>
+    <button onclick="convert()" title="Convert now">Convert</button>
+    <button onclick="copyOutput()" title="Copy output to clipboard">Copy</button>
+    <button onclick="downloadOutput()" title="Download output file">Download</button>
+    <div class="separator"></div>
+    <select id="indentSelect" onchange="convert()">
+      <option value="2">2 spaces</option>
+      <option value="4">4 spaces</option>
+      <option value="tab">Tab</option>
+    </select>
+    <button id="minifyBtn" onclick="toggleMinify()" title="Toggle minified output">Minify</button>
+    <div class="separator"></div>
+    <button onclick="loadSample()" title="Load sample YAML">Sample</button>
+    <button onclick="clearAll()" title="Clear input and output">Clear</button>
+    <label style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit" title="Upload .yaml, .yml, or .json file">
+      Upload
+      <input type="file" id="fileInput" accept=".yaml,.yml,.json,.txt" style="display:none" onchange="handleFileUpload(event)">
+    </label>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Paste YAML to begin</span>
+    <span id="sizeInfo" style="margin-left:auto"></span>
+  </div>
+
+  <div class="panels">
+    <div class="panel" style="position:relative">
+      <div class="panel-header"><span id="inputLabel">YAML Input</span><span id="lineCount"></span></div>
+      <div class="panel-body">
+        <textarea id="mainInput" class="input-area" placeholder="Paste your YAML here...&#10;&#10;Example:&#10;name: NexTool&#10;version: 2.0&#10;services:&#10;  - Websites&#10;  - Chatbots&#10;  - Automation" spellcheck="false"></textarea>
+      </div>
+      <div class="drop-overlay" id="dropOverlay"><span>Drop file here</span></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span id="outputLabel">JSON Output</span><span id="outputInfo"></span></div>
+      <div class="panel-body" id="outputPanel">
+        <div class="output-area" id="formattedOutput"></div>
+        <div class="error-display" id="errorOutput" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations &mdash; whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 235+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;">Browse 235+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">235+ Free Tools</a>
+<a href="/pro.html">NexTool Pro</a>
+<a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/pro.html">FAQ</a><a href="/pro.html">Pro — $29</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">NexTool Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const input = document.getElementById('mainInput');
+const formattedOutput = document.getElementById('formattedOutput');
+const errorOutput = document.getElementById('errorOutput');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const sizeInfo = document.getElementById('sizeInfo');
+const lineCount = document.getElementById('lineCount');
+const outputLabel = document.getElementById('outputLabel');
+const outputInfo = document.getElementById('outputInfo');
+const inputLabel = document.getElementById('inputLabel');
+const directionBtn = document.getElementById('directionBtn');
+const directionLabel = document.getElementById('directionLabel');
+const minifyBtn = document.getElementById('minifyBtn');
+const dropOverlay = document.getElementById('dropOverlay');
+
+let isReversed = false; // false = YAML->JSON, true = JSON->YAML
+let isMinified = false;
+let lastOutput = '';
+
+input.addEventListener('input', debounce(autoProcess, 300));
+input.addEventListener('input', updateLineCount);
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function updateLineCount() {
+  const lines = input.value.split('\n').length;
+  lineCount.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+
+function autoProcess() {
+  const raw = input.value.trim();
+  if (!raw) {
+    clearOutputs();
+    statusDot.className = 'status-dot empty';
+    statusText.textContent = isReversed ? 'Paste JSON to begin' : 'Paste YAML to begin';
+    sizeInfo.textContent = '';
+    return;
+  }
+  sizeInfo.textContent = formatBytes(new Blob([raw]).size);
+  convert();
+}
+
+function convert() {
+  const raw = input.value.trim();
+  if (!raw) return;
+
+  if (isReversed) {
+    convertJsonToYaml(raw);
+  } else {
+    convertYamlToJson(raw);
+  }
+}
+
+function convertYamlToJson(raw) {
+  try {
+    const parsed = jsyaml.load(raw, { schema: jsyaml.DEFAULT_SCHEMA });
+
+    if (parsed === undefined || parsed === null) {
+      // Valid YAML but empty/null
+      lastOutput = 'null';
+      formattedOutput.innerHTML = '<span class="hl-null">null</span>';
+      showPanel('formatted');
+      statusDot.className = 'status-dot valid';
+      statusText.textContent = 'Valid YAML — Converted to JSON';
+      outputInfo.textContent = '';
+      return;
+    }
+
+    let jsonStr;
+    if (isMinified) {
+      jsonStr = JSON.stringify(parsed);
+    } else {
+      const sel = document.getElementById('indentSelect').value;
+      const indent = sel === 'tab' ? '\t' : parseInt(sel);
+      jsonStr = JSON.stringify(parsed, null, indent);
+    }
+
+    lastOutput = jsonStr;
+    formattedOutput.innerHTML = syntaxHighlightJson(jsonStr);
+    showPanel('formatted');
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = isMinified ? 'Valid YAML — JSON Minified' : 'Valid YAML — Converted to JSON';
+    outputInfo.textContent = jsonStr.split('\n').length + ' lines';
+  } catch (e) {
+    showYamlError(e, raw);
+    lastOutput = '';
+  }
+}
+
+function convertJsonToYaml(raw) {
+  try {
+    const parsed = JSON.parse(raw);
+    const sel = document.getElementById('indentSelect').value;
+    const indent = sel === 'tab' ? 8 : parseInt(sel);
+    const yamlStr = jsyaml.dump(parsed, {
+      indent: indent,
+      lineWidth: -1,
+      noRefs: true,
+      sortKeys: false,
+      quotingType: '"',
+      forceQuotes: false
+    });
+
+    lastOutput = yamlStr;
+    formattedOutput.innerHTML = syntaxHighlightYaml(yamlStr);
+    showPanel('formatted');
+    statusDot.className = 'status-dot valid';
+    statusText.textContent = 'Valid JSON — Converted to YAML';
+    outputInfo.textContent = yamlStr.split('\n').length + ' lines';
+  } catch (e) {
+    showJsonError(e, raw);
+    lastOutput = '';
+  }
+}
+
+function syntaxHighlightJson(json) {
+  return json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|\bnull\b|[{}\[\],])/g, function(match) {
+      let cls = 'hl-num';
+      if (/^"/.test(match)) {
+        cls = /:$/.test(match) ? 'hl-key' : 'hl-str';
+      } else if (/true|false/.test(match)) {
+        cls = 'hl-bool';
+      } else if (/null/.test(match)) {
+        cls = 'hl-null';
+      } else if (/[{}\[\],]/.test(match)) {
+        cls = 'hl-brace';
+      }
+      return '<span class="' + cls + '">' + match + '</span>';
+    });
+}
+
+function syntaxHighlightYaml(yaml) {
+  var lines = yaml.split('\n');
+  var result = [];
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    var escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // Comments
+    if (/^\s*#/.test(line)) {
+      result.push('<span class="hl-yaml-comment">' + escaped + '</span>');
+      continue;
+    }
+
+    // Anchors & aliases
+    escaped = escaped.replace(/(&amp;\w+)/g, '<span class="hl-yaml-anchor">$1</span>');
+    escaped = escaped.replace(/(\*\w+)/g, '<span class="hl-yaml-anchor">$1</span>');
+
+    // Tags
+    escaped = escaped.replace(/(!!?\w+)/g, '<span class="hl-yaml-tag">$1</span>');
+
+    // Key: value pairs
+    escaped = escaped.replace(/^(\s*)([\w\-_.\/]+)(:)/gm, function(m, indent, key, colon) {
+      return indent + '<span class="hl-yaml-key">' + key + '</span>' + colon;
+    });
+
+    // Array dashes
+    escaped = escaped.replace(/^(\s*)(- )/gm, function(m, indent, dash) {
+      return indent + '<span class="hl-yaml-dash">' + dash + '</span>';
+    });
+
+    // Quoted strings
+    escaped = escaped.replace(/(["'])(?:(?=(\\?))\2.)*?\1/g, function(m) {
+      return '<span class="hl-yaml-str">' + m + '</span>';
+    });
+
+    // Boolean values
+    escaped = escaped.replace(/:\s+(true|false)\s*$/gm, function(m, val) {
+      return ': <span class="hl-yaml-bool">' + val + '</span>';
+    });
+
+    // Null values
+    escaped = escaped.replace(/:\s+(null|~)\s*$/gm, function(m, val) {
+      return ': <span class="hl-yaml-null">' + val + '</span>';
+    });
+
+    // Numbers (after colon)
+    escaped = escaped.replace(/:\s+(-?\d+\.?\d*(?:[eE][+-]?\d+)?)\s*$/gm, function(m, num) {
+      // Only highlight if it wasn't already wrapped in a span
+      if (m.indexOf('<span') === -1) {
+        return ': <span class="hl-yaml-num">' + num + '</span>';
+      }
+      return m;
+    });
+
+    result.push(escaped);
+  }
+  return result.join('\n');
+}
+
+function showYamlError(e, raw) {
+  var msg = e.message || String(e);
+  var html = '<strong>YAML Parse Error</strong>\n\n';
+  html += '<div class="error-line">' + escapeHtml(msg) + '</div>\n';
+
+  // js-yaml provides mark with line/column info
+  if (e.mark && typeof e.mark.line === 'number') {
+    var lineNum = e.mark.line + 1; // 0-based to 1-based
+    html += '\nError near line ' + lineNum + ':\n';
+    var lines = raw.split('\n');
+    var start = Math.max(0, lineNum - 3);
+    var end = Math.min(lines.length, lineNum + 2);
+    for (var i = start; i < end; i++) {
+      var marker = i === lineNum - 1 ? ' >>> ' : '     ';
+      html += '<span style="color:' + (i === lineNum - 1 ? 'var(--red)' : 'var(--text2)') + '">' + marker + (i + 1) + ' | ' + escapeHtml(lines[i]) + '</span>\n';
+    }
+  }
+
+  errorOutput.innerHTML = html;
+  showPanel('error');
+  statusDot.className = 'status-dot invalid';
+  statusText.textContent = 'Invalid YAML';
+}
+
+function showJsonError(e, raw) {
+  var msg = e.message || String(e);
+  var html = '<strong>JSON Parse Error</strong>\n\n';
+  html += '<div class="error-line">' + escapeHtml(msg) + '</div>\n';
+
+  var posMatch = msg.match(/position\s+(\d+)/i);
+  if (posMatch) {
+    var pos = parseInt(posMatch[1]);
+    var lineNum = raw.substring(0, pos).split('\n').length;
+    html += '\nError near line ' + lineNum + ':\n';
+    var lines = raw.split('\n');
+    var start = Math.max(0, lineNum - 3);
+    var end = Math.min(lines.length, lineNum + 2);
+    for (var i = start; i < end; i++) {
+      var marker = i === lineNum - 1 ? ' >>> ' : '     ';
+      html += '<span style="color:' + (i === lineNum - 1 ? 'var(--red)' : 'var(--text2)') + '">' + marker + (i + 1) + ' | ' + escapeHtml(lines[i]) + '</span>\n';
+    }
+  }
+
+  errorOutput.innerHTML = html;
+  showPanel('error');
+  statusDot.className = 'status-dot invalid';
+  statusText.textContent = 'Invalid JSON';
+}
+
+function escapeHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+function toggleDirection() {
+  isReversed = !isReversed;
+  directionBtn.classList.toggle('reversed', isReversed);
+
+  if (isReversed) {
+    directionLabel.innerHTML = 'JSON &rarr; YAML';
+    inputLabel.textContent = 'JSON Input';
+    outputLabel.textContent = 'YAML Output';
+    input.placeholder = 'Paste your JSON here...\n\nExample:\n{\n  "name": "NexTool",\n  "version": "2.0"\n}';
+  } else {
+    directionLabel.innerHTML = 'YAML &rarr; JSON';
+    inputLabel.textContent = 'YAML Input';
+    outputLabel.textContent = 'JSON Output';
+    input.placeholder = 'Paste your YAML here...\n\nExample:\nname: NexTool\nversion: 2.0\nservices:\n  - Websites\n  - Chatbots\n  - Automation';
+  }
+
+  statusText.textContent = isReversed ? 'Paste JSON to begin' : 'Paste YAML to begin';
+
+  // If there's content, swap panels
+  var currentOutput = lastOutput;
+  var currentInput = input.value.trim();
+
+  if (currentOutput) {
+    input.value = currentOutput;
+    updateLineCount();
+    convert();
+  } else if (currentInput) {
+    convert();
+  } else {
+    clearOutputs();
+    statusDot.className = 'status-dot empty';
+  }
+}
+
+function toggleMinify() {
+  isMinified = !isMinified;
+  minifyBtn.classList.toggle('active', isMinified);
+  if (input.value.trim()) convert();
+}
+
+function showPanel(which) {
+  formattedOutput.style.display = which === 'formatted' ? '' : 'none';
+  errorOutput.style.display = which === 'error' ? '' : 'none';
+}
+
+function clearOutputs() {
+  formattedOutput.innerHTML = '';
+  errorOutput.innerHTML = '';
+  outputInfo.textContent = '';
+  formattedOutput.style.display = '';
+  errorOutput.style.display = 'none';
+}
+
+function clearAll() {
+  input.value = '';
+  lastOutput = '';
+  clearOutputs();
+  statusDot.className = 'status-dot empty';
+  statusText.textContent = isReversed ? 'Paste JSON to begin' : 'Paste YAML to begin';
+  sizeInfo.textContent = '';
+  lineCount.textContent = '';
+  if (isMinified) { isMinified = false; minifyBtn.classList.remove('active'); }
+}
+
+function copyOutput() {
+  if (!lastOutput) { showToast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(lastOutput).then(function() { showToast('Copied to clipboard'); });
+}
+
+function downloadOutput() {
+  if (!lastOutput) { showToast('No output to download'); return; }
+  var ext, mime;
+  if (isReversed) {
+    ext = 'yaml';
+    mime = 'text/yaml';
+  } else {
+    ext = 'json';
+    mime = 'application/json';
+  }
+  var blob = new Blob([lastOutput], { type: mime });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'converted.' + ext;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Downloaded converted.' + ext);
+}
+
+function loadSample() {
+  if (isReversed) {
+    // JSON sample
+    input.value = JSON.stringify({
+      "name": "NexTool",
+      "version": "2.0.0",
+      "description": "AI-powered tools for everyone",
+      "services": ["Websites", "Chatbots", "Automation", "Content", "Video", "Data"],
+      "pricing": { "starter": 5, "pro": 149, "enterprise": 499 },
+      "features": {
+        "ai_powered": true,
+        "custom_solutions": true,
+        "turnaround_hours": 24,
+        "satisfaction_rate": null
+      },
+      "contact": { "website": "https://nextool.app", "email": "hello@nextool.app" },
+      "tags": ["AI", "automation", "no-code", "tools"],
+      "active": true,
+      "founded": 2026
+    }, null, 2);
+  } else {
+    // YAML sample with advanced features
+    input.value = [
+      '# NexTool Configuration',
+      '# Demonstrates YAML features: anchors, aliases, multiline strings',
+      '',
+      'name: NexTool',
+      'version: "2.0.0"',
+      'description: AI-powered tools for everyone',
+      '',
+      '# Service catalog',
+      'services:',
+      '  - Websites',
+      '  - Chatbots',
+      '  - Automation',
+      '  - Content',
+      '  - Video',
+      '  - Data',
+      '',
+      '# Pricing tiers',
+      'pricing:',
+      '  starter: 5',
+      '  pro: 149',
+      '  enterprise: 499',
+      '',
+      '# Feature flags',
+      'features:',
+      '  ai_powered: true',
+      '  custom_solutions: true',
+      '  turnaround_hours: 24',
+      '  satisfaction_rate: null',
+      '',
+      '# Anchors and aliases',
+      'defaults: &defaults',
+      '  adapter: postgres',
+      '  host: localhost',
+      '',
+      'development:',
+      '  database:',
+      '    <<: *defaults',
+      '    database: nextool_dev',
+      '',
+      'production:',
+      '  database:',
+      '    <<: *defaults',
+      '    database: nextool_prod',
+      '    host: db.nextool.app',
+      '',
+      '# Multiline string',
+      'readme: |',
+      '  NexTool provides AI-powered tools',
+      '  for developers and businesses.',
+      '  Visit https://nextool.app to learn more.',
+      '',
+      'contact:',
+      '  website: https://nextool.app',
+      '  email: hello@nextool.app',
+      '',
+      'tags:',
+      '  - AI',
+      '  - automation',
+      '  - no-code',
+      '  - tools',
+      '',
+      'active: true',
+      'founded: 2026'
+    ].join('\n');
+  }
+  updateLineCount();
+  autoProcess();
+}
+
+function handleFileUpload(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  processFile(file);
+  event.target.value = ''; // Reset so same file can be uploaded again
+}
+
+function processFile(file) {
+  var maxSize = 5 * 1024 * 1024; // 5MB limit
+  if (file.size > maxSize) {
+    showToast('File too large (max 5MB)');
+    return;
+  }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    input.value = e.target.result;
+    updateLineCount();
+
+    // Auto-detect direction based on file extension
+    var ext = file.name.split('.').pop().toLowerCase();
+    if ((ext === 'yaml' || ext === 'yml') && isReversed) {
+      toggleDirection();
+    } else if (ext === 'json' && !isReversed) {
+      toggleDirection();
+    }
+
+    autoProcess();
+    showToast('Loaded ' + file.name);
+  };
+  reader.readAsText(file);
+}
+
+// Drag and drop support
+var panel = input.closest('.panel');
+
+panel.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  dropOverlay.classList.add('active');
+});
+
+panel.addEventListener('dragleave', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  // Only hide if we're leaving the panel entirely
+  if (!panel.contains(e.relatedTarget)) {
+    dropOverlay.classList.remove('active');
+  }
+});
+
+panel.addEventListener('drop', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  dropOverlay.classList.remove('active');
+
+  var files = e.dataTransfer.files;
+  if (files.length > 0) {
+    var file = files[0];
+    var validExts = ['yaml', 'yml', 'json', 'txt'];
+    var ext = file.name.split('.').pop().toLowerCase();
+    if (validExts.indexOf(ext) === -1) {
+      showToast('Unsupported file type. Use .yaml, .yml, .json, or .txt');
+      return;
+    }
+    processFile(file);
+  }
+});
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  var k = 1024, sizes = ['B', 'KB', 'MB'];
+  var i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+/* Tab key support */
+input.addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    var start = input.selectionStart, end = input.selectionEnd;
+    input.value = input.value.substring(0, start) + '  ' + input.value.substring(end);
+    input.selectionStart = input.selectionEnd = start + 2;
+  }
+});
+
+/* IntersectionObserver fade-in */
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a YAML to JSON converter?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A YAML to JSON converter transforms YAML (YAML Ain't Markup Language) data into JSON (JavaScript Object Notation) format. YAML is human-readable and commonly used for configuration files, while JSON is the standard for APIs and data exchange. NexTool's converter handles all YAML features including nested structures, arrays, anchors, aliases, and multiline strings."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I convert JSON to YAML with this tool?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's converter works in both directions. Click the direction toggle button to switch between YAML-to-JSON and JSON-to-YAML modes. The tool auto-detects the format when you upload a file."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the converter support YAML anchors and aliases?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, the converter fully supports YAML anchors (&anchor), aliases (*alias), and merge keys (<<). These are resolved during conversion so the JSON output contains the fully expanded data."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this YAML to JSON converter free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, NexTool's YAML to JSON converter is completely free. No signup, no limits, no server-side processing. All conversion happens in your browser for maximum privacy and speed."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>

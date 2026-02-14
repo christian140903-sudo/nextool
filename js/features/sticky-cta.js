@@ -17,7 +17,7 @@
 
 const SECTION_CTA = [
     { match: ['understanding', 'how-it-works', 'process'], text: 'See How It Works \u2192', target: '#how-it-works' },
-    { match: ['proof', 'tools', 'free-tools', 'tool-map'], text: 'Explore 231+ Tools \u2192', target: '/free-tools/' },
+    { match: ['proof', 'tools', 'free-tools', 'tool-map'], text: 'Explore 235+ Tools \u2192', target: '/free-tools/' },
     { match: ['personalize', 'customize', 'quiz'], text: 'Find Your Perfect Plan \u2192', target: '#pricing-section' },
     { match: ['pricing', 'pricing-section', 'plans'], text: 'Start Building Today \u2192', target: '#pricing-section' },
     { match: ['deep', 'features', 'details', 'testimonials'], text: 'Get Started \u2014 $49 \u2192', target: '#pricing-section' },

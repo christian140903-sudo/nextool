@@ -2,7 +2,7 @@
  * NexTool Command Palette
  * -----------------------------------------------------------------------
  * Cmd+K / Ctrl+K overlay inspired by VS Code, Raycast, and Linear.
- * Fuzzy search across pages, tools (231+), and actions.
+ * Fuzzy search across pages, tools (235+), and actions.
  * Keyboard navigation, grouped results, recent-search memory.
  *
  * @module features/command-palette

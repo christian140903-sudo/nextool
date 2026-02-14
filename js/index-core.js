@@ -1096,15 +1096,15 @@
             switch (intent) {
                 case 'greeting':
                     r.html = pick([
-                        'Hey! I can help you find the right tool. We have 231+ free browser-based tools — what are you working on?',
+                        'Hey! I can help you find the right tool. We have 235+ free browser-based tools — what are you working on?',
                         'Hi there! Looking for a specific tool? Tell me what you need — JSON formatting, image compression, CSS generation, and much more.',
-                        'Hey! NexTool has 231+ free developer tools. What can I help you find?'
+                        'Hey! NexTool has 235+ free developer tools. What can I help you find?'
                     ]);
                     r.chips = ['JSON tools', 'CSS generators', 'Image tools', 'What do you offer?'];
                     break;
 
                 case 'tools':
-                    r.html = '<strong>We have 231+ free tools across 6 categories:</strong><br><br>' +
+                    r.html = '<strong>We have 235+ free tools across 6 categories:</strong><br><br>' +
                         '&#8226; <strong>Developer</strong> — JSON formatter, regex tester, JWT decoder, cron builder<br>' +
                         '&#8226; <strong>Design</strong> — Color palette, gradient generator, box shadow, CSS grid<br>' +
                         '&#8226; <strong>Converters</strong> — Base64, Markdown to HTML, JSON to CSV, YAML<br>' +
@@ -1170,7 +1170,7 @@
                 case 'pro':
                     r.html = '<strong>NexTool Pro — $29 one-time:</strong><br><br>' +
                         '&#8226; Clean output without NexTool branding<br>' +
-                        '&#8226; Enhanced features on all 231+ tools<br>' +
+                        '&#8226; Enhanced features on all 235+ tools<br>' +
                         '&#8226; Unlimited workspace saves<br>' +
                         '&#8226; No subscription — pay once, yours forever<br>' +
                         '&#8226; 30-day money-back guarantee<br><br>' +
@@ -1181,7 +1181,7 @@
 
                 case 'pricing':
                     r.html = '<strong>Simple pricing:</strong><br><br>' +
-                        '&#8226; <strong>Free</strong> — All 231+ tools, no sign-up, no limits<br>' +
+                        '&#8226; <strong>Free</strong> — All 235+ tools, no sign-up, no limits<br>' +
                         '&#8226; <strong>NexTool Pro</strong> — $29 one-time. Clean output, enhanced features, unlimited workspace<br><br>' +
                         'No subscription. No hidden fees. No recurring charges. The free tools stay free forever.<br><br>' +
                         '<a href="/pro.html" style="color:var(--primary-light)">See NexTool Pro details &rarr;</a>';
@@ -1202,7 +1202,7 @@
                 case 'pipeline':
                     r.html = '<strong>Tool Pipelines</strong> let you chain tools together:<br><br>' +
                         'For example: Format JSON → Convert to CSV → Download. Or: Generate color palette → Export as CSS variables.<br><br>' +
-                        'Look for the "Send to..." button on any tool to chain it with related tools. This feature is available on most of our 231+ tools.';
+                        'Look for the "Send to..." button on any tool to chain it with related tools. This feature is available on most of our 235+ tools.';
                     r.chips = ['Browse tools', 'NexTool Pro', 'How it works'];
                     break;
 
@@ -1216,7 +1216,7 @@
 
                 case 'process':
                     r.html = '<strong>How NexTool works:</strong><br><br>' +
-                        '<strong>1. Browse</strong> — Find the tool you need from 231+ options<br>' +
+                        '<strong>1. Browse</strong> — Find the tool you need from 235+ options<br>' +
                         '<strong>2. Use</strong> — Paste your data, get instant results<br>' +
                         '<strong>3. Chain</strong> — Send output to another tool via pipelines<br>' +
                         '<strong>4. Save</strong> — Auto-save results to your workspace<br>' +
@@ -1227,13 +1227,13 @@
 
                 case 'quality':
                     r.html = 'NexTool Pro comes with a <strong>30-day money-back guarantee</strong>. If it doesn\'t meet your expectations, you get a full refund — no questions asked.<br><br>' +
-                        'Try any of our 231+ free tools right now to see the quality for yourself. Pro just removes branding and adds enhanced features.';
+                        'Try any of our 235+ free tools right now to see the quality for yourself. Pro just removes branding and adds enhanced features.';
                     r.chips = ['Browse tools', 'Get NexTool Pro', 'Contact us'];
                     break;
 
                 case 'comparison':
                     r.html = '<strong>NexTool vs alternatives:</strong><br><br>' +
-                        '&#8226; <strong>vs Other tool sites</strong>: No ads, no sign-up, 231+ tools in one place<br>' +
+                        '&#8226; <strong>vs Other tool sites</strong>: No ads, no sign-up, 235+ tools in one place<br>' +
                         '&#8226; <strong>vs Paid SaaS</strong>: Free with $29 Pro option, no monthly fees<br>' +
                         '&#8226; <strong>vs Browser extensions</strong>: No install needed, works everywhere<br><br>' +
                         'Plus: tool pipelines for chaining, personal workspace for saving, and complete privacy — your data never leaves your browser.';
@@ -1247,7 +1247,7 @@
                         '&#8226; <strong>Need to convert something?</strong> → Base64, Markdown, YAML<br>' +
                         '&#8226; <strong>Working with images?</strong> → Compressor, QR, resizer<br>' +
                         '&#8226; <strong>Writing code?</strong> → Regex tester, diff checker, minifiers<br><br>' +
-                        'Or <a href="/free-tools/" style="color:var(--primary-light)">browse all 231+ tools</a>.';
+                        'Or <a href="/free-tools/" style="color:var(--primary-light)">browse all 235+ tools</a>.';
                     r.chips = ['JSON tools', 'CSS tools', 'Image tools', 'Browse all'];
                     break;
 
@@ -1269,7 +1269,7 @@
 
                 case 'negative':
                     r.html = pick([
-                        'No worries! All 231+ tools are free — you can always come back whenever you need them.',
+                        'No worries! All 235+ tools are free — you can always come back whenever you need them.',
                         'Totally fine. The free tools are always here when you need them. Have a great day!',
                         'All good! Bookmark us for when you need a quick JSON format or image compress.'
                     ]);
@@ -1283,7 +1283,7 @@
                         r.html = pick([
                             'Interesting! Let me see if we have a tool for that. Can you be more specific about what you need?',
                             'I\'d love to help. Could you describe what kind of tool or functionality you\'re looking for?',
-                            'We have 231+ tools — I might have exactly what you need. What\'s the main thing you\'re trying to do?'
+                            'We have 235+ tools — I might have exactly what you need. What\'s the main thing you\'re trying to do?'
                         ]);
                     }
                     r.chips = ['JSON tools', 'CSS generators', 'Image tools', 'Browse all tools'];
@@ -1326,7 +1326,7 @@
             }
 
             function greet() {
-                addBot('Hey! I\'m the NexTool AI. Looking for a specific tool? We have 231+ free developer tools — JSON formatter, color palette, regex tester, and much more. What can I help you find?');
+                addBot('Hey! I\'m the NexTool AI. Looking for a specific tool? We have 235+ free developer tools — JSON formatter, color palette, regex tester, and much more. What can I help you find?');
                 showChips(['JSON tools', 'CSS generators', 'Image tools', 'What do you offer?']);
             }
 

@@ -1,10 +1,10 @@
 <div align="center">
 
-# 🛠️ NexTool — 231+ Free Developer Tools
+# 🛠️ NexTool — 235+ Free Developer Tools
 
 **Browser-based tools that run 100% client-side. Your data never leaves your browser.**
 
-[![Tools](https://img.shields.io/badge/Tools-231%2B-6366f1?style=flat-square)](https://nextool.app/free-tools/)
+[![Tools](https://img.shields.io/badge/Tools-235%2B-6366f1?style=flat-square)](https://nextool.app/free-tools/)
 [![Client-Side](https://img.shields.io/badge/Processing-100%25%20Client--Side-22c55e?style=flat-square)](#)
 [![No Signup](https://img.shields.io/badge/Signup-Not%20Required-f59e0b?style=flat-square)](#)
 [![No Tracking](https://img.shields.io/badge/Tracking-Zero-ef4444?style=flat-square)](#)
@@ -20,7 +20,7 @@
 Every developer has that moment: you need to quickly format JSON, decode a JWT, or generate a UUID. You google it, and get hit with cookie consent popups, signup walls, and "processing your data on our server."
 
 **NexTool is different:**
-- ✅ **231+ tools** — and growing every week
+- ✅ **235+ tools** — and growing every week
 - ✅ **100% client-side** — your data never leaves your browser
 - ✅ **No signup** — just open and use
 - ✅ **No tracking** — zero analytics on your data
@@ -58,7 +58,7 @@ Every developer has that moment: you need to quickly format JSON, decode a JWT, 
 - [**Color Picker**](https://nextool.app/free-tools/color-picker.html) — Pick colors with HEX, RGB, HSL
 - [**QR Code Generator**](https://nextool.app/free-tools/qr-code-generator.html) — Create QR codes from any text
 
-[→ Browse all 231+ tools](https://nextool.app/free-tools/)
+[→ Browse all 235+ tools](https://nextool.app/free-tools/)
 
 ## Tech Stack
 
@@ -74,7 +74,7 @@ One-time payment. No subscription. No renewals.
 
 | Feature | Free | Pro |
 |---------|------|-----|
-| All 231+ tools | ✅ | ✅ |
+| All 235+ tools | ✅ | ✅ |
 | Client-side processing | ✅ | ✅ |
 | No signup required | ✅ | ✅ |
 | Clean output (no watermarks) | — | ✅ |
