@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free Image Upscaler Online — Enlarge Images Instantly | NexTool</title>
+<meta name="description" content="Upscale and enlarge images 2x, 3x, or 4x in your browser. High-quality interpolation, before/after comparison, PNG or JPG output. Free, private, no upload.">
+<meta name="keywords" content="image upscaler, enlarge image, upscale image, increase image resolution, image enlarger, free image upscaler, resize image larger, NexTool">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Free Image Upscaler — Enlarge Images Without Losing Quality | NexTool">
+<meta property="og:description" content="Upscale images 2x-4x client-side with high-quality interpolation. Compare before/after, download as PNG or JPG. No upload required.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/image-upscaler.html">
+<meta property="og:image" content="https://nextool.app/assets/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/image-upscaler.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Image Upscaler — Enlarge Images Online | NexTool">
+<meta name="twitter:description" content="Upscale images 2x, 3x, 4x in your browser. High-quality, private, free. No signup required.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"NexTool Image Upscaler","applicationCategory":"MultimediaApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Upscale and enlarge images 2x, 3x, or 4x directly in the browser using Canvas API with high-quality interpolation. Free, private, no upload."}
+</script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#252533;--primary:#6366f1;--accent:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text2:#94a3b8;--radius:12px;--glass:rgba(17,17,24,.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+a{color:var(--primary);text-decoration:none}
+.nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);background:rgba(5,5,8,.85);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-weight:800;font-size:1.35rem;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{color:var(--text2);font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--text)}
+.btn-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:9px 22px;border-radius:8px;font-weight:600;font-size:.85rem;border:none;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.btn-cta:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(99,102,241,.4)}
+.mobile-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+.hero{text-align:center;padding:80px 24px 40px;max-width:800px;margin:0 auto}
+.hero .badge{display:inline-block;padding:6px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--border);font-size:.8rem;color:var(--accent);font-weight:600;margin-bottom:20px}
+.hero h1{font-size:clamp(2rem,5vw,3rem);font-weight:800;line-height:1.15;margin-bottom:16px}
+.hero h1 .grad{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1.05rem;max-width:560px;margin:0 auto}
+.tool-section{max-width:960px;margin:0 auto;padding:0 24px 60px}
+.glass-card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:32px;transition:transform .3s,box-shadow .3s}
+.glass-card:hover{box-shadow:0 8px 40px rgba(99,102,241,.1)}
+/* Drop Zone */
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:60px 24px;text-align:center;cursor:pointer;transition:all .3s;position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--primary);background:rgba(99,102,241,.05)}
+.drop-zone .icon{font-size:3rem;margin-bottom:16px;display:block}
+.drop-zone h3{font-size:1.1rem;font-weight:700;margin-bottom:8px}
+.drop-zone p{color:var(--text2);font-size:.85rem}
+.drop-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
+/* Controls */
+.controls{margin-top:28px;display:none}
+.controls.active{display:block}
+.control-row{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.control-row label{font-weight:600;font-size:.85rem;color:var(--text2);min-width:100px}
+.scale-btns{display:flex;gap:8px;flex-wrap:wrap}
+.scale-btn{padding:8px 18px;border-radius:8px;background:var(--surface2);border:1px solid transparent;color:var(--text2);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.scale-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.scale-btn:hover:not(.active){border-color:var(--border)}
+.format-btns{display:flex;gap:8px}
+.format-btn{padding:8px 16px;border-radius:8px;background:var(--surface2);border:1px solid transparent;color:var(--text2);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.format-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.format-btn:hover:not(.active){border-color:var(--border)}
+.slider-wrap{flex:1;display:flex;align-items:center;gap:12px}
+.slider-wrap input[type="range"]{flex:1;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--surface2);outline:none}
+.slider-wrap input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));cursor:pointer}
+.slider-val{min-width:48px;text-align:center;font-weight:700;font-size:.9rem;color:var(--primary)}
+.custom-dims{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.custom-dims input{width:90px;padding:8px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:.85rem;font-weight:600;font-family:inherit;text-align:center;outline:none;transition:border-color .2s}
+.custom-dims input:focus{border-color:var(--primary)}
+.custom-dims span{color:var(--text2);font-size:.85rem;font-weight:600}
+.lock-btn{width:32px;height:32px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s}
+.lock-btn.locked{background:rgba(99,102,241,.15);border-color:var(--primary)}
+/* Comparison */
+.comparison-wrap{margin-top:28px;display:none}
+.comparison-wrap.active{display:block}
+.compare-header{display:flex;justify-content:center;gap:12px;margin-bottom:16px}
+.compare-mode-btn{padding:6px 14px;border-radius:6px;background:var(--surface2);border:1px solid transparent;color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.compare-mode-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+/* Side by side */
+.comparison-side{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.compare-panel{text-align:center}
+.compare-panel h4{font-size:.82rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+.compare-img-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.compare-img-wrap img,.compare-img-wrap canvas{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px}
+/* Slider comparison */
+.slider-compare{position:relative;width:100%;overflow:hidden;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:col-resize;touch-action:none}
+.slider-compare canvas{display:block;width:100%;height:auto}
+.slider-compare .slider-line{position:absolute;top:0;bottom:0;width:2px;background:var(--primary);z-index:10;pointer-events:none}
+.slider-compare .slider-handle{position:absolute;top:50%;width:36px;height:36px;border-radius:50%;background:var(--primary);border:3px solid #fff;z-index:11;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 2px 12px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
+.slider-compare .slider-handle::after{content:'\2194';color:#fff;font-size:16px;font-weight:700}
+.slider-compare .slider-label{position:absolute;top:12px;padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;z-index:5;pointer-events:none}
+.slider-compare .label-left{left:12px;background:rgba(0,0,0,.6);color:#fff}
+.slider-compare .label-right{right:12px;background:rgba(99,102,241,.7);color:#fff}
+.slider-compare .clip-left{position:absolute;top:0;left:0;bottom:0;overflow:hidden;z-index:2}
+.slider-compare .clip-left canvas{display:block;height:auto}
+/* Stats */
+.stats-bar{display:flex;justify-content:center;gap:32px;margin-top:16px;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-item .val{font-size:1.1rem;font-weight:800;color:var(--text)}
+.stat-item .label{font-size:.75rem;color:var(--text2);margin-top:2px}
+.upscale-badge{display:inline-block;padding:6px 16px;border-radius:20px;font-size:.85rem;font-weight:700;margin-top:16px;background:rgba(99,102,241,.15);color:var(--primary)}
+/* Buttons */
+.action-btns{display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+.action-btn{padding:10px 24px;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text);transition:all .2s;font-family:inherit}
+.action-btn:hover{border-color:var(--primary);color:var(--primary)}
+.action-btn.primary{background:linear-gradient(135deg,var(--primary),var(--accent));border:none;color:#fff}
+.action-btn.primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(99,102,241,.35)}
+.action-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;font-size:.85rem;transform:translateY(100px);opacity:0;transition:all .3s;z-index:200}
+.toast.show{transform:translateY(0);opacity:1}
+.processing{text-align:center;padding:40px 20px;display:none}
+.processing.active{display:block}
+.processing .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.processing p{color:var(--text2);font-size:.9rem}
+/* CTA */
+.cta-bottom{text-align:center;padding:80px 24px;max-width:700px;margin:0 auto}
+.cta-bottom h2{font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:800;margin-bottom:14px}
+.cta-bottom h2 .grad{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-bottom p{color:var(--text2);margin-bottom:28px;font-size:1rem}
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:60px 24px 32px;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:40px;margin-bottom:40px}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:16px;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);font-size:.85rem;margin-bottom:10px;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.8rem;padding-top:24px;border-top:1px solid var(--border)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s}.fade-in.visible{opacity:1;transform:translateY(0)}
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--surface);flex-direction:column;padding:20px;gap:16px;border-bottom:1px solid var(--border)}
+  .nav-links.open{display:flex}
+  .mobile-toggle{display:block}
+  .comparison-side{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr 1fr}
+  .glass-card{padding:24px 18px}
+  .control-row{flex-direction:column;align-items:flex-start}
+  .stats-bar{gap:20px}
+}
+@media(max-width:480px){
+  .footer-grid{grid-template-columns:1fr}
+  .scale-btns{gap:6px}
+  .custom-dims input{width:70px}
+}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <a href="/" class="logo">NexTool</a>
+  <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a><a href="/free-tools/">Tools</a><a href="/free-tools/" class="active">Free Tools</a><a href="/blog/">Blog</a>
+    <a href="/pro.html" class="btn-cta">Get Pro — $29</a>
+  </div>
+</div></nav>
+
+<section class="hero fade-in">
+  <div class="badge">Free Tool</div>
+  <h1>Image <span class="grad">Upscaler</span></h1>
+  <p class="tool-summary" style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;margin-left:auto;margin-right:auto;">Enlarge images 2x, 3x, or 4x with high-quality interpolation directly in your browser. Compare original vs upscaled side by side, choose output format and quality, then download instantly. 100% private — no files leave your device.</p>
+</section>
+
+<section class="tool-section">
+  <div class="glass-card fade-in">
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp">
+      <span class="icon">&#128200;</span>
+      <h3>Drop an image here or click to browse</h3>
+      <p>Supports JPEG, PNG, WebP — up to 50 MB</p>
+    </div>
+
+    <div class="processing" id="processing">
+      <div class="spinner"></div>
+      <p>Upscaling your image...</p>
+    </div>
+
+    <div class="controls" id="controls">
+      <div class="control-row">
+        <label>Scale Factor</label>
+        <div class="scale-btns" id="scale-btns">
+          <button class="scale-btn active" data-scale="2">2x</button>
+          <button class="scale-btn" data-scale="3">3x</button>
+          <button class="scale-btn" data-scale="4">4x</button>
+          <button class="scale-btn" data-scale="custom">Custom</button>
+        </div>
+      </div>
+      <div class="control-row" id="custom-row" style="display:none">
+        <label>Dimensions</label>
+        <div class="custom-dims">
+          <input type="number" id="custom-w" placeholder="Width" min="1" max="16000">
+          <span>x</span>
+          <input type="number" id="custom-h" placeholder="Height" min="1" max="16000">
+          <span>px</span>
+          <button class="lock-btn locked" id="lock-btn" title="Lock aspect ratio">&#128279;</button>
+        </div>
+      </div>
+      <div class="control-row">
+        <label>Output Format</label>
+        <div class="format-btns" id="format-btns">
+          <button class="format-btn active" data-fmt="png">PNG</button>
+          <button class="format-btn" data-fmt="jpeg">JPG</button>
+        </div>
+      </div>
+      <div class="control-row" id="quality-row" style="display:none">
+        <label>JPG Quality</label>
+        <div class="slider-wrap">
+          <input type="range" id="quality-slider" min="1" max="100" value="92">
+          <span class="slider-val" id="quality-val">92%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="comparison-wrap" id="comparison-wrap">
+      <div class="compare-header">
+        <button class="compare-mode-btn active" data-mode="slider" id="mode-slider-btn">Slider</button>
+        <button class="compare-mode-btn" data-mode="side" id="mode-side-btn">Side by Side</button>
+      </div>
+
+      <!-- Slider comparison -->
+      <div id="slider-view">
+        <div class="slider-compare" id="slider-compare">
+          <canvas id="canvas-right"></canvas>
+          <div class="clip-left" id="clip-left">
+            <canvas id="canvas-left"></canvas>
+          </div>
+          <div class="slider-line" id="slider-line"></div>
+          <div class="slider-handle" id="slider-handle"></div>
+          <span class="slider-label label-left">Original</span>
+          <span class="slider-label label-right">Upscaled</span>
+        </div>
+      </div>
+
+      <!-- Side by side -->
+      <div id="side-view" style="display:none">
+        <div class="comparison-side">
+          <div class="compare-panel">
+            <h4>Original</h4>
+            <div class="compare-img-wrap"><img id="img-original" alt="Original image"></div>
+          </div>
+          <div class="compare-panel">
+            <h4>Upscaled</h4>
+            <div class="compare-img-wrap"><img id="img-upscaled" alt="Upscaled image"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-bar" id="stats-bar">
+        <div class="stat-item"><div class="val" id="orig-dims">-</div><div class="label">Original</div></div>
+        <div class="stat-item"><div class="val" id="orig-size">-</div><div class="label">Original Size</div></div>
+        <div class="stat-item"><div class="val" id="up-dims">-</div><div class="label">Upscaled</div></div>
+        <div class="stat-item"><div class="val" id="up-size">-</div><div class="label">Upscaled Size</div></div>
+      </div>
+      <div style="text-align:center">
+        <span class="upscale-badge" id="upscale-badge"></span>
+      </div>
+    </div>
+
+    <div class="action-btns" id="action-btns" style="display:none">
+      <button class="action-btn primary" id="btn-download" disabled>Download Upscaled Image</button>
+      <button class="action-btn" id="btn-reset">Upload New Image</button>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<section class="cta-bottom fade-in">
+  <h2>Need something <span class="grad">more powerful</span>?</h2>
+  <p>Let us build custom automation, bots, websites, and AI tools tailored to your business.</p>
+  <a href="/pro.html" class="btn-cta" style="display:inline-block;padding:14px 36px;font-size:1rem">Get Pro — $29</a>
+</section>
+
+<!-- Cross Promo -->
+<section style="max-width:900px;margin:40px auto;padding:0 24px;">
+<div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.08));border:1px solid rgba(99,102,241,0.15);border-radius:20px;padding:32px 28px;text-align:center;">
+<div style="font-size:13px;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Founding Member</div>
+<h3 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 8px;">Get NexTool Pro</h3>
+<p style="color:#94a3b8;font-size:14px;margin:0 auto 20px;max-width:500px;">No banners, clean output, enhanced features on all 240+ tools. One-time payment.</p>
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+<a href="/pro.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;transition:transform 0.2s;" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform='translateY(0)'">$29 — Get Pro</a>
+<a href="/free-tools/" style="color:#94a3b8;font-size:14px;text-decoration:none;transition:color 0.2s;" onmouseenter="this.style.color='#e2e8f0'" onmouseleave="this.style.color='#94a3b8'">Browse 240+ Free Tools &rarr;</a>
+</div>
+</div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col"><h4>Products</h4>
+      <a href="/free-tools/">240+ Free Tools</a><a href="/pro.html">NexTool Pro — $29</a><a href="/workspace.html">Workspace</a>
+    </div>
+    <div class="footer-col"><h4>Free Tools</h4>
+      <a href="/free-tools/qr-generator.html">QR Generator</a><a href="/free-tools/image-compressor.html">Image Compressor</a><a href="/free-tools/image-resizer.html">Image Resizer</a><a href="/free-tools/json-formatter.html">JSON Formatter</a><a href="/free-tools/markdown-preview.html">Markdown Preview</a>
+    </div>
+    <div class="footer-col"><h4>Explore</h4>
+      <a href="/free-tools/">All Free Tools</a><a href="/blog/">Blog</a><a href="/#contact">Contact</a>
+    </div>
+    <div class="footer-col"><h4>Legal</h4>
+      <a href="/terms.html">Privacy Policy</a><a href="/terms.html">Terms of Service</a><a href="/imprint.html">Imprint</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 NexTool. All rights reserved.</div>
+</footer>
+
+<script>
+// ====== STATE ======
+let originalFile = null;
+let originalImg = null;
+let upscaledBlob = null;
+let currentScale = 2;
+let currentFormat = 'png';
+let aspectLocked = true;
+let compareMode = 'slider';
+let sliderPos = 0.5;
+let isDragging = false;
+
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const controls = document.getElementById('controls');
+const comparisonWrap = document.getElementById('comparison-wrap');
+const actionBtns = document.getElementById('action-btns');
+const processing = document.getElementById('processing');
+const qualitySlider = document.getElementById('quality-slider');
+const qualityVal = document.getElementById('quality-val');
+const customW = document.getElementById('custom-w');
+const customH = document.getElementById('custom-h');
+const lockBtn = document.getElementById('lock-btn');
+
+// ====== UTILITY ======
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(2) + ' MB';
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 2000);
+}
+
+// ====== DRAG & DROP ======
+dropZone.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
+dropZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', function() {
+  if (fileInput.files.length > 0) handleFile(fileInput.files[0]);
+});
+
+// ====== FILE HANDLING ======
+function handleFile(file) {
+  if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+    showToast('Please select a JPEG, PNG, or WebP image.');
+    return;
+  }
+  if (file.size > 50 * 1024 * 1024) {
+    showToast('File is too large. Maximum 50 MB.');
+    return;
+  }
+  originalFile = file;
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      originalImg = img;
+
+      // Show controls
+      controls.classList.add('active');
+      dropZone.style.display = 'none';
+
+      // Set custom dims defaults
+      updateCustomDims();
+
+      // Run upscale
+      upscale();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ====== SCALE BUTTONS ======
+document.getElementById('scale-btns').addEventListener('click', function(e) {
+  var btn = e.target.closest('.scale-btn');
+  if (!btn) return;
+  document.querySelectorAll('.scale-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  var s = btn.dataset.scale;
+  if (s === 'custom') {
+    currentScale = 'custom';
+    document.getElementById('custom-row').style.display = 'flex';
+    updateCustomDims();
+  } else {
+    currentScale = parseInt(s);
+    document.getElementById('custom-row').style.display = 'none';
+    if (originalImg) upscale();
+  }
+});
+
+// ====== CUSTOM DIMENSIONS ======
+function updateCustomDims() {
+  if (!originalImg) return;
+  var s = currentScale === 'custom' ? 2 : currentScale;
+  customW.value = originalImg.naturalWidth * s;
+  customH.value = originalImg.naturalHeight * s;
+}
+
+customW.addEventListener('input', function() {
+  if (aspectLocked && originalImg) {
+    var ratio = originalImg.naturalHeight / originalImg.naturalWidth;
+    customH.value = Math.round(parseInt(customW.value || 0) * ratio);
+  }
+  debounceUpscale();
+});
+
+customH.addEventListener('input', function() {
+  if (aspectLocked && originalImg) {
+    var ratio = originalImg.naturalWidth / originalImg.naturalHeight;
+    customW.value = Math.round(parseInt(customH.value || 0) * ratio);
+  }
+  debounceUpscale();
+});
+
+lockBtn.addEventListener('click', function() {
+  aspectLocked = !aspectLocked;
+  lockBtn.classList.toggle('locked', aspectLocked);
+  lockBtn.innerHTML = aspectLocked ? '&#128279;' : '&#128280;';
+  lockBtn.title = aspectLocked ? 'Aspect ratio locked' : 'Aspect ratio unlocked';
+});
+
+// ====== FORMAT ======
+document.getElementById('format-btns').addEventListener('click', function(e) {
+  var btn = e.target.closest('.format-btn');
+  if (!btn) return;
+  document.querySelectorAll('.format-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  currentFormat = btn.dataset.fmt;
+  document.getElementById('quality-row').style.display = currentFormat === 'jpeg' ? 'flex' : 'none';
+  if (originalImg) upscale();
+});
+
+// ====== QUALITY SLIDER ======
+qualitySlider.addEventListener('input', function() {
+  qualityVal.textContent = qualitySlider.value + '%';
+  debounceUpscale();
+});
+
+var upscaleTimer;
+function debounceUpscale() {
+  clearTimeout(upscaleTimer);
+  upscaleTimer = setTimeout(upscale, 250);
+}
+
+// ====== UPSCALE ======
+function upscale() {
+  if (!originalImg) return;
+
+  var w, h;
+  if (currentScale === 'custom') {
+    w = parseInt(customW.value) || originalImg.naturalWidth * 2;
+    h = parseInt(customH.value) || originalImg.naturalHeight * 2;
+  } else {
+    w = originalImg.naturalWidth * currentScale;
+    h = originalImg.naturalHeight * currentScale;
+  }
+
+  // Clamp to reasonable limits
+  if (w > 16000) w = 16000;
+  if (h > 16000) h = 16000;
+  if (w < 1) w = 1;
+  if (h < 1) h = 1;
+
+  processing.classList.add('active');
+
+  // Use requestAnimationFrame to avoid blocking UI
+  requestAnimationFrame(function() {
+    try {
+      // Step upscaling for better quality (2x steps)
+      var canvas = stepUpscale(originalImg, w, h);
+
+      var mimeType = currentFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+      var quality = currentFormat === 'jpeg' ? parseInt(qualitySlider.value) / 100 : undefined;
+
+      canvas.toBlob(function(blob) {
+        if (!blob) {
+          processing.classList.remove('active');
+          showToast('Error creating image. Try smaller dimensions.');
+          return;
+        }
+        upscaledBlob = blob;
+
+        // Update stats
+        document.getElementById('orig-dims').textContent = originalImg.naturalWidth + ' x ' + originalImg.naturalHeight;
+        document.getElementById('orig-size').textContent = formatBytes(originalFile.size);
+        document.getElementById('up-dims').textContent = w + ' x ' + h;
+        document.getElementById('up-size').textContent = formatBytes(blob.size);
+
+        var factor = (w / originalImg.naturalWidth).toFixed(1);
+        document.getElementById('upscale-badge').textContent = factor + 'x upscale (' + (w * h).toLocaleString() + ' pixels)';
+
+        // Set comparison images
+        var upscaledUrl = URL.createObjectURL(blob);
+        document.getElementById('img-original').src = originalImg.src;
+        document.getElementById('img-upscaled').src = upscaledUrl;
+
+        // Draw slider canvases
+        drawSliderCanvases(originalImg, canvas, w, h);
+
+        // Show UI
+        comparisonWrap.classList.add('active');
+        actionBtns.style.display = 'flex';
+        document.getElementById('btn-download').disabled = false;
+        processing.classList.remove('active');
+      }, mimeType, quality);
+    } catch (e) {
+      processing.classList.remove('active');
+      showToast('Error: ' + e.message);
+    }
+  });
+}
+
+// Step upscaling: upscale in 2x increments for better quality
+function stepUpscale(img, targetW, targetH) {
+  var curW = img.naturalWidth;
+  var curH = img.naturalHeight;
+
+  // First canvas from the image
+  var src = document.createElement('canvas');
+  src.width = curW;
+  src.height = curH;
+  var srcCtx = src.getContext('2d');
+  srcCtx.imageSmoothingEnabled = true;
+  srcCtx.imageSmoothingQuality = 'high';
+  srcCtx.drawImage(img, 0, 0, curW, curH);
+
+  // Step up in 2x increments
+  while (curW * 2 < targetW && curH * 2 < targetH) {
+    var stepW = curW * 2;
+    var stepH = curH * 2;
+    var step = document.createElement('canvas');
+    step.width = stepW;
+    step.height = stepH;
+    var stepCtx = step.getContext('2d');
+    stepCtx.imageSmoothingEnabled = true;
+    stepCtx.imageSmoothingQuality = 'high';
+    stepCtx.drawImage(src, 0, 0, stepW, stepH);
+    src = step;
+    curW = stepW;
+    curH = stepH;
+  }
+
+  // Final step to target size
+  if (curW !== targetW || curH !== targetH) {
+    var final = document.createElement('canvas');
+    final.width = targetW;
+    final.height = targetH;
+    var finalCtx = final.getContext('2d');
+    finalCtx.imageSmoothingEnabled = true;
+    finalCtx.imageSmoothingQuality = 'high';
+
+    // White background for JPEG
+    if (currentFormat === 'jpeg') {
+      finalCtx.fillStyle = '#ffffff';
+      finalCtx.fillRect(0, 0, targetW, targetH);
+    }
+
+    finalCtx.drawImage(src, 0, 0, targetW, targetH);
+    return final;
+  }
+
+  return src;
+}
+
+// ====== SLIDER COMPARISON ======
+function drawSliderCanvases(origImg, upscaledCanvas, w, h) {
+  // Determine display size (fit within container)
+  var container = document.getElementById('slider-compare');
+  var maxDisplayW = container.offsetWidth || 900;
+  var displayW = Math.min(w, maxDisplayW);
+  var displayH = Math.round(displayW * (h / w));
+
+  // Right canvas = upscaled
+  var canvasRight = document.getElementById('canvas-right');
+  canvasRight.width = displayW;
+  canvasRight.height = displayH;
+  var ctxR = canvasRight.getContext('2d');
+  ctxR.imageSmoothingEnabled = true;
+  ctxR.imageSmoothingQuality = 'high';
+  ctxR.drawImage(upscaledCanvas, 0, 0, displayW, displayH);
+
+  // Left canvas = original (drawn at same display size for comparison)
+  var canvasLeft = document.getElementById('canvas-left');
+  canvasLeft.width = displayW;
+  canvasLeft.height = displayH;
+  var ctxL = canvasLeft.getContext('2d');
+  // Draw original with nearest-neighbor look (pixelated) to show the difference
+  ctxL.imageSmoothingEnabled = false;
+  ctxL.drawImage(origImg, 0, 0, displayW, displayH);
+
+  updateSliderPosition(sliderPos);
+}
+
+function updateSliderPosition(pos) {
+  sliderPos = Math.max(0, Math.min(1, pos));
+  var container = document.getElementById('slider-compare');
+  var cw = container.offsetWidth;
+  var px = Math.round(sliderPos * cw);
+
+  document.getElementById('clip-left').style.width = px + 'px';
+  document.getElementById('slider-line').style.left = px + 'px';
+  document.getElementById('slider-handle').style.left = px + 'px';
+}
+
+// Slider drag events
+var sliderCompare = document.getElementById('slider-compare');
+sliderCompare.addEventListener('mousedown', startDrag);
+sliderCompare.addEventListener('touchstart', startDrag, { passive: false });
+
+function startDrag(e) {
+  e.preventDefault();
+  isDragging = true;
+  moveDrag(e);
+}
+
+document.addEventListener('mousemove', function(e) {
+  if (isDragging) moveDrag(e);
+});
+document.addEventListener('touchmove', function(e) {
+  if (isDragging) moveDrag(e);
+}, { passive: false });
+
+document.addEventListener('mouseup', function() { isDragging = false; });
+document.addEventListener('touchend', function() { isDragging = false; });
+
+function moveDrag(e) {
+  var container = document.getElementById('slider-compare');
+  var rect = container.getBoundingClientRect();
+  var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  var pos = (clientX - rect.left) / rect.width;
+  updateSliderPosition(pos);
+}
+
+// ====== COMPARE MODE TOGGLE ======
+document.getElementById('mode-slider-btn').addEventListener('click', function() { setCompareMode('slider'); });
+document.getElementById('mode-side-btn').addEventListener('click', function() { setCompareMode('side'); });
+
+function setCompareMode(mode) {
+  compareMode = mode;
+  document.getElementById('mode-slider-btn').classList.toggle('active', mode === 'slider');
+  document.getElementById('mode-side-btn').classList.toggle('active', mode === 'side');
+  document.getElementById('slider-view').style.display = mode === 'slider' ? 'block' : 'none';
+  document.getElementById('side-view').style.display = mode === 'side' ? 'block' : 'none';
+}
+
+// ====== DOWNLOAD ======
+document.getElementById('btn-download').addEventListener('click', function() {
+  if (!upscaledBlob) return;
+  var ext = currentFormat === 'jpeg' ? 'jpg' : 'png';
+  var name = (originalFile ? originalFile.name.replace(/\.[^.]+$/, '') : 'image') + '-upscaled.' + ext;
+  var url = URL.createObjectURL(upscaledBlob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Image downloaded!');
+});
+
+// ====== RESET ======
+document.getElementById('btn-reset').addEventListener('click', function() {
+  originalFile = null;
+  originalImg = null;
+  upscaledBlob = null;
+  fileInput.value = '';
+  controls.classList.remove('active');
+  comparisonWrap.classList.remove('active');
+  actionBtns.style.display = 'none';
+  dropZone.style.display = 'block';
+  processing.classList.remove('active');
+  document.getElementById('btn-download').disabled = true;
+  currentScale = 2;
+  document.querySelectorAll('.scale-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.scale === '2'); });
+  document.getElementById('custom-row').style.display = 'none';
+});
+
+// ====== OBSERVERS ======
+var obs = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+  });
+}, { threshold: .15 });
+document.querySelectorAll('.fade-in').forEach(function(el) { obs.observe(el); });
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does the image upscaler work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NexTool's Image Upscaler uses the HTML5 Canvas API with high-quality interpolation to enlarge your images. It employs step-based upscaling (processing in 2x increments) for smoother results. Everything runs in your browser — no files are uploaded to any server."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What image formats can I upscale?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can upscale JPEG, PNG, and WebP images. After upscaling, you can choose to download the result as either PNG (lossless, best quality) or JPG (smaller file size with adjustable quality from 1-100%)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What upscale factors are available?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NexTool supports 2x, 3x, and 4x preset upscale factors, plus a custom mode where you can enter exact pixel dimensions. Aspect ratio can be locked or unlocked for free-form resizing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there a file size or dimension limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Input images can be up to 50 MB. Output dimensions are capped at 16,000 pixels per side for browser compatibility. Very large upscale operations may take a moment depending on your device's capabilities."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Will upscaling reduce image quality?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Browser-based upscaling uses interpolation which smooths pixels rather than adding new detail. For photographic images, 2x upscaling produces excellent results. For larger factors, consider using AI-based upscaling services. NexTool provides a before/after comparison so you can evaluate the result before downloading."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
