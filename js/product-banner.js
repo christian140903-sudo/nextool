@@ -168,11 +168,49 @@ function showBanner(page){
   });
 }
 
+// Revolution CTA — expertise engine cross-link on all tool pages
+function injectRevolutionCTA(){
+  var cat=null;
+  var path=location.pathname;
+  var tm=path.match(/\/free-tools\/([^\/]+)\.html/) || path.match(/\/blog\/([^\/]+)\.html/);
+  if(!tm)return;
+
+  // Subtle top banner below nav
+  var cta=document.createElement('div');
+  cta.className='nrev-cta';
+  cta.innerHTML='<div class="nrev-inner">'+
+    '<span class="nrev-new">NEW</span>'+
+    '<span class="nrev-text">Get AI expertise packs for ChatGPT, Claude & Gemini</span>'+
+    '<a href="/create/" class="nrev-btn">Create Free Pack \u2192</a>'+
+  '</div>';
+
+  // Insert after nav
+  var nav=document.querySelector('.nav,.navbar,nav');
+  if(nav&&nav.nextSibling)nav.parentNode.insertBefore(cta,nav.nextSibling);
+  else document.body.prepend(cta);
+}
+
+function injectRevolutionCSS(){
+  var s=document.createElement('style');
+  s.textContent=[
+    '.nrev-cta{background:linear-gradient(90deg,rgba(99,102,241,.08),rgba(168,85,247,.08));border-bottom:1px solid rgba(99,102,241,.15);padding:8px 20px;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;text-align:center}',
+    '.nrev-inner{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}',
+    '.nrev-new{padding:2px 8px;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}',
+    '.nrev-text{color:#94a3b8;font-size:13px;font-weight:500}',
+    '.nrev-btn{color:#818cf8;font-size:13px;font-weight:600;text-decoration:none;transition:color .2s}',
+    '.nrev-btn:hover{color:#a5b4fc;text-decoration:underline}',
+    '@media(max-width:600px){.nrev-inner{gap:6px}.nrev-text{display:none}}'
+  ].join('');
+  document.head.appendChild(s);
+}
+
 function init(){
   var page=detectPage();
   if(!page)return;
 
   injectCSS();
+  injectRevolutionCSS();
+  injectRevolutionCTA();
 
   // Inline product section — show immediately when DOM ready
   if(document.readyState==='loading'){
