@@ -1,0 +1,843 @@
+/* ==========================================================================
+   NexTool Revolution — Wizard / Create Flow
+   The Intent-to-Expertise Engine interface.
+
+   3-Step Flow:
+   Step 1: Tell us your goal (free text + optional category)
+   Step 2: Intelligent questions (dynamic, 3-7 questions)
+   Step 3: Pack preview + delivery
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   WIZARD LAYOUT — Full-screen, focused experience
+   -------------------------------------------------------------------------- */
+
+.wizard {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+  position: relative;
+}
+
+.wizard__header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  padding: var(--space-4) var(--content-padding);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.wizard__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: var(--text-sm);
+}
+
+.wizard__logo .logo-mark {
+  width: 24px;
+  height: 24px;
+}
+
+.wizard__close {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
+  cursor: pointer;
+}
+
+.wizard__close:hover {
+  color: var(--text-secondary);
+  background-color: var(--bg-tertiary);
+}
+
+
+/* --------------------------------------------------------------------------
+   PROGRESS BAR — Shows wizard step
+   -------------------------------------------------------------------------- */
+
+.wizard__progress {
+  padding: var(--space-6) var(--content-padding) 0;
+  max-width: var(--max-width-narrow);
+  margin-inline: auto;
+  width: 100%;
+}
+
+.wizard__steps {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.wizard__step-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.wizard__step-indicator.active {
+  color: var(--accent);
+}
+
+.wizard__step-indicator.completed {
+  color: var(--success);
+}
+
+.wizard__step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  border: 1.5px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.wizard__step-indicator.active .wizard__step-number {
+  border-color: var(--accent);
+  background-color: var(--accent-surface);
+  color: var(--accent);
+}
+
+.wizard__step-indicator.completed .wizard__step-number {
+  border-color: var(--success);
+  background-color: var(--success-surface);
+  color: var(--success);
+}
+
+.wizard__step-connector {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border-subtle);
+  min-width: 20px;
+}
+
+.wizard__step-connector.completed {
+  background-color: var(--success);
+}
+
+.wizard__progress-bar {
+  margin-top: var(--space-4);
+  height: 2px;
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.wizard__progress-fill {
+  height: 100%;
+  background: var(--accent-gradient);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+
+/* --------------------------------------------------------------------------
+   WIZARD CONTENT — The main interaction area
+   -------------------------------------------------------------------------- */
+
+.wizard__content {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--space-12) var(--content-padding) var(--space-20);
+}
+
+.wizard__panel {
+  width: 100%;
+  max-width: var(--max-width-narrow);
+  display: none;
+}
+
+.wizard__panel.active {
+  display: block;
+}
+
+
+/* --------------------------------------------------------------------------
+   STEP 1 — Tell us your goal
+   -------------------------------------------------------------------------- */
+
+.step-goal__header {
+  text-align: center;
+  margin-bottom: var(--space-10);
+}
+
+.step-goal__title {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.step-goal__subtitle {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  max-width: 520px;
+  margin-inline: auto;
+}
+
+.step-goal__input-area {
+  position: relative;
+  margin-bottom: var(--space-8);
+}
+
+.step-goal__textarea {
+  width: 100%;
+  min-height: 140px;
+  max-height: 300px;
+  padding: var(--space-5);
+  background-color: var(--bg-secondary);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  resize: vertical;
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.step-goal__textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.step-goal__textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.step-goal__char-count {
+  position: absolute;
+  bottom: var(--space-3);
+  right: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Category quick-select */
+.step-goal__categories {
+  margin-bottom: var(--space-8);
+}
+
+.step-goal__categories-label {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-3);
+}
+
+.step-goal__category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.step-goal__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  user-select: none;
+}
+
+.step-goal__chip:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.step-goal__chip.selected {
+  background-color: var(--accent-surface);
+  border-color: var(--border-accent);
+  color: var(--accent-light);
+}
+
+.step-goal__chip svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+}
+
+/* AI Model selection */
+.step-goal__model-select {
+  margin-bottom: var(--space-8);
+}
+
+.step-goal__model-label {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-3);
+}
+
+.step-goal__models {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.step-goal__model {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--bg-secondary);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.step-goal__model:hover {
+  border-color: var(--border-default);
+  background-color: var(--bg-tertiary);
+}
+
+.step-goal__model.selected {
+  border-color: var(--border-accent);
+  background-color: var(--accent-surface);
+  color: var(--text-primary);
+}
+
+.step-goal__model svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Continue button */
+.step-goal__actions {
+  display: flex;
+  justify-content: center;
+}
+
+
+/* --------------------------------------------------------------------------
+   STEP 2 — Intelligent Questions
+   -------------------------------------------------------------------------- */
+
+.step-questions__header {
+  margin-bottom: var(--space-8);
+}
+
+.step-questions__context {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--accent-surface);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  color: var(--accent-light);
+  margin-bottom: var(--space-4);
+}
+
+.step-questions__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.step-questions__subtitle {
+  font-size: var(--text-base);
+  color: var(--text-tertiary);
+}
+
+/* Question cards */
+.step-questions__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.question-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  transition: border-color var(--duration-normal) var(--ease-out);
+}
+
+.question-card:focus-within {
+  border-color: var(--accent);
+}
+
+.question-card__number {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--accent);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+
+.question-card__text {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  line-height: var(--leading-snug);
+  margin-bottom: var(--space-1);
+}
+
+.question-card__hint {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-4);
+}
+
+.question-card__input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.question-card__input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.question-card__input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Multi-select options */
+.question-card__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.question-card__option {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.question-card__option:hover {
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.question-card__option.selected {
+  background-color: var(--accent-surface);
+  border-color: var(--border-accent);
+  color: var(--accent-light);
+}
+
+/* Question actions */
+.step-questions__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.step-questions__skip {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color var(--duration-fast);
+}
+
+.step-questions__skip:hover {
+  color: var(--text-secondary);
+}
+
+
+/* --------------------------------------------------------------------------
+   STEP 3 — Pack Preview + Delivery
+   -------------------------------------------------------------------------- */
+
+.step-pack__header {
+  text-align: center;
+  margin-bottom: var(--space-10);
+}
+
+.step-pack__title {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.step-pack__subtitle {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+}
+
+/* Generation animation */
+.step-pack__generating {
+  text-align: center;
+  padding: var(--space-16) 0;
+}
+
+.generating__spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--accent);
+  border-radius: var(--radius-full);
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto var(--space-6);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.generating__text {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.generating__step {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
+/* Pack result */
+.step-pack__result {
+  display: none;
+}
+
+.step-pack__result.visible {
+  display: block;
+}
+
+.pack-preview {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+}
+
+.pack-preview__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pack-preview__title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.pack-preview__badge {
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--accent-surface);
+  color: var(--accent);
+  border-radius: var(--radius-full);
+  font-weight: var(--weight-medium);
+}
+
+.pack-preview__content {
+  padding: var(--space-5);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+.pack-preview__content .prompt-section {
+  color: var(--accent-light);
+  font-weight: var(--weight-semibold);
+}
+
+.pack-preview__content .prompt-comment {
+  color: var(--text-muted);
+}
+
+/* Pack stats bar */
+.pack-stats {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background-color: var(--bg-tertiary);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pack-stat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.pack-stat__value {
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+}
+
+/* Pack sections list */
+.pack-sections {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+
+.pack-section-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.pack-section-item svg {
+  width: 20px;
+  height: 20px;
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+.pack-section-item__text {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.pack-section-item--locked {
+  opacity: 0.5;
+}
+
+.pack-section-item--locked svg {
+  color: var(--text-muted);
+}
+
+/* Actions */
+.step-pack__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.step-pack__copy-all {
+  width: 100%;
+  max-width: 400px;
+}
+
+.step-pack__upgrade-hint {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.step-pack__upgrade-hint a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Pack preview header — 3-part layout */
+.pack-preview__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.pack-preview__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  color: var(--accent);
+  background-color: var(--accent-surface);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.pack-preview__header .pack-preview__title {
+  flex: 1;
+  min-width: 0;
+}
+
+.pack-preview__header .pack-copy-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Pack preview content — monospace pre blocks */
+.pack-preview pre.pack-preview__content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  background-color: var(--bg-secondary);
+}
+
+/* Pro locked section */
+.pack-locked {
+  background-color: var(--bg-secondary);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.pack-locked__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--space-5);
+}
+
+.pack-locked__header svg {
+  color: var(--text-tertiary);
+}
+
+.pack-locked__items {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.pack-locked__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  text-align: left;
+}
+
+.pack-locked__item svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.pack-locked__cta {
+  display: inline-flex;
+  width: auto;
+  margin-inline: auto;
+}
+
+/* New pack button spacing */
+.step-pack__actions {
+  padding-top: var(--space-4);
+}
+
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .wizard__content {
+    padding: var(--space-8) var(--content-padding) var(--space-16);
+  }
+
+  .step-goal__title {
+    font-size: var(--text-2xl);
+  }
+
+  .step-goal__models {
+    flex-direction: column;
+  }
+
+  .step-questions__actions {
+    flex-direction: column-reverse;
+    gap: var(--space-3);
+  }
+
+  .step-questions__actions .btn {
+    width: 100%;
+  }
+
+  .pack-sections {
+    grid-template-columns: 1fr;
+  }
+
+  .pack-locked__items {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard__steps {
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+  }
+
+  .wizard__step-indicator span:not(.wizard__step-number) {
+    display: none;
+  }
+
+  .pack-preview__header {
+    flex-wrap: nowrap;
+  }
+
+  .pack-preview__label {
+    font-size: 0.625rem;
+    padding: 2px var(--space-2);
+  }
+}

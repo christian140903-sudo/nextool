@@ -1,0 +1,323 @@
+/* ==========================================================================
+   NexTool Revolution — Animation System (Phase 1: CSS-only)
+
+   Tier 1: Pure CSS animations for all browsers.
+   GSAP, Lenis, Three.js come in Phase 2.
+
+   Principle: Every animation has PURPOSE or it doesn't exist.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   SCROLL REVEAL — Elements appear as they enter viewport
+   Using CSS @keyframes + JS intersection observer trigger
+   -------------------------------------------------------------------------- */
+
+/* Base state — hidden, ready to animate in */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--duration-slower) var(--ease-out),
+    transform var(--duration-slower) var(--ease-out);
+  will-change: opacity, transform;
+}
+
+[data-reveal].revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Variants */
+[data-reveal="fade"] {
+  transform: none;
+}
+
+[data-reveal="slide-up"] {
+  transform: translateY(40px);
+}
+
+[data-reveal="slide-right"] {
+  transform: translateX(-40px);
+}
+
+[data-reveal="slide-left"] {
+  transform: translateX(40px);
+}
+
+[data-reveal="scale"] {
+  transform: scale(0.95);
+}
+
+[data-reveal="scale-up"] {
+  transform: scale(0.9) translateY(20px);
+}
+
+/* Stagger delays — for groups of elements */
+[data-reveal-delay="1"] { transition-delay: 100ms; }
+[data-reveal-delay="2"] { transition-delay: 200ms; }
+[data-reveal-delay="3"] { transition-delay: 300ms; }
+[data-reveal-delay="4"] { transition-delay: 400ms; }
+[data-reveal-delay="5"] { transition-delay: 500ms; }
+[data-reveal-delay="6"] { transition-delay: 600ms; }
+[data-reveal-delay="7"] { transition-delay: 700ms; }
+[data-reveal-delay="8"] { transition-delay: 800ms; }
+
+
+/* --------------------------------------------------------------------------
+   HERO ENTRANCE — Staggered load animation
+   -------------------------------------------------------------------------- */
+
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.hero__element {
+  opacity: 0;
+  animation: hero-enter 0.8s var(--ease-out) forwards;
+}
+
+.hero__element:nth-child(1) { animation-delay: 0.1s; }
+.hero__element:nth-child(2) { animation-delay: 0.25s; }
+.hero__element:nth-child(3) { animation-delay: 0.4s; }
+.hero__element:nth-child(4) { animation-delay: 0.55s; }
+.hero__element:nth-child(5) { animation-delay: 0.7s; }
+.hero__element:nth-child(6) { animation-delay: 0.85s; }
+
+
+/* --------------------------------------------------------------------------
+   GRADIENT TEXT SHIMMER — Subtle living gradient on text
+   -------------------------------------------------------------------------- */
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.text-gradient--animated {
+  background: linear-gradient(
+    135deg,
+    #635BFF 0%,
+    #00D4FF 25%,
+    #635BFF 50%,
+    #00D4FF 75%,
+    #635BFF 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 6s ease-in-out infinite;
+}
+
+
+/* --------------------------------------------------------------------------
+   GLOW PULSE — Subtle breathing glow for CTAs
+   -------------------------------------------------------------------------- */
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--accent-glow-strong);
+  }
+}
+
+.glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+
+/* --------------------------------------------------------------------------
+   HOVER LIFT — Subtle elevation on hover
+   -------------------------------------------------------------------------- */
+
+.hover-lift {
+  transition:
+    transform var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+
+/* --------------------------------------------------------------------------
+   BACKGROUND GRADIENT — Subtle ambient gradient that shifts
+   (Placeholder until Three.js mesh gradient in Phase 2)
+   -------------------------------------------------------------------------- */
+
+@keyframes ambient-gradient {
+  0% {
+    background-position: 0% 0%;
+  }
+  25% {
+    background-position: 100% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+.bg-ambient {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(99, 91, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(99, 91, 255, 0.04) 0%, transparent 50%);
+  background-size: 200% 200%;
+  animation: ambient-gradient 20s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+
+/* --------------------------------------------------------------------------
+   COUNTER ANIMATION — Numbers counting up
+   -------------------------------------------------------------------------- */
+
+@keyframes counter-grow {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.counter-animate {
+  animation: counter-grow 0.6s var(--ease-spring) forwards;
+}
+
+
+/* --------------------------------------------------------------------------
+   TYPING CURSOR — For the hero input placeholder
+   -------------------------------------------------------------------------- */
+
+@keyframes blink-cursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.typing-cursor::after {
+  content: '|';
+  color: var(--accent);
+  animation: blink-cursor 1s step-end infinite;
+  margin-left: 2px;
+}
+
+
+/* --------------------------------------------------------------------------
+   FLOAT — Subtle floating for decorative elements
+   -------------------------------------------------------------------------- */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.float--slow {
+  animation-duration: 6s;
+}
+
+.float--delayed {
+  animation-delay: 2s;
+}
+
+
+/* --------------------------------------------------------------------------
+   FADE-IN GROUP — For sequential element reveals
+   -------------------------------------------------------------------------- */
+
+.fade-in-group > * {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.fade-in-group.active > * {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+}
+
+.fade-in-group.active > *:nth-child(1) { transition-delay: 0ms; }
+.fade-in-group.active > *:nth-child(2) { transition-delay: 80ms; }
+.fade-in-group.active > *:nth-child(3) { transition-delay: 160ms; }
+.fade-in-group.active > *:nth-child(4) { transition-delay: 240ms; }
+.fade-in-group.active > *:nth-child(5) { transition-delay: 320ms; }
+.fade-in-group.active > *:nth-child(6) { transition-delay: 400ms; }
+.fade-in-group.active > *:nth-child(7) { transition-delay: 480ms; }
+.fade-in-group.active > *:nth-child(8) { transition-delay: 560ms; }
+.fade-in-group.active > *:nth-child(9) { transition-delay: 640ms; }
+.fade-in-group.active > *:nth-child(10) { transition-delay: 720ms; }
+
+
+/* --------------------------------------------------------------------------
+   SECTION SEPARATOR — Gradient line between sections
+   -------------------------------------------------------------------------- */
+
+.section-separator {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--border-default) 20%,
+    var(--accent) 50%,
+    var(--border-default) 80%,
+    transparent 100%
+  );
+  opacity: 0.5;
+}
+
+
+/* --------------------------------------------------------------------------
+   SCROLL INDICATOR — Bounce arrow at bottom of hero
+   -------------------------------------------------------------------------- */
+
+@keyframes scroll-hint {
+  0% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+}
+
+.scroll-indicator {
+  animation: scroll-hint 2s ease-in-out infinite;
+  color: var(--text-muted);
+}
