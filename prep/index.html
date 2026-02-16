@@ -243,6 +243,30 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
 .mobile-more-menu .more-item .more-icon { font-size:26px; }
 .mobile-more-menu .more-item .more-label { font-size:11px; font-weight:600; color:var(--text); text-align:center; }
 
+/* ==================== PASSWORD LOCK SCREEN ==================== */
+#lock-screen { position:fixed; inset:0; z-index:9999; background:var(--bg); display:flex; align-items:center; justify-content:center; transition:opacity .6s cubic-bezier(.4,0,.2,1), transform .6s cubic-bezier(.4,0,.2,1); }
+#lock-screen.unlocking { opacity:0; transform:scale(1.05); pointer-events:none; }
+#lock-screen.hidden { display:none; }
+.lock-container { text-align:center; padding:40px 32px; width:100%; max-width:380px; }
+.lock-logo { font-size:56px; margin-bottom:24px; animation:lockFloat 3s ease-in-out infinite; }
+@keyframes lockFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.lock-title { font-size:28px; font-weight:900; letter-spacing:-1px; margin-bottom:6px; }
+.lock-title .hl { color:var(--accent); }
+.lock-subtitle { font-size:13px; color:var(--muted); margin-bottom:36px; line-height:1.5; }
+.lock-input-wrap { position:relative; margin-bottom:20px; }
+.lock-input { width:100%; padding:16px 20px; background:var(--bg2); border:2px solid var(--border); border-radius:14px; color:var(--text); font-size:17px; font-family:'Inter',sans-serif; font-weight:500; text-align:center; letter-spacing:4px; outline:none; transition:border-color .3s ease, box-shadow .3s ease; -webkit-appearance:none; }
+.lock-input:focus { border-color:var(--accent); box-shadow:0 0 0 4px rgba(233,69,96,.15); }
+.lock-input.error { border-color:#ff4444; animation:lockShake .5s ease; }
+@keyframes lockShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-12px)} 40%{transform:translateX(12px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(8px)} }
+.lock-input::placeholder { letter-spacing:1px; color:var(--bg4); font-weight:400; }
+.lock-btn { width:100%; padding:16px; background:var(--accent); color:#fff; border:none; border-radius:14px; font-size:16px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; transition:all .2s ease; }
+.lock-btn:hover { background:var(--accent2); transform:translateY(-1px); }
+.lock-btn:active { transform:scale(.98); }
+.lock-hint { font-size:11px; color:var(--bg4); margin-top:24px; }
+.lock-bg-glow { position:absolute; width:300px; height:300px; border-radius:50%; filter:blur(120px); opacity:.15; pointer-events:none; }
+.lock-bg-glow.glow-1 { top:-100px; left:-50px; background:var(--accent); }
+.lock-bg-glow.glow-2 { bottom:-100px; right:-50px; background:var(--blue); }
+
 /* ==================== APPLE-LEVEL PREMIUM ==================== */
 
 /* Scroll Reveal Animations */
@@ -572,6 +596,22 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
 </style>
 </head>
 <body>
+
+<!-- PASSWORD LOCK SCREEN -->
+<div id="lock-screen">
+  <div class="lock-bg-glow glow-1"></div>
+  <div class="lock-bg-glow glow-2"></div>
+  <div class="lock-container">
+    <div class="lock-logo">&#128274;</div>
+    <div class="lock-title">AMR-<span class="hl">HORIZONT</span></div>
+    <div class="lock-subtitle">Call Training Platform<br>Passwortgeschuetzter Zugang</div>
+    <div class="lock-input-wrap">
+      <input type="password" class="lock-input" id="lock-input" placeholder="Passwort" autocomplete="off" autofocus>
+    </div>
+    <button class="lock-btn" id="lock-btn" onclick="tryUnlock()">Entsperren</button>
+    <div class="lock-hint">Privater Lernbereich</div>
+  </div>
+</div>
 
 <button class="mobile-toggle" onclick="toggleSidebar()">&#9776;</button>
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
@@ -1205,6 +1245,46 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
 </div>
 
 <script>
+// ==================== PASSWORD PROTECTION ====================
+const PASS_HASH='miguel';
+const PASS_KEY='amr-training-auth';
+function checkAuth(){
+  if(localStorage.getItem(PASS_KEY)==='granted'){
+    document.getElementById('lock-screen').classList.add('hidden');
+    return true;
+  }
+  return false;
+}
+function tryUnlock(){
+  const input=document.getElementById('lock-input');
+  const val=input.value.trim().toLowerCase();
+  if(val===PASS_HASH){
+    localStorage.setItem(PASS_KEY,'granted');
+    if(navigator.vibrate) navigator.vibrate(20);
+    document.getElementById('lock-screen').classList.add('unlocking');
+    setTimeout(()=>{
+      document.getElementById('lock-screen').classList.add('hidden');
+    },600);
+  } else {
+    input.classList.add('error');
+    if(navigator.vibrate) navigator.vibrate([50,30,50]);
+    setTimeout(()=>input.classList.remove('error'),500);
+    input.value='';
+    input.focus();
+  }
+}
+// Enter key on password input
+document.addEventListener('DOMContentLoaded',()=>{
+  const lockInput=document.getElementById('lock-input');
+  if(lockInput){
+    lockInput.addEventListener('keydown',e=>{
+      if(e.key==='Enter') tryUnlock();
+    });
+  }
+});
+// Check auth immediately
+if(checkAuth()){/* already unlocked */}
+
 // ==================== DATA ====================
 
 const qaData = [
@@ -2182,14 +2262,37 @@ const origNavigate=navigate;
 navigate=function(page){
   origNavigate(page);
   state.lastPage=page;
+  state.lastScrollY=0;
   saveState();
 };
-// Auto-save on visibility change (user switches app)
+// Save scroll position
+let scrollSaveTimer=null;
+(document.getElementById('main')||window).addEventListener('scroll',()=>{
+  clearTimeout(scrollSaveTimer);
+  scrollSaveTimer=setTimeout(()=>{
+    state.lastScrollY=window.scrollY||document.documentElement.scrollTop||0;
+    saveState();
+  },500);
+},{passive:true});
+// Auto-save on visibility change (user switches app/locks phone)
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden) autoSave('Session gesichert');
+  if(document.hidden){
+    state.lastScrollY=window.scrollY||0;
+    autoSave('Session gesichert');
+  }
 });
-// Auto-save every 30 seconds silently
-setInterval(()=>saveState(),30000);
+// Auto-save before page unload (close tab/navigate away)
+window.addEventListener('beforeunload',()=>{
+  state.lastScrollY=window.scrollY||0;
+  saveState();
+});
+// Auto-save every 20 seconds silently
+setInterval(()=>saveState(),20000);
+// Auto-save on any click (catches quiz, checklist, everything)
+document.addEventListener('click',()=>{
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>saveState(),1000);
+},{passive:true});
 
 // ==================== HAPTIC FEEDBACK ====================
 function haptic(style){
@@ -2352,10 +2455,18 @@ createMobileNav();
 updateNavProgress();
 
 // ==================== SESSION RESUME ====================
-// Resume to last visited page
+// Resume to last visited page + scroll position
 if(state.lastPage){
-  try{navigate(state.lastPage);updateMobileNavState(state.lastPage);}catch(e){}
+  try{
+    navigate(state.lastPage);
+    updateMobileNavState(state.lastPage);
+    // Restore scroll position after a short delay
+    if(state.lastScrollY){
+      setTimeout(()=>window.scrollTo(0,state.lastScrollY),300);
+    }
+  }catch(e){}
 }
+updateStickyProgress();
 
 // Show swipe hint on first mobile visit
 if(window.innerWidth<=768&&!state.swipeHintShown){
