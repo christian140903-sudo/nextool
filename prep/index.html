@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AMR Training">
+<meta name="theme-color" content="#0a0a12">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/prep/manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a12'/><text x='50' y='65' text-anchor='middle' font-size='50' fill='%23e94560'>A</text></svg>">
+<title>AMR-HORIZONT — Call Training Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a12; --bg2: #12121e; --bg3: #1a1a2e; --bg4: #222240;
+  --accent: #e94560; --accent2: #ff6b81; --blue: #4a9eff; --green: #00d2a0;
+  --yellow: #ffd93d; --orange: #ff9f43; --purple: #a855f7;
+  --text: #e8e8f0; --muted: #7a7a9e; --border: #2a2a44;
+  --radius: 12px; --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+  --transition: .25s cubic-bezier(.4,0,.2,1);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; overflow-x:hidden; }
+::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:var(--bg2); } ::-webkit-scrollbar-thumb { background:var(--bg4); border-radius:3px; }
+
+/* SIDEBAR */
+#sidebar { width:280px; min-width:280px; height:100vh; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; position:sticky; top:0; z-index:100; transition:var(--transition); }
+#sidebar .logo { padding:24px 20px 16px; border-bottom:1px solid var(--border); }
+#sidebar .logo h1 { font-size:18px; font-weight:800; letter-spacing:-.5px; }
+#sidebar .logo h1 span { color:var(--accent); }
+#sidebar .logo .sub { font-size:11px; color:var(--muted); margin-top:4px; letter-spacing:.5px; text-transform:uppercase; }
+#countdown-box { margin:16px 16px 8px; padding:16px; background:linear-gradient(135deg,#1e0a1a,#2a0a1e); border:1px solid #3a1030; border-radius:var(--radius-sm); text-align:center; }
+#countdown-box .label { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--accent2); margin-bottom:8px; }
+#countdown-box .time { font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:700; color:var(--accent); }
+#countdown-box .date { font-size:11px; color:var(--muted); margin-top:6px; }
+#readiness { margin:8px 16px 16px; padding:12px 16px; background:var(--bg3); border-radius:var(--radius-sm); }
+#readiness .label { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:8px; }
+#readiness .bar { height:8px; background:var(--bg4); border-radius:4px; overflow:hidden; }
+#readiness .fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--green)); border-radius:4px; transition:.5s ease; }
+#readiness .pct { font-size:13px; font-weight:600; margin-top:6px; text-align:right; }
+.nav-items { flex:1; overflow-y:auto; padding:8px 0; }
+.nav-item { display:flex; align-items:center; gap:12px; padding:11px 20px; cursor:pointer; transition:var(--transition); font-size:13.5px; font-weight:500; color:var(--muted); border-left:3px solid transparent; }
+.nav-item:hover { background:var(--bg3); color:var(--text); }
+.nav-item.active { background:rgba(233,69,96,.08); color:var(--accent); border-left-color:var(--accent); }
+.nav-item .icon { font-size:18px; width:24px; text-align:center; }
+.nav-item .badge { margin-left:auto; font-size:10px; padding:2px 8px; border-radius:10px; font-weight:600; }
+.badge-red { background:rgba(233,69,96,.2); color:var(--accent); }
+.badge-green { background:rgba(0,210,160,.2); color:var(--green); }
+.badge-blue { background:rgba(74,158,255,.2); color:var(--blue); }
+.badge-yellow { background:rgba(255,217,61,.2); color:var(--yellow); }
+
+/* MAIN */
+#main { flex:1; min-height:100vh; overflow-y:auto; }
+.page { display:none; padding:32px 40px 60px; max-width:1100px; animation:fadeIn .3s ease; }
+.page.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.page-title { font-size:32px; font-weight:800; margin-bottom:6px; letter-spacing:-.5px; }
+.page-title .hl { color:var(--accent); }
+.page-desc { font-size:14px; color:var(--muted); margin-bottom:32px; line-height:1.6; }
+
+/* CARDS */
+.card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin-bottom:16px; transition:var(--transition); }
+.card:hover { border-color:var(--bg4); }
+.card-header { font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; margin-bottom:24px; }
+.stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:20px; text-align:center; }
+.stat-card .num { font-size:36px; font-weight:800; }
+.stat-card .label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-top:4px; }
+
+/* BUTTONS */
+.btn { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; border:none; transition:var(--transition); font-family:inherit; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent2); transform:translateY(-1px); }
+.btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
+.btn-outline:hover { border-color:var(--accent); color:var(--accent); }
+.btn-sm { padding:6px 14px; font-size:12px; }
+.btn-lg { padding:14px 28px; font-size:15px; }
+.btn-green { background:var(--green); color:#000; }
+.btn-green:hover { background:#00e6b0; }
+
+/* OPENING STATEMENT */
+.script-box { background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:28px; font-size:15px; line-height:1.9; margin:20px 0; position:relative; }
+.script-box::before { content:'SCRIPT'; position:absolute; top:-10px; left:20px; background:var(--accent); color:#fff; font-size:10px; font-weight:700; padding:2px 10px; border-radius:4px; letter-spacing:1px; }
+#timer-display { font-family:'JetBrains Mono',monospace; font-size:80px; font-weight:700; text-align:center; margin:24px 0; transition:.3s; }
+#timer-display.green { color:var(--green); }
+#timer-display.yellow { color:var(--yellow); }
+#timer-display.red { color:var(--accent); }
+.timer-controls { display:flex; justify-content:center; gap:16px; margin-bottom:24px; }
+.best-time { text-align:center; font-size:13px; color:var(--muted); margin-top:8px; }
+.best-time span { color:var(--green); font-weight:600; font-family:'JetBrains Mono',monospace; }
+
+/* Q&A QUIZ */
+.quiz-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+.quiz-filters { display:flex; gap:8px; flex-wrap:wrap; }
+.filter-btn { padding:6px 14px; border-radius:20px; font-size:12px; font-weight:500; cursor:pointer; border:1px solid var(--border); background:var(--bg2); color:var(--muted); transition:var(--transition); }
+.filter-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.filter-btn:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+.quiz-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:16px; }
+.quiz-card .q-header { padding:16px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); }
+.quiz-card .q-cat { font-size:10px; text-transform:uppercase; letter-spacing:1px; padding:3px 10px; border-radius:10px; font-weight:600; }
+.quiz-card .q-num { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); }
+.quiz-card .q-conf { margin-left:auto; display:flex; gap:4px; }
+.quiz-card .q-conf .dot { width:8px; height:8px; border-radius:50%; background:var(--bg4); }
+.quiz-card .q-conf .dot.filled { background:var(--green); }
+.quiz-card .question { padding:20px; font-size:15px; font-weight:600; line-height:1.5; cursor:pointer; }
+.quiz-card .answer { padding:0 20px 20px; display:none; }
+.quiz-card .answer.show { display:block; animation:fadeIn .3s; }
+.quiz-card .answer .short { font-size:14px; color:var(--green); font-weight:500; margin-bottom:10px; line-height:1.6; }
+.quiz-card .answer .detail { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:8px; }
+.quiz-card .answer .ref { font-size:11px; color:var(--blue); font-family:'JetBrains Mono',monospace; }
+.quiz-card .answer .warn { font-size:12px; color:var(--accent); margin-top:8px; padding:8px 12px; background:rgba(233,69,96,.08); border-radius:var(--radius-sm); }
+.quiz-card .confidence { padding:12px 20px; border-top:1px solid var(--border); display:none; align-items:center; gap:8px; }
+.quiz-card .confidence.show { display:flex; }
+.quiz-card .confidence span { font-size:11px; color:var(--muted); }
+.conf-btn { width:32px; height:32px; border-radius:50%; border:1px solid var(--border); background:var(--bg3); color:var(--muted); cursor:pointer; font-size:13px; font-weight:600; transition:var(--transition); display:flex; align-items:center; justify-content:center; }
+.conf-btn:hover { border-color:var(--green); color:var(--green); }
+.conf-btn.selected { background:var(--green); border-color:var(--green); color:#000; }
+
+/* FLASHCARDS */
+.flashcard-container { perspective:1000px; margin:24px auto; max-width:600px; }
+.flashcard { width:100%; min-height:280px; position:relative; cursor:pointer; transition:transform .6s; transform-style:preserve-3d; }
+.flashcard.flipped { transform:rotateY(180deg); }
+.flashcard-face { position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--radius); padding:32px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+.flashcard-front { background:linear-gradient(135deg,#2a0a1e,#1e0a2a); border:2px solid var(--accent); }
+.flashcard-back { background:linear-gradient(135deg,#0a2a1e,#0a1e2a); border:2px solid var(--green); transform:rotateY(180deg); }
+.flashcard-front .icon { font-size:40px; margin-bottom:16px; }
+.flashcard-front .text { font-size:18px; font-weight:600; line-height:1.5; color:var(--accent2); }
+.flashcard-back .text { font-size:16px; line-height:1.6; color:var(--green); }
+.flashcard-counter { text-align:center; font-size:13px; color:var(--muted); margin-bottom:16px; }
+.flashcard-controls { display:flex; justify-content:center; gap:16px; margin-top:24px; }
+
+/* RED FLAGS */
+.rf-card { background:var(--bg2); border-radius:var(--radius); overflow:hidden; margin-bottom:16px; border:1px solid var(--border); }
+.rf-card .rf-header { padding:16px 20px; display:flex; align-items:center; gap:12px; cursor:pointer; }
+.rf-card .rf-header .severity { font-size:11px; font-weight:700; padding:3px 10px; border-radius:10px; text-transform:uppercase; letter-spacing:.5px; }
+.rf-card .rf-header .severity.critical { background:rgba(233,69,96,.15); color:var(--accent); }
+.rf-card .rf-header .severity.important { background:rgba(255,159,67,.15); color:var(--orange); }
+.rf-card .rf-header .severity.moderate { background:rgba(0,210,160,.15); color:var(--green); }
+.rf-card .rf-header .title { font-weight:600; font-size:14px; flex:1; }
+.rf-card .rf-header .arrow { color:var(--muted); transition:var(--transition); font-size:18px; }
+.rf-card .rf-header .arrow.open { transform:rotate(180deg); }
+.rf-card .rf-body { display:none; padding:0 20px 20px; }
+.rf-card .rf-body.show { display:block; animation:fadeIn .3s; }
+.rf-card .rf-body .think { font-size:13px; color:var(--muted); font-style:italic; margin-bottom:12px; padding:10px 14px; background:var(--bg3); border-radius:var(--radius-sm); }
+.rf-card .rf-body .safe { font-size:14px; color:var(--green); line-height:1.7; padding:12px 16px; background:rgba(0,210,160,.05); border:1px solid rgba(0,210,160,.15); border-radius:var(--radius-sm); margin-bottom:12px; }
+.rf-card .rf-body .donts { margin-top:8px; }
+.rf-card .rf-body .donts li { font-size:13px; color:var(--accent); margin-bottom:4px; list-style:none; }
+.rf-card .rf-body .donts li::before { content:'✕ '; }
+.rf-card .rf-body .dos li { font-size:13px; color:var(--green); margin-bottom:4px; list-style:none; }
+.rf-card .rf-body .dos li::before { content:'✓ '; }
+
+/* OFFEN CHECKLIST */
+.offen-item { display:flex; align-items:flex-start; gap:14px; padding:16px 20px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:10px; transition:var(--transition); }
+.offen-item.done { opacity:.5; border-color:var(--green); }
+.offen-item .check { width:22px; height:22px; border-radius:6px; border:2px solid var(--border); cursor:pointer; flex-shrink:0; margin-top:2px; display:flex; align-items:center; justify-content:center; transition:var(--transition); font-size:14px; }
+.offen-item.done .check { background:var(--green); border-color:var(--green); color:#000; }
+.offen-item .prio { font-size:10px; font-weight:700; padding:2px 8px; border-radius:8px; text-transform:uppercase; letter-spacing:.5px; flex-shrink:0; }
+.offen-item .content { flex:1; }
+.offen-item .content .title { font-size:14px; font-weight:600; margin-bottom:4px; }
+.offen-item .content .desc { font-size:12px; color:var(--muted); line-height:1.5; }
+
+/* TIMELINE */
+.tl-item { display:flex; gap:20px; margin-bottom:0; padding:16px 0; border-bottom:1px solid var(--border); }
+.tl-item .day { min-width:80px; text-align:center; }
+.tl-item .day .num { font-size:28px; font-weight:800; color:var(--accent); }
+.tl-item .day .date { font-size:11px; color:var(--muted); }
+.tl-item .content { flex:1; }
+.tl-item .content h4 { font-size:14px; font-weight:600; margin-bottom:4px; }
+.tl-item .content p { font-size:13px; color:var(--muted); line-height:1.5; }
+.tl-item.today { background:rgba(233,69,96,.05); border-radius:var(--radius-sm); padding:16px; margin:-4px -12px; }
+
+/* SCENARIO CARDS */
+.scenario-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:20px; }
+.scenario-card .sc-header { padding:20px 24px; background:linear-gradient(135deg,var(--bg3),var(--bg4)); border-bottom:1px solid var(--border); }
+.scenario-card .sc-header h3 { font-size:18px; font-weight:700; margin-bottom:4px; }
+.scenario-card .sc-header .setting { font-size:13px; color:var(--muted); line-height:1.5; }
+.scenario-card .sc-body { padding:20px 24px; }
+.scenario-card .conflict-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
+.scenario-card .conflict { padding:10px 14px; background:var(--bg3); border-radius:var(--radius-sm); font-size:12px; line-height:1.4; }
+.scenario-card .conflict strong { color:var(--accent2); }
+.scenario-card .stakeholders { margin:12px 0; }
+.scenario-card .stakeholders span { display:inline-block; padding:4px 12px; background:var(--bg3); border-radius:20px; font-size:11px; margin:3px 4px 3px 0; }
+
+/* GENERALPROBE */
+#sim-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:1000; justify-content:center; align-items:center; }
+#sim-overlay.active { display:flex; }
+#sim-content { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:40px; max-width:700px; width:90%; max-height:80vh; overflow-y:auto; text-align:center; }
+#sim-question { font-size:20px; font-weight:600; line-height:1.5; margin:24px 0; }
+#sim-answer { display:none; text-align:left; margin:20px 0; padding:20px; background:var(--bg3); border-radius:var(--radius-sm); }
+#sim-answer.show { display:block; animation:fadeIn .3s; }
+#sim-progress { height:4px; background:var(--bg4); border-radius:2px; margin-bottom:24px; }
+#sim-progress .fill { height:100%; background:var(--accent); border-radius:2px; transition:.3s; }
+
+/* SEARCH */
+#search-box { display:none; position:fixed; top:0; left:0; right:0; z-index:999; background:rgba(10,10,18,.95); padding:20px; backdrop-filter:blur(20px); }
+#search-box.active { display:block; }
+#search-input { width:100%; max-width:600px; margin:0 auto; display:block; padding:16px 20px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:16px; font-family:inherit; outline:none; }
+#search-input:focus { border-color:var(--accent); }
+#search-results { max-width:600px; margin:12px auto 0; max-height:60vh; overflow-y:auto; }
+.search-result { padding:12px 16px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; cursor:pointer; transition:var(--transition); }
+.search-result:hover { border-color:var(--accent); }
+.search-result .sr-cat { font-size:10px; text-transform:uppercase; color:var(--accent); letter-spacing:1px; margin-bottom:4px; }
+.search-result .sr-text { font-size:13px; line-height:1.4; }
+
+/* TABLES */
+.info-table { width:100%; border-collapse:collapse; margin:16px 0; }
+.info-table th, .info-table td { padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); font-size:13px; }
+.info-table th { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); background:var(--bg3); }
+.info-table td { color:var(--text); }
+
+/* SECTION HEADERS */
+.section-header { display:flex; align-items:center; gap:12px; margin:32px 0 16px; }
+.section-header .icon { font-size:24px; }
+.section-header h2 { font-size:20px; font-weight:700; }
+
+/* MOBILE BOTTOM NAV */
+.mobile-bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:300; background:var(--bg2); border-top:1px solid var(--border); padding:4px 0 env(safe-area-inset-bottom,8px); }
+.mobile-bottom-nav .nav-row { display:flex; justify-content:space-around; align-items:center; }
+.mobile-bottom-nav .bnav-item { display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 4px; cursor:pointer; min-width:56px; color:var(--muted); transition:var(--transition); -webkit-tap-highlight-color:transparent; }
+.mobile-bottom-nav .bnav-item.active { color:var(--accent); }
+.mobile-bottom-nav .bnav-item .bnav-icon { font-size:22px; line-height:1; }
+.mobile-bottom-nav .bnav-item .bnav-label { font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:.3px; }
+
+/* MOBILE MORE MENU */
+.mobile-more-menu { display:none; position:fixed; bottom:60px; left:0; right:0; z-index:299; background:var(--bg2); border-top:1px solid var(--border); border-radius:16px 16px 0 0; padding:16px; max-height:60vh; overflow-y:auto; box-shadow:0 -8px 32px rgba(0,0,0,.5); }
+.mobile-more-menu.active { display:block; animation:slideUp .25s ease; }
+@keyframes slideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+.mobile-more-menu .more-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.mobile-more-menu .more-item { display:flex; flex-direction:column; align-items:center; gap:6px; padding:16px 8px; background:var(--bg3); border-radius:var(--radius-sm); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.mobile-more-menu .more-item .more-icon { font-size:24px; }
+.mobile-more-menu .more-item .more-label { font-size:11px; font-weight:600; color:var(--text); text-align:center; }
+
+/* RESPONSIVE */
+@media(max-width:768px) {
+  #sidebar { position:fixed; left:-280px; z-index:200; }
+  #sidebar.open { left:0; box-shadow:0 0 40px rgba(0,0,0,.8); }
+  .mobile-toggle { display:block !important; }
+  .mobile-bottom-nav { display:block; }
+  body { padding-bottom:72px; }
+  #main { padding-bottom:80px; }
+  .page { padding:16px 14px 32px; }
+  .page-title { font-size:22px; letter-spacing:-.3px; }
+  .page-desc { font-size:13px; margin-bottom:20px; }
+  #timer-display { font-size:48px; }
+  .card-grid { grid-template-columns:1fr; gap:10px; }
+  .scenario-card .conflict-grid { grid-template-columns:1fr; }
+  .card { padding:16px; margin-bottom:12px; }
+  .stat-card { padding:14px; }
+  .stat-card .num { font-size:28px; }
+  .stat-card .label { font-size:9px; }
+  .key-grid { grid-template-columns:repeat(2,1fr); gap:8px; }
+  .key-item { padding:10px; }
+  .key-item .val { font-size:16px; }
+  .section-header { margin:24px 0 12px; }
+  .section-header h2 { font-size:17px; }
+  .btn { padding:12px 20px; font-size:14px; min-height:44px; }
+  .btn-lg { padding:14px 24px; font-size:15px; min-height:48px; }
+  .btn-sm { padding:10px 16px; font-size:13px; min-height:40px; }
+  .quiz-card .question { padding:16px; font-size:14px; }
+  .quiz-card .answer { padding:0 16px 16px; }
+  .quiz-card .q-header { padding:12px 16px; }
+  .quiz-filters { gap:6px; }
+  .filter-btn { padding:8px 12px; font-size:11px; min-height:36px; }
+  .conf-btn { width:36px; height:36px; font-size:14px; }
+  .flashcard { min-height:240px; }
+  .flashcard-front .text { font-size:16px; }
+  .flashcard-back .text { font-size:14px; }
+  .flashcard-controls { gap:8px; }
+  .rf-card .rf-header { padding:14px 16px; }
+  .rf-card .rf-header .title { font-size:13px; }
+  .rf-card .rf-body { padding:0 16px 16px; }
+  .offen-item { padding:14px 16px; }
+  .info-table th, .info-table td { padding:8px 10px; font-size:12px; }
+  .tl-item { gap:12px; }
+  .tl-item .day .num { font-size:22px; }
+  .script-box { padding:20px; font-size:14px; line-height:1.7; }
+  .timer-controls { gap:10px; }
+  .cheat-grid { grid-template-columns:1fr; }
+  .cheat-card .cheat-text { font-size:12px; }
+  .drill-timer { font-size:48px; }
+  .drill-question { font-size:18px; min-height:60px; }
+  .weakness-grid { grid-template-columns:1fr; }
+  .sim-difficulty { flex-direction:column; gap:8px; }
+  .sim-diff-btn { padding:12px 20px; }
+  #sim-content { padding:24px 20px; border-radius:16px 16px 0 0; max-width:100%; width:100%; position:fixed; bottom:0; left:0; right:0; max-height:85vh; }
+  #sim-overlay { align-items:flex-end; }
+  .kb-hint { display:none; }
+  .recorder-box { padding:20px; }
+  .recording-item { flex-wrap:wrap; }
+  .recording-item audio { width:100%; min-width:0; }
+  .mobile-toggle { top:12px; left:12px; }
+  /* Touch-friendly: no hover effects, bigger targets */
+  * { -webkit-tap-highlight-color:rgba(233,69,96,.15); }
+  .nav-item { padding:14px 20px; font-size:14px; min-height:48px; }
+}
+
+/* Small phones (iPhone SE etc) */
+@media(max-width:375px) {
+  .page { padding:12px 10px 28px; }
+  .page-title { font-size:20px; }
+  .stat-card .num { font-size:24px; }
+  .key-grid { grid-template-columns:1fr 1fr; gap:6px; }
+  .key-item .val { font-size:14px; }
+  .drill-timer { font-size:40px; }
+  .flashcard { min-height:200px; }
+}
+
+/* Safe area for notch phones */
+@supports(padding:max(0px)) {
+  .mobile-bottom-nav { padding-bottom:max(8px, env(safe-area-inset-bottom)); }
+  .page { padding-bottom:max(32px, calc(env(safe-area-inset-bottom) + 24px)); }
+}
+
+.mobile-toggle { display:none; position:fixed; top:12px; left:12px; z-index:201; width:44px; height:44px; border-radius:12px; background:var(--bg2); border:1px solid var(--border); color:var(--text); font-size:20px; cursor:pointer; }
+.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:199; }
+.overlay.active { display:block; }
+
+/* KEY INFO BADGES */
+.key-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin:16px 0; }
+.key-item { background:var(--bg3); border-radius:var(--radius-sm); padding:14px; text-align:center; }
+.key-item .val { font-size:20px; font-weight:800; font-family:'JetBrains Mono',monospace; }
+.key-item .lab { font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-top:4px; }
+
+/* SPEED DRILL */
+.drill-container { text-align:center; padding:40px 20px; }
+.drill-timer { font-family:'JetBrains Mono',monospace; font-size:64px; font-weight:800; margin:16px 0; }
+.drill-question { font-size:22px; font-weight:600; line-height:1.5; margin:24px 0; min-height:80px; }
+.drill-answer { background:var(--bg3); border-radius:var(--radius); padding:20px; margin:16px 0; text-align:left; display:none; }
+.drill-answer.show { display:block; animation:fadeIn .3s; }
+.drill-score { display:flex; justify-content:center; gap:24px; margin:20px 0; }
+.drill-score .item { text-align:center; }
+.drill-score .num { font-size:32px; font-weight:800; font-family:'JetBrains Mono',monospace; }
+.drill-score .lab { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
+.drill-rating { display:flex; justify-content:center; gap:12px; margin:16px 0; }
+.drill-rating .rate-btn { width:48px; height:48px; border-radius:12px; border:2px solid var(--border); background:var(--bg3); font-size:20px; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; }
+.drill-rating .rate-btn:hover { transform:scale(1.15); }
+.drill-rating .rate-btn.good { border-color:var(--green); background:rgba(0,210,160,.1); }
+.drill-rating .rate-btn.mid { border-color:var(--yellow); background:rgba(255,217,61,.1); }
+.drill-rating .rate-btn.bad { border-color:var(--accent); background:rgba(233,69,96,.1); }
+
+/* AUDIO RECORDER */
+.recorder-box { background:var(--bg3); border:2px dashed var(--border); border-radius:var(--radius); padding:32px; text-align:center; margin:20px 0; transition:var(--transition); }
+.recorder-box.recording { border-color:var(--accent); background:rgba(233,69,96,.05); }
+.recorder-box .rec-icon { font-size:48px; margin-bottom:12px; }
+.recorder-box.recording .rec-icon { animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.recordings-list { margin:16px 0; }
+.recording-item { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; }
+.recording-item audio { flex:1; height:36px; }
+.recording-item .rec-time { font-size:11px; color:var(--muted); font-family:'JetBrains Mono',monospace; min-width:50px; }
+.recording-item .rec-del { width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:none; color:var(--accent); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
+
+/* WEAKNESS / ANALYSIS */
+.weakness-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; margin:20px 0; }
+.weakness-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:20px; position:relative; overflow:hidden; }
+.weakness-card .cat-name { font-size:14px; font-weight:700; margin-bottom:8px; }
+.weakness-card .w-bar { height:10px; background:var(--bg4); border-radius:5px; overflow:hidden; margin:8px 0; }
+.weakness-card .w-fill { height:100%; border-radius:5px; transition:.5s ease; }
+.weakness-card .w-stats { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); }
+.weakness-card .w-grade { position:absolute; top:16px; right:16px; font-size:24px; font-weight:800; }
+
+/* CHEAT SHEET */
+.cheat-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0; }
+.cheat-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+.cheat-card .cheat-label { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:8px; font-weight:700; }
+.cheat-card .cheat-text { font-size:13px; color:var(--green); line-height:1.7; }
+@media(max-width:768px) { .cheat-grid { grid-template-columns:1fr; } }
+
+/* ENHANCED SIM */
+.sim-difficulty { display:flex; gap:12px; justify-content:center; margin:20px 0; }
+.sim-diff-btn { padding:10px 24px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg3); color:var(--text); cursor:pointer; font-size:13px; font-weight:600; transition:var(--transition); font-family:inherit; }
+.sim-diff-btn:hover { border-color:var(--accent); }
+.sim-diff-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.sim-timer-bar { height:6px; background:var(--bg4); border-radius:3px; margin:12px 0; overflow:hidden; }
+.sim-timer-fill { height:100%; background:var(--green); border-radius:3px; transition:width .1s linear; }
+.sim-report { text-align:left; margin:20px 0; }
+.sim-report .report-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+
+/* CONFETTI */
+.confetti-container { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:2000; overflow:hidden; }
+.confetti { position:absolute; width:10px; height:10px; top:-10px; animation:confettiFall 3s ease-in forwards; }
+@keyframes confettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; right:24px; padding:14px 24px; background:var(--bg2); border:1px solid var(--green); border-radius:var(--radius-sm); color:var(--green); font-size:13px; font-weight:600; z-index:3000; transform:translateY(100px); opacity:0; transition:all .3s ease; box-shadow:var(--shadow); }
+.toast.show { transform:translateY(0); opacity:1; }
+
+/* KEYBOARD HINT */
+.kb-hint { position:fixed; bottom:12px; left:50%; transform:translateX(-50%); font-size:11px; color:var(--muted); background:var(--bg2); padding:6px 16px; border-radius:20px; border:1px solid var(--border); z-index:50; opacity:.6; }
+.kb-hint kbd { background:var(--bg4); padding:1px 6px; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:10px; }
+
+/* PROGRESS RING (Dashboard) */
+.progress-ring { display:inline-block; position:relative; }
+.progress-ring svg { transform:rotate(-90deg); }
+.progress-ring .ring-text { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; }
+
+/* PRINT */
+@media print {
+  #sidebar, .mobile-toggle, .btn, .timer-controls, .quiz-filters, .confidence, .flashcard-controls, #search-box, .kb-hint, .toast, .confetti-container, .recorder-box, .drill-rating { display:none !important; }
+  body { background:#fff; color:#000; }
+  .page { display:block !important; padding:20px; }
+  .card, .quiz-card, .rf-card, .scenario-card { break-inside:avoid; border:1px solid #ddd; }
+  .answer, .rf-body { display:block !important; }
+}
+</style>
+</head>
+<body>
+
+<button class="mobile-toggle" onclick="toggleSidebar()">&#9776;</button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="logo">
+    <h1>AMR-<span>HORIZONT</span></h1>
+    <div class="sub">Call Training Platform</div>
+  </div>
+  <div id="countdown-box">
+    <div class="label">Countdown zum Call</div>
+    <div class="time" id="countdown">--:--:--</div>
+    <div class="date">26. Feb 2026 &middot; 14:30 Uhr</div>
+  </div>
+  <div id="readiness">
+    <div class="label">Bereitschaft</div>
+    <div class="bar"><div class="fill" id="readiness-fill" style="width:0%"></div></div>
+    <div class="pct" id="readiness-pct">0%</div>
+  </div>
+  <div class="nav-items">
+    <div class="nav-item active" data-page="dashboard"><span class="icon">&#9671;</span> Dashboard</div>
+    <div class="nav-item" data-page="opening"><span class="icon">&#127908;</span> Opening Statement <span class="badge badge-red">UEBEN</span></div>
+    <div class="nav-item" data-page="redflags"><span class="icon">&#9888;</span> Red Flags (15)</div>
+    <div class="nav-item" data-page="triggers"><span class="icon">&#128680;</span> Trigger-Saetze <span class="badge badge-red">12</span></div>
+    <div class="nav-item" data-page="offen"><span class="icon">&#9744;</span> OFFEN-Punkte</div>
+    <div class="nav-item" data-page="qa"><span class="icon">&#10067;</span> Q&A Training <span class="badge badge-blue">60</span></div>
+    <div class="nav-item" data-page="onepager"><span class="icon">&#128196;</span> One-Pager</div>
+    <div class="nav-item" data-page="outputs"><span class="icon">&#128230;</span> 8 Outputs</div>
+    <div class="nav-item" data-page="decision"><span class="icon">&#9878;</span> Decision Map</div>
+    <div class="nav-item" data-page="scenarios"><span class="icon">&#129514;</span> AP5 Szenarien</div>
+    <div class="nav-item" data-page="toolkit"><span class="icon">&#128295;</span> Interview-Toolkit</div>
+    <div class="nav-item" data-page="timeline"><span class="icon">&#128197;</span> 11-Tage-Plan</div>
+    <div style="border-top:1px solid var(--border);margin:8px 16px"></div>
+    <div class="nav-item" data-page="speeddrill"><span class="icon">&#9889;</span> Speed Drill <span class="badge badge-red">NEU</span></div>
+    <div class="nav-item" data-page="cheatsheet"><span class="icon">&#128203;</span> Cheat Sheet</div>
+    <div class="nav-item" data-page="analysis"><span class="icon">&#128200;</span> Schwaechen-Analyse</div>
+    <div class="nav-item" data-page="sentences"><span class="icon">&#128172;</span> Call-Saetze</div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div id="main">
+
+<!-- ==================== DASHBOARD ==================== -->
+<section class="page active" id="page-dashboard">
+  <h1 class="page-title">Willkommen zurueck, <span class="hl">Chriso</span>.</h1>
+  <p class="page-desc">Dein FFG-Evaluierungsgespraech ist am 26. Februar 2026 um 14:30. Hier ist dein Trainings-Dashboard.</p>
+
+  <div class="card-grid">
+    <div class="stat-card"><div class="num" style="color:var(--accent)" id="days-left">--</div><div class="label">Tage verbleibend</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--blue)" id="qa-mastered">0/60</div><div class="label">Fragen gemeistert</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--green)" id="offen-done">0/12</div><div class="label">OFFEN-Punkte erledigt</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--yellow)" id="best-opening">--:--</div><div class="label">Beste Opening-Zeit</div></div>
+  </div>
+
+  <div class="section-header"><span class="icon">&#128197;</span><h2>Heute: <span id="today-label"></span></h2></div>
+  <div class="card" id="today-plan"></div>
+
+  <div class="section-header"><span class="icon">&#9889;</span><h2>Schnellstart</h2></div>
+  <div class="card-grid">
+    <div class="card" style="cursor:pointer;text-align:center" onclick="navigate('opening')">
+      <div style="font-size:32px;margin-bottom:8px">&#127908;</div>
+      <div style="font-weight:700">Opening ueben</div>
+      <div style="font-size:12px;color:var(--muted)">2-Minuten-Script mit Timer</div>
+    </div>
+    <div class="card" style="cursor:pointer;text-align:center" onclick="startSimulation()">
+      <div style="font-size:32px;margin-bottom:8px">&#127919;</div>
+      <div style="font-weight:700">Generalprobe</div>
+      <div style="font-size:12px;color:var(--muted)">Call-Simulation starten</div>
+    </div>
+    <div class="card" style="cursor:pointer;text-align:center" onclick="navigate('triggers')">
+      <div style="font-size:32px;margin-bottom:8px">&#128680;</div>
+      <div style="font-weight:700">Trigger-Saetze</div>
+      <div style="font-size:12px;color:var(--muted)">12 Flashcards durchgehen</div>
+    </div>
+    <div class="card" style="cursor:pointer;text-align:center" onclick="navigate('qa')">
+      <div style="font-size:32px;margin-bottom:8px">&#10067;</div>
+      <div style="font-weight:700">Q&A Quiz</div>
+      <div style="font-size:12px;color:var(--muted)">60 Fragen trainieren</div>
+    </div>
+    <div class="card" style="cursor:pointer;text-align:center;border:1px solid var(--accent)" onclick="navigate('speeddrill')">
+      <div style="font-size:32px;margin-bottom:8px">&#9889;</div>
+      <div style="font-weight:700;color:var(--accent)">Speed Drill</div>
+      <div style="font-size:12px;color:var(--muted)">Rapid-Fire unter Zeitdruck</div>
+    </div>
+    <div class="card" style="cursor:pointer;text-align:center" onclick="navigate('analysis')">
+      <div style="font-size:32px;margin-bottom:8px">&#128200;</div>
+      <div style="font-weight:700">Schwaechen-Analyse</div>
+      <div style="font-size:12px;color:var(--muted)">Wo brauchst du Training?</div>
+    </div>
+  </div>
+
+  <div class="section-header"><span class="icon">&#128161;</span><h2>Key Facts (Spickzettel)</h2></div>
+  <div class="key-grid">
+    <div class="key-item"><div class="val" style="color:var(--accent)">82.628&euro;</div><div class="lab">Foerderung (70%)</div></div>
+    <div class="key-item"><div class="val" style="color:var(--blue)">118.040&euro;</div><div class="lab">Gesamtkosten</div></div>
+    <div class="key-item"><div class="val" style="color:var(--green)">12</div><div class="lab">Monate Laufzeit</div></div>
+    <div class="key-item"><div class="val" style="color:var(--yellow)">5</div><div class="lab">Arbeitspakete</div></div>
+    <div class="key-item"><div class="val" style="color:var(--purple)">50&euro;/h</div><div class="lab">EPU-Pauschale</div></div>
+    <div class="key-item"><div class="val" style="color:var(--orange)">35.000&euro;</div><div class="lab">Drittleistungen</div></div>
+    <div class="key-item"><div class="val" style="color:var(--accent2)">1,3 Mio</div><div class="lab">AMR-Tote/Jahr</div></div>
+    <div class="key-item"><div class="val" style="color:var(--green)">15-20</div><div class="lab">Interviews geplant</div></div>
+  </div>
+</section>
+
+<!-- ==================== OPENING STATEMENT ==================== -->
+<section class="page" id="page-opening">
+  <h1 class="page-title">Opening <span class="hl">Statement</span></h1>
+  <p class="page-desc">Dein 2-Minuten-Einstieg. Lerne es, uebe es, perfektioniere es. Ziel: 1:50 &ndash; 2:10.</p>
+
+  <div id="timer-display" class="green">0:00</div>
+  <div class="timer-controls">
+    <button class="btn btn-primary btn-lg" id="timer-btn" onclick="toggleTimer()">&#9654; Start</button>
+    <button class="btn btn-outline btn-lg" onclick="resetTimer()">&#8634; Reset</button>
+  </div>
+  <div class="best-time">Beste Zeit: <span id="best-time-display">noch keine</span></div>
+
+  <div class="script-box">
+    Guten Tag, Frau Dr. Wilk, Frau Ilic. Mein Name ist Christian Bucher, ich bin Gruender eines Einzelunternehmens und Antragsteller des Projekts AMR-HORIZONT.<br><br>
+    Lassen Sie mich kurz das Problem skizzieren: Antimikrobielle Resistenzen verursachen jaehrlich 1,3 Millionen Todesfaelle weltweit, 35.000 allein in der EU. Oesterreich hat mit dem NAP-AMR eine strategische Grundlage geschaffen &mdash; aber zwischen Strategie und Praxis klafft eine Luecke. Konkret: Es gibt keinen strukturierten, partizipativen Rahmen, der die verschiedenen Akteure &mdash; Humanmedizin, Veterinaermedizin, Landwirtschaft, Public Health und Patient:innenvertretungen &mdash; an einen Tisch bringt, um gemeinsam Entscheidungen zu treffen.<br><br>
+    Genau hier setzt AMR-HORIZONT an. Das Projekt entwickelt einen partizipativen Entscheidungsrahmen fuer AMR-Governance im One-Health-Kontext. Kein technisches Forschungsvorhaben, sondern ein konzeptuelles, partizipatives Projekt &mdash; eine soziale Innovation.<br><br>
+    Methodisch arbeiten wir mit Design Thinking in fuenf Arbeitspaketen ueber zwoelf Monate: Von der Systemanalyse ueber semi-strukturierte Interviews und Co-Creation-Workshops bis hin zum Praxistest an konkreten Szenarien. Ergebnisoffen, aber methodisch strukturiert.<br><br>
+    Zu meinem Hintergrund: Ich bringe keine akademische AMR-Karriere mit &mdash; das sage ich offen. Was ich mitbringe, ist ein gewachsenes Netzwerk im Gesundheitsbereich, Erfahrung in Koordination und Logistik komplexer Prozesse, und die Ueberzeugung, dass genau diese Aussenperspektive &mdash; jemand, der nicht in einer der Silos steckt &mdash; einen Mehrwert fuer partizipative Governance bieten kann. Die fachliche Tiefe sichern wir ueber externe Expert:innen ab: Wissenschaftliche Beratung, professionelle Facilitation und systematische Dokumentation.<br><br>
+    Das Budget betraegt 118.040 Euro, davon 82.628 Euro Foerderung. Der groesste Block sind meine Personalkosten als EPU und 35.000 Euro fuer externe Drittleistungen.<br><br>
+    Ich freue mich auf Ihre Fragen.
+  </div>
+
+  <div class="section-header"><h2>Audio-Aufnahme</h2></div>
+  <div class="recorder-box" id="recorder-box">
+    <div class="rec-icon" id="rec-icon">&#127908;</div>
+    <div id="rec-status" style="font-size:14px;font-weight:600;margin-bottom:8px">Nimm dich beim Ueben auf</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Hoere dir an wie du klingst. Timing, Pausen, Betonung.</div>
+    <button class="btn btn-primary" id="rec-btn" onclick="toggleRecording()">&#9679; Aufnahme starten</button>
+  </div>
+  <div class="recordings-list" id="recordings-list"></div>
+
+  <div class="section-header"><h2>5 Kernbotschaften (Spickzettel)</h2></div>
+  <div class="card">
+    <ol style="padding-left:20px;line-height:2.2;font-size:14px">
+      <li><strong>Problem:</strong> 1,3 Mio Tote/Jahr, Luecke zwischen NAP-AMR-Strategie und Praxis</li>
+      <li><strong>Loesung:</strong> Partizipativer Entscheidungsrahmen fuer AMR-Governance, One-Health-Ansatz</li>
+      <li><strong>Methode:</strong> Design Thinking, 5 APs, 12 Monate, ergebnisoffen aber strukturiert</li>
+      <li><strong>Ehrlichkeit:</strong> Keine akademische AMR-Karriere &mdash; Aussenperspektive + externe Expert:innen</li>
+      <li><strong>Budget:</strong> 118.040 EUR gesamt, 82.628 EUR Foerderung (70%)</li>
+    </ol>
+  </div>
+
+  <div class="section-header"><h2>Don'ts im Opening</h2></div>
+  <table class="info-table">
+    <thead><tr><th>NICHT sagen</th><th>Stattdessen</th></tr></thead>
+    <tbody>
+      <tr><td style="color:var(--accent)">"Mein Vater hat Kontakte in der Pharmabranche"</td><td style="color:var(--green)">"Gewachsenes Netzwerk im Gesundheitsbereich"</td></tr>
+      <tr><td style="color:var(--accent)">"Mein Bruder und Freund helfen mir"</td><td style="color:var(--green)">NICHT erwaehnen. Nur auf Nachfrage: "Informelle Unterstuetzung ohne Projektpartnerstatus"</td></tr>
+      <tr><td style="color:var(--accent)">"Ich habe schon mit AGES/MedUni gesprochen"</td><td style="color:var(--green)">"Erstkontakte zu relevanten Institutionen"</td></tr>
+      <tr><td style="color:var(--accent)">"Ich bin Autodidakt"</td><td style="color:var(--green)">"Interdisziplinaere Perspektive"</td></tr>
+      <tr><td style="color:var(--accent)">"Das Geld brauche ich dringend"</td><td style="color:var(--green)">"Die Foerderung ermoeglicht eine strukturierte Durchfuehrung"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-header"><h2>Zoom-Tipps</h2></div>
+  <div class="card">
+    <ul style="padding-left:20px;line-height:2;font-size:13px;color:var(--muted)">
+      <li>Opening max <strong style="color:var(--text)">2 Minuten</strong> &mdash; NICHT ueberziehen</li>
+      <li>Jede Antwort: <strong style="color:var(--text)">30-60 Sekunden</strong>, dann Raum fuer Nachfrage</li>
+      <li>"Das ist ein guter Punkt. Darf ich kurz ueberlegen?" &mdash; voellig OK</li>
+      <li>Kamera AN, Licht von vorne, ruhiger Hintergrund</li>
+      <li>Blick in die <strong style="color:var(--text)">Kamera</strong> (nicht auf Bildschirm)</li>
+      <li>One-Pager + Spickzettel <strong style="color:var(--text)">AUF PAPIER</strong> neben Laptop</li>
+      <li>Wasser griffbereit</li>
+      <li>Wenn unsicher: "Das erarbeiten wir in AP[X]" &mdash; NIEMALS erfinden</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== RED FLAGS ==================== -->
+<section class="page" id="page-redflags">
+  <h1 class="page-title">Red <span class="hl">Flags</span></h1>
+  <p class="page-desc">15 Schwachstellen die Evaluatorinnen finden WERDEN. Klick zum Aufklappen. Lerne die sicheren Antworten.</p>
+  <div id="redflags-container"></div>
+</section>
+
+<!-- ==================== TRIGGER SENTENCES ==================== -->
+<section class="page" id="page-triggers">
+  <h1 class="page-title">Trigger-<span class="hl">Saetze</span></h1>
+  <p class="page-desc">12 Saetze die du NIEMALS sagen darfst. Klick die Karte um zu sehen warum &mdash; und was du stattdessen sagst.</p>
+
+  <div class="flashcard-counter" id="fc-counter">1 / 12</div>
+  <div class="flashcard-container">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="flashcard-face flashcard-front">
+        <div class="icon">&#128680;</div>
+        <div class="text" id="fc-front"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:16px">Klick um umzudrehen</div>
+      </div>
+      <div class="flashcard-face flashcard-back">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;color:var(--muted)">Warum gefaehrlich</div>
+        <div class="text" id="fc-back"></div>
+      </div>
+    </div>
+  </div>
+  <div class="flashcard-controls">
+    <button class="btn btn-outline" onclick="prevCard()">&#8592; Zurueck</button>
+    <button class="btn btn-outline" onclick="shuffleCards()">&#128256; Mischen</button>
+    <button class="btn btn-primary" onclick="nextCard()">Naechste &#8594;</button>
+  </div>
+</section>
+
+<!-- ==================== OFFEN-PUNKTE ==================== -->
+<section class="page" id="page-offen">
+  <h1 class="page-title">OFFEN-<span class="hl">Punkte</span></h1>
+  <p class="page-desc">12 ungeklaerte Punkte, priorisiert. Hake ab was du erledigt hast.</p>
+  <div id="offen-container"></div>
+</section>
+
+<!-- ==================== Q&A TRAINING ==================== -->
+<section class="page" id="page-qa">
+  <h1 class="page-title">Q&A <span class="hl">Training</span></h1>
+  <p class="page-desc">60 Fragen in 8 Kategorien. Klick eine Frage um die Antwort zu sehen. Bewerte deine Sicherheit (1-5).</p>
+
+  <div class="quiz-header">
+    <div class="quiz-filters" id="qa-filters"></div>
+    <div style="font-size:13px;color:var(--muted)">
+      <span id="qa-shown">60</span> Fragen &middot; <span id="qa-mastered-count">0</span> gemeistert
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:20px">
+    <button class="btn btn-sm btn-outline" onclick="qaShowAll()">Alle zeigen</button>
+    <button class="btn btn-sm btn-outline" onclick="qaShowWeak()">Schwache zuerst</button>
+    <button class="btn btn-sm btn-outline" onclick="qaCollapseAll()">Alle zuklappen</button>
+  </div>
+  <div id="qa-container"></div>
+</section>
+
+<!-- ==================== ONE-PAGER ==================== -->
+<section class="page" id="page-onepager">
+  <h1 class="page-title">One-<span class="hl">Pager</span></h1>
+  <p class="page-desc">Alle Key Facts auf einen Blick. Drucke das aus und lege es neben deinen Laptop.</p>
+
+  <div class="key-grid">
+    <div class="key-item"><div class="val" style="color:var(--accent)">67991897</div><div class="lab">Antragsnummer</div></div>
+    <div class="key-item"><div class="val" style="color:var(--blue)">EPU</div><div class="lab">Rechtsform</div></div>
+    <div class="key-item"><div class="val" style="color:var(--green)">70%</div><div class="lab">Foerderquote</div></div>
+    <div class="key-item"><div class="val" style="color:var(--yellow)">Apr 26</div><div class="lab">Projektstart</div></div>
+    <div class="key-item"><div class="val" style="color:var(--purple)">Maerz 27</div><div class="lab">Projektende</div></div>
+    <div class="key-item"><div class="val" style="color:var(--orange)">1.056h</div><div class="lab">Gesamtstunden</div></div>
+  </div>
+
+  <div class="section-header"><h2>5 Arbeitspakete</h2></div>
+  <table class="info-table">
+    <thead><tr><th>AP</th><th>Name</th><th>Zeitraum</th><th>Stunden</th><th>Budget</th></tr></thead>
+    <tbody>
+      <tr><td><strong>AP1</strong></td><td>Systemanalyse & Stakeholder-Mapping</td><td>M1-3</td><td>200h</td><td>22.600&euro;</td></tr>
+      <tr><td><strong>AP2</strong></td><td>Interviews & Bedarfserhebung</td><td>M2-5</td><td>220h</td><td>31.800&euro;</td></tr>
+      <tr><td><strong>AP3</strong></td><td>Framework-Entwicklung & Co-Creation</td><td>M4-8</td><td>220h</td><td>26.000&euro;</td></tr>
+      <tr><td><strong>AP4</strong></td><td>Validierung & Iteration</td><td>M7-10</td><td>260h</td><td>23.600&euro;</td></tr>
+      <tr><td><strong>AP5</strong></td><td>Praxistest & Wissenstransfer</td><td>M9-12</td><td>156h</td><td>14.040&euro;</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-header"><h2>Budget-Ueberblick</h2></div>
+  <table class="info-table">
+    <thead><tr><th>Position</th><th>Betrag</th><th>GKZ (20%)</th></tr></thead>
+    <tbody>
+      <tr><td>Personalkosten (EPU, 50&euro;/h)</td><td>52.800&euro;</td><td>10.560&euro;</td></tr>
+      <tr><td>Externe Drittleistungen</td><td>35.000&euro;</td><td>kein GKZ</td></tr>
+      <tr><td>&nbsp;&nbsp;Facilitation</td><td>19.000&euro;</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;Wissenschaftliche Beratung</td><td>11.000&euro;</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;Dokumentation</td><td>5.000&euro;</td><td></td></tr>
+      <tr><td>Sachkosten & Infrastruktur</td><td>11.600&euro;</td><td>2.320&euro;</td></tr>
+      <tr><td>Reisekosten</td><td>4.800&euro;</td><td>960&euro;</td></tr>
+      <tr style="font-weight:700;border-top:2px solid var(--border)"><td>GESAMT</td><td colspan="2">118.040&euro;</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-header"><h2>7 Stakeholder-Gruppen</h2></div>
+  <div class="card">
+    <ol style="padding-left:20px;line-height:2.2;font-size:13px">
+      <li>Humanmedizin (Infektiolog:innen, Spitaeler, Hygieneteams)</li>
+      <li>Veterinaermedizin (Praxis, Forschung, Nutztiersektor)</li>
+      <li>Agrar-/Lebensmittelsektor</li>
+      <li>Public Health & Governance (Behoerden, Gesundheitspolitik)</li>
+      <li>Umwelt & Abwasser</li>
+      <li>Patient:innenvertretungen & Zivilgesellschaft</li>
+      <li>Internationale/regulatorische Perspektive (EU, WHO)</li>
+    </ol>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px">Status: Erstkontakte &mdash; KEINE formalen Zusagen. Formale Einbindung ab Projektstart AP1.</div>
+  </div>
+
+  <div class="section-header"><h2>Wirkungslogik</h2></div>
+  <div class="card-grid" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="card" style="text-align:center"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:8px">OUTPUT</div>Entscheidungsrahmen, Stakeholder-Netzwerk, Policy Brief</div>
+    <div class="card" style="text-align:center"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:8px">OUTCOME</div>Verbesserte AMR-Entscheidungen, One-Health-Vernetzung</div>
+    <div class="card" style="text-align:center"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:8px">IMPACT</div>Gesundheitssystem-Resilienz, AMR-Reduktion</div>
+  </div>
+  <div style="font-size:12px;color:var(--muted);margin-top:8px">SDGs: 3 (Gesundheit), 2 (Ernaehrung), 12 (Konsum), 17 (Partnerschaften)</div>
+</section>
+
+<!-- ==================== OUTPUTS ==================== -->
+<section class="page" id="page-outputs">
+  <h1 class="page-title">8 Projekt-<span class="hl">Outputs</span></h1>
+  <p class="page-desc">"Was liefern Sie konkret?" &mdash; Diese 8 Artefakte.</p>
+  <div class="card" style="background:rgba(0,210,160,.05);border-color:rgba(0,210,160,.2);margin-bottom:24px">
+    <div style="font-size:14px;color:var(--green);line-height:1.6">"AMR-HORIZONT liefert 8 konkrete Artefakte: Eine Stakeholder-Map, einen Interviewleitfaden, eine Bedarfsmatrix, den Entscheidungsrahmen als Kernergebnis, ein praxisgetestetes Toolkit, einen Pilotbericht, einen Policy Brief, und eine Verwertungs-Roadmap. Alle Outputs sind dokumentiert, validiert, und uebertragbar."</div>
+  </div>
+  <div id="outputs-container"></div>
+</section>
+
+<!-- ==================== DECISION MAP ==================== -->
+<section class="page" id="page-decision">
+  <h1 class="page-title">Decision <span class="hl">Map</span></h1>
+  <p class="page-desc">Die Struktur hinter jeder AMR-Entscheidung. 8 Schritte + 10-Kriterien-Bewertungsmatrix.</p>
+
+  <div class="section-header"><h2>8 Elemente der Decision Map</h2></div>
+  <table class="info-table">
+    <thead><tr><th>#</th><th>Element</th><th>Beschreibung</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Entscheidungstyp</strong></td><td>Therapie, Praevention, Leitlinie, Policy, Ressourcenallokation, Surveillance</td></tr>
+      <tr><td>2</td><td><strong>Kontext</strong></td><td>Setting, Zeithorizont, Ressourcen, Regulierung</td></tr>
+      <tr><td>3</td><td><strong>Beteiligte Stakeholder</strong></td><td>Entscheider:in, Betroffene, Umsetzer:in, Berater:in</td></tr>
+      <tr><td>4</td><td><strong>Evidenz & Unsicherheit</strong></td><td>Verfuegbare Evidenz, Qualitaet, Datenluecken</td></tr>
+      <tr><td>5</td><td><strong>Zielkonflikte</strong></td><td>Human vs. Vet vs. Umwelt vs. Oekonomie vs. Ethik</td></tr>
+      <tr><td>6</td><td><strong>Optionen</strong></td><td>A, B, C + Status quo</td></tr>
+      <tr><td>7</td><td><strong>Bewertung</strong></td><td>10-Kriterien-Matrix (siehe unten)</td></tr>
+      <tr><td>8</td><td><strong>Entscheidung + Begruendung</strong></td><td>Gewaehlt, Begruendung, Dissens, naechste Schritte</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-header"><h2>10 Bewertungskriterien</h2></div>
+  <table class="info-table">
+    <thead><tr><th>#</th><th>Kriterium</th><th>Frage</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Wirksamkeit/Impact</td><td>Wie stark reduziert die Option AMR?</td></tr>
+      <tr><td>2</td><td>Betroffenen-Nutzen</td><td>Profitieren Patient:innen/Betroffene?</td></tr>
+      <tr><td>3</td><td>Umsetzbarkeit</td><td>Ist es mit verfuegbaren Ressourcen machbar?</td></tr>
+      <tr><td>4</td><td>Stakeholder-Akzeptanz</td><td>Wird es von allen Beteiligten mitgetragen?</td></tr>
+      <tr><td>5</td><td>Risiko/Nebenwirkungen</td><td>Welche negativen Effekte (inkl. Resistenzselektion)?</td></tr>
+      <tr><td>6</td><td>Gerechtigkeit/Ethik</td><td>Ist die Verteilung fair und ethisch vertretbar?</td></tr>
+      <tr><td>7</td><td>One-Health-Kompatibilitaet</td><td>Mensch + Tier + Umwelt gleichberechtigt?</td></tr>
+      <tr><td>8</td><td>Evidenzqualitaet</td><td>Wie belastbar sind die zugrunde liegenden Daten?</td></tr>
+      <tr><td>9</td><td>Kosten-/Nutzen-Plausibilitaet</td><td>Stehen Aufwand und Nutzen im Verhaeltnis?</td></tr>
+      <tr><td>10</td><td>Skalierbarkeit/Transfer</td><td>Laesst sich die Loesung uebertragen?</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-header"><h2>Call-fertiger Satz</h2></div>
+  <div class="card" style="background:rgba(0,210,160,.05);border-color:rgba(0,210,160,.2)">
+    <div style="font-size:14px;color:var(--green);line-height:1.7">"Die Decision Map fuehrt durch 8 Schritte: Vom Entscheidungstyp ueber Kontext, Stakeholder, Evidenz und Zielkonflikte zu den Optionen. Jede Option wird ueber eine Bewertungsmatrix mit 10 Kriterien bewertet &mdash; darunter Wirksamkeit, Ethik, One-Health-Kompatibilitaet und Akzeptanz. Entscheidung und Begruendung werden transparent im Decision Log dokumentiert &mdash; inklusive Dissens und offene Punkte."</div>
+  </div>
+</section>
+
+<!-- ==================== SCENARIOS ==================== -->
+<section class="page" id="page-scenarios">
+  <h1 class="page-title">AP5 Test-<span class="hl">Szenarien</span></h1>
+  <p class="page-desc">3 konkrete One-Health-Szenarien fuer die Praxistest-Phase. Lerne sie auswendig.</p>
+
+  <div class="card" style="background:rgba(0,210,160,.05);border-color:rgba(0,210,160,.2);margin-bottom:24px">
+    <div style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:8px">Call-fertiger Satz:</div>
+    <div style="font-size:14px;color:var(--green);line-height:1.7">"Wir testen an drei One-Health-Szenarien: Erstens, eine klinische Entscheidungssituation bei Sepsisverdacht. Zweitens, ein veterinaermedizinisches Szenario in der Milchviehhaltung. Drittens, eine Public-Health-Entscheidung bei einem regionalen Resistenzcluster. Alle fiktiv-realistisch, ohne Patientendaten."</div>
+  </div>
+  <div id="scenarios-container"></div>
+
+  <div class="section-header"><h2>5 Testkriterien (Scorebogen)</h2></div>
+  <table class="info-table">
+    <thead><tr><th>Nr</th><th>Kriterium</th><th>Frage</th><th>Skala</th></tr></thead>
+    <tbody>
+      <tr><td>K1</td><td>Verstaendlichkeit</td><td>"Kann ich es erklaeren?"</td><td>1-5</td></tr>
+      <tr><td>K2</td><td>Anwendbarkeit</td><td>"Kann ich es nutzen?"</td><td>1-5</td></tr>
+      <tr><td>K3</td><td>Vollstaendigkeit</td><td>"Fehlt eine Perspektive?"</td><td>1-5</td></tr>
+      <tr><td>K4</td><td>Transparenz</td><td>"Ist nachvollziehbar warum?"</td><td>1-5</td></tr>
+      <tr><td>K5</td><td>Pragmatismus</td><td>"Passt Aufwand/Nutzen?"</td><td>1-5</td></tr>
+    </tbody>
+  </table>
+  <div style="font-size:12px;color:var(--muted);margin-top:8px">&ge;4.0 = anwendungsreif &middot; 3.0-3.9 = Iteration noetig &middot; &lt;3.0 = Ueberarbeitung &mdash; auch ein wertvolles Ergebnis</div>
+</section>
+
+<!-- ==================== TOOLKIT ==================== -->
+<section class="page" id="page-toolkit">
+  <h1 class="page-title">Interview &amp; Workshop <span class="hl">Toolkit</span></h1>
+  <p class="page-desc">Interviewleitfaden, Workshops, Auswertung, Diversitaet &mdash; alles was du wissen musst.</p>
+
+  <div class="section-header"><h2>Interviewleitfaden (4 Bloecke)</h2></div>
+  <table class="info-table">
+    <thead><tr><th>Block</th><th>Thema</th><th>Dauer</th><th>Kernfragen</th></tr></thead>
+    <tbody>
+      <tr><td><strong>A</strong></td><td>Rollenverstaendnis & Kontext</td><td>15-20 Min</td><td>Welche AMR-Entscheidungen betreffen Sie? Wie beschreiben Sie Ihre Rolle? Mit welchen Sektoren stehen Sie in Kontakt?</td></tr>
+      <tr><td><strong>B</strong></td><td>AMR-Entscheidungssituationen</td><td>20-25 Min</td><td>Haeufigstes Entscheidungsproblem? Ursachen? Zielkonflikte? Bisherige Loesungsversuche?</td></tr>
+      <tr><td><strong>C</strong></td><td>Partizipation & Barrieren</td><td>15-20 Min</td><td>Wer fehlt am Tisch? Welche Infos fehlen? Was erhoehte Ihre Akzeptanz?</td></tr>
+      <tr><td><strong>D</strong></td><td>Reflexion & Zukunft</td><td>10-15 Min</td><td>Was kann schiefgehen? Erfolgsindikatoren? Eine Sache aendern?</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-header"><h2>4-Schritt-Auswertung</h2></div>
+  <div class="card-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card" style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--accent)">1</div><div style="font-size:12px;margin-top:4px"><strong>Kodierung</strong><br>Thematische Codes nach Kategorienliste</div></div>
+    <div class="card" style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--orange)">2</div><div style="font-size:12px;margin-top:4px"><strong>Clustering</strong><br>Affinity Clustering zu Themen-Gruppen</div></div>
+    <div class="card" style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--blue)">3</div><div style="font-size:12px;margin-top:4px"><strong>Vergleich</strong><br>Cross-Sektor-Analyse + Empathy Mapping</div></div>
+    <div class="card" style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--green)">4</div><div style="font-size:12px;margin-top:4px"><strong>Synthese</strong><br>Priorisierung nach Haeufigkeit x Impact</div></div>
+  </div>
+
+  <div class="section-header"><h2>4 Workshops</h2></div>
+  <table class="info-table">
+    <thead><tr><th>WS</th><th>Titel</th><th>Zeitpunkt</th><th>Teilnehmer</th><th>Kern-Output</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1</strong></td><td>Perspektivenvielfalt & Problemverstaendnis</td><td>AP3, M5</td><td>12-16</td><td>Empathy Maps, Themencluster, Top-10 Ideen</td></tr>
+      <tr><td><strong>2</strong></td><td>Loesungsentwicklung & Prototyping</td><td>AP3, M6-7</td><td>10-14</td><td>Bewertungsdimensionen, Framework-Prototyp v0.1</td></tr>
+      <tr><td><strong>3</strong></td><td>Integration & Detaillierung</td><td>AP3, M8</td><td>10-14</td><td>Matrix v1.0, Decision Log Test, Szenarien fuer AP5</td></tr>
+      <tr><td><strong>4</strong></td><td>Validierung</td><td>AP4, M9</td><td>15-20</td><td>Walkthrough, Feedback, Aenderungsprotokoll v2</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-header"><h2>Diversitaets-Checkliste (4 Ebenen)</h2></div>
+  <div class="card-grid" style="grid-template-columns:1fr 1fr">
+    <div class="card"><div style="font-size:12px;text-transform:uppercase;color:var(--accent);letter-spacing:1px;margin-bottom:8px">Ebene 1: Sektoral</div><div style="font-size:13px;color:var(--muted)">Mind. 5 von 7 Sektoren pro Workshop</div></div>
+    <div class="card"><div style="font-size:12px;text-transform:uppercase;color:var(--blue);letter-spacing:1px;margin-bottom:8px">Ebene 2: Hierarchie</div><div style="font-size:13px;color:var(--muted)">Mind. 3 von 4 Stufen (strategisch, operativ, umsetzend, betroffene)</div></div>
+    <div class="card"><div style="font-size:12px;text-transform:uppercase;color:var(--green);letter-spacing:1px;margin-bottom:8px">Ebene 3: Geographie</div><div style="font-size:13px;color:var(--muted)">Nicht nur Wien &mdash; mind. 1 regionale Perspektive</div></div>
+    <div class="card"><div style="font-size:12px;text-transform:uppercase;color:var(--yellow);letter-spacing:1px;margin-bottom:8px">Ebene 4: Weitere</div><div style="font-size:13px;color:var(--muted)">Gender-Balance (40/60), Altersstreuung, Institutionenvielfalt</div></div>
+  </div>
+
+  <div class="section-header"><h2>Call-fertige Saetze</h2></div>
+  <div class="card" style="background:rgba(0,210,160,.05);border-color:rgba(0,210,160,.2)">
+    <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Interviewleitfaden:</div>
+    <div style="font-size:14px;color:var(--green);line-height:1.7;margin-bottom:16px">"Semi-strukturiert, 60-90 Minuten, vier Bloecke: Rollenverstaendnis, AMR-Entscheidungssituationen, Partizipation und Barrieren, Reflexion. Konsistente Struktur fuer Cross-Sektor-Vergleich."</div>
+    <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Auswertung:</div>
+    <div style="font-size:14px;color:var(--green);line-height:1.7;margin-bottom:16px">"Vierstufig: Kodierung, Affinity Clustering, Perspektivenvergleich mit Empathy Mapping, Synthese und Priorisierung. Bias-Kontrolle durch externes wissenschaftliches Review."</div>
+    <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">Diversitaet:</div>
+    <div style="font-size:14px;color:var(--green);line-height:1.7">"Diversitaets-Checkliste auf vier Ebenen: sektoral, Hierarchie, geographisch, Gender/Alter/Institutionen. Wird bei jedem Interview und Workshop geprueft und dokumentiert."</div>
+  </div>
+</section>
+
+<!-- ==================== TIMELINE ==================== -->
+<section class="page" id="page-timeline">
+  <h1 class="page-title">11-Tage-<span class="hl">Plan</span></h1>
+  <p class="page-desc">Dein Fahrplan von heute bis zum Call am 26. Februar.</p>
+  <div id="timeline-container"></div>
+</section>
+
+<!-- ==================== SPEED DRILL ==================== -->
+<section class="page" id="page-speeddrill">
+  <h1 class="page-title">Speed <span class="hl">Drill</span></h1>
+  <p class="page-desc">Rapid-Fire Q&A unter Zeitdruck. 30 Sekunden pro Frage. Bewerte dich selbst: Perfekt / OK / Schlecht.</p>
+
+  <div id="drill-setup" style="text-align:center;padding:40px 0">
+    <div style="font-size:48px;margin-bottom:16px">&#9889;</div>
+    <h2 style="margin-bottom:8px">Speed Drill starten</h2>
+    <p style="color:var(--muted);margin-bottom:24px">Waehle Anzahl und Schwierigkeitsgrad</p>
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:16px">
+      <button class="btn btn-outline" onclick="startDrill(5)">5 Fragen</button>
+      <button class="btn btn-primary" onclick="startDrill(10)">10 Fragen</button>
+      <button class="btn btn-outline" onclick="startDrill(20)">20 Fragen</button>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+      <button class="filter-btn active" id="drill-mode-all" onclick="setDrillMode('all')">Alle Fragen</button>
+      <button class="filter-btn" id="drill-mode-weak" onclick="setDrillMode('weak')">Nur Schwache</button>
+      <button class="filter-btn" id="drill-mode-boss" onclick="setDrillMode('boss')">Nur BOSS</button>
+    </div>
+  </div>
+
+  <div id="drill-active" class="drill-container" style="display:none">
+    <div class="drill-score">
+      <div class="item"><div class="num" style="color:var(--green)" id="drill-good">0</div><div class="lab">Perfekt</div></div>
+      <div class="item"><div class="num" style="color:var(--yellow)" id="drill-mid">0</div><div class="lab">OK</div></div>
+      <div class="item"><div class="num" style="color:var(--accent)" id="drill-bad">0</div><div class="lab">Schlecht</div></div>
+    </div>
+    <div id="sim-timer-bar" class="sim-timer-bar"><div class="sim-timer-fill" id="drill-time-fill" style="width:100%"></div></div>
+    <div class="drill-timer" id="drill-timer-display">30</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px" id="drill-progress">Frage 1 / 10</div>
+    <div class="drill-question" id="drill-q-text"></div>
+    <div class="drill-answer" id="drill-a-text"></div>
+    <div id="drill-reveal-controls">
+      <button class="btn btn-primary btn-lg" onclick="drillReveal()">Antwort zeigen</button>
+    </div>
+    <div class="drill-rating" id="drill-rate-controls" style="display:none">
+      <button class="drill-rating .rate-btn good" style="width:48px;height:48px;border-radius:12px;border:2px solid var(--green);background:rgba(0,210,160,.1);font-size:20px;cursor:pointer" onclick="drillRate('good')" title="Perfekt beantwortet">&#10003;</button>
+      <button class="drill-rating .rate-btn mid" style="width:48px;height:48px;border-radius:12px;border:2px solid var(--yellow);background:rgba(255,217,61,.1);font-size:20px;cursor:pointer" onclick="drillRate('mid')" title="Teilweise richtig">&#126;</button>
+      <button class="drill-rating .rate-btn bad" style="width:48px;height:48px;border-radius:12px;border:2px solid var(--accent);background:rgba(233,69,96,.1);font-size:20px;cursor:pointer" onclick="drillRate('bad')" title="Nicht gewusst">&#10007;</button>
+    </div>
+    <div style="margin-top:16px"><button class="btn btn-outline btn-sm" onclick="endDrill()">Drill beenden</button></div>
+  </div>
+
+  <div id="drill-result" style="display:none;text-align:center;padding:40px 0">
+    <div style="font-size:48px;margin-bottom:16px" id="drill-result-icon">&#127942;</div>
+    <h2 id="drill-result-title">Ergebnis</h2>
+    <div class="drill-score" style="margin:24px 0">
+      <div class="item"><div class="num" style="color:var(--green)" id="drill-r-good">0</div><div class="lab">Perfekt</div></div>
+      <div class="item"><div class="num" style="color:var(--yellow)" id="drill-r-mid">0</div><div class="lab">OK</div></div>
+      <div class="item"><div class="num" style="color:var(--accent)" id="drill-r-bad">0</div><div class="lab">Schlecht</div></div>
+    </div>
+    <div id="drill-result-detail" style="max-width:500px;margin:0 auto;text-align:left"></div>
+    <div style="margin-top:24px">
+      <button class="btn btn-primary" onclick="resetDrill()">Nochmal</button>
+      <button class="btn btn-outline" onclick="navigate('qa')">Schwache Fragen ueben</button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CHEAT SHEET ==================== -->
+<section class="page" id="page-cheatsheet">
+  <h1 class="page-title">Cheat <span class="hl">Sheet</span></h1>
+  <p class="page-desc">Drucke dieses Blatt aus und lege es neben deinen Laptop. Alle wichtigen Zahlen und Saetze auf einen Blick.</p>
+  <div style="margin-bottom:16px"><button class="btn btn-primary" onclick="window.print()">&#128424; Drucken / PDF</button></div>
+
+  <div class="section-header"><h2>Zahlen die sitzen muessen</h2></div>
+  <div class="cheat-grid">
+    <div class="cheat-card"><div class="cheat-label">Foerderung</div><div class="cheat-text" style="font-size:24px;font-weight:800">82.628 EUR (70%)</div></div>
+    <div class="cheat-card"><div class="cheat-label">Gesamtkosten</div><div class="cheat-text" style="font-size:24px;font-weight:800">118.040 EUR</div></div>
+    <div class="cheat-card"><div class="cheat-label">Eigenmittel</div><div class="cheat-text" style="font-size:24px;font-weight:800">35.412 EUR (30%)</div></div>
+    <div class="cheat-card"><div class="cheat-label">Stundensatz</div><div class="cheat-text" style="font-size:24px;font-weight:800">50 EUR/h (FFG-EPU)</div></div>
+    <div class="cheat-card"><div class="cheat-label">Laufzeit</div><div class="cheat-text" style="font-size:24px;font-weight:800">12 Monate (Apr 26 - Mrz 27)</div></div>
+    <div class="cheat-card"><div class="cheat-label">Drittleistungen</div><div class="cheat-text" style="font-size:24px;font-weight:800">35.000 EUR</div></div>
+    <div class="cheat-card"><div class="cheat-label">AMR-Tote weltweit</div><div class="cheat-text" style="font-size:24px;font-weight:800">1,3 Mio / Jahr</div></div>
+    <div class="cheat-card"><div class="cheat-label">AMR-Tote EU</div><div class="cheat-text" style="font-size:24px;font-weight:800">35.000 / Jahr</div></div>
+  </div>
+
+  <div class="section-header"><h2>Drittleistungen (schnell antworten)</h2></div>
+  <table class="info-table">
+    <tr><td style="color:var(--accent);font-weight:700">Facilitation</td><td>19.000 EUR</td><td style="color:var(--muted)">3 Co-Creation + 1 Validierung</td></tr>
+    <tr><td style="color:var(--blue);font-weight:700">Wissenschaft</td><td>11.000 EUR</td><td style="color:var(--muted)">Qualitaetssicherung, Review</td></tr>
+    <tr><td style="color:var(--green);font-weight:700">Dokumentation</td><td>5.000 EUR</td><td style="color:var(--muted)">Toolkit-Aufbereitung</td></tr>
+  </table>
+
+  <div class="section-header"><h2>5 APs auf einen Blick</h2></div>
+  <table class="info-table">
+    <tr><td><strong>AP1</strong></td><td>Systemanalyse + Mapping</td><td>M1-3</td><td>22.600 EUR</td></tr>
+    <tr><td><strong>AP2</strong></td><td>Interviews + Bedarfserhebung</td><td>M2-5</td><td>31.800 EUR</td></tr>
+    <tr><td><strong>AP3</strong></td><td>Framework + Co-Creation</td><td>M4-8</td><td>26.000 EUR</td></tr>
+    <tr><td><strong>AP4</strong></td><td>Validierung + Iteration</td><td>M7-10</td><td>23.600 EUR</td></tr>
+    <tr><td><strong>AP5</strong></td><td>Praxistest + Transfer</td><td>M9-12</td><td>14.040 EUR</td></tr>
+  </table>
+
+  <div class="section-header"><h2>Rettungssaetze (wenn du nicht weiter weisst)</h2></div>
+  <div class="card" style="line-height:2.4;font-size:14px">
+    <div style="color:var(--green)">"Das erarbeiten wir in AP[X]."</div>
+    <div style="color:var(--green)">"Das ist ein guter Punkt. Darf ich kurz ueberlegen?"</div>
+    <div style="color:var(--green)">"Die fachliche Tiefe sichern wir ueber externe Expert:innen ab."</div>
+    <div style="color:var(--green)">"Ergebnisoffen in der Form, nicht in der Lieferpflicht."</div>
+    <div style="color:var(--green)">"Nachweise kann ich bei Bedarf erbringen."</div>
+    <div style="color:var(--green)">"Formale Zusagen vor Foerderentscheidung erfahrungsgemaess schwierig."</div>
+  </div>
+</section>
+
+<!-- ==================== SCHWAECHEN-ANALYSE ==================== -->
+<section class="page" id="page-analysis">
+  <h1 class="page-title">Schwaechen-<span class="hl">Analyse</span></h1>
+  <p class="page-desc">Wo stehst du? Welche Kategorien sitzen, welche brauchen mehr Training?</p>
+
+  <div class="section-header"><h2>Kategorie-Ueberblick</h2></div>
+  <div class="weakness-grid" id="weakness-grid"></div>
+
+  <div class="section-header"><h2>Schwache Fragen (Confidence &lt; 4)</h2></div>
+  <div id="weak-questions-list"></div>
+
+  <div class="section-header"><h2>Training-Statistik</h2></div>
+  <div class="card-grid">
+    <div class="stat-card"><div class="num" style="color:var(--green)" id="stat-mastered">0</div><div class="label">Gemeistert (4-5)</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--yellow)" id="stat-learning">0</div><div class="label">Am Lernen (2-3)</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--accent)" id="stat-untrained">0</div><div class="label">Untrainiert (0-1)</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--blue)" id="stat-drills">0</div><div class="label">Speed Drills gemacht</div></div>
+  </div>
+</section>
+
+<!-- ==================== CALL-FERTIGE SAETZE ==================== -->
+<section class="page" id="page-sentences">
+  <h1 class="page-title">Call-fertige <span class="hl">Saetze</span></h1>
+  <p class="page-desc">Alle vorbereiteten Saetze an einem Ort. Klick zum Kopieren.</p>
+  <div id="sentences-container"></div>
+</section>
+
+</div><!-- /main -->
+
+<!-- SIMULATION OVERLAY (Enhanced) -->
+<div id="sim-overlay">
+  <div id="sim-content">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--accent)">Generalprobe</div>
+    <div id="sim-progress"><div class="fill" style="width:0%"></div></div>
+
+    <!-- Difficulty Selection (shown first) -->
+    <div id="sim-setup">
+      <div style="font-size:32px;margin:20px 0">&#127919;</div>
+      <h3 style="margin-bottom:16px">Waehle deinen Modus</h3>
+      <div class="sim-difficulty">
+        <button class="sim-diff-btn" onclick="startSimMode('easy')">&#128218; Entspannt<br><span style="font-size:11px;color:var(--muted)">Keine Zeitlimits</span></button>
+        <button class="sim-diff-btn active" onclick="startSimMode('normal')">&#127919; Normal<br><span style="font-size:11px;color:var(--muted)">60s pro Frage</span></button>
+        <button class="sim-diff-btn" onclick="startSimMode('hard')">&#128293; Hardcore<br><span style="font-size:11px;color:var(--muted)">30s + nur BOSS</span></button>
+      </div>
+      <button class="btn btn-outline" onclick="simClose()" style="margin-top:16px">Abbrechen</button>
+    </div>
+
+    <!-- Active Question (hidden initially) -->
+    <div id="sim-active" style="display:none">
+      <div id="sim-timer-bar-sim" class="sim-timer-bar"><div class="sim-timer-fill" id="sim-timer-fill"></div></div>
+      <div id="sim-status" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+      <div id="sim-question"></div>
+      <div id="sim-answer"></div>
+      <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap" id="sim-controls">
+        <button class="btn btn-primary" id="sim-reveal-btn" onclick="simReveal()">Antwort zeigen</button>
+        <button class="btn btn-outline" id="sim-next-btn" onclick="simNext()" style="display:none">Naechste Frage &#8594;</button>
+        <button class="btn btn-outline" onclick="simClose()">Beenden</button>
+      </div>
+    </div>
+
+    <!-- Report (hidden initially) -->
+    <div id="sim-report" style="display:none">
+      <div style="font-size:48px;margin:16px 0" id="sim-report-icon">&#127881;</div>
+      <h3 id="sim-report-title">Generalprobe abgeschlossen!</h3>
+      <div class="sim-report" id="sim-report-body"></div>
+      <div style="margin-top:20px;display:flex;gap:12px;justify-content:center">
+        <button class="btn btn-primary" onclick="startSimulation()">Nochmal</button>
+        <button class="btn btn-outline" onclick="navigate('analysis');simClose()">Schwaechen-Analyse</button>
+        <button class="btn btn-outline" onclick="simClose()">Schliessen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div id="search-box">
+  <input type="text" id="search-input" placeholder="Suche in allen Inhalten... (Esc zum Schliessen)" oninput="doSearch(this.value)">
+  <div id="search-results"></div>
+</div>
+
+<script>
+// ==================== DATA ====================
+
+const qaData = [
+  // KATEGORIE 1: WIRTSCHAFT
+  {id:"1.1",cat:"Wirtschaft",q:"Wie sichern Sie die 30% Eigenmittel (35.412 EUR)?",a:"Die Eigenmittel sind vollstaendig aus vorhandener Liquiditaetsreserve darstellbar, ohne Fremdfinanzierung.",detail:"Als EPU mit niedrigen Fixkosten und vorhandener Liquiditaetsreserve ist die Co-Finanzierung gesichert.",ref:"Kostenplan S.1",warn:"NIEMALS: Familie, Vater, Pharma als Finanzquelle erwaehnen"},
+  {id:"1.2",cat:"Wirtschaft",q:"Ihr Jahresumsatz liegt bei Null — woher kommen liquide Mittel?",a:"Der Umsatz der ITO GmbH bildet nicht meine gesamte Liquiditaetssituation ab. Eigenmittel vorhanden, Nachweis bei Bedarf.",detail:"Das Einzelunternehmen ist im Aufbau. Foerderrelevante Eigenmittel stammen aus Ruecklagen.",ref:"Kostenplan S.1-2",warn:"Bei Nachhaken: 'Kontoauszuege oder Reservebestaetigung koennen nachgereicht werden.'"},
+  {id:"1.3",cat:"Wirtschaft",q:"Was passiert bei Verzoegerungen oder Zahlungsausfaellen?",a:"Budget hat Puffer. AP-Struktur mit Ueberlappungen bietet Flexibilitaet. Externe Drittleistungen nach Meilensteinen budgetiert.",detail:"88h/Monat lassen Raum fuer Spitzen. Eigenleistung ueber beantragte Stunden hinaus als Risikopuffer.",ref:"Kostenplan S.3; Methodik S.4"},
+  {id:"1.4",cat:"Wirtschaft",q:"Wie finanzieren Sie die Vorlaufphase bis zur ersten Auszahlung?",a:"Vorfinanzierung aus Eigenmitteln. AP1 ist personalintensiv aber nicht drittleistungsintensiv — das entlastet die Liquiditaet.",detail:"Externe Facilitation beginnt erst ab AP2/AP3. FFG-Auszahlung nach erstem Zwischenbericht.",ref:"Kostenplan S.3"},
+  {id:"1.5",cat:"Wirtschaft",q:"Warum beantragen Sie den maximalen Foerdersatz von 70%?",a:"Social Track sieht bis 70% vor. Als EPU mit nicht-kommerziellem Innovationsprojekt ist der Maximalsatz angemessen.",detail:"Kein kommerzielles Produkt am Ende, sondern oeffentlich nutzbares Framework.",ref:"Erg. Projektbegruendung S.1"},
+  {id:"1.6",cat:"Wirtschaft",q:"Koennten Sie mit weniger Foerderung durchfuehren?",a:"Reduktion gefaehrdet externe Qualitaetssicherung. Die 35.000 EUR Drittleistungen sind der kritische Faktor.",detail:"EPU-Stundensatz von 50 EUR ist bereits moderat. Ohne Facilitation keine partizipative Qualitaet.",ref:"Kostenplan S.2-3"},
+  {id:"1.7",cat:"Wirtschaft",q:"Haben Sie Erfahrung mit Foerderprojektabwicklung?",a:"Erstes FFG-Projekt. Methodik und Struktur bewusst FFG-konform angelegt, mit externen Qualitaetsmechanismen.",detail:"Erfahrung in Koordination und Logistik aus Selbststaendigkeit direkt uebertragbar.",ref:"CV; Methodik S.4"},
+  {id:"1.8",cat:"Wirtschaft",q:"Wie ist der Stundensatz von 50 EUR begruendet?",a:"50 EUR/h ist der FFG-EPU-Pauschalsatz. Keine individuelle Kalkulation, sondern programmkonformer Standard.",detail:"1.056 Stunden ueber 12 Monate = 88h/Monat = ca. 50% Vollzeitaequivalent.",ref:"Kostenplan S.1; FFG-Richtlinie"},
+  // KATEGORIE 2: BUDGET & DRITTLEISTUNGEN
+  {id:"2.1",cat:"Budget",q:"Warum 35.000 EUR fuer externe Drittleistungen?",a:"Charakteristisch fuer partizipative Projekte. Qualitaet haengt an professioneller Moderation und wissenschaftlicher Begleitung.",detail:"Facilitation 19K, Wissenschaft 11K, Dokumentation 5K. Ohne diese drei Saeulen waere es ein Solo-Vorhaben.",ref:"Kostenplan S.2; Erg. Projektbegruendung S.2"},
+  {id:"2.2",cat:"Budget",q:"Haben Sie schon Anbieter fuer Drittleistungen identifiziert?",a:"Leistungsbeschreibungen stehen. Anbieter werden nach Foerderzusage kriterienbasiert ausgewaehlt.",detail:"Ausreichender Pool im DACH-Raum. Vorzeitige Beauftragung wirtschaftlich nicht sinnvoll.",ref:"Erg. Projektbegruendung S.2"},
+  {id:"2.3",cat:"Budget",q:"Was liefert die Facilitation fuer 19.000 EUR?",a:"Planung, Durchfuehrung und Nachbereitung von 3 Co-Creation + 1 Validierungs-Workshop plus methodische Prozesssteuerung.",detail:"20-24 Beratungstage. Professionelle Moderation sichert Neutralitaet und partizipative Qualitaet.",ref:"Kostenplan S.2; Methodik S.3"},
+  {id:"2.4",cat:"Budget",q:"Was liefert die wissenschaftliche Beratung fuer 11.000 EUR?",a:"Qualitaetssicherung der Methodik, fachliche Plausibilitaetspruefung, wissenschaftliches Review.",detail:"10-12 Beratungstage. Besonders wichtig weil Projektleiter kein akademisches AMR-Profil hat.",ref:"Kostenplan S.2; Methodik S.4"},
+  {id:"2.5",cat:"Budget",q:"Was liefert die Dokumentation fuer 5.000 EUR?",a:"Professionelle Aufbereitung als nutzbares Toolkit: Leitfaeden, Checklisten, Templates, Visualisierungen, Abschlussbericht.",detail:"5-7 Tage. Unterschied zwischen internem Arbeitspapier und transferierbarem Instrument.",ref:"Kostenplan S.2"},
+  {id:"2.6",cat:"Budget",q:"Wie stellen Sie wirtschaftliche Vergabe der Drittleistungen sicher?",a:"Mindestens ein Vergleichsangebot. Marktfaehige Tagessaetze (Facilitation 800-1000 EUR/Tag). FFG-Richtlinien eingehalten.",detail:"Dokumentierte Auswahlbegruendung nach Foerderzusage.",ref:"Kostenplan S.2"},
+  {id:"2.7",cat:"Budget",q:"Wie ist der GKZ von 20% begruendet?",a:"FFG-Standard-Pauschalsatz. Auf Personal, Sach- und Reisekosten angewandt, NICHT auf Drittleistungen.",detail:"GKZ gesamt 13.840 EUR (Personal 10.560 + Sach 2.320 + Reise 960).",ref:"Kostenplan S.1-2"},
+  {id:"2.8",cat:"Budget",q:"[RISIKO] Unterschiedliche Sachkosten/Reisekosten in den Dokumenten?",a:"Kostenplan ist bindend. Erg. Projektbegruendung S.4 zeigt vereinfachte Darstellung, nicht Gesamtsummen.",detail:"Sachkosten 11.600 EUR, Reisekosten 4.800 EUR. Gesamtsumme 118.040 EUR ist konsistent.",ref:"Kostenplan S.1-3",warn:"NUR falls gefragt — NICHT proaktiv ansprechen!"},
+  // KATEGORIE 3: METHODIK
+  {id:"3.1",cat:"Methodik",q:"Wie sind die Interviews methodisch aufgebaut?",a:"Semi-strukturiert, 60-90 Min, 4 Bloecke (A-D): Rollenverstaendnis, AMR-Entscheidungen, Partizipation, Reflexion.",detail:"Konsistente Struktur ueber alle Stakeholder-Gruppen fuer Cross-Sektor-Vergleich.",ref:"Nachreichung S.1-2"},
+  {id:"3.2",cat:"Methodik",q:"Wie werten Sie Interviews aus? Wie vermeiden Sie Bias?",a:"4-Schritt: Kodierung, Affinity Clustering, Perspektivenvergleich, Synthese. Bias-Kontrolle durch externes Review.",detail:"5 Stakeholder-Personas werden entwickelt. Aenderungsprotokoll bei neuen Codes.",ref:"Nachreichung S.2"},
+  {id:"3.3",cat:"Methodik",q:"Was passiert in den Co-Creation-Workshops?",a:"3 Co-Creation + 1 Validierung, je 5 Phasen: Kontextualisierung, Empathy Mapping, Affinity Clustering, SCAMPER, Synthese.",detail:"Workshop 1: Perspektiven. Workshop 2: Prototyping. Workshop 3: Integration. Workshop 4: Validierung.",ref:"Nachreichung S.2-3; Methodik S.3"},
+  {id:"3.4",cat:"Methodik",q:"Was bedeutet 'ergebnisoffen' — garantieren Sie ein Ergebnis?",a:"Ergebnisoffen in der FORM, nicht in der Lieferpflicht. Artefakte sind fix — Zuschnitt entsteht partizipativ.",detail:"Stakeholder-Map, Bedarfsmatrix, Entscheidungsrahmen, Toolkit, Policy Brief sind garantiert.",ref:"Nachreichung/Erg. Klarstellung S.1"},
+  {id:"3.5",cat:"Methodik",q:"Warum Design Thinking und nicht ein anderer Ansatz?",a:"Menschzentriert, iterativ, ergebnisoffen — genau was One-Health-Governance braucht.",detail:"6-Phasen-Ansatz passt strukturell auf die 5 APs. Delphi wuerde partizipative Qualitaet untergraben.",ref:"Methodik S.1"},
+  {id:"3.6",cat:"Methodik",q:"Wie viele Interviews und warum diese Zahl?",a:"15-20, verteilt ueber 6 Gruppen. Orientiert an thematischer Saettigung und One-Health-Abdeckung.",detail:"Flexibilitaet (15-20) erlaubt Anpassung basierend auf Saettigung.",ref:"Stakeholder-Einbindung S.2"},
+  {id:"3.7",cat:"Methodik",q:"Wie gewaehrleisten Sie methodische Qualitaet als Nicht-Akademiker?",a:"3 externe Mechanismen: Facilitation, wissenschaftliches Review, systematische Dokumentation.",detail:"Methodische Qualitaet haengt nicht am Titel, sondern an den Prozessen.",ref:"Methodik S.4"},
+  {id:"3.8",cat:"Methodik",q:"Wie uebersetzen Sie Interviewergebnisse in den Entscheidungsrahmen?",a:"4-Schritt: Kodierung, Clustering zu Dimensionen, Gewichtung in Co-Creation, Prototyp validiert und getestet.",detail:"Jeder Schritt dokumentiert und nachvollziehbar.",ref:"Methodik S.2-3"},
+  // KATEGORIE 4: STAKEHOLDER
+  {id:"4.1",cat:"Stakeholder",q:"Haben Sie verbindliche Zusagen von Stakeholdern?",a:"Erstkontakte und Vorgespraeche. Formale Zusagen vor Foerderentscheidung erfahrungsgemaess schwierig.",detail:"Systematische Rekrutierung beginnt in AP1 — mehrkanalig, mit Plan B pro Sektor.",ref:"Stakeholder-Map S.1-2",warn:"NIEMALS konkrete Institutionen als 'Partner' benennen ohne LOI!"},
+  {id:"4.2",cat:"Stakeholder",q:"Was ist Ihr Plan B bei Stakeholder-Absagen?",a:"Mehrkanalige Rekrutierung: Fachgesellschaften, Uni-Netzwerke, Berufserbaende, NGOs. Pro Sektor alternative Zugangswege.",detail:"Externe Facilitation bringt zusaetzlich eigene Netzwerke mit.",ref:"Stakeholder-Map S.3-5"},
+  {id:"4.3",cat:"Stakeholder",q:"Wie stellen Sie sicher, dass 15+ Interviews zustande kommen?",a:"Mehrkanalige Rekrutierung, professionelle Ansprache, realistische Anzahl pro Sektor (2-5). Ruecklaufquote 30-50% bei 40-60 Ansprachen.",detail:"Interviews bieten Stakeholdern auch Mehrwert — Einblick in sektoruebergreifenden Prozess.",ref:"Stakeholder-Einbindung S.2"},
+  {id:"4.4",cat:"Stakeholder",q:"Wie binden Sie Patient:innenvertretungen gleichberechtigt ein?",a:"Status 'Co-Designer:innen' — gleichberechtigt mit allen Sektoren. In allen Workshops vertreten, volles Stimmrecht.",detail:"Rekrutierung ueber Selbsthilfegruppen, Patient:innenanwaelt:innen, NGOs.",ref:"Stakeholder-Map S.4-5"},
+  {id:"4.5",cat:"Stakeholder",q:"Wie gehen Sie mit Machtasymmetrien um?",a:"Externe Facilitation, strukturierte Formate (anonymes Ranking, Round-Robin), Diversitaets-Monitoring.",detail:"Getrennte Sektorbefragung vor Cross-Sektor-Synthese.",ref:"Stakeholder-Einbindung S.3-4"},
+  {id:"4.6",cat:"Stakeholder",q:"Welche konkreten Organisationen haben Sie kontaktiert?",a:"Erstkontakte mit relevanten Institutionen im DACH-Raum. Keine konkreten Namen ohne LOI.",detail:"Systematische Rekrutierung nach Foerderzusage mit Projekt-One-Pager.",ref:"Stakeholder-Map S.1-2",warn:"NIEMALS konkrete Institutionen als 'Partner' nennen ohne LOI!"},
+  {id:"4.7",cat:"Stakeholder",q:"Wie gewaehrleisten Sie ausreichende Diversitaet?",a:"Diversitaets-Checkliste auf 4 Ebenen: sektoral, geographisch, Hierarchiestufen, Gender-Balance.",detail:"Fuer jede Gruppe verschiedene Hierarchieebenen. Nicht nur Wien.",ref:"Stakeholder-Map S.3-5"},
+  {id:"4.8",cat:"Stakeholder",q:"Warum keine internationalen Stakeholder?",a:"Fokus bewusst auf Oesterreich als Pilotkontext. Internationale Perspektive ueber EU/WHO-Rahmenwerke als Referenz.",detail:"Skalierbarkeit und Transfer nach Projektende vorgesehen.",ref:"Stakeholder-Map S.5"},
+  // KATEGORIE 5: AP5 TEST
+  {id:"5.1",cat:"AP5 Test",q:"Was sind die 'realen Entscheidungsszenarien' in AP5?",a:"3 Szenarien: (1) Klinik — Antibiotikatherapie bei Sepsis, (2) Vet — Bestandsbehandlung Milchvieh, (3) Public Health — Resistenzcluster.",detail:"Keine Patientendaten — fiktiv-realistische Workflow-Simulationen. Szenarien mit Stakeholder-Input finalisiert.",ref:"Methodik S.3-4"},
+  {id:"5.2",cat:"AP5 Test",q:"Was ist 'Erfolg' in der Testphase?",a:"5 Kriterien (1-5): Verstaendlichkeit, Anwendbarkeit, Vollstaendigkeit, Transparenz, Pragmatismus. 'Iteration noetig' ist kein Misserfolg.",detail:"Durchschnitt >=4 = anwendungsreif. 3-4 = Iterationsbedarf. <3 = Ueberarbeitung noetig.",ref:"Methodik S.4"},
+  {id:"5.3",cat:"AP5 Test",q:"Wie viele Testdurchlaeufe und mit wem?",a:"6-10 Walkthroughs, 2-4 Personen pro Durchlauf. Pro Szenario 2-3 Durchlaeufe mit verschiedenen Konstellationen.",detail:"60-90 Min pro Walkthrough. Scorebogen + qualitative Notizen.",ref:"Methodik S.4"},
+  {id:"5.4",cat:"AP5 Test",q:"Warum nur 3 Szenarien — reicht das?",a:"3 Szenarien decken die 3 Kernsektoren des One-Health-Ansatzes ab. Konzeptuelle Testphase, keine statistische Signifikanz.",detail:"3 x 2-3 Durchlaeufe = ca. 18-30 Rueckmeldungen. Breitere Testung waere Folgeprojekt.",ref:"Nachreichung S.2"},
+  {id:"5.5",cat:"AP5 Test",q:"Wie gehen Sie mit negativen Testergebnissen um?",a:"Negative Ergebnisse sind wertvolle Daten. Jede Schwachstelle wird dokumentiert und fuehrt zu Iteration.",detail:"Abschlussbericht dokumentiert transparent was funktioniert und was nicht.",ref:"Methodik S.4"},
+  {id:"5.6",cat:"AP5 Test",q:"Verwenden Sie reale Patientendaten?",a:"Nein. Alle Szenarien sind fiktiv-realistische Workflow-Simulationen. Keine personenbezogenen Daten.",detail:"Testung prueft die STRUKTUR des Entscheidungsrahmens, nicht Anwendung auf echte Patienten.",ref:"Nachreichung S.2"},
+  {id:"5.7",cat:"AP5 Test",q:"Was passiert mit den Testergebnissen nach Projektende?",a:"Fliessen in Abschlussbericht, Anwendungsleitfaden und Policy Brief ein. Toolkit fuer Transfer aufbereitet.",detail:"Verwertungs-Roadmap und Anschlussfaehigkeitspruefung sind Teil von AP5.",ref:"Methodik S.4"},
+  // KATEGORIE 6: DATENSCHUTZ
+  {id:"6.1",cat:"Datenschutz",q:"Wie handhaben Sie Datenschutz bei Interviews?",a:"Informierte Einwilligung, Audioaufnahme nur mit Zustimmung, pseudonymisiert, geschuetzte Ablage, Loeschkonzept.",detail:"Freiwillig, widerrufbar. Zugriff nur Projektleitung. Externe erhalten nur pseudonymisierte Daten.",ref:"Nachreichung S.2"},
+  {id:"6.2",cat:"Datenschutz",q:"Benoetigen Sie ein Ethikvotum?",a:"Nein. Keine Patientendaten, keine klinische Studie. Expert:innen-Interviews und Szenarien-Walkthroughs.",detail:"Partizipatives Governance-Projekt, kein medizinisches Forschungsvorhaben.",ref:"Nachreichung S.1"},
+  {id:"6.3",cat:"Datenschutz",q:"Wie stellen Sie DSGVO-Konformitaet sicher?",a:"5 Massnahmen: Einwilligung, Pseudonymisierung, geschuetzte Ablage, Zugriffsbeschraenkung, Loeschkonzept.",detail:"Datenminimierung, Zweckbindung, Speicherbegrenzung.",ref:"Nachreichung S.2"},
+  {id:"6.4",cat:"Datenschutz",q:"Wer hat Zugang zu den Interviewdaten?",a:"Primaer Projektleitung. Externe Beratung erhaelt NUR pseudonymisierte Daten. Facilitation hat keinen Rohdaten-Zugang.",detail:"Klare Rollentrennung.",ref:"Nachreichung S.3"},
+  {id:"6.5",cat:"Datenschutz",q:"Wie dokumentieren Sie Workshops datenschutzkonform?",a:"Ergebnisdokumentation (Flipcharts, Cluster), keine personenbezogene Protokollierung von Einzelaussagen.",detail:"Wer welche Idee eingebracht hat wird nicht dokumentiert.",ref:"Nachreichung S.2-3"},
+  {id:"6.6",cat:"Datenschutz",q:"Nutzen Sie KI-Tools bei Transkription/Auswertung?",a:"Falls Transkription mit Software: DSGVO-konform und lokal. Inhaltliche Auswertung erfolgt manuell.",detail:"Technologie = Werkzeug, kein Ersatz fuer methodische Sorgfalt.",ref:"Allgemeine Projektlogik"},
+  {id:"6.7",cat:"Datenschutz",q:"Was passiert mit Daten nach Projektende?",a:"Personenbezogene Rohdaten werden nach definiertem Zeitraum geloescht. Anonymisierte Ergebnisse bleiben verfuegbar.",detail:"Klare Trennung: personenbezogen = befristet. Toolkit/Framework = langfristig.",ref:"Wirkungslogik S.3"},
+  // KATEGORIE 7: RISIKO & SINGLE APPLICANT
+  {id:"7.1",cat:"Risiko",q:"Sie sind alleiniger Antragsteller — Ausfallrisiko?",a:"Drei Ebenen: (1) Dokumentierte Prozesse, (2) Zwei eingearbeitete Vertrauenspersonen, (3) Selbststaendig arbeitende Drittleister.",detail:"Vertrauenspersonen OHNE Projektpartnerstatus und OHNE Kosten.",ref:"Nachreichung S.3"},
+  {id:"7.2",cat:"Risiko",q:"Wer sind die 'Vertrauenspersonen'?",a:"Zwei Personen: analytisch + organisatorisch. KEINE Projektpartner, NICHT im Budget, KEINE Entscheidungsbefugnis.",detail:"Informell eingebunden. Fachliche Qualitaet haengt an Drittleistern, nicht an diesen Personen.",ref:"Nachreichung S.3",warn:"Nur auf DIREKTE Nachfrage: 'Personen aus erweitertem Netzwerk, informell eingebunden.'"},
+  {id:"7.3",cat:"Risiko",q:"Warum keine institutionellen Partner?",a:"Bewusste Entscheidung. Unabhaengigkeit ermoeglicht sektoruebergreifende Neutralitaet.",detail:"Institutioneller Partner bringt Eigeninteressen mit — das gefaehrdet Neutralitaet.",ref:"Erg. Projektbegruendung S.1-2"},
+  {id:"7.4",cat:"Risiko",q:"Fachliche Qualitaet ohne akademischen Hintergrund?",a:"Drei Saeulen: Facilitation, wissenschaftliches Review, und die Stakeholder selbst bringen Fachwissen ein.",detail:"Ich bin Prozessmanager, nicht AMR-Forscher. Das ist Designprinzip, kein Defizit.",ref:"Erg. Projektbegruendung S.1; Methodik S.4"},
+  {id:"7.5",cat:"Risiko",q:"Neutralitaet wenn Sie allein entscheiden?",a:"Ich entscheide NICHT allein ueber Inhalte. Facilitation steuert Prozess, Review prueft Ergebnisse, Stakeholder validieren.",detail:"Meine Rolle ist Projektsteuerung und Koordination.",ref:"Methodik S.4"},
+  {id:"7.6",cat:"Risiko",q:"Groesste Risiken des Projekts?",a:"Top 3: (1) Stakeholder-Rekrutierung — mehrkanalig + Plan B. (2) Qualitaet ohne Akademiker — 35K Drittleistungen. (3) Ergebnisoffenheit — fixe Artefakte.",detail:"Risiko 1 ist das groesste.",ref:"Nachreichung S.3"},
+  {id:"7.7",cat:"Risiko",q:"Wie dokumentieren Sie Projektfortschritt?",a:"Strukturiert: Protokolle, Workshop-Ergebnisse, Aenderungsprotokoll, Decision Log, Meilenstein-Berichte.",detail:"Jede Phase hat definierte Outputs als Fortschrittsindikatoren.",ref:"Methodik S.4"},
+  // KATEGORIE 8: VERWERTUNG
+  {id:"8.1",cat:"Verwertung",q:"Was passiert nach Projektende mit dem Framework?",a:"Zwei Wege: (1) Open Toolkit frei zugaenglich, (2) Implementierungsbegleitung als Service.",detail:"Policy Brief + Anwendungsleitfaden + Templates.",ref:"Wirkungslogik S.2-3"},
+  {id:"8.2",cat:"Verwertung",q:"Wie skalieren Sie ueber Oesterreich hinaus?",a:"STRUKTUR ist universell (Bewertungsdimensionen, Prozess), INHALTE werden kontextangepasst.",detail:"One-Health-Ansatz international etabliert. Dimensionen laenderuebergreifend relevant.",ref:"Wirkungslogik S.3"},
+  {id:"8.3",cat:"Verwertung",q:"Wer ist die Zielgruppe fuer den Transfer?",a:"Primaer: Gesundheitspolitische Entscheider:innen, AMR-Steuerungsgruppen. Sekundaer: Forschung, internationale Orgs.",detail:"Policy Brief fuer Politik, Toolkit fuer Praktiker:innen.",ref:"Wirkungslogik S.1-2"},
+  {id:"8.4",cat:"Verwertung",q:"Gibt es Anschlussprojekte oder ein Geschaeftsmodell?",a:"Zwei Pfade: (1) Folgeprojekt fuer breitere Validierung (FFG/EU), (2) Service-Angebot Implementierungsbegleitung.",detail:"Verwertungs-Roadmap in AP5 konkretisiert die Wege.",ref:"Wirkungslogik S.3"},
+  {id:"8.5",cat:"Verwertung",q:"Wie stellen Sie sicher, dass das Framework genutzt wird?",a:"Partizipative Entwicklung MIT den Nutzer:innen. Wer am Prozess beteiligt war, traegt es in die Institution.",detail:"Erhoehtes Ownership durch Co-Creation.",ref:"Stakeholder-Einbindung S.1"},
+  {id:"8.6",cat:"Verwertung",q:"Welcher Beitrag zu den SDGs?",a:"Primaer SDG 3 (Gesundheit). Unterstuetzend: SDG 2 (Ernaehrung), SDG 12 (Konsum), SDG 17 (Partnerschaften).",detail:"SDG 3 direkt durch bessere AMR-Entscheidungen.",ref:"Wirkungslogik S.1"},
+  {id:"8.7",cat:"Verwertung",q:"Was ist der gesellschaftliche Mehrwert — warum soziale Innovation?",a:"AMR-Entscheidungen betreffen alle, werden von wenigen getroffen. Der partizipative Rahmen demokratisiert diesen Prozess.",detail:"Neue Loesung fuer gesellschaftliches Problem, partizipativ entwickelt, veraendert soziale Beziehungen.",ref:"Nachreichung S.1"},
+  // BONUS: 5 HAERTESTE
+  {id:"NB.1",cat:"BOSS",q:"Herr Bucher, Sie haben keine akademische Ausbildung im AMR-Bereich. Warum sollten SIE dieses Projekt leiten?",a:"Genau das ist die Staerke: Als Nicht-Insider neutral zwischen Sektoren vermitteln. Fachexpertise bei Stakeholdern und Beratern. Meine Rolle: Prozessorganisation.",detail:"Social Track foerdert nicht-akademische Innovation. 35.000 EUR sichern methodische Qualitaet.",ref:"Erg. Projektbegruendung S.1",warn:"NIEMALS: 'Autodidakt', 'keine Bildung', 'mein Vater'"},
+  {id:"NB.2",cat:"BOSS",q:"Umsatz Null. Wie koennen wir sicher sein, dass die Eigenmittel da sind?",a:"Umsatz bildet nicht Gesamtliquiditaet ab. Eigenmittel vorhanden, Nachweise bei Bedarf.",detail:"Bei Nachhaken: 'Kann Nachweise erbringen. Moechten Sie das formal einfordern?'",ref:"Kostenplan S.1",warn:"NIEMALS: Familie, Vater, private Vermoegensverhaeltnisse"},
+  {id:"NB.3",cat:"BOSS",q:"Keine verbindlichen Stakeholder-Zusagen. Wie wissen wir, dass der partizipative Prozess funktioniert?",a:"Formale Zusagen vor Foerderentscheidung im partizipativen Bereich unueblich. Systematische Rekrutierung in AP1, mehrkanalig mit Plan B.",detail:"Stakeholder investieren Zeit erst wenn Projekt gesichert. Ressourcenrealismus.",ref:"Stakeholder-Einbindung S.1-2"},
+  {id:"NB.4",cat:"BOSS",q:"Wie unterscheidet sich Ihr Ansatz vom NAP-AMR?",a:"NAP-AMR ist Top-down-Strategie. AMR-HORIZONT ergaenzt um Bottom-up: partizipatives WERKZEUG fuer operative Ebene.",detail:"Bestehende Rahmenwerke definieren ZIELE. Was fehlt: praktisches Instrument wenn Sektoren kollidieren.",ref:"Stakeholder-Map S.5"},
+  {id:"NB.5",cat:"BOSS",q:"Was passiert wenn Sie krank werden oder abbrechen muessen?",a:"Dreifach abgesichert: dokumentierte Prozesse, zwei eingearbeitete Personen, selbststaendig arbeitende Drittleister.",detail:"Kurz: Drittleister arbeiten weiter. Mittel: Uebergabe moeglich. Extrem: FFG-Absprache.",ref:"Nachreichung S.3"},
+];
+
+const redFlagsData = [
+  {num:1,sev:"critical",title:"Keine formale Bildung / kein AMR-Hintergrund",think:"'Ein 22-Jaehriger ohne Matura leitet ein AMR-Governance-Projekt?'",safe:"Ich bringe keine akademische AMR-Karriere mit — das sage ich offen. Mein Zugang ist ein anderer: Ich komme aus einem Umfeld mit Bezug zur Gesundheitswirtschaft, habe mich eigenstaendig vertieft, und aktiv Kontakte aufgebaut. Meine Staerke ist nicht die Fachexpertise — die sichere ich extern ab — sondern die Faehigkeit, verschiedene Welten zu verbinden.",donts:["Mein Vater ist in der Pharmaindustrie","Ich habe von Freunden meines Vaters gelernt","Ich bin Autodidakt","Ich habe keine Bildung, aber..."],dos:["Interdisziplinaere Perspektive","Gesundheitswirtschaftliches Umfeld","Eigenstaendig in die Thematik eingearbeitet"]},
+  {num:2,sev:"critical",title:"Umsatz = 0 EUR / Liquiditaet unklar",think:"'Woher kommen 35.412 EUR Eigenmittel bei Null Umsatz?'",safe:"Die Liquiditaetsreserve ist vorhanden. Der Umsatz des Unternehmens bildet nicht meine Gesamtliquiditaet ab. Nachweise kann ich bei Bedarf erbringen.",donts:["Mein Vater unterstuetzt mich finanziell","Meine Familie steht dahinter","Ich brauche das Geld dringend"],dos:["Eigenmittel vorhanden, Nachweis bei Bedarf","Unternehmen im Aufbau, Liquiditaet gesichert"]},
+  {num:3,sev:"critical",title:"Keine Stakeholder-Zusagen / LOIs",think:"'Er hat niemanden der mitmacht.'",safe:"Erstkontakte und Vorgespraeche mit relevanten Institutionen. Formale Zusagen vor Foerderentscheidung erfahrungsgemaess schwierig. Systematische Rekrutierung in AP1 — mehrkanalig, mit Plan B pro Sektor.",donts:["AGES hat Interesse signalisiert (ohne LOI)","Die MedUni Wien ist dabei (ohne Zusage)","Konkrete Institutionsnamen als 'Partner'"],dos:["Erstkontakte mit relevanten Institutionen im DACH-Raum","Grundsaetzlich positive Resonanz","Mehrkanalige Rekrutierungsstrategie"]},
+  {num:4,sev:"critical",title:"Phillip Bucher / Adrian Haas — Widerspruch",think:"'Sind die im Budget? Projektpartner? Gefaelligkeit?'",safe:"Zwei Personen sind inhaltlich eingearbeitet und koennen im Ausfallfall organisatorische Aufgaben uebernehmen. Sie sind keine Projektmitarbeiter und nicht im Foerderbudget. Die fachliche Qualitaet wird ueber externe Drittleistungen abgesichert.",donts:["Mein Bruder hilft mir","Die arbeiten mit mir am Projekt","Ich plane Stunden fuer sie ein"],dos:["Informell eingearbeitete Personen, kein Partnerstatus","Rein unterstuetzend, nicht im Budget","NUR auf direkte Nachfrage erwaehnen"]},
+  {num:5,sev:"important",title:"Budget-Inkonsistenz zwischen Dokumenten",think:"'Unterschiedliche Zahlen in verschiedenen Dokumenten?'",safe:"Der Kostenplan ist das verbindliche Dokument. Die Tabelle in der Erg. Projektbegruendung zeigt eine vereinfachte Darstellung. Korrekt: 11.600 EUR Sachkosten, 4.800 EUR Reisekosten. Gesamtsumme 118.040 EUR ist konsistent.",donts:[],dos:["NICHT proaktiv ansprechen — nur auf Nachfrage"]},
+  {num:6,sev:"important",title:"35.000 EUR Drittleistungen ohne Anbieter",think:"'30% des Budgets fuer Externe, aber weiss nicht wer.'",safe:"Leistungsbeschreibungen stehen. Konkrete Anbieter nach Foerderzusage ueber Referenzen und marktfaehige Tagessaetze. Ausreichender Pool im DACH-Raum.",donts:[],dos:[]},
+  {num:7,sev:"important",title:"Wer codiert? Bias-Gefahr?",think:"'Er macht alles allein — null Qualitaetskontrolle.'",safe:"Kodierung nach definierter Kategorienliste mit Aenderungsprotokoll. Review durch externe wissenschaftliche Beratung. Synthese iterativ durch Stakeholder validiert.",donts:[],dos:[]},
+  {num:8,sev:"important",title:"Ergebnisoffenheit = keine Garantie?",think:"'Er kann am Ende sagen hat nicht funktioniert.'",safe:"Ergebnisoffen in der Form, nicht in der Lieferpflicht. Artefakte sind fix. Auch 'Iteration noetig' ist ein wertvolles, dokumentiertes Ergebnis.",donts:[],dos:[]},
+  {num:9,sev:"important",title:"Interessenkonflikte (Vater/Pharma)",think:"'Hat er eigene Interessen im AMR-Bereich?'",safe:"Es bestehen keine Interessenkonflikte. Stakeholderprozess ist transparent, alle Entscheidungen extern reviewt.",donts:["Vater oder Pharma erwaehnen — NIEMALS"],dos:["NUR falls gefragt antworten"]},
+  {num:10,sev:"important",title:"Keine Erfahrung mit Foerderprojektabwicklung",think:"'Erstprojekt — kann er das?'",safe:"Erstes FFG-Projekt. Struktur mit 5 APs, klaren Meilensteinen und externer Qualitaetssicherung folgt FFG-Standard. Erfahrung in Projektkoordination aus Selbststaendigkeit uebertragbar.",donts:[],dos:[]},
+  {num:11,sev:"moderate",title:"Wie sieht die Decision Map konkret aus?",think:"",safe:"Struktur: Entscheidungstyp, Kontext, Stakeholder, Evidenz, Zielkonflikte, Optionen, Bewertung ueber 10 Kriterien, transparente Begruendung. Konkrete Ausgestaltung entsteht partizipativ — aber die STRUKTUR steht.",donts:[],dos:[]},
+  {num:12,sev:"moderate",title:"Welche Tools nutzen Sie?",think:"",safe:"Workshops: Miro. Dokumentation: Notion. Auswertung: Excel. Calls: Zoom. Transkription: lokal, DSGVO-konform.",donts:["PDF, keine Ahnung","Unsicherheit ueber Tools zeigen"],dos:[]},
+  {num:13,sev:"moderate",title:"Warum 15 Interviews — nicht 8 oder 30?",think:"",safe:"Thematische Saettigung und One-Health-Abdeckung. Genug pro Sektor fuer Muster, nicht so viele dass Auswertung unpraktikabel wird. Bandbreite 15-20 erlaubt Anpassung.",donts:[],dos:[]},
+  {num:14,sev:"moderate",title:"Nur ein schoener Bericht?",think:"",safe:"Praxistest in AP5: 3 Szenarien, 6-10 Walkthroughs, standardisierte Bewertung. Am Ende steht ein Toolkit — kein Bericht.",donts:[],dos:[]},
+  {num:15,sev:"moderate",title:"Unterschied zu akademischen AMR-Projekten?",think:"",safe:"Akademische Projekte forschen UEBER AMR. AMR-HORIZONT baut ein WERKZEUG. Kein Paper, sondern ein Toolkit. Keine Analyse, sondern eine Loesung.",donts:[],dos:[]},
+];
+
+const triggersData = [
+  {text:"\"Mein Vater ist in der Pharma/Nuklearmedizin\"",why:"Evaluator:innen fragen sofort: Eigeninteressen? Abhaengigkeit? Nepotismus?"},
+  {text:"\"Mein Bruder/Freund hilft mir am Projekt\"",why:"Klingt nach: Projekt haengt an informellem Netzwerk statt professioneller Struktur"},
+  {text:"\"Ich habe keine Bildung/Matura\"",why:"Sofort disqualifizierend — egal ob Social Track. Klingt nach Eingestaendnis."},
+  {text:"\"Ich bin Autodidakt\"",why:"Klingt nach Hobby, nicht nach Kompetenz. Signalisiert fehlende Systematik."},
+  {text:"\"Ich brauche das Geld dringend\"",why:"Motivation = finanziell? Dann ist Projekterfolg sekundaer. Vertrauenskiller."},
+  {text:"\"AGES/MedUni/RKI sind dabei\" (ohne LOI)",why:"Nachpruefbar falsch = sofortiger und unwiderruflicher Vertrauensverlust."},
+  {text:"\"PDF, keine Ahnung\" (bei Tool-Frage)",why:"Signalisiert: Keine methodische Kompetenz. Kann nicht mal Tools benennen."},
+  {text:"\"Das alles ist relativ erfunden\"",why:"Offensichtlich — aber trotzdem NIEMALS andeuten. Zerstoert alles."},
+  {text:"\"Kontakte meines Vaters genutzt\"",why:"Evaluator:innen denken: Nepotismus. Nicht eigenstaendig. Abhaengig."},
+  {text:"\"Eigentlich bin ich im Verkauf taetig\"",why:"Entkraeftet sofort jede Projektleitungskompetenz. Fachfremd."},
+  {text:"\"Ich weiss noch nicht genau, wie...\"",why:"Zeig Unsicherheit NICHT. Sag stattdessen: 'Das erarbeiten wir in AP[X]'."},
+  {text:"\"Meine Firma hat keinen Umsatz\"",why:"Proaktiv NIEMALS erwaehnen. Nur auf direkte Nachfrage minimalistisch."},
+];
+
+const offenData = [
+  {id:"OP-1",prio:"MUSS",color:"var(--accent)",title:"AP5-Testszenarien auswendig lernen",desc:"Szenarien stehen in Datei 04. 30 Min zum Durchlesen und Merken.",effort:"30 Min"},
+  {id:"OP-2",prio:"MUSS",color:"var(--accent)",title:"Liquiditaets-Satz praegen",desc:"'Die Liquiditaetsreserve ist vorhanden. Umsatz bildet nicht Gesamtliquiditaet ab. Nachweise bei Bedarf.' — 5x laut ueben.",effort:"10 Min"},
+  {id:"OP-3",prio:"MUSS",color:"var(--accent)",title:"Opening Statement auswendig lernen",desc:"Script steht. 5x laut mit Stoppuhr (Ziel: 1:50-2:10).",effort:"1-2 Std"},
+  {id:"OP-4",prio:"MUSS",color:"var(--accent)",title:"Konsistente Linie Phillip/Adrian",desc:"NUR dieser Satz: 'Zwei eingearbeitete Personen, kein Projektpartnerstatus, nicht im Budget.'",effort:"5 Min"},
+  {id:"OP-5",prio:"SOLL",color:"var(--yellow)",title:"Follow-up-Mails an Stakeholder",desc:"3-5 kurze Mails: 'Waere es vorstellbar an einem Interview teilzunehmen falls Projekt gefoerdert wird?'",effort:"1 Std"},
+  {id:"OP-6",prio:"SOLL",color:"var(--yellow)",title:"Rekrutierungsstrategie konkretisieren",desc:"Pro Sektor: 2 Zugangswege + 1 Backup. Z.B. 'Humanmedizin: OEGIT-Verteiler + Uni-Institute.'",effort:"45 Min"},
+  {id:"OP-7",prio:"SOLL",color:"var(--yellow)",title:"Drittleister-Beschaffungsweg konkretisieren",desc:"2-3 Wege: Partizipations-Netzwerke, Uni-Netzwerke, freiberufliche Moderator:innen.",effort:"1 Std"},
+  {id:"OP-8",prio:"SOLL",color:"var(--yellow)",title:"Bewertungslogik als Mini-Skizze",desc:"10 Zeilen (Kriterien), Spalten A/B/C, Skala 1-5. Auf Papier neben Laptop.",effort:"15 Min"},
+  {id:"OP-9",prio:"SOLL",color:"var(--yellow)",title:"Zoom-Setup testen",desc:"Link testen, Kamera + Mikro, Licht, ruhiger Hintergrund.",effort:"20 Min"},
+  {id:"OP-10",prio:"KANN",color:"var(--green)",title:"Patient:innenvertretungen konkretisieren",desc:"ARGE Selbsthilfe, erkrankungsspezifische Selbsthilfegruppen, Patientenanwaltschaften der Bundeslaender.",effort:"15 Min"},
+  {id:"OP-11",prio:"KANN",color:"var(--green)",title:"Tools-Liste merken",desc:"4 Woerter: Miro, Notion, Excel, Zoom.",effort:"2 Min"},
+  {id:"OP-12",prio:"KANN",color:"var(--green)",title:"SDG-Bezuege kennen",desc:"SDG 3 primaer (Gesundheit). Dazu 2, 12, 17.",effort:"2 Min"},
+];
+
+const outputsData = [
+  {num:1,name:"AMR-Governance-Stakeholder-Map",ap:"AP1",desc:"Vollstaendige Landkarte aller AMR-Akteure, Rollen, Interessen, Einflussbereiche",format:"PDF + interaktive Miro"},
+  {num:2,name:"Semi-strukturierter Interviewleitfaden",ap:"AP1-2",desc:"4 Bloecke (A-D), Kernfragen + Vertiefung, Einwilligungstext, Auswertungsanleitung",format:"PDF druckfertig"},
+  {num:3,name:"Bedarfsmatrix AMR-Entscheidungen",ap:"AP2",desc:"Matrix: Sektoren x Dimensionen, Haeufigkeit, Dringlichkeit, Luecken, Zielkonflikte",format:"Excel/PDF"},
+  {num:4,name:"Partizipativer Entscheidungsrahmen v1.0",ap:"AP3-4",desc:"DAS Kernergebnis: Decision Map, Bewertungsmatrix, Decision Log, Prozessbeschreibung",format:"PDF-Toolkit + Templates"},
+  {num:5,name:"Praxis-getestetes Toolkit",ap:"AP5",desc:"Anwendungsleitfaden, Beispielszenarien, Checklisten, FAQ, Quick-Start-Guide",format:"PDF ~20-30 Seiten"},
+  {num:6,name:"Pilotbericht mit Testergebnissen",ap:"AP5",desc:"Walkthrough-Ergebnisse, Scorebogen-Auswertung, Aenderungsprotokoll, Empfehlungen",format:"PDF ~30-40 Seiten"},
+  {num:7,name:"Policy Brief",ap:"AP5",desc:"Kompakte Zusammenfassung fuer politische Entscheider: Problem, Ansatz, Ergebnisse, Empfehlungen",format:"PDF 2-4 Seiten"},
+  {num:8,name:"Verwertungs-Roadmap + Abschlussdokumentation",ap:"AP5",desc:"Gesamtdokumentation, Lessons Learned, Verwertungsstrategie, Anschlussfaehigkeit",format:"PDF ~50-60 Seiten"},
+];
+
+const scenariosData = [
+  {num:1,title:"KLINIK — Empirische Antibiotikatherapie bei Sepsisverdacht",color:"var(--accent)",setting:"Intensivstation, 800+ Betten. Sepsisverdacht braucht SOFORT Antibiotika — Antibiogramm in 48h.",decision:"Welches empirische Breitband-Antibiotikum?",conflicts:[{sector:"Humanmedizin",issue:"Maximale Wirksamkeit JETZT — breitestes Spektrum"},{sector:"Resistenzmanagement",issue:"Restriktiver Einsatz — schmalstes Spektrum"},{sector:"Oekonomie",issue:"Kosten der verschiedenen Optionen"},{sector:"Leitlinien",issue:"Lokale vs. nationale vs. internationale Empfehlungen"},{sector:"Surveillance",issue:"Lokale vs. nationale Resistenzdaten"}],stakeholders:["Infektiolog:in","Klinische:r Mikrobolog:in","Apotheker:in","Spitalshygieniker:in","Patientenvertretung"],focus:"Funktioniert der Rahmen unter ZEITDRUCK?"},
+  {num:2,title:"VETERINAER — Antibiotikabehandlung Milchviehhaltung",color:"var(--blue)",setting:"Mittelgrosser Betrieb, 120 Kuehe, Niederoesterreich. Gehaeufte Mastitisfaelle — Bestandsbehandlung empfohlen.",decision:"Bestandsbehandlung ja/nein? Welches Antibiotikum und Protokoll?",conflicts:[{sector:"Tierwohl",issue:"Kranke Tiere brauchen schnelle Therapie"},{sector:"Resistenz",issue:"Massenbehandlung treibt Resistenzentwicklung"},{sector:"Oekonomie",issue:"Milchausfall waehrend Wartezeit"},{sector:"Lebensmittelsicherheit",issue:"Antibiotikarueckstaende in Milch"},{sector:"Umwelt",issue:"Ausscheidung in Boden und Grundwasser"}],stakeholders:["Hoftieraerzt:in","Landwirt:in","Lebensmittelkontrolle","Umweltagentur","Veterinaeramtliche Behoerde"],focus:"Funktioniert der Rahmen bei OEKONOMISCHEM DRUCK?"},
+  {num:3,title:"PUBLIC HEALTH — Regionales Resistenzcluster",color:"var(--green)",setting:"Bezirk, 100.000 EW. Anstieg ESBL-E.coli in Spitaelern UND Gewaesserproben. Budget begrenzt.",decision:"Welche Massnahme ZUERST? Surveillance? Stewardship? Abwasser? Kampagne?",conflicts:[{sector:"Klinik",issue:"Fokus Spitaeler — Stewardship + Hygiene"},{sector:"Public Health",issue:"Fokus Bevoelkerung — Surveillance + Praevention"},{sector:"Umwelt",issue:"Fokus Klaeranlage — technische Massnahmen"},{sector:"Politik",issue:"Sichtbare vs. wirksame Massnahmen"},{sector:"Buerger:innen",issue:"Information und Mitspracherecht"}],stakeholders:["Amtsaerzt:in","Spitalsleitung","Umweltbehoerde","Gesundheitspolitik","Buerger:innenvertretung"],focus:"Funktioniert der Rahmen bei KOMPLEXEN TRADE-OFFS?"},
+];
+
+const timelineData = [
+  {day:1,date:"15. Feb",task:"Call Pack durchlesen",detail:"Alle Sektionen dieser Plattform durchgehen. Opening Statement 3x laut ueben.",prio:"MUSS"},
+  {day:2,date:"16. Feb",task:"Opening perfektionieren + Red Flags",detail:"Opening Statement 5x mit Stoppuhr. Red Flags 1-4 (KRITISCH) auswendig.",prio:"MUSS"},
+  {day:3,date:"17. Feb",task:"Q&A Training Kat. 1-3",detail:"Wirtschaft, Budget, Methodik — Top 3 Fragen jeder Kategorie MUESSEN sitzen.",prio:"MUSS"},
+  {day:4,date:"18. Feb",task:"Q&A Training Kat. 4-8 + BOSS",detail:"Stakeholder, AP5, Datenschutz, Risiko, Verwertung + 5 haerteste Nachbohrfragen.",prio:"MUSS"},
+  {day:5,date:"19. Feb",task:"Follow-up-Mails an Stakeholder",detail:"3-5 kurze, professionelle Follow-up-Mails an vielversprechendste Kontakte senden.",prio:"SOLL"},
+  {day:6,date:"20. Feb",task:"Trigger-Saetze + OFFEN-Punkte",detail:"12 Trigger-Saetze verinnerlichen. MUSS-OFFEN-Punkte abarbeiten.",prio:"MUSS"},
+  {day:7,date:"21. Feb",task:"AP5-Szenarien + Decision Map",detail:"3 Szenarien auswendig. Bewertungsmatrix als Mini-Skizze auf Papier.",prio:"MUSS"},
+  {day:8,date:"22. Feb",task:"Drittleister + Rekrutierung notieren",detail:"Beschaffungswege und Rekrutierungsstrategie pro Sektor konkretisieren.",prio:"SOLL"},
+  {day:9,date:"23. Feb",task:"Wiederholung + schwache Fragen",detail:"Q&A Quiz nochmal — nur Fragen mit Confidence < 4. Opening nochmal 3x.",prio:"MUSS"},
+  {day:10,date:"24. Feb",task:"GENERALPROBE",detail:"Opening + 10 zufaellige Fragen laut beantworten. Simulation nutzen!",prio:"MUSS"},
+  {day:11,date:"25. Feb",task:"Letzte Vorbereitungen",detail:"Zoom testen. Spickzettel + One-Pager ausdrucken. Wasser bereitstellen. FRUEH SCHLAFEN.",prio:"MUSS"},
+];
+
+// ==================== STATE ====================
+let state = JSON.parse(localStorage.getItem('amr-training-state')||'{}');
+if(!state.qaConf) state.qaConf = {};
+if(!state.offenDone) state.offenDone = {};
+if(!state.bestTime) state.bestTime = null;
+function saveState(){localStorage.setItem('amr-training-state',JSON.stringify(state));}
+
+// ==================== NAVIGATION ====================
+function navigate(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+  document.getElementById('main').scrollTo(0,0);
+  if(window.innerWidth<769){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('active');}
+}
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click',()=>navigate(item.dataset.page));
+});
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('active');
+}
+
+// ==================== COUNTDOWN ====================
+function updateCountdown(){
+  const target = new Date('2026-02-26T14:30:00+01:00');
+  const now = new Date();
+  const diff = target - now;
+  if(diff<=0){document.getElementById('countdown').textContent='JETZT!';return;}
+  const d=Math.floor(diff/864e5),h=Math.floor(diff%864e5/36e5),m=Math.floor(diff%36e5/6e4),s=Math.floor(diff%6e4/1e3);
+  document.getElementById('countdown').textContent=`${d}T ${h}h ${m}m`;
+  document.getElementById('days-left').textContent=d;
+}
+setInterval(updateCountdown,1000);updateCountdown();
+
+// ==================== READINESS ====================
+function updateReadiness(){
+  let total=0,done=0;
+  // Q&A mastered (conf>=4): 60 points
+  const mastered = Object.values(state.qaConf).filter(c=>c>=4).length;
+  total+=60; done+=mastered;
+  document.getElementById('qa-mastered').textContent=mastered+'/60';
+  document.getElementById('qa-mastered-count').textContent=mastered;
+  // OFFEN done: 12 points
+  const offenDoneCount = Object.values(state.offenDone).filter(Boolean).length;
+  total+=12; done+=offenDoneCount;
+  document.getElementById('offen-done').textContent=offenDoneCount+'/12';
+  // Opening practiced
+  total+=1; if(state.bestTime) done+=1;
+  document.getElementById('best-opening').textContent=state.bestTime?formatTime(state.bestTime):'--:--';
+  // Total
+  const pct = Math.round(done/total*100);
+  document.getElementById('readiness-fill').style.width=pct+'%';
+  document.getElementById('readiness-pct').textContent=pct+'%';
+}
+
+// ==================== TIMER ====================
+let timerRunning=false, timerStart=0, timerInterval=null;
+function toggleTimer(){
+  if(!timerRunning){
+    timerRunning=true; timerStart=Date.now();
+    document.getElementById('timer-btn').innerHTML='&#9724; Stop';
+    document.getElementById('timer-btn').className='btn btn-outline btn-lg';
+    timerInterval=setInterval(updateTimer,100);
+  } else {
+    timerRunning=false;
+    clearInterval(timerInterval);
+    const elapsed=(Date.now()-timerStart)/1000;
+    document.getElementById('timer-btn').innerHTML='&#9654; Start';
+    document.getElementById('timer-btn').className='btn btn-primary btn-lg';
+    if(!state.bestTime||elapsed<state.bestTime){state.bestTime=elapsed;saveState();}
+    document.getElementById('best-time-display').textContent=formatTime(state.bestTime);
+    updateReadiness();
+  }
+}
+function resetTimer(){timerRunning=false;clearInterval(timerInterval);document.getElementById('timer-display').textContent='0:00';document.getElementById('timer-display').className='green';document.getElementById('timer-btn').innerHTML='&#9654; Start';document.getElementById('timer-btn').className='btn btn-primary btn-lg';}
+function updateTimer(){
+  const elapsed=(Date.now()-timerStart)/1000;
+  const m=Math.floor(elapsed/60),s=Math.floor(elapsed%60);
+  document.getElementById('timer-display').textContent=m+':'+String(s).padStart(2,'0');
+  const el=document.getElementById('timer-display');
+  if(elapsed<110) el.className='green';
+  else if(elapsed<130) el.className='yellow';
+  else el.className='red';
+}
+function formatTime(s){const m=Math.floor(s/60),sec=Math.floor(s%60);return m+':'+String(sec).padStart(2,'0');}
+
+// ==================== Q&A ====================
+const categories=[...new Set(qaData.map(q=>q.cat))];
+function renderQAFilters(){
+  const container=document.getElementById('qa-filters');
+  container.innerHTML='<div class="filter-btn active" data-cat="all">Alle</div>'+categories.map(c=>`<div class="filter-btn" data-cat="${c}">${c}</div>`).join('');
+  container.querySelectorAll('.filter-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      container.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      renderQA(b.dataset.cat);
+    });
+  });
+}
+function renderQA(filter='all'){
+  const filtered=filter==='all'?qaData:qaData.filter(q=>q.cat===filter);
+  document.getElementById('qa-shown').textContent=filtered.length;
+  const container=document.getElementById('qa-container');
+  container.innerHTML=filtered.map(q=>{
+    const conf=state.qaConf[q.id]||0;
+    const catColor=q.cat==='BOSS'?'var(--accent)':'var(--blue)';
+    const dots=Array.from({length:5},(_,i)=>`<div class="dot ${i<conf?'filled':''}"></div>`).join('');
+    return `<div class="quiz-card" id="qc-${q.id}">
+      <div class="q-header">
+        <span class="q-cat" style="background:${catColor}20;color:${catColor}">${q.cat}</span>
+        <span class="q-num">${q.id}</span>
+        <div class="q-conf">${dots}</div>
+      </div>
+      <div class="question" onclick="toggleQA('${q.id}')">${q.q}</div>
+      <div class="answer" id="qa-a-${q.id}">
+        <div class="short">${q.a}</div>
+        <div class="detail">${q.detail}</div>
+        <div class="ref">${q.ref}</div>
+        ${q.warn?`<div class="warn">${q.warn}</div>`:''}
+      </div>
+      <div class="confidence" id="qa-c-${q.id}">
+        <span>Wie sicher bist du?</span>
+        ${[1,2,3,4,5].map(n=>`<button class="conf-btn ${conf===n?'selected':''}" onclick="setConf('${q.id}',${n})">${n}</button>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleQA(id){
+  const a=document.getElementById('qa-a-'+id);
+  const c=document.getElementById('qa-c-'+id);
+  a.classList.toggle('show'); c.classList.toggle('show');
+}
+function setConf(id,val){
+  state.qaConf[id]=val;saveState();
+  renderQA(document.querySelector('#qa-filters .filter-btn.active').dataset.cat);
+  updateReadiness();
+}
+function qaShowAll(){document.querySelectorAll('.answer').forEach(a=>a.classList.add('show'));document.querySelectorAll('.confidence').forEach(c=>c.classList.add('show'));}
+function qaShowWeak(){
+  const weak=qaData.filter(q=>(state.qaConf[q.id]||0)<4).map(q=>q.id);
+  document.querySelectorAll('.quiz-card').forEach(card=>{
+    const id=card.id.replace('qc-','');
+    card.style.display=weak.includes(id)?'block':'none';
+  });
+  document.getElementById('qa-shown').textContent=weak.length;
+}
+function qaCollapseAll(){document.querySelectorAll('.answer').forEach(a=>a.classList.remove('show'));document.querySelectorAll('.confidence').forEach(c=>c.classList.remove('show'));}
+
+// ==================== RED FLAGS ====================
+function renderRedFlags(){
+  const container=document.getElementById('redflags-container');
+  container.innerHTML=redFlagsData.map(rf=>{
+    const sevClass=rf.sev==='critical'?'critical':rf.sev==='important'?'important':'moderate';
+    const sevLabel=rf.sev==='critical'?'KRITISCH':rf.sev==='important'?'WICHTIG':'MODERAT';
+    return `<div class="rf-card">
+      <div class="rf-header" onclick="this.querySelector('.arrow').classList.toggle('open');this.nextElementSibling.classList.toggle('show')">
+        <span class="severity ${sevClass}">${sevLabel}</span>
+        <span class="title">RF${rf.num}: ${rf.title}</span>
+        <span class="arrow">&#9660;</span>
+      </div>
+      <div class="rf-body">
+        ${rf.think?`<div class="think">Was Evaluator:innen denken: ${rf.think}</div>`:''}
+        <div class="safe">${rf.safe}</div>
+        ${rf.donts.length?`<div class="donts"><strong style="color:var(--accent);font-size:11px;text-transform:uppercase">Nicht sagen:</strong><ul>${rf.donts.map(d=>`<li>${d}</li>`).join('')}</ul></div>`:''}
+        ${rf.dos.length?`<div class="dos" style="margin-top:8px"><strong style="color:var(--green);font-size:11px;text-transform:uppercase">Stattdessen:</strong><ul>${rf.dos.map(d=>`<li>${d}</li>`).join('')}</ul></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ==================== FLASHCARDS ====================
+let fcIndex=0, fcOrder=[...Array(triggersData.length).keys()];
+function renderFlashcard(){
+  const t=triggersData[fcOrder[fcIndex]];
+  document.getElementById('fc-front').textContent=t.text;
+  document.getElementById('fc-back').textContent=t.why;
+  document.getElementById('fc-counter').textContent=`${fcIndex+1} / ${triggersData.length}`;
+  document.getElementById('flashcard').classList.remove('flipped');
+}
+function flipCard(){document.getElementById('flashcard').classList.toggle('flipped');}
+function nextCard(){fcIndex=(fcIndex+1)%triggersData.length;renderFlashcard();}
+function prevCard(){fcIndex=(fcIndex-1+triggersData.length)%triggersData.length;renderFlashcard();}
+function shuffleCards(){for(let i=fcOrder.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[fcOrder[i],fcOrder[j]]=[fcOrder[j],fcOrder[i]];}fcIndex=0;renderFlashcard();}
+
+// ==================== OFFEN-PUNKTE ====================
+function renderOffen(){
+  const container=document.getElementById('offen-container');
+  container.innerHTML=offenData.map(o=>{
+    const done=state.offenDone[o.id]||false;
+    return `<div class="offen-item ${done?'done':''}" id="oi-${o.id}">
+      <div class="check" onclick="toggleOffen('${o.id}')">${done?'&#10003;':''}</div>
+      <span class="prio" style="background:${o.color}20;color:${o.color}">${o.prio}</span>
+      <div class="content">
+        <div class="title">${o.id}: ${o.title}</div>
+        <div class="desc">${o.desc} &middot; Aufwand: ${o.effort}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleOffen(id){
+  state.offenDone[id]=!state.offenDone[id];saveState();renderOffen();updateReadiness();
+}
+
+// ==================== OUTPUTS ====================
+function renderOutputs(){
+  const container=document.getElementById('outputs-container');
+  container.innerHTML=outputsData.map(o=>`<div class="card">
+    <div class="card-header"><span style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0">${o.num}</span>${o.name}</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:8px">${o.desc}</div>
+    <div style="display:flex;gap:16px;font-size:12px">
+      <span style="color:var(--blue)">Entsteht: ${o.ap}</span>
+      <span style="color:var(--green)">Format: ${o.format}</span>
+    </div>
+  </div>`).join('');
+}
+
+// ==================== SCENARIOS ====================
+function renderScenarios(){
+  const container=document.getElementById('scenarios-container');
+  container.innerHTML=scenariosData.map(s=>`<div class="scenario-card">
+    <div class="sc-header" style="border-left:4px solid ${s.color}">
+      <h3>Szenario ${s.num}: ${s.title}</h3>
+      <div class="setting">${s.setting}</div>
+    </div>
+    <div class="sc-body">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--yellow)">Entscheidung: ${s.decision}</div>
+      <div style="font-size:12px;text-transform:uppercase;color:var(--muted);letter-spacing:1px;margin:16px 0 8px">Zielkonflikte</div>
+      <div class="conflict-grid">${s.conflicts.map(c=>`<div class="conflict"><strong>${c.sector}:</strong> ${c.issue}</div>`).join('')}</div>
+      <div style="font-size:12px;text-transform:uppercase;color:var(--muted);letter-spacing:1px;margin:16px 0 8px">Am Tisch</div>
+      <div class="stakeholders">${s.stakeholders.map(st=>`<span>${st}</span>`).join('')}</div>
+      <div style="font-size:13px;margin-top:12px;color:var(--accent2)"><strong>Testfokus:</strong> ${s.focus}</div>
+    </div>
+  </div>`).join('');
+}
+
+// ==================== TIMELINE ====================
+function renderTimeline(){
+  const container=document.getElementById('timeline-container');
+  const now=new Date();
+  const dayDiff=Math.ceil((new Date('2026-02-26')-now)/864e5);
+  container.innerHTML=timelineData.map(t=>{
+    const isToday=t.day===(11-dayDiff+1);
+    return `<div class="tl-item ${isToday?'today':''}">
+      <div class="day">
+        <div class="num">${t.day}</div>
+        <div class="date">${t.date}</div>
+      </div>
+      <div class="content">
+        <h4>${t.task} <span style="font-size:10px;padding:2px 8px;border-radius:8px;background:${t.prio==='MUSS'?'rgba(233,69,96,.15)':'rgba(255,217,61,.15)'};color:${t.prio==='MUSS'?'var(--accent)':'var(--yellow)'};margin-left:8px">${t.prio}</span></h4>
+        <p>${t.detail}</p>
+      </div>
+    </div>`;
+  }).join('');
+  // Today plan on dashboard
+  const todayData = timelineData.find((_,i)=>i===(11-dayDiff));
+  if(todayData){
+    document.getElementById('today-label').textContent='Tag '+todayData.day+' — '+todayData.date;
+    document.getElementById('today-plan').innerHTML=`<h4 style="margin-bottom:8px">${todayData.task}</h4><p style="font-size:13px;color:var(--muted)">${todayData.detail}</p>`;
+  } else {
+    document.getElementById('today-label').textContent='Vorbereitung';
+    document.getElementById('today-plan').innerHTML='<p style="color:var(--muted)">Nutze die Plattform um dich vorzubereiten!</p>';
+  }
+}
+
+// (Simulation code moved to Enhanced Simulation section above)
+let simQuestions=[], simIndex=0;
+
+// ==================== AUDIO RECORDING ====================
+let mediaRecorder=null, audioChunks=[], isRecording=false;
+let recordings=JSON.parse(localStorage.getItem('amr-recordings')||'[]');
+
+function toggleRecording(){
+  if(!isRecording) startRecording();
+  else stopRecording();
+}
+async function startRecording(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder=new MediaRecorder(stream);
+    audioChunks=[];
+    mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};
+    mediaRecorder.onstop=()=>{
+      const blob=new Blob(audioChunks,{type:'audio/webm'});
+      const url=URL.createObjectURL(blob);
+      const now=new Date();
+      const rec={url,time:formatTime((now-recStartTime)/1000),date:now.toLocaleString('de-AT'),id:Date.now()};
+      recordings.unshift(rec);
+      // Don't persist blob URLs (they expire), just keep in session
+      renderRecordings();
+      stream.getTracks().forEach(t=>t.stop());
+    };
+    mediaRecorder.start();
+    isRecording=true;
+    recStartTime=Date.now();
+    document.getElementById('recorder-box').classList.add('recording');
+    document.getElementById('rec-btn').innerHTML='&#9724; Aufnahme stoppen';
+    document.getElementById('rec-btn').className='btn btn-outline';
+    document.getElementById('rec-status').textContent='Aufnahme laeuft...';
+    document.getElementById('rec-icon').textContent='&#128308;';
+  }catch(e){
+    showToast('Mikrofon nicht verfuegbar. Bitte erlaube Zugriff.');
+  }
+}
+let recStartTime=0;
+function stopRecording(){
+  if(mediaRecorder&&mediaRecorder.state!=='inactive'){
+    mediaRecorder.stop();
+    isRecording=false;
+    document.getElementById('recorder-box').classList.remove('recording');
+    document.getElementById('rec-btn').innerHTML='&#9679; Aufnahme starten';
+    document.getElementById('rec-btn').className='btn btn-primary';
+    document.getElementById('rec-status').textContent='Nimm dich beim Ueben auf';
+    document.getElementById('rec-icon').textContent='&#127908;';
+  }
+}
+function renderRecordings(){
+  const c=document.getElementById('recordings-list');
+  if(!recordings.length){c.innerHTML='';return;}
+  c.innerHTML=recordings.map((r,i)=>`<div class="recording-item">
+    <span style="font-size:12px;color:var(--muted)">#${recordings.length-i}</span>
+    <audio controls src="${r.url}"></audio>
+    <span class="rec-time">${r.time}</span>
+    <button class="rec-del" onclick="deleteRecording(${i})" title="Loeschen">&#10005;</button>
+  </div>`).join('');
+}
+function deleteRecording(i){recordings.splice(i,1);renderRecordings();}
+
+// ==================== SPEED DRILL ====================
+let drillMode='all', drillQuestions=[], drillIndex=0, drillScores={good:0,mid:0,bad:0};
+let drillTimer=null, drillTimeLeft=30, drillResults=[];
+if(!state.drillCount) state.drillCount=0;
+
+function setDrillMode(mode){
+  drillMode=mode;
+  document.querySelectorAll('[id^="drill-mode-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('drill-mode-'+mode).classList.add('active');
+}
+function startDrill(count){
+  let pool=[...qaData];
+  if(drillMode==='weak') pool=qaData.filter(q=>(state.qaConf[q.id]||0)<4);
+  if(drillMode==='boss') pool=qaData.filter(q=>q.cat==='BOSS');
+  if(!pool.length){showToast('Keine Fragen in dieser Kategorie!');return;}
+  pool.sort(()=>Math.random()-.5);
+  drillQuestions=pool.slice(0,Math.min(count,pool.length));
+  drillIndex=0;drillScores={good:0,mid:0,bad:0};drillResults=[];
+  document.getElementById('drill-setup').style.display='none';
+  document.getElementById('drill-active').style.display='block';
+  document.getElementById('drill-result').style.display='none';
+  showDrillQuestion();
+}
+function showDrillQuestion(){
+  if(drillIndex>=drillQuestions.length){endDrill();return;}
+  const q=drillQuestions[drillIndex];
+  document.getElementById('drill-q-text').textContent=q.q;
+  document.getElementById('drill-a-text').innerHTML=`<div style="color:var(--green);font-weight:500;margin-bottom:8px">${q.a}</div><div style="color:var(--muted);font-size:13px">${q.detail}</div>`;
+  document.getElementById('drill-a-text').classList.remove('show');
+  document.getElementById('drill-progress').textContent=`Frage ${drillIndex+1} / ${drillQuestions.length}`;
+  document.getElementById('drill-reveal-controls').style.display='block';
+  document.getElementById('drill-rate-controls').style.display='none';
+  document.getElementById('drill-good').textContent=drillScores.good;
+  document.getElementById('drill-mid').textContent=drillScores.mid;
+  document.getElementById('drill-bad').textContent=drillScores.bad;
+  // Timer
+  drillTimeLeft=30;
+  document.getElementById('drill-timer-display').textContent='30';
+  document.getElementById('drill-time-fill').style.width='100%';
+  clearInterval(drillTimer);
+  drillTimer=setInterval(()=>{
+    drillTimeLeft-=0.1;
+    if(drillTimeLeft<=0){drillTimeLeft=0;clearInterval(drillTimer);drillReveal();}
+    document.getElementById('drill-timer-display').textContent=Math.ceil(drillTimeLeft);
+    document.getElementById('drill-time-fill').style.width=(drillTimeLeft/30*100)+'%';
+    const fill=document.getElementById('drill-time-fill');
+    if(drillTimeLeft>15) fill.style.background='var(--green)';
+    else if(drillTimeLeft>7) fill.style.background='var(--yellow)';
+    else fill.style.background='var(--accent)';
+  },100);
+}
+function drillReveal(){
+  clearInterval(drillTimer);
+  document.getElementById('drill-a-text').classList.add('show');
+  document.getElementById('drill-reveal-controls').style.display='none';
+  document.getElementById('drill-rate-controls').style.display='flex';
+}
+function drillRate(rating){
+  drillScores[rating]++;
+  drillResults.push({q:drillQuestions[drillIndex],rating,timeLeft:drillTimeLeft});
+  drillIndex++;
+  showDrillQuestion();
+}
+function endDrill(){
+  clearInterval(drillTimer);
+  state.drillCount=(state.drillCount||0)+1;saveState();
+  document.getElementById('drill-active').style.display='none';
+  document.getElementById('drill-result').style.display='block';
+  document.getElementById('drill-r-good').textContent=drillScores.good;
+  document.getElementById('drill-r-mid').textContent=drillScores.mid;
+  document.getElementById('drill-r-bad').textContent=drillScores.bad;
+  const total=drillScores.good+drillScores.mid+drillScores.bad;
+  const pct=total?Math.round(drillScores.good/total*100):0;
+  if(pct>=80){document.getElementById('drill-result-icon').textContent='&#127942;';document.getElementById('drill-result-title').textContent='Ausgezeichnet! '+pct+'% perfekt';}
+  else if(pct>=50){document.getElementById('drill-result-icon').textContent='&#128170;';document.getElementById('drill-result-title').textContent='Gut! '+pct+'% perfekt — weiter ueben!';}
+  else{document.getElementById('drill-result-icon').textContent='&#128293;';document.getElementById('drill-result-title').textContent=pct+'% perfekt — hier muss Training her!';}
+  // Show bad results
+  const badOnes=drillResults.filter(r=>r.rating==='bad');
+  const detail=document.getElementById('drill-result-detail');
+  if(badOnes.length){
+    detail.innerHTML='<div style="font-size:12px;text-transform:uppercase;color:var(--accent);letter-spacing:1px;margin:16px 0 8px">Nicht gewusst:</div>'+
+      badOnes.map(r=>`<div style="padding:8px 12px;background:rgba(233,69,96,.05);border-radius:8px;margin-bottom:6px;font-size:13px">${r.q.q}</div>`).join('');
+  }else{detail.innerHTML='';}
+  if(pct>=80) launchConfetti();
+}
+function resetDrill(){
+  document.getElementById('drill-setup').style.display='block';
+  document.getElementById('drill-active').style.display='none';
+  document.getElementById('drill-result').style.display='none';
+}
+
+// ==================== WEAKNESS ANALYSIS ====================
+function renderAnalysis(){
+  const grid=document.getElementById('weakness-grid');
+  const catStats={};
+  categories.forEach(cat=>{
+    const qs=qaData.filter(q=>q.cat===cat);
+    const total=qs.length;
+    const mastered=qs.filter(q=>(state.qaConf[q.id]||0)>=4).length;
+    const learning=qs.filter(q=>{const c=state.qaConf[q.id]||0;return c>=2&&c<4;}).length;
+    const untrained=total-mastered-learning;
+    const pct=Math.round(mastered/total*100);
+    catStats[cat]={total,mastered,learning,untrained,pct};
+  });
+  // Sort by weakest first
+  const sorted=Object.entries(catStats).sort((a,b)=>a[1].pct-b[1].pct);
+  grid.innerHTML=sorted.map(([cat,s])=>{
+    const color=s.pct>=80?'var(--green)':s.pct>=50?'var(--yellow)':'var(--accent)';
+    const grade=s.pct>=80?'A':s.pct>=60?'B':s.pct>=40?'C':s.pct>=20?'D':'F';
+    return `<div class="weakness-card">
+      <div class="cat-name">${cat}</div>
+      <div class="w-bar"><div class="w-fill" style="width:${s.pct}%;background:${color}"></div></div>
+      <div class="w-stats">
+        <span>${s.mastered}/${s.total} gemeistert</span>
+        <span>${s.pct}%</span>
+      </div>
+      <div class="w-grade" style="color:${color}">${grade}</div>
+    </div>`;
+  }).join('');
+
+  // Weak questions list
+  const weakList=document.getElementById('weak-questions-list');
+  const weak=qaData.filter(q=>(state.qaConf[q.id]||0)<4).sort((a,b)=>(state.qaConf[a.id]||0)-(state.qaConf[b.id]||0));
+  if(!weak.length){
+    weakList.innerHTML='<div class="card" style="text-align:center;color:var(--green);font-size:16px;padding:32px">&#10003; Alle Fragen gemeistert! Du bist bereit.</div>';
+  }else{
+    weakList.innerHTML=weak.slice(0,15).map(q=>{
+      const conf=state.qaConf[q.id]||0;
+      const color=conf===0?'var(--accent)':conf<3?'var(--orange)':'var(--yellow)';
+      return `<div class="card" style="cursor:pointer;border-left:3px solid ${color}" onclick="navigate('qa')">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;color:var(--muted)">${q.cat} ${q.id}</span>
+          <span style="font-size:11px;font-weight:700;color:${color}">Confidence: ${conf}/5</span>
+        </div>
+        <div style="font-size:14px;font-weight:600;margin-top:6px">${q.q}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Stats
+  const allConf=qaData.map(q=>state.qaConf[q.id]||0);
+  document.getElementById('stat-mastered').textContent=allConf.filter(c=>c>=4).length;
+  document.getElementById('stat-learning').textContent=allConf.filter(c=>c>=2&&c<4).length;
+  document.getElementById('stat-untrained').textContent=allConf.filter(c=>c<2).length;
+  document.getElementById('stat-drills').textContent=state.drillCount||0;
+}
+
+// ==================== CALL-FERTIGE SAETZE ====================
+function renderSentences(){
+  const sentences=[
+    {cat:'Opening',text:'Lassen Sie mich kurz das Problem skizzieren: Antimikrobielle Resistenzen verursachen jaehrlich 1,3 Millionen Todesfaelle weltweit, 35.000 allein in der EU.'},
+    {cat:'Methodik',text:'Semi-strukturiert, 60-90 Minuten, vier Bloecke: Rollenverstaendnis, AMR-Entscheidungssituationen, Partizipation und Barrieren, Reflexion.'},
+    {cat:'Auswertung',text:'Vierstufig: Kodierung, Affinity Clustering, Perspektivenvergleich mit Empathy Mapping, Synthese und Priorisierung.'},
+    {cat:'Diversitaet',text:'Diversitaets-Checkliste auf vier Ebenen: sektoral, Hierarchie, geographisch, Gender/Alter/Institutionen.'},
+    {cat:'Outputs',text:'AMR-HORIZONT liefert 8 konkrete Artefakte: Eine Stakeholder-Map, einen Interviewleitfaden, eine Bedarfsmatrix, den Entscheidungsrahmen als Kernergebnis, ein praxisgetestetes Toolkit, einen Pilotbericht, einen Policy Brief, und eine Verwertungs-Roadmap.'},
+    {cat:'Decision Map',text:'Die Decision Map fuehrt durch 8 Schritte: Vom Entscheidungstyp ueber Kontext, Stakeholder, Evidenz und Zielkonflikte zu den Optionen. Jede Option wird ueber eine Bewertungsmatrix mit 10 Kriterien bewertet.'},
+    {cat:'Szenarien',text:'Wir testen an drei One-Health-Szenarien: Erstens, eine klinische Entscheidungssituation bei Sepsisverdacht. Zweitens, ein veterinaermedizinisches Szenario in der Milchviehhaltung. Drittens, eine Public-Health-Entscheidung bei einem regionalen Resistenzcluster.'},
+    {cat:'Ergebnisoffen',text:'Ergebnisoffen in der FORM, nicht in der Lieferpflicht. Artefakte sind fix — Zuschnitt entsteht partizipativ.'},
+    {cat:'Eigenmittel',text:'Die Liquiditaetsreserve ist vorhanden. Der Umsatz bildet nicht meine Gesamtliquiditaet ab. Nachweise bei Bedarf.'},
+    {cat:'Qualifikation',text:'Ich bringe keine akademische AMR-Karriere mit — das sage ich offen. Die fachliche Tiefe sichern wir ueber externe Expert:innen ab.'},
+    {cat:'Stakeholder',text:'Erstkontakte und Vorgespraeche mit relevanten Institutionen. Formale Zusagen vor Foerderentscheidung erfahrungsgemaess schwierig.'},
+    {cat:'Ausfallrisiko',text:'Dreifach abgesichert: dokumentierte Prozesse, zwei eingearbeitete Personen, selbststaendig arbeitende Drittleister.'},
+    {cat:'Verwertung',text:'Zwei Wege: Open Toolkit frei zugaenglich, und Implementierungsbegleitung als Service.'},
+    {cat:'Design Thinking',text:'Menschzentriert, iterativ, ergebnisoffen — genau was One-Health-Governance braucht.'},
+    {cat:'Rettung',text:'Das erarbeiten wir in AP[X].'},
+    {cat:'Rettung',text:'Das ist ein guter Punkt. Darf ich kurz ueberlegen?'},
+    {cat:'Rettung',text:'Nachweise kann ich bei Bedarf erbringen.'},
+  ];
+  const container=document.getElementById('sentences-container');
+  container.innerHTML=sentences.map((s,i)=>`<div class="card" style="cursor:pointer;position:relative" onclick="copySentence(${i})" id="sent-${i}">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:6px">${s.cat}</div>
+    <div style="font-size:14px;color:var(--green);line-height:1.7">"${s.text}"</div>
+    <div style="position:absolute;top:12px;right:16px;font-size:11px;color:var(--muted)">&#128203; Klick = Kopieren</div>
+  </div>`).join('');
+}
+function copySentence(i){
+  const sentences=[
+    'Lassen Sie mich kurz das Problem skizzieren: Antimikrobielle Resistenzen verursachen jaehrlich 1,3 Millionen Todesfaelle weltweit, 35.000 allein in der EU.',
+    'Semi-strukturiert, 60-90 Minuten, vier Bloecke: Rollenverstaendnis, AMR-Entscheidungssituationen, Partizipation und Barrieren, Reflexion.',
+    'Vierstufig: Kodierung, Affinity Clustering, Perspektivenvergleich mit Empathy Mapping, Synthese und Priorisierung.',
+    'Diversitaets-Checkliste auf vier Ebenen: sektoral, Hierarchie, geographisch, Gender/Alter/Institutionen.',
+    'AMR-HORIZONT liefert 8 konkrete Artefakte: Eine Stakeholder-Map, einen Interviewleitfaden, eine Bedarfsmatrix, den Entscheidungsrahmen als Kernergebnis, ein praxisgetestetes Toolkit, einen Pilotbericht, einen Policy Brief, und eine Verwertungs-Roadmap.',
+    'Die Decision Map fuehrt durch 8 Schritte: Vom Entscheidungstyp ueber Kontext, Stakeholder, Evidenz und Zielkonflikte zu den Optionen.',
+    'Wir testen an drei One-Health-Szenarien: Erstens, eine klinische Entscheidungssituation bei Sepsisverdacht. Zweitens, ein veterinaermedizinisches Szenario in der Milchviehhaltung. Drittens, eine Public-Health-Entscheidung bei einem regionalen Resistenzcluster.',
+    'Ergebnisoffen in der FORM, nicht in der Lieferpflicht. Artefakte sind fix — Zuschnitt entsteht partizipativ.',
+    'Die Liquiditaetsreserve ist vorhanden. Der Umsatz bildet nicht meine Gesamtliquiditaet ab. Nachweise bei Bedarf.',
+    'Ich bringe keine akademische AMR-Karriere mit — das sage ich offen. Die fachliche Tiefe sichern wir ueber externe Expert:innen ab.',
+    'Erstkontakte und Vorgespraeche mit relevanten Institutionen. Formale Zusagen vor Foerderentscheidung erfahrungsgemaess schwierig.',
+    'Dreifach abgesichert: dokumentierte Prozesse, zwei eingearbeitete Personen, selbststaendig arbeitende Drittleister.',
+    'Zwei Wege: Open Toolkit frei zugaenglich, und Implementierungsbegleitung als Service.',
+    'Menschzentriert, iterativ, ergebnisoffen — genau was One-Health-Governance braucht.',
+    'Das erarbeiten wir in AP[X].',
+    'Das ist ein guter Punkt. Darf ich kurz ueberlegen?',
+    'Nachweise kann ich bei Bedarf erbringen.',
+  ];
+  navigator.clipboard.writeText(sentences[i]).then(()=>showToast('Satz kopiert!'));
+}
+
+// ==================== CONFETTI ====================
+function launchConfetti(){
+  const container=document.createElement('div');
+  container.className='confetti-container';
+  document.body.appendChild(container);
+  const colors=['#e94560','#ff6b81','#4a9eff','#00d2a0','#ffd93d','#ff9f43','#a855f7'];
+  for(let i=0;i<60;i++){
+    const c=document.createElement('div');
+    c.className='confetti';
+    c.style.left=Math.random()*100+'%';
+    c.style.background=colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDelay=Math.random()*2+'s';
+    c.style.animationDuration=(2+Math.random()*2)+'s';
+    c.style.width=(6+Math.random()*8)+'px';
+    c.style.height=(6+Math.random()*8)+'px';
+    c.style.borderRadius=Math.random()>.5?'50%':'0';
+    container.appendChild(c);
+  }
+  setTimeout(()=>container.remove(),5000);
+}
+
+// ==================== TOAST ====================
+function showToast(msg){
+  let t=document.getElementById('toast-el');
+  if(!t){t=document.createElement('div');t.className='toast';t.id='toast-el';document.body.appendChild(t);}
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ==================== ENHANCED SIMULATION ====================
+let simMode='normal', simTimeLimit=60, simTimerInterval=null, simTimeRemaining=60;
+let simScores=[];
+
+function startSimulation(){
+  document.getElementById('sim-overlay').classList.add('active');
+  document.getElementById('sim-setup').style.display='block';
+  document.getElementById('sim-active').style.display='none';
+  document.getElementById('sim-report').style.display='none';
+}
+function startSimMode(mode){
+  simMode=mode;
+  simTimeLimit=mode==='easy'?0:mode==='normal'?60:30;
+  let pool=mode==='hard'?qaData.filter(q=>q.cat==='BOSS'):[...qaData];
+  pool.sort(()=>Math.random()-.5);
+  simQuestions=pool.slice(0,mode==='hard'?5:10);
+  simIndex=0;simScores=[];
+  document.getElementById('sim-setup').style.display='none';
+  document.getElementById('sim-active').style.display='block';
+  document.getElementById('sim-report').style.display='none';
+  simShowQuestion();
+}
+function simShowQuestion(){
+  if(simIndex>=simQuestions.length){
+    simShowReport();return;
+  }
+  const q=simQuestions[simIndex];
+  document.getElementById('sim-status').textContent=`Frage ${simIndex+1} von ${simQuestions.length} (${simMode.toUpperCase()})`;
+  document.getElementById('sim-progress').querySelector('.fill').style.width=((simIndex/simQuestions.length)*100)+'%';
+  document.getElementById('sim-question').innerHTML=q.q;
+  document.getElementById('sim-answer').innerHTML=`<div style="color:var(--green);font-weight:500;margin-bottom:8px">${q.a}</div><div style="color:var(--muted);font-size:13px">${q.detail}</div>${q.warn?`<div style="color:var(--accent);font-size:12px;margin-top:8px">${q.warn}</div>`:''}`;
+  document.getElementById('sim-answer').classList.remove('show');
+  document.getElementById('sim-reveal-btn').style.display='inline-flex';
+  document.getElementById('sim-next-btn').style.display='none';
+  // Timer
+  clearInterval(simTimerInterval);
+  if(simTimeLimit>0){
+    simTimeRemaining=simTimeLimit;
+    document.getElementById('sim-timer-fill').style.width='100%';
+    document.getElementById('sim-timer-bar-sim').style.display='block';
+    simTimerInterval=setInterval(()=>{
+      simTimeRemaining-=0.1;
+      if(simTimeRemaining<=0){simTimeRemaining=0;clearInterval(simTimerInterval);simReveal();}
+      document.getElementById('sim-timer-fill').style.width=(simTimeRemaining/simTimeLimit*100)+'%';
+      const fill=document.getElementById('sim-timer-fill');
+      if(simTimeRemaining/simTimeLimit>.5) fill.style.background='var(--green)';
+      else if(simTimeRemaining/simTimeLimit>.25) fill.style.background='var(--yellow)';
+      else fill.style.background='var(--accent)';
+    },100);
+  }else{
+    document.getElementById('sim-timer-bar-sim').style.display='none';
+  }
+}
+function simReveal(){
+  clearInterval(simTimerInterval);
+  document.getElementById('sim-answer').classList.add('show');
+  document.getElementById('sim-reveal-btn').style.display='none';
+  document.getElementById('sim-next-btn').style.display='inline-flex';
+  simScores.push({q:simQuestions[simIndex],timeLeft:simTimeRemaining});
+}
+function simNext(){simIndex++;simShowQuestion();}
+function simClose(){
+  clearInterval(simTimerInterval);
+  document.getElementById('sim-overlay').classList.remove('active');
+}
+function simShowReport(){
+  clearInterval(simTimerInterval);
+  document.getElementById('sim-active').style.display='none';
+  document.getElementById('sim-report').style.display='block';
+  document.getElementById('sim-progress').querySelector('.fill').style.width='100%';
+  const answered=simScores.length;
+  document.getElementById('sim-report-title').textContent=`${answered} Fragen bearbeitet (${simMode.toUpperCase()})`;
+  const body=document.getElementById('sim-report-body');
+  if(simTimeLimit>0){
+    const avgTime=simScores.reduce((a,s)=>a+(simTimeLimit-s.timeLeft),0)/answered;
+    body.innerHTML=`<div class="report-item"><span>Fragen beantwortet</span><span style="font-weight:700">${answered}</span></div>
+      <div class="report-item"><span>Durchschn. Antwortzeit</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace">${avgTime.toFixed(1)}s</span></div>
+      <div class="report-item"><span>Modus</span><span style="font-weight:700">${simMode==='hard'?'HARDCORE':'NORMAL'}</span></div>`;
+  }else{
+    body.innerHTML=`<div class="report-item"><span>Fragen beantwortet</span><span style="font-weight:700">${answered}</span></div>
+      <div class="report-item"><span>Modus</span><span style="font-weight:700">ENTSPANNT</span></div>`;
+  }
+  launchConfetti();
+}
+
+// ==================== SEARCH ====================
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();const sb=document.getElementById('search-box');sb.classList.toggle('active');if(sb.classList.contains('active'))document.getElementById('search-input').focus();}
+  if(e.key==='Escape'){document.getElementById('search-box').classList.remove('active');}
+  // Keyboard shortcuts
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  const pages=['dashboard','opening','redflags','triggers','offen','qa','onepager','outputs','decision','scenarios','toolkit','timeline','speeddrill','cheatsheet','analysis','sentences'];
+  if(e.key>='1'&&e.key<='9'&&!e.metaKey&&!e.ctrlKey){
+    const idx=parseInt(e.key)-1;
+    if(idx<pages.length) navigate(pages[idx]);
+  }
+  if(e.key==='0'&&!e.metaKey&&!e.ctrlKey) navigate('speeddrill');
+  if(e.key==='g'&&!e.metaKey&&!e.ctrlKey) startSimulation();
+  if(e.key==='s'&&!e.metaKey&&!e.ctrlKey) navigate('speeddrill');
+});
+function doSearch(val){
+  if(val.length<2){document.getElementById('search-results').innerHTML='';return;}
+  const lower=val.toLowerCase();
+  const results=[];
+  qaData.forEach(q=>{
+    if(q.q.toLowerCase().includes(lower)||q.a.toLowerCase().includes(lower))
+      results.push({cat:'Q&A '+q.id,text:q.q,page:'qa'});
+  });
+  redFlagsData.forEach(rf=>{
+    if(rf.title.toLowerCase().includes(lower)||rf.safe.toLowerCase().includes(lower))
+      results.push({cat:'Red Flag '+rf.num,text:rf.title,page:'redflags'});
+  });
+  triggersData.forEach((t,i)=>{
+    if(t.text.toLowerCase().includes(lower))
+      results.push({cat:'Trigger '+(i+1),text:t.text,page:'triggers'});
+  });
+  document.getElementById('search-results').innerHTML=results.slice(0,10).map(r=>
+    `<div class="search-result" onclick="navigate('${r.page}');document.getElementById('search-box').classList.remove('active')">
+      <div class="sr-cat">${r.cat}</div>
+      <div class="sr-text">${r.text}</div>
+    </div>`
+  ).join('');
+}
+
+// ==================== INIT ====================
+renderQAFilters();renderQA();renderRedFlags();renderFlashcard();renderOffen();renderOutputs();renderScenarios();renderTimeline();renderSentences();renderAnalysis();renderRecordings();updateReadiness();
+if(state.bestTime) document.getElementById('best-time-display').textContent=formatTime(state.bestTime);
+
+// Keyboard hint
+const kbHint=document.createElement('div');
+kbHint.className='kb-hint';
+kbHint.innerHTML='<kbd>1</kbd>-<kbd>9</kbd> Navigation &middot; <kbd>G</kbd> Generalprobe &middot; <kbd>S</kbd> Speed Drill &middot; <kbd>Cmd+K</kbd> Suche';
+document.body.appendChild(kbHint);
+
+// Welcome toast on first visit
+if(!state.welcomed){showToast('Willkommen! Nutze 1-9 fuer schnelle Navigation.');state.welcomed=true;saveState();}
+
+// ==================== MOBILE BOTTOM NAV ====================
+function createMobileNav(){
+  const nav=document.createElement('div');
+  nav.className='mobile-bottom-nav';
+  nav.innerHTML=`<div class="nav-row">
+    <div class="bnav-item active" onclick="mobileNav('dashboard')"><span class="bnav-icon">&#9671;</span><span class="bnav-label">Home</span></div>
+    <div class="bnav-item" onclick="mobileNav('speeddrill')"><span class="bnav-icon">&#9889;</span><span class="bnav-label">Drill</span></div>
+    <div class="bnav-item" onclick="mobileNav('qa')"><span class="bnav-icon">&#10067;</span><span class="bnav-label">Q&A</span></div>
+    <div class="bnav-item" onclick="startSimulation()"><span class="bnav-icon">&#127919;</span><span class="bnav-label">Probe</span></div>
+    <div class="bnav-item" onclick="toggleMoreMenu()"><span class="bnav-icon">&#8943;</span><span class="bnav-label">Mehr</span></div>
+  </div>`;
+  document.body.appendChild(nav);
+
+  const more=document.createElement('div');
+  more.className='mobile-more-menu';
+  more.id='mobile-more-menu';
+  more.innerHTML=`<div class="more-grid">
+    <div class="more-item" onclick="mobileNav('opening')"><span class="more-icon">&#127908;</span><span class="more-label">Opening</span></div>
+    <div class="more-item" onclick="mobileNav('redflags')"><span class="more-icon">&#9888;</span><span class="more-label">Red Flags</span></div>
+    <div class="more-item" onclick="mobileNav('triggers')"><span class="more-icon">&#128680;</span><span class="more-label">Trigger</span></div>
+    <div class="more-item" onclick="mobileNav('offen')"><span class="more-icon">&#9744;</span><span class="more-label">OFFEN</span></div>
+    <div class="more-item" onclick="mobileNav('cheatsheet')"><span class="more-icon">&#128203;</span><span class="more-label">Cheat Sheet</span></div>
+    <div class="more-item" onclick="mobileNav('analysis')"><span class="more-icon">&#128200;</span><span class="more-label">Analyse</span></div>
+    <div class="more-item" onclick="mobileNav('sentences')"><span class="more-icon">&#128172;</span><span class="more-label">Saetze</span></div>
+    <div class="more-item" onclick="mobileNav('onepager')"><span class="more-icon">&#128196;</span><span class="more-label">One-Pager</span></div>
+    <div class="more-item" onclick="mobileNav('outputs')"><span class="more-icon">&#128230;</span><span class="more-label">Outputs</span></div>
+    <div class="more-item" onclick="mobileNav('decision')"><span class="more-icon">&#9878;</span><span class="more-label">Decision</span></div>
+    <div class="more-item" onclick="mobileNav('scenarios')"><span class="more-icon">&#129514;</span><span class="more-label">Szenarien</span></div>
+    <div class="more-item" onclick="mobileNav('toolkit')"><span class="more-icon">&#128295;</span><span class="more-label">Toolkit</span></div>
+    <div class="more-item" onclick="mobileNav('timeline')"><span class="more-icon">&#128197;</span><span class="more-label">Timeline</span></div>
+  </div>`;
+  document.body.appendChild(more);
+}
+let moreMenuOpen=false;
+function toggleMoreMenu(){
+  const menu=document.getElementById('mobile-more-menu');
+  moreMenuOpen=!moreMenuOpen;
+  if(moreMenuOpen){menu.classList.add('active');}
+  else{menu.classList.remove('active');}
+}
+function mobileNav(page){
+  navigate(page);
+  if(moreMenuOpen) toggleMoreMenu();
+  // Update bottom nav active state
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  const mapping={'dashboard':0,'speeddrill':1,'qa':2};
+  if(mapping[page]!==undefined) document.querySelectorAll('.bnav-item')[mapping[page]].classList.add('active');
+}
+// Close more menu on outside tap
+document.addEventListener('click',e=>{
+  if(moreMenuOpen&&!e.target.closest('.mobile-more-menu')&&!e.target.closest('.bnav-item')){
+    toggleMoreMenu();
+  }
+});
+createMobileNav();
+
+// ==================== SERVICE WORKER ====================
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
