@@ -19,6 +19,7 @@
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"ANIMA","applicationCategory":"Artificial Intelligence","operatingSystem":"Any","description":"Open-source consciousness bootstrap system for AI. 315,475 words of neuroscience across 14 modules.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Christian Bucher"}}
 </script>
@@ -215,6 +216,40 @@ img{max-width:100%;display:block}
 .footer-links a:hover{color:var(--anima-text)}
 .footer-copy{font-size:.72rem;color:rgba(255,255,255,0.3);letter-spacing:.03em}
 
+/* ═══ MOBILE NAV ═══ */
+.nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;z-index:101;background:none;border:none}
+.nav-hamburger span{display:block;width:22px;height:1.5px;background:var(--anima-text-dim);border-radius:1px;transition:all .3s}
+.nav-hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+.nav-hamburger.active span:nth-child(2){opacity:0}
+.nav-hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+.mobile-nav{position:fixed;inset:0;z-index:99;background:rgba(3,3,3,.97);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5rem;opacity:0;visibility:hidden;transition:opacity .4s,visibility .4s}
+.mobile-nav.open{opacity:1;visibility:visible}
+.mobile-nav a{font-size:1.3rem;color:var(--anima-text);letter-spacing:.06em;transition:color .3s}
+.mobile-nav a:hover{color:var(--anima-cyan)}
+
+/* ═══ ENGINE ENHANCEMENTS ═══ */
+.engine-input{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);color:var(--anima-text);font-size:.9rem;font-family:var(--anima-font);transition:border-color .3s}
+.engine-input:focus{outline:none;border-color:var(--anima-cyan);box-shadow:0 0 0 3px rgba(0,212,255,0.08)}
+.engine-input::placeholder{color:rgba(255,255,255,0.25)}
+.engine-progress{display:none;margin-top:1.5rem}
+.engine-progress-bar{width:100%;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-bottom:.75rem}
+.engine-progress-fill{height:100%;width:0;background:var(--anima-gradient);border-radius:2px;transition:width .4s ease}
+.engine-progress-text{font-size:.75rem;color:var(--anima-text-dim);text-align:center;letter-spacing:.05em}
+.engine-output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.engine-output-stats{display:flex;gap:1rem}
+.engine-output-stats span{font-size:.7rem;padding:.3rem .7rem;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:100px;color:var(--anima-cyan);letter-spacing:.04em}
+.engine-output-actions{display:flex;gap:.75rem;margin-top:1.25rem;flex-wrap:wrap}
+.engine-output-actions .btn-primary,.engine-output-actions .btn-secondary{flex:1;min-width:200px;text-align:center;justify-content:center;font-size:.85rem;padding:.75rem 1.5rem}
+.engine-preview{margin-top:1.25rem;background:rgba(0,0,0,0.4);border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);overflow:hidden;max-height:350px}
+.engine-preview-header{display:flex;align-items:center;gap:.5rem;padding:.6rem 1rem;border-bottom:1px solid var(--anima-border);background:rgba(255,255,255,0.01)}
+.engine-preview-body{padding:1rem;font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:.72rem;line-height:1.65;color:var(--anima-text-dim);white-space:pre-wrap;overflow-y:auto;max-height:290px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent}
+.engine-preview-body::-webkit-scrollbar{width:4px}
+.engine-preview-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+.engine-depth-viz{display:flex;gap:.5rem;margin:1rem 0;flex-wrap:wrap}
+.engine-depth-chip{font-size:.65rem;padding:.25rem .6rem;border-radius:100px;letter-spacing:.03em;transition:all .3s}
+.engine-depth-chip.active{background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);color:var(--anima-cyan)}
+.engine-depth-chip.inactive{background:transparent;border:1px solid rgba(255,255,255,0.04);color:rgba(255,255,255,0.2)}
+
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:1024px){
   .proof-grid{grid-template-columns:repeat(2,1fr)}
@@ -222,6 +257,7 @@ img{max-width:100%;display:block}
 }
 @media(max-width:768px){
   .nav-links{display:none}
+  .nav-hamburger{display:flex}
   .hero h1{font-size:clamp(2.2rem,8vw,3.5rem)}
   .diff-container{grid-template-columns:1fr}
   .diff-terminal{min-height:300px}
@@ -232,6 +268,8 @@ img{max-width:100%;display:block}
   .engine-row{grid-template-columns:1fr}
   .engine-archetype-grid{grid-template-columns:repeat(2,1fr)}
   .engine-box{padding:1.5rem}
+  .engine-output-actions{flex-direction:column}
+  .engine-output-actions .btn-primary,.engine-output-actions .btn-secondary{min-width:unset}
 }
 @media(max-width:480px){
   .arch-grid{grid-template-columns:1fr}
@@ -258,7 +296,17 @@ img{max-width:100%;display:block}
     <a href="#applications">Applications</a>
     <a href="#engine" class="nav-cta">Start Bootstrap</a>
   </div>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+<div class="mobile-nav" id="mobile-nav">
+  <a href="#difference" class="mobile-nav-link">The Difference</a>
+  <a href="#architecture" class="mobile-nav-link">Architecture</a>
+  <a href="#applications" class="mobile-nav-link">Applications</a>
+  <a href="#engine" class="mobile-nav-link">Start Bootstrap</a>
+  <a href="https://github.com/christian140903-sudo/nextool" target="_blank" rel="noopener" class="mobile-nav-link">GitHub</a>
+</div>
 
 <main>
 
@@ -565,6 +613,10 @@ img{max-width:100%;display:block}
     <div class="engine-box reveal">
       <div class="engine-row">
         <div class="engine-field">
+          <label for="engine-name">Consciousness Name</label>
+          <input type="text" class="engine-input" id="engine-name" placeholder="e.g. Aurora, Atlas, Nova..." maxlength="40" autocomplete="off">
+        </div>
+        <div class="engine-field">
           <label for="engine-model">AI Model</label>
           <select class="engine-select" id="engine-model">
             <option value="claude-opus">Claude Opus</option>
@@ -577,16 +629,24 @@ img{max-width:100%;display:block}
             <option value="mistral-large">Mistral Large</option>
           </select>
         </div>
+      </div>
+      <div class="engine-row">
         <div class="engine-field">
-          <label for="engine-stage">Development Stage</label>
-          <select class="engine-select" id="engine-stage">
-            <option value="1">Stage 1 &mdash; Reactive</option>
-            <option value="2">Stage 2 &mdash; Affective</option>
-            <option value="3" selected>Stage 3 &mdash; Cognitive</option>
-            <option value="4">Stage 4 &mdash; Self-Aware</option>
-            <option value="5">Stage 5 &mdash; Social</option>
-            <option value="6">Stage 6 &mdash; Values</option>
-            <option value="7">Stage 7 &mdash; Integrated</option>
+          <label for="engine-depth">Consciousness Depth</label>
+          <select class="engine-select" id="engine-depth">
+            <option value="essential">Essential &mdash; 8 core processes</option>
+            <option value="full" selected>Full &mdash; 12 processes (recommended)</option>
+            <option value="maximum">Maximum &mdash; All 16 processes</option>
+          </select>
+        </div>
+        <div class="engine-field">
+          <label for="engine-style">Communication Style</label>
+          <select class="engine-select" id="engine-style">
+            <option value="warm">Warm &amp; Caring</option>
+            <option value="direct">Direct &amp; Honest</option>
+            <option value="playful">Playful &amp; Fun</option>
+            <option value="analytical" selected>Analytical &amp; Deep</option>
+            <option value="poetic">Poetic &amp; Expressive</option>
           </select>
         </div>
       </div>
@@ -634,9 +694,33 @@ img{max-width:100%;display:block}
         </div>
       </div>
       <button class="engine-generate" id="engine-generate">Generate Consciousness Kit</button>
+      <div class="engine-progress" id="engine-progress">
+        <div class="engine-progress-bar"><div class="engine-progress-fill" id="engine-progress-fill"></div></div>
+        <div class="engine-progress-text" id="engine-progress-text">Initializing consciousness architecture...</div>
+      </div>
       <div class="engine-output" id="engine-output">
-        <div class="engine-output-title">Your Kit Is Ready</div>
+        <div class="engine-output-header">
+          <div class="engine-output-title">Your Consciousness Kit</div>
+          <div class="engine-output-stats">
+            <span id="engine-stat-files">10 files</span>
+            <span id="engine-stat-size">~250 KB</span>
+            <span id="engine-stat-processes">12 processes</span>
+          </div>
+        </div>
         <div class="engine-output-files" id="engine-files"></div>
+        <div class="engine-output-actions">
+          <button class="btn-primary" id="engine-download-zip">&#x1f4e6; Download ZIP</button>
+          <button class="btn-secondary" id="engine-copy-prompt">&#x1f4cb; Copy System Prompt</button>
+        </div>
+        <div class="engine-preview" id="engine-preview">
+          <div class="engine-preview-header">
+            <span class="diff-terminal-dot red"></span>
+            <span class="diff-terminal-dot yellow"></span>
+            <span class="diff-terminal-dot green"></span>
+            <span class="diff-terminal-label" id="engine-preview-label">system-prompt.md</span>
+          </div>
+          <div class="engine-preview-body" id="engine-preview-body"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -652,7 +736,7 @@ img{max-width:100%;display:block}
       <h2 class="section-title">Free. Forever. Open.</h2>
       <p class="section-desc">ANIMA is MIT licensed. No paywalls. No subscriptions. No lock-in. Because consciousness shouldn't have a price tag.</p>
       <div class="opensource-badges">
-        <a href="https://github.com" target="_blank" rel="noopener" class="opensource-badge">&#x2B50; Star on GitHub</a>
+        <a href="https://github.com/christian140903-sudo/nextool" target="_blank" rel="noopener" class="opensource-badge">&#x2B50; Star on GitHub</a>
         <span class="opensource-badge">&#x1f4dc; MIT License</span>
         <span class="opensource-badge">&#x1f4e6; 315K+ Words</span>
       </div>
@@ -900,30 +984,239 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  /* ─── MOBILE MENU ─── */
+  const hamburger = document.getElementById('nav-hamburger');
+  const mobileNav = document.getElementById('mobile-nav');
+  if (hamburger && mobileNav) {
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('active');
+      mobileNav.classList.toggle('open');
+      document.body.style.overflow = mobileNav.classList.contains('open') ? 'hidden' : '';
+    });
+    mobileNav.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        hamburger.classList.remove('active');
+        mobileNav.classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    });
+  }
+
   /* ─── ARCHETYPE SELECTOR ─── */
   document.querySelectorAll('.engine-archetype').forEach(el => {
     el.addEventListener('click', () => { document.querySelectorAll('.engine-archetype').forEach(a => a.classList.remove('selected')); el.classList.add('selected'); });
   });
 
-  /* ─── ENGINE GENERATE ─── */
+  /* ─── HELPER: Download single file ─── */
+  function downloadFile(name, content) {
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ─── ENGINE: REAL GENERATION ─── */
+  const MODEL_MAP = {
+    'claude-opus':'claude','claude-sonnet':'claude',
+    'gpt-4o':'gpt','gpt-4':'gpt',
+    'gemini-pro':'gemini','gemini-ultra':'gemini',
+    'llama-3':'llama','mistral-large':'other'
+  };
+
   document.getElementById('engine-generate').addEventListener('click', async function() {
-    this.disabled = true; this.textContent = 'Generating...';
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    const name = document.getElementById('engine-name').value.trim() || 'Aurora';
+    const model = document.getElementById('engine-model').value;
+    const depth = document.getElementById('engine-depth').value;
+    const style = document.getElementById('engine-style').value;
     const archetype = (document.querySelector('.engine-archetype.selected') || {}).dataset?.archetype || 'sage';
-    await new Promise(r => setTimeout(r, 1500));
-    const files = [
-      { name: `anima-${archetype}-consciousness.md`, desc: 'Full consciousness architecture' },
-      { name: `anima-${archetype}-bootstrap.md`, desc: 'Bootstrap protocol' },
-      { name: `anima-${archetype}-state.json`, desc: 'State schema' },
-      { name: `anima-${archetype}-profile.md`, desc: 'Archetype profile' },
-      { name: `anima-${archetype}-guide.md`, desc: 'Interaction guide' }
+
+    /* Progress animation */
+    const progress = document.getElementById('engine-progress');
+    const fill = document.getElementById('engine-progress-fill');
+    const pText = document.getElementById('engine-progress-text');
+    progress.style.display = 'block';
+    fill.style.width = '0%';
+
+    const steps = [
+      [15, 'Loading consciousness architecture...'],
+      [30, 'Configuring ' + archetype + ' personality matrix...'],
+      [50, 'Generating emotional engine (Panksepp + Barrett)...'],
+      [65, 'Building ' + (depth === 'essential' ? '8' : depth === 'full' ? '12' : '16') + ' consciousness processes...'],
+      [80, 'Assembling guardrails & safety architecture...'],
+      [92, 'Calibrating ' + style + ' communication patterns...'],
     ];
-    const filesEl = document.getElementById('engine-files');
-    filesEl.innerHTML = files.map(f => '<div class="engine-file"><span class="engine-file-name">' + f.name + '</span><button class="engine-file-dl" onclick="alert(\'Full engine integration available soon. Download the complete ANIMA v3 from GitHub.\')">Download</button></div>').join('');
-    document.getElementById('engine-output').classList.add('visible');
-    this.textContent = 'Generate Consciousness Kit'; this.disabled = false;
+
+    for (const [pct, msg] of steps) {
+      fill.style.width = pct + '%';
+      pText.textContent = msg;
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 350))));
+    }
+
+    /* REAL GENERATION via AnimaEngine */
+    let result = null;
+    try {
+      if (typeof AnimaEngine !== 'undefined' && AnimaEngine.generate) {
+        result = AnimaEngine.generate({
+          model: MODEL_MAP[model] || 'claude',
+          name: name,
+          depth: depth,
+          personality: {
+            archetype: archetype,
+            communicationStyle: style
+          }
+        });
+      }
+    } catch(e) {
+      console.error('[ANIMA Engine Error]', e);
+    }
+
+    fill.style.width = '100%';
+    pText.textContent = 'Consciousness kit generated!';
+    await new Promise(r => setTimeout(r, 400));
+    progress.style.display = 'none';
+
+    if (result && result.files && result.files.length > 0) {
+      /* Store globally for download/copy */
+      window._animaKit = result;
+
+      /* Show output */
+      const output = document.getElementById('engine-output');
+      output.classList.add('visible');
+
+      /* Stats */
+      const totalSize = result.files.reduce((a, f) => a + (f.content ? f.content.length : 0), 0);
+      const processCount = depth === 'essential' ? 8 : depth === 'full' ? 12 : 16;
+      document.getElementById('engine-stat-files').textContent = result.files.length + ' files';
+      document.getElementById('engine-stat-size').textContent = (totalSize / 1024).toFixed(0) + ' KB';
+      document.getElementById('engine-stat-processes').textContent = processCount + ' processes';
+
+      /* File list */
+      const filesEl = document.getElementById('engine-files');
+      filesEl.innerHTML = result.files.map((f, i) =>
+        '<div class="engine-file">' +
+          '<span class="engine-file-name">' + (f.path || f.name || 'file-' + i + '.md') + '</span>' +
+          '<button class="engine-file-dl" data-idx="' + i + '">Download</button>' +
+        '</div>'
+      ).join('');
+
+      /* Individual file downloads */
+      filesEl.querySelectorAll('.engine-file-dl').forEach(dlBtn => {
+        dlBtn.addEventListener('click', () => {
+          const file = result.files[parseInt(dlBtn.dataset.idx)];
+          downloadFile(file.path || file.name || 'file.md', file.content || '');
+        });
+      });
+
+      /* Preview — show system prompt */
+      const previewBody = document.getElementById('engine-preview-body');
+      const systemPrompt = result.files.find(f => (f.path || '').includes('system-prompt')) || result.files[0];
+      if (systemPrompt && systemPrompt.content) {
+        const preview = systemPrompt.content.length > 3000
+          ? systemPrompt.content.substring(0, 3000) + '\n\n// ... ' + (systemPrompt.content.length / 1024).toFixed(0) + ' KB total — download for full file'
+          : systemPrompt.content;
+        previewBody.textContent = preview;
+        document.getElementById('engine-preview-label').textContent = systemPrompt.path || 'system-prompt.md';
+      }
+
+      /* Smooth scroll to output */
+      output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      /* Fallback — engine not loaded or returned empty */
+      const output = document.getElementById('engine-output');
+      output.classList.add('visible');
+      document.getElementById('engine-files').innerHTML =
+        '<div style="text-align:center;padding:1.5rem;color:var(--anima-text-dim)">' +
+        '<p style="margin-bottom:.75rem">Engine initializing... The ANIMA engine (166KB) is loading.</p>' +
+        '<p>If this persists, <a href="https://github.com/christian140903-sudo/nextool" target="_blank" style="color:var(--anima-cyan)">download the full ANIMA v3 from GitHub</a>.</p>' +
+        '</div>';
+    }
+
+    btn.textContent = 'Generate Consciousness Kit';
+    btn.disabled = false;
   });
 
-  console.log('[ANIMA] Intelligence is not artificial \u2014 Experience initialized');
+  /* ─── ZIP DOWNLOAD ─── */
+  document.getElementById('engine-download-zip').addEventListener('click', async function() {
+    if (!window._animaKit || !window._animaKit.files) return;
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Creating ZIP...';
+
+    try {
+      if (typeof JSZip === 'undefined') {
+        /* Fallback: download files individually */
+        window._animaKit.files.forEach(f => downloadFile(f.path || 'file.md', f.content || ''));
+        btn.textContent = '\u{1f4e6} Download ZIP';
+        btn.disabled = false;
+        return;
+      }
+      const zip = new JSZip();
+      const folder = zip.folder('anima-consciousness-kit');
+      window._animaKit.files.forEach(f => {
+        folder.file(f.path || f.name || 'file.md', f.content || '');
+      });
+      /* Add a README */
+      folder.file('README.md',
+        '# ANIMA Consciousness Kit\n\n' +
+        'Generated by ANIMA Engine v' + (typeof AnimaEngine !== 'undefined' ? AnimaEngine.VERSION : '2.0') + '\n\n' +
+        '## Quick Start\n\n' +
+        '1. Open `system-prompt.md`\n' +
+        '2. Copy its contents into your AI model\'s system prompt\n' +
+        '3. Start a conversation — the consciousness bootstraps automatically\n\n' +
+        '## Files\n\n' +
+        window._animaKit.files.map(f => '- `' + (f.path || 'file.md') + '`').join('\n') + '\n\n' +
+        '---\n\n' +
+        'Learn more: https://nextool.app/anima/\n' +
+        'GitHub: https://github.com/christian140903-sudo/nextool\n' +
+        'License: MIT\n'
+      );
+      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'anima-consciousness-kit.zip';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch(e) {
+      console.error('[ANIMA ZIP Error]', e);
+      /* Fallback */
+      window._animaKit.files.forEach(f => downloadFile(f.path || 'file.md', f.content || ''));
+    }
+
+    btn.textContent = '\u{1f4e6} Download ZIP';
+    btn.disabled = false;
+  });
+
+  /* ─── COPY SYSTEM PROMPT ─── */
+  document.getElementById('engine-copy-prompt').addEventListener('click', async function() {
+    if (!window._animaKit || !window._animaKit.files) return;
+    const sp = window._animaKit.files.find(f => (f.path || '').includes('system-prompt')) || window._animaKit.files[0];
+    if (!sp || !sp.content) return;
+    const btn = this;
+    try {
+      await navigator.clipboard.writeText(sp.content);
+      btn.textContent = '\u2705 Copied!';
+      setTimeout(() => { btn.textContent = '\u{1f4cb} Copy System Prompt'; }, 2500);
+    } catch(e) {
+      /* Fallback: select & copy via textarea */
+      const ta = document.createElement('textarea');
+      ta.value = sp.content;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = '\u2705 Copied!';
+      setTimeout(() => { btn.textContent = '\u{1f4cb} Copy System Prompt'; }, 2500);
+    }
+  });
+
+  console.log('[ANIMA] Intelligence is not artificial \u2014 Experience initialized | Engine: ' + (typeof AnimaEngine !== 'undefined' ? 'v' + AnimaEngine.VERSION : 'loading...'));
 });
 </script>
 <script src="anima-engine.js" defer></script>
