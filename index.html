@@ -241,7 +241,7 @@
     .section-dot:hover:not(.active) { border-color: rgba(255,255,255,0.4); }
 
     /* === HERO === */
-    .hero-wrapper { height: 400vh; position: relative; }
+    .hero-wrapper { height: 200vh; position: relative; }
     .hero {
       position: relative; width: 100%; height: 100vh;
       display: flex; align-items: center; justify-content: center; overflow: hidden;
@@ -1090,6 +1090,7 @@
     let flowField;
     try { flowField = new FlowField(document.getElementById('flowfield')); } catch (e) { flowField = null; }
     const field = new ConsciousnessField(document.getElementById('particles'));
+    field.progress = 0.4; // Show particles immediately
     const sound = new AmbientSound();
     createGrain();
 
@@ -1135,6 +1136,19 @@
       } else { setTimeout(loadStep, 150 + Math.random() * 250); }
     }
     window.addEventListener('load', () => setTimeout(loadStep, 200));
+
+    // --- GSAP Fallback (if CDN fails or animations don't trigger) ---
+    setTimeout(() => {
+      const hc = document.getElementById('hero-content');
+      if (hc && parseFloat(getComputedStyle(hc).opacity) < 0.1) {
+        hc.style.opacity = '1';
+        hc.style.transform = 'none';
+        document.querySelectorAll('.reveal').forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; });
+        document.getElementById('preloader').classList.add('done');
+        document.getElementById('nav').classList.add('visible');
+        document.getElementById('section-nav').classList.add('visible');
+      }
+    }, 4000);
 
     // --- Custom Cursor ---
     if (IS_DESKTOP) {
@@ -1205,38 +1219,44 @@
       // Hero character animation
       const heroChars = splitChars(document.getElementById('hero-title'));
 
-      // Hero ScrollTrigger
+      // Hero ENTRANCE animation (immediate after preloader)
+      const heroTL = gsap.timeline();
+      heroTL
+        .to('#hero-content', { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' })
+        .from(heroChars, { opacity: 0, y: 60, rotateX: -70, stagger: 0.035, duration: 0.7, ease: 'power4.out' }, '-=0.5')
+        .from('.hero-badge', { opacity: 0, y: -20, duration: 0.5, ease: 'power3.out' }, '-=0.6')
+        .from('.hero-sub', { opacity: 0, y: 15, duration: 0.5, ease: 'power3.out' }, '-=0.4')
+        .from('.hero-sub2', { opacity: 0, y: 15, duration: 0.5, ease: 'power3.out' }, '-=0.3')
+        .from('.hero-cta', { opacity: 0, y: 15, duration: 0.5, ease: 'power3.out' }, '-=0.2');
+
+      // Hero SCROLL behavior: parallax exit (fade out as user scrolls)
       ScrollTrigger.create({
         trigger: '.hero-wrapper', start: 'top top', end: 'bottom bottom',
         pin: '.hero',
         onUpdate: self => {
           const p = self.progress;
-          field.progress = p;
+          field.progress = 0.4 + p * 0.6;
           if (flowField && flowField.supported) flowField.scroll = p;
           sound.setScroll(p);
 
-          // Hero content reveal (72-92%)
-          const ts = 0.72, te = 0.92;
-          const tp = Math.max(0, Math.min(1, (p - ts) / (te - ts)));
-          const ease = tp < 1 ? 1 - Math.pow(1 - tp, 3) : 1;
+          // Hero content fades OUT during scroll (parallax exit)
+          const fadeStart = 0.25, fadeEnd = 0.75;
           const hc = document.getElementById('hero-content');
-          hc.style.opacity = ease;
-          hc.style.transform = `translateY(${(1 - ease) * 40}px)`;
-
-          // Character stagger (75-95%)
-          if (p > 0.74) {
-            const cp = Math.min(1, (p - 0.74) / 0.18);
-            heroChars.forEach((c, i) => {
-              const delay = i * 0.08;
-              const charP = Math.max(0, Math.min(1, (cp - delay) / (1 - delay * heroChars.length * 0.2)));
-              const e2 = charP < 1 ? 1 - Math.pow(1 - charP, 4) : 1;
-              c.style.opacity = e2;
-              c.style.transform = `translateY(${(1 - e2) * 110}%) rotateX(${(1 - e2) * -70}deg)`;
-            });
+          if (p <= fadeStart) {
+            hc.style.opacity = '1';
+            hc.style.transform = 'translateY(0)';
+          } else if (p < fadeEnd) {
+            const fp = (p - fadeStart) / (fadeEnd - fadeStart);
+            const e = 1 - Math.pow(fp, 2);
+            hc.style.opacity = e;
+            hc.style.transform = `translateY(${-fp * 80}px)`;
+          } else {
+            hc.style.opacity = '0';
+            hc.style.transform = 'translateY(-80px)';
           }
 
-          // Scroll indicator
-          document.getElementById('scroll-indicator').style.opacity = Math.max(0, 1 - p * 5);
+          // Scroll indicator fades quickly
+          document.getElementById('scroll-indicator').style.opacity = Math.max(0, 1 - p * 4);
         }
       });
 
@@ -1250,9 +1270,9 @@
         }
       });
 
-      // Nav + Section dots visibility
+      // Nav + Section dots visibility (show after slight scroll)
       ScrollTrigger.create({
-        trigger: '#what', start: 'top 80%',
+        trigger: '.hero-wrapper', start: 'top -80',
         onEnter: () => { document.getElementById('nav').classList.add('visible'); document.getElementById('section-nav').classList.add('visible'); },
         onLeaveBack: () => { document.getElementById('nav').classList.remove('visible'); document.getElementById('section-nav').classList.remove('visible'); }
       });
