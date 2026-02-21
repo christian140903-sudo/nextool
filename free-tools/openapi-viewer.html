@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAPI / Swagger Viewer — Free Online API Docs Viewer | ANIMA</title>
+<meta name="description" content="Free online OpenAPI and Swagger JSON viewer. Paste your API spec to render beautiful, readable documentation with grouped endpoints, method badges, and schemas.">
+<meta name="keywords" content="OpenAPI viewer, Swagger viewer, API documentation, OpenAPI 3.0, Swagger 2.0, free online tool, ANIMA">
+<meta property="og:title" content="Free OpenAPI / Swagger Viewer | ANIMA">
+<meta property="og:description" content="Paste OpenAPI or Swagger JSON to render readable API docs. Grouped endpoints, method badges, expandable schemas. 100% free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/openapi-viewer.html">
+<meta property="og:image" content="https://nextool.app/img/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/openapi-viewer.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free OpenAPI / Swagger Viewer | ANIMA">
+<meta name="twitter:description" content="Render OpenAPI & Swagger specs as beautiful API documentation. Free online tool by ANIMA.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"OpenAPI / Swagger Viewer","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free online OpenAPI and Swagger JSON viewer that renders API specs as readable documentation."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#7c3aed;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--blue:#3b82f6;--orange:#f97316;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+.tool-container{max-width:1200px;margin:0 auto;padding:0 1.5rem 3rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;align-items:center}
+.toolbar button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.toolbar button:hover{border-color:var(--primary);background:rgba(124,58,237,.12)}
+.toolbar button.active{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent;color:#fff}
+.status-bar{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;font-size:.8rem;color:var(--text2)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.valid{background:var(--green)}
+.status-dot.invalid{background:var(--red)}
+.status-dot.empty{background:var(--border)}
+.input-panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem}
+.panel-header{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,36,0.5)}
+#specInput{width:100%;min-height:200px;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:1rem;resize:vertical;outline:none;line-height:1.7;tab-size:2}
+#specInput::placeholder{color:var(--text2);opacity:.5}
+.api-docs{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.api-header{padding:1.5rem;border-bottom:1px solid var(--border)}
+.api-header h2{font-size:1.4rem;font-weight:700;margin-bottom:.25rem}
+.api-header .version{display:inline-block;background:var(--primary);color:#fff;padding:2px 8px;border-radius:6px;font-size:.75rem;font-weight:600;margin-left:.5rem}
+.api-header .base-url{color:var(--cyan);font-family:'Courier New',monospace;font-size:.85rem;margin-top:.5rem;word-break:break-all}
+.api-header p{color:var(--text2);font-size:.9rem;margin-top:.5rem}
+.tag-group{border-bottom:1px solid var(--border)}
+.tag-header{padding:1rem 1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:rgba(26,26,36,0.3);transition:background .2s}
+.tag-header:hover{background:rgba(26,26,36,0.6)}
+.tag-header h3{font-size:1rem;font-weight:700}
+.tag-header .count{font-size:.75rem;color:var(--text2);background:var(--surface2);padding:2px 8px;border-radius:6px}
+.tag-header .arrow{color:var(--text2);transition:transform .2s;font-size:.8rem}
+.tag-header.open .arrow{transform:rotate(90deg)}
+.tag-content{display:none;padding:0}
+.tag-content.open{display:block}
+.endpoint{border-top:1px solid var(--border);padding:1rem 1.5rem;cursor:pointer;transition:background .2s}
+.endpoint:hover{background:rgba(124,58,237,.05)}
+.endpoint-summary{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.method-badge{font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;font-family:'Courier New',monospace;min-width:55px;text-align:center;color:#fff}
+.method-get{background:#22c55e}
+.method-post{background:#3b82f6}
+.method-put{background:#f97316}
+.method-patch{background:#eab308;color:#000}
+.method-delete{background:#ef4444}
+.method-options{background:#6b7280}
+.method-head{background:#8b5cf6}
+.endpoint-path{font-family:'Courier New',monospace;font-size:.85rem;color:var(--text);font-weight:600}
+.endpoint-desc{color:var(--text2);font-size:.8rem;margin-left:auto}
+.endpoint-details{display:none;padding:1rem 1.5rem;background:rgba(17,17,24,0.5);border-top:1px solid var(--border)}
+.endpoint-details.open{display:block}
+.detail-section{margin-bottom:1rem}
+.detail-section h4{font-size:.8rem;font-weight:700;color:var(--accent);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.5px}
+.param-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.param-table th{text-align:left;padding:.4rem .6rem;color:var(--text2);border-bottom:1px solid var(--border);font-weight:600}
+.param-table td{padding:.4rem .6rem;border-bottom:1px solid rgba(42,42,58,0.5)}
+.param-name{color:var(--cyan);font-family:'Courier New',monospace;font-weight:600}
+.param-required{color:var(--red);font-size:.7rem;font-weight:700;margin-left:.3rem}
+.param-type{color:var(--yellow);font-family:'Courier New',monospace;font-size:.75rem}
+.param-in{color:var(--text2);font-size:.75rem;background:var(--surface2);padding:1px 6px;border-radius:4px}
+.schema-block{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;font-family:'Courier New',monospace;font-size:.8rem;overflow-x:auto;white-space:pre-wrap;color:var(--text2);max-height:300px;overflow-y:auto}
+.response-code{display:inline-block;font-weight:700;font-family:'Courier New',monospace;padding:2px 6px;border-radius:4px;font-size:.75rem;margin-right:.5rem}
+.response-2xx{background:rgba(34,197,94,0.15);color:var(--green)}
+.response-4xx{background:rgba(239,68,68,0.15);color:var(--red)}
+.response-5xx{background:rgba(239,68,68,0.15);color:var(--red)}
+.response-3xx{background:rgba(249,115,22,0.15);color:var(--orange)}
+.error-msg{padding:1.5rem;color:var(--red);font-size:.9rem}
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,58,237,.3)}
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .endpoint-summary{flex-direction:column;align-items:flex-start;gap:.3rem}
+  .endpoint-desc{margin-left:0}
+  .api-header{padding:1rem}
+  .tag-header{padding:.75rem 1rem}
+  .endpoint{padding:.75rem 1rem}
+  .endpoint-details{padding:.75rem 1rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">ANIMA</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="https://github.com/christian140903-sudo/nextool" class="nav-cta" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>OpenAPI / Swagger Viewer</span></h1>
+  <p>Paste your OpenAPI 3.0 or Swagger 2.0 JSON to render beautiful, interactive API documentation. Grouped endpoints, method badges, expandable schemas. No signup required.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="toolbar">
+    <button onclick="renderSpec()">Render</button>
+    <button onclick="loadSample()">Load Sample</button>
+    <button onclick="clearAll()">Clear</button>
+    <button onclick="expandAll()">Expand All</button>
+    <button onclick="collapseAll()">Collapse All</button>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot empty" id="statusDot"></span></span>
+    <span id="statusText">Paste an OpenAPI or Swagger JSON spec</span>
+  </div>
+
+  <div class="input-panel">
+    <div class="panel-header"><span>OpenAPI / Swagger JSON</span></div>
+    <textarea id="specInput" placeholder='Paste your OpenAPI 3.0 or Swagger 2.0 JSON here...'  spellcheck="false"></textarea>
+  </div>
+
+  <div id="apiDocs"></div>
+</div>
+
+<section class="cta-section fade-in">
+  <h2>Need a <span>custom API</span>?</h2>
+  <p>Let us build it for you. Custom APIs, dashboards, automations — whatever you need.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">250+ Free Tools</a>
+      <a href="/about/">About</a>
+      <a href="/docs/">Documentation</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="/about/">FAQ</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">ANIMA Home</a><a href="/#contact">Contact</a><a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 ANIMA. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function renderSpec(){
+  const raw=document.getElementById('specInput').value.trim();
+  const dot=document.getElementById('statusDot');
+  const stxt=document.getElementById('statusText');
+  const docsEl=document.getElementById('apiDocs');
+  if(!raw){dot.className='status-dot empty';stxt.textContent='Paste an OpenAPI or Swagger JSON spec';docsEl.innerHTML='';return}
+  let spec;
+  try{spec=JSON.parse(raw)}catch(e){dot.className='status-dot invalid';stxt.textContent='Invalid JSON: '+e.message;docsEl.innerHTML='<div class="error-msg">Invalid JSON. Please check your input.</div>';return}
+  const isOA3=!!spec.openapi;
+  const isSwagger=!!spec.swagger;
+  if(!isOA3&&!isSwagger){dot.className='status-dot invalid';stxt.textContent='Not a valid OpenAPI or Swagger spec';docsEl.innerHTML='<div class="error-msg">Could not detect OpenAPI 3.x (openapi field) or Swagger 2.0 (swagger field).</div>';return}
+  dot.className='status-dot valid';
+  const version=isOA3?spec.openapi:spec.swagger;
+  const info=spec.info||{};
+  const title=info.title||'Untitled API';
+  const desc=info.description||'';
+  const apiVersion=info.version||'';
+  let baseUrl='';
+  if(isOA3&&spec.servers&&spec.servers.length){baseUrl=spec.servers[0].url||''}
+  else if(isSwagger){baseUrl=(spec.schemes&&spec.schemes[0]||'https')+'://'+(spec.host||'')+(spec.basePath||'')}
+  stxt.textContent=(isOA3?'OpenAPI ':'Swagger ')+version+' — '+title;
+  const paths=spec.paths||{};
+  const grouped={};
+  const untagged=[];
+  for(const[path,methods]of Object.entries(paths)){
+    for(const[method,op]of Object.entries(methods)){
+      if(method.startsWith('x-')||method==='parameters')continue;
+      const entry={method,path,op};
+      const tags=op.tags&&op.tags.length?op.tags:null;
+      if(tags){tags.forEach(t=>{if(!grouped[t])grouped[t]=[];grouped[t].push(entry)})}
+      else{untagged.push(entry)}
+    }
+  }
+  let html='<div class="api-docs">';
+  html+='<div class="api-header">';
+  html+='<h2>'+escHtml(title)+'<span class="version">'+(isOA3?'OAS ':'Swagger ')+escHtml(version)+'</span>';
+  if(apiVersion)html+='<span class="version" style="background:var(--accent);margin-left:4px">v'+escHtml(apiVersion)+'</span>';
+  html+='</h2>';
+  if(baseUrl)html+='<div class="base-url">'+escHtml(baseUrl)+'</div>';
+  if(desc)html+='<p>'+escHtml(desc)+'</p>';
+  html+='</div>';
+  const renderGroup=(name,endpoints)=>{
+    html+='<div class="tag-group">';
+    html+='<div class="tag-header open" onclick="this.classList.toggle(\'open\');this.nextElementSibling.classList.toggle(\'open\')">';
+    html+='<h3>'+escHtml(name)+'</h3>';
+    html+='<div><span class="count">'+endpoints.length+' endpoint'+(endpoints.length!==1?'s':'')+'</span> <span class="arrow">&#9654;</span></div>';
+    html+='</div>';
+    html+='<div class="tag-content open">';
+    endpoints.forEach((ep,i)=>{
+      const id='ep-'+name.replace(/\W/g,'')+'-'+i;
+      const summary=ep.op.summary||ep.op.operationId||'';
+      html+='<div class="endpoint" onclick="document.getElementById(\''+id+'\').classList.toggle(\'open\')">';
+      html+='<div class="endpoint-summary">';
+      html+='<span class="method-badge method-'+ep.method+'">'+ep.method.toUpperCase()+'</span>';
+      html+='<span class="endpoint-path">'+escHtml(ep.path)+'</span>';
+      if(summary)html+='<span class="endpoint-desc">'+escHtml(summary)+'</span>';
+      html+='</div></div>';
+      html+='<div class="endpoint-details" id="'+id+'">';
+      if(ep.op.description)html+='<p style="color:var(--text2);font-size:.85rem;margin-bottom:1rem">'+escHtml(ep.op.description)+'</p>';
+      const params=ep.op.parameters||[];
+      if(params.length){
+        html+='<div class="detail-section"><h4>Parameters</h4>';
+        html+='<table class="param-table"><thead><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>';
+        params.forEach(p=>{
+          const pType=p.schema?p.schema.type||'object':p.type||'string';
+          html+='<tr><td><span class="param-name">'+escHtml(p.name)+'</span></td>';
+          html+='<td><span class="param-in">'+escHtml(p.in||'')+'</span></td>';
+          html+='<td><span class="param-type">'+escHtml(pType)+'</span></td>';
+          html+='<td>'+(p.required?'<span class="param-required">required</span>':'optional')+'</td>';
+          html+='<td style="color:var(--text2)">'+escHtml(p.description||'')+'</td></tr>';
+        });
+        html+='</tbody></table></div>';
+      }
+      const reqBody=ep.op.requestBody;
+      if(reqBody){
+        html+='<div class="detail-section"><h4>Request Body</h4>';
+        const content=reqBody.content||{};
+        for(const[ct,media]of Object.entries(content)){
+          html+='<div style="margin-bottom:.5rem;font-size:.75rem;color:var(--text2)">'+escHtml(ct)+'</div>';
+          if(media.schema)html+='<div class="schema-block">'+escHtml(JSON.stringify(resolveRef(spec,media.schema),null,2))+'</div>';
+        }
+        html+='</div>';
+      }
+      const responses=ep.op.responses||{};
+      if(Object.keys(responses).length){
+        html+='<div class="detail-section"><h4>Responses</h4>';
+        for(const[code,resp]of Object.entries(responses)){
+          const codeClass=code.startsWith('2')?'response-2xx':code.startsWith('3')?'response-3xx':code.startsWith('4')?'response-4xx':'response-5xx';
+          html+='<div style="margin-bottom:.75rem"><span class="response-code '+codeClass+'">'+escHtml(code)+'</span>';
+          html+='<span style="color:var(--text2);font-size:.8rem">'+escHtml(resp.description||'')+'</span>';
+          const rContent=resp.content||{};
+          for(const[ct,media]of Object.entries(rContent)){
+            if(media.schema){
+              html+='<div style="margin-top:.4rem;font-size:.75rem;color:var(--text2)">'+escHtml(ct)+'</div>';
+              html+='<div class="schema-block">'+escHtml(JSON.stringify(resolveRef(spec,media.schema),null,2))+'</div>';
+            }
+          }
+          // Swagger 2.0 response schema
+          if(resp.schema){
+            html+='<div class="schema-block" style="margin-top:.4rem">'+escHtml(JSON.stringify(resolveRef(spec,resp.schema),null,2))+'</div>';
+          }
+          html+='</div>';
+        }
+        html+='</div>';
+      }
+      html+='</div>';
+    });
+    html+='</div></div>';
+  };
+  for(const[tag,eps]of Object.entries(grouped))renderGroup(tag,eps);
+  if(untagged.length)renderGroup('Other',untagged);
+  html+='</div>';
+  docsEl.innerHTML=html;
+}
+
+function resolveRef(spec,schema,depth){
+  depth=depth||0;
+  if(depth>10)return schema;
+  if(!schema||typeof schema!=='object')return schema;
+  if(schema.$ref){
+    const parts=schema.$ref.replace(/^#\//,'').split('/');
+    let resolved=spec;
+    for(const p of parts){resolved=resolved&&resolved[p]}
+    return resolved?resolveRef(spec,{...resolved},depth+1):schema;
+  }
+  const out={...schema};
+  if(out.properties){
+    const props={};
+    for(const[k,v]of Object.entries(out.properties))props[k]=resolveRef(spec,v,depth+1);
+    out.properties=props;
+  }
+  if(out.items)out.items=resolveRef(spec,out.items,depth+1);
+  if(out.allOf)out.allOf=out.allOf.map(s=>resolveRef(spec,s,depth+1));
+  return out;
+}
+
+function expandAll(){document.querySelectorAll('.tag-header').forEach(h=>{h.classList.add('open');h.nextElementSibling.classList.add('open')});document.querySelectorAll('.endpoint-details').forEach(d=>d.classList.add('open'))}
+function collapseAll(){document.querySelectorAll('.tag-header').forEach(h=>{h.classList.remove('open');h.nextElementSibling.classList.remove('open')});document.querySelectorAll('.endpoint-details').forEach(d=>d.classList.remove('open'))}
+
+function clearAll(){
+  document.getElementById('specInput').value='';
+  document.getElementById('apiDocs').innerHTML='';
+  document.getElementById('statusDot').className='status-dot empty';
+  document.getElementById('statusText').textContent='Paste an OpenAPI or Swagger JSON spec';
+}
+
+function loadSample(){
+  const sample={
+    "openapi":"3.0.3",
+    "info":{"title":"Pet Store API","description":"A sample API for managing pets.","version":"1.0.0"},
+    "servers":[{"url":"https://api.petstore.example.com/v1"}],
+    "paths":{
+      "/pets":{
+        "get":{"tags":["Pets"],"summary":"List all pets","operationId":"listPets","parameters":[{"name":"limit","in":"query","description":"Max items to return","required":false,"schema":{"type":"integer","format":"int32"}}],"responses":{"200":{"description":"A list of pets","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Pet"}}}}},"default":{"description":"unexpected error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}},
+        "post":{"tags":["Pets"],"summary":"Create a pet","operationId":"createPet","requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Pet"}}}},"responses":{"201":{"description":"Pet created"},"400":{"description":"Invalid input"}}}
+      },
+      "/pets/{petId}":{
+        "get":{"tags":["Pets"],"summary":"Get a pet by ID","operationId":"getPet","parameters":[{"name":"petId","in":"path","required":true,"description":"The ID of the pet","schema":{"type":"string"}}],"responses":{"200":{"description":"A pet","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Pet"}}}},"404":{"description":"Pet not found"}}},
+        "delete":{"tags":["Pets"],"summary":"Delete a pet","operationId":"deletePet","parameters":[{"name":"petId","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"204":{"description":"Pet deleted"},"404":{"description":"Not found"}}}
+      },
+      "/health":{"get":{"tags":["System"],"summary":"Health check","responses":{"200":{"description":"OK"}}}}
+    },
+    "components":{"schemas":{"Pet":{"type":"object","required":["id","name"],"properties":{"id":{"type":"integer","format":"int64"},"name":{"type":"string"},"tag":{"type":"string"},"status":{"type":"string","enum":["available","pending","sold"]}}},"Error":{"type":"object","required":["code","message"],"properties":{"code":{"type":"integer","format":"int32"},"message":{"type":"string"}}}}}
+  };
+  document.getElementById('specInput').value=JSON.stringify(sample,null,2);
+  renderSpec();
+}
+
+const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target)}})},{threshold:0.1});
+document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+</body>
+</html>

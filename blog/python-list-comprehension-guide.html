@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python List Comprehensions: Complete Guide with 30+ Examples (2026) | NexTool</title>
+    <meta name="description" content="Master Python list comprehensions with 30+ practical examples. Learn basic syntax, conditionals, nested comprehensions, dict and set comprehensions, performance tips, and common pitfalls.">
+    <meta name="keywords" content="python list comprehension, list comprehension python, python list comprehension examples, python comprehension, dict comprehension, set comprehension, python one liner, python filter list">
+    <meta name="author" content="NexTool">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/python-list-comprehension-guide.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Python List Comprehensions: Complete Guide with 30+ Examples (2026)">
+    <meta property="og:description" content="Master Python list comprehensions with 30+ examples. Syntax, conditionals, nested, dict/set comprehensions, performance comparisons, and real-world patterns.">
+    <meta property="og:url" content="https://nextool.app/blog/python-list-comprehension-guide.html">
+    <meta property="og:site_name" content="NexTool">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Python List Comprehensions: Complete Guide with 30+ Examples (2026)">
+    <meta name="twitter:description" content="Master Python list comprehensions with 30+ examples covering syntax, conditionals, nesting, performance, and real-world use cases.">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Python List Comprehensions: Complete Guide with 30+ Examples (2026)",
+        "description": "Master Python list comprehensions with 30+ practical examples. Learn basic syntax, conditionals, nested comprehensions, dict and set comprehensions, performance tips, and common pitfalls.",
+        "author": { "@type": "Organization", "name": "NexTool", "url": "https://nextool.app" },
+        "publisher": { "@type": "Organization", "name": "NexTool", "logo": { "@type": "ImageObject", "url": "https://nextool.app/assets/images/logo.png" } },
+        "datePublished": "2026-02-21T10:00:00Z",
+        "dateModified": "2026-02-21T10:00:00Z",
+        "mainEntityOfPage": { "@type": "WebPage", "@id": "https://nextool.app/blog/python-list-comprehension-guide.html" },
+        "wordCount": 1800,
+        "keywords": ["python list comprehension", "list comprehension examples", "dict comprehension", "set comprehension", "python filter", "python map"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app" },
+            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://nextool.app/blog/" },
+            { "@type": "ListItem", "position": 3, "name": "Python List Comprehensions Guide", "item": "https://nextool.app/blog/python-list-comprehension-guide.html" }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Are list comprehensions faster than for loops in Python?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, list comprehensions are generally 10-30% faster than equivalent for loops for creating lists. The speed advantage comes from the optimized bytecode Python generates for comprehensions, which avoids the overhead of repeated list.append() method lookups and calls. However, the difference is negligible for small lists. For very large datasets where memory is a concern, consider using a generator expression instead, which processes items one at a time without building the entire list in memory."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "When should I avoid using a list comprehension?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Avoid list comprehensions when the logic requires more than two levels of nesting or multiple conditions that make the expression hard to read. If a comprehension exceeds roughly 80 characters or requires a mental pause to understand, rewrite it as a regular for loop. Also avoid comprehensions when you do not need the resulting list, such as when calling functions purely for side effects like printing or writing to a file. In those cases, a regular for loop is clearer. List comprehensions should make code more readable, not less."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the difference between a list comprehension and a generator expression?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "A list comprehension uses square brackets [x for x in items] and builds the entire list in memory at once. A generator expression uses parentheses (x for x in items) and produces items one at a time on demand, using almost no memory regardless of the input size. Use a list comprehension when you need to access items multiple times, slice the result, or check its length. Use a generator expression when you only iterate through the items once, especially with large datasets or when passing directly to functions like sum(), min(), max(), or join(). For example, sum(x*x for x in range(1000000)) uses constant memory while sum([x*x for x in range(1000000)]) builds a million-element list first."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I use if-else in a list comprehension?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, but the syntax depends on whether you are filtering or transforming. For filtering (only including items that meet a condition), the if goes at the end: [x for x in items if x > 0]. For transforming (choosing between two values for every item), use a ternary expression at the beginning: [x if x > 0 else 0 for x in items]. You can combine both: [x*2 if x > 0 else 0 for x in items if x != None] first filters out None values, then doubles positive numbers and replaces non-positive with zero."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do dict and set comprehensions work in Python?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Dict comprehensions use curly braces with a key: value pair: {k: v for k, v in items}. Set comprehensions use curly braces with a single expression: {x for x in items}. Both support the same filtering and nesting as list comprehensions. For example, {name: len(name) for name in names} creates a dictionary mapping names to their lengths. {word.lower() for word in words} creates a set of unique lowercase words. Dict comprehensions are commonly used to invert dictionaries ({v: k for k, v in d.items()}), filter dictionary entries ({k: v for k, v in d.items() if v > 0}), or transform values ({k: v.strip() for k, v in d.items()})."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #030303;
+            --surface: #0a0a0a;
+            --surface-2: #161616;
+            --surface-3: #222222;
+            --primary: #7c3aed;
+            --primary-hover: #6d28d9;
+            --accent: #a78bfa;
+            --accent-hover: #c4b5fd;
+            --text: #e8e8e8;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --border: #1e1e1e;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --code-bg: #0d0d0d;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 800px;
+            --header-height: 64px;
+        }
+
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.75; font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .nav { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: rgba(3, 3, 3, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .nav-inner { width: 100%; max-width: 1200px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.25rem; }
+        .nav-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 800; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: var(--primary); color: #fff !important; padding: 8px 20px; border-radius: 8px; font-weight: 600; transition: background 0.2s, transform 0.2s; }
+        .nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        .article-wrapper { max-width: var(--max-width); margin: 0 auto; padding: calc(var(--header-height) + 48px) 24px 80px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap; }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .breadcrumb a:hover { color: var(--primary); }
+
+        .article-header { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+        .article-category { display: inline-block; background: rgba(124, 58, 237, 0.12); color: var(--accent); padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .article-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.15; color: var(--text); margin-bottom: 16px; letter-spacing: -0.03em; }
+        .article-subtitle { font-size: 1.2rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+        .article-meta { display: flex; align-items: center; gap: 20px; color: var(--text-muted); font-size: 0.875rem; flex-wrap: wrap; }
+        .article-meta-item { display: flex; align-items: center; gap: 6px; }
+        .article-meta-item svg { width: 16px; height: 16px; opacity: 0.7; }
+
+        .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; margin-bottom: 48px; }
+        .toc-title { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .toc-list { list-style: none; counter-reset: toc; }
+        .toc-list li { counter-increment: toc; margin-bottom: 8px; }
+        .toc-list li a { color: var(--text-secondary); text-decoration: none; font-size: 0.925rem; display: flex; align-items: baseline; gap: 10px; transition: color 0.2s, padding-left 0.2s; padding: 4px 0; }
+        .toc-list li a::before { content: counter(toc, decimal-leading-zero); color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); min-width: 20px; }
+        .toc-list li a:hover { color: var(--primary); padding-left: 4px; }
+
+        .article-content h2 { font-size: 1.75rem; font-weight: 700; color: var(--text); margin-top: 56px; margin-bottom: 20px; letter-spacing: -0.02em; line-height: 1.3; padding-top: 16px; border-top: 1px solid var(--border); }
+        .article-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+        .article-content h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin-top: 36px; margin-bottom: 14px; line-height: 1.35; }
+        .article-content h4 { font-size: 1.1rem; font-weight: 600; color: var(--text-secondary); margin-top: 28px; margin-bottom: 12px; }
+        .article-content p { margin-bottom: 20px; color: var(--text-secondary); line-height: 1.8; }
+        .article-content a { color: var(--primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+        .article-content a:hover { border-bottom-color: var(--primary); }
+        .article-content strong { color: var(--text); font-weight: 600; }
+        .article-content ul, .article-content ol { margin-bottom: 20px; padding-left: 24px; color: var(--text-secondary); }
+        .article-content li { margin-bottom: 10px; line-height: 1.7; }
+        .article-content li::marker { color: var(--primary); }
+        .article-content blockquote { border-left: 3px solid var(--accent); background: var(--surface); padding: 16px 24px; margin: 28px 0; border-radius: 0 8px 8px 0; font-style: italic; color: var(--text-secondary); }
+        .article-content blockquote p:last-child { margin-bottom: 0; }
+        .article-content hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+        .article-content pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; overflow-x: auto; margin: 24px 0; }
+        .article-content pre code { font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.65; color: var(--text); background: none; padding: 0; border-radius: 0; }
+        .article-content code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface); color: var(--accent); padding: 2px 8px; border-radius: 5px; }
+        .code-label { display: inline-block; background: var(--surface-2); color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem; padding: 2px 10px; border-radius: 6px 6px 0 0; margin-bottom: -1px; position: relative; top: 1px; }
+
+        .info-box { background: rgba(124, 58, 237, 0.08); border: 1px solid rgba(124, 58, 237, 0.2); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+        .info-box.warning { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); }
+        .info-box.danger { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); }
+        .info-box.success { background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2); }
+        .info-box-title { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .info-box p { color: var(--text-secondary); font-size: 0.925rem; margin-bottom: 0; }
+
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 28px 0; }
+        .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; color: var(--text); transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; gap: 8px; }
+        .tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124, 58, 237, 0.1); }
+        .tool-card-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .tool-card-name { font-weight: 600; font-size: 0.95rem; }
+        .tool-card-desc { font-size: 0.825rem; color: var(--text-muted); line-height: 1.5; }
+
+        .cta-box { background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(167, 139, 250, 0.1)); border: 1px solid rgba(124, 58, 237, 0.25); border-radius: 16px; padding: 40px 32px; text-align: center; margin: 48px 0; }
+        .cta-box h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+        .cta-box p { color: var(--text-secondary); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-button { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; }
+        .cta-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124, 58, 237, 0.3); }
+        .cta-button.secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); margin-left: 12px; }
+        .cta-button.secondary:hover { background: rgba(124, 58, 237, 0.1); }
+
+        .faq-section { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border); }
+        .faq-section h2 { margin-top: 0 !important; padding-top: 0 !important; border-top: none !important; }
+        .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-question { width: 100%; background: none; border: none; color: var(--text); padding: 20px 24px; font-size: 1rem; font-weight: 600; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-sans); transition: background 0.2s; }
+        .faq-question:hover { background: var(--surface-2); }
+        .faq-question .icon { transition: transform 0.3s; font-size: 1.25rem; color: var(--text-muted); flex-shrink: 0; margin-left: 16px; }
+        .faq-item.open .faq-question .icon { transform: rotate(45deg); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .faq-answer-inner { padding: 0 24px 20px; color: var(--text-secondary); line-height: 1.7; }
+
+        .author-box { display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 48px 0; }
+        .author-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .author-info h4 { font-weight: 600; margin-bottom: 4px; }
+        .author-info p { color: var(--text-muted); font-size: 0.875rem; margin: 0; line-height: 1.5; }
+
+        .footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-wrapper { padding: calc(var(--header-height) + 24px) 16px 60px; }
+            .article-title { font-size: 1.75rem; }
+            .tool-grid { grid-template-columns: 1fr; }
+            .cta-box { padding: 28px 20px; }
+            .cta-button.secondary { margin-left: 0; margin-top: 12px; }
+            .author-box { flex-direction: column; text-align: center; }
+            .article-content pre { padding: 16px; border-radius: 8px; }
+            .article-content h2 { font-size: 1.4rem; }
+            .article-content h3 { font-size: 1.15rem; }
+        }
+        @media (max-width: 480px) {
+            .article-title { font-size: 1.5rem; }
+            .toc { padding: 18px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="https://nextool.app" class="nav-logo">
+                <div class="nav-logo-icon">N</div>
+                NexTool
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/free-tools/">Free Tools</a></li>
+                <li><a href="/blog/">Blog</a></li>
+                <li><a href="/free-tools/" class="nav-cta">Browse Tools</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Article -->
+    <article class="article-wrapper" itemscope itemtype="https://schema.org/Article">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <span>/</span>
+            <a href="/blog/">Blog</a>
+            <span>/</span>
+            <span>Python List Comprehensions Guide</span>
+        </nav>
+
+        <header class="article-header">
+            <span class="article-category">Python</span>
+            <h1 class="article-title" itemprop="headline">Python List Comprehensions: Complete Guide with 30+ Examples</h1>
+            <p class="article-subtitle">List comprehensions are one of Python's most distinctive features &mdash; a concise way to create lists that replaces verbose loops with a single readable expression. This guide covers everything from basic syntax to advanced patterns with real code you can use today.</p>
+            <div class="article-meta">
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span>16 min read</span>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Feb 21, 2026</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="toc">
+            <div class="toc-title">Table of Contents</div>
+            <ol class="toc-list">
+                <li><a href="#basic">Basic Syntax</a></li>
+                <li><a href="#conditionals">Filtering with Conditionals</a></li>
+                <li><a href="#transform">Conditional Expressions (if-else)</a></li>
+                <li><a href="#nested">Nested Comprehensions</a></li>
+                <li><a href="#dict">Dictionary Comprehensions</a></li>
+                <li><a href="#set">Set Comprehensions</a></li>
+                <li><a href="#generator">Generator Expressions</a></li>
+                <li><a href="#performance">Performance: Comprehensions vs. Loops</a></li>
+                <li><a href="#realworld">30+ Real-World Examples</a></li>
+                <li><a href="#pitfalls">Common Pitfalls and How to Avoid Them</a></li>
+                <li><a href="#tools">Related Free Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </div>
+
+        <div class="article-content" itemprop="articleBody">
+
+            <h2 id="basic">Basic Syntax</h2>
+
+            <p>A list comprehension creates a new list by applying an expression to each item in an iterable. The general form is:</p>
+
+            <div class="code-label">python &mdash; Syntax pattern</div>
+<pre><code>[expression for item in iterable]</code></pre>
+
+            <p>This is equivalent to:</p>
+
+            <div class="code-label">python &mdash; Equivalent loop</div>
+<pre><code>result = []
+for item in iterable:
+    result.append(expression)
+</code></pre>
+
+            <p>Here are the simplest practical examples:</p>
+
+            <div class="code-label">python &mdash; Basic examples</div>
+<pre><code># Square every number
+squares = [x**2 for x in range(10)]
+# [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+
+# Convert strings to uppercase
+names = ["alice", "bob", "charlie"]
+upper = [name.upper() for name in names]
+# ["ALICE", "BOB", "CHARLIE"]
+
+# Get lengths of strings
+lengths = [len(name) for name in names]
+# [5, 3, 7]
+
+# Strip whitespace from each string
+raw = ["  hello ", " world  ", "  python "]
+clean = [s.strip() for s in raw]
+# ["hello", "world", "python"]
+
+# Convert a list of strings to integers
+str_nums = ["1", "2", "3", "4", "5"]
+nums = [int(s) for s in str_nums]
+# [1, 2, 3, 4, 5]</code></pre>
+
+            <p>You can format Python code quickly with the <a href="/free-tools/python-formatter.html">Python Formatter</a> &mdash; paste any Python snippet and get properly indented, PEP 8 compliant output.</p>
+
+            <h2 id="conditionals">Filtering with Conditionals</h2>
+
+            <p>Add an <code>if</code> clause at the end to include only items that meet a condition:</p>
+
+            <div class="code-label">python &mdash; Filtering</div>
+<pre><code># Even numbers only
+evens = [x for x in range(20) if x % 2 == 0]
+# [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+
+# Words longer than 3 characters
+words = ["the", "quick", "brown", "fox", "jumps"]
+long_words = [w for w in words if len(w) > 3]
+# ["quick", "brown", "jumps"]
+
+# Filter out None values
+data = [1, None, 3, None, 5, None]
+clean = [x for x in data if x is not None]
+# [1, 3, 5]
+
+# Filter by type
+mixed = [1, "hello", 2.5, "world", 3]
+strings_only = [x for x in mixed if isinstance(x, str)]
+# ["hello", "world"]
+
+# Files with a specific extension
+files = ["app.py", "style.css", "index.html", "utils.py"]
+python_files = [f for f in files if f.endswith(".py")]
+# ["app.py", "utils.py"]
+
+# Multiple conditions
+nums = range(100)
+special = [x for x in nums if x % 3 == 0 if x % 5 == 0]
+# [0, 15, 30, 45, 60, 75, 90]  (divisible by both 3 and 5)</code></pre>
+
+            <h2 id="transform">Conditional Expressions (if-else)</h2>
+
+            <p>When you want to transform every item but with different logic depending on a condition, put the conditional <strong>before</strong> the <code>for</code>:</p>
+
+            <div class="code-label">python &mdash; If-else transformation</div>
+<pre><code># Replace negatives with zero
+nums = [4, -1, 7, -3, 2, -8]
+clamped = [x if x > 0 else 0 for x in nums]
+# [4, 0, 7, 0, 2, 0]
+
+# Label numbers as even or odd
+labels = ["even" if x % 2 == 0 else "odd" for x in range(6)]
+# ["even", "odd", "even", "odd", "even", "odd"]
+
+# Grade categories
+scores = [92, 67, 85, 43, 78]
+grades = ["pass" if s >= 60 else "fail" for s in scores]
+# ["pass", "pass", "pass", "fail", "pass"]
+
+# Combine filter AND transform
+data = [5, -2, None, 8, -1, None, 3]
+result = [x * 2 if x > 0 else 0 for x in data if x is not None]
+# [10, 0, 16, 0, 6]</code></pre>
+
+            <div class="info-box">
+                <div class="info-box-title">Key Distinction: Filter vs. Transform</div>
+                <p><code>[x for x in items if condition]</code> &mdash; <strong>filters</strong> the list (fewer items in output). <code>[a if condition else b for x in items]</code> &mdash; <strong>transforms</strong> every item (same number of items in output). The <code>if</code> position is what matters.</p>
+            </div>
+
+            <h2 id="nested">Nested Comprehensions</h2>
+
+            <p>You can nest <code>for</code> clauses to iterate over multiple iterables. The order follows the same order as nested for loops &mdash; outer loop first, inner loop second.</p>
+
+            <div class="code-label">python &mdash; Nested comprehensions</div>
+<pre><code># Flatten a 2D list
+matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+flat = [num for row in matrix for num in row]
+# [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+# All combinations of two lists
+colors = ["red", "blue"]
+sizes = ["S", "M", "L"]
+combos = [(c, s) for c in colors for s in sizes]
+# [("red", "S"), ("red", "M"), ("red", "L"),
+#  ("blue", "S"), ("blue", "M"), ("blue", "L")]
+
+# Transpose a matrix
+matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+transposed = [[row[i] for row in matrix] for i in range(3)]
+# [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
+
+# Flatten with condition
+matrix = [[1, -2, 3], [-4, 5, -6], [7, -8, 9]]
+positives = [n for row in matrix for n in row if n > 0]
+# [1, 3, 5, 7, 9]</code></pre>
+
+            <div class="info-box warning">
+                <div class="info-box-title">Readability Limit</div>
+                <p>If your comprehension needs more than two levels of nesting, rewrite it as a regular for loop. The goal of comprehensions is clarity, not code golf. A comprehension that takes 30 seconds to parse is worse than a 5-line loop.</p>
+            </div>
+
+            <h2 id="dict">Dictionary Comprehensions</h2>
+
+            <p>Dictionary comprehensions use curly braces with a <code>key: value</code> pair:</p>
+
+            <div class="code-label">python &mdash; Dict comprehensions</div>
+<pre><code># Map names to lengths
+names = ["Alice", "Bob", "Charlie"]
+name_lengths = {name: len(name) for name in names}
+# {"Alice": 5, "Bob": 3, "Charlie": 7}
+
+# Invert a dictionary (swap keys and values)
+original = {"a": 1, "b": 2, "c": 3}
+inverted = {v: k for k, v in original.items()}
+# {1: "a", 2: "b", 3: "c"}
+
+# Filter dictionary entries
+scores = {"Alice": 92, "Bob": 45, "Charlie": 78, "Diana": 38}
+passing = {k: v for k, v in scores.items() if v >= 60}
+# {"Alice": 92, "Charlie": 78}
+
+# Transform values
+prices = {"apple": 1.20, "banana": 0.50, "cherry": 2.00}
+doubled = {k: round(v * 2, 2) for k, v in prices.items()}
+# {"apple": 2.40, "banana": 1.00, "cherry": 4.00}
+
+# Create dict from two lists
+keys = ["name", "age", "city"]
+values = ["Alice", 30, "NYC"]
+person = {k: v for k, v in zip(keys, values)}
+# {"name": "Alice", "age": 30, "city": "NYC"}
+
+# Word frequency counter
+text = "the cat sat on the mat the cat"
+words = text.split()
+freq = {w: words.count(w) for w in set(words)}
+# {"the": 3, "cat": 2, "sat": 1, "on": 1, "mat": 1}</code></pre>
+
+            <h2 id="set">Set Comprehensions</h2>
+
+            <p>Set comprehensions use curly braces with a single expression. The result is a set with no duplicates:</p>
+
+            <div class="code-label">python &mdash; Set comprehensions</div>
+<pre><code># Unique word lengths
+words = ["hello", "world", "python", "code", "is", "great"]
+lengths = {len(w) for w in words}
+# {2, 4, 5, 6}
+
+# Unique first characters
+names = ["Alice", "Bob", "Anna", "Charlie", "Adam"]
+first_chars = {name[0] for name in names}
+# {"A", "B", "C"}
+
+# Unique file extensions
+files = ["app.py", "style.css", "main.py", "index.html", "util.py"]
+extensions = {f.split(".")[-1] for f in files}
+# {"py", "css", "html"}</code></pre>
+
+            <h2 id="generator">Generator Expressions</h2>
+
+            <p>Replace square brackets with parentheses to create a generator that produces items on demand instead of building the full list in memory:</p>
+
+            <div class="code-label">python &mdash; Generator expressions</div>
+<pre><code># Sum of squares without building a list
+total = sum(x**2 for x in range(1000000))
+
+# Join strings efficiently
+names = ["Alice", "Bob", "Charlie"]
+csv = ", ".join(name.upper() for name in names)
+# "ALICE, BOB, CHARLIE"
+
+# Check if any item matches
+numbers = [2, 4, 6, 7, 8]
+has_odd = any(x % 2 != 0 for x in numbers)
+# True
+
+# Find first match
+data = [10, 20, 35, 40, 55]
+first_odd = next(x for x in data if x % 2 != 0)
+# 35
+
+# Memory comparison
+import sys
+list_comp = [x**2 for x in range(10000)]
+gen_expr = (x**2 for x in range(10000))
+print(sys.getsizeof(list_comp))  # ~87,616 bytes
+print(sys.getsizeof(gen_expr))   # ~200 bytes</code></pre>
+
+            <h2 id="performance">Performance: Comprehensions vs. Loops</h2>
+
+            <p>List comprehensions are not just syntactic sugar. They generate optimized bytecode that avoids the overhead of repeated <code>list.append()</code> method lookups.</p>
+
+            <div class="code-label">python &mdash; Benchmark comparison</div>
+<pre><code>import timeit
+
+# For loop approach
+def loop_squares():
+    result = []
+    for x in range(1000):
+        result.append(x ** 2)
+    return result
+
+# List comprehension approach
+def comp_squares():
+    return [x ** 2 for x in range(1000)]
+
+# map() approach
+def map_squares():
+    return list(map(lambda x: x ** 2, range(1000)))
+
+# Typical results (Python 3.12):
+# loop_squares:  ~85 microseconds
+# comp_squares:  ~62 microseconds  (27% faster)
+# map_squares:   ~70 microseconds  (18% faster)</code></pre>
+
+            <div class="info-box success">
+                <div class="info-box-title">Rule of Thumb</div>
+                <p>For lists under 100 items, the performance difference is invisible. Choose whichever form is most readable. For large lists (10,000+ items), comprehensions provide a meaningful speed boost. For very large datasets where you only need to iterate once, use a generator expression.</p>
+            </div>
+
+            <h2 id="realworld">30+ Real-World Examples</h2>
+
+            <h3>Data Cleaning</h3>
+
+            <div class="code-label">python &mdash; Data processing patterns</div>
+<pre><code># Remove empty strings
+data = ["hello", "", "world", "", "python"]
+clean = [s for s in data if s]
+# ["hello", "world", "python"]
+
+# Parse CSV-like data
+raw = "Alice,30,NYC;Bob,25,LA;Charlie,35,Chicago"
+records = [line.split(",") for line in raw.split(";")]
+# [["Alice", "30", "NYC"], ["Bob", "25", "LA"], ...]
+
+# Extract emails from text
+import re
+text = "Contact alice@mail.com or bob@work.org"
+emails = [w for w in text.split() if "@" in w]
+# ["alice@mail.com", "bob@work.org"]
+
+# Normalize phone numbers (digits only)
+phones = ["(555) 123-4567", "555.987.6543", "555-111-2222"]
+normalized = ["".join(c for c in p if c.isdigit()) for p in phones]
+# ["5551234567", "5559876543", "5551112222"]</code></pre>
+
+            <h3>File and Path Operations</h3>
+
+            <div class="code-label">python &mdash; File patterns</div>
+<pre><code>from pathlib import Path
+
+# List all Python files in a directory
+py_files = [f.name for f in Path(".").glob("*.py")]
+
+# Read lines from a file, stripped
+with open("data.txt") as f:
+    lines = [line.strip() for line in f if line.strip()]
+
+# Get file sizes
+files = list(Path(".").glob("*"))
+sizes = {f.name: f.stat().st_size for f in files if f.is_file()}</code></pre>
+
+            <h3>API and JSON Processing</h3>
+
+            <div class="code-label">python &mdash; API data patterns</div>
+<pre><code># Extract specific fields from API response
+users = [
+    {"id": 1, "name": "Alice", "active": True},
+    {"id": 2, "name": "Bob", "active": False},
+    {"id": 3, "name": "Charlie", "active": True},
+]
+
+# Get names of active users
+active_names = [u["name"] for u in users if u["active"]]
+# ["Alice", "Charlie"]
+
+# Create lookup dictionary
+user_lookup = {u["id"]: u["name"] for u in users}
+# {1: "Alice", 2: "Bob", 3: "Charlie"}
+
+# Flatten nested JSON
+orders = [
+    {"id": 1, "items": ["apple", "banana"]},
+    {"id": 2, "items": ["cherry", "date"]},
+]
+all_items = [item for order in orders for item in order["items"]]
+# ["apple", "banana", "cherry", "date"]</code></pre>
+
+            <h3>Math and Number Processing</h3>
+
+            <div class="code-label">python &mdash; Number patterns</div>
+<pre><code># Fibonacci-like: pairwise sums
+nums = [1, 1, 2, 3, 5, 8, 13]
+pairwise = [nums[i] + nums[i+1] for i in range(len(nums)-1)]
+# [2, 3, 5, 8, 13, 21]
+
+# Running average
+data = [10, 20, 30, 40, 50]
+running_avg = [sum(data[:i+1])/(i+1) for i in range(len(data))]
+# [10.0, 15.0, 20.0, 25.0, 30.0]
+
+# Prime numbers (simple sieve)
+primes = [n for n in range(2, 100)
+          if all(n % d != 0 for d in range(2, int(n**0.5)+1))]
+# [2, 3, 5, 7, 11, 13, ...]
+
+# Matrix multiplication (dot product of row and column)
+A = [[1, 2], [3, 4]]
+B = [[5, 6], [7, 8]]
+result = [[sum(a*b for a, b in zip(row, col))
+           for col in zip(*B)] for row in A]
+# [[19, 22], [43, 50]]</code></pre>
+
+            <h2 id="pitfalls">Common Pitfalls and How to Avoid Them</h2>
+
+            <h3>1. Side Effects in Comprehensions</h3>
+
+            <div class="code-label">python &mdash; Anti-pattern</div>
+<pre><code># BAD: Using comprehension for side effects
+[print(x) for x in range(5)]  # Creates an unnecessary list of None values
+
+# GOOD: Use a regular loop
+for x in range(5):
+    print(x)</code></pre>
+
+            <h3>2. Variable Leaking (Python 2 only)</h3>
+
+            <p>In Python 3, comprehension variables are scoped to the comprehension. This was a bug in Python 2 where <code>[x for x in range(5)]</code> would leave <code>x = 4</code> in the outer scope. No action needed in modern Python.</p>
+
+            <h3>3. Overly Complex Comprehensions</h3>
+
+            <div class="code-label">python &mdash; Complexity limit</div>
+<pre><code># BAD: Too complex to read
+result = [f(x) for x in [g(y) for y in data if h(y)] if p(x) and q(x)]
+
+# GOOD: Break it into steps
+filtered = [g(y) for y in data if h(y)]
+result = [f(x) for x in filtered if p(x) and q(x)]</code></pre>
+
+            <h3>4. Walrus Operator for Reuse (:=)</h3>
+
+            <p>Python 3.8+ lets you assign and use a value in the same expression:</p>
+
+            <div class="code-label">python &mdash; Walrus operator</div>
+<pre><code># Compute once, filter and use
+results = [y for x in data if (y := expensive_function(x)) > threshold]</code></pre>
+
+            <hr>
+
+            <h2 id="tools">Related Free Tools</h2>
+
+            <div class="tool-grid">
+                <a href="/free-tools/python-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F40D;</div>
+                    <div class="tool-card-name">Python Formatter</div>
+                    <div class="tool-card-desc">Format and beautify Python code to PEP 8 standards. Fix indentation and style issues instantly.</div>
+                </a>
+                <a href="/free-tools/json-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CB;</div>
+                    <div class="tool-card-name">JSON Formatter</div>
+                    <div class="tool-card-desc">Format API responses and JSON data. Tree view, validation, and syntax highlighting.</div>
+                </a>
+                <a href="/free-tools/regex-tester.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F50D;</div>
+                    <div class="tool-card-name">Regex Tester</div>
+                    <div class="tool-card-desc">Test Python regular expressions with real-time matching and group highlighting.</div>
+                </a>
+                <a href="/free-tools/base64-encoder.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F510;</div>
+                    <div class="tool-card-name">Base64 Encoder</div>
+                    <div class="tool-card-desc">Encode and decode Base64 strings. Common in Python API development and data processing.</div>
+                </a>
+                <a href="/free-tools/csv-to-json.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CA;</div>
+                    <div class="tool-card-name">CSV to JSON Converter</div>
+                    <div class="tool-card-desc">Convert CSV data to JSON format for Python processing. Handles headers and nested structures.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Are list comprehensions faster than for loops in Python?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Yes, list comprehensions are generally 10-30% faster than equivalent for loops for creating lists. The speed advantage comes from the optimized bytecode Python generates for comprehensions, which avoids the overhead of repeated <code>list.append()</code> method lookups and calls. However, the difference is negligible for small lists. For very large datasets where memory is a concern, consider using a generator expression instead, which processes items one at a time without building the entire list in memory.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>When should I avoid using a list comprehension?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Avoid list comprehensions when the logic requires more than two levels of nesting or multiple conditions that make the expression hard to read. If a comprehension exceeds roughly 80 characters or requires a mental pause to understand, rewrite it as a regular for loop. Also avoid comprehensions when you do not need the resulting list, such as when calling functions purely for side effects like printing or writing to a file. In those cases, a regular for loop is clearer. List comprehensions should make code more readable, not less.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between a list comprehension and a generator expression?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>A list comprehension uses square brackets <code>[x for x in items]</code> and builds the entire list in memory at once. A generator expression uses parentheses <code>(x for x in items)</code> and produces items one at a time on demand, using almost no memory regardless of the input size. Use a list comprehension when you need to access items multiple times, slice the result, or check its length. Use a generator expression when you only iterate through the items once, especially with large datasets or when passing directly to functions like <code>sum()</code>, <code>min()</code>, <code>max()</code>, or <code>join()</code>. For example, <code>sum(x*x for x in range(1000000))</code> uses constant memory while <code>sum([x*x for x in range(1000000)])</code> builds a million-element list first.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Can I use if-else in a list comprehension?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Yes, but the syntax depends on whether you are filtering or transforming. For filtering (only including items that meet a condition), the if goes at the end: <code>[x for x in items if x > 0]</code>. For transforming (choosing between two values for every item), use a ternary expression at the beginning: <code>[x if x > 0 else 0 for x in items]</code>. You can combine both: <code>[x*2 if x > 0 else 0 for x in items if x != None]</code> first filters out None values, then doubles positive numbers and replaces non-positive with zero.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do dict and set comprehensions work in Python?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Dict comprehensions use curly braces with a key: value pair: <code>{k: v for k, v in items}</code>. Set comprehensions use curly braces with a single expression: <code>{x for x in items}</code>. Both support the same filtering and nesting as list comprehensions. For example, <code>{name: len(name) for name in names}</code> creates a dictionary mapping names to their lengths. <code>{word.lower() for word in words}</code> creates a set of unique lowercase words. Dict comprehensions are commonly used to invert dictionaries (<code>{v: k for k, v in d.items()}</code>), filter dictionary entries (<code>{k: v for k, v in d.items() if v > 0}</code>), or transform values (<code>{k: v.strip() for k, v in d.items()}</code>).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>NexTool</h4>
+                <p>We build free, browser-based developer tools. Over 250 tools for Python, JavaScript, web development, and everyday coding. All client-side, no signup required.</p>
+            </div>
+        </div>
+
+        <div class="cta-box">
+            <h3>250+ Developer Tools, Zero Signup</h3>
+            <p>NexTool Pro gives you clean output, enhanced features, and unlimited workspace. $29 founding member price (regular $49). One payment, lifetime access.</p>
+            <a href="/free-tools/" class="cta-button">Browse Free Tools</a>
+            <a href="/blog/" class="cta-button secondary">Read More Articles</a>
+        </div>
+    </article>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="https://nextool.app">Home</a>
+                <a href="/free-tools/">Free Tools</a>
+                <a href="/blog/">Blog</a>
+            </div>
+            <p>&copy; 2026 NexTool. All rights reserved. 250+ free developer tools.</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>
