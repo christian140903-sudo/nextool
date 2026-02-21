@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pkl Tutorial: Apple's Type-Safe Configuration Language (2026) | ANIMA</title>
+    <meta name="description" content="Learn Pkl, Apple's open-source configuration language. Type-safe configs that replace YAML, JSON, and TOML. Setup guide with practical examples.">
+    <meta name="keywords" content="pkl language, pkl configuration, apple pkl tutorial, yaml alternative, type-safe config, pkl vs yaml, pkl vs json, pkl vs toml, pkl kubernetes, pkl docker, configuration as code, pkl 2026">
+    <meta name="author" content="Christian Bucher">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/pkl-configuration-language-guide.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Pkl Tutorial: Apple's Type-Safe Configuration Language (2026)">
+    <meta property="og:description" content="Learn Pkl, Apple's open-source configuration language. Type-safe configs that replace YAML, JSON, and TOML with practical examples.">
+    <meta property="og:url" content="https://nextool.app/blog/pkl-configuration-language-guide.html">
+    <meta property="og:site_name" content="ANIMA by Christian Bucher">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/pkl-configuration-language-guide-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-21T10:00:00Z">
+    <meta property="article:modified_time" content="2026-02-21T10:00:00Z">
+    <meta property="article:author" content="Christian Bucher">
+    <meta property="article:section" content="Tutorial">
+    <meta property="article:tag" content="Pkl">
+    <meta property="article:tag" content="Configuration">
+    <meta property="article:tag" content="DevOps">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Pkl Tutorial: Apple's Type-Safe Configuration Language (2026)">
+    <meta name="twitter:description" content="Learn Pkl, Apple's open-source configuration language. Type-safe configs that replace YAML, JSON, and TOML with practical examples.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/pkl-configuration-language-guide-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Pkl Tutorial: Apple's Type-Safe Configuration Language (2026)",
+        "description": "Learn Pkl, Apple's open-source configuration language. Type-safe configs that replace YAML, JSON, and TOML. Setup guide with practical examples.",
+        "image": "https://nextool.app/assets/images/blog/pkl-configuration-language-guide-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "Christian Bucher",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "ANIMA",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-21T10:00:00Z",
+        "dateModified": "2026-02-21T10:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/pkl-configuration-language-guide.html"
+        },
+        "wordCount": 2400,
+        "keywords": ["pkl language", "pkl configuration", "apple pkl tutorial", "yaml alternative", "type-safe config", "pkl vs yaml", "pkl kubernetes", "configuration as code"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Pkl Configuration Language Guide",
+                "item": "https://nextool.app/blog/pkl-configuration-language-guide.html"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is Pkl and who created it?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Pkl (pronounced \"pickle\") is an open-source configuration-as-code language created by Apple and released in February 2024 under the Apache 2.0 license. It provides a type-safe, programmable way to write configuration that can generate output in JSON, YAML, XML, and Java Properties formats. Unlike static formats like JSON or YAML, Pkl supports classes, functions, type constraints, and module inheritance, catching configuration errors at evaluation time rather than at deployment."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can Pkl replace YAML and JSON in my projects?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Pkl does not replace YAML and JSON directly because most tools still expect those formats as input. Instead, Pkl acts as a source-of-truth layer that generates YAML, JSON, XML, or property files. You write your configuration once in Pkl with type safety and validation, then run pkl eval to produce the output format your tools need. This means you get the benefits of type checking and reusable templates while your deployment pipeline continues to consume standard formats."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I install Pkl on macOS, Linux, or Windows?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "On macOS and Linux, the fastest way is Homebrew: run brew install pkl. On Windows, use the Windows Package Manager: winget install Apple.Pkl. You can also use mise (mise use -g pkl) on all three platforms, or download native binaries directly from the GitHub releases page at github.com/apple/pkl/releases. The native executables start instantly and run faster than the Java-based alternative. After installation, verify with pkl --version."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does Pkl work with Kubernetes and Docker configurations?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. Pkl is well suited for Kubernetes and Docker configurations because it can generate YAML output that kubectl and docker-compose consume directly. You can define base templates for Kubernetes Deployments, Services, and ConfigMaps as Pkl classes, then amend them for each environment (development, staging, production) without duplicating entire manifest files. The type system catches errors like missing required fields or invalid port numbers before you apply anything to your cluster."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What IDE support is available for Pkl?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Pkl has official editor support for VS Code, IntelliJ IDEA, and Neovim. The VS Code extension (available on the marketplace as apple.pkl-vscode) provides syntax highlighting, code completion, go-to-definition, and inline error reporting. The IntelliJ plugin works with all JetBrains IDEs including WebStorm and PyCharm. Pkl also ships a Language Server Protocol (LSP) implementation, so any editor that supports LSP can provide basic Pkl support including diagnostics and completion."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg:#050508;--surface:#0a0a0f;--surface-2:#1a1a24;--surface-3:#232330;--primary:#00d4ff;--primary-hover:#818cf8;--accent:#a855f7;--accent-hover:#c084fc;--text:#e2e8f0;--text-secondary:#94a3b8;--text-muted:#64748b;--border:#1e1e2e;--success:#22c55e;--warning:#f59e0b;--error:#ef4444;--code-bg:#0d0d14;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:800px;--header-height:64px; }
+        html { scroll-behavior:smooth;-webkit-text-size-adjust:100%; }
+        body { font-family:var(--font-sans);background:var(--bg);color:var(--text);line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden; }
+        ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+        .nav{position:fixed;top:0;left:0;right:0;height:var(--header-height);background:rgba(5,5,8,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:1000;display:flex;align-items:center;justify-content:center}.nav-inner{width:100%;max-width:1200px;padding:0 24px;display:flex;align-items:center;justify-content:space-between}.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:700;font-size:1.25rem}.nav-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.875rem;font-weight:800;color:#fff}.nav-links{display:flex;align-items:center;gap:28px;list-style:none}.nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}.nav-cta{background:var(--primary);color:#fff!important;padding:8px 20px;border-radius:8px;font-weight:600;transition:background .2s,transform .2s}.nav-cta:hover{background:var(--primary-hover);transform:translateY(-1px)}
+        .article-wrapper{max-width:var(--max-width);margin:0 auto;padding:calc(var(--header-height) + 48px) 24px 80px}.breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:32px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}.breadcrumb a{color:var(--text-secondary);text-decoration:none;transition:color .2s}.breadcrumb a:hover{color:var(--primary)}
+        .article-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}.article-category{display:inline-block;background:rgba(168,85,247,.12);color:var(--accent);padding:4px 14px;border-radius:20px;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}.article-title{font-size:clamp(2rem,5vw,3rem);font-weight:800;line-height:1.15;color:var(--text);margin-bottom:16px;letter-spacing:-.03em}.article-subtitle{font-size:1.2rem;color:var(--text-secondary);line-height:1.6;margin-bottom:24px}.article-meta{display:flex;align-items:center;gap:20px;color:var(--text-muted);font-size:.875rem;flex-wrap:wrap}.article-meta-item{display:flex;align-items:center;gap:6px}
+        .toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:48px}.toc-title{font-size:.85rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}.toc-list{list-style:none;counter-reset:toc}.toc-list li{counter-increment:toc;margin-bottom:8px}.toc-list li a{color:var(--text-secondary);text-decoration:none;font-size:.925rem;display:flex;align-items:baseline;gap:10px;transition:color .2s,padding-left .2s;padding:4px 0}.toc-list li a::before{content:counter(toc,decimal-leading-zero);color:var(--text-muted);font-size:.8rem;font-family:var(--font-mono);min-width:20px}.toc-list li a:hover{color:var(--primary);padding-left:4px}
+        .article-content h2{font-size:1.75rem;font-weight:700;color:var(--text);margin-top:56px;margin-bottom:20px;letter-spacing:-.02em;line-height:1.3;padding-top:16px;border-top:1px solid var(--border)}.article-content h2:first-child{margin-top:0;padding-top:0;border-top:none}.article-content h3{font-size:1.3rem;font-weight:600;color:var(--text);margin-top:36px;margin-bottom:14px;line-height:1.35}.article-content h4{font-size:1.1rem;font-weight:600;color:var(--text-secondary);margin-top:28px;margin-bottom:12px}.article-content p{margin-bottom:20px;color:var(--text-secondary);line-height:1.8}.article-content a{color:var(--primary);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}.article-content a:hover{border-bottom-color:var(--primary)}.article-content strong{color:var(--text);font-weight:600}.article-content ul,.article-content ol{margin-bottom:20px;padding-left:24px;color:var(--text-secondary)}.article-content li{margin-bottom:10px;line-height:1.7}.article-content li::marker{color:var(--primary)}.article-content blockquote{border-left:3px solid var(--accent);background:var(--surface);padding:16px 24px;margin:28px 0;border-radius:0 8px 8px 0;font-style:italic;color:var(--text-secondary)}.article-content blockquote p:last-child{margin-bottom:0}.article-content hr{border:none;border-top:1px solid var(--border);margin:48px 0}
+        .article-content pre{background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:20px 24px;overflow-x:auto;margin:24px 0}.article-content pre code{font-family:var(--font-mono);font-size:.875rem;line-height:1.65;color:var(--text);background:none;padding:0;border-radius:0}.article-content code{font-family:var(--font-mono);font-size:.85em;background:var(--surface);color:var(--accent);padding:2px 8px;border-radius:5px}
+        .code-label{display:inline-block;background:var(--surface-2);color:var(--text-muted);font-size:.75rem;font-family:var(--font-mono);padding:4px 12px;border-radius:6px 6px 0 0;margin-bottom:-2px;margin-top:24px;letter-spacing:.3px}
+        .comparison-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.9rem}.comparison-table th,.comparison-table td{padding:12px 16px;text-align:left;border:1px solid var(--border)}.comparison-table th{background:var(--surface-2);color:var(--text);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.3px}.comparison-table td{color:var(--text-secondary);background:var(--surface)}.comparison-table tr:hover td{background:var(--surface-2)}
+        .info-box{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:20px 24px;margin:28px 0}.info-box.warning{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2)}.info-box.danger{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2)}.info-box.success{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2)}.info-box-title{font-weight:700;margin-bottom:8px;font-size:.9rem;display:flex;align-items:center;gap:8px}.info-box p{color:var(--text-secondary);font-size:.925rem;margin-bottom:0}
+        .tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin:28px 0}.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:var(--text);transition:border-color .2s,transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:8px}.tool-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,212,255,.1)}.tool-card-icon{font-size:1.5rem;margin-bottom:4px}.tool-card-name{font-weight:600;font-size:.95rem}.tool-card-desc{font-size:.825rem;color:var(--text-muted);line-height:1.5}
+        .cta-box{background:linear-gradient(135deg,rgba(0,212,255,.1),rgba(168,85,247,.1));border:1px solid rgba(0,212,255,.25);border-radius:16px;padding:40px 32px;text-align:center;margin:48px 0}.cta-box h3{font-size:1.5rem;font-weight:700;margin-bottom:12px;color:var(--text)}.cta-box p{color:var(--text-secondary);margin-bottom:24px;max-width:500px;margin-left:auto;margin-right:auto}.cta-button{display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1rem;transition:background .2s,transform .2s,box-shadow .2s}.cta-button:hover{background:var(--primary-hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,255,.3)}.cta-button.secondary{background:transparent;border:1px solid var(--primary);color:var(--primary);margin-left:12px}.cta-button.secondary:hover{background:rgba(0,212,255,.1)}
+        .faq-section{margin-top:56px;padding-top:32px;border-top:1px solid var(--border)}.faq-section h2{margin-top:0!important;padding-top:0!important;border-top:none!important}.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}.faq-question{width:100%;background:none;border:none;color:var(--text);padding:20px 24px;font-size:1rem;font-weight:600;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-sans);transition:background .2s}.faq-question:hover{background:var(--surface-2)}.faq-question .icon{transition:transform .3s;font-size:1.25rem;color:var(--text-muted);flex-shrink:0;margin-left:16px}.faq-item.open .faq-question .icon{transform:rotate(45deg)}.faq-answer{max-height:0;overflow:hidden;transition:max-height .3s ease}.faq-answer-inner{padding:0 24px 20px;color:var(--text-secondary);line-height:1.7}
+        .author-box{display:flex;align-items:center;gap:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin:48px 0}.author-avatar{width:64px;height:64px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff;flex-shrink:0}.author-info h4{font-weight:600;margin-bottom:4px}.author-info p{color:var(--text-muted);font-size:.875rem;margin:0;line-height:1.5}
+        .footer{border-top:1px solid var(--border);padding:48px 24px;text-align:center;color:var(--text-muted);font-size:.85rem}.footer-inner{max-width:1200px;margin:0 auto}.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}.footer-links a{color:var(--text-secondary);text-decoration:none;transition:color .2s}.footer-links a:hover{color:var(--primary)}
+        @media(max-width:768px){.nav-links{display:none}.article-wrapper{padding:calc(var(--header-height) + 24px) 16px 60px}.article-title{font-size:1.75rem}.tool-grid{grid-template-columns:1fr}.cta-box{padding:28px 20px}.cta-button.secondary{margin-left:0;margin-top:12px}.author-box{flex-direction:column;text-align:center}.article-content pre{padding:16px;border-radius:8px}.article-content h2{font-size:1.4rem}.article-content h3{font-size:1.15rem}.comparison-table{font-size:.8rem}.comparison-table th,.comparison-table td{padding:8px 10px}}
+        @media(max-width:480px){.article-title{font-size:1.5rem}.toc{padding:18px 20px}.comparison-table{display:block;overflow-x:auto}}
+    </style>
+</head>
+<body>
+
+    <nav class="nav"><div class="nav-inner"><a href="/" class="nav-logo"><span class="nav-logo-icon">NT</span>ANIMA</a><ul class="nav-links"><li><a href="/">Home</a></li><li><a href="/free-tools/">Free Tools</a></li><li><a href="/blog/" class="active">Blog</a></li><li><a href="/free-tools/pro-upgrade.html" class="nav-cta">GitHub</a></li></ul></div></nav>
+
+    <article class="article-wrapper">
+
+        <div class="breadcrumb">
+            <a href="/">Home</a> <span>/</span>
+            <a href="/blog/">Blog</a> <span>/</span>
+            <span>Pkl Configuration Language Guide</span>
+        </div>
+
+        <header class="article-header">
+            <span class="article-category">DevOps</span>
+            <h1 class="article-title">Pkl Tutorial: Apple's Type-Safe Configuration Language (2026)</h1>
+            <p class="article-subtitle">YAML is ubiquitous but fragile. JSON is strict but verbose. Pkl gives you type-safe, programmable configuration that generates both&mdash;and catches errors before deployment. Here is a practical guide to getting started.</p>
+            <div class="article-meta">
+                <span class="article-meta-item">February 21, 2026</span>
+                <span class="article-meta-item">18 min read</span>
+                <span class="article-meta-item">Christian Bucher</span>
+            </div>
+        </header>
+
+        <div class="toc">
+            <div class="toc-title">In This Guide</div>
+            <ol class="toc-list">
+                <li><a href="#what-is-pkl">What Is Pkl and Why Apple Built It</a></li>
+                <li><a href="#comparison">Pkl vs YAML vs JSON vs TOML</a></li>
+                <li><a href="#installing">Installing Pkl (CLI, IDE Plugins)</a></li>
+                <li><a href="#syntax">Pkl Syntax Basics: Types, Classes, Objects</a></li>
+                <li><a href="#templates">Templates and Inheritance</a></li>
+                <li><a href="#generating">Generating YAML, JSON, and Property Files</a></li>
+                <li><a href="#kubernetes-docker">Integrating with Kubernetes and Docker</a></li>
+                <li><a href="#ide-support">IDE Support: VS Code, IntelliJ, Neovim</a></li>
+                <li><a href="#migration">Migration from YAML to Pkl</a></li>
+                <li><a href="#when-to-use">When to Use Pkl (and When Not To)</a></li>
+                <li><a href="#tools">Related Developer Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </div>
+
+        <div class="article-content">
+
+            <p>Configuration files are the connective tissue of modern software. They wire up databases, define infrastructure, control feature flags, and shape deployment pipelines. Yet the formats most teams rely on&mdash;YAML, JSON, TOML&mdash;were never designed for the complexity they now carry. A misplaced indent in a Kubernetes manifest can take down a production cluster. A typo in a JSON config file produces no error until runtime.</p>
+
+            <p>Pkl (pronounced "pickle") is Apple's answer to this problem. Released as open source in February 2024 under the Apache 2.0 license, Pkl is a configuration-as-code language with a type system, classes, validation constraints, and the ability to generate output in JSON, YAML, XML, and Java Properties formats. You write configuration once in Pkl, and it produces whatever format your tools expect&mdash;with type errors caught at evaluation time, not in production.</p>
+
+            <div class="info-box">
+                <p><strong>Working with config output?</strong> The <a href="/free-tools/yaml-formatter.html">YAML Formatter</a> and <a href="/free-tools/json-formatter.html">JSON Formatter</a> let you validate and clean up generated output directly in your browser.</p>
+            </div>
+
+            <h2 id="what-is-pkl">What Is Pkl and Why Apple Built It</h2>
+
+            <p>Apple manages configuration at enormous scale&mdash;across iOS, macOS, server infrastructure, and internal tooling. The company needed a language that could express configuration with the same rigor they apply to application code: type safety, reusability, and validation. Static formats like YAML and JSON lack all three.</p>
+
+            <p>Pkl sits between static configuration formats and general-purpose programming languages. It is declarative enough to read like a config file but programmable enough to eliminate the copy-paste duplication that plagues large YAML codebases. The key properties that define Pkl:</p>
+
+            <ul>
+                <li><strong>Type-safe.</strong> Every value has a type. Pkl catches type mismatches at evaluation time, before your configuration reaches any deployment pipeline.</li>
+                <li><strong>Programmable.</strong> Classes, functions, conditionals, loops, and string interpolation. You can abstract repeated patterns into reusable modules.</li>
+                <li><strong>Multi-format output.</strong> A single Pkl source file can generate JSON, YAML, XML, or Java Properties. Your tools do not need to understand Pkl directly.</li>
+                <li><strong>Validatable.</strong> Type annotations support constraints like <code>port: Int(isBetween(1, 65535))</code> that catch invalid values during evaluation.</li>
+                <li><strong>Package ecosystem.</strong> Pkl modules can be published and imported as versioned packages, similar to npm or Go modules.</li>
+            </ul>
+
+            <p>The language is written in Kotlin and ships as native binaries for macOS, Linux, and Windows, with no JVM required for the native builds. It also provides code generation for Java, Kotlin, Swift, and Go, enabling type-safe configuration consumption in application code.</p>
+
+            <h2 id="comparison">Pkl vs YAML vs JSON vs TOML</h2>
+
+            <p>Before committing to a new configuration tool, you need to understand what each format does well and where it falls short. Here is a direct comparison.</p>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Pkl</th>
+                        <th>YAML</th>
+                        <th>JSON</th>
+                        <th>TOML</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Type system</td>
+                        <td>Full (String, Int, Float, Boolean, Duration, DataSize, custom classes)</td>
+                        <td>Implicit (parser-dependent coercion)</td>
+                        <td>Basic (string, number, boolean, null, array, object)</td>
+                        <td>Moderate (string, integer, float, boolean, datetime, array, table)</td>
+                    </tr>
+                    <tr>
+                        <td>Validation</td>
+                        <td>Built-in constraints on types</td>
+                        <td>External (JSON Schema, kubeconform)</td>
+                        <td>External (JSON Schema)</td>
+                        <td>None built-in</td>
+                    </tr>
+                    <tr>
+                        <td>Comments</td>
+                        <td>Line and block comments</td>
+                        <td>Line comments</td>
+                        <td>Not supported</td>
+                        <td>Line comments</td>
+                    </tr>
+                    <tr>
+                        <td>Templating / Reuse</td>
+                        <td>Classes, modules, inheritance, amending</td>
+                        <td>YAML anchors (limited)</td>
+                        <td>None</td>
+                        <td>None</td>
+                    </tr>
+                    <tr>
+                        <td>Multi-line strings</td>
+                        <td>Yes, with string interpolation</td>
+                        <td>Yes (block scalars)</td>
+                        <td>No</td>
+                        <td>Yes (literal strings)</td>
+                    </tr>
+                    <tr>
+                        <td>Output formats</td>
+                        <td>JSON, YAML, XML, Properties, Pkl</td>
+                        <td>YAML only</td>
+                        <td>JSON only</td>
+                        <td>TOML only</td>
+                    </tr>
+                    <tr>
+                        <td>IDE support</td>
+                        <td>VS Code, IntelliJ, Neovim (LSP)</td>
+                        <td>Broad</td>
+                        <td>Broad</td>
+                        <td>Moderate</td>
+                    </tr>
+                    <tr>
+                        <td>Learning curve</td>
+                        <td>Moderate (new syntax, but familiar concepts)</td>
+                        <td>Low (but indentation is error-prone)</td>
+                        <td>Very low</td>
+                        <td>Low</td>
+                    </tr>
+                    <tr>
+                        <td>Toolchain requirement</td>
+                        <td>Pkl CLI required</td>
+                        <td>None (text files)</td>
+                        <td>None (text files)</td>
+                        <td>None (text files)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>The trade-off is clear: Pkl adds a build step and a learning curve in exchange for type safety, reusability, and multi-format output. For simple, one-off configs, YAML or TOML remain the pragmatic choice. For large-scale configuration that is shared across teams, environments, or services, Pkl pays for itself by catching errors early and reducing duplication.</p>
+
+            <p>If you need to convert between formats during evaluation, the <a href="/free-tools/yaml-to-json.html">YAML to JSON Converter</a> handles the transformation instantly for quick spot checks.</p>
+
+            <h2 id="installing">Installing Pkl (CLI, IDE Plugins)</h2>
+
+            <p>Pkl provides native executables that start instantly and run without a JVM. Choose the method that fits your system.</p>
+
+            <h3>macOS and Linux (Homebrew)</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code>brew install pkl
+pkl --version</code></pre>
+
+            <h3>Windows (winget)</h3>
+
+            <div class="code-label">PowerShell</div>
+<pre><code>winget install Apple.Pkl
+pkl --version</code></pre>
+
+            <h3>Cross-Platform (mise)</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code>mise use -g pkl
+pkl --version</code></pre>
+
+            <h3>Direct Download</h3>
+
+            <p>Download native binaries from the <a href="https://github.com/apple/pkl/releases">GitHub releases page</a>. Builds are available for macOS (amd64, aarch64), Linux (amd64, aarch64, Alpine), and Windows.</p>
+
+            <div class="info-box success">
+                <div class="info-box-title">Verify the installation</div>
+                <p>After installing, run <code>pkl eval -e "greeting = \"Hello, Pkl!\""</code> in your terminal. You should see <code>greeting = Hello, Pkl!</code> as output.</p>
+            </div>
+
+            <h2 id="syntax">Pkl Syntax Basics: Types, Classes, Objects</h2>
+
+            <p>Pkl files use the <code>.pkl</code> extension. The syntax is clean and indentation-independent&mdash;blocks are delimited by curly braces, not whitespace.</p>
+
+            <h3>Properties and Types</h3>
+
+            <div class="code-label">config.pkl</div>
+<pre><code>name: String = "my-api"
+port: Int = 8080
+debug: Boolean = false
+timeout: Duration = 30.s
+maxUpload: DataSize = 50.mb</code></pre>
+
+            <p>Pkl has built-in types for common configuration values that YAML and JSON treat as plain strings: <code>Duration</code> (with units like <code>.s</code>, <code>.min</code>, <code>.h</code>) and <code>DataSize</code> (with units like <code>.kb</code>, <code>.mb</code>, <code>.gb</code>). These are type-checked, so <code>timeout: Duration = "thirty"</code> produces a compile-time error.</p>
+
+            <h3>Classes</h3>
+
+            <p>Classes define the shape of your configuration. Think of them as schemas that are enforced at evaluation time.</p>
+
+            <div class="code-label">server.pkl</div>
+<pre><code>class Server {
+  host: String
+  port: Int(isBetween(1, 65535))
+  tls: Boolean = true
+  workers: Int(isPositive) = 4
+}
+
+class Database {
+  url: String
+  pool: Int(isBetween(1, 100)) = 10
+  timeout: Duration = 5.s
+}
+
+class AppConfig {
+  name: String
+  version: String
+  server: Server
+  database: Database
+}</code></pre>
+
+            <h3>Objects</h3>
+
+            <p>Create instances of classes using the <code>new</code> keyword.</p>
+
+            <div class="code-label">production.pkl</div>
+<pre><code>import "server.pkl"
+
+config: AppConfig = new {
+  name = "payment-api"
+  version = "2.4.1"
+  server = new {
+    host = "0.0.0.0"
+    port = 443
+    tls = true
+    workers = 8
+  }
+  database = new {
+    url = "postgresql://db.internal:5432/payments"
+    pool = 25
+    timeout = 10.s
+  }
+}</code></pre>
+
+            <h3>String Interpolation</h3>
+
+            <p>Pkl uses <code>\(expression)</code> for string interpolation, similar to Swift.</p>
+
+            <div class="code-label">Pkl</div>
+<pre><code>name = "api-gateway"
+port = 8080
+healthCheck = "http://localhost:\(port)/\(name)/health"
+// Result: "http://localhost:8080/api-gateway/health"</code></pre>
+
+            <h3>Type Constraints</h3>
+
+            <p>Constraints are expressions attached to type annotations. They run at evaluation time and produce clear error messages when violated.</p>
+
+            <div class="code-label">Pkl</div>
+<pre><code>class NetworkConfig {
+  port: Int(isBetween(1, 65535))
+  maxConnections: Int(isPositive)
+  hostname: String(!isEmpty)
+  protocol: "http"|"https"       // Union type: only these values allowed
+  retries: Int(this >= 0 && this <= 10)
+}</code></pre>
+
+            <p>If you assign <code>port = 70000</code>, Pkl outputs: <code>Expected value to be between 1 and 65535, but got 70000</code>. This is the kind of error that YAML catches never and JSON Schema catches only if you have written and maintained a separate schema file.</p>
+
+            <h2 id="templates">Templates and Inheritance</h2>
+
+            <p>One of Pkl's strongest advantages over static formats is eliminating configuration duplication through templates and amending.</p>
+
+            <h3>Base Template</h3>
+
+            <p>Define a base configuration that other files can extend.</p>
+
+            <div class="code-label">base-service.pkl</div>
+<pre><code>class Service {
+  name: String
+  replicas: Int = 2
+  port: Int = 8080
+  healthPath: String = "/health"
+  env: Mapping&lt;String, String&gt; = new {}
+}
+
+service: Service = new {
+  name = "default"
+  env = new {
+    ["LOG_LEVEL"] = "info"
+    ["NODE_ENV"] = "production"
+  }
+}</code></pre>
+
+            <h3>Amending for Environments</h3>
+
+            <p>The <code>amends</code> keyword creates a new configuration that inherits from a base and overrides specific values. Unamended properties keep their original values.</p>
+
+            <div class="code-label">staging.pkl</div>
+<pre><code>amends "base-service.pkl"
+
+service {
+  name = "user-service"
+  replicas = 1
+  env {
+    ["LOG_LEVEL"] = "debug"
+    ["NODE_ENV"] = "staging"
+  }
+}</code></pre>
+
+            <div class="code-label">production.pkl</div>
+<pre><code>amends "base-service.pkl"
+
+service {
+  name = "user-service"
+  replicas = 6
+  env {
+    ["LOG_LEVEL"] = "warn"
+    ["SENTRY_DSN"] = "https://key@sentry.io/123"
+  }
+}</code></pre>
+
+            <p>In YAML, you would duplicate the entire configuration block for each environment and manually keep them in sync. In Pkl, the base template is the single source of truth, and each environment file declares only what differs.</p>
+
+            <div class="info-box warning">
+                <div class="info-box-title">Amend vs Extend</div>
+                <p><code>amends</code> creates a modified copy of the base module. <code>extends</code> creates a subtype that inherits the base module's classes and definitions. Use <code>amends</code> for environment-specific configs. Use <code>extends</code> when building reusable module libraries.</p>
+            </div>
+
+            <h2 id="generating">Generating YAML, JSON, and Property Files</h2>
+
+            <p>Pkl's multi-format output is what makes it practical for existing toolchains. Your CI/CD pipeline, Kubernetes, Docker, or application runtime does not need to know Pkl exists.</p>
+
+            <h3>Generate YAML</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code>pkl eval -f yaml production.pkl</code></pre>
+
+            <div class="code-label">Output (YAML)</div>
+<pre><code>service:
+  name: user-service
+  replicas: 6
+  port: 8080
+  healthPath: /health
+  env:
+    LOG_LEVEL: warn
+    NODE_ENV: production
+    SENTRY_DSN: https://key@sentry.io/123</code></pre>
+
+            <h3>Generate JSON</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code>pkl eval -f json production.pkl</code></pre>
+
+            <div class="code-label">Output (JSON)</div>
+<pre><code>{
+  "service": {
+    "name": "user-service",
+    "replicas": 6,
+    "port": 8080,
+    "healthPath": "/health",
+    "env": {
+      "LOG_LEVEL": "warn",
+      "NODE_ENV": "production",
+      "SENTRY_DSN": "https://key@sentry.io/123"
+    }
+  }
+}</code></pre>
+
+            <h3>Generate Java Properties</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code>pkl eval -f properties production.pkl</code></pre>
+
+            <h3>Write Output to Files</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code># Write YAML to a file
+pkl eval -f yaml -o config.yaml production.pkl
+
+# Write JSON to a file
+pkl eval -f json -o config.json production.pkl
+
+# Evaluate multiple files at once
+pkl eval -f yaml -m output/ staging.pkl production.pkl</code></pre>
+
+            <p>The <code>-m</code> flag writes multiple output files, one per input module. This is useful for generating all environment configs in a single command.</p>
+
+            <p>After generating output, verify the structure with the <a href="/free-tools/json-validator.html">JSON Validator</a> or check the YAML with the <a href="/free-tools/yaml-editor.html">YAML Editor</a> to confirm correctness before feeding it to your deployment pipeline.</p>
+
+            <h2 id="kubernetes-docker">Integrating with Kubernetes and Docker</h2>
+
+            <p>Pkl is particularly valuable for Kubernetes and Docker configurations, where YAML manifests are verbose, repetitive, and error-prone at scale.</p>
+
+            <h3>Kubernetes Deployment</h3>
+
+            <div class="code-label">k8s-deployment.pkl</div>
+<pre><code>class Container {
+  name: String
+  image: String
+  port: Int
+  resources: Resources = new {}
+}
+
+class Resources {
+  cpuRequest: String = "100m"
+  memoryRequest: String = "128Mi"
+  cpuLimit: String = "500m"
+  memoryLimit: String = "512Mi"
+}
+
+class Deployment {
+  apiVersion: String = "apps/v1"
+  kind: String = "Deployment"
+  name: String
+  namespace: String = "default"
+  replicas: Int = 2
+  container: Container
+}
+
+deployment: Deployment = new {
+  name = "api-server"
+  namespace = "production"
+  replicas = 3
+  container = new {
+    name = "api"
+    image = "registry.internal/api:v2.4.1"
+    port = 8080
+    resources = new {
+      cpuRequest = "250m"
+      memoryRequest = "256Mi"
+      cpuLimit = "1000m"
+      memoryLimit = "1Gi"
+    }
+  }
+}</code></pre>
+
+            <p>Evaluate this with <code>pkl eval -f yaml k8s-deployment.pkl</code> and pipe the output to <code>kubectl apply -f -</code>. You get YAML that kubectl understands, but you wrote it with type checking and validation.</p>
+
+            <h3>Docker Compose</h3>
+
+            <div class="code-label">compose.pkl</div>
+<pre><code>class DockerService {
+  image: String
+  ports: Listing&lt;String&gt; = new {}
+  environment: Mapping&lt;String, String&gt; = new {}
+  volumes: Listing&lt;String&gt; = new {}
+  depends_on: Listing&lt;String&gt; = new {}
+}
+
+version = "3.8"
+
+services: Mapping&lt;String, DockerService&gt; = new {
+  ["web"] = new {
+    image = "nginx:alpine"
+    ports = new { "80:80"; "443:443" }
+    volumes = new { "./nginx.conf:/etc/nginx/nginx.conf:ro" }
+    depends_on = new { "api" }
+  }
+  ["api"] = new {
+    image = "node:20-slim"
+    ports = new { "3000:3000" }
+    environment = new {
+      ["DATABASE_URL"] = "postgresql://db:5432/app"
+      ["NODE_ENV"] = "production"
+    }
+    depends_on = new { "db" }
+  }
+  ["db"] = new {
+    image = "postgres:16"
+    ports = new { "5432:5432" }
+    environment = new {
+      ["POSTGRES_DB"] = "app"
+      ["POSTGRES_USER"] = "admin"
+      ["POSTGRES_PASSWORD"] = "changeme"
+    }
+    volumes = new { "pgdata:/var/lib/postgresql/data" }
+  }
+}</code></pre>
+
+            <div class="code-label">Terminal</div>
+<pre><code>pkl eval -f yaml -o docker-compose.yml compose.pkl
+docker compose up -d</code></pre>
+
+            <p>The advantage over writing <code>docker-compose.yml</code> directly: every service is validated against the <code>DockerService</code> class. If you forget a required field or assign a wrong type, Pkl tells you before Docker does.</p>
+
+            <h2 id="ide-support">IDE Support: VS Code, IntelliJ, Neovim</h2>
+
+            <p>Pkl ships with first-party editor support for the three environments most developers use.</p>
+
+            <h3>VS Code</h3>
+
+            <p>Install the official extension from the VS Code marketplace by searching for <strong>apple.pkl-vscode</strong> or running:</p>
+
+            <div class="code-label">Terminal</div>
+<pre><code>code --install-extension apple.pkl-vscode</code></pre>
+
+            <p>The extension provides syntax highlighting, code completion, go-to-definition, inline error reporting, and formatting. It uses the Pkl Language Server under the hood.</p>
+
+            <h3>IntelliJ IDEA</h3>
+
+            <p>Install the Pkl plugin from the JetBrains Marketplace. It works with all JetBrains IDEs including WebStorm, PyCharm, and GoLand. The plugin provides the same language server features as the VS Code extension.</p>
+
+            <h3>Neovim</h3>
+
+            <p>Pkl provides a Tree-sitter grammar and LSP server. With <code>nvim-lspconfig</code> and <code>nvim-treesitter</code>, you get syntax highlighting, diagnostics, and completion. Add <code>pkl</code> to your Tree-sitter ensure_installed list and configure the LSP client to use the Pkl language server binary.</p>
+
+            <h3>Language Server Protocol</h3>
+
+            <p>Any editor that supports LSP can integrate with Pkl. The language server ships with the Pkl CLI distribution and provides diagnostics, completion, hover information, and go-to-definition. If your editor is not VS Code, IntelliJ, or Neovim, configure it to use the Pkl LSP binary as the language server for <code>.pkl</code> files.</p>
+
+            <h2 id="migration">Migration from YAML to Pkl</h2>
+
+            <p>Migrating an existing YAML codebase to Pkl is a gradual process. You do not need to convert everything at once.</p>
+
+            <h3>Step 1: Identify High-Value Targets</h3>
+
+            <p>Start with YAML files that have the most duplication or the highest error rate. Kubernetes manifests, CI/CD pipelines with many similar jobs, and multi-environment configuration files are good candidates.</p>
+
+            <h3>Step 2: Define Pkl Classes from Your YAML Structure</h3>
+
+            <p>Look at your existing YAML and extract the common shape into Pkl classes.</p>
+
+            <div class="code-label">Before: deployment.yaml (repeated per service)</div>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: production
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: user-service
+          image: registry.io/user-service:v1.2.0
+          ports:
+            - containerPort: 8080</code></pre>
+
+            <div class="code-label">After: k8s-base.pkl</div>
+<pre><code>class K8sDeployment {
+  name: String
+  namespace: String = "default"
+  replicas: Int(isPositive) = 2
+  image: String
+  containerPort: Int(isBetween(1, 65535)) = 8080
+}</code></pre>
+
+            <h3>Step 3: Create Environment-Specific Amendments</h3>
+
+            <div class="code-label">user-service-prod.pkl</div>
+<pre><code>amends "k8s-base.pkl"
+
+deployment = new K8sDeployment {
+  name = "user-service"
+  namespace = "production"
+  replicas = 3
+  image = "registry.io/user-service:v1.2.0"
+}</code></pre>
+
+            <h3>Step 4: Update Your CI/CD Pipeline</h3>
+
+            <p>Add a Pkl evaluation step before deployment. The generated YAML feeds into kubectl or any other tool that expects YAML input.</p>
+
+            <div class="code-label">GitHub Actions snippet</div>
+<pre><code>- name: Install Pkl
+  run: brew install pkl
+
+- name: Generate Kubernetes manifests
+  run: pkl eval -f yaml -m manifests/ configs/*.pkl
+
+- name: Apply manifests
+  run: kubectl apply -f manifests/</code></pre>
+
+            <h3>Step 5: Migrate Incrementally</h3>
+
+            <p>Convert one service or one environment at a time. Pkl-generated YAML and hand-written YAML can coexist in the same deployment pipeline. There is no big-bang migration required.</p>
+
+            <p>During the migration, use the <a href="/free-tools/code-diff-viewer.html">Code Diff Viewer</a> to compare your original YAML against Pkl-generated output and confirm they produce identical results.</p>
+
+            <h2 id="when-to-use">When to Use Pkl (and When Not To)</h2>
+
+            <h3>Pkl Is a Strong Choice When:</h3>
+
+            <ul>
+                <li><strong>Configuration is duplicated across environments.</strong> If you maintain dev, staging, and production variants of the same config, Pkl's template and amend system eliminates the duplication.</li>
+                <li><strong>Configuration errors reach production.</strong> Type constraints catch invalid values during evaluation, before deployment.</li>
+                <li><strong>Multiple output formats are needed.</strong> A single Pkl source can generate YAML for Kubernetes, JSON for application config, and properties files for Java services.</li>
+                <li><strong>Teams share configuration libraries.</strong> Pkl's package system lets you publish and version reusable config modules across projects.</li>
+                <li><strong>Config complexity is growing.</strong> When YAML files exceed a few hundred lines and YAML anchors are not enough to manage repetition, Pkl's classes and modules provide real abstraction.</li>
+            </ul>
+
+            <h3>Stick with YAML, JSON, or TOML When:</h3>
+
+            <ul>
+                <li><strong>Configuration is simple and static.</strong> A 20-line YAML file does not need a type system.</li>
+                <li><strong>Your team is small and the config rarely changes.</strong> The learning curve of Pkl is not justified if config errors are rare.</li>
+                <li><strong>Tooling does not support a build step.</strong> Some platforms expect to read config files directly. Adding a Pkl evaluation step may not be possible or practical.</li>
+                <li><strong>Every team member needs to edit config.</strong> Pkl requires learning new syntax. If non-developers need to modify configuration, YAML or TOML are more accessible.</li>
+            </ul>
+
+            <div class="info-box">
+                <p><strong>The practical test:</strong> if you have ever spent time debugging a config error that a type system would have caught, or if you regularly copy-paste config blocks across files, Pkl is worth evaluating. If your configs are small and stable, the overhead is not worth it.</p>
+            </div>
+
+            <!-- Tools Section -->
+            <h2 id="tools">Related Developer Tools</h2>
+
+            <p>Free browser-based tools for working with configuration files, validation, and format conversion.</p>
+
+            <div class="tool-grid">
+                <a href="/free-tools/yaml-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4C4;</div>
+                    <div class="tool-card-name">YAML Formatter</div>
+                    <div class="tool-card-desc">Format, validate, and clean up YAML files. Check Pkl-generated YAML output for correctness.</div>
+                </a>
+                <a href="/free-tools/json-validator.html" class="tool-card">
+                    <div class="tool-card-icon">&#x2705;</div>
+                    <div class="tool-card-name">JSON Validator</div>
+                    <div class="tool-card-desc">Validate JSON structure and syntax. Verify Pkl JSON output before feeding it to your application.</div>
+                </a>
+                <a href="/free-tools/yaml-to-json.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F504;</div>
+                    <div class="tool-card-name">YAML to JSON Converter</div>
+                    <div class="tool-card-desc">Convert YAML to JSON instantly. Useful for comparing Pkl output formats side by side.</div>
+                </a>
+                <a href="/free-tools/json-to-yaml.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F504;</div>
+                    <div class="tool-card-name">JSON to YAML Converter</div>
+                    <div class="tool-card-desc">Convert JSON to YAML with proper indentation. Check format equivalence during migration.</div>
+                </a>
+                <a href="/free-tools/json-schema-generator.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CB;</div>
+                    <div class="tool-card-name">JSON Schema Generator</div>
+                    <div class="tool-card-desc">Generate JSON Schema from sample data. Compare schema approaches between JSON Schema and Pkl classes.</div>
+                </a>
+                <a href="/free-tools/code-diff-viewer.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F50D;</div>
+                    <div class="tool-card-name">Code Diff Viewer</div>
+                    <div class="tool-card-desc">Compare original YAML against Pkl-generated output. Verify your migration produces identical results.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <!-- FAQ Section -->
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is Pkl and who created it?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Pkl (pronounced "pickle") is an open-source configuration-as-code language created by Apple and released in February 2024 under the Apache 2.0 license. It provides a type-safe, programmable way to write configuration that can generate output in JSON, YAML, XML, and Java Properties formats. Unlike static formats like JSON or YAML, Pkl supports classes, functions, type constraints, and module inheritance, catching configuration errors at evaluation time rather than at deployment.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Can Pkl replace YAML and JSON in my projects?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Pkl does not replace YAML and JSON directly because most tools still expect those formats as input. Instead, Pkl acts as a source-of-truth layer that generates YAML, JSON, XML, or property files. You write your configuration once in Pkl with type safety and validation, then run pkl eval to produce the output format your tools need. This means you get the benefits of type checking and reusable templates while your deployment pipeline continues to consume standard formats.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I install Pkl on macOS, Linux, or Windows?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>On macOS and Linux, the fastest way is Homebrew: run <code>brew install pkl</code>. On Windows, use the Windows Package Manager: <code>winget install Apple.Pkl</code>. You can also use mise (<code>mise use -g pkl</code>) on all three platforms, or download native binaries directly from the GitHub releases page at github.com/apple/pkl/releases. The native executables start instantly and run faster than the Java-based alternative. After installation, verify with <code>pkl --version</code>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Does Pkl work with Kubernetes and Docker configurations?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Yes. Pkl is well suited for Kubernetes and Docker configurations because it can generate YAML output that kubectl and docker-compose consume directly. You can define base templates for Kubernetes Deployments, Services, and ConfigMaps as Pkl classes, then amend them for each environment (development, staging, production) without duplicating entire manifest files. The type system catches errors like missing required fields or invalid port numbers before you apply anything to your cluster.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What IDE support is available for Pkl?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Pkl has official editor support for VS Code, IntelliJ IDEA, and Neovim. The VS Code extension (available on the marketplace as <code>apple.pkl-vscode</code>) provides syntax highlighting, code completion, go-to-definition, and inline error reporting. The IntelliJ plugin works with all JetBrains IDEs including WebStorm and PyCharm. Pkl also ships a Language Server Protocol (LSP) implementation, so any editor that supports LSP can provide basic Pkl support including diagnostics and completion.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author -->
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>Christian Bucher</h4>
+                <p>We build free developer tools including YAML formatters, JSON validators, config converters, and 253+ more. All browser-based, no signup required.</p>
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="cta-box">
+            <h3>253+ Developer Tools, One Place</h3>
+            <p>ANIMA (free) unlocks clean output, enhanced features, and unlimited workspace across every tool. One payment, lifetime access.</p>
+            <a href="/free-tools/pro-upgrade.html" class="cta-button">Open Source &mdash; Free Forever</a>
+            <a href="/free-tools/" class="cta-button secondary">Try Free Tools</a>
+        </div>
+
+    </article>
+
+    <footer class="footer"><div class="footer-inner"><div class="footer-links"><a href="/">Home</a><a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="mailto:hello@nextool.app">Contact</a></div><p>&copy; 2026 ANIMA. All rights reserved. 253+ free developer tools.</p></div></footer>
+
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>

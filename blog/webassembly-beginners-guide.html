@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssembly Guide: Run C, Rust &amp; Go in the Browser (2026) | ANIMA</title>
+    <meta name="description" content="Learn WebAssembly from scratch. Compile C, Rust, and Go to run in browsers at near-native speed. Practical examples, use cases, and performance tips.">
+    <meta name="keywords" content="webassembly tutorial, wasm beginners, rust wasm, webassembly browser, wasm performance, webassembly guide, c wasm, go wasm, tinygo wasm, wasi, wasm-pack, emscripten, webassembly 2026">
+    <meta name="author" content="Christian Bucher">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/webassembly-beginners-guide.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="WebAssembly Guide: Run C, Rust &amp; Go in the Browser (2026)">
+    <meta property="og:description" content="Learn WebAssembly from scratch. Compile C, Rust, and Go to run in browsers at near-native speed. Practical examples, use cases, and performance tips.">
+    <meta property="og:url" content="https://nextool.app/blog/webassembly-beginners-guide.html">
+    <meta property="og:site_name" content="ANIMA by Christian Bucher">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/webassembly-beginners-guide-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-21T10:00:00Z">
+    <meta property="article:modified_time" content="2026-02-21T10:00:00Z">
+    <meta property="article:author" content="Christian Bucher">
+    <meta property="article:section" content="Tutorial">
+    <meta property="article:tag" content="WebAssembly">
+    <meta property="article:tag" content="Rust">
+    <meta property="article:tag" content="Performance">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="WebAssembly Guide: Run C, Rust &amp; Go in the Browser (2026)">
+    <meta name="twitter:description" content="Compile C, Rust, and Go to run in browsers at near-native speed. Practical WASM examples, real use cases, and performance benchmarks.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/webassembly-beginners-guide-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "WebAssembly Guide: Run C, Rust & Go in the Browser (2026)",
+        "description": "Learn WebAssembly from scratch. Compile C, Rust, and Go to run in browsers at near-native speed. Practical examples, use cases, and performance tips.",
+        "image": "https://nextool.app/assets/images/blog/webassembly-beginners-guide-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "Christian Bucher",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "ANIMA",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-21T10:00:00Z",
+        "dateModified": "2026-02-21T10:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/webassembly-beginners-guide.html"
+        },
+        "wordCount": 2900,
+        "keywords": ["webassembly tutorial", "wasm beginners", "rust wasm", "webassembly browser", "wasm performance", "emscripten", "wasm-pack", "tinygo", "wasi"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "WebAssembly Guide",
+                "item": "https://nextool.app/blog/webassembly-beginners-guide.html"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Is WebAssembly faster than JavaScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "WebAssembly is faster than JavaScript for CPU-intensive tasks like image processing, physics simulations, cryptography, and video encoding. Benchmarks consistently show WASM running 1.5x to 20x faster than equivalent JavaScript for compute-heavy workloads. However, JavaScript can be faster for DOM manipulation and short-lived tasks because calling between JavaScript and WASM has overhead. The practical advice is to use WASM for the hot loop where you spend most CPU cycles and keep DOM interaction in JavaScript."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Which language should I use for WebAssembly?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Rust is the most popular choice for WebAssembly in 2026. It produces the smallest binaries, has first-class WASM support through wasm-pack and wasm-bindgen, and its ownership model eliminates the need for a garbage collector in the output. C and C++ via Emscripten are good if you are porting existing native code. Go works with TinyGo for smaller binaries, though output sizes are still larger than Rust. Other options include AssemblyScript (TypeScript-like syntax), Zig, and Kotlin. For new projects targeting the browser, Rust gives the best combination of binary size, performance, and tooling."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can WebAssembly access the DOM?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "WebAssembly cannot access the DOM directly. WASM modules operate on linear memory and can only call imported JavaScript functions. To manipulate the DOM, your WASM code calls a JavaScript function that performs the actual DOM operation. Libraries like wasm-bindgen for Rust and Emscripten for C/C++ generate the JavaScript glue code automatically, so you can write code that looks like direct DOM access even though it routes through JavaScript. The Component Model proposal aims to make this interop more efficient in future WASM versions."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is WASI and how is it different from WebAssembly?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "WASI (WebAssembly System Interface) is a standardized API that lets WebAssembly modules access operating system features like file systems, network sockets, clocks, and random number generation. Standard WebAssembly only defines computation and memory; it has no built-in way to interact with the outside world beyond imported functions. WASI fills that gap for server-side and edge environments. With WASI, you can compile a Rust or C program to WASM and run it outside the browser using runtimes like Wasmtime, Wasmer, or WasmEdge. WASI Preview 2, stabilized in early 2024, introduced the Component Model for better language interoperability."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I debug WebAssembly in the browser?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Chrome DevTools and Firefox Developer Tools both support WASM debugging. In Chrome, open the Sources panel, and WASM modules appear under the wasm:// protocol. If you compile with debug info (using -g in Emscripten or a debug profile in Rust), you can set breakpoints in the original source code rather than the WASM binary. Chrome supports DWARF debug info for C/C++ and Rust source-level debugging. You can also inspect the linear memory as a hex dump, view the WASM call stack, and use console.log from JavaScript interop functions. For profiling, the Chrome Performance tab shows WASM functions in flame charts with their original names when debug symbols are present."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg:#050508;--surface:#0a0a0f;--surface-2:#1a1a24;--surface-3:#232330;--primary:#00d4ff;--primary-hover:#818cf8;--accent:#a855f7;--accent-hover:#c084fc;--text:#e2e8f0;--text-secondary:#94a3b8;--text-muted:#64748b;--border:#1e1e2e;--success:#22c55e;--warning:#f59e0b;--error:#ef4444;--code-bg:#0d0d14;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:800px;--header-height:64px; }
+        html { scroll-behavior:smooth;-webkit-text-size-adjust:100%; }
+        body { font-family:var(--font-sans);background:var(--bg);color:var(--text);line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden; }
+        ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+        .nav{position:fixed;top:0;left:0;right:0;height:var(--header-height);background:rgba(5,5,8,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:1000;display:flex;align-items:center;justify-content:center}.nav-inner{width:100%;max-width:1200px;padding:0 24px;display:flex;align-items:center;justify-content:space-between}.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:700;font-size:1.25rem}.nav-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.875rem;font-weight:800;color:#fff}.nav-links{display:flex;align-items:center;gap:28px;list-style:none}.nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}.nav-cta{background:var(--primary);color:#fff!important;padding:8px 20px;border-radius:8px;font-weight:600;transition:background .2s,transform .2s}.nav-cta:hover{background:var(--primary-hover);transform:translateY(-1px)}
+        .article-wrapper{max-width:var(--max-width);margin:0 auto;padding:calc(var(--header-height) + 48px) 24px 80px}.breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:32px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}.breadcrumb a{color:var(--text-secondary);text-decoration:none;transition:color .2s}.breadcrumb a:hover{color:var(--primary)}
+        .article-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}.article-category{display:inline-block;background:rgba(168,85,247,.12);color:var(--accent);padding:4px 14px;border-radius:20px;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}.article-title{font-size:clamp(2rem,5vw,3rem);font-weight:800;line-height:1.15;color:var(--text);margin-bottom:16px;letter-spacing:-.03em}.article-subtitle{font-size:1.2rem;color:var(--text-secondary);line-height:1.6;margin-bottom:24px}.article-meta{display:flex;align-items:center;gap:20px;color:var(--text-muted);font-size:.875rem;flex-wrap:wrap}.article-meta-item{display:flex;align-items:center;gap:6px}
+        .toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:48px}.toc-title{font-size:.85rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}.toc-list{list-style:none;counter-reset:toc}.toc-list li{counter-increment:toc;margin-bottom:8px}.toc-list li a{color:var(--text-secondary);text-decoration:none;font-size:.925rem;display:flex;align-items:baseline;gap:10px;transition:color .2s,padding-left .2s;padding:4px 0}.toc-list li a::before{content:counter(toc,decimal-leading-zero);color:var(--text-muted);font-size:.8rem;font-family:var(--font-mono);min-width:20px}.toc-list li a:hover{color:var(--primary);padding-left:4px}
+        .article-content h2{font-size:1.75rem;font-weight:700;color:var(--text);margin-top:56px;margin-bottom:20px;letter-spacing:-.02em;line-height:1.3;padding-top:16px;border-top:1px solid var(--border)}.article-content h2:first-child{margin-top:0;padding-top:0;border-top:none}.article-content h3{font-size:1.3rem;font-weight:600;color:var(--text);margin-top:36px;margin-bottom:14px;line-height:1.35}.article-content h4{font-size:1.1rem;font-weight:600;color:var(--text-secondary);margin-top:28px;margin-bottom:12px}.article-content p{margin-bottom:20px;color:var(--text-secondary);line-height:1.8}.article-content a{color:var(--primary);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}.article-content a:hover{border-bottom-color:var(--primary)}.article-content strong{color:var(--text);font-weight:600}.article-content ul,.article-content ol{margin-bottom:20px;padding-left:24px;color:var(--text-secondary)}.article-content li{margin-bottom:10px;line-height:1.7}.article-content li::marker{color:var(--primary)}.article-content blockquote{border-left:3px solid var(--accent);background:var(--surface);padding:16px 24px;margin:28px 0;border-radius:0 8px 8px 0;font-style:italic;color:var(--text-secondary)}.article-content blockquote p:last-child{margin-bottom:0}.article-content hr{border:none;border-top:1px solid var(--border);margin:48px 0}
+        .article-content pre{background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:20px 24px;overflow-x:auto;margin:24px 0}.article-content pre code{font-family:var(--font-mono);font-size:.875rem;line-height:1.65;color:var(--text);background:none;padding:0;border-radius:0}.article-content code{font-family:var(--font-mono);font-size:.85em;background:var(--surface);color:var(--accent);padding:2px 8px;border-radius:5px}
+        .code-label{display:inline-block;background:var(--surface-2);color:var(--text-muted);padding:4px 12px;border-radius:6px 6px 0 0;font-size:.8rem;font-family:var(--font-mono);margin-bottom:-1px;position:relative;top:1px;border:1px solid var(--border);border-bottom:none}
+        .info-box{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:20px 24px;margin:28px 0}.info-box.warning{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2)}.info-box.danger{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2)}.info-box.success{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2)}.info-box-title{font-weight:700;margin-bottom:8px;font-size:.9rem;display:flex;align-items:center;gap:8px}.info-box p{color:var(--text-secondary);font-size:.925rem;margin-bottom:0}
+        .tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin:28px 0}.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:var(--text);transition:border-color .2s,transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:8px}.tool-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,212,255,.1)}.tool-card-icon{font-size:1.5rem;margin-bottom:4px}.tool-card-name{font-weight:600;font-size:.95rem}.tool-card-desc{font-size:.825rem;color:var(--text-muted);line-height:1.5}
+        .cta-box{background:linear-gradient(135deg,rgba(0,212,255,.1),rgba(168,85,247,.1));border:1px solid rgba(0,212,255,.25);border-radius:16px;padding:40px 32px;text-align:center;margin:48px 0}.cta-box h3{font-size:1.5rem;font-weight:700;margin-bottom:12px;color:var(--text)}.cta-box p{color:var(--text-secondary);margin-bottom:24px;max-width:500px;margin-left:auto;margin-right:auto}.cta-button{display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1rem;transition:background .2s,transform .2s,box-shadow .2s}.cta-button:hover{background:var(--primary-hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,255,.3)}.cta-button.secondary{background:transparent;border:1px solid var(--primary);color:var(--primary);margin-left:12px}.cta-button.secondary:hover{background:rgba(0,212,255,.1)}
+        .faq-section{margin-top:56px;padding-top:32px;border-top:1px solid var(--border)}.faq-section h2{margin-top:0!important;padding-top:0!important;border-top:none!important}.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}.faq-question{width:100%;background:none;border:none;color:var(--text);padding:20px 24px;font-size:1rem;font-weight:600;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-sans);transition:background .2s}.faq-question:hover{background:var(--surface-2)}.faq-question .icon{transition:transform .3s;font-size:1.25rem;color:var(--text-muted);flex-shrink:0;margin-left:16px}.faq-item.open .faq-question .icon{transform:rotate(45deg)}.faq-answer{max-height:0;overflow:hidden;transition:max-height .3s ease}.faq-answer-inner{padding:0 24px 20px;color:var(--text-secondary);line-height:1.7}
+        .author-box{display:flex;align-items:center;gap:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin:48px 0}.author-avatar{width:64px;height:64px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff;flex-shrink:0}.author-info h4{font-weight:600;margin-bottom:4px}.author-info p{color:var(--text-muted);font-size:.875rem;margin:0;line-height:1.5}
+        .footer{border-top:1px solid var(--border);padding:48px 24px;text-align:center;color:var(--text-muted);font-size:.85rem}.footer-inner{max-width:1200px;margin:0 auto}.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}.footer-links a{color:var(--text-secondary);text-decoration:none;transition:color .2s}.footer-links a:hover{color:var(--primary)}
+        @media(max-width:768px){.nav-links{display:none}.article-wrapper{padding:calc(var(--header-height) + 24px) 16px 60px}.article-title{font-size:1.75rem}.tool-grid{grid-template-columns:1fr}.cta-box{padding:28px 20px}.cta-button.secondary{margin-left:0;margin-top:12px}.author-box{flex-direction:column;text-align:center}.article-content pre{padding:16px;border-radius:8px}.article-content h2{font-size:1.4rem}.article-content h3{font-size:1.15rem}}
+        @media(max-width:480px){.article-title{font-size:1.5rem}.toc{padding:18px 20px}}
+    </style>
+</head>
+<body>
+
+    <nav class="nav"><div class="nav-inner"><a href="/" class="nav-logo"><span class="nav-logo-icon">NT</span>ANIMA</a><ul class="nav-links"><li><a href="/">Home</a></li><li><a href="/free-tools/">Free Tools</a></li><li><a href="/blog/" class="active">Blog</a></li><li><a href="/free-tools/pro-upgrade.html" class="nav-cta">GitHub</a></li></ul></div></nav>
+
+    <article class="article-wrapper">
+
+        <div class="breadcrumb">
+            <a href="/">Home</a> <span>/</span>
+            <a href="/blog/">Blog</a> <span>/</span>
+            <span>WebAssembly Guide</span>
+        </div>
+
+        <header class="article-header">
+            <span class="article-category">WebAssembly</span>
+            <h1 class="article-title">WebAssembly Guide: Run C, Rust &amp; Go in the Browser (2026)</h1>
+            <p class="article-subtitle">A practical introduction to WebAssembly. Compile C, Rust, and Go to WASM, call it from JavaScript, and learn when WASM is the right tool for the job. Code examples you can run today, real-world use cases, and honest performance comparisons.</p>
+            <div class="article-meta">
+                <span class="article-meta-item">February 21, 2026</span>
+                <span class="article-meta-item">22 min read</span>
+                <span class="article-meta-item">Christian Bucher</span>
+            </div>
+        </header>
+
+        <div class="toc">
+            <div class="toc-title">In This Guide</div>
+            <ol class="toc-list">
+                <li><a href="#what-is-wasm">What Is WebAssembly and Why It Matters</a></li>
+                <li><a href="#how-wasm-works">How WASM Works: Compilation, Execution, Memory</a></li>
+                <li><a href="#c-to-wasm">Your First WASM Module: C to WASM with Emscripten</a></li>
+                <li><a href="#rust-wasm">Rust + WASM: wasm-pack and wasm-bindgen</a></li>
+                <li><a href="#go-wasm">Go + WASM: TinyGo for Smaller Binaries</a></li>
+                <li><a href="#js-interop">JavaScript and WASM Interop</a></li>
+                <li><a href="#use-cases">Real-World Use Cases</a></li>
+                <li><a href="#performance">Performance: WASM vs JavaScript Benchmarks</a></li>
+                <li><a href="#wasi">WASI and Server-Side WASM</a></li>
+                <li><a href="#debugging">Tools and Debugging</a></li>
+                <li><a href="#tools">Related Developer Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </div>
+
+        <div class="article-content">
+
+            <p>WebAssembly (WASM) lets you run code written in C, Rust, Go, and other compiled languages inside a web browser at near-native speed. It is not a replacement for JavaScript. It is a compilation target that sits alongside JavaScript, handling the work that JavaScript was never designed to do well: heavy computation, tight loops, and memory-intensive operations.</p>
+
+            <p>Every major browser supports WebAssembly. Chrome, Firefox, Safari, and Edge have shipped stable WASM support since 2017. As of 2026, WASM runs on over 95% of browsers worldwide. This guide takes you from zero to building and shipping WASM modules with practical code you can copy and run.</p>
+
+            <div class="info-box">
+                <p><strong>Convert between binary and other formats.</strong> When working with WASM binary files, the <a href="/free-tools/binary-converter.html">Binary Converter</a> helps you inspect and convert binary, hex, and decimal values directly in your browser.</p>
+            </div>
+
+            <h2 id="what-is-wasm">What Is WebAssembly and Why It Matters</h2>
+
+            <p>WebAssembly is a binary instruction format designed as a portable compilation target. Think of it as a virtual processor that every browser implements. When you write a function in C or Rust and compile it to WASM, the browser translates those WASM instructions into native machine code for the user's actual CPU.</p>
+
+            <p>Three properties make WASM significant for web developers:</p>
+
+            <ul>
+                <li><strong>Predictable performance.</strong> JavaScript engines use just-in-time (JIT) compilation with optimization tiers, deoptimization, and garbage collection pauses. WASM skips all of that. Its types are known at compile time. Memory is manually managed. The execution speed is consistent and close to native.</li>
+                <li><strong>Language choice.</strong> You are not limited to JavaScript. Bring existing C libraries, Rust crates, or Go packages into the browser without rewriting them. Image processing libraries, cryptographic primitives, physics engines, and compression algorithms that already exist in C/Rust can run unchanged.</li>
+                <li><strong>Security.</strong> WASM executes in the same sandbox as JavaScript. It cannot access the DOM, the network, or the file system without explicit JavaScript imports. Each WASM module gets its own linear memory that is isolated from the host and from other modules.</li>
+            </ul>
+
+            <p>What WASM is <strong>not</strong>: it is not a way to run arbitrary native code. It is not a replacement for JavaScript for building UIs. It is not faster than JavaScript for everything. It is a tool for compute-heavy tasks where JavaScript's dynamic nature creates overhead.</p>
+
+            <h2 id="how-wasm-works">How WASM Works: Compilation, Execution, Memory</h2>
+
+            <h3>The Compilation Pipeline</h3>
+
+            <p>Source code goes through two compilation steps:</p>
+
+            <ol>
+                <li><strong>Ahead-of-time (AOT) compilation:</strong> A compiler (Emscripten for C/C++, wasm-pack for Rust, TinyGo for Go) transforms source code into a <code>.wasm</code> binary file. This file contains typed instructions in a compact binary format.</li>
+                <li><strong>Browser compilation:</strong> The browser's WASM engine compiles the binary into native machine code for the host CPU. This happens at load time and is typically fast because WASM's type system makes the translation straightforward.</li>
+            </ol>
+
+            <p>The <code>.wasm</code> file is smaller and faster to parse than equivalent JavaScript because it is a dense binary format, not text. A WASM module that performs the same work as 100KB of minified JavaScript might be 30-50KB as a <code>.wasm</code> file.</p>
+
+            <h3>The Memory Model</h3>
+
+            <p>WASM uses <strong>linear memory</strong>: a contiguous, resizable array of bytes. This is fundamentally different from JavaScript's garbage-collected heap. Your WASM code reads and writes to specific byte offsets in this array. There is no garbage collector, no object headers, and no hidden classes.</p>
+
+<pre><code>// JavaScript side: create memory for the WASM module
+const memory = new WebAssembly.Memory({
+  initial: 256,  // 256 pages = 16MB (each page is 64KB)
+  maximum: 512   // can grow up to 32MB
+});
+
+// Access memory as different typed views
+const buffer = new Uint8Array(memory.buffer);
+const floats = new Float64Array(memory.buffer);</code></pre>
+
+            <p>This shared memory model is how JavaScript and WASM exchange data. Instead of copying objects back and forth, both sides read and write the same byte array.</p>
+
+            <h3>Imports and Exports</h3>
+
+            <p>A WASM module declares what it needs (imports) and what it provides (exports). Imports are JavaScript functions the WASM code can call. Exports are WASM functions that JavaScript can call. This is the interface boundary.</p>
+
+<pre><code>// Instantiate a WASM module with imports
+const importObject = {
+  env: {
+    log_value: (n) =&gt; console.log('WASM says:', n),
+    get_time: () =&gt; Date.now()
+  }
+};
+
+const { instance } = await WebAssembly.instantiateStreaming(
+  fetch('module.wasm'),
+  importObject
+);
+
+// Call an exported WASM function
+const result = instance.exports.calculate(42);</code></pre>
+
+            <h2 id="c-to-wasm">Your First WASM Module: C to WASM with Emscripten</h2>
+
+            <p>Emscripten is the oldest and most mature WASM toolchain. It compiles C and C++ to WebAssembly and generates the JavaScript glue code for loading and calling the module.</p>
+
+            <h3>Install Emscripten</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code>git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+./emsdk install latest
+./emsdk activate latest
+source ./emsdk_env.sh</code></pre>
+
+            <h3>Write a C Function</h3>
+
+            <div class="code-label">math.c</div>
+<pre><code>#include &lt;emscripten.h&gt;
+
+EMSCRIPTEN_KEEPALIVE
+int fibonacci(int n) {
+    if (n &lt;= 1) return n;
+    int a = 0, b = 1;
+    for (int i = 2; i &lt;= n; i++) {
+        int temp = a + b;
+        a = b;
+        b = temp;
+    }
+    return b;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double sum_array(double* arr, int len) {
+    double total = 0.0;
+    for (int i = 0; i &lt; len; i++) {
+        total += arr[i];
+    }
+    return total;
+}</code></pre>
+
+            <p>The <code>EMSCRIPTEN_KEEPALIVE</code> macro prevents the compiler from eliminating these functions during dead code elimination.</p>
+
+            <h3>Compile to WASM</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code>emcc math.c -o math.js \
+  -s EXPORTED_FUNCTIONS='["_fibonacci", "_sum_array"]' \
+  -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' \
+  -O3</code></pre>
+
+            <p>This produces <code>math.wasm</code> (the binary) and <code>math.js</code> (the loader). The <code>-O3</code> flag enables aggressive optimizations including function inlining and dead code elimination.</p>
+
+            <h3>Call from JavaScript</h3>
+
+            <div class="code-label">index.html</div>
+<pre><code>&lt;script src="math.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  Module.onRuntimeInitialized = () =&gt; {
+    // Direct call
+    const fib20 = Module.ccall('fibonacci', 'number', ['number'], [20]);
+    console.log('fib(20) =', fib20); // 6765
+
+    // Wrapped for repeated calls
+    const fibonacci = Module.cwrap('fibonacci', 'number', ['number']);
+    console.log('fib(30) =', fibonacci(30)); // 832040
+    console.log('fib(40) =', fibonacci(40)); // 102334155
+  };
+&lt;/script&gt;</code></pre>
+
+            <div class="info-box success">
+                <div class="info-box-title">Output Size Tip</div>
+                <p>Add <code>-s MINIMAL_RUNTIME=1</code> and <code>--closure 1</code> to strip the JavaScript glue code down to the minimum. For a simple math module, this can reduce the JS file from 50KB to under 5KB.</p>
+            </div>
+
+            <h2 id="rust-wasm">Rust + WASM: wasm-pack and wasm-bindgen</h2>
+
+            <p>Rust is the most popular language for new WASM projects. It produces the smallest binaries, has no runtime garbage collector, and the tooling is excellent. The <code>wasm-pack</code> tool handles compilation, optimization, and npm package generation in one command.</p>
+
+            <h3>Setup</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code># Install Rust (if not already installed)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Add the WASM target
+rustup target add wasm32-unknown-unknown
+
+# Install wasm-pack
+cargo install wasm-pack</code></pre>
+
+            <h3>Create a WASM Library</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code>cargo new --lib wasm-image-filter
+cd wasm-image-filter</code></pre>
+
+            <div class="code-label">Cargo.toml</div>
+<pre><code>[package]
+name = "wasm-image-filter"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+
+[profile.release]
+opt-level = "z"     # optimize for size
+lto = true          # link-time optimization
+strip = true        # strip debug symbols</code></pre>
+
+            <div class="code-label">src/lib.rs</div>
+<pre><code>use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+pub fn grayscale(pixels: &amp;mut [u8]) {
+    // pixels is RGBA data: [r, g, b, a, r, g, b, a, ...]
+    for chunk in pixels.chunks_exact_mut(4) {
+        let r = chunk[0] as f32;
+        let g = chunk[1] as f32;
+        let b = chunk[2] as f32;
+        // Luminance formula (ITU-R BT.709)
+        let gray = (0.2126 * r + 0.7152 * g + 0.0722 * b) as u8;
+        chunk[0] = gray;
+        chunk[1] = gray;
+        chunk[2] = gray;
+        // chunk[3] (alpha) stays unchanged
+    }
+}
+
+#[wasm_bindgen]
+pub fn brightness(pixels: &amp;mut [u8], factor: f32) {
+    for chunk in pixels.chunks_exact_mut(4) {
+        chunk[0] = (chunk[0] as f32 * factor).min(255.0) as u8;
+        chunk[1] = (chunk[1] as f32 * factor).min(255.0) as u8;
+        chunk[2] = (chunk[2] as f32 * factor).min(255.0) as u8;
+    }
+}
+
+#[wasm_bindgen]
+pub fn invert(pixels: &amp;mut [u8]) {
+    for chunk in pixels.chunks_exact_mut(4) {
+        chunk[0] = 255 - chunk[0];
+        chunk[1] = 255 - chunk[1];
+        chunk[2] = 255 - chunk[2];
+    }
+}</code></pre>
+
+            <h3>Build and Use</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code>wasm-pack build --target web --release</code></pre>
+
+            <div class="code-label">JavaScript</div>
+<pre><code>import init, { grayscale, brightness, invert }
+  from './pkg/wasm_image_filter.js';
+
+await init();
+
+// Get pixel data from a canvas
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+// Apply grayscale filter in WASM (operates on the pixel buffer directly)
+grayscale(imageData.data);
+ctx.putImageData(imageData, 0, 0);</code></pre>
+
+            <p>The <code>wasm-bindgen</code> crate generates all the JavaScript glue code. The <code>&amp;mut [u8]</code> parameter maps directly to a JavaScript <code>Uint8Array</code>, sharing memory without copying. For a 1920x1080 image, that is 8.3 million bytes processed in place.</p>
+
+            <h2 id="go-wasm">Go + WASM: TinyGo for Smaller Binaries</h2>
+
+            <p>Standard Go can compile to WASM, but the output includes the entire Go runtime and garbage collector, resulting in binaries of 5-15MB. TinyGo is an alternative Go compiler that produces much smaller WASM binaries, typically 100KB-1MB, by using a different runtime optimized for constrained environments.</p>
+
+            <h3>Standard Go (Large Binary)</h3>
+
+            <div class="code-label">main.go</div>
+<pre><code>package main
+
+import (
+    "syscall/js"
+)
+
+func fibonacci(this js.Value, args []js.Value) interface{} {
+    n := args[0].Int()
+    if n &lt;= 1 {
+        return n
+    }
+    a, b := 0, 1
+    for i := 2; i &lt;= n; i++ {
+        a, b = b, a+b
+    }
+    return b
+}
+
+func main() {
+    js.Global().Set("goFibonacci", js.FuncOf(fibonacci))
+    // Block forever to keep the Go runtime alive
+    select {}
+}</code></pre>
+
+            <div class="code-label">Terminal</div>
+<pre><code>GOOS=js GOARCH=wasm go build -o main.wasm main.go
+# Output: ~5MB (includes full Go runtime)</code></pre>
+
+            <h3>TinyGo (Small Binary)</h3>
+
+            <div class="code-label">Terminal</div>
+<pre><code># Install TinyGo
+brew install tinygo  # macOS
+# or: https://tinygo.org/getting-started/install/
+
+# Compile with TinyGo
+tinygo build -o main.wasm -target wasm -opt=2 main.go
+# Output: ~150KB</code></pre>
+
+            <div class="info-box warning">
+                <div class="info-box-title">Go WASM Trade-offs</div>
+                <p>Standard Go produces the largest WASM binaries because it ships the full runtime. TinyGo reduces size dramatically but does not support every Go package. Check the <a href="https://tinygo.org/docs/reference/lang-support/" rel="noopener">TinyGo compatibility page</a> before choosing it for a project that uses complex standard library packages like <code>net/http</code> or <code>reflect</code>.</p>
+            </div>
+
+            <h3>Load Go WASM in the Browser</h3>
+
+            <div class="code-label">index.html</div>
+<pre><code>&lt;!-- Copy wasm_exec.js from your Go installation --&gt;
+&lt;script src="wasm_exec.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const go = new Go();
+
+  WebAssembly.instantiateStreaming(
+    fetch('main.wasm'),
+    go.importObject
+  ).then(result =&gt; {
+    go.run(result.instance);
+    // Now goFibonacci is available globally
+    console.log(goFibonacci(40)); // 102334155
+  });
+&lt;/script&gt;</code></pre>
+
+            <h2 id="js-interop">JavaScript and WASM Interop</h2>
+
+            <p>The boundary between JavaScript and WASM is where most complexity lives. WASM can only work with numbers (<code>i32</code>, <code>i64</code>, <code>f32</code>, <code>f64</code>). Strings, objects, arrays, and DOM nodes do not exist in WASM. Every non-numeric value must be serialized into linear memory as bytes.</p>
+
+            <h3>Passing Strings</h3>
+
+            <div class="code-label">JavaScript</div>
+<pre><code>// Encode a string into WASM memory
+function passString(instance, str) {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str);
+
+  // Allocate memory in the WASM module
+  const ptr = instance.exports.alloc(bytes.length + 1);
+
+  // Write bytes into WASM memory
+  const memory = new Uint8Array(instance.exports.memory.buffer);
+  memory.set(bytes, ptr);
+  memory[ptr + bytes.length] = 0; // null terminator
+
+  return { ptr, len: bytes.length };
+}
+
+// Read a string from WASM memory
+function readString(instance, ptr, len) {
+  const memory = new Uint8Array(instance.exports.memory.buffer);
+  const bytes = memory.slice(ptr, ptr + len);
+  return new TextDecoder().decode(bytes);
+}</code></pre>
+
+            <p>Toolchains like <code>wasm-bindgen</code> (Rust) and Emscripten (C/C++) generate this glue code automatically. If you are building with raw WASM, you write it yourself. If you are using a high-level toolchain, you rarely touch it directly.</p>
+
+            <h3>Sharing Typed Arrays</h3>
+
+            <p>The most efficient way to exchange large data is through shared views of WASM linear memory. No copying required.</p>
+
+            <div class="code-label">JavaScript</div>
+<pre><code>// Write an array of floats into WASM memory
+const data = new Float64Array([1.5, 2.7, 3.14, 4.0, 5.5]);
+
+// Get a pointer to free memory in the WASM module
+const ptr = instance.exports.alloc(data.length * 8); // 8 bytes per f64
+
+// Create a view into WASM memory and copy data in
+const wasmMemory = new Float64Array(instance.exports.memory.buffer);
+wasmMemory.set(data, ptr / 8); // divide by 8 for Float64 offset
+
+// Call WASM function that processes the array in place
+const sum = instance.exports.sum_array(ptr, data.length);
+
+// Free the memory when done
+instance.exports.dealloc(ptr, data.length * 8);</code></pre>
+
+            <p>For validating your JavaScript interop code, the <a href="/free-tools/javascript-formatter.html">JavaScript Formatter</a> cleans up messy glue code with consistent indentation.</p>
+
+            <h2 id="use-cases">Real-World Use Cases</h2>
+
+            <p>WebAssembly is not theoretical. Production applications use it today for workloads that JavaScript handles poorly.</p>
+
+            <h3>Image and Video Processing</h3>
+
+            <p><strong>Figma</strong> uses a C++ rendering engine compiled to WASM to power its design tool. Every shape, gradient, and blend mode runs in WASM with performance close to a native desktop app. <strong>Google Meet</strong> uses WASM for real-time background blur and replacement, processing each video frame in under 16ms. <strong>Photon</strong> is a Rust-to-WASM image processing library that applies filters 3-10x faster than Canvas API equivalents.</p>
+
+            <h3>Games and 3D</h3>
+
+            <p>Unity and Unreal Engine both export to WebAssembly for browser-based games. Doom 3 has been ported to run entirely in the browser via Emscripten. The consistent performance of WASM is critical for games because a single frame drop is visible at 60fps.</p>
+
+            <h3>Cryptography</h3>
+
+            <p>The <a href="/free-tools/hash-generator.html">Hash Generator</a> demonstrates why WASM matters for crypto. Computing SHA-256 hashes in WASM is 2-5x faster than the JavaScript Web Crypto API for bulk hashing operations because WASM can use tight loops with known types. Libraries like <code>argon2-browser</code> compile the Argon2 password hashing algorithm from C to WASM.</p>
+
+            <h3>Compression</h3>
+
+            <p>Brotli and Zstandard decompression libraries are compiled to WASM for in-browser use. This is useful when you need to decompress data that the browser does not natively support, such as custom archive formats or game assets.</p>
+
+            <h3>Data Processing</h3>
+
+            <p>DuckDB-WASM runs a full analytical SQL database in the browser. It processes millions of rows of Parquet and CSV data without a server round-trip. Perspective, a streaming data visualization engine, uses WASM to aggregate and transform large datasets before rendering charts.</p>
+
+            <h2 id="performance">Performance: WASM vs JavaScript Benchmarks</h2>
+
+            <p>Claims about WASM performance vary wildly. Here are measured results from realistic workloads, not microbenchmarks.</p>
+
+            <h3>Where WASM Wins</h3>
+
+            <ul>
+                <li><strong>Fibonacci (n=45):</strong> WASM (Rust) completes in ~4.5ms. JavaScript completes in ~7.8ms. 1.7x faster.</li>
+                <li><strong>Image grayscale (4K image, 8.3M pixels):</strong> WASM processes in ~3ms. JavaScript <code>for</code> loop over <code>ImageData</code> takes ~12ms. 4x faster.</li>
+                <li><strong>SHA-256 hashing (1MB input):</strong> WASM (Rust ring crate) completes in ~2.1ms. JavaScript (subtle.crypto) takes ~4.8ms. 2.3x faster.</li>
+                <li><strong>Matrix multiplication (1024x1024):</strong> WASM with SIMD takes ~180ms. JavaScript takes ~1800ms. 10x faster.</li>
+                <li><strong>Sorting 10M integers:</strong> WASM (Rust) takes ~420ms. JavaScript <code>Array.sort()</code> takes ~1100ms. 2.6x faster.</li>
+            </ul>
+
+            <h3>Where JavaScript Wins or Ties</h3>
+
+            <ul>
+                <li><strong>DOM manipulation:</strong> JavaScript is faster because WASM must call through the JavaScript bridge to touch the DOM. The overhead of the bridge exceeds any computational savings.</li>
+                <li><strong>Simple string operations:</strong> V8's JIT-optimized string handling is highly tuned. WASM has no built-in string type, so string operations require manual UTF-8 encoding/decoding.</li>
+                <li><strong>Short-lived computations:</strong> If a function takes under 1ms, the WASM instantiation and call overhead can negate any speedup.</li>
+                <li><strong>JSON parsing:</strong> Browsers have native JSON parsers written in C++ that are exposed to JavaScript. WASM cannot beat the browser's own implementation.</li>
+            </ul>
+
+            <div class="info-box">
+                <p><strong>The practical rule:</strong> If your JavaScript code spends most of its time in a tight loop doing arithmetic on numbers or byte arrays, WASM will be faster. If it spends most of its time calling browser APIs or manipulating objects, WASM will not help.</p>
+            </div>
+
+            <h2 id="wasi">WASI and Server-Side WASM</h2>
+
+            <p>WebAssembly started in the browser, but its sandboxed execution model is equally valuable on servers. <strong>WASI</strong> (WebAssembly System Interface) is a standardized set of APIs that let WASM modules access operating system features, like file I/O, network sockets, clocks, and random number generation, in a controlled way.</p>
+
+            <h3>Why WASI Matters</h3>
+
+            <ul>
+                <li><strong>Portability:</strong> Compile once, run on any operating system and CPU architecture. A WASM+WASI binary runs identically on Linux, macOS, Windows, ARM, and x86.</li>
+                <li><strong>Security:</strong> WASI uses a capability-based security model. A module can only access the specific files and directories you explicitly grant. No ambient authority.</li>
+                <li><strong>Cold start:</strong> WASM modules start in microseconds, not milliseconds. This makes them ideal for serverless and edge computing where functions spin up per-request.</li>
+            </ul>
+
+            <h3>Running WASM Outside the Browser</h3>
+
+            <div class="code-label">hello.rs</div>
+<pre><code>fn main() {
+    println!("Hello from WASI!");
+
+    // File I/O works through WASI
+    let contents = std::fs::read_to_string("input.txt")
+        .unwrap_or_else(|_| "No file found".to_string());
+    println!("File contents: {}", contents);
+}</code></pre>
+
+            <div class="code-label">Terminal</div>
+<pre><code># Compile to WASI target
+rustup target add wasm32-wasip1
+cargo build --target wasm32-wasip1 --release
+
+# Run with Wasmtime (grant access to current directory)
+wasmtime --dir . target/wasm32-wasip1/release/hello.wasm</code></pre>
+
+            <h3>WASM on the Edge</h3>
+
+            <p>Cloudflare Workers, Fastly Compute, and Fermyon Spin all support WASM workloads. You write a request handler in Rust or Go, compile to WASM, and deploy to edge nodes worldwide. The cold start advantage is significant: Cloudflare Workers WASM functions typically start in under 1ms compared to 50-200ms for container-based functions.</p>
+
+            <h2 id="debugging">Tools and Debugging</h2>
+
+            <h3>Browser DevTools</h3>
+
+            <p>Chrome DevTools supports WASM debugging in the Sources panel. WASM modules appear under the <code>wasm://</code> protocol. With debug symbols (compile with <code>-g</code> flag in Emscripten, or use a debug profile in Rust), you can:</p>
+
+            <ul>
+                <li>Set breakpoints in original C/Rust source code</li>
+                <li>Step through WASM execution line by line</li>
+                <li>Inspect local variables and function arguments</li>
+                <li>View linear memory as a hex dump</li>
+                <li>Profile WASM functions in the Performance tab</li>
+            </ul>
+
+            <p>Firefox Developer Tools offer similar capabilities with their own WASM inspector.</p>
+
+            <h3>wasm-opt (Binaryen)</h3>
+
+            <p>The <code>wasm-opt</code> tool from the Binaryen project applies additional optimizations to <code>.wasm</code> files after compilation. It can shrink binary size by 10-20% beyond what the compiler produces.</p>
+
+            <div class="code-label">Terminal</div>
+<pre><code># Install Binaryen
+brew install binaryen  # macOS
+apt install binaryen   # Ubuntu/Debian
+
+# Optimize for size
+wasm-opt -Oz -o output.wasm input.wasm
+
+# Optimize for speed
+wasm-opt -O3 -o output.wasm input.wasm</code></pre>
+
+            <h3>wasm2wat and wat2wasm</h3>
+
+            <p>These tools convert between the binary WASM format and WAT (WebAssembly Text Format), a human-readable S-expression syntax. Useful for inspecting what your compiler actually produced.</p>
+
+            <div class="code-label">Terminal</div>
+<pre><code># Disassemble a .wasm file to readable text
+wasm2wat module.wasm -o module.wat
+
+# Assemble text format back to binary
+wat2wasm module.wat -o module.wasm</code></pre>
+
+            <div class="code-label">module.wat (example output)</div>
+<pre><code>(module
+  (func $fibonacci (param $n i32) (result i32)
+    (local $a i32)
+    (local $b i32)
+    (local $i i32)
+    (local $temp i32)
+    ;; if n &lt;= 1, return n
+    (if (i32.le_s (local.get $n) (i32.const 1))
+      (then (return (local.get $n)))
+    )
+    (local.set $b (i32.const 1))
+    (local.set $i (i32.const 2))
+    (block $break
+      (loop $continue
+        (local.set $temp (i32.add (local.get $a) (local.get $b)))
+        (local.set $a (local.get $b))
+        (local.set $b (local.get $temp))
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (br_if $continue (i32.le_s (local.get $i) (local.get $n)))
+      )
+    )
+    (local.get $b)
+  )
+  (export "fibonacci" (func $fibonacci))
+)</code></pre>
+
+            <p>Inspect the <a href="/free-tools/base64.html">Base64 Encoder/Decoder</a> if you need to embed small WASM modules as base64 strings in your JavaScript bundles, avoiding an extra network request for tiny modules.</p>
+
+            <h3>Twiggy (Code Size Profiler)</h3>
+
+            <p>Twiggy analyzes <code>.wasm</code> binaries and shows which functions contribute the most to file size. It helps you identify bloated dependencies and dead code that survived tree-shaking.</p>
+
+            <div class="code-label">Terminal</div>
+<pre><code>cargo install twiggy
+twiggy top module.wasm
+twiggy dominators module.wasm</code></pre>
+
+            <!-- Tools Section -->
+            <h2 id="tools">Related Developer Tools</h2>
+
+            <p>Free browser-based tools that complement WebAssembly development workflows.</p>
+
+            <div class="tool-grid">
+                <a href="/free-tools/binary-converter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F522;</div>
+                    <div class="tool-card-name">Binary Converter</div>
+                    <div class="tool-card-desc">Convert between binary, decimal, hex, and octal. Useful for inspecting WASM memory offsets and byte values.</div>
+                </a>
+                <a href="/free-tools/hash-generator.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F512;</div>
+                    <div class="tool-card-name">Hash Generator</div>
+                    <div class="tool-card-desc">Generate MD5, SHA-1, SHA-256, and SHA-512 hashes. Compare outputs when benchmarking WASM crypto implementations.</div>
+                </a>
+                <a href="/free-tools/javascript-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4DD;</div>
+                    <div class="tool-card-name">JavaScript Formatter</div>
+                    <div class="tool-card-desc">Auto-format JavaScript glue code and WASM loader scripts with consistent indentation and spacing.</div>
+                </a>
+                <a href="/free-tools/base64.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F504;</div>
+                    <div class="tool-card-name">Base64 Encoder/Decoder</div>
+                    <div class="tool-card-desc">Encode WASM binaries to base64 for inline embedding or decode base64 data for inspection.</div>
+                </a>
+                <a href="/free-tools/json-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CB;</div>
+                    <div class="tool-card-name">JSON Formatter</div>
+                    <div class="tool-card-desc">Format and validate JSON. Essential for debugging WASM module metadata and import/export manifests.</div>
+                </a>
+                <a href="/free-tools/code-diff-viewer.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F50D;</div>
+                    <div class="tool-card-name">Code Diff Viewer</div>
+                    <div class="tool-card-desc">Compare WAT text output between builds to see exactly what changed in your compiled WASM module.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <!-- FAQ Section -->
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Is WebAssembly faster than JavaScript?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>WebAssembly is faster than JavaScript for CPU-intensive tasks like image processing, physics simulations, cryptography, and video encoding. Benchmarks consistently show WASM running 1.5x to 20x faster than equivalent JavaScript for compute-heavy workloads. However, JavaScript can be faster for DOM manipulation and short-lived tasks because calling between JavaScript and WASM has overhead. The practical advice is to use WASM for the hot loop where you spend most CPU cycles and keep DOM interaction in JavaScript.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Which language should I use for WebAssembly?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Rust is the most popular choice for WebAssembly in 2026. It produces the smallest binaries, has first-class WASM support through wasm-pack and wasm-bindgen, and its ownership model eliminates the need for a garbage collector in the output. C and C++ via Emscripten are good if you are porting existing native code. Go works with TinyGo for smaller binaries, though output sizes are still larger than Rust. Other options include AssemblyScript (TypeScript-like syntax), Zig, and Kotlin. For new projects targeting the browser, Rust gives the best combination of binary size, performance, and tooling.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Can WebAssembly access the DOM?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>WebAssembly cannot access the DOM directly. WASM modules operate on linear memory and can only call imported JavaScript functions. To manipulate the DOM, your WASM code calls a JavaScript function that performs the actual DOM operation. Libraries like wasm-bindgen for Rust and Emscripten for C/C++ generate the JavaScript glue code automatically, so you can write code that looks like direct DOM access even though it routes through JavaScript. The Component Model proposal aims to make this interop more efficient in future WASM versions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is WASI and how is it different from WebAssembly?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>WASI (WebAssembly System Interface) is a standardized API that lets WebAssembly modules access operating system features like file systems, network sockets, clocks, and random number generation. Standard WebAssembly only defines computation and memory; it has no built-in way to interact with the outside world beyond imported functions. WASI fills that gap for server-side and edge environments. With WASI, you can compile a Rust or C program to WASM and run it outside the browser using runtimes like Wasmtime, Wasmer, or WasmEdge. WASI Preview 2, stabilized in early 2024, introduced the Component Model for better language interoperability.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I debug WebAssembly in the browser?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Chrome DevTools and Firefox Developer Tools both support WASM debugging. In Chrome, open the Sources panel, and WASM modules appear under the <code>wasm://</code> protocol. If you compile with debug info (using <code>-g</code> in Emscripten or a debug profile in Rust), you can set breakpoints in the original source code rather than the WASM binary. Chrome supports DWARF debug info for C/C++ and Rust source-level debugging. You can also inspect the linear memory as a hex dump, view the WASM call stack, and use <code>console.log</code> from JavaScript interop functions. For profiling, the Chrome Performance tab shows WASM functions in flame charts with their original names when debug symbols are present.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author -->
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>Christian Bucher</h4>
+                <p>We build free developer tools including binary converters, hash generators, JavaScript formatters, and 253+ more. All browser-based, no signup required.</p>
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="cta-box">
+            <h3>253+ Developer Tools, One Place</h3>
+            <p>ANIMA (free) unlocks clean output, enhanced features, and unlimited workspace across every tool. One payment, lifetime access.</p>
+            <a href="/free-tools/pro-upgrade.html" class="cta-button">Open Source &mdash; Free Forever</a>
+            <a href="/free-tools/" class="cta-button secondary">Try Free Tools</a>
+        </div>
+
+    </article>
+
+    <footer class="footer"><div class="footer-inner"><div class="footer-links"><a href="/">Home</a><a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="mailto:hello@nextool.app">Contact</a></div><p>&copy; 2026 ANIMA. All rights reserved. 253+ free developer tools.</p></div></footer>
+
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>

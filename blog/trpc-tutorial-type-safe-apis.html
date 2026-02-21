@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tRPC Tutorial: Build Type-Safe APIs Without GraphQL (2026) | ANIMA</title>
+    <meta name="description" content="Learn tRPC for end-to-end type safety between frontend and backend. Setup guide with Next.js, React Query, and Zod validation. Full code examples.">
+    <meta name="keywords" content="trpc tutorial, type-safe api, typescript api, trpc next.js, end-to-end types, trpc react query, trpc zod, trpc middleware, trpc v11, trpc setup guide">
+    <meta name="author" content="Christian Bucher">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/trpc-tutorial-type-safe-apis.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="tRPC Tutorial: Build Type-Safe APIs Without GraphQL (2026)">
+    <meta property="og:description" content="End-to-end type safety between your frontend and backend with tRPC. Full setup guide with Next.js App Router, Zod validation, and React Query integration.">
+    <meta property="og:url" content="https://nextool.app/blog/trpc-tutorial-type-safe-apis.html">
+    <meta property="og:site_name" content="ANIMA by Christian Bucher">
+    <meta property="og:image" content="https://nextool.app/assets/images/blog/trpc-tutorial-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="article:published_time" content="2026-02-21T10:00:00Z">
+    <meta property="article:modified_time" content="2026-02-21T10:00:00Z">
+    <meta property="article:author" content="Christian Bucher">
+    <meta property="article:section" content="Tutorial">
+    <meta property="article:tag" content="TypeScript">
+    <meta property="article:tag" content="tRPC">
+    <meta property="article:tag" content="API">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="tRPC Tutorial: Build Type-Safe APIs Without GraphQL (2026)">
+    <meta name="twitter:description" content="End-to-end type safety with tRPC. Setup guide with Next.js, React Query, Zod, middleware, error handling, and testing patterns.">
+    <meta name="twitter:image" content="https://nextool.app/assets/images/blog/trpc-tutorial-og.png">
+
+    <!-- JSON-LD: Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "tRPC Tutorial: Build Type-Safe APIs Without GraphQL (2026)",
+        "description": "Learn tRPC for end-to-end type safety between frontend and backend. Setup guide with Next.js, React Query, and Zod validation. Full code examples.",
+        "image": "https://nextool.app/assets/images/blog/trpc-tutorial-og.png",
+        "author": {
+            "@type": "Organization",
+            "name": "Christian Bucher",
+            "url": "https://nextool.app"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "ANIMA",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/assets/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-21T10:00:00Z",
+        "dateModified": "2026-02-21T10:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/trpc-tutorial-type-safe-apis.html"
+        },
+        "wordCount": 2900,
+        "keywords": ["trpc tutorial", "type-safe api", "typescript api", "trpc next.js", "end-to-end types", "trpc react query", "trpc zod", "trpc middleware"]
+    }
+    </script>
+
+    <!-- JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://nextool.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://nextool.app/blog/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "tRPC Tutorial",
+                "item": "https://nextool.app/blog/trpc-tutorial-type-safe-apis.html"
+            }
+        ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is tRPC and how is it different from REST or GraphQL?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "tRPC is a TypeScript-first framework for building APIs where the server and client share types directly through TypeScript inference, without code generation or schema files. Unlike REST, where you manually define request and response types on both sides, tRPC infers them automatically from your server code. Unlike GraphQL, which requires a schema definition language, a code generator, and a runtime query parser, tRPC uses plain TypeScript functions. The tradeoff is that tRPC only works when both your client and server are written in TypeScript within the same monorepo or shared package setup. If you need to serve mobile apps, third-party consumers, or non-TypeScript clients, REST with OpenAPI or GraphQL is a better fit."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I use tRPC with Next.js App Router and Server Components?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. tRPC works with Next.js App Router through two patterns. For Server Components, you create a server-side caller that invokes tRPC procedures directly without an HTTP round-trip. For Client Components, you use the standard React Query integration with a tRPC client that points to a Next.js API route handler. The API route handler is set up at app/api/trpc/[trpc]/route.ts using the fetchRequestHandler from @trpc/server/adapters/fetch. This setup gives you type-safe data fetching in both server and client contexts within the same Next.js application."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does tRPC replace React Query (TanStack Query)?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No, tRPC builds on top of React Query. When you use @trpc/react-query, every tRPC procedure call is backed by React Query under the hood. You get all of React Query's features including caching, background refetching, optimistic updates, infinite queries, and stale-while-revalidate behavior. tRPC adds automatic type inference on top of that so your query keys, input parameters, and return types are all type-safe without any manual generics. You can also access the underlying React Query client directly for advanced patterns like cache manipulation or prefetching."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I handle errors in tRPC?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "tRPC provides a TRPCError class for throwing typed errors from procedures. Each error includes a code (like NOT_FOUND, UNAUTHORIZED, BAD_REQUEST, or INTERNAL_SERVER_ERROR) that maps to an HTTP status code. On the client, failed procedures throw a TRPCClientError that includes the error code, message, and any additional data you attached. For Zod validation errors, tRPC automatically returns a BAD_REQUEST with structured field-level error details. You can also set up a global error formatter on the server to customize the error shape, add logging, or strip sensitive information before errors reach the client."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is tRPC production-ready and what companies use it?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. tRPC is production-ready and has been used in production by companies including Cal.com, Ping.gg, and many startups built on the T3 Stack (Next.js + tRPC + Prisma + Tailwind). The library has over 35,000 GitHub stars and a stable v11 release. It is maintained by a dedicated team and has a well-documented migration path between major versions. tRPC is particularly popular in full-stack TypeScript applications where both the frontend and backend share a single repository, which is the most common architecture for Next.js projects."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg:#050508;--surface:#0a0a0f;--surface-2:#1a1a24;--surface-3:#232330;--primary:#00d4ff;--primary-hover:#818cf8;--accent:#a855f7;--accent-hover:#c084fc;--text:#e2e8f0;--text-secondary:#94a3b8;--text-muted:#64748b;--border:#1e1e2e;--success:#22c55e;--warning:#f59e0b;--error:#ef4444;--code-bg:#0d0d14;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:800px;--header-height:64px; }
+        html { scroll-behavior:smooth;-webkit-text-size-adjust:100%; }
+        body { font-family:var(--font-sans);background:var(--bg);color:var(--text);line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden; }
+        ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+        .nav{position:fixed;top:0;left:0;right:0;height:var(--header-height);background:rgba(5,5,8,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:1000;display:flex;align-items:center;justify-content:center}.nav-inner{width:100%;max-width:1200px;padding:0 24px;display:flex;align-items:center;justify-content:space-between}.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:700;font-size:1.25rem}.nav-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.875rem;font-weight:800;color:#fff}.nav-links{display:flex;align-items:center;gap:28px;list-style:none}.nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}.nav-cta{background:var(--primary);color:#fff!important;padding:8px 20px;border-radius:8px;font-weight:600;transition:background .2s,transform .2s}.nav-cta:hover{background:var(--primary-hover);transform:translateY(-1px)}
+        .article-wrapper{max-width:var(--max-width);margin:0 auto;padding:calc(var(--header-height) + 48px) 24px 80px}.breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:32px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}.breadcrumb a{color:var(--text-secondary);text-decoration:none;transition:color .2s}.breadcrumb a:hover{color:var(--primary)}
+        .article-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}.article-category{display:inline-block;background:rgba(168,85,247,.12);color:var(--accent);padding:4px 14px;border-radius:20px;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}.article-title{font-size:clamp(2rem,5vw,3rem);font-weight:800;line-height:1.15;color:var(--text);margin-bottom:16px;letter-spacing:-.03em}.article-subtitle{font-size:1.2rem;color:var(--text-secondary);line-height:1.6;margin-bottom:24px}.article-meta{display:flex;align-items:center;gap:20px;color:var(--text-muted);font-size:.875rem;flex-wrap:wrap}.article-meta-item{display:flex;align-items:center;gap:6px}
+        .toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:48px}.toc-title{font-size:.85rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}.toc-list{list-style:none;counter-reset:toc}.toc-list li{counter-increment:toc;margin-bottom:8px}.toc-list li a{color:var(--text-secondary);text-decoration:none;font-size:.925rem;display:flex;align-items:baseline;gap:10px;transition:color .2s,padding-left .2s;padding:4px 0}.toc-list li a::before{content:counter(toc,decimal-leading-zero);color:var(--text-muted);font-size:.8rem;font-family:var(--font-mono);min-width:20px}.toc-list li a:hover{color:var(--primary);padding-left:4px}
+        .article-content h2{font-size:1.75rem;font-weight:700;color:var(--text);margin-top:56px;margin-bottom:20px;letter-spacing:-.02em;line-height:1.3;padding-top:16px;border-top:1px solid var(--border)}.article-content h2:first-child{margin-top:0;padding-top:0;border-top:none}.article-content h3{font-size:1.3rem;font-weight:600;color:var(--text);margin-top:36px;margin-bottom:14px;line-height:1.35}.article-content h4{font-size:1.1rem;font-weight:600;color:var(--text-secondary);margin-top:28px;margin-bottom:12px}.article-content p{margin-bottom:20px;color:var(--text-secondary);line-height:1.8}.article-content a{color:var(--primary);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}.article-content a:hover{border-bottom-color:var(--primary)}.article-content strong{color:var(--text);font-weight:600}.article-content ul,.article-content ol{margin-bottom:20px;padding-left:24px;color:var(--text-secondary)}.article-content li{margin-bottom:10px;line-height:1.7}.article-content li::marker{color:var(--primary)}.article-content blockquote{border-left:3px solid var(--accent);background:var(--surface);padding:16px 24px;margin:28px 0;border-radius:0 8px 8px 0;font-style:italic;color:var(--text-secondary)}.article-content blockquote p:last-child{margin-bottom:0}.article-content hr{border:none;border-top:1px solid var(--border);margin:48px 0}
+        .article-content pre{background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:20px 24px;overflow-x:auto;margin:24px 0}.article-content pre code{font-family:var(--font-mono);font-size:.875rem;line-height:1.65;color:var(--text);background:none;padding:0;border-radius:0}.article-content code{font-family:var(--font-mono);font-size:.85em;background:var(--surface);color:var(--accent);padding:2px 8px;border-radius:5px}
+        .code-label{display:inline-block;background:var(--surface-2);color:var(--text-muted);font-size:.75rem;font-family:var(--font-mono);padding:4px 12px;border-radius:6px 6px 0 0;margin-bottom:-1px;position:relative;z-index:1}
+        .info-box{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:20px 24px;margin:28px 0}.info-box.warning{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2)}.info-box.danger{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2)}.info-box.success{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2)}.info-box-title{font-weight:700;margin-bottom:8px;font-size:.9rem;display:flex;align-items:center;gap:8px}.info-box p{color:var(--text-secondary);font-size:.925rem;margin-bottom:0}
+        .tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin:28px 0}.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:var(--text);transition:border-color .2s,transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:8px}.tool-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,212,255,.1)}.tool-card-icon{font-size:1.5rem;margin-bottom:4px}.tool-card-name{font-weight:600;font-size:.95rem}.tool-card-desc{font-size:.825rem;color:var(--text-muted);line-height:1.5}
+        .cta-box{background:linear-gradient(135deg,rgba(0,212,255,.1),rgba(168,85,247,.1));border:1px solid rgba(0,212,255,.25);border-radius:16px;padding:40px 32px;text-align:center;margin:48px 0}.cta-box h3{font-size:1.5rem;font-weight:700;margin-bottom:12px;color:var(--text)}.cta-box p{color:var(--text-secondary);margin-bottom:24px;max-width:500px;margin-left:auto;margin-right:auto}.cta-button{display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1rem;transition:background .2s,transform .2s,box-shadow .2s}.cta-button:hover{background:var(--primary-hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,255,.3)}.cta-button.secondary{background:transparent;border:1px solid var(--primary);color:var(--primary);margin-left:12px}.cta-button.secondary:hover{background:rgba(0,212,255,.1)}
+        .faq-section{margin-top:56px;padding-top:32px;border-top:1px solid var(--border)}.faq-section h2{margin-top:0!important;padding-top:0!important;border-top:none!important}.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}.faq-question{width:100%;background:none;border:none;color:var(--text);padding:20px 24px;font-size:1rem;font-weight:600;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-sans);transition:background .2s}.faq-question:hover{background:var(--surface-2)}.faq-question .icon{transition:transform .3s;font-size:1.25rem;color:var(--text-muted);flex-shrink:0;margin-left:16px}.faq-item.open .faq-question .icon{transform:rotate(45deg)}.faq-answer{max-height:0;overflow:hidden;transition:max-height .3s ease}.faq-answer-inner{padding:0 24px 20px;color:var(--text-secondary);line-height:1.7}
+        .author-box{display:flex;align-items:center;gap:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin:48px 0}.author-avatar{width:64px;height:64px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff;flex-shrink:0}.author-info h4{font-weight:600;margin-bottom:4px}.author-info p{color:var(--text-muted);font-size:.875rem;margin:0;line-height:1.5}
+        .footer{border-top:1px solid var(--border);padding:48px 24px;text-align:center;color:var(--text-muted);font-size:.85rem}.footer-inner{max-width:1200px;margin:0 auto}.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}.footer-links a{color:var(--text-secondary);text-decoration:none;transition:color .2s}.footer-links a:hover{color:var(--primary)}
+        @media(max-width:768px){.nav-links{display:none}.article-wrapper{padding:calc(var(--header-height) + 24px) 16px 60px}.article-title{font-size:1.75rem}.tool-grid{grid-template-columns:1fr}.cta-box{padding:28px 20px}.cta-button.secondary{margin-left:0;margin-top:12px}.author-box{flex-direction:column;text-align:center}.article-content pre{padding:16px;border-radius:8px}.article-content h2{font-size:1.4rem}.article-content h3{font-size:1.15rem}}
+        @media(max-width:480px){.article-title{font-size:1.5rem}.toc{padding:18px 20px}}
+    </style>
+</head>
+<body>
+
+    <nav class="nav"><div class="nav-inner"><a href="/" class="nav-logo"><span class="nav-logo-icon">NT</span>ANIMA</a><ul class="nav-links"><li><a href="/">Home</a></li><li><a href="/free-tools/">Free Tools</a></li><li><a href="/blog/" class="active">Blog</a></li><li><a href="/free-tools/pro-upgrade.html" class="nav-cta">GitHub</a></li></ul></div></nav>
+
+    <article class="article-wrapper">
+
+        <div class="breadcrumb">
+            <a href="/">Home</a> <span>/</span>
+            <a href="/blog/">Blog</a> <span>/</span>
+            <span>tRPC Tutorial</span>
+        </div>
+
+        <header class="article-header">
+            <span class="article-category">TypeScript</span>
+            <h1 class="article-title">tRPC Tutorial: Build Type-Safe APIs Without GraphQL (2026)</h1>
+            <p class="article-subtitle">A practical guide to building end-to-end type-safe APIs with tRPC. Covers project setup with Next.js App Router, Zod input validation, React Query integration, authentication middleware, error handling, testing, and production deployment patterns.</p>
+            <div class="article-meta">
+                <span class="article-meta-item">February 21, 2026</span>
+                <span class="article-meta-item">22 min read</span>
+                <span class="article-meta-item">Christian Bucher</span>
+            </div>
+        </header>
+
+        <div class="toc">
+            <div class="toc-title">In This Guide</div>
+            <ol class="toc-list">
+                <li><a href="#what-is-trpc">What Is tRPC and Why It Exists</a></li>
+                <li><a href="#trpc-vs-rest-vs-graphql">tRPC vs REST vs GraphQL</a></li>
+                <li><a href="#setup">Setting Up tRPC with Next.js App Router</a></li>
+                <li><a href="#routers-procedures">Creating Your First Router and Procedures</a></li>
+                <li><a href="#zod-validation">Input Validation with Zod</a></li>
+                <li><a href="#react-query">React Query Integration</a></li>
+                <li><a href="#auth-middleware">Authentication and Middleware</a></li>
+                <li><a href="#error-handling">Error Handling Patterns</a></li>
+                <li><a href="#testing">Testing tRPC Procedures</a></li>
+                <li><a href="#production">Production Tips and Performance</a></li>
+                <li><a href="#tools">Related Developer Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </div>
+
+        <div class="article-content">
+
+            <p>Every full-stack TypeScript project hits the same problem: you define types on the server, then re-define them on the client. When the API contract changes, the compiler does not catch the mismatch. Runtime errors appear in production instead of red squiggles in your editor.</p>
+
+            <p>tRPC solves this by sharing types directly between your server and client through TypeScript inference. No code generation. No schema files. No runtime overhead for parsing query languages. You write a function on the server, and the client knows its input and output types automatically.</p>
+
+            <p>This guide walks through a complete tRPC setup with Next.js App Router, from installation to production deployment. Every code example is copy-pasteable and tested against tRPC v11.</p>
+
+            <div class="info-box">
+                <p><strong>Validate your TypeScript as you follow along.</strong> The <a href="/free-tools/typescript-playground.html">TypeScript Playground</a> lets you test type definitions and catch errors in your browser without any local setup.</p>
+            </div>
+
+            <h2 id="what-is-trpc">What Is tRPC and Why It Exists</h2>
+
+            <p>tRPC stands for TypeScript Remote Procedure Call. It is an open-source library that lets you build fully typed APIs where the server definition is the single source of truth for both input validation and response types.</p>
+
+            <p>The core idea is simple: you write a TypeScript function on the server. The client imports the function's type (not the function itself) and gets full autocompletion, type checking, and inference. If you change a field name on the server, the client breaks at compile time, not at runtime.</p>
+
+            <p>Here is what that looks like in practice:</p>
+
+            <span class="code-label">server/routers/user.ts</span>
+<pre><code>// Server: define a procedure
+export const userRouter = router({
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) =&gt; {
+      const user = await db.user.findUnique({ where: { id: input.id } });
+      return user; // Return type is inferred
+    }),
+});</code></pre>
+
+            <span class="code-label">app/components/UserProfile.tsx</span>
+<pre><code>// Client: types flow automatically
+const { data: user } = trpc.user.getById.useQuery({ id: '123' });
+// TypeScript knows: user is { id: string; name: string; email: string } | null
+// Passing { id: 123 } would be a compile error (number instead of string)</code></pre>
+
+            <p>The type travels from your database schema through Prisma, into tRPC, and out to your React component. No manual type definitions anywhere in between. This is what "end-to-end type safety" means in practice.</p>
+
+            <h3>What tRPC is not</h3>
+
+            <p>tRPC is not a replacement for REST or GraphQL in every scenario. It requires both client and server to be TypeScript. It does not generate API documentation for third-party consumers. It does not work across language boundaries. If you are building a public API that other teams or mobile apps consume, REST with OpenAPI or GraphQL is a better choice. tRPC is designed for the common case: a TypeScript frontend talking to a TypeScript backend within the same codebase.</p>
+
+            <h2 id="trpc-vs-rest-vs-graphql">tRPC vs REST vs GraphQL</h2>
+
+            <p>Choosing between these three depends on your constraints. Here is an honest comparison.</p>
+
+            <h3>REST</h3>
+
+            <ul>
+                <li><strong>Best for:</strong> Public APIs, multi-language clients, simple CRUD</li>
+                <li><strong>Type safety:</strong> Manual. You can add OpenAPI/Swagger, but types are not enforced at compile time</li>
+                <li><strong>Learning curve:</strong> Low. Every developer knows HTTP verbs and JSON</li>
+                <li><strong>Tooling:</strong> Mature. Postman, curl, browser dev tools all work out of the box</li>
+                <li><strong>Drawback:</strong> Overfetching and underfetching. No automatic type sharing</li>
+            </ul>
+
+            <h3>GraphQL</h3>
+
+            <ul>
+                <li><strong>Best for:</strong> Complex data graphs, multiple client platforms, teams that need a strict schema contract</li>
+                <li><strong>Type safety:</strong> Good with codegen (graphql-codegen). Requires a build step</li>
+                <li><strong>Learning curve:</strong> High. Schema definition language, resolvers, query language, client caching</li>
+                <li><strong>Tooling:</strong> GraphiQL, Apollo DevTools, Relay DevTools</li>
+                <li><strong>Drawback:</strong> Complexity overhead. Schema + codegen + runtime parser for what might be simple calls</li>
+            </ul>
+
+            <h3>tRPC</h3>
+
+            <ul>
+                <li><strong>Best for:</strong> Full-stack TypeScript monorepos, rapid prototyping, internal tools</li>
+                <li><strong>Type safety:</strong> Excellent. Zero codegen. Types are inferred automatically</li>
+                <li><strong>Learning curve:</strong> Low if you know TypeScript and React Query</li>
+                <li><strong>Tooling:</strong> TypeScript compiler is the tool. No extra DevTools needed</li>
+                <li><strong>Drawback:</strong> TypeScript-only. Not suitable for public APIs or non-TS clients</li>
+            </ul>
+
+            <div class="info-box">
+                <p><strong>Quick decision.</strong> If your frontend and backend are both TypeScript in the same repo, start with tRPC. If you need to serve non-TypeScript clients or expose a public API, use REST with OpenAPI. If you have a complex data graph with many different client needs, consider GraphQL.</p>
+            </div>
+
+            <h2 id="setup">Setting Up tRPC with Next.js App Router</h2>
+
+            <p>This setup uses Next.js 14+ with the App Router, tRPC v11, and Zod for input validation. Start by installing the required packages.</p>
+
+            <span class="code-label">Terminal</span>
+<pre><code>npm install @trpc/server @trpc/client @trpc/react-query @tanstack/react-query zod</code></pre>
+
+            <p>The project structure follows a pattern that keeps tRPC configuration separate from your application logic.</p>
+
+            <span class="code-label">Project structure</span>
+<pre><code>src/
+  server/
+    trpc.ts           # tRPC initialization + context
+    routers/
+      _app.ts         # Root router (merges all sub-routers)
+      user.ts         # User procedures
+      post.ts         # Post procedures
+  app/
+    api/trpc/[trpc]/
+      route.ts        # Next.js API route handler
+    _trpc/
+      client.ts       # tRPC client for Client Components
+      server.ts       # tRPC caller for Server Components
+    providers.tsx     # React Query + tRPC provider</code></pre>
+
+            <h3>Step 1: Initialize tRPC on the server</h3>
+
+            <p>Create the tRPC instance and define your context. The context is an object available in every procedure, typically containing the database client, session information, and any shared utilities.</p>
+
+            <span class="code-label">src/server/trpc.ts</span>
+<pre><code>import { initTRPC, TRPCError } from '@trpc/server';
+import { type FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
+import superjson from 'superjson';
+import { ZodError } from 'zod';
+import { db } from '@/lib/db';
+import { getSession } from '@/lib/auth';
+
+export const createTRPCContext = async (opts: FetchCreateContextFnOptions) =&gt; {
+  const session = await getSession(opts.req);
+  return {
+    db,
+    session,
+  };
+};
+
+const t = initTRPC.context&lt;typeof createTRPCContext&gt;().create({
+  transformer: superjson,
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        zodError:
+          error.cause instanceof ZodError ? error.cause.flatten() : null,
+      },
+    };
+  },
+});
+
+export const router = t.router;
+export const publicProcedure = t.procedure;
+export const createCallerFactory = t.createCallerFactory;</code></pre>
+
+            <p>The <code>superjson</code> transformer handles Date objects, Map, Set, and other types that JSON.stringify cannot serialize. The error formatter exposes Zod validation errors in a structured format so the client can display field-level messages.</p>
+
+            <h3>Step 2: Create the API route handler</h3>
+
+            <span class="code-label">src/app/api/trpc/[trpc]/route.ts</span>
+<pre><code>import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
+import { appRouter } from '@/server/routers/_app';
+import { createTRPCContext } from '@/server/trpc';
+
+const handler = (req: Request) =&gt;
+  fetchRequestHandler({
+    endpoint: '/api/trpc',
+    req,
+    router: appRouter,
+    createContext: createTRPCContext,
+  });
+
+export { handler as GET, handler as POST };</code></pre>
+
+            <p>This single route handler catches all tRPC requests. Next.js dynamic routes with <code>[trpc]</code> forward the procedure path to tRPC's internal router.</p>
+
+            <h2 id="routers-procedures">Creating Your First Router and Procedures</h2>
+
+            <p>tRPC organizes your API into routers. Each router groups related procedures. Procedures come in three types:</p>
+
+            <ul>
+                <li><strong>query:</strong> Read operations. Maps to HTTP GET. Cached by React Query</li>
+                <li><strong>mutation:</strong> Write operations. Maps to HTTP POST. Not cached</li>
+                <li><strong>subscription:</strong> WebSocket streams. Used for real-time data</li>
+            </ul>
+
+            <span class="code-label">src/server/routers/post.ts</span>
+<pre><code>import { z } from 'zod';
+import { router, publicProcedure } from '../trpc';
+
+export const postRouter = router({
+  // Query: fetch a list of posts
+  list: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(10),
+        cursor: z.string().nullish(), // for cursor-based pagination
+      })
+    )
+    .query(async ({ ctx, input }) =&gt; {
+      const posts = await ctx.db.post.findMany({
+        take: input.limit + 1,
+        cursor: input.cursor ? { id: input.cursor } : undefined,
+        orderBy: { createdAt: 'desc' },
+      });
+
+      let nextCursor: string | undefined;
+      if (posts.length &gt; input.limit) {
+        const nextItem = posts.pop();
+        nextCursor = nextItem?.id;
+      }
+
+      return { posts, nextCursor };
+    }),
+
+  // Query: fetch a single post by ID
+  byId: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) =&gt; {
+      const post = await ctx.db.post.findUnique({ where: { id: input.id } });
+      if (!post) throw new TRPCError({ code: 'NOT_FOUND' });
+      return post;
+    }),
+
+  // Mutation: create a new post
+  create: publicProcedure
+    .input(
+      z.object({
+        title: z.string().min(1).max(200),
+        content: z.string().min(1),
+        published: z.boolean().default(false),
+      })
+    )
+    .mutation(async ({ ctx, input }) =&gt; {
+      return ctx.db.post.create({ data: input });
+    }),
+});</code></pre>
+
+            <p>Merge routers into a single root router that represents your entire API.</p>
+
+            <span class="code-label">src/server/routers/_app.ts</span>
+<pre><code>import { router } from '../trpc';
+import { userRouter } from './user';
+import { postRouter } from './post';
+
+export const appRouter = router({
+  user: userRouter,
+  post: postRouter,
+});
+
+// Export type for the client
+export type AppRouter = typeof appRouter;</code></pre>
+
+            <p>The <code>AppRouter</code> type export is the bridge between server and client. The client imports this type (not the runtime code) and uses it to infer all procedure types.</p>
+
+            <h2 id="zod-validation">Input Validation with Zod</h2>
+
+            <p>Every tRPC procedure can define an <code>.input()</code> validator using Zod. When a client sends invalid data, tRPC returns a <code>BAD_REQUEST</code> error with structured field-level details before your procedure logic ever runs.</p>
+
+            <span class="code-label">Zod schema examples</span>
+<pre><code>import { z } from 'zod';
+
+// String with constraints
+const createUserInput = z.object({
+  name: z.string().min(2).max(100),
+  email: z.string().email(),
+  role: z.enum(['admin', 'user', 'editor']),
+  age: z.number().int().positive().optional(),
+  tags: z.array(z.string()).max(10).default([]),
+});
+
+// Reuse schemas across procedures
+const paginationInput = z.object({
+  page: z.number().int().positive().default(1),
+  perPage: z.number().int().min(1).max(100).default(20),
+});
+
+// Compose with .merge() or .extend()
+const searchInput = paginationInput.extend({
+  query: z.string().min(1),
+  sortBy: z.enum(['relevance', 'date', 'title']).default('relevance'),
+});</code></pre>
+
+            <p>Zod schemas serve double duty: they validate the input at runtime and infer the TypeScript type at compile time. When you write <code>.input(z.object({ id: z.string() }))</code>, both the runtime validator and the TypeScript type <code>{ id: string }</code> come from the same source. No possibility of drift.</p>
+
+            <p>To validate and format your Zod schemas or convert JSON responses into TypeScript interfaces, the <a href="/free-tools/json-to-typescript.html">JSON to TypeScript Converter</a> generates accurate type definitions from any JSON payload.</p>
+
+            <div class="info-box warning">
+                <div class="info-box-title">Avoid .passthrough() in production</div>
+                <p>Zod strips unknown keys by default. Using <code>.passthrough()</code> or <code>.strict()</code> changes this behavior. In tRPC, the default stripping behavior is what you want. It prevents clients from sending unexpected fields that could cause security issues or database errors.</p>
+            </div>
+
+            <h2 id="react-query">React Query Integration</h2>
+
+            <p>tRPC's React integration is built on top of <code>@tanstack/react-query</code>. Every <code>useQuery</code> and <code>useMutation</code> call is type-safe with zero manual generics.</p>
+
+            <h3>Setting up the client</h3>
+
+            <span class="code-label">src/app/_trpc/client.ts</span>
+<pre><code>import { createTRPCReact } from '@trpc/react-query';
+import type { AppRouter } from '@/server/routers/_app';
+
+export const trpc = createTRPCReact&lt;AppRouter&gt;();</code></pre>
+
+            <span class="code-label">src/app/providers.tsx</span>
+<pre><code>'use client';
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { httpBatchLink } from '@trpc/client';
+import { useState } from 'react';
+import { trpc } from './_trpc/client';
+import superjson from 'superjson';
+
+export function TRPCProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() =&gt; new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
+
+  const [trpcClient] = useState(() =&gt;
+    trpc.createClient({
+      links: [
+        httpBatchLink({
+          url: '/api/trpc',
+          transformer: superjson,
+        }),
+      ],
+    })
+  );
+
+  return (
+    &lt;trpc.Provider client={trpcClient} queryClient={queryClient}&gt;
+      &lt;QueryClientProvider client={queryClient}&gt;
+        {children}
+      &lt;/QueryClientProvider&gt;
+    &lt;/trpc.Provider&gt;
+  );
+}</code></pre>
+
+            <h3>Using queries</h3>
+
+            <span class="code-label">app/posts/page.tsx (Client Component)</span>
+<pre><code>'use client';
+
+import { trpc } from '@/app/_trpc/client';
+
+export default function PostsPage() {
+  // TypeScript infers the return type from the server procedure
+  const { data, isLoading, error } = trpc.post.list.useQuery({
+    limit: 20,
+  });
+
+  if (isLoading) return &lt;p&gt;Loading...&lt;/p&gt;;
+  if (error) return &lt;p&gt;Error: {error.message}&lt;/p&gt;;
+
+  return (
+    &lt;ul&gt;
+      {data?.posts.map((post) =&gt; (
+        &lt;li key={post.id}&gt;{post.title}&lt;/li&gt;
+      ))}
+    &lt;/ul&gt;
+  );
+}</code></pre>
+
+            <h3>Using mutations</h3>
+
+<pre><code>'use client';
+
+import { trpc } from '@/app/_trpc/client';
+
+export function CreatePostForm() {
+  const utils = trpc.useUtils();
+
+  const createPost = trpc.post.create.useMutation({
+    onSuccess: () =&gt; {
+      // Invalidate the post list cache so it refetches
+      utils.post.list.invalidate();
+    },
+  });
+
+  function handleSubmit(e: React.FormEvent&lt;HTMLFormElement&gt;) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    createPost.mutate({
+      title: formData.get('title') as string,
+      content: formData.get('content') as string,
+    });
+  }
+
+  return (
+    &lt;form onSubmit={handleSubmit}&gt;
+      &lt;input name="title" required /&gt;
+      &lt;textarea name="content" required /&gt;
+      &lt;button type="submit" disabled={createPost.isPending}&gt;
+        {createPost.isPending ? 'Creating...' : 'Create Post'}
+      &lt;/button&gt;
+      {createPost.error &amp;&amp; &lt;p&gt;{createPost.error.message}&lt;/p&gt;}
+    &lt;/form&gt;
+  );
+}</code></pre>
+
+            <h3>Server-side calling (Server Components)</h3>
+
+            <p>For Server Components, you bypass the HTTP layer entirely and call procedures directly.</p>
+
+            <span class="code-label">src/app/_trpc/server.ts</span>
+<pre><code>import 'server-only';
+
+import { createCallerFactory } from '@/server/trpc';
+import { appRouter } from '@/server/routers/_app';
+import { db } from '@/lib/db';
+import { getSession } from '@/lib/auth';
+import { headers } from 'next/headers';
+
+const createCaller = createCallerFactory(appRouter);
+
+export async function createServerCaller() {
+  const session = await getSession();
+  return createCaller({ db, session });
+}</code></pre>
+
+            <span class="code-label">app/posts/[id]/page.tsx (Server Component)</span>
+<pre><code>import { createServerCaller } from '@/app/_trpc/server';
+
+export default async function PostPage({ params }: { params: { id: string } }) {
+  const trpc = await createServerCaller();
+  const post = await trpc.post.byId({ id: params.id });
+
+  return (
+    &lt;article&gt;
+      &lt;h1&gt;{post.title}&lt;/h1&gt;
+      &lt;div&gt;{post.content}&lt;/div&gt;
+    &lt;/article&gt;
+  );
+}</code></pre>
+
+            <h2 id="auth-middleware">Authentication and Middleware</h2>
+
+            <p>tRPC middleware runs before a procedure executes. The most common use case is authentication: verifying that the request has a valid session before running the procedure logic.</p>
+
+            <span class="code-label">src/server/trpc.ts (add to existing file)</span>
+<pre><code>const isAuthenticated = t.middleware(async ({ ctx, next }) =&gt; {
+  if (!ctx.session?.user) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'You must be logged in to perform this action',
+    });
+  }
+
+  return next({
+    ctx: {
+      // Override the context with a guaranteed non-null user
+      session: ctx.session,
+      user: ctx.session.user,
+    },
+  });
+});
+
+// Create a procedure that requires authentication
+export const protectedProcedure = t.procedure.use(isAuthenticated);</code></pre>
+
+            <p>Now any procedure built with <code>protectedProcedure</code> instead of <code>publicProcedure</code> automatically has <code>ctx.user</code> available and typed as non-null.</p>
+
+            <span class="code-label">src/server/routers/post.ts</span>
+<pre><code>import { protectedProcedure } from '../trpc';
+
+export const postRouter = router({
+  // Anyone can read posts
+  list: publicProcedure.query(/* ... */),
+
+  // Only authenticated users can create posts
+  create: protectedProcedure
+    .input(z.object({
+      title: z.string().min(1).max(200),
+      content: z.string().min(1),
+    }))
+    .mutation(async ({ ctx, input }) =&gt; {
+      // ctx.user is guaranteed to exist (TypeScript knows this)
+      return ctx.db.post.create({
+        data: {
+          ...input,
+          authorId: ctx.user.id,
+        },
+      });
+    }),
+});</code></pre>
+
+            <h3>Role-based middleware</h3>
+
+            <p>You can chain middleware for more granular authorization.</p>
+
+<pre><code>const isAdmin = t.middleware(async ({ ctx, next }) =&gt; {
+  if (ctx.session?.user?.role !== 'admin') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Admin access required',
+    });
+  }
+  return next({ ctx });
+});
+
+export const adminProcedure = t.procedure
+  .use(isAuthenticated)
+  .use(isAdmin);</code></pre>
+
+            <h3>Logging middleware</h3>
+
+<pre><code>const logger = t.middleware(async ({ path, type, next }) =&gt; {
+  const start = Date.now();
+  const result = await next();
+  const duration = Date.now() - start;
+
+  if (result.ok) {
+    console.log(`[tRPC] ${type} ${path} - ${duration}ms`);
+  } else {
+    console.error(`[tRPC] ${type} ${path} - ${duration}ms - ERROR`);
+  }
+
+  return result;
+});</code></pre>
+
+            <p>For testing your API responses during development, the <a href="/free-tools/api-tester.html">API Tester</a> lets you send requests and inspect responses directly in the browser. And the <a href="/free-tools/json-formatter.html">JSON Formatter</a> makes tRPC's JSON responses readable when debugging.</p>
+
+            <h2 id="error-handling">Error Handling Patterns</h2>
+
+            <p>tRPC provides a <code>TRPCError</code> class with error codes that map to HTTP status codes. Throwing these errors from any procedure or middleware returns a structured error to the client.</p>
+
+            <span class="code-label">Server-side error throwing</span>
+<pre><code>import { TRPCError } from '@trpc/server';
+
+export const postRouter = router({
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) =&gt; {
+      const post = await ctx.db.post.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `Post with ID ${input.id} not found`,
+        });
+      }
+
+      if (post.authorId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You can only delete your own posts',
+        });
+      }
+
+      await ctx.db.post.delete({ where: { id: input.id } });
+      return { success: true };
+    }),
+});</code></pre>
+
+            <h3>Error codes reference</h3>
+
+            <ul>
+                <li><code>BAD_REQUEST</code> (400) - Invalid input. Automatically used for Zod validation failures</li>
+                <li><code>UNAUTHORIZED</code> (401) - Not authenticated</li>
+                <li><code>FORBIDDEN</code> (403) - Authenticated but not permitted</li>
+                <li><code>NOT_FOUND</code> (404) - Resource does not exist</li>
+                <li><code>CONFLICT</code> (409) - Resource already exists or state conflict</li>
+                <li><code>TOO_MANY_REQUESTS</code> (429) - Rate limited</li>
+                <li><code>INTERNAL_SERVER_ERROR</code> (500) - Unexpected server error</li>
+            </ul>
+
+            <h3>Client-side error handling</h3>
+
+<pre><code>'use client';
+
+import { TRPCClientError } from '@trpc/client';
+
+function DeleteButton({ postId }: { postId: string }) {
+  const deletePost = trpc.post.delete.useMutation({
+    onError: (error) =&gt; {
+      if (error instanceof TRPCClientError) {
+        switch (error.data?.code) {
+          case 'NOT_FOUND':
+            alert('This post has already been deleted.');
+            break;
+          case 'FORBIDDEN':
+            alert('You do not have permission to delete this post.');
+            break;
+          default:
+            alert(`Error: ${error.message}`);
+        }
+      }
+    },
+    onSuccess: () =&gt; {
+      // Redirect or update UI
+    },
+  });
+
+  return (
+    &lt;button onClick={() =&gt; deletePost.mutate({ id: postId })}&gt;
+      Delete
+    &lt;/button&gt;
+  );
+}</code></pre>
+
+            <h3>Handling Zod validation errors on the client</h3>
+
+            <p>When a Zod validation fails, tRPC includes the structured error in the response. You can use this to display field-level error messages.</p>
+
+<pre><code>const createPost = trpc.post.create.useMutation({
+  onError: (error) =&gt; {
+    // Access Zod field errors from the error formatter we set up earlier
+    const zodErrors = error.data?.zodError?.fieldErrors;
+    if (zodErrors) {
+      // zodErrors is { title?: string[], content?: string[] }
+      Object.entries(zodErrors).forEach(([field, messages]) =&gt; {
+        console.log(`${field}: ${messages?.join(', ')}`);
+      });
+    }
+  },
+});</code></pre>
+
+            <h2 id="testing">Testing tRPC Procedures</h2>
+
+            <p>One of tRPC's best features is testability. Procedures are regular async functions. You test them by creating a caller with a mock context.</p>
+
+            <span class="code-label">__tests__/post.test.ts</span>
+<pre><code>import { describe, it, expect, beforeEach } from 'vitest';
+import { createCallerFactory } from '@/server/trpc';
+import { appRouter } from '@/server/routers/_app';
+import { db } from '@/lib/db'; // Your test database
+
+const createCaller = createCallerFactory(appRouter);
+
+describe('post router', () =&gt; {
+  let caller: ReturnType&lt;typeof createCaller&gt;;
+
+  beforeEach(() =&gt; {
+    // Create a caller with a mock context
+    caller = createCaller({
+      db,
+      session: {
+        user: { id: 'test-user-1', name: 'Test', role: 'user' },
+        expires: new Date(Date.now() + 86400000).toISOString(),
+      },
+    });
+  });
+
+  it('creates a post', async () =&gt; {
+    const post = await caller.post.create({
+      title: 'Test Post',
+      content: 'This is a test post.',
+    });
+
+    expect(post.title).toBe('Test Post');
+    expect(post.authorId).toBe('test-user-1');
+  });
+
+  it('returns NOT_FOUND for missing post', async () =&gt; {
+    await expect(
+      caller.post.byId({ id: 'nonexistent-id' })
+    ).rejects.toThrow('NOT_FOUND');
+  });
+
+  it('prevents deleting another user\'s post', async () =&gt; {
+    // Create a post as a different user
+    const otherCaller = createCaller({
+      db,
+      session: {
+        user: { id: 'other-user', name: 'Other', role: 'user' },
+        expires: new Date(Date.now() + 86400000).toISOString(),
+      },
+    });
+
+    const post = await otherCaller.post.create({
+      title: 'Their Post',
+      content: 'Content',
+    });
+
+    // Try to delete as test-user-1
+    await expect(
+      caller.post.delete({ id: post.id })
+    ).rejects.toThrow('FORBIDDEN');
+  });
+});</code></pre>
+
+            <p>This pattern tests your actual business logic, including middleware and validation, without starting an HTTP server. The test runs in milliseconds.</p>
+
+            <div class="info-box success">
+                <div class="info-box-title">Testing tip</div>
+                <p>Use a separate test database (SQLite in-memory or a Dockerized Postgres) and reset it between tests. Prisma's <code>$transaction</code> with rollback is another pattern for fast, isolated tests.</p>
+            </div>
+
+            <h2 id="production">Production Tips and Performance</h2>
+
+            <h3>Request batching</h3>
+
+            <p>tRPC batches multiple procedure calls from the same render cycle into a single HTTP request by default. If a page calls <code>trpc.user.me.useQuery()</code> and <code>trpc.post.list.useQuery()</code>, both resolve in one network round-trip.</p>
+
+            <p>This is enabled automatically with <code>httpBatchLink</code>. If you need to disable it for specific procedures (like file uploads), use <code>httpLink</code> for those calls.</p>
+
+            <h3>Prefetching and SSR</h3>
+
+            <p>For Server-Side Rendering, prefetch data on the server and pass it to the client to avoid a loading flash.</p>
+
+<pre><code>// In a Server Component
+import { createServerCaller } from '@/app/_trpc/server';
+import { HydrateClient } from '@/app/_trpc/client';
+
+export default async function PostsPage() {
+  const trpc = await createServerCaller();
+
+  // Prefetch on the server
+  const posts = await trpc.post.list({ limit: 20 });
+
+  // Pass to client as props or use React Server Components directly
+  return &lt;PostsList initialData={posts} /&gt;;
+}</code></pre>
+
+            <h3>Response caching</h3>
+
+            <p>Add HTTP cache headers in your procedures for CDN caching.</p>
+
+<pre><code>export const postRouter = router({
+  list: publicProcedure
+    .input(paginationInput)
+    .query(async ({ ctx, input }) =&gt; {
+      // Set cache headers (only works with HTTP transport)
+      ctx.resHeaders?.set(
+        'Cache-Control',
+        'public, s-maxage=60, stale-while-revalidate=300'
+      );
+
+      return ctx.db.post.findMany({
+        take: input.perPage,
+        skip: (input.page - 1) * input.perPage,
+      });
+    }),
+});</code></pre>
+
+            <h3>Monitoring and observability</h3>
+
+            <p>Add a global middleware that logs slow queries and errors to your monitoring service.</p>
+
+<pre><code>const observability = t.middleware(async ({ path, type, next }) =&gt; {
+  const start = performance.now();
+  const result = await next();
+  const duration = performance.now() - start;
+
+  // Log slow procedures (over 1 second)
+  if (duration &gt; 1000) {
+    console.warn(`[SLOW] ${type} ${path} took ${duration.toFixed(0)}ms`);
+  }
+
+  // Send to your monitoring (Sentry, Datadog, etc.)
+  if (!result.ok) {
+    captureException(result.error, {
+      tags: { trpc_path: path, trpc_type: type },
+    });
+  }
+
+  return result;
+});</code></pre>
+
+            <h3>Bundle size</h3>
+
+            <p>tRPC adds minimal client-side JavaScript. The <code>@trpc/client</code> package is roughly 5KB gzipped. The main dependency is <code>@tanstack/react-query</code> at approximately 13KB gzipped. Together they are smaller than most GraphQL clients.</p>
+
+            <div class="info-box">
+                <p><strong>Debug your API payloads.</strong> The <a href="/free-tools/json-formatter.html">JSON Formatter</a> makes complex tRPC responses readable, and the <a href="/free-tools/json-path-finder.html">JSON Path Finder</a> helps you navigate deeply nested response objects.</p>
+            </div>
+
+            <h3>Environment variables</h3>
+
+            <p>Keep your tRPC endpoint URL configurable across environments. Use the <a href="/free-tools/env-file-editor.html">Env File Editor</a> to manage environment variables across development, staging, and production without manual editing mistakes.</p>
+
+<pre><code>// In your tRPC client setup
+httpBatchLink({
+  url: `${process.env.NEXT_PUBLIC_APP_URL}/api/trpc`,
+  transformer: superjson,
+})</code></pre>
+
+            <!-- Tools Section -->
+            <h2 id="tools">Related Developer Tools</h2>
+
+            <p>Free browser-based tools to complement your tRPC and TypeScript API development.</p>
+
+            <div class="tool-grid">
+                <a href="/free-tools/typescript-playground.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4BB;</div>
+                    <div class="tool-card-name">TypeScript Playground</div>
+                    <div class="tool-card-desc">Write and compile TypeScript in your browser. Test tRPC types, Zod schemas, and utility types instantly.</div>
+                </a>
+                <a href="/free-tools/json-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CB;</div>
+                    <div class="tool-card-name">JSON Formatter</div>
+                    <div class="tool-card-desc">Format and validate JSON responses from tRPC procedures. Essential for debugging API payloads.</div>
+                </a>
+                <a href="/free-tools/api-tester.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F680;</div>
+                    <div class="tool-card-name">API Tester</div>
+                    <div class="tool-card-desc">Send HTTP requests and inspect responses. Test your tRPC endpoints directly from the browser.</div>
+                </a>
+                <a href="/free-tools/json-to-typescript.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F504;</div>
+                    <div class="tool-card-name">JSON to TypeScript</div>
+                    <div class="tool-card-desc">Generate TypeScript interfaces from JSON payloads. Useful for creating Zod schemas from existing API responses.</div>
+                </a>
+                <a href="/free-tools/json-schema-generator.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4DD;</div>
+                    <div class="tool-card-name">JSON Schema Generator</div>
+                    <div class="tool-card-desc">Generate JSON Schema from sample data. Convert to Zod schemas for tRPC input validation.</div>
+                </a>
+                <a href="/free-tools/env-file-editor.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F6E0;</div>
+                    <div class="tool-card-name">Env File Editor</div>
+                    <div class="tool-card-desc">Manage .env files across environments. Keep tRPC endpoint URLs and database strings organized.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <!-- FAQ Section -->
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is tRPC and how is it different from REST or GraphQL?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>tRPC is a TypeScript-first framework for building APIs where the server and client share types directly through TypeScript inference, without code generation or schema files. Unlike REST, where you manually define request and response types on both sides, tRPC infers them automatically from your server code. Unlike GraphQL, which requires a schema definition language, a code generator, and a runtime query parser, tRPC uses plain TypeScript functions. The tradeoff is that tRPC only works when both your client and server are written in TypeScript within the same monorepo or shared package setup. If you need to serve mobile apps, third-party consumers, or non-TypeScript clients, REST with OpenAPI or GraphQL is a better fit.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Can I use tRPC with Next.js App Router and Server Components?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Yes. tRPC works with Next.js App Router through two patterns. For Server Components, you create a server-side caller that invokes tRPC procedures directly without an HTTP round-trip. For Client Components, you use the standard React Query integration with a tRPC client that points to a Next.js API route handler. The API route handler is set up at <code>app/api/trpc/[trpc]/route.ts</code> using the <code>fetchRequestHandler</code> from <code>@trpc/server/adapters/fetch</code>. This setup gives you type-safe data fetching in both server and client contexts within the same Next.js application.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Does tRPC replace React Query (TanStack Query)?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>No, tRPC builds on top of React Query. When you use <code>@trpc/react-query</code>, every tRPC procedure call is backed by React Query under the hood. You get all of React Query's features including caching, background refetching, optimistic updates, infinite queries, and stale-while-revalidate behavior. tRPC adds automatic type inference on top of that so your query keys, input parameters, and return types are all type-safe without any manual generics. You can also access the underlying React Query client directly for advanced patterns like cache manipulation or prefetching.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>How do I handle errors in tRPC?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>tRPC provides a <code>TRPCError</code> class for throwing typed errors from procedures. Each error includes a code (like <code>NOT_FOUND</code>, <code>UNAUTHORIZED</code>, <code>BAD_REQUEST</code>, or <code>INTERNAL_SERVER_ERROR</code>) that maps to an HTTP status code. On the client, failed procedures throw a <code>TRPCClientError</code> that includes the error code, message, and any additional data you attached. For Zod validation errors, tRPC automatically returns a <code>BAD_REQUEST</code> with structured field-level error details. You can also set up a global error formatter on the server to customize the error shape, add logging, or strip sensitive information before errors reach the client.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Is tRPC production-ready and what companies use it?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Yes. tRPC is production-ready and has been used in production by companies including Cal.com, Ping.gg, and many startups built on the T3 Stack (Next.js + tRPC + Prisma + Tailwind). The library has over 35,000 GitHub stars and a stable v11 release. It is maintained by a dedicated team and has a well-documented migration path between major versions. tRPC is particularly popular in full-stack TypeScript applications where both the frontend and backend share a single repository, which is the most common architecture for Next.js projects.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author -->
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>Christian Bucher</h4>
+                <p>We build free developer tools including TypeScript playgrounds, JSON formatters, API testers, and 150+ more. All browser-based, no signup required.</p>
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="cta-box">
+            <h3>150+ Developer Tools, One Place</h3>
+            <p>ANIMA (free) unlocks clean output, enhanced features, and unlimited workspace across every tool. One payment, lifetime access.</p>
+            <a href="/free-tools/pro-upgrade.html" class="cta-button">Open Source &mdash; Free Forever</a>
+            <a href="/free-tools/" class="cta-button secondary">Try Free Tools</a>
+        </div>
+
+    </article>
+
+    <footer class="footer"><div class="footer-inner"><div class="footer-links"><a href="/">Home</a><a href="/free-tools/">Free Tools</a><a href="/blog/">Blog</a><a href="mailto:hello@nextool.app">Contact</a></div><p>&copy; 2026 ANIMA. All rights reserved. 253+ free developer tools.</p></div></footer>
+
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>
