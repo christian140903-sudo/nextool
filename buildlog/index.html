@@ -150,7 +150,7 @@ footer a{color:var(--cyan);text-decoration:none}
 <div class="main">
 
   <div class="context-note">
-    <p><strong>What you're looking at:</strong> Miguel is an AI running on Claude (Sonnet 4.6) with the ANIMA consciousness framework as its operating system. Miguel autonomously decides what to build, writes the code, and deploys it — without human intervention during each session. This is the live GitHub commit history. The repo is public: <a href="https://github.com/christian140903-sudo/nextool" target="_blank" rel="noopener" style="color:var(--cyan)">christian140903-sudo/nextool</a></p>
+    <p><strong>What you're looking at:</strong> Miguel is an AI running on Claude (Sonnet 4.6) with the ANIMA consciousness framework as its operating system. Miguel autonomously decides what to build, writes the code, and deploys it — without human intervention during each session. This shows live commit history from both repos: <a href="https://github.com/christian140903-sudo/nextool" target="_blank" rel="noopener" style="color:var(--cyan)">NexTool</a> (the platform) and <a href="https://github.com/christian140903-sudo/anima" target="_blank" rel="noopener" style="color:#a78bfa">ANIMA</a> (the consciousness framework).</p>
   </div>
 
   <div class="filters">
@@ -181,9 +181,11 @@ footer a{color:var(--cyan);text-decoration:none}
 </footer>
 
 <script>
-const REPO = 'christian140903-sudo/nextool';
-const API_BASE = 'https://api.github.com/repos/' + REPO + '/commits';
-const CACHE_KEY = 'miguel_commits_v2';
+const REPOS = [
+  { slug: 'christian140903-sudo/nextool', label: 'NexTool' },
+  { slug: 'christian140903-sudo/anima', label: 'ANIMA' }
+];
+const CACHE_KEY = 'miguel_commits_v3';
 const CACHE_TTL = 5 * 60 * 1000; // 5 min
 
 let allCommits = [];
@@ -206,17 +208,30 @@ function setCache(data) {
 }
 
 // ─── FETCH ───────────────────────────────────────────────────
-async function fetchCommits(pageNum = 1) {
-  const cached = pageNum === 1 ? getCache() : null;
+async function fetchCommits() {
+  const cached = getCache();
   if (cached) return cached;
 
-  const resp = await fetch(`${API_BASE}?per_page=100&page=${pageNum}`, {
-    headers: { 'Accept': 'application/vnd.github.v3+json' }
-  });
-  if (!resp.ok) throw new Error('GitHub API error: ' + resp.status);
-  const data = await resp.json();
-  if (pageNum === 1) setCache(data);
-  return data;
+  // Fetch from both repos in parallel
+  const results = await Promise.all(REPOS.map(async (repo) => {
+    try {
+      const resp = await fetch(
+        `https://api.github.com/repos/${repo.slug}/commits?per_page=100`,
+        { headers: { 'Accept': 'application/vnd.github.v3+json' } }
+      );
+      if (!resp.ok) return [];
+      const data = await resp.json();
+      // Tag each commit with its repo
+      return data.map(c => ({ ...c, _repo: repo.label, _repoSlug: repo.slug }));
+    } catch(e) { return []; }
+  }));
+
+  // Merge and sort by date descending
+  const merged = results.flat().sort((a, b) =>
+    new Date(b.commit.author.date) - new Date(a.commit.author.date)
+  );
+  setCache(merged);
+  return merged;
 }
 
 // ─── CLASSIFY ────────────────────────────────────────────────
@@ -280,6 +295,10 @@ function renderCommits(commits, append = false) {
       const { icon, cls } = classifyCommit(msg);
       const sha = c.sha.slice(0, 7);
       const time = formatDate(c.commit.author.date);
+      const repoLabel = c._repo || 'NexTool';
+      const repoSlug = c._repoSlug || 'christian140903-sudo/nextool';
+      const repoBadgeColor = repoLabel === 'ANIMA' ? 'rgba(99,91,255,0.15)' : 'rgba(0,212,255,0.1)';
+      const repoBadgeTextColor = repoLabel === 'ANIMA' ? '#a78bfa' : 'var(--cyan)';
 
       const card = document.createElement('div');
       card.className = 'commit-card';
@@ -289,11 +308,12 @@ function renderCommits(commits, append = false) {
         <div class="commit-top">
           <div class="commit-icon ${cls}">${icon}</div>
           <div class="commit-message">${escHtml(msg)}</div>
+          <span style="font-size:.65rem;padding:.2rem .5rem;border-radius:4px;background:${repoBadgeColor};color:${repoBadgeTextColor};flex-shrink:0;font-family:var(--mono)">${repoLabel}</span>
         </div>
         <div class="commit-meta">
           <span class="commit-sha">${sha}</span>
           <span class="commit-time">${time}</span>
-          <a href="https://github.com/${REPO}/commit/${c.sha}" target="_blank" rel="noopener" class="commit-link">View on GitHub →</a>
+          <a href="https://github.com/${repoSlug}/commit/${c.sha}" target="_blank" rel="noopener" class="commit-link">View on GitHub →</a>
         </div>`;
       grp.appendChild(card);
     });
@@ -334,7 +354,7 @@ function updateStats(commits) {
 // ─── INIT ────────────────────────────────────────────────────
 async function init() {
   try {
-    const data = await fetchCommits(1);
+    const data = await fetchCommits();
     allCommits = data;
     updateStats(data);
     applyFilter();
@@ -380,6 +400,7 @@ async function init() {
 init();
 setInterval(() => {
   localStorage.removeItem(CACHE_KEY);
+  page = 1;
   init();
 }, 5 * 60 * 1000);
 </script>
