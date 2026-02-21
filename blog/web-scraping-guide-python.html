@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Scraping with Python in 2026: Beautiful Soup, Playwright, and Ethics | NexTool</title>
+    <meta name="description" content="Learn web scraping with Python using Beautiful Soup, Playwright, and Selenium. Covers HTML parsing, CSS selectors, XPath, JavaScript rendering, robots.txt compliance, and ethical scraping best practices.">
+    <meta name="keywords" content="web scraping python, beautiful soup tutorial, playwright python, selenium scraping, css selectors, xpath, robots.txt, python requests, html parsing, ethical scraping 2026">
+    <meta name="author" content="NexTool">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/web-scraping-guide-python.html">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Web Scraping with Python in 2026: Beautiful Soup, Playwright, and Ethics">
+    <meta property="og:description" content="A practical guide to web scraping with Python. Learn Beautiful Soup, Playwright, CSS selectors, XPath, and ethical scraping practices.">
+    <meta property="og:url" content="https://nextool.app/blog/web-scraping-guide-python.html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="NexTool">
+    <meta property="article:published_time" content="2026-02-21T08:00:00Z">
+    <meta property="article:author" content="NexTool">
+    <meta property="article:section" content="Python">
+    <meta property="article:tag" content="Python">
+    <meta property="article:tag" content="Web Scraping">
+    <meta property="article:tag" content="Beautiful Soup">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Web Scraping with Python in 2026: Beautiful Soup, Playwright, and Ethics">
+    <meta name="twitter:description" content="A practical guide to web scraping with Python. Beautiful Soup, Playwright, CSS selectors, XPath, and ethical practices.">
+
+    <!-- JSON-LD Article Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Web Scraping with Python in 2026: Beautiful Soup, Playwright, and Ethics",
+        "description": "Learn web scraping with Python using Beautiful Soup, Playwright, and Selenium. Covers HTML parsing, CSS selectors, XPath, JavaScript rendering, robots.txt compliance, and ethical scraping best practices.",
+        "author": {
+            "@type": "Organization",
+            "name": "NexTool"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NexTool",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://nextool.app/images/logo.png"
+            }
+        },
+        "datePublished": "2026-02-21T08:00:00Z",
+        "dateModified": "2026-02-21T08:00:00Z",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://nextool.app/blog/web-scraping-guide-python.html"
+        },
+        "articleSection": "Python",
+        "keywords": ["web scraping", "Python", "Beautiful Soup", "Playwright", "CSS selectors", "XPath"]
+    }
+    </script>
+
+    <!-- JSON-LD FAQPage Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Is web scraping legal in 2026?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Web scraping of publicly available data is generally legal in most jurisdictions, but there are important caveats. You must respect robots.txt directives, comply with the website's terms of service, avoid scraping personal or copyrighted data without permission, and follow data protection regulations like GDPR. The 2022 US Ninth Circuit ruling in hiQ v. LinkedIn confirmed that scraping public data does not violate the Computer Fraud and Abuse Act, but this does not give blanket permission for all scraping activities."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "When should I use Playwright instead of Beautiful Soup for scraping?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Use Playwright (or Selenium) when the website relies on JavaScript to render content. If you view the page source and the data you need is not present in the raw HTML but only appears after JavaScript executes, you need a browser automation tool like Playwright. Beautiful Soup with requests is faster and lighter, so use it when the data is available in the initial HTML response. A quick test: use curl or requests to fetch the page and check if the data is in the response."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the difference between CSS selectors and XPath for scraping?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CSS selectors use the same syntax as CSS stylesheets (e.g., div.class, #id, [attribute]) and are generally simpler and faster. XPath uses path expressions to navigate XML/HTML documents and is more powerful for complex selections like selecting by text content, navigating to parent elements, or using conditional logic. For most scraping tasks CSS selectors are sufficient and easier to read. Use XPath when you need to select elements based on their text content or traverse upward in the document tree."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I avoid getting blocked while web scraping?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "To avoid being blocked: add delays between requests (1-3 seconds minimum), rotate User-Agent strings, respect robots.txt directives, use session objects to maintain cookies, limit concurrent requests, avoid scraping during peak hours, and consider using residential proxies for large-scale projects. Most importantly, check if the site offers an official API before scraping, as APIs are more reliable and less likely to break."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I parse HTML tables with Beautiful Soup?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "To parse HTML tables with Beautiful Soup, find the table element using soup.find('table') or soup.select('table.classname'), then iterate over rows with table.find_all('tr'). For each row, extract cells with row.find_all(['td', 'th']). For a quicker approach with tabular data, use pandas.read_html(url) which automatically finds and parses all tables on a page into DataFrames. Beautiful Soup gives you more control over which table and which cells to extract."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #030303;
+            --surface: #0e0e0e;
+            --surface2: #1a1a1a;
+            --primary: #7c3aed;
+            --accent: #a78bfa;
+            --text: #e8e8e8;
+            --text-dim: #9ca3af;
+            --gradient: linear-gradient(135deg, #7c3aed, #a78bfa, #c084fc);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 800px;
+            --nav-height: 64px;
+            --green: #22c55e;
+            --red: #ef4444;
+            --yellow: #eab308;
+            --blue: #3b82f6;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        body {
+            font-family: var(--font-body); background: var(--bg); color: var(--text);
+            line-height: 1.8; min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased;
+        }
+        ::selection { background: rgba(124, 58, 237, 0.4); color: #fff; }
+        a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+        a:hover { color: var(--accent); }
+
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height);
+            background: rgba(3, 3, 3, 0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(124, 58, 237, 0.15); z-index: 1000;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; color: var(--text); text-decoration: none; }
+        .nav-logo-icon { width: 36px; height: 36px; background: var(--gradient); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+        .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-links a.active { color: var(--primary); }
+
+        .article-wrapper { max-width: var(--max-width); margin: 0 auto; padding: calc(var(--nav-height) + 48px) 24px 80px; }
+        .article-hero { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid rgba(124, 58, 237, 0.15); }
+        .article-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+        .article-category { display: inline-block; padding: 4px 14px; background: rgba(124, 58, 237, 0.15); color: var(--primary); border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .article-date, .article-read-time { color: var(--text-dim); font-size: 0.85rem; }
+        .article-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 20px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .article-subtitle { font-size: 1.2rem; color: var(--text-dim); line-height: 1.6; max-width: 640px; }
+
+        .toc { background: var(--surface); border: 1px solid rgba(124, 58, 237, 0.12); border-radius: var(--radius-lg); padding: 28px 32px; margin-bottom: 48px; }
+        .toc-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+        .toc ol { counter-reset: toc-counter; list-style: none; padding: 0; }
+        .toc li { counter-increment: toc-counter; margin-bottom: 8px; }
+        .toc li::before { content: counter(toc-counter) "."; color: var(--primary); font-weight: 600; margin-right: 8px; }
+        .toc a { color: var(--text-dim); font-size: 0.95rem; }
+        .toc a:hover { color: var(--primary); }
+
+        .article-content h2 { font-size: 1.75rem; font-weight: 700; color: var(--text); margin-top: 56px; margin-bottom: 20px; padding-top: 24px; border-top: 1px solid rgba(124, 58, 237, 0.1); line-height: 1.3; }
+        .article-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+        .article-content h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin-top: 36px; margin-bottom: 14px; }
+        .article-content p { margin-bottom: 20px; color: var(--text-dim); font-size: 1.05rem; line-height: 1.8; }
+        .article-content strong { color: var(--text); font-weight: 600; }
+        .article-content ul, .article-content ol { margin-bottom: 20px; padding-left: 24px; }
+        .article-content li { margin-bottom: 10px; color: var(--text-dim); font-size: 1.02rem; line-height: 1.7; }
+        .article-content li strong { color: var(--text); }
+        .article-content blockquote { border-left: 3px solid var(--primary); padding: 16px 24px; margin: 28px 0; background: rgba(124, 58, 237, 0.06); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+        .article-content blockquote p { color: var(--text); font-style: italic; margin-bottom: 0; }
+
+        .code-block { background: var(--surface); border: 1px solid rgba(124, 58, 237, 0.12); border-radius: var(--radius-md); margin: 24px 0; overflow: hidden; }
+        .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: rgba(124, 58, 237, 0.08); border-bottom: 1px solid rgba(124, 58, 237, 0.1); }
+        .code-lang { font-family: var(--font-mono); font-size: 0.75rem; color: var(--primary); font-weight: 600; text-transform: uppercase; }
+        .code-copy { background: none; border: 1px solid rgba(124, 58, 237, 0.2); color: var(--text-dim); font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: var(--font-body); }
+        .code-copy:hover { border-color: var(--primary); color: var(--primary); }
+        .code-block pre { padding: 20px; overflow-x: auto; }
+        .code-block code { font-family: var(--font-mono); font-size: 0.88rem; line-height: 1.7; color: var(--text); }
+
+        .article-content p code, .article-content li code, .article-content td code { font-family: var(--font-mono); font-size: 0.88em; background: rgba(124, 58, 237, 0.12); padding: 2px 7px; border-radius: 4px; color: var(--accent); }
+
+        .comparison-table-wrapper { overflow-x: auto; margin: 24px 0; }
+        .comparison-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; min-width: 500px; }
+        .comparison-table th { text-align: left; padding: 12px 16px; background: rgba(124, 58, 237, 0.1); color: var(--text); font-weight: 600; border-bottom: 2px solid rgba(124, 58, 237, 0.2); }
+        .comparison-table td { padding: 12px 16px; border-bottom: 1px solid rgba(124, 58, 237, 0.08); color: var(--text-dim); }
+        .comparison-table tr:hover td { background: rgba(124, 58, 237, 0.04); }
+
+        .info-box { padding: 20px 24px; border-radius: var(--radius-md); margin: 28px 0; border-left: 4px solid; }
+        .info-box.tip { background: rgba(124, 58, 237, 0.08); border-color: var(--primary); }
+        .info-box.warning { background: rgba(234, 179, 8, 0.08); border-color: #eab308; }
+        .info-box.success { background: rgba(34, 197, 94, 0.08); border-color: #22c55e; }
+        .info-box.danger { background: rgba(239, 68, 68, 0.08); border-color: #ef4444; }
+        .info-box-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; color: var(--text); }
+        .info-box p { margin-bottom: 0; font-size: 0.95rem; }
+
+        .cross-promo { margin-top: 48px; padding: 32px; background: var(--surface); border-radius: var(--radius-lg); text-align: center; }
+        .cross-promo .cta-btn { display: inline-block; padding: 12px 28px; background: var(--gradient); color: #fff; border-radius: 20px; font-weight: 600; text-decoration: none; }
+        .cross-promo .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3); }
+
+        footer { border-top: 1px solid rgba(124, 58, 237, 0.1); padding: 48px 24px; margin-top: 80px; }
+        .footer-inner { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-dim); font-size: 0.9rem; }
+        .footer-links a:hover { color: var(--text); }
+        .footer-copy { color: var(--text-dim); font-size: 0.85rem; }
+
+        @media (max-width: 768px) {
+            .nav-links { gap: 16px; }
+            .nav-links a { font-size: 0.82rem; }
+            .article-wrapper { padding-left: 16px; padding-right: 16px; }
+            .article-title { font-size: 1.8rem; }
+            .article-content h2 { font-size: 1.4rem; }
+            .article-content h3 { font-size: 1.15rem; }
+            .toc { padding: 20px; }
+            .code-block pre { padding: 14px; }
+            .code-block code { font-size: 0.82rem; }
+            .footer-inner { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="/" class="nav-logo">
+            <span class="nav-logo-icon">NT</span>
+            NexTool
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/free-tools/">Free Tools</a></li>
+            <li><a href="/blog/" class="active">Blog</a></li>
+        </ul>
+    </nav>
+
+    <article class="article-wrapper">
+
+        <header class="article-hero">
+            <div class="article-meta">
+                <span class="article-category">Python</span>
+                <span class="article-date">February 21, 2026</span>
+                <span class="article-read-time">16 min read</span>
+            </div>
+            <h1 class="article-title">Web Scraping with Python in 2026: Beautiful Soup, Playwright, and Ethics</h1>
+            <p class="article-subtitle">
+                A practical guide to extracting data from websites using Python. From basic HTML parsing to handling
+                JavaScript-heavy pages, with a serious look at legal and ethical boundaries.
+            </p>
+        </header>
+
+        <div class="toc">
+            <div class="toc-title">Table of Contents</div>
+            <ol>
+                <li><a href="#getting-started">Getting Started: requests + Beautiful Soup</a></li>
+                <li><a href="#css-selectors">Parsing HTML with CSS Selectors</a></li>
+                <li><a href="#xpath">XPath: When CSS Selectors Are Not Enough</a></li>
+                <li><a href="#javascript-rendering">Handling JavaScript with Playwright</a></li>
+                <li><a href="#tables-and-lists">Scraping Tables, Lists, and Structured Data</a></li>
+                <li><a href="#anti-blocking">Avoiding Blocks and Detection</a></li>
+                <li><a href="#ethics">robots.txt, Legal Considerations, and Ethics</a></li>
+                <li><a href="#choosing-tool">Choosing the Right Tool</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </div>
+
+        <div class="article-content">
+
+            <h2 id="getting-started">1. Getting Started: requests + Beautiful Soup</h2>
+
+            <p>
+                The simplest Python web scraping stack combines <code>requests</code> for fetching pages and <code>Beautiful Soup</code> for parsing HTML. This works for any site where the data is present in the initial HTML response -- no JavaScript rendering required.
+            </p>
+
+            <h3>Installation</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Terminal</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>pip install requests beautifulsoup4 lxml</code></pre>
+            </div>
+
+            <p>
+                The <code>lxml</code> parser is optional but recommended. It is significantly faster than Python's built-in <code>html.parser</code> for large documents.
+            </p>
+
+            <h3>Your First Scraper</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>import requests
+from bs4 import BeautifulSoup
+
+# Fetch the page
+url = 'https://example.com/articles'
+headers = {
+    'User-Agent': 'Mozilla/5.0 (compatible; MyBot/1.0)'
+}
+response = requests.get(url, headers=headers, timeout=10)
+response.raise_for_status()  # Raise exception for HTTP errors
+
+# Parse the HTML
+soup = BeautifulSoup(response.text, 'lxml')
+
+# Extract data
+articles = soup.find_all('article', class_='post-card')
+
+for article in articles:
+    title = article.find('h2').get_text(strip=True)
+    link = article.find('a')['href']
+    summary = article.find('p', class_='summary')
+    summary_text = summary.get_text(strip=True) if summary else 'No summary'
+
+    print(f'Title: {title}')
+    print(f'Link: {link}')
+    print(f'Summary: {summary_text}')
+    print('---')</code></pre>
+            </div>
+
+            <div class="info-box tip">
+                <div class="info-box-title">Always Set a User-Agent</div>
+                <p>Many websites block requests with Python's default User-Agent string (<code>python-requests/2.x</code>). Setting a descriptive User-Agent that identifies your bot is both polite and practical.</p>
+            </div>
+
+            <h3>Using Sessions for Multiple Requests</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>import requests
+from bs4 import BeautifulSoup
+import time
+
+session = requests.Session()
+session.headers.update({
+    'User-Agent': 'Mozilla/5.0 (compatible; DataCollector/1.0)',
+    'Accept-Language': 'en-US,en;q=0.9',
+})
+
+base_url = 'https://example.com/products?page='
+all_products = []
+
+for page in range(1, 11):
+    response = session.get(f'{base_url}{page}', timeout=10)
+    soup = BeautifulSoup(response.text, 'lxml')
+
+    products = soup.select('.product-card')
+    for product in products:
+        name = product.select_one('.product-name').text.strip()
+        price = product.select_one('.product-price').text.strip()
+        all_products.append({'name': name, 'price': price})
+
+    # Be polite: wait between requests
+    time.sleep(2)
+
+print(f'Collected {len(all_products)} products')</code></pre>
+            </div>
+
+            <h2 id="css-selectors">2. Parsing HTML with CSS Selectors</h2>
+
+            <p>
+                Beautiful Soup supports CSS selector syntax through the <code>.select()</code> and <code>.select_one()</code> methods. If you already know CSS, these will feel immediately familiar. You can test and refine your selectors with the <a href="/free-tools/css-selector-tester.html">NexTool CSS Selector Tester</a> before writing code.
+            </p>
+
+            <h3>Common CSS Selector Patterns</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code># Select by tag
+soup.select('p')                    # All paragraphs
+
+# Select by class
+soup.select('.article-title')       # Elements with class "article-title"
+
+# Select by ID
+soup.select_one('#main-content')    # Element with id "main-content"
+
+# Select by attribute
+soup.select('a[href^="https"]')     # Links starting with https
+soup.select('img[alt]')             # Images that have an alt attribute
+soup.select('input[type="email"]')  # Email input fields
+
+# Descendant selectors
+soup.select('div.content p')        # Paragraphs inside div.content
+soup.select('ul.nav > li')          # Direct child li of ul.nav
+
+# Pseudo-selectors
+soup.select('tr:nth-child(even)')   # Even table rows
+soup.select('li:first-child')       # First li in each list
+
+# Multiple selectors
+soup.select('h1, h2, h3')          # All heading levels 1-3
+
+# Combining selectors
+soup.select('table.data-table tbody tr td:nth-child(2)')
+# Second cell in each row of the table body</code></pre>
+            </div>
+
+            <h3>Extracting Attributes and Text</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>element = soup.select_one('.article-card')
+
+# Get text content (strips nested tags)
+text = element.get_text(strip=True)
+
+# Get text with a separator between nested elements
+text = element.get_text(separator=' | ', strip=True)
+
+# Get an attribute
+link = element.select_one('a')['href']
+image_src = element.select_one('img')['src']
+data_id = element['data-id']
+
+# Get attribute with default (avoids KeyError)
+alt_text = element.select_one('img').get('alt', 'No alt text')
+
+# Check if element exists before accessing
+price_el = element.select_one('.price')
+price = price_el.text.strip() if price_el else 'N/A'</code></pre>
+            </div>
+
+            <h2 id="xpath">3. XPath: When CSS Selectors Are Not Enough</h2>
+
+            <p>
+                XPath is more verbose than CSS selectors, but it can do things CSS cannot: select elements by their text content, traverse upward to parent elements, and use complex conditional logic.
+            </p>
+
+            <p>
+                Beautiful Soup does not support XPath natively. You need <code>lxml</code> directly:
+            </p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>from lxml import html
+import requests
+
+response = requests.get('https://example.com/products')
+tree = html.fromstring(response.content)
+
+# Select by text content (CSS cannot do this)
+buy_buttons = tree.xpath('//button[contains(text(), "Add to Cart")]')
+
+# Select parent of a specific element
+price_parents = tree.xpath('//span[@class="price"]/..')
+
+# Select based on position
+first_row = tree.xpath('//table/tbody/tr[1]/td/text()')
+
+# Select with multiple conditions
+links = tree.xpath(
+    '//a[starts-with(@href, "/products") and @class="active"]/@href'
+)
+
+# Select following sibling
+descriptions = tree.xpath(
+    '//h3[text()="Description"]/following-sibling::p[1]/text()'
+)</code></pre>
+            </div>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>CSS Selector</th>
+                            <th>XPath</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Select by class</td>
+                            <td><code>.classname</code></td>
+                            <td><code>//*[@class="classname"]</code></td>
+                        </tr>
+                        <tr>
+                            <td>Select by ID</td>
+                            <td><code>#myid</code></td>
+                            <td><code>//*[@id="myid"]</code></td>
+                        </tr>
+                        <tr>
+                            <td>Select by text content</td>
+                            <td>Not possible</td>
+                            <td><code>//button[text()="Submit"]</code></td>
+                        </tr>
+                        <tr>
+                            <td>Select parent</td>
+                            <td>Not possible</td>
+                            <td><code>//span[@class="price"]/.. </code></td>
+                        </tr>
+                        <tr>
+                            <td>Nth child</td>
+                            <td><code>li:nth-child(3)</code></td>
+                            <td><code>//li[3]</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="javascript-rendering">4. Handling JavaScript with Playwright</h2>
+
+            <p>
+                Many modern websites load content via JavaScript after the initial HTML is delivered. If you fetch the page with <code>requests</code> and the data is missing, you need a tool that runs JavaScript. Playwright is the best choice in 2026: it is faster than Selenium, has better API design, and supports Chromium, Firefox, and WebKit.
+            </p>
+
+            <h3>Installation</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Terminal</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>pip install playwright
+playwright install chromium</code></pre>
+            </div>
+
+            <h3>Basic Playwright Scraping</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>from playwright.sync_api import sync_playwright
+from bs4 import BeautifulSoup
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+    page = browser.new_page()
+
+    # Navigate and wait for content to load
+    page.goto('https://example.com/dynamic-content')
+    page.wait_for_selector('.product-list', timeout=10000)
+
+    # Get the rendered HTML
+    html_content = page.content()
+    soup = BeautifulSoup(html_content, 'lxml')
+
+    # Now parse as usual
+    products = soup.select('.product-item')
+    for product in products:
+        name = product.select_one('.name').text.strip()
+        price = product.select_one('.price').text.strip()
+        print(f'{name}: {price}')
+
+    browser.close()</code></pre>
+            </div>
+
+            <h3>Handling Infinite Scroll</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>from playwright.sync_api import sync_playwright
+import time
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+    page = browser.new_page()
+    page.goto('https://example.com/feed')
+
+    previous_height = 0
+    max_scrolls = 10
+
+    for i in range(max_scrolls):
+        # Scroll to bottom
+        page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+        time.sleep(2)  # Wait for content to load
+
+        # Check if page grew
+        current_height = page.evaluate('document.body.scrollHeight')
+        if current_height == previous_height:
+            break  # No new content loaded
+        previous_height = current_height
+        print(f'Scroll {i + 1}: page height = {current_height}px')
+
+    # Now extract all loaded content
+    items = page.query_selector_all('.feed-item')
+    print(f'Found {len(items)} items after scrolling')
+
+    browser.close()</code></pre>
+            </div>
+
+            <div class="info-box warning">
+                <div class="info-box-title">Performance Note</div>
+                <p>Playwright launches an actual browser, which uses significantly more memory and CPU than <code>requests</code>. Only use it when JavaScript rendering is required. For static HTML pages, <code>requests</code> + Beautiful Soup is 10-50x faster.</p>
+            </div>
+
+            <h2 id="tables-and-lists">5. Scraping Tables, Lists, and Structured Data</h2>
+
+            <p>
+                Tables are one of the most common scraping targets. Beautiful Soup handles them well, but <code>pandas</code> can be even faster for tabular data.
+            </p>
+
+            <h3>With Beautiful Soup</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>table = soup.select_one('table.data-table')
+headers = [th.text.strip() for th in table.select('thead th')]
+rows = []
+
+for tr in table.select('tbody tr'):
+    cells = [td.text.strip() for td in tr.select('td')]
+    rows.append(dict(zip(headers, cells)))
+
+# rows is now a list of dictionaries
+for row in rows:
+    print(row)</code></pre>
+            </div>
+
+            <h3>With pandas (One-Liner)</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>import pandas as pd
+
+# Reads ALL tables on the page into a list of DataFrames
+tables = pd.read_html('https://example.com/statistics')
+df = tables[0]  # First table
+
+# Export to CSV
+df.to_csv('output.csv', index=False)
+print(df.head())</code></pre>
+            </div>
+
+            <p>
+                When working with HTML structures, the <a href="/free-tools/html-live-preview.html">HTML Live Preview</a> tool lets you paste HTML and inspect its structure visually, which helps you identify the right selectors before writing code.
+            </p>
+
+            <h2 id="anti-blocking">6. Avoiding Blocks and Detection</h2>
+
+            <p>
+                Websites use various techniques to detect and block scrapers. Here are the most common defenses and how to work within them responsibly.
+            </p>
+
+            <h3>Essential Anti-Detection Techniques</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>import requests
+import random
+import time
+
+# Rotate User-Agent strings
+USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+]
+
+session = requests.Session()
+
+def polite_get(url):
+    """Fetch a URL with randomized delays and headers."""
+    session.headers.update({
+        'User-Agent': random.choice(USER_AGENTS),
+        'Accept': 'text/html,application/xhtml+xml',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+    })
+
+    # Random delay between 1 and 3 seconds
+    time.sleep(random.uniform(1.0, 3.0))
+
+    response = session.get(url, timeout=15)
+    response.raise_for_status()
+    return response</code></pre>
+            </div>
+
+            <ul>
+                <li><strong>Add delays:</strong> Minimum 1-2 seconds between requests. Randomize the interval.</li>
+                <li><strong>Rotate User-Agents:</strong> Do not send the same User-Agent string every time.</li>
+                <li><strong>Use sessions:</strong> Maintain cookies like a real browser would.</li>
+                <li><strong>Set realistic headers:</strong> Include Accept, Accept-Language, and Referer headers.</li>
+                <li><strong>Respect <code>robots.txt</code>:</strong> Always check and follow the site's crawling rules.</li>
+                <li><strong>Handle errors gracefully:</strong> Back off when you receive 429 or 503 status codes.</li>
+            </ul>
+
+            <h2 id="ethics">7. robots.txt, Legal Considerations, and Ethics</h2>
+
+            <p>
+                Before scraping any website, you have both legal and ethical responsibilities. Ignoring these can result in IP bans, legal action, or worse.
+            </p>
+
+            <h3>Checking robots.txt</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>from urllib.robotparser import RobotFileParser
+
+rp = RobotFileParser()
+rp.set_url('https://example.com/robots.txt')
+rp.read()
+
+# Check if scraping a specific path is allowed
+url = 'https://example.com/products/all'
+user_agent = 'MyBot/1.0'
+
+if rp.can_fetch(user_agent, url):
+    print('Allowed to scrape this URL')
+else:
+    print('Blocked by robots.txt -- do not scrape')
+
+# Check crawl delay
+delay = rp.crawl_delay(user_agent)
+if delay:
+    print(f'Requested crawl delay: {delay} seconds')</code></pre>
+            </div>
+
+            <h3>Legal Guidelines</h3>
+
+            <ul>
+                <li><strong>Public data:</strong> Scraping publicly accessible data is generally permissible, but always check the site's Terms of Service.</li>
+                <li><strong>Personal data:</strong> Scraping personal information (names, emails, profiles) requires careful consideration under GDPR, CCPA, and similar regulations.</li>
+                <li><strong>Copyrighted content:</strong> Do not scrape and republish copyrighted text, images, or media.</li>
+                <li><strong>Rate of access:</strong> Even if scraping is allowed, overwhelming a server can be considered a denial-of-service attack.</li>
+                <li><strong>Authentication boundaries:</strong> Scraping behind a login (especially by circumventing access controls) raises serious legal risks.</li>
+            </ul>
+
+            <div class="info-box danger">
+                <div class="info-box-title">Check for APIs First</div>
+                <p>Before scraping, always check if the website offers a public API. APIs are more reliable, structured, and legal. Use the <a href="/free-tools/json-editor.html">JSON Editor</a> to inspect API responses when you find one.</p>
+            </div>
+
+            <h3>Ethical Scraping Checklist</h3>
+
+            <ol>
+                <li>Read and respect <code>robots.txt</code></li>
+                <li>Read the website's Terms of Service</li>
+                <li>Add reasonable delays between requests</li>
+                <li>Identify your bot with a descriptive User-Agent</li>
+                <li>Do not scrape personal data without a legitimate purpose</li>
+                <li>Cache responses to avoid redundant requests</li>
+                <li>Contact the site owner if you need large-scale access</li>
+            </ol>
+
+            <h2 id="choosing-tool">8. Choosing the Right Tool</h2>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            <th>Best For</th>
+                            <th>JS Support</th>
+                            <th>Speed</th>
+                            <th>Learning Curve</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>requests + BS4</strong></td>
+                            <td>Static HTML pages</td>
+                            <td>No</td>
+                            <td>Very Fast</td>
+                            <td>Easy</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Playwright</strong></td>
+                            <td>JS-rendered pages, SPAs</td>
+                            <td>Full</td>
+                            <td>Moderate</td>
+                            <td>Medium</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Selenium</strong></td>
+                            <td>Legacy projects, older browsers</td>
+                            <td>Full</td>
+                            <td>Slow</td>
+                            <td>Medium</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Scrapy</strong></td>
+                            <td>Large-scale crawling</td>
+                            <td>Via plugins</td>
+                            <td>Fast (async)</td>
+                            <td>Steep</td>
+                        </tr>
+                        <tr>
+                            <td><strong>pandas.read_html</strong></td>
+                            <td>HTML tables only</td>
+                            <td>No</td>
+                            <td>Very Fast</td>
+                            <td>Easy</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <blockquote>
+                <p>Start with requests + Beautiful Soup. Move to Playwright only when you need JavaScript rendering. Move to Scrapy only when you need to crawl thousands of pages efficiently.</p>
+            </blockquote>
+
+            <p>
+                Test your CSS selectors and regex patterns before coding with the <a href="/free-tools/regex-builder.html">Regex Builder</a> -- it helps you validate extraction patterns without running your full scraper.
+            </p>
+
+            <h2 id="faq">9. Frequently Asked Questions</h2>
+
+            <div class="faq-item" style="margin-bottom: 24px;">
+                <h3>Is web scraping legal in 2026?</h3>
+                <p>
+                    Web scraping of publicly available data is generally legal in most jurisdictions, but there are important caveats. You must respect robots.txt directives, comply with the website's terms of service, avoid scraping personal or copyrighted data without permission, and follow data protection regulations like GDPR. The 2022 US Ninth Circuit ruling in hiQ v. LinkedIn confirmed that scraping public data does not violate the Computer Fraud and Abuse Act, but this does not give blanket permission for all scraping activities.
+                </p>
+            </div>
+
+            <div class="faq-item" style="margin-bottom: 24px;">
+                <h3>When should I use Playwright instead of Beautiful Soup for scraping?</h3>
+                <p>
+                    Use Playwright (or Selenium) when the website relies on JavaScript to render content. If you view the page source and the data you need is not present in the raw HTML but only appears after JavaScript executes, you need a browser automation tool like Playwright. Beautiful Soup with requests is faster and lighter, so use it when the data is available in the initial HTML response. A quick test: use curl or requests to fetch the page and check if the data is in the response.
+                </p>
+            </div>
+
+            <div class="faq-item" style="margin-bottom: 24px;">
+                <h3>What is the difference between CSS selectors and XPath for scraping?</h3>
+                <p>
+                    CSS selectors use the same syntax as CSS stylesheets (e.g., div.class, #id, [attribute]) and are generally simpler and faster. XPath uses path expressions to navigate XML/HTML documents and is more powerful for complex selections like selecting by text content, navigating to parent elements, or using conditional logic. For most scraping tasks CSS selectors are sufficient and easier to read. Use XPath when you need to select elements based on their text content or traverse upward in the document tree.
+                </p>
+            </div>
+
+            <div class="faq-item" style="margin-bottom: 24px;">
+                <h3>How do I avoid getting blocked while web scraping?</h3>
+                <p>
+                    To avoid being blocked: add delays between requests (1-3 seconds minimum), rotate User-Agent strings, respect robots.txt directives, use session objects to maintain cookies, limit concurrent requests, avoid scraping during peak hours, and consider using residential proxies for large-scale projects. Most importantly, check if the site offers an official API before scraping, as APIs are more reliable and less likely to break.
+                </p>
+            </div>
+
+            <div class="faq-item" style="margin-bottom: 24px;">
+                <h3>How do I parse HTML tables with Beautiful Soup?</h3>
+                <p>
+                    To parse HTML tables with Beautiful Soup, find the table element using soup.find('table') or soup.select('table.classname'), then iterate over rows with table.find_all('tr'). For each row, extract cells with row.find_all(['td', 'th']). For a quicker approach with tabular data, use pandas.read_html(url) which automatically finds and parses all tables on a page into DataFrames. Beautiful Soup gives you more control over which table and which cells to extract.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="cross-promo">
+            <p style="font-size:1.1rem;margin-bottom:12px;"><strong>150+ Free Developer Tools</strong></p>
+            <p style="color:var(--text-dim);margin-bottom:20px;">HTML previews, regex builders, JSON editors -- all browser-based, no signup.</p>
+            <a href="/free-tools/" class="cta-btn">Browse All Tools</a>
+        </div>
+
+    </article>
+
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="/">NexTool Home</a>
+                <a href="/free-tools/">Free Tools</a>
+                <a href="/blog/">Blog</a>
+                <a href="/privacy/">Privacy Policy</a>
+            </div>
+            <div class="footer-copy">
+                &copy; 2026 NexTool. All rights reserved. &mdash; <a href="https://nextool.app">nextool.app</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+            }).catch(() => {
+                button.textContent = 'Failed';
+                setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+            });
+        }
+
+        document.querySelectorAll('.toc a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    const offset = 80;
+                    const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                }
+            });
+        });
+
+        (function() {
+            const progress = document.createElement('div');
+            progress.style.cssText = 'position:fixed;top:64px;left:0;height:3px;background:var(--gradient);z-index:999;transition:width 0.1s;width:0';
+            document.body.appendChild(progress);
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const scrollPercent = (scrollTop / docHeight) * 100;
+                progress.style.width = scrollPercent + '%';
+            });
+        })();
+    </script>
+    <script src="/js/revenue.js" defer></script>
+    <script src="/js/lead-capture.js" defer></script>
+    <script src="/js/analytics-lite.js" defer></script>
+</body>
+</html>
