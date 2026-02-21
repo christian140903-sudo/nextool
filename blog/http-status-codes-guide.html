@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Status Codes Explained: Every Code a Developer Needs to Know (2026) | NexTool</title>
+    <meta name="description" content="Complete guide to HTTP status codes. Every 1xx, 2xx, 3xx, 4xx, and 5xx code explained with real examples, when to use each in REST APIs, and how to handle them in your applications.">
+    <meta name="keywords" content="http status codes, http response codes, 200 ok, 404 not found, 500 internal server error, rest api status codes, http codes list, 301 redirect, 403 forbidden, 429 too many requests">
+    <meta name="author" content="NexTool">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nextool.app/blog/http-status-codes-guide.html">
+
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="HTTP Status Codes Explained: Every Code a Developer Needs to Know (2026)">
+    <meta property="og:description" content="Complete reference for HTTP status codes. 1xx through 5xx explained with examples, REST API best practices, and troubleshooting tips.">
+    <meta property="og:url" content="https://nextool.app/blog/http-status-codes-guide.html">
+    <meta property="og:site_name" content="NexTool">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="HTTP Status Codes Explained: Every Code a Developer Needs to Know (2026)">
+    <meta name="twitter:description" content="Complete reference for HTTP status codes. 1xx through 5xx with real examples and REST API best practices.">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "HTTP Status Codes Explained: Every Code a Developer Needs to Know (2026)",
+        "description": "Complete guide to HTTP status codes. Every 1xx, 2xx, 3xx, 4xx, and 5xx code explained with real examples and REST API best practices.",
+        "author": { "@type": "Organization", "name": "NexTool", "url": "https://nextool.app" },
+        "publisher": { "@type": "Organization", "name": "NexTool", "logo": { "@type": "ImageObject", "url": "https://nextool.app/assets/images/logo.png" } },
+        "datePublished": "2026-02-21T10:00:00Z",
+        "dateModified": "2026-02-21T10:00:00Z",
+        "mainEntityOfPage": { "@type": "WebPage", "@id": "https://nextool.app/blog/http-status-codes-guide.html" },
+        "wordCount": 1800,
+        "keywords": ["http status codes", "rest api status codes", "200 ok", "404 not found", "500 internal server error", "301 redirect"]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nextool.app" },
+            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://nextool.app/blog/" },
+            { "@type": "ListItem", "position": 3, "name": "HTTP Status Codes Guide", "item": "https://nextool.app/blog/http-status-codes-guide.html" }
+        ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is the difference between 401 Unauthorized and 403 Forbidden?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "401 Unauthorized means the request lacks valid authentication credentials. The client has not identified itself at all, or the provided credentials (API key, token, username/password) are invalid. The client should retry with proper authentication. 403 Forbidden means the server understood the request and the client is authenticated, but the authenticated user does not have permission to access the requested resource. Re-authenticating will not help because the identity is known but lacks authorization. In practice: 401 means who are you, 403 means I know who you are but you cannot access this."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "When should I use 301 vs 302 redirects?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "301 Moved Permanently tells browsers and search engines that a resource has permanently moved to a new URL. Search engines transfer SEO ranking to the new URL and update their index. Use 301 when you rename a page, change your domain, or restructure URLs permanently. 302 Found (temporary redirect) tells clients the resource is temporarily at a different URL but may return to the original URL in the future. Search engines keep the original URL in their index. Use 302 for A/B testing, temporary maintenance pages, or when redirecting users during an active session. Using the wrong redirect type can hurt your SEO because search engines treat them very differently."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What HTTP status code should I return for validation errors in a REST API?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Return 400 Bad Request for general validation errors where the request body is malformed or missing required fields. Return 422 Unprocessable Entity (from WebDAV, widely adopted in REST APIs) when the request body is well-formed JSON but contains semantic errors, such as an email field with an invalid email format or a quantity field with a negative number. Many APIs use 400 for all validation errors since it is part of the core HTTP specification. The response body should include a structured error object with field-level details, for example: {\"errors\": [{\"field\": \"email\", \"message\": \"Invalid email format\"}]}. This helps API consumers display specific error messages to their users."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What does a 429 Too Many Requests status code mean and how should I handle it?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "429 Too Many Requests means the client has sent too many requests in a given time period, hitting a rate limit set by the server. The response usually includes a Retry-After header that tells you how many seconds to wait before sending the next request. To handle it properly: implement exponential backoff (wait 1 second, then 2, then 4, etc.), respect the Retry-After header value, and consider caching responses to reduce the number of requests. In your API design, include rate limit headers like X-RateLimit-Limit (max requests), X-RateLimit-Remaining (requests left), and X-RateLimit-Reset (when the limit resets) so clients can proactively manage their request rate."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the difference between 500 Internal Server Error and 502 Bad Gateway?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "500 Internal Server Error means the server itself encountered an unexpected condition that prevented it from fulfilling the request. This is typically caused by unhandled exceptions, bugs in your application code, or database errors. The fix is in your application code or server configuration. 502 Bad Gateway means the server acting as a gateway or proxy (like Nginx or a load balancer) received an invalid response from an upstream server. This often happens when your application server (Node.js, Python, etc.) crashes, is not running, or takes too long to respond. The fix usually involves checking if the upstream application is running and healthy, not the proxy server itself."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #030303; --surface: #0a0a0a; --surface-2: #161616; --surface-3: #222222;
+            --primary: #7c3aed; --primary-hover: #6d28d9; --accent: #a78bfa; --accent-hover: #c4b5fd;
+            --text: #e8e8e8; --text-secondary: #a0a0a0; --text-muted: #666666; --border: #1e1e1e;
+            --success: #22c55e; --warning: #f59e0b; --error: #ef4444; --code-bg: #0d0d0d;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 800px; --header-height: 64px;
+        }
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.75; font-size: 16px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        .nav { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: rgba(3,3,3,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .nav-inner { width: 100%; max-width: 1200px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.25rem; }
+        .nav-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 800; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { background: var(--primary); color: #fff !important; padding: 8px 20px; border-radius: 8px; font-weight: 600; }
+        .article-wrapper { max-width: var(--max-width); margin: 0 auto; padding: calc(var(--header-height) + 48px) 24px 80px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap; }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--primary); }
+        .article-header { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+        .article-category { display: inline-block; background: rgba(124,58,237,0.12); color: var(--accent); padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .article-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.15; color: var(--text); margin-bottom: 16px; letter-spacing: -0.03em; }
+        .article-subtitle { font-size: 1.2rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+        .article-meta { display: flex; align-items: center; gap: 20px; color: var(--text-muted); font-size: 0.875rem; flex-wrap: wrap; }
+        .article-meta-item { display: flex; align-items: center; gap: 6px; }
+        .article-meta-item svg { width: 16px; height: 16px; opacity: 0.7; }
+        .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; margin-bottom: 48px; }
+        .toc-title { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .toc-list { list-style: none; counter-reset: toc; }
+        .toc-list li { counter-increment: toc; margin-bottom: 8px; }
+        .toc-list li a { color: var(--text-secondary); text-decoration: none; font-size: 0.925rem; display: flex; align-items: baseline; gap: 10px; transition: color 0.2s; padding: 4px 0; }
+        .toc-list li a::before { content: counter(toc, decimal-leading-zero); color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); min-width: 20px; }
+        .toc-list li a:hover { color: var(--primary); padding-left: 4px; }
+        .article-content h2 { font-size: 1.75rem; font-weight: 700; color: var(--text); margin-top: 56px; margin-bottom: 20px; letter-spacing: -0.02em; line-height: 1.3; padding-top: 16px; border-top: 1px solid var(--border); }
+        .article-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+        .article-content h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin-top: 36px; margin-bottom: 14px; }
+        .article-content p { margin-bottom: 20px; color: var(--text-secondary); line-height: 1.8; }
+        .article-content a { color: var(--primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+        .article-content a:hover { border-bottom-color: var(--primary); }
+        .article-content strong { color: var(--text); font-weight: 600; }
+        .article-content ul, .article-content ol { margin-bottom: 20px; padding-left: 24px; color: var(--text-secondary); }
+        .article-content li { margin-bottom: 10px; line-height: 1.7; }
+        .article-content li::marker { color: var(--primary); }
+        .article-content hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+        .article-content pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; overflow-x: auto; margin: 24px 0; }
+        .article-content pre code { font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.65; color: var(--text); background: none; padding: 0; }
+        .article-content code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface); color: var(--accent); padding: 2px 8px; border-radius: 5px; }
+        .code-label { display: inline-block; background: var(--surface-2); color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem; padding: 2px 10px; border-radius: 6px 6px 0 0; margin-bottom: -1px; position: relative; top: 1px; }
+        .article-content table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.925rem; }
+        .article-content thead th { background: var(--surface); color: var(--text); font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--border); }
+        .article-content tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+        .article-content tbody tr:hover { background: var(--surface); }
+        .info-box { background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+        .info-box.warning { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2); }
+        .info-box.danger { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); }
+        .info-box.success { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.2); }
+        .info-box-title { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; }
+        .info-box p { color: var(--text-secondary); font-size: 0.925rem; margin-bottom: 0; }
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 28px 0; }
+        .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; color: var(--text); transition: border-color 0.2s, transform 0.2s; display: flex; flex-direction: column; gap: 8px; }
+        .tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,0.1); }
+        .tool-card-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .tool-card-name { font-weight: 600; font-size: 0.95rem; }
+        .tool-card-desc { font-size: 0.825rem; color: var(--text-muted); line-height: 1.5; }
+        .cta-box { background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(167,139,250,0.1)); border: 1px solid rgba(124,58,237,0.25); border-radius: 16px; padding: 40px 32px; text-align: center; margin: 48px 0; }
+        .cta-box h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+        .cta-box p { color: var(--text-secondary); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-button { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s, transform 0.2s; }
+        .cta-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,58,237,0.3); }
+        .cta-button.secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); margin-left: 12px; }
+        .cta-button.secondary:hover { background: rgba(124,58,237,0.1); }
+        .faq-section { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border); }
+        .faq-section h2 { margin-top: 0 !important; padding-top: 0 !important; border-top: none !important; }
+        .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-question { width: 100%; background: none; border: none; color: var(--text); padding: 20px 24px; font-size: 1rem; font-weight: 600; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-sans); transition: background 0.2s; }
+        .faq-question:hover { background: var(--surface-2); }
+        .faq-question .icon { transition: transform 0.3s; font-size: 1.25rem; color: var(--text-muted); flex-shrink: 0; margin-left: 16px; }
+        .faq-item.open .faq-question .icon { transform: rotate(45deg); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .faq-answer-inner { padding: 0 24px 20px; color: var(--text-secondary); line-height: 1.7; }
+        .author-box { display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 48px 0; }
+        .author-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .author-info h4 { font-weight: 600; margin-bottom: 4px; }
+        .author-info p { color: var(--text-muted); font-size: 0.875rem; margin: 0; line-height: 1.5; }
+        .footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-wrapper { padding: calc(var(--header-height) + 24px) 16px 60px; }
+            .article-title { font-size: 1.75rem; }
+            .tool-grid { grid-template-columns: 1fr; }
+            .cta-box { padding: 28px 20px; }
+            .cta-button.secondary { margin-left: 0; margin-top: 12px; }
+            .author-box { flex-direction: column; text-align: center; }
+            .article-content pre { padding: 16px; border-radius: 8px; }
+            .article-content h2 { font-size: 1.4rem; }
+            .article-content table { display: block; overflow-x: auto; }
+        }
+        @media (max-width: 480px) { .article-title { font-size: 1.5rem; } .toc { padding: 18px 20px; } }
+    </style>
+</head>
+<body>
+
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="https://nextool.app" class="nav-logo">
+                <div class="nav-logo-icon">N</div>
+                NexTool
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/free-tools/">Free Tools</a></li>
+                <li><a href="/blog/">Blog</a></li>
+                <li><a href="/free-tools/" class="nav-cta">Browse Tools</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <article class="article-wrapper" itemscope itemtype="https://schema.org/Article">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/">Home</a><span>/</span><a href="/blog/">Blog</a><span>/</span><span>HTTP Status Codes Guide</span>
+        </nav>
+
+        <header class="article-header">
+            <span class="article-category">Web Development</span>
+            <h1 class="article-title" itemprop="headline">HTTP Status Codes Explained: Every Code a Developer Needs to Know</h1>
+            <p class="article-subtitle">A complete reference for HTTP response status codes &mdash; from 100 Continue to 511 Network Authentication Required. Each code explained with real-world context, REST API usage patterns, and the response headers that matter.</p>
+            <div class="article-meta">
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span>17 min read</span>
+                </div>
+                <div class="article-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Feb 21, 2026</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="toc">
+            <div class="toc-title">Table of Contents</div>
+            <ol class="toc-list">
+                <li><a href="#overview">How Status Codes Work</a></li>
+                <li><a href="#1xx">1xx Informational</a></li>
+                <li><a href="#2xx">2xx Success</a></li>
+                <li><a href="#3xx">3xx Redirection</a></li>
+                <li><a href="#4xx">4xx Client Errors</a></li>
+                <li><a href="#5xx">5xx Server Errors</a></li>
+                <li><a href="#rest">REST API Best Practices</a></li>
+                <li><a href="#troubleshooting">Troubleshooting Common Errors</a></li>
+                <li><a href="#tools">Related Free Tools</a></li>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+            </ol>
+        </div>
+
+        <div class="article-content" itemprop="articleBody">
+
+            <h2 id="overview">How Status Codes Work</h2>
+
+            <p>Every HTTP response includes a three-digit status code that tells the client what happened. The first digit defines the category:</p>
+
+            <table>
+                <thead>
+                    <tr><th>Range</th><th>Category</th><th>Meaning</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>1xx</strong></td><td>Informational</td><td>Request received, processing continues</td></tr>
+                    <tr><td><strong>2xx</strong></td><td>Success</td><td>Request received, understood, and accepted</td></tr>
+                    <tr><td><strong>3xx</strong></td><td>Redirection</td><td>Further action needed to complete the request</td></tr>
+                    <tr><td><strong>4xx</strong></td><td>Client Error</td><td>Request contains an error on the client side</td></tr>
+                    <tr><td><strong>5xx</strong></td><td>Server Error</td><td>Server failed to fulfill a valid request</td></tr>
+                </tbody>
+            </table>
+
+            <p>You can test these codes in real time with the <a href="/free-tools/api-tester.html">API Tester</a> &mdash; send requests to any endpoint and inspect the full response including status codes, headers, and body.</p>
+
+            <h2 id="1xx">1xx Informational</h2>
+
+            <p>Informational responses indicate the server received the request and is continuing to process it. You rarely interact with these directly in application code.</p>
+
+            <h3>100 Continue</h3>
+            <p>The server received the request headers and the client should proceed to send the body. This is used with large uploads: the client sends <code>Expect: 100-continue</code> in headers, and the server responds with 100 before the client uploads the body. If the server rejects the request (e.g., unauthorized), it can respond with 4xx instead, saving the client from uploading a large file unnecessarily.</p>
+
+            <h3>101 Switching Protocols</h3>
+            <p>The server agrees to switch to a different protocol as requested by the client. The most common example is upgrading from HTTP to WebSocket. The client sends an <code>Upgrade: websocket</code> header, and the server responds with 101 before switching to the WebSocket protocol.</p>
+
+            <h3>103 Early Hints</h3>
+            <p>A relatively new status code that allows the server to send preliminary headers before the final response. This lets the browser start preloading resources (CSS, fonts, scripts) while the server is still generating the full response. Supported in modern browsers and increasingly used for performance optimization.</p>
+
+            <h2 id="2xx">2xx Success</h2>
+
+            <p>These codes mean the request was received, understood, and processed successfully.</p>
+
+            <h3>200 OK</h3>
+            <p>The standard success response. The meaning varies by HTTP method: for GET, the resource is returned in the body; for POST, the result of the action is in the body; for PUT/PATCH, the updated resource is typically returned. This is the code you see most often.</p>
+
+            <h3>201 Created</h3>
+            <p>The request succeeded and a new resource was created. Used after POST requests that create a new entity. The response should include a <code>Location</code> header pointing to the URL of the newly created resource.</p>
+
+            <div class="code-label">HTTP &mdash; 201 response example</div>
+<pre><code>HTTP/1.1 201 Created
+Location: /api/users/42
+Content-Type: application/json
+
+{
+  "id": 42,
+  "name": "Alice",
+  "created_at": "2026-02-21T10:00:00Z"
+}</code></pre>
+
+            <h3>204 No Content</h3>
+            <p>The request succeeded but there is no content to return. Typically used for DELETE requests or PUT/PATCH requests where you do not need to return the updated resource. The response body must be empty.</p>
+
+            <h3>206 Partial Content</h3>
+            <p>The server is delivering only part of the resource. Used when the client sends a <code>Range</code> header to request a specific portion of a file, common in video streaming and resumable downloads.</p>
+
+            <h2 id="3xx">3xx Redirection</h2>
+
+            <p>Redirection codes tell the client to take additional action, usually following a different URL.</p>
+
+            <h3>301 Moved Permanently</h3>
+            <p>The resource has permanently moved to a new URL. Browsers cache this redirect and go directly to the new URL on subsequent requests. Search engines transfer ranking to the new URL. Use this when you permanently rename or restructure URLs.</p>
+
+            <h3>302 Found (Temporary Redirect)</h3>
+            <p>The resource is temporarily at a different URL. Browsers follow the redirect but do not cache it. Search engines keep indexing the original URL. Use for temporary redirects like A/B tests or maintenance pages.</p>
+
+            <h3>304 Not Modified</h3>
+            <p>The resource has not changed since the last request. Used with conditional requests (<code>If-Modified-Since</code> or <code>If-None-Match</code> headers). The server tells the client to use its cached version, saving bandwidth and improving performance.</p>
+
+            <h3>307 Temporary Redirect</h3>
+            <p>Like 302, but guarantees the HTTP method will not change. If the original request was POST, the redirect will also be POST. With 302, some older clients might change POST to GET.</p>
+
+            <h3>308 Permanent Redirect</h3>
+            <p>Like 301, but guarantees the HTTP method will not change. The permanent equivalent of 307.</p>
+
+            <div class="info-box">
+                <div class="info-box-title">Choosing the Right Redirect</div>
+                <p>For permanent URL changes: use <strong>301</strong> (may change method) or <strong>308</strong> (preserves method). For temporary redirects: use <strong>302</strong> (may change method) or <strong>307</strong> (preserves method). When in doubt for simple page redirects, 301 for permanent and 302 for temporary are the safe defaults.</p>
+            </div>
+
+            <h2 id="4xx">4xx Client Errors</h2>
+
+            <p>These codes indicate the client sent a bad request. The problem is on the client side and can usually be fixed by correcting the request.</p>
+
+            <h3>400 Bad Request</h3>
+            <p>The server cannot process the request due to malformed syntax, invalid parameters, or missing required fields. Return a helpful error message in the body explaining what is wrong.</p>
+
+            <div class="code-label">JSON &mdash; 400 error response</div>
+<pre><code>{
+  "error": "Bad Request",
+  "message": "Validation failed",
+  "details": [
+    { "field": "email", "issue": "Invalid email format" },
+    { "field": "age", "issue": "Must be a positive integer" }
+  ]
+}</code></pre>
+
+            <h3>401 Unauthorized</h3>
+            <p>The request requires authentication. The client has not provided credentials, or the provided credentials are invalid. The response should include a <code>WWW-Authenticate</code> header indicating the authentication scheme. The client should retry with valid credentials.</p>
+
+            <h3>403 Forbidden</h3>
+            <p>The server understood the request and the client is authenticated, but the authenticated user does not have permission to access this resource. Unlike 401, re-authenticating will not help &mdash; the user simply does not have access.</p>
+
+            <h3>404 Not Found</h3>
+            <p>The requested resource does not exist. This is the most recognized HTTP error code. In REST APIs, return 404 when a specific resource ID does not exist. Do not use 404 for authorization errors &mdash; use 403 instead, unless you want to hide the existence of the resource entirely.</p>
+
+            <h3>405 Method Not Allowed</h3>
+            <p>The HTTP method is not supported for this URL. For example, sending DELETE to a read-only endpoint. The response must include an <code>Allow</code> header listing which methods are permitted.</p>
+
+            <h3>409 Conflict</h3>
+            <p>The request conflicts with the current state of the resource. Common in REST APIs when creating a resource that already exists (duplicate email, username, etc.) or when an optimistic concurrency check fails because the resource was modified since the client last fetched it.</p>
+
+            <h3>422 Unprocessable Entity</h3>
+            <p>The request body is syntactically correct (valid JSON) but semantically invalid. Originally from WebDAV, now widely used in REST APIs for business logic validation errors. Some APIs use 400 for all validation; others use 422 for semantic validation specifically.</p>
+
+            <h3>429 Too Many Requests</h3>
+            <p>The client has been rate-limited. The response should include a <code>Retry-After</code> header indicating how long to wait. Well-designed APIs also include <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, and <code>X-RateLimit-Reset</code> headers.</p>
+
+            <div class="code-label">HTTP &mdash; Rate limit headers</div>
+<pre><code>HTTP/1.1 429 Too Many Requests
+Retry-After: 60
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1708520460</code></pre>
+
+            <h2 id="5xx">5xx Server Errors</h2>
+
+            <p>Server errors mean the server failed to fulfill a valid request. The problem is on the server side and the client typically cannot fix it.</p>
+
+            <h3>500 Internal Server Error</h3>
+            <p>A catch-all error for unexpected server failures. Usually caused by unhandled exceptions, null pointer errors, database connection failures, or misconfigured servers. This code means something broke in your code. Check your server logs for the stack trace.</p>
+
+            <h3>502 Bad Gateway</h3>
+            <p>The server acting as a proxy or gateway received an invalid response from the upstream server. In practice, this often means your application server (Node.js, Python, etc.) crashed or is not running, and the reverse proxy (Nginx, AWS ALB) cannot get a response from it.</p>
+
+            <h3>503 Service Unavailable</h3>
+            <p>The server is temporarily unable to handle requests, usually due to maintenance or overload. Include a <code>Retry-After</code> header to tell clients when to try again. Unlike 500, this implies the situation is temporary.</p>
+
+            <h3>504 Gateway Timeout</h3>
+            <p>The proxy server did not receive a response from the upstream server within the configured timeout. This often means a slow database query, an external API call that is hanging, or an application that is processing too long. Increase timeouts or optimize the slow operation.</p>
+
+            <div class="info-box danger">
+                <div class="info-box-title">Never Expose Internal Details in 5xx Responses</div>
+                <p>In production, 5xx error responses should never include stack traces, database queries, or internal file paths. Log the details server-side and return a generic message to the client. Exposing internals is a security risk.</p>
+            </div>
+
+            <h2 id="rest">REST API Best Practices</h2>
+
+            <p>Choosing the right status code makes your API predictable and easier to consume. Here is a quick reference for common REST operations:</p>
+
+            <table>
+                <thead>
+                    <tr><th>Operation</th><th>Success Code</th><th>Common Error Codes</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>GET /users</td><td>200</td><td>401, 403</td></tr>
+                    <tr><td>GET /users/42</td><td>200</td><td>401, 403, 404</td></tr>
+                    <tr><td>POST /users</td><td>201</td><td>400, 409, 422</td></tr>
+                    <tr><td>PUT /users/42</td><td>200</td><td>400, 404, 409, 422</td></tr>
+                    <tr><td>PATCH /users/42</td><td>200</td><td>400, 404, 422</td></tr>
+                    <tr><td>DELETE /users/42</td><td>204</td><td>401, 403, 404</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Error Response Format</h3>
+
+            <p>Standardize your error responses across your entire API. A good structure includes a machine-readable error code, a human-readable message, and field-level details for validation errors:</p>
+
+            <div class="code-label">JSON &mdash; Standardized error format</div>
+<pre><code>{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "The request body contains invalid fields.",
+    "details": [
+      {
+        "field": "email",
+        "message": "Must be a valid email address.",
+        "value": "not-an-email"
+      }
+    ]
+  }
+}</code></pre>
+
+            <h2 id="troubleshooting">Troubleshooting Common Errors</h2>
+
+            <h3>Debugging 502 and 504</h3>
+
+            <ul>
+                <li>Check if your application process is running: <code>ps aux | grep node</code></li>
+                <li>Check application logs for crashes or exceptions</li>
+                <li>Verify the proxy is pointing to the correct port</li>
+                <li>Test the application directly, bypassing the proxy: <code>curl http://localhost:3000/health</code></li>
+                <li>For 504, check slow database queries and external API timeouts</li>
+            </ul>
+
+            <h3>Debugging 403</h3>
+
+            <ul>
+                <li>Verify the user's role and permissions in your authorization system</li>
+                <li>Check if CORS headers are missing (browsers show CORS errors as network failures)</li>
+                <li>Check file permissions on static assets served by Nginx/Apache</li>
+                <li>Verify API key or token has the required scopes</li>
+            </ul>
+
+            <h3>Debugging CORS Errors</h3>
+
+            <p>CORS failures often appear as network errors in the browser, not as a specific HTTP status code. Check that your server returns <code>Access-Control-Allow-Origin</code>, <code>Access-Control-Allow-Methods</code>, and <code>Access-Control-Allow-Headers</code> for preflight (OPTIONS) requests.</p>
+
+            <hr>
+
+            <h2 id="tools">Related Free Tools</h2>
+
+            <div class="tool-grid">
+                <a href="/free-tools/api-tester.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F310;</div>
+                    <div class="tool-card-name">API Tester</div>
+                    <div class="tool-card-desc">Send HTTP requests to any endpoint and inspect status codes, headers, and response bodies.</div>
+                </a>
+                <a href="/free-tools/json-formatter.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4CB;</div>
+                    <div class="tool-card-name">JSON Formatter</div>
+                    <div class="tool-card-desc">Format and validate API response bodies with syntax highlighting and collapsible tree view.</div>
+                </a>
+                <a href="/free-tools/http-header-analyzer.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F4E1;</div>
+                    <div class="tool-card-name">HTTP Header Analyzer</div>
+                    <div class="tool-card-desc">Inspect and analyze HTTP headers including cache, security, and CORS headers.</div>
+                </a>
+                <a href="/free-tools/url-encoder.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F517;</div>
+                    <div class="tool-card-name">URL Encoder/Decoder</div>
+                    <div class="tool-card-desc">Encode and decode URLs and query parameters for API requests.</div>
+                </a>
+                <a href="/free-tools/jwt-decoder.html" class="tool-card">
+                    <div class="tool-card-icon">&#x1F510;</div>
+                    <div class="tool-card-name">JWT Decoder</div>
+                    <div class="tool-card-desc">Decode and inspect JSON Web Tokens to debug authentication issues.</div>
+                </a>
+            </div>
+
+            <hr>
+
+            <div class="faq-section" id="faq">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between 401 Unauthorized and 403 Forbidden?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p><code>401 Unauthorized</code> means the request lacks valid authentication credentials. The client has not identified itself at all, or the provided credentials (API key, token, username/password) are invalid. The client should retry with proper authentication. <code>403 Forbidden</code> means the server understood the request and the client is authenticated, but the authenticated user does not have permission to access the requested resource. Re-authenticating will not help because the identity is known but lacks authorization. In practice: 401 means "who are you," 403 means "I know who you are but you cannot access this."</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>When should I use 301 vs 302 redirects?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p><code>301 Moved Permanently</code> tells browsers and search engines that a resource has permanently moved to a new URL. Search engines transfer SEO ranking to the new URL and update their index. Use 301 when you rename a page, change your domain, or restructure URLs permanently. <code>302 Found</code> (temporary redirect) tells clients the resource is temporarily at a different URL but may return to the original URL in the future. Search engines keep the original URL in their index. Use 302 for A/B testing, temporary maintenance pages, or when redirecting users during an active session. Using the wrong redirect type can hurt your SEO because search engines treat them very differently.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What HTTP status code should I return for validation errors in a REST API?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p>Return <code>400 Bad Request</code> for general validation errors where the request body is malformed or missing required fields. Return <code>422 Unprocessable Entity</code> (from WebDAV, widely adopted in REST APIs) when the request body is well-formed JSON but contains semantic errors, such as an email field with an invalid email format or a quantity field with a negative number. Many APIs use 400 for all validation errors since it is part of the core HTTP specification. The response body should include a structured error object with field-level details, for example: <code>{"errors": [{"field": "email", "message": "Invalid email format"}]}</code>. This helps API consumers display specific error messages to their users.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What does a 429 Too Many Requests status code mean and how should I handle it?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p><code>429 Too Many Requests</code> means the client has sent too many requests in a given time period, hitting a rate limit set by the server. The response usually includes a <code>Retry-After</code> header that tells you how many seconds to wait before sending the next request. To handle it properly: implement exponential backoff (wait 1 second, then 2, then 4, etc.), respect the Retry-After header value, and consider caching responses to reduce the number of requests. In your API design, include rate limit headers like <code>X-RateLimit-Limit</code> (max requests), <code>X-RateLimit-Remaining</code> (requests left), and <code>X-RateLimit-Reset</code> (when the limit resets) so clients can proactively manage their request rate.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFAQ(this)">
+                        <span>What is the difference between 500 Internal Server Error and 502 Bad Gateway?</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            <p><code>500 Internal Server Error</code> means the server itself encountered an unexpected condition that prevented it from fulfilling the request. This is typically caused by unhandled exceptions, bugs in your application code, or database errors. The fix is in your application code or server configuration. <code>502 Bad Gateway</code> means the server acting as a gateway or proxy (like Nginx or a load balancer) received an invalid response from an upstream server. This often happens when your application server (Node.js, Python, etc.) crashes, is not running, or takes too long to respond. The fix usually involves checking if the upstream application is running and healthy, not the proxy server itself.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="author-box">
+            <div class="author-avatar">NT</div>
+            <div class="author-info">
+                <h4>NexTool</h4>
+                <p>We build free, browser-based developer tools. Over 250 tools for web development, APIs, and debugging. All client-side, no signup required.</p>
+            </div>
+        </div>
+
+        <div class="cta-box">
+            <h3>250+ Developer Tools, Zero Signup</h3>
+            <p>NexTool Pro gives you clean output, enhanced features, and unlimited workspace. $29 founding member price (regular $49). One payment, lifetime access.</p>
+            <a href="/free-tools/" class="cta-button">Browse Free Tools</a>
+            <a href="/blog/" class="cta-button secondary">Read More Articles</a>
+        </div>
+    </article>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="https://nextool.app">Home</a>
+                <a href="/free-tools/">Free Tools</a>
+                <a href="/blog/">Blog</a>
+            </div>
+            <p>&copy; 2026 NexTool. All rights reserved. 250+ free developer tools.</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('open');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+            if (!isOpen) {
+                item.classList.add('open');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+    </script>
+
+    <script defer src="/js/analytics-lite.js"></script>
+    <script defer src="/js/revenue.js"></script>
+    <script defer src="/js/lead-capture.js"></script>
+</body>
+</html>
