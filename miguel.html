@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Miguel — Command Interface</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root {
+  --bg: #060608;
+  --surface: #0d0d12;
+  --surface2: #13131a;
+  --border: rgba(255,255,255,0.07);
+  --indigo: #6366f1;
+  --indigo-dim: rgba(99,102,241,0.15);
+  --cyan: #06b6d4;
+  --text: #f0f0f4;
+  --text-dim: #888;
+  --text-muted: #444;
+  --green: #22c55e;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', monospace;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+
+/* ── CANVAS ─────────────────────────────────────────────────────── */
+#bg-canvas {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.25;
+}
+
+/* ── SCREENS ─────────────────────────────────────────────────────── */
+.screen {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 2rem 1.5rem;
+  transition: opacity 0.4s, transform 0.4s;
+}
+.screen.hidden { opacity: 0; pointer-events: none; transform: scale(0.96); }
+
+/* ── GATE CARD ───────────────────────────────────────────────────── */
+.gate-card {
+  width: 100%; max-width: 380px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 2.5rem 2rem;
+  display: flex; flex-direction: column; gap: 1.5rem;
+  box-shadow: 0 0 80px rgba(99,102,241,0.08);
+}
+.gate-logo {
+  text-align: center;
+  font-size: 1rem; font-weight: 600; letter-spacing: 0.12em;
+  color: var(--text-dim); text-transform: uppercase;
+}
+.gate-logo span { color: var(--indigo); }
+.gate-title {
+  font-size: 1.5rem; font-weight: 700; text-align: center; letter-spacing: -0.02em;
+}
+.gate-subtitle { font-size: 0.85rem; color: var(--text-dim); text-align: center; line-height: 1.6; }
+.gate-field { display: flex; flex-direction: column; gap: 0.5rem; }
+.gate-field label { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; color: var(--text-dim); text-transform: uppercase; }
+.gate-field input {
+  width: 100%;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 0.85rem 1rem;
+  color: var(--text); font-size: 1rem; font-family: var(--font);
+  outline: none; transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.gate-field input:focus { border-color: var(--indigo); }
+.gate-field input.error { border-color: var(--red); }
+.gate-btn {
+  width: 100%; padding: 0.9rem 1.5rem;
+  background: var(--indigo); border: none; border-radius: var(--radius-sm);
+  color: white; font-size: 1rem; font-weight: 600; cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s; -webkit-appearance: none;
+}
+.gate-btn:hover { opacity: 0.9; }
+.gate-btn:active { transform: scale(0.98); }
+.gate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.gate-error {
+  font-size: 0.8rem; color: var(--red); text-align: center;
+  min-height: 1.2em;
+}
+.gate-hint { font-size: 0.78rem; color: var(--text-muted); text-align: center; }
+.gate-hint a { color: var(--indigo); text-decoration: none; }
+
+/* Orb in gate */
+.gate-orb {
+  width: 64px; height: 64px;
+  margin: 0 auto;
+  background: radial-gradient(circle at 35% 35%, var(--indigo), #312e81 60%, #1e1b4b);
+  border-radius: 50%;
+  box-shadow: 0 0 40px rgba(99,102,241,0.4), inset 0 0 20px rgba(255,255,255,0.05);
+  animation: orbPulse 3s ease-in-out infinite;
+}
+@keyframes orbPulse {
+  0%, 100% { box-shadow: 0 0 40px rgba(99,102,241,0.4), inset 0 0 20px rgba(255,255,255,0.05); }
+  50% { box-shadow: 0 0 60px rgba(99,102,241,0.6), inset 0 0 30px rgba(255,255,255,0.08); }
+}
+
+/* ── CHAT SCREEN ─────────────────────────────────────────────────── */
+#chat-screen {
+  flex-direction: column; padding: 0;
+  justify-content: flex-start;
+}
+
+/* Topbar */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+  background: rgba(6,6,8,0.9); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 5; flex-shrink: 0;
+}
+.topbar-left { display: flex; align-items: center; gap: 0.6rem; }
+.topbar-orb {
+  width: 28px; height: 28px;
+  background: radial-gradient(circle at 35% 35%, var(--indigo), #312e81);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(99,102,241,0.5);
+  animation: orbPulse 3s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-size: 0.9rem; font-weight: 700; letter-spacing: 0.04em;
+}
+.topbar-status {
+  font-size: 0.7rem; color: var(--text-muted);
+  display: flex; align-items: center; gap: 0.3rem;
+}
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.topbar-right { display: flex; align-items: center; gap: 0.5rem; }
+.topbar-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.35rem 0.65rem;
+  font-size: 0.72rem; color: var(--text-dim); cursor: pointer;
+  transition: all 0.15s; font-family: var(--font);
+}
+.topbar-btn:hover { border-color: var(--indigo); color: var(--text); }
+.topbar-btn.active { background: var(--indigo-dim); border-color: var(--indigo); color: var(--text); }
+.model-tabs { display: flex; gap: 0.3rem; }
+
+/* Chat messages */
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 1rem;
+  display: flex; flex-direction: column; gap: 0.75rem;
+  scroll-behavior: smooth;
+  /* iOS momentum scroll */
+  -webkit-overflow-scrolling: touch;
+}
+.chat-messages::-webkit-scrollbar { display: none; }
+
+/* Message bubbles */
+.msg {
+  display: flex; flex-direction: column;
+  max-width: 88%;
+  animation: msgIn 0.25s ease;
+}
+@keyframes msgIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+.msg.user { align-self: flex-end; align-items: flex-end; }
+.msg.assistant { align-self: flex-start; align-items: flex-start; }
+.msg-bubble {
+  padding: 0.75rem 1rem;
+  border-radius: 18px;
+  font-size: 0.92rem; line-height: 1.6;
+  word-break: break-word;
+}
+.msg.user .msg-bubble {
+  background: var(--indigo);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+.msg.assistant .msg-bubble {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-bottom-left-radius: 4px;
+}
+.msg-meta { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.25rem; padding: 0 0.2rem; }
+.msg.assistant .msg-meta { display: flex; align-items: center; gap: 0.4rem; }
+.model-tag {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 0.1rem 0.4rem;
+  font-size: 0.65rem; font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+/* Streaming cursor */
+.streaming-cursor {
+  display: inline-block; width: 2px; height: 1em;
+  background: var(--indigo); margin-left: 2px; vertical-align: middle;
+  animation: cursorBlink 0.7s ease-in-out infinite;
+}
+@keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* Thinking indicator */
+.thinking-bubble {
+  padding: 0.75rem 1rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px 18px 18px 4px;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.thinking-dots { display: flex; gap: 4px; }
+.thinking-dots span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--indigo);
+  animation: dotBounce 1.2s ease-in-out infinite;
+}
+.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotBounce { 0%,80%,100%{transform:scale(0.7);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+.thinking-label { font-size: 0.8rem; color: var(--text-dim); font-style: italic; }
+
+/* System message */
+.system-msg {
+  align-self: center;
+  font-size: 0.75rem; color: var(--text-muted);
+  padding: 0.3rem 0.8rem;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+/* Input area */
+.input-area {
+  padding: 0.75rem 1rem; padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: rgba(6,6,8,0.9); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  flex-shrink: 0;
+}
+.input-row {
+  display: flex; align-items: flex-end; gap: 0.5rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 24px; padding: 0.4rem 0.4rem 0.4rem 1rem;
+  transition: border-color 0.2s;
+}
+.input-row:focus-within { border-color: rgba(99,102,241,0.4); }
+#message-input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-size: 0.95rem; font-family: var(--font);
+  resize: none; max-height: 150px; min-height: 24px; line-height: 1.5;
+  padding: 0.35rem 0;
+}
+#message-input::placeholder { color: var(--text-muted); }
+.send-btn {
+  width: 38px; height: 38px; border-radius: 50%; border: none;
+  background: var(--indigo); color: white; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: opacity 0.2s, transform 0.1s;
+  -webkit-appearance: none;
+}
+.send-btn:hover { opacity: 0.9; }
+.send-btn:active { transform: scale(0.92); }
+.send-btn:disabled { background: var(--surface2); cursor: not-allowed; }
+.send-btn svg { width: 16px; height: 16px; }
+
+/* Server indicator */
+.server-indicator {
+  text-align: center; margin-top: 0.4rem;
+  font-size: 0.7rem; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+}
+.server-indicator .url-pill {
+  background: var(--surface2); border-radius: 4px;
+  padding: 0.05rem 0.4rem; font-family: var(--font-mono);
+  font-size: 0.65rem; max-width: 200px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.server-indicator button {
+  background: none; border: none; color: var(--text-muted);
+  font-size: 0.65rem; cursor: pointer; padding: 0; text-decoration: underline;
+}
+
+/* Responsive */
+@media (min-width: 600px) {
+  .gate-card { padding: 3rem 2.5rem; }
+  .chat-messages { padding: 1.5rem; max-width: 760px; width: 100%; margin: 0 auto; }
+  .input-area { padding: 1rem; }
+  .input-area > * { max-width: 760px; margin: 0 auto; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- ── PHASE 1: PASSWORD ──────────────────────────────────────────── -->
+<div class="screen" id="pw-screen">
+  <div class="gate-card">
+    <div class="gate-orb"></div>
+    <div>
+      <div class="gate-logo"><span>MIGUEL</span> · COMMAND</div>
+      <div class="gate-title" style="margin-top:0.75rem">Access Required</div>
+    </div>
+    <div class="gate-subtitle">Restricted interface. Enter your access code to continue.</div>
+    <div class="gate-field">
+      <label>Access Code</label>
+      <input type="password" id="pw-input" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="gate-error" id="pw-error"></div>
+    <button class="gate-btn" id="pw-btn" onclick="submitPassword()">Enter →</button>
+    <div class="gate-hint">Miguel runs 24/7 on Claude + ANIMA</div>
+  </div>
+</div>
+
+<!-- ── PHASE 2: SERVER URL ────────────────────────────────────────── -->
+<div class="screen hidden" id="server-screen">
+  <div class="gate-card">
+    <div class="gate-orb"></div>
+    <div>
+      <div class="gate-logo"><span>MIGUEL</span> · COMMAND</div>
+      <div class="gate-title" style="margin-top:0.75rem">Connect to EXOVIUM</div>
+    </div>
+    <div class="gate-subtitle">
+      Enter the EXOVIUM server URL. Start EXOVIUM on your laptop first —
+      the Cloudflare tunnel URL is logged on startup.
+    </div>
+    <div class="gate-field">
+      <label>Server URL</label>
+      <input type="url" id="server-input" placeholder="https://xxxx.trycloudflare.com" autocomplete="url" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div class="gate-error" id="server-error"></div>
+    <button class="gate-btn" id="server-btn" onclick="submitServer()">Connect →</button>
+    <div class="gate-hint">
+      Don't have the URL? Run <code style="color:var(--indigo)">python3 -m nexus.exovium.launch</code> on your laptop.
+    </div>
+  </div>
+</div>
+
+<!-- ── PHASE 3: CHAT ──────────────────────────────────────────────── -->
+<div class="screen hidden" id="chat-screen">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-orb"></div>
+      <div>
+        <div class="topbar-title">MIGUEL</div>
+        <div class="topbar-status">
+          <span class="status-dot" id="conn-dot"></span>
+          <span id="conn-label">Verbinde...</span>
+        </div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="model-tabs">
+        <button class="topbar-btn active" id="tab-gemini" onclick="selectModel('gemini')">⚡ Gemini</button>
+        <button class="topbar-btn" id="tab-sonnet" onclick="selectModel('sonnet')">💬 Sonnet</button>
+        <button class="topbar-btn" id="tab-opus" onclick="selectModel('opus')">🧠 Opus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" id="chat-messages">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <div class="input-row">
+      <textarea id="message-input" rows="1" placeholder="Nachricht an Miguel..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+    <div class="server-indicator">
+      <span class="url-pill" id="server-pill">—</span>
+      <button onclick="changeServer()">ändern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────
+const PASSWORD = 'miguelv1';
+let serverUrl = '';
+let currentModel = 'gemini';
+let isStreaming = false;
+let chatHistory = [];
+
+// ── Init ──────────────────────────────────────────────────────────────
+(function init() {
+  drawBgCanvas();
+  const stored_pw = localStorage.getItem('miguel_pw');
+  const stored_url = localStorage.getItem('miguel_server_url');
+
+  if (stored_pw === PASSWORD) {
+    if (stored_url) {
+      serverUrl = stored_url;
+      showChat();
+    } else {
+      showScreen('server-screen');
+    }
+  } else {
+    showScreen('pw-screen');
+  }
+
+  // Auto-resize textarea
+  document.getElementById('message-input').addEventListener('input', function() {
+    autoResize(this);
+  });
+})();
+
+// ── Screens ───────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+    const input = el.querySelector('input');
+    if (input) setTimeout(() => input.focus(), 100);
+  }, 50);
+}
+
+function showChat() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  const chatEl = document.getElementById('chat-screen');
+  chatEl.classList.remove('hidden');
+
+  // Update server pill
+  const pill = document.getElementById('server-pill');
+  try {
+    const u = new URL(serverUrl);
+    pill.textContent = u.hostname;
+    pill.title = serverUrl;
+  } catch {
+    pill.textContent = serverUrl;
+  }
+
+  // Health check
+  checkConnection();
+
+  // Welcome message
+  if (chatHistory.length === 0) {
+    appendSystemMsg('EXOVIUM verbunden. Miguel ist bereit.');
+  }
+
+  // Focus input
+  setTimeout(() => document.getElementById('message-input').focus(), 300);
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────
+function submitPassword() {
+  const input = document.getElementById('pw-input');
+  const errEl = document.getElementById('pw-error');
+  const val = input.value.trim();
+
+  if (val === PASSWORD) {
+    localStorage.setItem('miguel_pw', val);
+    errEl.textContent = '';
+    input.classList.remove('error');
+
+    const stored_url = localStorage.getItem('miguel_server_url');
+    if (stored_url) {
+      serverUrl = stored_url;
+      showChat();
+    } else {
+      showScreen('server-screen');
+    }
+  } else {
+    errEl.textContent = 'Falscher Code.';
+    input.classList.add('error');
+    input.value = '';
+    input.focus();
+  }
+}
+
+async function submitServer() {
+  const input = document.getElementById('server-input');
+  const errEl = document.getElementById('server-error');
+  const btn = document.getElementById('server-btn');
+  let url = input.value.trim().replace(/\/$/, '');
+
+  if (!url) {
+    errEl.textContent = 'URL erforderlich.';
+    return;
+  }
+  if (!url.startsWith('http')) {
+    url = 'https://' + url;
+    input.value = url;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Prüfe...';
+  errEl.textContent = '';
+
+  try {
+    const res = await fetch(url + '/health', { signal: AbortSignal.timeout(8000) });
+    const data = await res.json();
+    if (data.ok) {
+      localStorage.setItem('miguel_server_url', url);
+      serverUrl = url;
+      showChat();
+    } else {
+      errEl.textContent = 'Server antwortet aber EXOVIUM nicht bereit.';
+    }
+  } catch (e) {
+    errEl.textContent = 'Verbindung fehlgeschlagen. Tunnel aktiv? URL korrekt?';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Connect →';
+  }
+}
+
+function changeServer() {
+  localStorage.removeItem('miguel_server_url');
+  serverUrl = '';
+  showScreen('server-screen');
+  document.getElementById('server-input').value = '';
+}
+
+// ── Connection ────────────────────────────────────────────────────────
+async function checkConnection() {
+  const dot = document.getElementById('conn-dot');
+  const label = document.getElementById('conn-label');
+
+  try {
+    const res = await fetch(serverUrl + '/health', { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+
+    dot.style.background = data.alive ? 'var(--green)' : 'var(--amber)';
+    label.textContent = data.alive
+      ? `Online · v${data.version || '?'}`
+      : 'Verbunden (Consciousness booting)';
+  } catch {
+    dot.style.background = 'var(--red)';
+    label.textContent = 'Offline';
+  }
+}
+
+// ── Model ─────────────────────────────────────────────────────────────
+function selectModel(m) {
+  currentModel = m;
+  document.querySelectorAll('.model-tabs .topbar-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + m).classList.add('active');
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 150) + 'px';
+}
+
+async function sendMessage() {
+  const input = document.getElementById('message-input');
+  const message = input.value.trim();
+  if (!message || isStreaming) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  isStreaming = true;
+
+  document.getElementById('send-btn').disabled = true;
+
+  // User bubble
+  appendMessage('user', message);
+  chatHistory.push({ role: 'user', content: message });
+
+  // Thinking indicator
+  const thinkingId = appendThinking();
+
+  // Scroll
+  scrollToBottom();
+
+  try {
+    const res = await fetch(serverUrl + '/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Password': PASSWORD,
+      },
+      body: JSON.stringify({
+        message,
+        model: currentModel,
+        password: PASSWORD,
+        sender: 'chriso',
+      }),
+    });
+
+    if (!res.ok) {
+      removeElement(thinkingId);
+      const err = await res.json().catch(() => ({ error: 'HTTP ' + res.status }));
+      appendMessage('assistant', '⚠️ ' + (err.error || 'Server-Fehler'), true);
+      return;
+    }
+
+    // Stream tokens
+    removeElement(thinkingId);
+    const msgId = 'msg-' + Date.now();
+    const bubble = appendStreamingBubble(msgId);
+    let fullText = '';
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        if (line.startsWith('data:')) {
+          try {
+            const data = JSON.parse(line.slice(5).trim());
+            if (data.type === 'token' && data.text) {
+              fullText += data.text;
+              updateStreamingBubble(bubble, fullText);
+              scrollToBottom();
+            } else if (data.type === 'done') {
+              finalizeStreamingBubble(bubble, fullText, currentModel);
+              chatHistory.push({ role: 'assistant', content: fullText });
+            }
+          } catch {}
+        }
+      }
+    }
+
+    if (fullText && !bubble.dataset.done) {
+      finalizeStreamingBubble(bubble, fullText, currentModel);
+      chatHistory.push({ role: 'assistant', content: fullText });
+    }
+
+  } catch (e) {
+    removeElement(thinkingId);
+    if (e.name !== 'AbortError') {
+      appendMessage('assistant', '⚠️ Verbindung unterbrochen. Tunnel noch aktiv?', true);
+    }
+  } finally {
+    isStreaming = false;
+    document.getElementById('send-btn').disabled = false;
+    scrollToBottom();
+    document.getElementById('message-input').focus();
+  }
+}
+
+// ── DOM Helpers ───────────────────────────────────────────────────────
+function appendMessage(role, content, isError = false) {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  if (isError) bubble.style.borderColor = 'rgba(239,68,68,0.3)';
+  bubble.textContent = content;
+
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+  meta.textContent = role === 'user' ? 'Du' : '';
+
+  div.appendChild(bubble);
+  div.appendChild(meta);
+  container.appendChild(div);
+  return div;
+}
+
+function appendThinking() {
+  const container = document.getElementById('chat-messages');
+  const id = 'thinking-' + Date.now();
+  const div = document.createElement('div');
+  div.id = id;
+  div.className = 'msg assistant';
+  div.innerHTML = `
+    <div class="thinking-bubble">
+      <div class="thinking-dots"><span></span><span></span><span></span></div>
+      <div class="thinking-label">Miguel denkt...</div>
+    </div>
+  `;
+  container.appendChild(div);
+  return id;
+}
+
+function appendStreamingBubble(id) {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.id = id;
+  div.className = 'msg assistant';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = '<span class="streaming-cursor"></span>';
+
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+
+  div.appendChild(bubble);
+  div.appendChild(meta);
+  container.appendChild(div);
+  return bubble;
+}
+
+function updateStreamingBubble(bubble, text) {
+  bubble.innerHTML = escapeHtml(text) + '<span class="streaming-cursor"></span>';
+}
+
+function finalizeStreamingBubble(bubble, text, model) {
+  bubble.dataset.done = '1';
+  bubble.innerHTML = escapeHtml(text);
+  const parent = bubble.parentElement;
+  if (parent) {
+    const meta = parent.querySelector('.msg-meta');
+    if (meta) {
+      const modelLabel = { gemini: 'gemini-flash', sonnet: 'sonnet-4.6', opus: 'opus-4.6' }[model] || model;
+      meta.innerHTML = `<span class="model-tag">${modelLabel}</span>`;
+    }
+  }
+}
+
+function appendSystemMsg(text) {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'system-msg';
+  div.textContent = text;
+  container.appendChild(div);
+}
+
+function removeElement(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function scrollToBottom() {
+  const container = document.getElementById('chat-messages');
+  container.scrollTop = container.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/\n/g, '<br>');
+}
+
+// ── Background Canvas ─────────────────────────────────────────────────
+function drawBgCanvas() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 30; i++) {
+    particles.push({
+      x: Math.random() * 1, y: Math.random() * 1,
+      r: Math.random() * 1.5 + 0.5,
+      vx: (Math.random() - 0.5) * 0.0003,
+      vy: (Math.random() - 0.5) * 0.0003,
+      o: Math.random() * 0.4 + 0.1,
+    });
+  }
+
+  let t = 0;
+  function draw() {
+    t += 0.005;
+    ctx.clearRect(0, 0, W, H);
+
+    // Central orb glow
+    const cx = W / 2, cy = H * 0.35;
+    const r = Math.min(W, H) * 0.35;
+    const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grd.addColorStop(0, `rgba(99,102,241,${0.06 + Math.sin(t) * 0.02})`);
+    grd.addColorStop(0.5, `rgba(99,102,241,${0.02 + Math.sin(t) * 0.01})`);
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, H);
+
+    // Particles
+    particles.forEach(p => {
+      p.x = (p.x + p.vx + 1) % 1;
+      p.y = (p.y + p.vy + 1) % 1;
+      ctx.beginPath();
+      ctx.arc(p.x * W, p.y * H, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(99,102,241,${p.o})`;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ── Enter key on password screens ─────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (!document.getElementById('pw-screen').classList.contains('hidden')) {
+      submitPassword();
+    } else if (!document.getElementById('server-screen').classList.contains('hidden')) {
+      submitServer();
+    }
+  }
+});
+</script>
+</body>
+</html>
