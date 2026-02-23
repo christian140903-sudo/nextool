@@ -453,7 +453,7 @@ function render() {
             e.preventDefault();
             const checkout = cta.dataset.checkout;
             // Dispatch custom event for external handlers
-            containerEl.dispatchEvent(new CustomEvent('nt:checkout', { detail: { checkout, product: activeProduct } }));
+            containerEl.dispatchEvent(new CustomEvent('nt:checkout', { bubbles: true, detail: { checkout, product: activeProduct } }));
             // Fallback: scroll to contact
             const contact = document.getElementById('contact') || document.querySelector('[data-section="contact"]');
             if (contact) contact.scrollIntoView({ behavior: 'smooth' });
