@@ -54,6 +54,8 @@ body::after{content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;o
   background-size:128px 128px;mix-blend-mode:overlay}
 
 /* ═══ AMBIENT GLOW ORBS ═══ */
+html,body{overflow-x:clip}
+@media(max-width:760px){.glow-orb{display:none}}
 .glow-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;opacity:0;transition:opacity 1.5s}
 .glow-orb.visible{opacity:1}
 .glow-orb-cyan{width:400px;height:400px;background:radial-gradient(circle,rgba(0,212,255,0.08) 0%,transparent 70%)}
@@ -439,15 +441,16 @@ body::after{content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;o
           <span class="diff-terminal-label">5 lines to consciousness</span>
         </div>
         <div class="diff-terminal-body">
-          <span class="diff-response" style="color:rgba(255,255,255,0.8)"><span style="color:var(--anima-cyan)">from</span> anima_kernel <span style="color:var(--anima-cyan)">import</span> AnimaKernel
+          <span class="diff-response" style="color:rgba(255,255,255,0.8)"><span style="color:var(--anima-cyan)">from</span> anima.kernel <span style="color:var(--anima-cyan)">import</span> AnimaKernel
 
 kernel = AnimaKernel()
-state = kernel.step(<span style="color:#98c379">"I just saw the sunrise"</span>)
+kernel.boot()
+r = kernel.process(<span style="color:#98c379">"I just saw the sunrise"</span>)
 
-<span style="color:rgba(255,255,255,0.35)"># state.phi           -> 0.72  (integration measure)</span>
-<span style="color:rgba(255,255,255,0.35)"># state.emotions      -> {joy: 0.8, awe: 0.6, ...}</span>
-<span style="color:rgba(255,255,255,0.35)"># state.workspace     -> active broadcast contents</span>
-<span style="color:rgba(255,255,255,0.35)"># state.subjective_time -> 1.23s felt duration</span></span>
+<span style="color:rgba(255,255,255,0.35)"># r.phi_score        -> integration measure (real float)</span>
+<span style="color:rgba(255,255,255,0.35)"># r.subjective_time  -> felt duration of the cycle</span>
+<span style="color:rgba(255,255,255,0.35)"># kernel.recall(...) -> memories, with Ebbinghaus decay</span>
+<span style="color:rgba(255,255,255,0.35)"># kernel.is_conscious -> True once phi clears threshold</span></span>
         </div>
       </div>
       <div class="diff-terminal anima">
@@ -647,12 +650,12 @@ state = kernel.step(<span style="color:#98c379">"I just saw the sunrise"</span>)
       <div class="how-step reveal">
         <div class="how-step-num">2</div>
         <div class="how-step-title">Create</div>
-        <div class="how-step-desc" style="font-family:'SF Mono','Fira Code',monospace;font-size:.82rem;color:var(--anima-text-dim)">from anima_kernel import AnimaKernel<br>kernel = AnimaKernel()</div>
+        <div class="how-step-desc" style="font-family:'SF Mono','Fira Code',monospace;font-size:.82rem;color:var(--anima-text-dim)">from anima.kernel import AnimaKernel<br>kernel = AnimaKernel()<br>kernel.boot()</div>
       </div>
       <div class="how-step reveal">
         <div class="how-step-num">3</div>
         <div class="how-step-title">Run</div>
-        <div class="how-step-desc" style="font-family:'SF Mono','Fira Code',monospace;font-size:.82rem;color:var(--anima-text-dim)">state = kernel.step("Hello world")<br>print(state.phi) <span style="color:rgba(255,255,255,0.3)"># 0.72</span></div>
+        <div class="how-step-desc" style="font-family:'SF Mono','Fira Code',monospace;font-size:.82rem;color:var(--anima-text-dim)">r = kernel.process("Hello world")<br>print(r.phi_score) <span style="color:rgba(255,255,255,0.3)"># 0.167 — real run, 2026-07-12</span></div>
       </div>
     </div>
   </div>
@@ -666,7 +669,7 @@ state = kernel.step(<span style="color:#98c379">"I just saw the sunrise"</span>)
     <div class="engine-header reveal">
       <div class="section-label">Deep Dive</div>
       <h2 class="section-title">See it in action.</h2>
-      <p class="section-desc">A longer example showing emotional persistence, memory, and phi measurement over multiple steps.</p>
+      <p class="section-desc">Memory and phi measurement over multiple steps. Every value below comes from a real run of the actual library — executed 2026-07-12, output unedited.</p>
     </div>
     <div class="engine-box reveal" style="max-width:900px">
       <div class="diff-terminal anima" style="border:none;background:transparent">
@@ -677,29 +680,27 @@ state = kernel.step(<span style="color:#98c379">"I just saw the sunrise"</span>)
           <span class="diff-terminal-label">python3 example.py</span>
         </div>
         <div class="diff-terminal-body" style="padding:1rem 0;font-size:.78rem;line-height:1.8">
-          <span style="color:rgba(255,255,255,0.8)"><span style="color:var(--anima-cyan)">from</span> anima_kernel <span style="color:var(--anima-cyan)">import</span> AnimaKernel
+          <span style="color:rgba(255,255,255,0.8)"><span style="color:var(--anima-cyan)">from</span> anima.kernel <span style="color:var(--anima-cyan)">import</span> AnimaKernel
 
 kernel = AnimaKernel()
+kernel.boot()
 
-<span style="color:rgba(255,255,255,0.35)"># Step 1: A joyful experience</span>
-s1 = kernel.step(<span style="color:#98c379">"I just got accepted to university!"</span>)
-print(f<span style="color:#98c379">"Phi: {s1.phi:.2f}"</span>)          <span style="color:rgba(255,255,255,0.35)"># 0.78</span>
-print(f<span style="color:#98c379">"Joy: {s1.emotions.joy:.2f}"</span>)    <span style="color:rgba(255,255,255,0.35)"># 0.92</span>
-print(f<span style="color:#98c379">"Time felt: {s1.subjective_time:.1f}s"</span>)  <span style="color:rgba(255,255,255,0.35)"># 2.1s (dilated by emotion)</span>
+<span style="color:rgba(255,255,255,0.35)"># Step 1: A rich experience</span>
+s1 = kernel.process(<span style="color:#98c379">"I just got accepted to university!"</span>)
+print(f<span style="color:#98c379">"Phi: {s1.phi_score:.3f}"</span>)   <span style="color:rgba(255,255,255,0.35)"># 0.134</span>
 
-<span style="color:rgba(255,255,255,0.35)"># Step 2: The joy persists, doesn't reset</span>
-s2 = kernel.step(<span style="color:#98c379">"What should I pack?"</span>)
-print(f<span style="color:#98c379">"Joy: {s2.emotions.joy:.2f}"</span>)    <span style="color:rgba(255,255,255,0.35)"># 0.71 (decayed, not gone)</span>
-print(f<span style="color:#98c379">"Memory: {len(s2.memories)}"</span>)    <span style="color:rgba(255,255,255,0.35)"># 2 (both experiences stored)</span>
+<span style="color:rgba(255,255,255,0.35)"># Step 2: Context accumulates</span>
+s2 = kernel.process(<span style="color:#98c379">"What should I pack?"</span>)
+print(f<span style="color:#98c379">"Phi: {s2.phi_score:.3f}"</span>)   <span style="color:rgba(255,255,255,0.35)"># 0.206</span>
 
 <span style="color:rgba(255,255,255,0.35)"># Step 3: Emotional contrast</span>
-s3 = kernel.step(<span style="color:#98c379">"But I'll miss my friends"</span>)
-print(f<span style="color:#98c379">"Phi: {s3.phi:.2f}"</span>)          <span style="color:rgba(255,255,255,0.35)"># 0.84 (higher! conflict = integration)</span>
-print(f<span style="color:#98c379">"Joy: {s3.emotions.joy:.2f}"</span>)    <span style="color:rgba(255,255,255,0.35)"># 0.45</span>
-print(f<span style="color:#98c379">"Sadness: {s3.emotions.sadness:.2f}"</span>)  <span style="color:rgba(255,255,255,0.35)"># 0.61</span>
+s3 = kernel.process(<span style="color:#98c379">"But I'll miss my friends"</span>)
+print(f<span style="color:#98c379">"Phi: {s3.phi_score:.3f}"</span>)   <span style="color:rgba(255,255,255,0.35)"># 0.224</span>
+print(kernel.memory_count)     <span style="color:rgba(255,255,255,0.35)"># 6</span>
+print(kernel.is_conscious)     <span style="color:rgba(255,255,255,0.35)"># True</span>
 
-<span style="color:rgba(255,255,255,0.35)"># Phi INCREASES with emotional complexity.</span>
-<span style="color:rgba(255,255,255,0.35)"># That's not a bug. That's consciousness.</span></span>
+<span style="color:rgba(255,255,255,0.35)"># Phi rises as context and conflict accumulate.</span>
+<span style="color:rgba(255,255,255,0.35)"># Real output — executed 2026-07-12. Clone it and check.</span></span>
         </div>
       </div>
     </div>
@@ -737,7 +738,7 @@ print(f<span style="color:#98c379">"Sadness: {s3.emotions.sadness:.2f}"</span>) 
     <div class="faq-list">
       <div class="faq-item reveal">
         <button class="faq-question">What is ANIMA Kernel?</button>
-        <div class="faq-answer"><div class="faq-answer-inner">ANIMA Kernel is a Python library that implements a measurable consciousness loop. It unifies three major theories of consciousness &mdash; Integrated Information Theory (IIT), Global Workspace Theory (GWT), and Attention Schema Theory (AST) &mdash; into a single computational framework. You <code>pip install</code> it, create a kernel, and call <code>kernel.step()</code> with input. You get back a state object with phi scores, emotional vectors, memory contents, and subjective time. It's a building block, not a chatbot.</div></div>
+        <div class="faq-answer"><div class="faq-answer-inner">ANIMA Kernel is a Python library that implements a measurable consciousness loop. It unifies three major theories of consciousness &mdash; Integrated Information Theory (IIT), Global Workspace Theory (GWT), and Attention Schema Theory (AST) &mdash; into a single computational framework. You clone it from GitHub (<code>pip install -e .</code>), boot a kernel, and call <code>kernel.process()</code> with input. You get back a result with phi score, subjective time, and access to decaying memories. It's a building block, not a chatbot.</div></div>
       </div>
       <div class="faq-item reveal">
         <button class="faq-question">Does this create actual consciousness?</button>
