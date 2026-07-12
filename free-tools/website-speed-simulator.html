@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Website Speed Simulator — Test Load Time & Get Tips | ANIMA</title>
+<meta name="description" content="Simulate your website's loading speed. Configure images, scripts, fonts and CSS to see estimated load time, waterfall chart, performance score and optimization tips. Free.">
+<meta name="keywords" content="website speed test, page speed simulator, website performance, load time test, waterfall chart, web optimization, free speed test, ANIMA">
+<meta property="og:title" content="Free Website Speed Simulator | ANIMA">
+<meta property="og:description" content="Simulate website load times with a visual waterfall chart. Get a 0-100 score and optimization tips. 100% free, no signup.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nextool.app/free-tools/website-speed-simulator.html">
+<meta property="og:image" content="https://nextool.app/img/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://nextool.app/free-tools/website-speed-simulator.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Website Speed Simulator | ANIMA">
+<meta name="twitter:description" content="Simulate website load times with visual waterfall chart and optimization tips. Free tool by ANIMA.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Website Speed Simulator","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free website speed simulator with waterfall chart, performance score, and optimization tips."}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050508;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--text:#e4e4eb;--text2:#9494a8;--primary:#00d4ff;--accent:#a855f7;--pink:#ec4899;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;--yellow:#eab308;--orange:#f97316;--radius:12px;--glass:rgba(17,17,24,0.7)}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;-webkit-text-fill-color:#fff!important}
+.nav-cta:hover{opacity:.9}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+.hero{text-align:center;padding:3rem 1.5rem 2rem;max-width:700px;margin:0 auto}
+.hero h1{font-size:2.2rem;font-weight:800;line-height:1.2;margin-bottom:.75rem}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1rem}
+.tool-container{max-width:1000px;margin:0 auto;padding:0 1.5rem 3rem}
+/* INPUT PANEL */
+.config-panel{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.config-panel h3{font-size:.95rem;font-weight:700;margin-bottom:1rem}
+.config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1rem}
+.config-field{display:flex;flex-direction:column;gap:.35rem}
+.config-field label{font-size:.78rem;font-weight:600;color:var(--text2)}
+.config-field input,.config-field select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.55rem .8rem;border-radius:8px;font-size:.85rem;font-family:inherit;outline:none;transition:border-color .2s}
+.config-field input:focus,.config-field select:focus{border-color:var(--primary)}
+.config-field input::placeholder{color:var(--text2);opacity:.5}
+.config-field .hint{font-size:.7rem;color:var(--text2);margin-top:2px}
+.add-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.resource-tag{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .7rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:.75rem;color:var(--text2)}
+.resource-tag .remove{cursor:pointer;color:var(--red);font-weight:700;margin-left:.2rem}
+.resource-tag .remove:hover{opacity:.7}
+.resource-tag.img{border-color:rgba(0,212,255,.25);color:var(--primary)}
+.resource-tag.js{border-color:rgba(234,179,8,.25);color:var(--yellow)}
+.resource-tag.css{border-color:rgba(168,85,247,.25);color:var(--accent)}
+.resource-tag.font{border-color:rgba(236,72,153,.25);color:var(--pink)}
+.sim-btn{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;padding:.7rem 2rem;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .2s,box-shadow .2s;width:100%}
+.sim-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,212,255,.3)}
+.sim-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+/* RESULTS */
+.results-panel{display:none}
+/* SCORE */
+.score-section{display:flex;align-items:center;gap:2rem;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.score-circle{position:relative;width:120px;height:120px;flex-shrink:0}
+.score-circle svg{width:120px;height:120px;transform:rotate(-90deg)}
+.score-circle .bg{fill:none;stroke:var(--border);stroke-width:8}
+.score-circle .fg{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.score-value{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;font-weight:800;text-align:center;line-height:1}
+.score-label{font-size:.65rem;font-weight:600;color:var(--text2);display:block;margin-top:4px}
+.score-details{flex:1;min-width:200px}
+.score-details h3{font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
+.metric-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(42,42,58,.5);font-size:.85rem}
+.metric-row:last-child{border-bottom:none}
+.metric-label{color:var(--text2)}
+.metric-value{font-weight:600}
+.metric-value.good{color:var(--green)}
+.metric-value.ok{color:var(--yellow)}
+.metric-value.bad{color:var(--red)}
+/* WATERFALL */
+.waterfall-section{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;overflow-x:auto}
+.waterfall-section h3{font-size:.95rem;font-weight:700;margin-bottom:1rem}
+.waterfall-chart{min-width:600px}
+.wf-row{display:grid;grid-template-columns:180px 60px 1fr 50px;gap:.5rem;align-items:center;padding:.35rem 0;border-bottom:1px solid rgba(42,42,58,.3);font-size:.78rem}
+.wf-row:first-child{font-weight:600;color:var(--text2);border-bottom:1px solid var(--border)}
+.wf-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2)}
+.wf-type{font-size:.7rem;font-weight:600;padding:.15rem .4rem;border-radius:4px;text-align:center;text-transform:uppercase}
+.wf-type.html{background:rgba(0,212,255,.15);color:var(--primary)}
+.wf-type.js{background:rgba(234,179,8,.15);color:var(--yellow)}
+.wf-type.css{background:rgba(168,85,247,.15);color:var(--accent)}
+.wf-type.img{background:rgba(34,197,94,.15);color:var(--green)}
+.wf-type.font{background:rgba(236,72,153,.15);color:var(--pink)}
+.wf-bar-container{position:relative;height:16px;background:rgba(42,42,58,.3);border-radius:3px;overflow:hidden}
+.wf-bar{position:absolute;height:100%;border-radius:3px;min-width:2px;transition:width .6s ease}
+.wf-bar.html{background:linear-gradient(90deg,rgba(0,212,255,.6),var(--primary))}
+.wf-bar.js{background:linear-gradient(90deg,rgba(234,179,8,.6),var(--yellow))}
+.wf-bar.css{background:linear-gradient(90deg,rgba(168,85,247,.6),var(--accent))}
+.wf-bar.img{background:linear-gradient(90deg,rgba(34,197,94,.6),var(--green))}
+.wf-bar.font{background:linear-gradient(90deg,rgba(236,72,153,.6),var(--pink))}
+.wf-time{font-size:.75rem;color:var(--text2);text-align:right;font-weight:600}
+/* TIPS */
+.tips-section{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.tips-section h3{font-size:.95rem;font-weight:700;margin-bottom:1rem}
+.tip-item{display:flex;gap:.75rem;padding:.75rem 0;border-bottom:1px solid rgba(42,42,58,.3)}
+.tip-item:last-child{border-bottom:none}
+.tip-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.tip-icon.critical{background:rgba(239,68,68,.15);color:var(--red)}
+.tip-icon.warning{background:rgba(234,179,8,.15);color:var(--yellow)}
+.tip-icon.info{background:rgba(0,212,255,.15);color:var(--primary)}
+.tip-content{flex:1}
+.tip-title{font-size:.85rem;font-weight:600;margin-bottom:.2rem}
+.tip-desc{font-size:.78rem;color:var(--text2);line-height:1.6}
+/* SHARE */
+.share-bar{display:flex;align-items:center;justify-content:center;gap:.75rem;margin:2rem 0;flex-wrap:wrap}
+.share-bar span{font-size:.85rem;color:var(--text2);font-weight:500}
+.share-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:8px;font-size:.8rem;font-weight:600;text-decoration:none;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);transition:all .2s;font-family:inherit}
+.share-btn:hover{border-color:var(--primary);color:var(--text)}
+.anima-badge{text-align:center;margin:2rem 0;font-size:.75rem;color:var(--text2)}
+.anima-badge a{color:var(--primary);text-decoration:none;font-weight:600}
+/* FAQ */
+.faq-section{max-width:800px;margin:3rem auto;padding:0 1.5rem}
+.faq-section h2{font-size:1.5rem;font-weight:800;text-align:center;margin-bottom:1.5rem}
+.faq-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.faq-item{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.75rem;overflow:hidden}
+.faq-q{padding:1rem 1.2rem;font-size:.9rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:color .2s}
+.faq-q:hover{color:var(--primary)}
+.faq-q::after{content:'+';font-size:1.2rem;color:var(--text2);transition:transform .2s}
+.faq-item.open .faq-q::after{transform:rotate(45deg);color:var(--primary)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 1.2rem;color:var(--text2);font-size:.85rem;line-height:1.7}
+.faq-item.open .faq-a{max-height:300px;padding-bottom:1rem}
+.cta-section{text-align:center;padding:4rem 1.5rem;max-width:700px;margin:0 auto}
+.cta-section h2{font-size:1.8rem;font-weight:800;margin-bottom:.75rem}
+.cta-section h2 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cta-section p{color:var(--text2);margin-bottom:1.5rem}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,212,255,.3)}
+.footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem}
+.footer-col h4{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.footer-col a{display:block;color:var(--text2);text-decoration:none;font-size:.8rem;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--primary)}
+.footer-bottom{text-align:center;color:var(--text2);font-size:.75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:500;z-index:200;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.loading-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:1.5rem;display:none}
+.loading-bar .fill{height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:2px;transition:width .1s linear}
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 2rem;gap:1rem}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .hero h1{font-size:1.6rem}
+  .footer-grid{grid-template-columns:1fr}
+  .score-section{flex-direction:column;align-items:center;text-align:center}
+  .config-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">ANIMA</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/free-tools/">Tools</a>
+    <a href="/free-tools/">Free Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="https://github.com/christian140903-sudo/nextool" class="nav-cta" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</nav>
+
+<section class="hero fade-in">
+  <h1>Free <span>Website Speed Simulator</span></h1>
+  <p>Configure your site's resources -- images, scripts, fonts, CSS -- and simulate load time with a visual waterfall chart, performance score, and actionable optimization tips.</p>
+</section>
+
+<div class="tool-container fade-in">
+  <div class="config-panel">
+    <h3>Site Configuration</h3>
+    <div class="config-grid">
+      <div class="config-field">
+        <label>Page Name (optional)</label>
+        <input type="text" id="pageName" placeholder="e.g. My Landing Page" maxlength="60">
+      </div>
+      <div class="config-field">
+        <label>HTML Size (KB)</label>
+        <input type="number" id="htmlSize" value="45" min="1" max="5000">
+        <span class="hint">Typical: 20-100 KB</span>
+      </div>
+      <div class="config-field">
+        <label>Connection Type</label>
+        <select id="connType">
+          <option value="4g" selected>4G Mobile (10 Mbps)</option>
+          <option value="3g">3G Mobile (1.5 Mbps)</option>
+          <option value="wifi">Wi-Fi (25 Mbps)</option>
+          <option value="fiber">Fiber (100 Mbps)</option>
+          <option value="slow">Slow 2G (0.4 Mbps)</option>
+        </select>
+      </div>
+      <div class="config-field">
+        <label>Server Response (ms)</label>
+        <input type="number" id="ttfb" value="200" min="10" max="5000">
+        <span class="hint">TTFB: 50-500 ms typical</span>
+      </div>
+    </div>
+
+    <h3 style="margin-top:1rem">Resources</h3>
+    <div class="config-grid">
+      <div class="config-field">
+        <label>Images</label>
+        <input type="number" id="imgCount" value="5" min="0" max="100">
+        <span class="hint">Number of images</span>
+      </div>
+      <div class="config-field">
+        <label>Avg Image Size (KB)</label>
+        <input type="number" id="imgSize" value="150" min="1" max="10000">
+        <span class="hint">Each image, compressed</span>
+      </div>
+      <div class="config-field">
+        <label>JavaScript Files</label>
+        <input type="number" id="jsCount" value="4" min="0" max="50">
+      </div>
+      <div class="config-field">
+        <label>Avg JS Size (KB)</label>
+        <input type="number" id="jsSize" value="80" min="1" max="5000">
+      </div>
+      <div class="config-field">
+        <label>CSS Files</label>
+        <input type="number" id="cssCount" value="2" min="0" max="20">
+      </div>
+      <div class="config-field">
+        <label>Avg CSS Size (KB)</label>
+        <input type="number" id="cssSize" value="30" min="1" max="2000">
+      </div>
+      <div class="config-field">
+        <label>Web Fonts</label>
+        <input type="number" id="fontCount" value="2" min="0" max="10">
+      </div>
+      <div class="config-field">
+        <label>Avg Font Size (KB)</label>
+        <input type="number" id="fontSize" value="40" min="1" max="500">
+      </div>
+    </div>
+
+    <div class="config-grid" style="margin-top:.75rem">
+      <div class="config-field">
+        <label>Uses CDN?</label>
+        <select id="usesCdn">
+          <option value="yes">Yes</option>
+          <option value="no" selected>No</option>
+        </select>
+      </div>
+      <div class="config-field">
+        <label>Image Compression?</label>
+        <select id="imgCompressed">
+          <option value="yes">Yes (WebP/AVIF)</option>
+          <option value="no" selected>No (PNG/JPG)</option>
+        </select>
+      </div>
+      <div class="config-field">
+        <label>JS Minified?</label>
+        <select id="jsMinified">
+          <option value="yes">Yes</option>
+          <option value="no" selected>No</option>
+        </select>
+      </div>
+      <div class="config-field">
+        <label>Lazy Loading?</label>
+        <select id="lazyLoad">
+          <option value="yes">Yes</option>
+          <option value="no" selected>No</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="sim-btn" id="simBtn" onclick="runSimulation()" style="margin-top:1rem">Run Speed Simulation</button>
+  </div>
+
+  <div class="loading-bar" id="loadingBar"><div class="fill" id="loadingFill"></div></div>
+
+  <div class="results-panel" id="resultsPanel">
+    <div class="score-section" id="scoreSection"></div>
+    <div class="waterfall-section" id="waterfallSection">
+      <h3>Waterfall Chart</h3>
+      <div class="waterfall-chart" id="waterfallChart"></div>
+    </div>
+    <div class="tips-section" id="tipsSection">
+      <h3>Optimization Tips</h3>
+      <div id="tipsList"></div>
+    </div>
+
+    <div class="share-bar">
+      <span>Share this tool:</span>
+      <a class="share-btn" id="shareTwitter" href="#" target="_blank" rel="noopener">&#120143; Twitter/X</a>
+      <a class="share-btn" id="shareLinkedIn" href="#" target="_blank" rel="noopener">&#x1F310; LinkedIn</a>
+      <button class="share-btn" onclick="copyResultLink()">&#128279; Share Results</button>
+    </div>
+
+    <div class="anima-badge">
+      Made with <a href="/">ANIMA</a> &mdash; AI-powered tools for everyone
+    </div>
+  </div>
+</div>
+
+<section class="faq-section fade-in">
+  <h2>Frequently Asked <span>Questions</span></h2>
+  <div class="faq-item">
+    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">How does the speed simulator work?</div>
+    <div class="faq-a">The simulator calculates estimated load times based on your resource configuration (images, scripts, CSS, fonts), connection speed, server response time, and optimization settings. It models real browser behavior including parallel downloads, render-blocking resources, and critical rendering path.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Is this as accurate as Google PageSpeed Insights?</div>
+    <div class="faq-a">This is a simulation tool, not a live page test. It estimates performance based on your inputs. For production sites, use it alongside Google PageSpeed Insights. The simulator is great for planning, comparing architectures, and understanding what affects load time before you build.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What is a good performance score?</div>
+    <div class="faq-a">90-100 is excellent (green), 50-89 is needs improvement (orange), and 0-49 is poor (red). These ranges align with Google's Core Web Vitals thresholds. Most well-optimized sites score 80+.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Can I share my simulation results?</div>
+    <div class="faq-a">Yes! Click "Share Results" to copy a URL that encodes your configuration. Anyone opening that link will see the same simulation setup and can run it themselves.</div>
+  </div>
+</section>
+
+<section class="cta-section fade-in">
+  <h2>Need something <span>more powerful</span>?</h2>
+  <p>Let us optimize your actual website. Performance audits, Core Web Vitals, speed optimization &mdash; we handle it all.</p>
+  <a href="/#contact" class="cta-btn">Start a Project &rarr;</a>
+</section>
+
+<footer class="footer fade-in">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="/free-tools/">250+ Free Tools</a>
+      <a href="/about/">About</a>
+      <a href="/docs/">Documentation</a>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="/free-tools/">Free Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about/">FAQ</a>
+      <a href="/about/">About</a>
+    </div>
+    <div class="footer-col">
+      <h4>Ecosystem</h4>
+      <a href="/">ANIMA Home</a>
+      <a href="/#contact">Contact</a>
+      <a href="https://github.com/christian140903-sudo/nextool" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 ANIMA. AI-powered tools for everyone.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* Connection speeds in Mbps */
+var connSpeeds = { '4g': 10, '3g': 1.5, 'wifi': 25, 'fiber': 100, 'slow': 0.4 };
+var connLatency = { '4g': 50, '3g': 100, 'wifi': 10, 'fiber': 5, 'slow': 300 };
+
+function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function getSelVal(id) { return document.getElementById(id).value; }
+
+function runSimulation() {
+  var btn = document.getElementById('simBtn');
+  var bar = document.getElementById('loadingBar');
+  var fill = document.getElementById('loadingFill');
+  var results = document.getElementById('resultsPanel');
+
+  btn.disabled = true;
+  bar.style.display = 'block';
+  fill.style.width = '0%';
+  results.style.display = 'none';
+
+  /* Animate loading bar */
+  var progress = 0;
+  var interval = setInterval(function() {
+    progress += Math.random() * 15 + 5;
+    if (progress >= 95) { clearInterval(interval); progress = 95; }
+    fill.style.width = progress + '%';
+  }, 100);
+
+  setTimeout(function() {
+    clearInterval(interval);
+    fill.style.width = '100%';
+
+    setTimeout(function() {
+      bar.style.display = 'none';
+      btn.disabled = false;
+      calculateAndRender();
+      results.style.display = 'block';
+      document.getElementById('scoreSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      saveToUrl();
+    }, 300);
+  }, 1200);
+}
+
+function calculateAndRender() {
+  var htmlSize = getVal('htmlSize');
+  var ttfb = getVal('ttfb');
+  var conn = getSelVal('connType');
+  var speed = connSpeeds[conn]; /* Mbps */
+  var latency = connLatency[conn]; /* ms */
+
+  var imgCount = getVal('imgCount');
+  var imgSize = getVal('imgSize');
+  var jsCount = getVal('jsCount');
+  var jsSize = getVal('jsSize');
+  var cssCount = getVal('cssCount');
+  var cssSize = getVal('cssSize');
+  var fontCount = getVal('fontCount');
+  var fontSize = getVal('fontSize');
+
+  var usesCdn = getSelVal('usesCdn') === 'yes';
+  var imgCompressed = getSelVal('imgCompressed') === 'yes';
+  var jsMinified = getSelVal('jsMinified') === 'yes';
+  var lazyLoad = getSelVal('lazyLoad') === 'yes';
+
+  /* Apply optimizations */
+  var effectiveImgSize = imgCompressed ? imgSize * 0.4 : imgSize;
+  var effectiveJsSize = jsMinified ? jsSize * 0.6 : jsSize;
+  var cdnMultiplier = usesCdn ? 0.7 : 1.0;
+  var effectiveTtfb = ttfb * cdnMultiplier;
+  var effectiveLatency = latency * cdnMultiplier;
+
+  /* Calculate download time for each resource type */
+  /* speed in Mbps -> KB/s = speed * 1024 / 8 = speed * 128 */
+  var kbps = speed * 128;
+
+  /* Browser typically downloads 6 resources in parallel */
+  var parallelLimit = 6;
+
+  /* Build resource list for waterfall */
+  var resources = [];
+
+  /* HTML document */
+  resources.push({ name: 'document.html', type: 'html', size: htmlSize, blocking: true });
+
+  /* CSS (render blocking) */
+  for (var i = 0; i < cssCount; i++) {
+    resources.push({ name: 'style' + (i > 0 ? '-' + i : '') + '.css', type: 'css', size: cssSize, blocking: true });
+  }
+
+  /* Fonts (triggered by CSS) */
+  for (var i = 0; i < fontCount; i++) {
+    resources.push({ name: 'font' + (i > 0 ? '-' + i : '') + '.woff2', type: 'font', size: fontSize, blocking: false });
+  }
+
+  /* JavaScript (parser blocking unless async) */
+  for (var i = 0; i < jsCount; i++) {
+    resources.push({ name: 'script' + (i > 0 ? '-' + i : '') + '.js', type: 'js', size: effectiveJsSize, blocking: i < 2 }); /* first 2 are blocking */
+  }
+
+  /* Images */
+  var visibleImgs = lazyLoad ? Math.min(imgCount, 3) : imgCount;
+  for (var i = 0; i < imgCount; i++) {
+    resources.push({
+      name: 'image-' + (i + 1) + (imgCompressed ? '.webp' : '.jpg'),
+      type: 'img',
+      size: effectiveImgSize,
+      blocking: false,
+      lazy: lazyLoad && i >= 3
+    });
+  }
+
+  /* Simulate waterfall timing */
+  var currentTime = effectiveTtfb;
+  var activeSlots = [];
+  var timeline = [];
+
+  /* HTML first */
+  var htmlTime = (htmlSize / kbps) * 1000 + effectiveLatency;
+  timeline.push({ name: resources[0].name, type: 'html', start: 0, end: currentTime + htmlTime, size: htmlSize, duration: currentTime + htmlTime });
+  currentTime += htmlTime;
+
+  /* Then CSS (blocking, parallel) */
+  var cssResources = resources.filter(function(r) { return r.type === 'css'; });
+  var cssStart = currentTime;
+  var maxCssEnd = cssStart;
+  cssResources.forEach(function(r, i) {
+    var dlTime = (r.size / kbps) * 1000 + effectiveLatency;
+    var start = cssStart + (i >= parallelLimit ? dlTime * Math.floor(i / parallelLimit) : 0);
+    var end = start + dlTime;
+    if (end > maxCssEnd) maxCssEnd = end;
+    timeline.push({ name: r.name, type: 'css', start: start, end: end, size: r.size, duration: dlTime });
+  });
+  currentTime = maxCssEnd;
+
+  /* Fonts (after CSS parsed) */
+  var fontResources = resources.filter(function(r) { return r.type === 'font'; });
+  var fontStart = currentTime;
+  var maxFontEnd = fontStart;
+  fontResources.forEach(function(r, i) {
+    var dlTime = (r.size / kbps) * 1000 + effectiveLatency;
+    var start = fontStart;
+    var end = start + dlTime;
+    if (end > maxFontEnd) maxFontEnd = end;
+    timeline.push({ name: r.name, type: 'font', start: start, end: end, size: r.size, duration: dlTime });
+  });
+
+  /* JS (some blocking, download in parallel batches) */
+  var jsResources = resources.filter(function(r) { return r.type === 'js'; });
+  var jsStart = currentTime;
+  var maxJsBlockEnd = jsStart;
+  jsResources.forEach(function(r, i) {
+    var dlTime = (r.size / kbps) * 1000 + effectiveLatency;
+    var parseTime = r.size * 0.15; /* ~0.15ms per KB for parsing */
+    var batchIdx = Math.floor(i / parallelLimit);
+    var start = jsStart;
+    if (batchIdx > 0) {
+      /* Wait for previous batch */
+      start = jsStart + batchIdx * dlTime;
+    }
+    var end = start + dlTime + (r.blocking ? parseTime : 0);
+    if (r.blocking && end > maxJsBlockEnd) maxJsBlockEnd = end;
+    timeline.push({ name: r.name, type: 'js', start: start, end: end, size: r.size, duration: dlTime + (r.blocking ? parseTime : 0) });
+  });
+  if (jsResources.length > 0) currentTime = maxJsBlockEnd;
+
+  /* Images (non-blocking, parallel) */
+  var imgResources = resources.filter(function(r) { return r.type === 'img'; });
+  var imgStart = currentTime;
+  imgResources.forEach(function(r, i) {
+    if (r.lazy) return; /* skip lazy images for initial load */
+    var dlTime = (r.size / kbps) * 1000 + effectiveLatency;
+    var batchIdx = Math.floor(i / parallelLimit);
+    var start = imgStart + batchIdx * dlTime;
+    var end = start + dlTime;
+    timeline.push({ name: r.name, type: 'img', start: start, end: end, size: r.size, duration: dlTime });
+  });
+
+  /* Total metrics */
+  var maxEnd = 0;
+  timeline.forEach(function(t) { if (t.end > maxEnd) maxEnd = t.end; });
+
+  var totalSize = resources.reduce(function(sum, r) { return sum + r.size; }, 0);
+  var fcp = currentTime; /* First Contentful Paint = after blocking CSS + JS */
+  var lcp = maxEnd; /* Largest Contentful Paint ~ last visible image */
+  var tti = maxJsBlockEnd + 50; /* Time to Interactive */
+  var totalTime = maxEnd;
+
+  /* Performance Score (0-100) */
+  var score = 100;
+  /* Penalize for load time */
+  if (totalTime > 1000) score -= Math.min(30, (totalTime - 1000) / 200);
+  if (totalTime > 3000) score -= Math.min(20, (totalTime - 3000) / 300);
+  if (totalTime > 5000) score -= Math.min(20, (totalTime - 5000) / 500);
+  /* Penalize for large total size */
+  if (totalSize > 500) score -= Math.min(10, (totalSize - 500) / 200);
+  if (totalSize > 2000) score -= Math.min(10, (totalSize - 2000) / 500);
+  /* Penalize for too many resources */
+  var totalResources = imgCount + jsCount + cssCount + fontCount;
+  if (totalResources > 20) score -= Math.min(10, (totalResources - 20) / 5);
+  /* Bonus for optimizations */
+  if (usesCdn) score += 3;
+  if (imgCompressed) score += 4;
+  if (jsMinified) score += 3;
+  if (lazyLoad) score += 3;
+  score = Math.max(0, Math.min(100, Math.round(score)));
+
+  /* Render Score */
+  renderScore(score, totalTime, fcp, lcp, tti, totalSize, totalResources);
+
+  /* Render Waterfall */
+  renderWaterfall(timeline, maxEnd);
+
+  /* Render Tips */
+  renderTips(score, totalSize, imgCount, imgSize, jsCount, jsSize, cssCount, fontCount, imgCompressed, jsMinified, usesCdn, lazyLoad, ttfb, totalTime);
+
+  /* Share links */
+  var url = encodeURIComponent(location.href);
+  var pageName = document.getElementById('pageName').value.trim() || 'my page';
+  var text = encodeURIComponent('My website speed score: ' + score + '/100 for ' + pageName + '. Check yours:');
+  document.getElementById('shareTwitter').href = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url;
+  document.getElementById('shareLinkedIn').href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + url;
+}
+
+function renderScore(score, totalTime, fcp, lcp, tti, totalSize, totalResources) {
+  var color = score >= 90 ? 'var(--green)' : (score >= 50 ? 'var(--orange)' : 'var(--red)');
+  var grade = score >= 90 ? 'Excellent' : (score >= 70 ? 'Good' : (score >= 50 ? 'Needs Work' : 'Poor'));
+  var circumference = 2 * Math.PI * 52;
+  var offset = circumference - (score / 100) * circumference;
+
+  function metricClass(val, good, ok) {
+    return val <= good ? 'good' : (val <= ok ? 'ok' : 'bad');
+  }
+
+  var html = '';
+  html += '<div class="score-circle">';
+  html += '<svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="52"/>';
+  html += '<circle class="fg" cx="60" cy="60" r="52" stroke="' + color + '" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '"/></svg>';
+  html += '<div class="score-value" style="color:' + color + '">' + score + '<span class="score-label">' + grade + '</span></div>';
+  html += '</div>';
+  html += '<div class="score-details">';
+  html += '<h3>Performance Metrics</h3>';
+  html += '<div class="metric-row"><span class="metric-label">Total Load Time</span><span class="metric-value ' + metricClass(totalTime, 1500, 3000) + '">' + formatMs(totalTime) + '</span></div>';
+  html += '<div class="metric-row"><span class="metric-label">First Contentful Paint</span><span class="metric-value ' + metricClass(fcp, 1000, 2500) + '">' + formatMs(fcp) + '</span></div>';
+  html += '<div class="metric-row"><span class="metric-label">Largest Contentful Paint</span><span class="metric-value ' + metricClass(lcp, 2500, 4000) + '">' + formatMs(lcp) + '</span></div>';
+  html += '<div class="metric-row"><span class="metric-label">Time to Interactive</span><span class="metric-value ' + metricClass(tti, 2000, 3500) + '">' + formatMs(tti) + '</span></div>';
+  html += '<div class="metric-row"><span class="metric-label">Total Transfer Size</span><span class="metric-value">' + formatKB(totalSize) + '</span></div>';
+  html += '<div class="metric-row"><span class="metric-label">Total Requests</span><span class="metric-value">' + totalResources + '</span></div>';
+  html += '</div>';
+
+  document.getElementById('scoreSection').innerHTML = html;
+}
+
+function renderWaterfall(timeline, maxEnd) {
+  var html = '';
+  html += '<div class="wf-row"><span class="wf-name">Resource</span><span>Type</span><span>Timeline</span><span class="wf-time">Time</span></div>';
+
+  timeline.forEach(function(t) {
+    var leftPct = (t.start / maxEnd) * 100;
+    var widthPct = Math.max(1, (t.duration / maxEnd) * 100);
+    html += '<div class="wf-row">';
+    html += '<span class="wf-name" title="' + t.name + '">' + t.name + '</span>';
+    html += '<span class="wf-type ' + t.type + '">' + t.type + '</span>';
+    html += '<span class="wf-bar-container"><div class="wf-bar ' + t.type + '" style="left:' + leftPct + '%;width:' + widthPct + '%"></div></span>';
+    html += '<span class="wf-time">' + formatMs(t.duration) + '</span>';
+    html += '</div>';
+  });
+
+  document.getElementById('waterfallChart').innerHTML = html;
+}
+
+function renderTips(score, totalSize, imgCount, imgSize, jsCount, jsSize, cssCount, fontCount, imgCompressed, jsMinified, usesCdn, lazyLoad, ttfb, totalTime) {
+  var tips = [];
+
+  if (!imgCompressed && imgCount > 0) {
+    tips.push({ level: 'critical', title: 'Use modern image formats (WebP/AVIF)', desc: 'Your images use uncompressed formats. Switching to WebP can reduce image size by 25-50%. You could save ~' + Math.round(imgCount * imgSize * 0.4) + ' KB.' });
+  }
+  if (!jsMinified && jsCount > 0) {
+    tips.push({ level: 'critical', title: 'Minify JavaScript files', desc: 'Unminified JS wastes bandwidth. Minification typically reduces JS size by 30-40%. Estimated savings: ~' + Math.round(jsCount * jsSize * 0.35) + ' KB.' });
+  }
+  if (!usesCdn) {
+    tips.push({ level: 'warning', title: 'Use a Content Delivery Network (CDN)', desc: 'A CDN serves files from servers closest to your users, reducing latency by 30-50%. Services like Cloudflare offer free CDN tiers.' });
+  }
+  if (!lazyLoad && imgCount > 3) {
+    tips.push({ level: 'critical', title: 'Enable lazy loading for images', desc: 'You have ' + imgCount + ' images loading upfront. Lazy loading below-the-fold images can reduce initial load by ' + Math.round((imgCount - 3) * imgSize) + ' KB.' });
+  }
+  if (ttfb > 400) {
+    tips.push({ level: 'warning', title: 'Reduce server response time (TTFB)', desc: 'Your TTFB is ' + ttfb + 'ms. Aim for under 200ms. Consider server-side caching, database optimization, or upgrading hosting.' });
+  }
+  if (fontCount > 2) {
+    tips.push({ level: 'warning', title: 'Reduce number of web fonts', desc: 'Loading ' + fontCount + ' fonts adds ' + Math.round(fontCount * 40) + '+ KB. Use system fonts or limit to 1-2 font families with font-display: swap.' });
+  }
+  if (jsCount > 5) {
+    tips.push({ level: 'warning', title: 'Bundle JavaScript files', desc: 'You have ' + jsCount + ' JS files. Each requires a separate HTTP request. Bundle them into 1-2 files to reduce overhead.' });
+  }
+  if (cssCount > 3) {
+    tips.push({ level: 'info', title: 'Consolidate CSS files', desc: 'Multiple CSS files block rendering. Combine into 1-2 files and inline critical CSS for faster first paint.' });
+  }
+  if (totalSize > 2000) {
+    tips.push({ level: 'critical', title: 'Reduce total page weight', desc: 'Your page is ' + formatKB(totalSize) + '. The median web page is ~2 MB. Consider removing unused resources and compressing assets.' });
+  }
+  if (imgSize > 200 && !imgCompressed) {
+    tips.push({ level: 'info', title: 'Resize images to display size', desc: 'Average image size is ' + imgSize + ' KB. Serve images at the size they are displayed, not larger. Use srcset for responsive images.' });
+  }
+
+  /* Always show at least one positive tip */
+  if (score >= 80) {
+    tips.push({ level: 'info', title: 'Good performance baseline', desc: 'Your configuration scores well. For further optimization, consider preloading critical resources and using HTTP/2 server push.' });
+  }
+
+  var html = '';
+  tips.forEach(function(tip) {
+    var icon = tip.level === 'critical' ? '!' : (tip.level === 'warning' ? '!' : 'i');
+    html += '<div class="tip-item">';
+    html += '<div class="tip-icon ' + tip.level + '">' + icon + '</div>';
+    html += '<div class="tip-content"><div class="tip-title">' + tip.title + '</div><div class="tip-desc">' + tip.desc + '</div></div>';
+    html += '</div>';
+  });
+
+  document.getElementById('tipsList').innerHTML = html;
+}
+
+function formatMs(ms) {
+  if (ms < 1000) return Math.round(ms) + ' ms';
+  return (ms / 1000).toFixed(2) + ' s';
+}
+
+function formatKB(kb) {
+  if (kb < 1024) return Math.round(kb) + ' KB';
+  return (kb / 1024).toFixed(1) + ' MB';
+}
+
+/* URL-based sharing */
+function saveToUrl() {
+  var params = new URLSearchParams();
+  params.set('html', getVal('htmlSize'));
+  params.set('ttfb', getVal('ttfb'));
+  params.set('conn', getSelVal('connType'));
+  params.set('ic', getVal('imgCount'));
+  params.set('is', getVal('imgSize'));
+  params.set('jc', getVal('jsCount'));
+  params.set('js', getVal('jsSize'));
+  params.set('cc', getVal('cssCount'));
+  params.set('cs', getVal('cssSize'));
+  params.set('fc', getVal('fontCount'));
+  params.set('fs', getVal('fontSize'));
+  params.set('cdn', getSelVal('usesCdn'));
+  params.set('comp', getSelVal('imgCompressed'));
+  params.set('min', getSelVal('jsMinified'));
+  params.set('lazy', getSelVal('lazyLoad'));
+  var name = document.getElementById('pageName').value.trim();
+  if (name) params.set('name', name);
+  history.replaceState(null, '', '?' + params.toString());
+}
+
+function loadFromUrl() {
+  var params = new URLSearchParams(location.search);
+  if (!params.has('html')) return false;
+  function setField(id, val) { if (val !== null) document.getElementById(id).value = val; }
+  setField('htmlSize', params.get('html'));
+  setField('ttfb', params.get('ttfb'));
+  setField('connType', params.get('conn'));
+  setField('imgCount', params.get('ic'));
+  setField('imgSize', params.get('is'));
+  setField('jsCount', params.get('jc'));
+  setField('jsSize', params.get('js'));
+  setField('cssCount', params.get('cc'));
+  setField('cssSize', params.get('cs'));
+  setField('fontCount', params.get('fc'));
+  setField('fontSize', params.get('fs'));
+  setField('usesCdn', params.get('cdn'));
+  setField('imgCompressed', params.get('comp'));
+  setField('jsMinified', params.get('min'));
+  setField('lazyLoad', params.get('lazy'));
+  if (params.get('name')) setField('pageName', params.get('name'));
+  return true;
+}
+
+function copyResultLink() {
+  saveToUrl();
+  navigator.clipboard.writeText(location.href).then(function() { showToast('Results link copied! Share it with anyone.'); });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+/* Auto-run if URL has params */
+if (loadFromUrl()) {
+  setTimeout(function() { runSimulation(); }, 500);
+}
+
+/* IntersectionObserver */
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+</script>
+<script src="/js/analytics-lite.js" defer></script>
+<script src="/js/revenue.js" defer></script>
+<script src="/js/lead-capture.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does the speed simulator work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The simulator calculates estimated load times based on your resource configuration, connection speed, server response time, and optimization settings. It models real browser behavior including parallel downloads and render-blocking resources."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this as accurate as Google PageSpeed Insights?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "This is a simulation tool, not a live page test. It estimates performance based on your inputs. For production sites, use it alongside Google PageSpeed Insights."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a good performance score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "90-100 is excellent (green), 50-89 is needs improvement (orange), and 0-49 is poor (red). These ranges align with Google's Core Web Vitals thresholds."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I share my simulation results?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Click Share Results to copy a URL that encodes your configuration. Anyone opening that link will see the same simulation setup and can run it themselves."
+      }
+    }
+  ]
+}
+</script>
+</body>
+</html>
