@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Postcondition MCP — Verify AI Agent Outcomes</title>
+  <meta name="description" content="Postcondition is an MCP server, TypeScript SDK, and CLI that independently checks whether an AI agent's intended result actually exists. File, HTTP, Git, npm, and manual verifiers.">
+  <link rel="canonical" href="https://nextool.app/postcondition/">
+  <meta name="theme-color" content="#0b0c0e">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nextool.app/postcondition/">
+  <meta property="og:title" content="Postcondition — Agents call tools. Postcondition checks the outcome.">
+  <meta property="og:description" content="Outcome verification for AI agents. Declare the intended world state, observe it independently, and keep an honestly classified receipt.">
+  <meta property="og:image" content="https://nextool.app/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Postcondition MCP — Verify AI Agent Outcomes">
+  <meta name="twitter:description" content="The action returned success. Did the world actually change?">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0c0e'/%3E%3Cpath d='M8 17l5 5L25 9' fill='none' stroke='%235bdc93' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preload" href="/fonts/Bricolage-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Postcondition",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "macOS, Linux, Windows",
+    "softwareVersion": "0.1.0",
+    "license": "https://opensource.org/license/mit",
+    "codeRepository": "https://github.com/christian140903-sudo/postcondition-mcp",
+    "downloadUrl": "https://www.npmjs.com/package/postcondition-mcp",
+    "author": { "@type": "Person", "name": "Christian Bucher", "url": "https://nextool.app/" },
+    "description": "Outcome verification for AI agents through constrained file, HTTP, Git, npm, and manual verifiers."
+  }
+  </script>
+  <style>
+    @font-face{font-family:Bricolage;src:url('/fonts/Bricolage-latin.woff2') format('woff2');font-weight:400 800;font-display:swap}
+    @font-face{font-family:InterV;src:url('/fonts/Inter-Variable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+    @font-face{font-family:JBMono;src:url('/fonts/JetBrainsMono-latin.woff2') format('woff2');font-weight:400 600;font-display:swap}
+    :root{color-scheme:dark;--bg:#0b0c0e;--panel:#111318;--panel2:#171a20;--line:#2b2f36;--text:#edeef0;--muted:#a6aab2;--faint:#747a84;--amber:#e8a54a;--green:#5bdc93;--red:#ff7c7c;--mono:JBMono,ui-monospace,SFMono-Regular,Consolas,monospace;--sans:InterV,system-ui,sans-serif;--display:Bricolage,system-ui,sans-serif;--max:76rem}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;background-image:radial-gradient(55rem 38rem at 82% -8%,rgba(232,165,74,.08),transparent 62%)}
+    a{color:inherit}a:focus-visible,button:focus-visible{outline:2px solid var(--green);outline-offset:4px}::selection{background:var(--amber);color:#140d02}
+    .skip{position:fixed;top:1rem;left:1rem;z-index:100;transform:translateY(-180%);padding:.6rem .9rem;background:var(--green);color:#06100a}.skip:focus{transform:none}
+    .wrap{width:min(var(--max),calc(100% - 2.5rem));margin:auto}
+    nav{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--line);background:rgba(11,12,14,.9);backdrop-filter:blur(14px)}nav .wrap{min-height:4.2rem;display:flex;align-items:center;justify-content:space-between;gap:1.25rem}.brand{font-family:var(--mono);font-size:.82rem;text-decoration:none}.brand b{color:var(--green)}.links{display:flex;gap:1.4rem;align-items:center}.links a{color:var(--muted);font-family:var(--mono);font-size:.72rem;text-decoration:none}.links a:hover{color:var(--text)}
+    header{padding:clamp(5rem,10vw,9rem) 0 clamp(4rem,8vw,7rem)}.hero{display:grid;gap:clamp(3rem,7vw,7rem);align-items:center}@media(min-width:900px){.hero{grid-template-columns:1.05fr .95fr}}
+    .eyebrow,.section-label{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}.eyebrow::before{content:'●';margin-right:.6rem;color:var(--green)}
+    h1,h2,h3{font-family:var(--display);line-height:1.04;letter-spacing:-.035em;margin-top:0}h1{max-width:13ch;margin:1.4rem 0 1.6rem;font-size:clamp(3rem,7vw,6.3rem)}h1 em{color:var(--amber);font-style:normal}h2{font-size:clamp(2.2rem,5vw,4.4rem)}h3{font-size:1.35rem}.lede{max-width:42rem;color:var(--muted);font-size:clamp(1.08rem,2vw,1.3rem)}
+    .actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:2rem}.button{display:inline-flex;gap:1rem;align-items:center;padding:.78rem 1.05rem;border:1px solid var(--line);border-radius:9px;font-family:var(--mono);font-size:.78rem;text-decoration:none}.button.primary{background:var(--amber);border-color:var(--amber);color:#140d02;font-weight:600}.button:hover{border-color:var(--amber)}
+    .command{margin-top:1.5rem;display:flex;align-items:center;gap:1rem;max-width:38rem;padding:.85rem 1rem;border:1px solid var(--line);border-radius:9px;background:var(--panel);overflow:auto}.command code{flex:1;color:var(--green);font-family:var(--mono);font-size:.8rem;white-space:nowrap}.command button{border:0;background:none;color:var(--amber);font:inherit;font-family:var(--mono);font-size:.7rem;cursor:pointer}
+    .terminal{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:0 35px 90px -55px #000}.terminal-head{display:flex;justify-content:space-between;gap:1rem;padding:.8rem 1rem;border-bottom:1px solid var(--line);background:var(--panel2);font-family:var(--mono);font-size:.68rem;color:var(--faint)}.terminal-body{padding:1rem;font-family:var(--mono);font-size:.76rem}.statement{margin:0 0 1rem;color:var(--text)}.receipt{display:grid;grid-template-columns:1fr 1.4fr;gap:.4rem 1rem;margin:0}.receipt dt{color:var(--faint)}.receipt dd{margin:0;text-align:right}.ok{color:var(--green)}.hash{margin:1rem 0 0;padding-top:.8rem;border-top:1px dashed var(--line);color:var(--amber);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .proof{border-block:1px solid var(--line);background:var(--panel)}.proof-grid{display:grid;grid-template-columns:repeat(2,1fr)}@media(min-width:760px){.proof-grid{grid-template-columns:repeat(4,1fr)}}.fact{padding:1.2rem;border-right:1px solid var(--line)}.fact strong{display:block;color:var(--green);font-family:var(--mono);font-size:1.1rem}.fact span{color:var(--faint);font-size:.72rem}
+    section{padding:clamp(4rem,8vw,7rem) 0;border-bottom:1px solid var(--line)}.intro{max-width:48rem;margin-bottom:2.5rem}.intro p{color:var(--muted);font-size:1.05rem}.flow{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);border:1px solid var(--line)}@media(min-width:820px){.flow{grid-template-columns:repeat(4,1fr)}}.flow article{min-height:13rem;padding:1.4rem;background:var(--panel)}.flow b{display:block;margin-bottom:2.2rem;color:var(--amber);font-family:var(--mono);font-size:.7rem}.flow p{color:var(--muted);font-size:.9rem}.flow article:last-child{background:linear-gradient(150deg,rgba(91,220,147,.1),var(--panel))}
+    .live-check{display:grid;gap:2rem;align-items:center}@media(min-width:860px){.live-check{grid-template-columns:.85fr 1.15fr}}.live-panel{border:1px solid var(--line);border-radius:13px;background:var(--panel);overflow:hidden}.live-panel .top{display:flex;justify-content:space-between;padding:.8rem 1rem;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:.68rem;color:var(--faint)}.live-panel .body{padding:1.2rem}.live-row{display:grid;grid-template-columns:.8fr 1.2fr;gap:1rem;padding:.6rem 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:.78rem}.live-row span:first-child{color:var(--faint)}.live-row output{text-align:right;overflow-wrap:anywhere}.live-panel button{margin-top:1rem;width:100%;padding:.8rem;border:1px solid var(--green);border-radius:8px;background:transparent;color:var(--green);font-family:var(--mono);cursor:pointer}.live-panel button:hover{background:rgba(91,220,147,.08)}
+    .grid{display:grid;gap:1rem}@media(min-width:780px){.grid{grid-template-columns:repeat(2,1fr)}}@media(min-width:1050px){.grid.verifiers{grid-template-columns:repeat(5,1fr)}}.card{padding:1.4rem;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.card .tag{display:inline-block;margin-bottom:1.2rem;color:var(--amber);font-family:var(--mono);font-size:.68rem}.card p{margin-bottom:0;color:var(--muted);font-size:.9rem}.card code{color:var(--green)}
+    .classes{width:100%;border-collapse:collapse;background:var(--panel);font-size:.9rem}.classes th,.classes td{padding:1rem;text-align:left;border-bottom:1px solid var(--line)}.classes th{color:var(--faint);font-family:var(--mono);font-size:.68rem;text-transform:uppercase}.classes td:first-child{color:var(--green);font-family:var(--mono);font-size:.76rem}.classes td:last-child{color:var(--muted)}
+    .boundary{display:grid;gap:2rem;padding:clamp(1.5rem,4vw,3rem);border:1px solid var(--line);border-radius:14px;background:linear-gradient(140deg,rgba(232,165,74,.07),var(--panel))}@media(min-width:820px){.boundary{grid-template-columns:.9fr 1.1fr}}.boundary h2{margin-bottom:0}.boundary ul{margin:0;padding-left:1.2rem;color:var(--muted)}.boundary li+li{margin-top:.65rem}.boundary a{color:var(--amber)}
+    footer{padding:3rem 0;color:var(--faint);font-family:var(--mono);font-size:.72rem}.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem}.foot a{color:var(--green)}
+    @media(max-width:620px){.links a:nth-child(-n+2){display:none}.receipt{grid-template-columns:1fr}.receipt dd{text-align:left;margin-bottom:.5rem}.proof-grid .fact:nth-child(even){border-right:0}.classes{display:block;overflow-x:auto}.live-row{grid-template-columns:1fr}.live-row output{text-align:left}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <nav aria-label="Primary navigation">
+    <div class="wrap">
+      <a class="brand" href="/"><b>✓</b> christian / postcondition</a>
+      <div class="links">
+        <a href="#how">How it works</a>
+        <a href="#verifiers">Verifiers</a>
+        <a href="/soul/">Soul MCP</a>
+        <a href="https://github.com/christian140903-sudo/postcondition-mcp">GitHub ↗</a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <header>
+      <div class="wrap hero">
+        <div>
+          <p class="eyebrow">Outcome verification for AI agents</p>
+          <h1>The tool returned success. <em>Did the world change?</em></h1>
+          <p class="lede">Postcondition declares the intended result, observes the outside world through constrained read-only verifiers, and returns an honest verdict: satisfied, violated, or unknown.</p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/christian140903-sudo/postcondition-mcp">Inspect the source →</a>
+            <a class="button" href="https://www.npmjs.com/package/postcondition-mcp">View on npm ↗</a>
+          </div>
+          <div class="command" data-command>
+            <code>npx -y postcondition-mcp serve</code>
+            <button type="button" data-copy>Copy</button>
+          </div>
+        </div>
+
+        <div class="terminal" role="group" aria-label="Example Postcondition receipt">
+          <div class="terminal-head"><span>POSTCONDITION / RECEIPT</span><span class="ok">● OBSERVED</span></div>
+          <div class="terminal-body">
+            <p class="statement">“Version 0.1.0 is visible in the public npm registry.”</p>
+            <dl class="receipt">
+              <dt>verifier</dt><dd>npm.version_exists</dd>
+              <dt>evidence class</dt><dd>externally_observed</dd>
+              <dt>expected</dt><dd>0.1.0</dd>
+              <dt>observed</dt><dd>0.1.0</dd>
+              <dt>verdict</dt><dd class="ok">SATISFIED</dd>
+            </dl>
+            <p class="hash">receipt e72168e33d153f69…</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="proof">
+      <div class="wrap proof-grid">
+        <div class="fact"><strong>53</strong><span>automated tests</span></div>
+        <div class="fact"><strong>7</strong><span>MCP tools</span></div>
+        <div class="fact"><strong>5</strong><span>verifier kinds</span></div>
+        <div class="fact"><strong>20 / 22 / 24</strong><span>Node versions in CI</span></div>
+      </div>
+    </div>
+
+    <section id="how">
+      <div class="wrap">
+        <div class="intro">
+          <p class="section-label">The missing step</p>
+          <h2>Execution is an event. Completion is a claim.</h2>
+          <p>A successful tool response proves that a call returned. Postcondition asks for a separate, observable statement about the world after the action.</p>
+        </div>
+        <div class="flow">
+          <article><b>01 / DECLARE</b><h3>State the outcome</h3><p>Define a concrete result before or after an action, with an explicit subject and deadline if needed.</p></article>
+          <article><b>02 / ACT</b><h3>Use any tool</h3><p>Postcondition does not become another orchestrator. Your existing MCP tool, CI job, human, or script performs the work.</p></article>
+          <article><b>03 / OBSERVE</b><h3>Check independently</h3><p>A narrow verifier reads file, HTTP, Git, or npm state without executing arbitrary shell commands.</p></article>
+          <article><b>04 / REPORT</b><h3>Keep the honest verdict</h3><p>Satisfied, violated, or unknown — with evidence class, digest, timestamp, and a link to the previous receipt.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="live-title">
+      <div class="wrap live-check">
+        <div class="intro">
+          <p class="section-label">Live public observation</p>
+          <h2 id="live-title">Do not trust this page. Ask the registry.</h2>
+          <p>This browser demo reads npm's public registry directly and compares the observed version with the expected one. The installable product adds durable contracts, evidence classes, SQLite persistence, and a receipt chain.</p>
+        </div>
+        <div class="live-panel">
+          <div class="top"><span>registry.npmjs.org/postcondition-mcp</span><span id="live-indicator">READY</span></div>
+          <div class="body">
+            <div class="live-row"><span>expected</span><output id="expected">0.1.0</output></div>
+            <div class="live-row"><span>observed</span><output id="observed">not checked</output></div>
+            <div class="live-row"><span>verdict</span><output id="verdict">pending</output></div>
+            <div class="live-row"><span>evidence SHA-256</span><output id="digest">—</output></div>
+            <button type="button" id="check">Run independent registry check</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="verifiers">
+      <div class="wrap">
+        <div class="intro">
+          <p class="section-label">Constrained verification surface</p>
+          <h2>Narrow observers instead of arbitrary commands.</h2>
+          <p>The built-in verifier set is intentionally small. Every unsupported or unreachable condition resolves to unknown instead of manufactured success.</p>
+        </div>
+        <div class="grid verifiers">
+          <article class="card"><span class="tag">FILE</span><h3>Filesystem state</h3><p>Existence, absence, size, SHA-256, contained text, and JSON pointer equality.</p></article>
+          <article class="card"><span class="tag">HTTP</span><h3>Remote GET state</h3><p>Status, text, and JSON values with redirect, timeout, response-size, and private-network guards.</p></article>
+          <article class="card"><span class="tag">GIT</span><h3>Repository state</h3><p>Branch, clean tree, HEAD, tag, and local remote-tracking containment through fixed argument sets.</p></article>
+          <article class="card"><span class="tag">NPM</span><h3>Registry state</h3><p>Published versions and dist-tags observed through the registry's public API.</p></article>
+          <article class="card"><span class="tag">MANUAL</span><h3>Explicit attestation</h3><p>Human or agent statements stay labelled and are never upgraded to external proof.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="evidence-title">
+      <div class="wrap">
+        <div class="intro">
+          <p class="section-label">Evidence honesty</p>
+          <h2 id="evidence-title">Observation and attestation are not the same thing.</h2>
+        </div>
+        <table class="classes">
+          <thead><tr><th>Evidence class</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>externally_observed</td><td>A remote HTTP or npm endpoint was read independently.</td></tr>
+            <tr><td>configured_verifier</td><td>A constrained local file or Git check ran.</td></tr>
+            <tr><td>manual_attestation</td><td>A human supplied the result.</td></tr>
+            <tr><td>self_attestation</td><td>An agent supplied its own result.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap boundary">
+        <h2>Strong boundary. Honest limits.</h2>
+        <div>
+          <ul>
+            <li>No arbitrary shell verifier, action execution, account, telemetry, or required cloud service.</li>
+            <li>HTTP is GET-only and blocks loopback, private, link-local, and reserved targets by default.</li>
+            <li>The local hash chain detects mutation but is not yet externally signed notarization or cryptographic non-repudiation.</li>
+            <li>Git remote containment reads locally fetched tracking refs and does not silently contact or mutate the remote.</li>
+          </ul>
+          <p><a href="https://github.com/christian140903-sudo/postcondition-mcp/blob/main/docs/SECURITY-MODEL.md">Read the threat model →</a> · <a href="https://github.com/christian140903-sudo/postcondition-mcp/blob/main/docs/LIMITATIONS.md">Read every limitation →</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="intro">
+          <p class="section-label">One coherent trust stack</p>
+          <h2>Soul remembers why. Postcondition checks what changed.</h2>
+          <p>Postcondition grew from a repeated design principle across Christian Bucher's Soul and Miguel systems: autonomy should carry evidence, permission boundaries, corrections, and observable outcomes. The public repository is a clean implementation — not an export of personal memory or private session logs.</p>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/christian140903-sudo/postcondition-mcp">Read the code →</a>
+          <a class="button" href="/soul/">Explore Soul MCP</a>
+          <a class="button" href="https://github.com/christian140903-sudo/postcondition-mcp/releases/tag/v0.1.0">Release notes ↗</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>Postcondition 0.1.0 · MIT · Christian Bucher</span>
+      <span><a href="https://www.npmjs.com/package/postcondition-mcp">npm</a> · <a href="https://github.com/christian140903-sudo/postcondition-mcp">GitHub</a> · <a href="/">Portfolio</a></span>
+    </div>
+  </footer>
+
+  <script>
+  (function(){
+    var copyButtons=document.querySelectorAll('[data-copy]');
+    copyButtons.forEach(function(button){button.addEventListener('click',function(){
+      var command=button.closest('[data-command]').querySelector('code').textContent.trim();
+      navigator.clipboard.writeText(command).then(function(){button.textContent='Copied';setTimeout(function(){button.textContent='Copy';},1400);}).catch(function(){button.textContent='Select command';});
+    });});
+
+    var check=document.getElementById('check'),observed=document.getElementById('observed'),verdict=document.getElementById('verdict'),digest=document.getElementById('digest'),indicator=document.getElementById('live-indicator');
+    function canonical(value){if(value===null||typeof value!=='object')return JSON.stringify(value);if(Array.isArray(value))return '['+value.map(canonical).join(',')+']';return '{'+Object.keys(value).sort().map(function(key){return JSON.stringify(key)+':'+canonical(value[key]);}).join(',')+'}';}
+    function hex(buffer){return Array.from(new Uint8Array(buffer)).map(function(byte){return byte.toString(16).padStart(2,'0');}).join('');}
+    check.addEventListener('click',function(){
+      check.disabled=true;check.textContent='Observing…';indicator.textContent='FETCHING';indicator.className='';observed.textContent='checking';verdict.textContent='pending';verdict.className='';digest.textContent='—';
+      fetch('https://registry.npmjs.org/postcondition-mcp',{headers:{accept:'application/json'}}).then(function(response){if(!response.ok)throw new Error('HTTP '+response.status);return response.json();}).then(async function(data){
+        var actual=data['dist-tags']&&data['dist-tags'].latest||null;
+        var evidence={kind:'npm',package:'postcondition-mcp',registry:'https://registry.npmjs.org/',tag:'latest',actual:actual,expected:'0.1.0'};
+        var bytes=new TextEncoder().encode(canonical(evidence));
+        var hash=hex(await crypto.subtle.digest('SHA-256',bytes));
+        var satisfied=actual==='0.1.0';observed.textContent=actual||'missing';verdict.textContent=satisfied?'satisfied':'violated';verdict.className=satisfied?'ok':'';digest.textContent=hash;indicator.textContent='OBSERVED';indicator.className='ok';
+      }).catch(function(error){observed.textContent=error.message;verdict.textContent='unknown';digest.textContent='No evidence recorded';indicator.textContent='UNAVAILABLE';}).finally(function(){check.disabled=false;check.textContent='Run independent registry check';});
+    });
+  })();
+  </script>
+</body>
+</html>
