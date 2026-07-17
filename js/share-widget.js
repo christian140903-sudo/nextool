@@ -253,9 +253,9 @@
     const badge = document.createElement('div');
     badge.style.cssText = 'text-align:center;margin:1rem auto 0;';
     badge.innerHTML = `
-      <a href="https://nextool.app/free-tools/" class="ntool-badge" title="Explore 250+ free tools on NexTool">
+      <a href="https://nextool.app/free-tools/" class="ntool-badge" title="Explore 269 free tools on NexTool">
         ${icons.bolt}
-        Made with <span class="ntool-badge-text">ANIMA</span> &mdash; 250+ Free Tools
+        Made with <span class="ntool-badge-text">ANIMA</span> &mdash; 269 Free Tools
       </a>
     `;
     return badge;

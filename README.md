@@ -1,97 +1,80 @@
 <div align="center">
 
-# 🛠️ NexTool — 250+ Free Developer Tools
+# NexTool — public proof, tools and technical guides
 
-**Browser-based tools that run 100% client-side. Your data never leaves your browser.**
+**Christian Bucher's public engineering portfolio, 269 indexable browser-tool pages and 131 technical guides in one static site.**
 
-[![Tools](https://img.shields.io/badge/Tools-240%2B-6366f1?style=flat-square)](https://nextool.app/free-tools/)
-[![Client-Side](https://img.shields.io/badge/Processing-100%25%20Client--Side-22c55e?style=flat-square)](#)
-[![No Signup](https://img.shields.io/badge/Signup-Not%20Required-f59e0b?style=flat-square)](#)
-[![No Tracking](https://img.shields.io/badge/Tracking-Zero-ef4444?style=flat-square)](#)
+[![Site audit](https://github.com/christian140903-sudo/nextool/actions/workflows/site-audit.yml/badge.svg)](https://github.com/christian140903-sudo/nextool/actions/workflows/site-audit.yml)
+[![Tools](https://img.shields.io/badge/tool%20pages-269-5bdc93?style=flat-square)](https://nextool.app/free-tools/)
+[![Guides](https://img.shields.io/badge/guides-131-e8a54a?style=flat-square)](https://nextool.app/blog/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-7c818b?style=flat-square)](LICENSE)
 
-[**🔗 Live at nextool.app**](https://nextool.app) · [**📦 Browse All Tools**](https://nextool.app/free-tools/) · [**⭐ Get Pro**](https://nextool.app/pro.html)
+[**Portfolio**](https://nextool.app/) · [**Browse tools**](https://nextool.app/free-tools/) · [**Soul MCP 4.0.1**](https://nextool.app/soul/) · [**Read the guides**](https://nextool.app/blog/)
 
 </div>
 
----
+## What this repository is
 
-## Why NexTool?
+NexTool started as a collection of small browser utilities. It grew into the
+public evidence layer for a broader body of work: the tools remain available,
+while the home page now explains the systems behind them and separates live,
+local and conceptual claims.
 
-Every developer has that moment: you need to quickly format JSON, decode a JWT, or generate a UUID. You google it, and get hit with cookie consent popups, signup walls, and "processing your data on our server."
+| Surface | Verifiable state |
+| --- | --- |
+| Browser tools | 269 indexable HTML tool pages under `free-tools/` |
+| Technical guides | 131 published article pages under `blog/` |
+| Soul MCP | Dedicated page for the live `soul-mcp@4.0.1` npm release |
+| Portfolio | Public project map with direct npm, GitHub and live-tool evidence |
+| Delivery | Static GitHub Pages site with no build step |
 
-**NexTool is different:**
-- ✅ **250+ tools** — and growing every week
-- ✅ **100% client-side** — your data never leaves your browser
-- ✅ **No signup** — just open and use
-- ✅ **No tracking** — zero analytics on your data
-- ✅ **No ads** — clean, distraction-free
-- ✅ **Works offline** — after first load
-- ✅ **Vanilla JS** — no frameworks, loads in milliseconds
+The counts above are derived from repository files and enforced by the site
+audit. They do not imply 269 independent products or 131 externally reviewed
+papers.
 
-## Tool Categories
+## Run it locally
 
-| Category | Count | Popular Tools |
-|----------|-------|---------------|
-| **Code Formatters** | 15+ | JSON, CSS, HTML, JavaScript, SQL, XML, YAML, Python |
-| **Converters** | 25+ | JSON↔CSV, JSON↔XML, YAML↔JSON, Base64, URL Encode, Markdown↔HTML |
-| **Generators** | 20+ | Password, UUID, QR Code, Lorem Ipsum, Barcode, Favicon |
-| **Security** | 15+ | Hash Generator, JWT Decoder, HMAC, Password Strength, CSP Builder |
-| **CSS & Design** | 15+ | Flexbox, Grid, Gradient, Box Shadow, Color Picker, Font Preview |
-| **SEO & Web** | 15+ | Meta Tag Analyzer, OG Preview, Schema Markup, Sitemap Generator |
-| **Image Tools** | 10+ | Compressor, Resizer, Converter, Color Palette Extractor |
-| **Calculators** | 15+ | Color Contrast, Percentage, Date, Subnet, Aspect Ratio |
-| **Productivity** | 10+ | Pomodoro, Notepad, Whiteboard, Typing Test, Stopwatch |
-| **API & Dev** | 15+ | Regex Tester, Diff Checker, API Builder, cURL to Code |
-| **PDF Tools** | 5+ | PDF Merge, Split, Compress, Image to PDF, PDF to Text |
-| **And more...** | 55+ | Encoding, Text Manipulation, Data Analysis, Utilities |
-
-## Most Popular Tools
-
-- [**JSON Formatter**](https://nextool.app/free-tools/json-formatter.html) — Format, validate, beautify JSON with syntax highlighting
-- [**Regex Tester**](https://nextool.app/free-tools/regex-tester.html) — Test patterns with live match preview
-- [**JWT Decoder**](https://nextool.app/free-tools/jwt-decoder.html) — Decode tokens 100% client-side
-- [**UUID Generator**](https://nextool.app/free-tools/uuid-generator.html) — Generate v1, v4, v5 UUIDs in bulk
-- [**Diff Checker**](https://nextool.app/free-tools/diff-checker.html) — Compare texts side by side
-- [**Hash Generator**](https://nextool.app/free-tools/hash-generator.html) — MD5, SHA-1, SHA-256, SHA-512
-- [**Password Generator**](https://nextool.app/free-tools/password-generator.html) — Cryptographically secure passwords
-- [**Base64 Encoder**](https://nextool.app/free-tools/base64-encoder-decoder.html) — Encode/decode Base64 strings
-- [**Color Picker**](https://nextool.app/free-tools/color-picker.html) — Pick colors with HEX, RGB, HSL
-- [**QR Code Generator**](https://nextool.app/free-tools/qr-code-generator.html) — Create QR codes from any text
-
-[→ Browse all 250+ tools](https://nextool.app/free-tools/)
-
-## Tech Stack
-
-```
-Zero dependencies. No React. No Angular. No npm. No webpack.
-Each tool = 1 HTML file with inline CSS + JS.
-Hosted on GitHub Pages. Loads in milliseconds.
+```bash
+git clone https://github.com/christian140903-sudo/nextool.git
+cd nextool
+python3 -m http.server 4173
 ```
 
-## NexTool Pro — $29
+Then open `http://localhost:4173`.
 
-One-time payment. No subscription. No renewals.
+Run the zero-dependency repository audit with Node.js 20 or newer:
 
-| Feature | Free | Pro |
-|---------|------|-----|
-| All 250+ tools | ✅ | ✅ |
-| Client-side processing | ✅ | ✅ |
-| No signup required | ✅ | ✅ |
-| Clean output (no watermarks) | — | ✅ |
-| Focus Mode | — | ✅ |
-| 4 Premium Themes | — | ✅ |
-| Tool History | — | ✅ |
-| Keyboard Shortcuts | — | ✅ |
-| All future updates | — | ✅ |
-| 30-day money-back guarantee | — | ✅ |
+```bash
+npm test
+```
 
-[**Get NexTool Pro →**](https://nextool.app/pro.html)
+## Architecture
 
-## Blog
+- static HTML, CSS and JavaScript; no application framework or build pipeline
+- one page per tool or guide, plus shared assets where practical
+- GitHub Pages deployment through the `CNAME` file
+- public proof console on the home page reads the public npm and GitHub APIs
+- automated checks for local links, referenced assets, repository hygiene and
+  the published tool/article counts
 
-108+ articles on web development, tools, and productivity:
-[nextool.app/blog/](https://nextool.app/blog/)
+## Privacy and trust boundary
+
+Many utilities process input entirely in the browser. Some pages load
+third-party libraries or call public APIs for features that cannot work
+offline. Do not assume every page is offline merely because the site itself is
+static; inspect the relevant page before entering sensitive data.
+
+The automated audit proves repository structure and local references. It does
+not certify third-party services, article accuracy or the behavior of every
+browser API.
+
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the page contract and local checks.
+For a vulnerability or privacy issue, follow [SECURITY.md](SECURITY.md) and do
+not open a public issue containing secrets or personal data.
 
 ## License
 
-All rights reserved. © 2024-2026 NexTool.
+MIT — see [LICENSE](LICENSE). Names, logos and third-party assets remain subject
+to their respective trademark and license terms.
