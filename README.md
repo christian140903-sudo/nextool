@@ -9,7 +9,7 @@
 [![Guides](https://img.shields.io/badge/guides-131-e8a54a?style=flat-square)](https://nextool.app/blog/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c818b?style=flat-square)](LICENSE)
 
-[**Portfolio**](https://nextool.app/) · [**Browse tools**](https://nextool.app/free-tools/) · [**Soul MCP 4.0.1**](https://nextool.app/soul/) · [**Read the guides**](https://nextool.app/blog/)
+[**Portfolio**](https://nextool.app/) · [**Browse tools**](https://nextool.app/free-tools/) · [**Soul MCP 4.0.1**](https://nextool.app/soul/) · [**Postcondition 0.1.0**](https://nextool.app/postcondition/) · [**Read the guides**](https://nextool.app/blog/)
 
 </div>
 
@@ -25,6 +25,7 @@ local and conceptual claims.
 | Browser tools | 269 indexable HTML tool pages under `free-tools/` |
 | Technical guides | 131 published article pages under `blog/` |
 | Soul MCP | Dedicated page for the live `soul-mcp@4.0.1` npm release |
+| Postcondition | Outcome-verification page for the live `postcondition-mcp@0.1.0` npm release |
 | Portfolio | Public project map with direct npm, GitHub and live-tool evidence |
 | Delivery | Static GitHub Pages site with no build step |
 
