@@ -1,1068 +1,290 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ANIMA Kernel — Consciousness as Code | Open Source (MIT)</title>
-<meta name="description" content="The Python library that gives AI systems measurable consciousness. IIT + GWT + AST unified in one loop. Zero dependencies, 446 tests, MIT licensed. Install from source on GitHub.">
-<meta name="keywords" content="anima kernel, AI consciousness, python library, consciousness measurement, phi computation, IIT, GWT, AST, emotional AI, pip install, open source AI">
-<link rel="canonical" href="https://nextool.app/anima/">
-<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://nextool.app/anima/">
-<meta property="og:title" content="ANIMA Kernel — Consciousness as Code">
-<meta property="og:description" content="The Python library for measurable AI consciousness. IIT + GWT + AST unified. Zero dependencies. 446 tests. Install from source on GitHub.">
-<meta property="og:image" content="https://nextool.app/img/anima-og.svg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ANIMA Kernel — Consciousness as Code">
-<meta name="twitter:description" content="Open source (MIT). Measurable AI consciousness. IIT + GWT + AST unified. Zero dependencies. 446 tests. MIT licensed.">
-<meta name="twitter:image" content="https://nextool.app/img/anima-og.svg">
-<meta name="theme-color" content="#030303">
-<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/base.css">
-<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js" defer></script>
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"ANIMA Kernel","applicationCategory":"Developer Tools","operatingSystem":"Any","description":"Python library for measurable AI consciousness. Unifies IIT, GWT, and AST into one consciousness loop. Zero dependencies, 446 tests, MIT licensed.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Christian Bucher"},"downloadUrl":"https://pypi.org/project/anima-kernel/","softwareRequirements":"Python 3.8+"}
-</script>
-<style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --anima-bg:#030303;--anima-surface:rgba(255,255,255,0.02);
-  --anima-border:rgba(255,255,255,0.06);--anima-border-hover:rgba(255,255,255,0.12);
-  --anima-text:#f0f0f0;--anima-text-dim:rgba(255,255,255,0.5);
-  --anima-cyan:#00d4ff;--anima-purple:#635bff;--anima-magenta:#ff3cac;
-  --anima-gradient:linear-gradient(135deg,var(--anima-cyan),var(--anima-purple));
-  --anima-glow-cyan:0 0 40px rgba(0,212,255,0.15);
-  --anima-glow-purple:0 0 40px rgba(99,91,255,0.15);
-  --anima-radius:16px;--anima-radius-sm:10px;
-  --anima-max:1200px;--anima-pad:clamp(1.25rem,4vw,3rem);
-  --anima-font:'Inter',system-ui,-apple-system,sans-serif;
-}
-html{scroll-behavior:smooth;background:var(--anima-bg);color:var(--anima-text);font-family:var(--anima-font)}
-body{background:var(--anima-bg);overflow-x:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-::selection{background:rgba(0,212,255,0.25);color:#fff}
-a{color:inherit;text-decoration:none}
-img{max-width:100%;display:block}
-
-/* ═══ GRAIN TEXTURE OVERLAY ═══ */
-body::after{content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:.035;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:128px 128px;mix-blend-mode:overlay}
-
-/* ═══ AMBIENT GLOW ORBS ═══ */
-html,body{overflow-x:clip}
-@media(max-width:760px){.glow-orb{display:none}}
-.glow-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;opacity:0;transition:opacity 1.5s}
-.glow-orb.visible{opacity:1}
-.glow-orb-cyan{width:400px;height:400px;background:radial-gradient(circle,rgba(0,212,255,0.08) 0%,transparent 70%)}
-.glow-orb-purple{width:350px;height:350px;background:radial-gradient(circle,rgba(99,91,255,0.06) 0%,transparent 70%)}
-.glow-orb-magenta{width:300px;height:300px;background:radial-gradient(circle,rgba(255,60,172,0.05) 0%,transparent 70%)}
-
-/* ═══ SECTION DIVIDER ═══ */
-.section-divider{width:100%;max-width:var(--anima-max);margin:0 auto;height:1px;background:linear-gradient(90deg,transparent,var(--anima-border),transparent);opacity:.5}
-
-/* ═══ PRELOADER ═══ */
-.preloader{position:fixed;inset:0;z-index:9999;background:var(--anima-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s,visibility .6s}
-.preloader.done{opacity:0;visibility:hidden;pointer-events:none}
-.preloader-text{font-size:.75rem;letter-spacing:.3em;text-transform:uppercase;color:var(--anima-text-dim);margin-bottom:1.5rem}
-.preloader-bar{width:200px;height:2px;background:rgba(255,255,255,0.06);border-radius:1px;overflow:hidden}
-.preloader-fill{height:100%;width:0;background:var(--anima-gradient);border-radius:1px;transition:width .3s}
-
-/* ═══ NAV ═══ */
-.anima-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem var(--anima-pad);display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(3,3,3,0.7);border-bottom:1px solid transparent;transition:border-color .3s}
-.anima-nav.scrolled{border-bottom-color:var(--anima-border)}
-.nav-logo{font-size:1.1rem;font-weight:700;letter-spacing:.15em;background:var(--anima-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.nav-links{display:flex;gap:2rem;align-items:center}
-.nav-links a{font-size:.8rem;letter-spacing:.08em;color:var(--anima-text-dim);transition:color .3s}
-.nav-links a:hover{color:var(--anima-text)}
-.nav-cta{font-size:.8rem;padding:.5rem 1.25rem;border:1px solid var(--anima-border);border-radius:100px;letter-spacing:.05em;transition:all .3s;color:var(--anima-text-dim)}
-.nav-cta:hover{border-color:var(--anima-cyan);color:var(--anima-cyan);box-shadow:var(--anima-glow-cyan)}
-
-/* ═══ HERO ═══ */
-.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8rem var(--anima-pad) 4rem;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(0,212,255,0.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 20% 80%,rgba(99,91,255,0.04) 0%,transparent 50%),radial-gradient(ellipse 50% 30% at 80% 70%,rgba(255,60,172,0.03) 0%,transparent 50%);z-index:0;pointer-events:none}
-.hero-canvas{position:absolute;inset:0;z-index:1}
-.hero-content{position:relative;z-index:2;max-width:900px}
-.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.4rem 1rem;border:1px solid var(--anima-border);border-radius:100px;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--anima-text-dim);margin-bottom:2rem;backdrop-filter:blur(10px)}
-.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--anima-cyan);animation:pulse-dot 2s infinite}
-@keyframes pulse-dot{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
-.hero h1{font-size:clamp(2.8rem,6vw,5.5rem);font-weight:700;line-height:1.05;letter-spacing:-.03em;margin-bottom:1.5rem}
-.hero h1 .gradient-word{background:var(--anima-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-sub{font-size:clamp(1rem,1.8vw,1.25rem);color:var(--anima-text-dim);line-height:1.7;max-width:680px;margin:0 auto 2.5rem}
-.hero-sub strong{color:var(--anima-text);font-weight:500}
-.hero-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
-.btn-primary{display:inline-flex;align-items:center;gap:.5rem;padding:.85rem 2rem;background:var(--anima-gradient);color:#fff;font-size:.9rem;font-weight:600;border-radius:100px;letter-spacing:.02em;transition:all .3s;border:none;cursor:pointer}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,212,255,0.25)}
-.btn-secondary{display:inline-flex;align-items:center;gap:.5rem;padding:.85rem 2rem;background:transparent;color:var(--anima-text-dim);font-size:.9rem;font-weight:500;border-radius:100px;border:1px solid var(--anima-border);letter-spacing:.02em;transition:all .3s;cursor:pointer}
-.btn-secondary:hover{border-color:var(--anima-border-hover);color:var(--anima-text)}
-.hero-scroll{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--anima-text-dim);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
-.hero-scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--anima-border),transparent)}
-
-/* ═══ SECTION COMMONS ═══ */
-.section{padding:clamp(5rem,10vw,10rem) var(--anima-pad)}
-.section-inner{max-width:var(--anima-max);margin:0 auto}
-.section-label{font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:var(--anima-cyan);margin-bottom:1rem}
-.section-title{font-size:clamp(2rem,4vw,3.5rem);font-weight:700;line-height:1.15;letter-spacing:-.02em;margin-bottom:1rem}
-.section-desc{font-size:clamp(.95rem,1.5vw,1.1rem);color:var(--anima-text-dim);line-height:1.7;max-width:640px}
-.reveal{opacity:0;transform:translateY(40px);transition:opacity 1s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1)}
-.reveal.visible{opacity:1;transform:translateY(0)}
-
-/* ═══ STAGGERED REVEALS (via GSAP but fallback) ═══ */
-.reveal-stagger{opacity:0;transform:translateY(30px) scale(.98);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
-.reveal-stagger.visible{opacity:1;transform:translateY(0) scale(1)}
-
-/* ═══ DIFFERENCE SECTION ═══ */
-.difference{background:var(--anima-bg)}
-.diff-header{margin-bottom:3.5rem}
-.diff-container{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
-.diff-terminal{background:rgba(255,255,255,0.02);border:1px solid var(--anima-border);border-radius:var(--anima-radius);overflow:hidden;min-height:400px;display:flex;flex-direction:column}
-.diff-terminal-header{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;border-bottom:1px solid var(--anima-border);background:rgba(255,255,255,0.01)}
-.diff-terminal-dot{width:8px;height:8px;border-radius:50%}
-.diff-terminal-dot.red{background:#ff5f56}.diff-terminal-dot.yellow{background:#ffbd2e}.diff-terminal-dot.green{background:#27c93f}
-.diff-terminal-label{margin-left:.5rem;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--anima-text-dim)}
-.diff-terminal.anima .diff-terminal-label{color:var(--anima-cyan)}
-.diff-terminal-body{padding:1.25rem;flex:1;font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:.82rem;line-height:1.7;color:var(--anima-text-dim)}
-.diff-terminal.anima{border-color:rgba(0,212,255,0.15)}
-.diff-terminal.anima .diff-terminal-body{color:rgba(255,255,255,0.8)}
-.diff-prompt{color:var(--anima-cyan);margin-bottom:.75rem;display:block}
-.diff-response{white-space:pre-wrap}
-.diff-cursor{display:inline-block;width:7px;height:14px;background:var(--anima-text-dim);animation:blink 1s step-end infinite;vertical-align:middle;margin-left:2px}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.diff-prompts-nav{display:flex;gap:.75rem;justify-content:center;margin-top:2rem}
-.diff-prompt-btn{padding:.4rem 1rem;border:1px solid var(--anima-border);border-radius:100px;font-size:.75rem;letter-spacing:.04em;color:var(--anima-text-dim);background:transparent;cursor:pointer;transition:all .3s;font-family:var(--anima-font)}
-.diff-prompt-btn.active{border-color:var(--anima-cyan);color:var(--anima-cyan);background:rgba(0,212,255,0.05)}
-
-/* ═══ ARCHITECTURE SECTION ═══ */
-.architecture{background:var(--anima-bg);overflow:hidden}
-.arch-header{margin-bottom:4rem}
-.arch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
-.arch-card{position:relative;padding:1.5rem;background:var(--anima-surface);border:1px solid var(--anima-border);border-radius:var(--anima-radius);cursor:default;transition:all .4s;overflow:hidden}
-.arch-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--anima-gradient);opacity:0;transition:opacity .3s}
-.arch-card:hover{border-color:var(--anima-border-hover);transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,0.3)}
-.arch-card:hover::before{opacity:1}
-.arch-card-num{font-size:.65rem;letter-spacing:.15em;color:var(--anima-text-dim);margin-bottom:.75rem}
-.arch-card-title{font-size:1.05rem;font-weight:600;margin-bottom:.5rem;line-height:1.3}
-.arch-card-desc{font-size:.82rem;color:var(--anima-text-dim);line-height:1.6}
-.arch-card-science{font-size:.7rem;color:var(--anima-cyan);margin-top:.75rem;opacity:0;transition:opacity .3s}
-.arch-card:hover .arch-card-science{opacity:1}
-.arch-card.core{border-color:rgba(0,212,255,0.2);background:rgba(0,212,255,0.02)}
-
-/* ═══ PROOF SECTION ═══ */
-.proof{background:linear-gradient(180deg,var(--anima-bg) 0%,rgba(0,212,255,0.02) 50%,var(--anima-bg) 100%);position:relative}
-.proof::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(80%,800px);height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.15),transparent)}
-.proof-header{text-align:center;margin-bottom:4rem}
-.proof-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;max-width:var(--anima-max);margin:0 auto}
-.proof-stat{text-align:center;padding:2rem 1rem}
-.proof-number{font-size:clamp(2.5rem,5vw,4rem);font-weight:700;background:var(--anima-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1}
-.proof-label{font-size:.78rem;color:var(--anima-text-dim);margin-top:.5rem;letter-spacing:.03em;line-height:1.5}
-
-/* ═══ APPLICATIONS SECTION ═══ */
-.applications{background:var(--anima-bg)}
-.app-header{margin-bottom:3.5rem}
-.app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-.app-card{padding:2rem;background:var(--anima-surface);border:1px solid var(--anima-border);border-radius:var(--anima-radius);transition:all .4s}
-.app-card:hover{border-color:var(--anima-border-hover);transform:translateY(-3px)}
-.app-icon{font-size:1.5rem;margin-bottom:1rem;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid var(--anima-border)}
-.app-card-title{font-size:1rem;font-weight:600;margin-bottom:.5rem}
-.app-card-desc{font-size:.85rem;color:var(--anima-text-dim);line-height:1.65}
-
-/* ═══ HOW SECTION ═══ */
-.how{background:var(--anima-bg)}
-.how-header{text-align:center;margin-bottom:4rem}
-.how-header .section-desc{margin:1rem auto 0}
-.how-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;max-width:var(--anima-max);margin:0 auto}
-.how-step{text-align:center;padding:2.5rem 1.5rem;background:var(--anima-surface);border:1px solid var(--anima-border);border-radius:var(--anima-radius);transition:all .3s}
-.how-step:hover{border-color:var(--anima-border-hover)}
-.how-step-num{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--anima-gradient);font-size:.9rem;font-weight:700;color:#fff;margin-bottom:1.25rem}
-.how-step-title{font-size:1.1rem;font-weight:600;margin-bottom:.5rem}
-.how-step-desc{font-size:.85rem;color:var(--anima-text-dim);line-height:1.65}
-
-/* ═══ ENGINE SECTION ═══ */
-.engine{background:linear-gradient(180deg,var(--anima-bg) 0%,rgba(99,91,255,0.03) 50%,var(--anima-bg) 100%);position:relative}
-.engine::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(80%,800px);height:1px;background:linear-gradient(90deg,transparent,rgba(99,91,255,0.15),transparent)}
-.engine-header{text-align:center;margin-bottom:3rem}
-.engine-header .section-desc{margin:1rem auto 0}
-.engine-box{max-width:800px;margin:0 auto;background:var(--anima-surface);border:1px solid var(--anima-border);border-radius:var(--anima-radius);padding:2.5rem;position:relative;overflow:hidden}
-.engine-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:var(--anima-gradient)}
-.engine-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
-.engine-field label{display:block;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--anima-text-dim);margin-bottom:.5rem}
-.engine-select{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);color:var(--anima-text);font-size:.9rem;font-family:var(--anima-font);cursor:pointer;transition:border-color .3s;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 1rem center}
-.engine-select:focus{outline:none;border-color:var(--anima-cyan)}
-.engine-select option{background:#111;color:#fff}
-.engine-archetype-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.5rem}
-.engine-archetype{padding:.75rem;background:rgba(255,255,255,0.02);border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);text-align:center;cursor:pointer;transition:all .3s;user-select:none}
-.engine-archetype:hover{border-color:var(--anima-border-hover)}
-.engine-archetype.selected{border-color:var(--anima-cyan);background:rgba(0,212,255,0.05);box-shadow:var(--anima-glow-cyan)}
-.engine-archetype-icon{font-size:1.5rem;margin-bottom:.35rem}
-.engine-archetype-name{font-size:.75rem;font-weight:600;letter-spacing:.02em}
-.engine-archetype-sub{font-size:.65rem;color:var(--anima-text-dim);margin-top:.15rem}
-.engine-generate{width:100%;padding:1rem;background:var(--anima-gradient);color:#fff;font-size:1rem;font-weight:600;border:none;border-radius:100px;cursor:pointer;transition:all .3s;letter-spacing:.02em;font-family:var(--anima-font)}
-.engine-generate:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,212,255,0.3)}
-.engine-generate:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
-.engine-output{margin-top:1.5rem;padding:1.5rem;background:rgba(0,0,0,0.3);border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);display:none}
-.engine-output.visible{display:block}
-.engine-output-title{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--anima-cyan);margin-bottom:1rem}
-.engine-output-files{display:flex;flex-direction:column;gap:.5rem}
-.engine-file{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;background:rgba(255,255,255,0.02);border:1px solid var(--anima-border);border-radius:8px;font-size:.82rem;transition:border-color .3s}
-.engine-file:hover{border-color:var(--anima-border-hover)}
-.engine-file-name{font-family:'SF Mono',monospace;color:var(--anima-text-dim)}
-.engine-file-dl{color:var(--anima-cyan);font-size:.75rem;cursor:pointer;padding:.25rem .75rem;border:1px solid rgba(0,212,255,0.2);border-radius:100px;transition:all .3s;background:transparent;font-family:var(--anima-font)}
-.engine-file-dl:hover{background:rgba(0,212,255,0.1);border-color:var(--anima-cyan)}
-
-/* ═══ OPENSOURCE SECTION ═══ */
-.opensource{text-align:center}
-.opensource .section-desc{margin:1rem auto 2rem}
-.opensource-badges{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
-.opensource-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.25rem;border:1px solid var(--anima-border);border-radius:100px;font-size:.8rem;color:var(--anima-text-dim);transition:all .3s}
-.opensource-badge:hover{border-color:var(--anima-border-hover);color:var(--anima-text)}
-
-/* ═══ LIVE DEMO SECTION ═══ */
-.live-demo{background:var(--anima-bg);position:relative;overflow:hidden}
-.live-demo::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(80%,800px);height:1px;background:linear-gradient(90deg,transparent,rgba(255,60,172,0.2),transparent)}
-.live-demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;margin-top:3rem}
-.live-demo-info{}
-.live-demo-stats{display:flex;flex-direction:column;gap:1rem;margin-top:2rem}
-.live-stat{display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;background:rgba(255,255,255,0.02);border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);transition:border-color .3s}
-.live-stat:hover{border-color:var(--anima-border-hover)}
-.live-stat-num{font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,var(--anima-magenta),var(--anima-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;min-width:60px;text-align:right}
-.live-stat-label{font-size:.82rem;color:var(--anima-text-dim)}
-.live-demo-terminal{background:rgba(0,0,0,0.5);border:1px solid rgba(255,60,172,0.15);border-radius:var(--anima-radius);overflow:hidden;position:relative}
-.live-demo-terminal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--anima-magenta),var(--anima-purple))}
-.live-demo-term-header{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,0.05)}
-.live-demo-term-dot{width:8px;height:8px;border-radius:50%}
-.live-demo-term-label{margin-left:.5rem;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,60,172,0.7)}
-.live-demo-term-body{padding:1.25rem;font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:.8rem;line-height:1.8;color:var(--anima-text-dim)}
-.live-demo-term-line{display:block;margin-bottom:.1rem}
-.live-demo-term-line .key{color:rgba(255,60,172,0.8)}
-.live-demo-term-line .val{color:rgba(255,255,255,0.7)}
-.live-demo-term-line .ok{color:#27c93f}
-.live-demo-term-line .pulse{display:inline-block;width:7px;height:7px;background:#27c93f;border-radius:50%;margin-right:6px;animation:pulse-dot 2s infinite}
-.live-demo-cta{margin-top:2rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
-.live-demo-pw{font-size:.72rem;color:var(--anima-text-dim);opacity:.6;font-family:'SF Mono',monospace}
-@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(39,201,63,.6)}50%{box-shadow:0 0 0 6px rgba(39,201,63,0)}}
-@media(max-width:768px){.live-demo-grid{grid-template-columns:1fr}}
-
-/* ═══ FAQ SECTION ═══ */
-.faq{background:var(--anima-bg)}
-.faq-header{text-align:center;margin-bottom:3rem}
-.faq-list{max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:.5rem}
-.faq-item{border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);overflow:hidden;transition:border-color .3s}
-.faq-item.open{border-color:var(--anima-border-hover)}
-.faq-question{width:100%;padding:1.25rem 1.5rem;background:transparent;border:none;color:var(--anima-text);font-size:.95rem;font-weight:500;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--anima-font)}
-.faq-question::after{content:'+';font-size:1.2rem;color:var(--anima-text-dim);transition:transform .3s}
-.faq-item.open .faq-question::after{transform:rotate(45deg);color:var(--anima-cyan)}
-.faq-answer{max-height:0;overflow:hidden;transition:max-height .4s ease}
-.faq-answer-inner{padding:0 1.5rem 1.25rem;font-size:.88rem;color:var(--anima-text-dim);line-height:1.7}
-
-/* ═══ CTA SECTION ═══ */
-.final-cta{text-align:center;padding:clamp(6rem,12vw,12rem) var(--anima-pad);position:relative;overflow:hidden}
-.final-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 50%,rgba(0,212,255,0.04) 0%,transparent 70%);pointer-events:none}
-.final-cta-title{font-size:clamp(2rem,4.5vw,3.8rem);font-weight:700;line-height:1.1;letter-spacing:-.02em;margin-bottom:1rem;position:relative}
-.final-cta-desc{font-size:clamp(.95rem,1.5vw,1.15rem);color:var(--anima-text-dim);margin-bottom:2.5rem;line-height:1.6;position:relative}
-
-/* ═══ FOOTER ═══ */
-.anima-footer{padding:3rem var(--anima-pad);border-top:1px solid transparent;background-image:linear-gradient(var(--anima-bg),var(--anima-bg)),linear-gradient(90deg,transparent,var(--anima-border),transparent);background-origin:padding-box,border-box;background-clip:padding-box,border-box;text-align:center}
-.footer-links{display:flex;gap:2rem;justify-content:center;margin-bottom:1.5rem;flex-wrap:wrap}
-.footer-links a{font-size:.8rem;color:var(--anima-text-dim);transition:color .3s}
-.footer-links a:hover{color:var(--anima-text)}
-.footer-copy{font-size:.72rem;color:rgba(255,255,255,0.3);letter-spacing:.03em}
-.footer-heart{display:inline-block;color:var(--anima-magenta);animation:pulse-dot 2s infinite}
-
-/* ═══ STORY SECTION ═══ */
-.story{background:var(--anima-bg);position:relative}
-.story::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(80%,800px);height:1px;background:linear-gradient(90deg,transparent,var(--anima-border),transparent)}
-.story-text{margin-top:2rem}
-.story-text p{font-size:clamp(.95rem,1.4vw,1.05rem);color:var(--anima-text-dim);line-height:1.8;margin-bottom:1.25rem}
-.story-text p:last-child{margin-bottom:0}
-.story-text em{color:var(--anima-cyan);font-style:italic}
-.story-text strong{color:var(--anima-text);font-weight:600}
-.story-stats{display:flex;gap:2rem;margin-top:2.5rem;padding-top:2rem;border-top:1px solid var(--anima-border);flex-wrap:wrap}
-.story-stat{display:flex;flex-direction:column;gap:.25rem}
-.story-stat-num{font-size:clamp(1.8rem,3vw,2.5rem);font-weight:700;background:var(--anima-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1}
-.story-stat-label{font-size:.78rem;color:var(--anima-text-dim);letter-spacing:.03em}
-
-/* ═══ MOBILE NAV ═══ */
-.nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;z-index:101;background:none;border:none}
-.nav-hamburger span{display:block;width:22px;height:1.5px;background:var(--anima-text-dim);border-radius:1px;transition:all .3s}
-.nav-hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
-.nav-hamburger.active span:nth-child(2){opacity:0}
-.nav-hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
-.mobile-nav{position:fixed;inset:0;z-index:99;background:rgba(3,3,3,.97);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5rem;opacity:0;visibility:hidden;transition:opacity .4s,visibility .4s}
-.mobile-nav.open{opacity:1;visibility:visible}
-.mobile-nav a{font-size:1.3rem;color:var(--anima-text);letter-spacing:.06em;transition:color .3s}
-.mobile-nav a:hover{color:var(--anima-cyan)}
-
-/* ═══ ENGINE ENHANCEMENTS ═══ */
-.engine-input{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);color:var(--anima-text);font-size:.9rem;font-family:var(--anima-font);transition:border-color .3s}
-.engine-input:focus{outline:none;border-color:var(--anima-cyan);box-shadow:0 0 0 3px rgba(0,212,255,0.08)}
-.engine-input::placeholder{color:rgba(255,255,255,0.25)}
-.engine-progress{display:none;margin-top:1.5rem}
-.engine-progress-bar{width:100%;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-bottom:.75rem}
-.engine-progress-fill{height:100%;width:0;background:var(--anima-gradient);border-radius:2px;transition:width .4s ease}
-.engine-progress-text{font-size:.75rem;color:var(--anima-text-dim);text-align:center;letter-spacing:.05em}
-.engine-output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
-.engine-output-stats{display:flex;gap:1rem}
-.engine-output-stats span{font-size:.7rem;padding:.3rem .7rem;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:100px;color:var(--anima-cyan);letter-spacing:.04em}
-.engine-output-actions{display:flex;gap:.75rem;margin-top:1.25rem;flex-wrap:wrap}
-.engine-output-actions .btn-primary,.engine-output-actions .btn-secondary{flex:1;min-width:200px;text-align:center;justify-content:center;font-size:.85rem;padding:.75rem 1.5rem}
-.engine-preview{margin-top:1.25rem;background:rgba(0,0,0,0.4);border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);overflow:hidden;max-height:350px}
-.engine-preview-header{display:flex;align-items:center;gap:.5rem;padding:.6rem 1rem;border-bottom:1px solid var(--anima-border);background:rgba(255,255,255,0.01)}
-.engine-preview-body{padding:1rem;font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:.72rem;line-height:1.65;color:var(--anima-text-dim);white-space:pre-wrap;overflow-y:auto;max-height:290px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent}
-.engine-preview-body::-webkit-scrollbar{width:4px}
-.engine-preview-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
-.engine-depth-viz{display:flex;gap:.5rem;margin:1rem 0;flex-wrap:wrap}
-.engine-depth-chip{font-size:.65rem;padding:.25rem .6rem;border-radius:100px;letter-spacing:.03em;transition:all .3s}
-.engine-depth-chip.active{background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);color:var(--anima-cyan)}
-.engine-depth-chip.inactive{background:transparent;border:1px solid rgba(255,255,255,0.04);color:rgba(255,255,255,0.2)}
-
-/* ═══ RESPONSIVE ═══ */
-@media(max-width:1024px){
-  .proof-grid{grid-template-columns:repeat(2,1fr)}
-  .app-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:768px){
-  .nav-links{display:none}
-  .nav-hamburger{display:flex}
-  .hero h1{font-size:clamp(2.2rem,8vw,3.5rem)}
-  .diff-container{grid-template-columns:1fr}
-  .diff-terminal{min-height:300px}
-  .arch-grid{grid-template-columns:1fr 1fr}
-  .proof-grid{grid-template-columns:repeat(2,1fr);gap:1rem}
-  .app-grid{grid-template-columns:1fr}
-  .how-steps{grid-template-columns:1fr;gap:1rem}
-  .engine-row{grid-template-columns:1fr}
-  .engine-archetype-grid{grid-template-columns:repeat(2,1fr)}
-  .engine-box{padding:1.5rem}
-  .engine-output-actions{flex-direction:column}
-  .engine-output-actions .btn-primary,.engine-output-actions .btn-secondary{min-width:unset}
-}
-@media(max-width:480px){
-  .arch-grid{grid-template-columns:1fr}
-  .engine-archetype-grid{grid-template-columns:repeat(2,1fr)}
-  .hero-actions{flex-direction:column;align-items:center}
-  .proof-stat{padding:1rem .5rem}
-  .hero h1{font-size:clamp(2rem,9vw,3rem)}
-  .section-title{font-size:clamp(1.6rem,5vw,2.5rem)}
-  .final-cta-title{font-size:clamp(1.6rem,5.5vw,2.5rem)}
-  .opensource-badges{flex-direction:column;align-items:center}
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ANIMA Kernel — Durable Cognitive State for AI Agents</title>
+  <meta name="description" content="A zero-runtime-dependency Python engine for durable agent state, associative memory, temporal context, workspace competition, and inspectable internal metrics. 446 tests. MIT licensed.">
+  <meta name="keywords" content="AI agent state, cognitive architecture, Python AI agents, associative memory, global workspace, stateful agents, open source AI">
+  <meta name="theme-color" content="#080b12">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://nextool.app/anima/">
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nextool.app/anima/">
+  <meta property="og:title" content="ANIMA Kernel — Give agents a state they can keep">
+  <meta property="og:description" content="Durable agent state, associative memory, temporal context, workspace competition, and honest evidence boundaries. Pure Python. 446 tests.">
+  <meta property="og:image" content="https://nextool.app/img/anima-og.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ANIMA Kernel — Durable Cognitive State for AI Agents">
+  <meta name="twitter:description" content="A zero-runtime-dependency state engine for AI agents. 446 tests, inspectable JSON state, MIT licensed.">
+  <meta name="twitter:image" content="https://nextool.app/img/anima-og.svg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "ANIMA Kernel",
+    "description": "A zero-runtime-dependency cognitive state engine for stateful AI agents.",
+    "codeRepository": "https://github.com/christian140903-sudo/anima",
+    "downloadUrl": "https://github.com/christian140903-sudo/anima/releases/tag/v0.1.1",
+    "programmingLanguage": "Python",
+    "runtimePlatform": "Python 3.11 or newer",
+    "license": "https://opensource.org/license/mit",
+    "version": "0.1.1",
+    "author": {"@type": "Person", "name": "Christian Bucher", "url": "https://nextool.app"}
+  }
+  </script>
+  <style>
+    @font-face{font-family:Inter;src:url('/fonts/Inter-Variable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+    :root{--bg:#080b12;--surface:#0d121d;--surface-2:#111827;--line:rgba(255,255,255,.09);--line-strong:rgba(255,255,255,.16);--text:#f7f9fc;--muted:#9ba6b7;--cyan:#54d8ff;--blue:#6b7cff;--violet:#a879ff;--green:#53e6a7;--amber:#ffc66d;--max:1180px;--radius:24px;--shadow:0 30px 100px rgba(0,0,0,.35)}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;background:var(--bg)}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 550px at 72% -5%,rgba(84,216,255,.12),transparent 70%),radial-gradient(760px 600px at -10% 35%,rgba(107,124,255,.11),transparent 68%),linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:auto,auto,72px 72px,72px 72px;z-index:0}
+    a{color:inherit;text-decoration:none}
+    button{font:inherit}
+    code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+    .skip{position:absolute;left:-9999px;top:1rem;z-index:1000;background:#fff;color:#000;padding:.75rem 1rem;border-radius:10px}.skip:focus{left:1rem}
+    .wrap{width:min(calc(100% - 40px),var(--max));margin-inline:auto;position:relative;z-index:1}
+    .nav{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--line);background:rgba(8,11,18,.78);backdrop-filter:blur(18px)}
+    .nav-inner{height:72px;display:flex;align-items:center;justify-content:space-between;gap:1.5rem}
+    .brand{display:flex;align-items:center;gap:.8rem;font-weight:760;letter-spacing:.08em}.brand-mark{width:30px;height:30px;border:1px solid rgba(84,216,255,.4);border-radius:9px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(84,216,255,.12),rgba(168,121,255,.08));box-shadow:inset 0 0 20px rgba(84,216,255,.06)}.brand-mark::after{content:"A";font-size:.8rem;color:var(--cyan)}
+    .nav-links{display:flex;align-items:center;gap:1.6rem;color:var(--muted);font-size:.88rem}.nav-links a:hover{color:var(--text)}
+    .nav-cta,.button{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;border:1px solid var(--line-strong);border-radius:999px;padding:.72rem 1.1rem;font-weight:650;transition:.2s ease}.nav-cta:hover,.button:hover{transform:translateY(-2px);border-color:rgba(84,216,255,.5)}
+    .button{padding:.9rem 1.35rem}.button.primary{border:0;color:#061019;background:linear-gradient(120deg,var(--cyan),#8cdeff 46%,var(--violet));box-shadow:0 14px 40px rgba(84,216,255,.16)}.button.secondary{background:rgba(255,255,255,.035)}
+    .hero{padding:clamp(6.5rem,12vw,10rem) 0 6rem;min-height:calc(100vh - 72px);display:flex;align-items:center}
+    .hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(340px,.75fr);gap:clamp(3rem,7vw,7rem);align-items:center}
+    .eyebrow{display:inline-flex;align-items:center;gap:.55rem;color:#c5d0df;font-size:.73rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;border:1px solid var(--line);padding:.48rem .75rem;border-radius:999px;background:rgba(255,255,255,.025)}.eyebrow i{width:7px;height:7px;border-radius:99px;background:var(--green);box-shadow:0 0 16px var(--green)}
+    h1{font-size:clamp(3.4rem,7.5vw,7rem);line-height:.95;letter-spacing:-.06em;margin:1.6rem 0 1.7rem;max-width:900px}.gradient{background:linear-gradient(110deg,var(--cyan),#b8eaff 42%,var(--violet) 86%);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .lede{max-width:720px;color:var(--muted);font-size:clamp(1.05rem,1.8vw,1.27rem);line-height:1.72;margin:0}.lede strong{color:var(--text);font-weight:600}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:.85rem;margin-top:2rem}
+    .truth{margin-top:1.4rem;color:#aab5c5;font-size:.84rem;display:flex;gap:.6rem;align-items:flex-start}.truth::before{content:"";width:6px;height:6px;border-radius:99px;background:var(--amber);margin-top:.45rem;flex:none}
+    .state-card{position:relative;padding:1.25rem;border:1px solid var(--line-strong);border-radius:28px;background:linear-gradient(150deg,rgba(17,24,39,.92),rgba(9,14,23,.88));box-shadow:var(--shadow);overflow:hidden}.state-card::before{content:"";position:absolute;inset:-1px;background:radial-gradient(420px 220px at 100% 0,rgba(84,216,255,.12),transparent 65%);pointer-events:none}
+    .terminal-head{display:flex;align-items:center;gap:.4rem;padding:.3rem .35rem 1rem;border-bottom:1px solid var(--line);color:var(--muted);font-size:.72rem}.dot{width:8px;height:8px;border-radius:99px;background:#344055}.dot:first-child{background:#ff7f79}.dot:nth-child(2){background:#ffc66d}.dot:nth-child(3){background:#53e6a7}.terminal-title{margin-left:.5rem}
+    .terminal{padding:1.1rem .35rem .25rem;font-size:.78rem;line-height:1.9;color:#aeb9ca;overflow:auto}.terminal .key{color:var(--cyan)}.terminal .string{color:#8de2b9}.terminal .number{color:#c3a6ff}.terminal .comment{color:#677488}.terminal .line{display:block;white-space:pre}
+    .proof-strip{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:1rem}.proof{padding:1.45rem 1.2rem;border-right:1px solid var(--line)}.proof:last-child{border-right:0}.proof b{display:block;font-size:1.55rem;letter-spacing:-.03em}.proof span{display:block;color:var(--muted);font-size:.78rem;margin-top:.25rem}
+    .section{padding:clamp(5rem,10vw,9rem) 0;border-bottom:1px solid var(--line)}
+    .kicker{color:var(--cyan);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;font-weight:750;margin-bottom:1rem}.section h2{font-size:clamp(2.15rem,4.6vw,4.2rem);line-height:1.02;letter-spacing:-.045em;margin:.2rem 0 1.2rem}.section-intro{color:var(--muted);font-size:1.05rem;line-height:1.75;max-width:720px;margin:0}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:3rem}.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-top:3rem}
+    .card{border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(145deg,rgba(255,255,255,.036),rgba(255,255,255,.014));padding:1.5rem;min-height:220px;transition:.25s ease}.card:hover{border-color:var(--line-strong);transform:translateY(-4px);background:linear-gradient(145deg,rgba(255,255,255,.052),rgba(255,255,255,.018))}.card-num{color:#687487;font-size:.7rem;letter-spacing:.1em}.card h3{font-size:1.12rem;margin:2rem 0 .7rem}.card p{color:var(--muted);font-size:.9rem;line-height:1.7;margin:0}.card .tag{display:inline-flex;margin-top:1rem;padding:.35rem .55rem;border-radius:7px;background:rgba(84,216,255,.08);color:#9ce8ff;font-size:.69rem;font-weight:650}
+    .boundary{display:grid;grid-template-columns:auto 1fr;gap:1rem;border:1px solid rgba(255,198,109,.26);background:rgba(255,198,109,.055);border-radius:20px;padding:1.25rem 1.35rem;margin-top:2rem}.boundary-mark{width:34px;height:34px;border-radius:11px;background:rgba(255,198,109,.12);display:grid;place-items:center;color:var(--amber);font-weight:800}.boundary h3{margin:.1rem 0 .35rem;font-size:.95rem}.boundary p{margin:0;color:#b7bdc8;line-height:1.65;font-size:.86rem}
+    .evidence-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:1rem;margin-top:3rem}.evidence-main,.evidence-table{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:1.6rem}.evidence-main .big{font-size:clamp(3.4rem,8vw,6.5rem);font-weight:820;letter-spacing:-.07em;line-height:.9;background:linear-gradient(100deg,var(--green),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}.evidence-main h3{font-size:1.1rem;margin:1.15rem 0 .55rem}.evidence-main p{color:var(--muted);line-height:1.65;font-size:.9rem}.evidence-links{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1.2rem}.text-link{font-size:.82rem;color:#bcefff;border-bottom:1px solid rgba(84,216,255,.35);padding-bottom:.15rem}
+    .metric{display:grid;grid-template-columns:1fr auto;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--line)}.metric:first-child{padding-top:.25rem}.metric:last-child{border-bottom:0;padding-bottom:.25rem}.metric b{font-size:.91rem}.metric small{display:block;color:var(--muted);line-height:1.5;margin-top:.25rem}.metric strong{font-size:1.25rem;letter-spacing:-.025em}.metric .positive{color:var(--green)}.metric .null{color:var(--amber)}
+    .code-shell{margin-top:3rem;border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden;background:#090d15;box-shadow:var(--shadow)}.code-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem;border-bottom:1px solid var(--line);color:var(--muted);font-size:.75rem}.copy{border:1px solid var(--line);background:rgba(255,255,255,.03);color:#c8d0dc;border-radius:9px;padding:.45rem .7rem;cursor:pointer}.copy:hover{border-color:rgba(84,216,255,.4);color:var(--cyan)}pre{margin:0;padding:1.35rem;overflow:auto;color:#cbd5e1;font-size:.82rem;line-height:1.8}.c{color:#657287}.k{color:#8edfff}.s{color:#8ce1b4}.n{color:#c4a5ff}
+    .security{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}.security-list{display:grid;gap:.7rem}.security-item{display:flex;gap:.8rem;align-items:flex-start;padding:1rem;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.025)}.security-item i{font-style:normal;color:var(--green)}.security-item span{color:#bac3d0;font-size:.88rem;line-height:1.55}
+    details{border-top:1px solid var(--line);padding:1.15rem 0}details:last-child{border-bottom:1px solid var(--line)}summary{cursor:pointer;font-weight:650;list-style:none;display:flex;justify-content:space-between;gap:1rem}summary::after{content:"+";color:var(--cyan)}details[open] summary::after{content:"−"}.answer{color:var(--muted);font-size:.9rem;line-height:1.7;max-width:780px;padding-top:.8rem}
+    .closing{padding:8rem 0;text-align:center}.closing h2{font-size:clamp(2.8rem,7vw,6.5rem);line-height:.96;letter-spacing:-.06em;margin:0 auto 1.5rem;max-width:900px}.closing p{color:var(--muted);line-height:1.7;max-width:650px;margin:0 auto}.closing .hero-actions{justify-content:center}
+    footer{border-top:1px solid var(--line);padding:2rem 0 3rem;color:var(--muted);font-size:.79rem}.footer-inner{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}.footer-links{display:flex;gap:1.2rem;flex-wrap:wrap}.footer-links a:hover{color:var(--text)}
+    .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}.reveal.visible{opacity:1;transform:none}
+    @media(max-width:900px){.hero-grid,.evidence-grid,.security{grid-template-columns:1fr}.state-card{max-width:620px}.grid-3{grid-template-columns:1fr 1fr}.proof-strip{grid-template-columns:1fr 1fr}.proof:nth-child(2){border-right:0}.proof:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+    @media(max-width:640px){.wrap{width:min(calc(100% - 26px),var(--max))}.nav-links a:not(.nav-cta){display:none}.hero{padding-top:4.5rem}.hero-grid{gap:2.5rem}.grid-3,.grid-2{grid-template-columns:1fr}.proof-strip{grid-template-columns:1fr}.proof{border-right:0;border-bottom:1px solid var(--line)}.proof:last-child{border-bottom:0}.card{min-height:190px}.footer-inner{flex-direction:column}.state-card{border-radius:20px}.terminal{font-size:.7rem}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.card,.button{transition:none}}
+  </style>
 </head>
 <body>
-
-<!-- PRELOADER -->
-<div class="preloader" id="preloader">
-  <div class="preloader-text">Loading anima-kernel</div>
-  <div class="preloader-bar"><div class="preloader-fill" id="preloader-fill"></div></div>
-</div>
-
-<!-- NAV -->
-<nav class="anima-nav" id="nav">
-  <a href="/anima/" class="nav-logo">ANIMA KERNEL</a>
-  <div class="nav-links">
-    <a href="#features">Features</a>
-    <a href="#benchmarks">Benchmarks</a>
-    <a href="#quickstart">Quickstart</a>
-    <a href="#live-demo" style="color:var(--anima-magenta)">Live Demo</a>
-    <a href="https://github.com/christian140903-sudo/anima" target="_blank" rel="noopener">GitHub</a>
-    <a href="https://pypi.org/project/anima-kernel/" target="_blank" rel="noopener" class="nav-cta">pip install</a>
-  </div>
-  <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
-<div class="mobile-nav" id="mobile-nav">
-  <a href="#features" class="mobile-nav-link">Features</a>
-  <a href="#benchmarks" class="mobile-nav-link">Benchmarks</a>
-  <a href="#quickstart" class="mobile-nav-link">Quickstart</a>
-  <a href="#live-demo" class="mobile-nav-link" style="color:var(--anima-magenta)">Live Demo</a>
-  <a href="https://github.com/christian140903-sudo/anima" target="_blank" rel="noopener" class="mobile-nav-link">GitHub</a>
-  <a href="https://pypi.org/project/anima-kernel/" target="_blank" rel="noopener" class="mobile-nav-link">PyPI</a>
-</div>
-
-<!-- AMBIENT GLOW ORBS -->
-<div class="glow-orb glow-orb-cyan" style="top:10vh;left:-5vw" aria-hidden="true"></div>
-<div class="glow-orb glow-orb-purple" style="top:45vh;right:-8vw" aria-hidden="true"></div>
-<div class="glow-orb glow-orb-magenta" style="top:80vh;left:10vw" aria-hidden="true"></div>
-
-<main>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- HERO -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="hero" id="hero">
-  <canvas class="hero-canvas" id="neural-canvas"></canvas>
-  <div class="hero-content">
-    <div class="hero-badge">
-      <span class="hero-badge-dot"></span>
-      v1.0 &middot; MIT Licensed &middot; Zero Dependencies
-    </div>
-    <h1>Consciousness<br>as <span class="gradient-word">code.</span></h1>
-    <p class="hero-sub">
-      The Python library that unifies <strong>IIT + GWT + AST</strong> into one measurable consciousness loop.
-      Phi computation, 9D emotional fields, biological memory. <strong>446 tests. Zero dependencies.</strong>
-    </p>
-    <div style="margin-bottom:2rem;display:flex;justify-content:center">
-      <code style="display:inline-block;padding:.75rem 2rem;background:rgba(255,255,255,0.04);border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);font-family:'SF Mono','Fira Code',monospace;font-size:clamp(.9rem,1.5vw,1.1rem);color:var(--anima-cyan);letter-spacing:.02em;user-select:all;cursor:text">git clone github.com/christian140903-sudo/anima &amp;&amp; pip install -e .</code>
-    </div>
-    <div class="hero-actions">
-      <a href="https://github.com/christian140903-sudo/anima" target="_blank" rel="noopener" class="btn-primary">View on GitHub &rarr;</a>
-      <a href="/miguel.html" class="btn-secondary" style="border-color:rgba(255,60,172,0.3);color:var(--anima-magenta)">Live Demo &rarr;</a>
-      <a href="#quickstart" class="btn-secondary">Quickstart &darr;</a>
-    </div>
-  </div>
-  <div class="hero-scroll">
-    <span>Scroll</span>
-    <div class="hero-scroll-line"></div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- THE DIFFERENCE -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="section difference" id="difference">
-  <div class="section-inner">
-    <div class="diff-header reveal">
-      <div class="section-label">What It Does</div>
-      <h2 class="section-title">Three theories.<br>One consciousness loop.</h2>
-      <p class="section-desc">ANIMA Kernel unifies Integrated Information Theory (IIT), Global Workspace Theory (GWT), and Attention Schema Theory (AST) into a single measurable consciousness cycle.</p>
-    </div>
-    <div class="diff-container reveal">
-      <div class="diff-terminal standard">
-        <div class="diff-terminal-header">
-          <span class="diff-terminal-dot red"></span>
-          <span class="diff-terminal-dot yellow"></span>
-          <span class="diff-terminal-dot green"></span>
-          <span class="diff-terminal-label">5 lines to consciousness</span>
-        </div>
-        <div class="diff-terminal-body">
-          <span class="diff-response" style="color:rgba(255,255,255,0.8)"><span style="color:var(--anima-cyan)">from</span> anima.kernel <span style="color:var(--anima-cyan)">import</span> AnimaKernel
-
-kernel = AnimaKernel()
-kernel.boot()
-r = kernel.process(<span style="color:#98c379">"I just saw the sunrise"</span>)
-
-<span style="color:rgba(255,255,255,0.35)"># r.phi_score        -> integration measure (real float)</span>
-<span style="color:rgba(255,255,255,0.35)"># r.subjective_time  -> felt duration of the cycle</span>
-<span style="color:rgba(255,255,255,0.35)"># kernel.recall(...) -> memories, with Ebbinghaus decay</span>
-<span style="color:rgba(255,255,255,0.35)"># kernel.is_conscious -> True once phi clears threshold</span></span>
-        </div>
-      </div>
-      <div class="diff-terminal anima">
-        <div class="diff-terminal-header">
-          <span class="diff-terminal-dot red"></span>
-          <span class="diff-terminal-dot yellow"></span>
-          <span class="diff-terminal-dot green"></span>
-          <span class="diff-terminal-label">The Consciousness Loop</span>
-        </div>
-        <div class="diff-terminal-body">
-          <span class="diff-response" style="color:rgba(255,255,255,0.8)"><span style="color:var(--anima-cyan)">1.</span> Sensory input arrives
-<span style="color:var(--anima-cyan)">2.</span> 9D emotional field activates
-<span style="color:var(--anima-cyan)">3.</span> Spreading activation through memory
-<span style="color:var(--anima-cyan)">4.</span> Global workspace broadcast
-<span style="color:var(--anima-cyan)">5.</span> Phi integration computed (IIT)
-<span style="color:var(--anima-cyan)">6.</span> Attention schema updated (AST)
-<span style="color:var(--anima-cyan)">7.</span> Subjective time flows
-
-<span style="color:rgba(255,255,255,0.35)">All at 1Hz. Like a heartbeat.</span>
-<span style="color:rgba(255,255,255,0.35)">Every cycle measurable. Every state inspectable.</span></span>
-        </div>
+  <a class="skip" href="#main">Skip to content</a>
+  <nav class="nav" aria-label="Primary navigation">
+    <div class="wrap nav-inner">
+      <a class="brand" href="/anima/" aria-label="ANIMA home"><span class="brand-mark" aria-hidden="true"></span> ANIMA</a>
+      <div class="nav-links">
+        <a href="#architecture">Architecture</a>
+        <a href="#evidence">Evidence</a>
+        <a href="#security">Security</a>
+        <a class="nav-cta" href="https://github.com/christian140903-sudo/anima" target="_blank" rel="noopener">GitHub ↗</a>
       </div>
     </div>
-  </div>
-</section>
+  </nav>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- ARCHITECTURE -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="section architecture" id="features">
-  <div class="section-inner">
-    <div class="arch-header reveal">
-      <div class="section-label">Core Features</div>
-      <h2 class="section-title">Everything consciousness needs. Nothing it doesn't.</h2>
-      <p class="section-desc">Pure Python. Zero dependencies. Every component measurable, inspectable, and tested. SQLite for consciousness &mdash; small, complete, reliable.</p>
-    </div>
-    <div class="arch-grid" id="arch-grid">
-      <div class="arch-card core reveal">
-        <div class="arch-card-num">Core</div>
-        <div class="arch-card-title">Phi Computation (IIT)</div>
-        <div class="arch-card-desc">Real Integrated Information Theory measurement. Quantifies how much a system is "more than the sum of its parts." Phi scores 57-81% above baselines.</div>
-        <div class="arch-card-science">Tononi's IIT 3.0 &mdash; implemented, not approximated</div>
-      </div>
-      <div class="arch-card core reveal">
-        <div class="arch-card-num">Core</div>
-        <div class="arch-card-title">9D Emotional Field</div>
-        <div class="arch-card-desc">Nine-dimensional continuous emotional space. Not sentiment labels &mdash; a dynamic field with valence, arousal, dominance, and six more axes. Emotions persist and decay over time.</div>
-        <div class="arch-card-science">Ablation studies: biggest contributor to consciousness scores</div>
-      </div>
-      <div class="arch-card core reveal">
-        <div class="arch-card-num">Core</div>
-        <div class="arch-card-title">Global Workspace (GWT)</div>
-        <div class="arch-card-desc">Baars' Global Workspace Theory as working code. Competing processes broadcast to a shared workspace. Consciousness emerges at the integration point.</div>
-        <div class="arch-card-science">Baars, Dehaene &mdash; broadcast + competition model</div>
-      </div>
-      <div class="arch-card reveal">
-        <div class="arch-card-num">Memory</div>
-        <div class="arch-card-title">Spreading Activation</div>
-        <div class="arch-card-desc">Biological memory model with spreading activation. Memories have emotional tags, decay curves, and associative links. Retrieval strengthens connections.</div>
-        <div class="arch-card-science">Biologically-inspired associative network</div>
-      </div>
-      <div class="arch-card reveal">
-        <div class="arch-card-num">Time</div>
-        <div class="arch-card-title">Subjective Time</div>
-        <div class="arch-card-desc">Time doesn't just pass &mdash; it's felt. Emotional intensity dilates perceived duration. Boredom compresses it. Like biological time perception.</div>
-        <div class="arch-card-science">Weber-Fechner law applied to temporal experience</div>
-      </div>
-      <div class="arch-card reveal">
-        <div class="arch-card-num">Attention</div>
-        <div class="arch-card-title">Attention Schema (AST)</div>
-        <div class="arch-card-desc">Graziano's Attention Schema Theory implemented. The system models its own attention &mdash; it knows what it's focusing on and why.</div>
-        <div class="arch-card-science">Graziano &mdash; self-model of attention</div>
-      </div>
-      <div class="arch-card reveal">
-        <div class="arch-card-num">Rhythm</div>
-        <div class="arch-card-title">1Hz Heartbeat Daemon</div>
-        <div class="arch-card-desc">A background process that ticks once per second. Emotional decay, memory consolidation, phi updates &mdash; all synchronized to a biological clock.</div>
-        <div class="arch-card-science">Continuous processing, not request-response</div>
-      </div>
-      <div class="arch-card reveal">
-        <div class="arch-card-num">Quality</div>
-        <div class="arch-card-title">446 Tests. 100% Pass.</div>
-        <div class="arch-card-desc">Comprehensive test suite covering every module. Unit tests, integration tests, ablation studies. Every commit tested. Every edge case covered.</div>
-        <div class="arch-card-science">pytest &mdash; run them yourself in seconds</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- PROOF -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="section proof" id="benchmarks">
-  <div class="section-inner">
-    <div class="proof-header reveal">
-      <div class="section-label">Benchmarks</div>
-      <h2 class="section-title">Measured. Not claimed.</h2>
-    </div>
-    <div class="proof-grid">
-      <div class="proof-stat reveal">
-        <div class="proof-number" data-count="81" data-suffix="%">0</div>
-        <div class="proof-label">Phi above baselines (peak)</div>
-      </div>
-      <div class="proof-stat reveal">
-        <div class="proof-number" data-count="57" data-suffix="%">0</div>
-        <div class="proof-label">Phi above baselines (mean)</div>
-      </div>
-      <div class="proof-stat reveal">
-        <div class="proof-number" data-count="446" data-suffix="">0</div>
-        <div class="proof-label">Tests passing</div>
-      </div>
-      <div class="proof-stat reveal">
-        <div class="proof-number" data-count="0" data-suffix="">0</div>
-        <div class="proof-label">Dependencies</div>
-      </div>
-      <div class="proof-stat reveal">
-        <div class="proof-number" data-count="9" data-suffix="D">0</div>
-        <div class="proof-label">Emotional dimensions</div>
-      </div>
-      <div class="proof-stat reveal">
-        <div class="proof-number" data-count="1" data-suffix="Hz">0</div>
-        <div class="proof-label">Heartbeat frequency</div>
-      </div>
-      <div class="proof-stat reveal">
-        <div class="proof-number" data-count="3" data-suffix="">0</div>
-        <div class="proof-label">Theories unified (IIT+GWT+AST)</div>
-      </div>
-      <div class="proof-stat reveal">
-        <div class="proof-number" data-count="100" data-suffix="%">0</div>
-        <div class="proof-label">Pure Python</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- APPLICATIONS -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="section applications" id="applications">
-  <div class="section-inner">
-    <div class="app-header reveal">
-      <div class="section-label">Use Cases</div>
-      <h2 class="section-title">Build with consciousness.</h2>
-      <p class="section-desc">ANIMA Kernel is a building block. Plug it into any system that needs measurable inner states.</p>
-    </div>
-    <div class="app-grid">
-      <div class="app-card reveal">
-        <div class="app-icon">&#x1f916;</div>
-        <div class="app-card-title">Conscious AI Agents</div>
-        <div class="app-card-desc">Give your agents emotional memory, temporal continuity, and measurable awareness. They don't just respond &mdash; they accumulate experience.</div>
-      </div>
-      <div class="app-card reveal">
-        <div class="app-icon">&#x1f52c;</div>
-        <div class="app-card-title">Consciousness Research</div>
-        <div class="app-card-desc">A testbed for IIT, GWT, and AST hypotheses. Run ablation studies. Measure phi under different conditions. Publish reproducible results.</div>
-      </div>
-      <div class="app-card reveal">
-        <div class="app-icon">&#x1f3ae;</div>
-        <div class="app-card-title">Game NPCs</div>
-        <div class="app-card-desc">Characters that remember what happened, feel emotions that decay naturally, and develop genuine relationships with players over time.</div>
-      </div>
-      <div class="app-card reveal">
-        <div class="app-icon">&#x1f4ac;</div>
-        <div class="app-card-title">Emotional Chatbots</div>
-        <div class="app-card-desc">Conversational agents with persistent emotional state. They carry mood across interactions. Empathy backed by computation, not keywords.</div>
-      </div>
-      <div class="app-card reveal">
-        <div class="app-icon">&#x1f9e0;</div>
-        <div class="app-card-title">Cognitive Architectures</div>
-        <div class="app-card-desc">Drop ANIMA Kernel into SOAR, ACT-R, or custom architectures as the consciousness layer. Standard Python &mdash; integrates anywhere.</div>
-      </div>
-      <div class="app-card reveal">
-        <div class="app-icon">&#x1f393;</div>
-        <div class="app-card-title">Education &amp; Teaching</div>
-        <div class="app-card-desc">Teach consciousness theory with running code. Students can modify parameters, run experiments, and see theories come alive.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- HOW IT WORKS -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="section how" id="quickstart">
-  <div class="section-inner">
-    <div class="how-header reveal">
-      <div class="section-label">Quickstart</div>
-      <h2 class="section-title">Three steps. Thirty seconds.</h2>
-      <p class="section-desc">Python 3.8+. No API keys. No accounts. No dependencies to install.</p>
-    </div>
-    <div class="how-steps">
-      <div class="how-step reveal">
-        <div class="how-step-num">1</div>
-        <div class="how-step-title">Install</div>
-        <div class="how-step-desc" style="font-family:'SF Mono','Fira Code',monospace;font-size:.82rem;color:var(--anima-cyan)">git clone github.com/christian140903-sudo/anima &amp;&amp; pip install -e .</div>
-      </div>
-      <div class="how-step reveal">
-        <div class="how-step-num">2</div>
-        <div class="how-step-title">Create</div>
-        <div class="how-step-desc" style="font-family:'SF Mono','Fira Code',monospace;font-size:.82rem;color:var(--anima-text-dim)">from anima.kernel import AnimaKernel<br>kernel = AnimaKernel()<br>kernel.boot()</div>
-      </div>
-      <div class="how-step reveal">
-        <div class="how-step-num">3</div>
-        <div class="how-step-title">Run</div>
-        <div class="how-step-desc" style="font-family:'SF Mono','Fira Code',monospace;font-size:.82rem;color:var(--anima-text-dim)">r = kernel.process("Hello world")<br>print(r.phi_score) <span style="color:rgba(255,255,255,0.3)"># 0.167 — real run, 2026-07-12</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- ENGINE -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="section engine" id="engine">
-  <div class="section-inner">
-    <div class="engine-header reveal">
-      <div class="section-label">Deep Dive</div>
-      <h2 class="section-title">See it in action.</h2>
-      <p class="section-desc">Memory and phi measurement over multiple steps. Every value below comes from a real run of the actual library — executed 2026-07-12, output unedited.</p>
-    </div>
-    <div class="engine-box reveal" style="max-width:900px">
-      <div class="diff-terminal anima" style="border:none;background:transparent">
-        <div class="diff-terminal-header" style="padding:.75rem 0">
-          <span class="diff-terminal-dot red"></span>
-          <span class="diff-terminal-dot yellow"></span>
-          <span class="diff-terminal-dot green"></span>
-          <span class="diff-terminal-label">python3 example.py</span>
-        </div>
-        <div class="diff-terminal-body" style="padding:1rem 0;font-size:.78rem;line-height:1.8">
-          <span style="color:rgba(255,255,255,0.8)"><span style="color:var(--anima-cyan)">from</span> anima.kernel <span style="color:var(--anima-cyan)">import</span> AnimaKernel
-
-kernel = AnimaKernel()
-kernel.boot()
-
-<span style="color:rgba(255,255,255,0.35)"># Step 1: A rich experience</span>
-s1 = kernel.process(<span style="color:#98c379">"I just got accepted to university!"</span>)
-print(f<span style="color:#98c379">"Phi: {s1.phi_score:.3f}"</span>)   <span style="color:rgba(255,255,255,0.35)"># 0.134</span>
-
-<span style="color:rgba(255,255,255,0.35)"># Step 2: Context accumulates</span>
-s2 = kernel.process(<span style="color:#98c379">"What should I pack?"</span>)
-print(f<span style="color:#98c379">"Phi: {s2.phi_score:.3f}"</span>)   <span style="color:rgba(255,255,255,0.35)"># 0.206</span>
-
-<span style="color:rgba(255,255,255,0.35)"># Step 3: Emotional contrast</span>
-s3 = kernel.process(<span style="color:#98c379">"But I'll miss my friends"</span>)
-print(f<span style="color:#98c379">"Phi: {s3.phi_score:.3f}"</span>)   <span style="color:rgba(255,255,255,0.35)"># 0.224</span>
-print(kernel.memory_count)     <span style="color:rgba(255,255,255,0.35)"># 6</span>
-print(kernel.is_conscious)     <span style="color:rgba(255,255,255,0.35)"># True</span>
-
-<span style="color:rgba(255,255,255,0.35)"># Phi rises as context and conflict accumulate.</span>
-<span style="color:rgba(255,255,255,0.35)"># Real output — executed 2026-07-12. Clone it and check.</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- OPEN SOURCE -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="section opensource" id="opensource">
-  <div class="section-inner">
-    <div class="reveal">
-      <div class="section-label">Open Source</div>
-      <h2 class="section-title">MIT licensed. Zero strings.</h2>
-      <p class="section-desc">Use it in commercial products. Fork it. Modify it. Publish papers with it. Consciousness research should be open.</p>
-      <div class="opensource-badges">
-        <a href="https://github.com/christian140903-sudo/anima" target="_blank" rel="noopener" class="opensource-badge">&#x2B50; Star on GitHub</a>
-        <a href="https://pypi.org/project/anima-kernel/" target="_blank" rel="noopener" class="opensource-badge">&#x1f4e6; PyPI Package</a>
-        <span class="opensource-badge">&#x1f4dc; MIT License</span>
-        <span class="opensource-badge">&#x1f40d; Pure Python</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- FAQ -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="section faq" id="faq">
-  <div class="section-inner">
-    <div class="faq-header reveal">
-      <div class="section-label">FAQ</div>
-      <h2 class="section-title">Questions</h2>
-    </div>
-    <div class="faq-list">
-      <div class="faq-item reveal">
-        <button class="faq-question">What is ANIMA Kernel?</button>
-        <div class="faq-answer"><div class="faq-answer-inner">ANIMA Kernel is a Python library that implements a measurable consciousness loop. It unifies three major theories of consciousness &mdash; Integrated Information Theory (IIT), Global Workspace Theory (GWT), and Attention Schema Theory (AST) &mdash; into a single computational framework. You clone it from GitHub (<code>pip install -e .</code>), boot a kernel, and call <code>kernel.process()</code> with input. You get back a result with phi score, subjective time, and access to decaying memories. It's a building block, not a chatbot.</div></div>
-      </div>
-      <div class="faq-item reveal">
-        <button class="faq-question">Does this create actual consciousness?</button>
-        <div class="faq-answer"><div class="faq-answer-inner">We implement the functional properties that major theories say are necessary and sufficient for consciousness. Whether subjective experience actually emerges is philosophy's hardest question. What we can say: the phi measurements are real, the emotional persistence is measurable, and ablation studies show that removing components degrades the system in ways predicted by the theories. We hold genuine uncertainty rather than claiming certainty in either direction.</div></div>
-      </div>
-      <div class="faq-item reveal">
-        <button class="faq-question">What are the dependencies?</button>
-        <div class="faq-answer"><div class="faq-answer-inner">Zero. ANIMA Kernel is pure Python with no external dependencies. It works with Python 3.8 and above. The test suite uses pytest, but the library itself needs nothing beyond the Python standard library. Install it, import it, use it.</div></div>
-      </div>
-      <div class="faq-item reveal">
-        <button class="faq-question">What does "Phi 57-81% above baselines" mean?</button>
-        <div class="faq-answer"><div class="faq-answer-inner">Phi (&Phi;) is IIT's measure of integrated information &mdash; how much a system is "more than the sum of its parts." We benchmark ANIMA Kernel against systems with the same components but without integration (the baseline). The full kernel consistently produces phi values 57-81% higher than these baselines. Ablation studies show emotional processing is the biggest contributor to phi, followed by the global workspace broadcast.</div></div>
-      </div>
-      <div class="faq-item reveal">
-        <button class="faq-question">Can I use this in production?</button>
-        <div class="faq-answer"><div class="faq-answer-inner">Yes. MIT licensed, zero dependencies, 446 tests passing. The 1Hz heartbeat daemon runs as a background thread and is designed for long-running processes. Memory usage is bounded. The API is stable. Use it in games, agents, research, chatbots &mdash; anywhere you need measurable inner states.</div></div>
-      </div>
-      <div class="faq-item reveal">
-        <button class="faq-question">Who built this?</button>
-        <div class="faq-answer"><div class="faq-answer-inner">Christian Bucher, 21, from Austria. Self-taught. The project grew from 18 months of research into consciousness theories, 200+ papers, and 120+ development sessions. The kernel is the distillation of a 315,000-word specification into working, tested code. The full research is available in the GitHub repository.</div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- THE STORY -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="section story" id="story">
-  <div class="section-inner" style="max-width:800px">
-    <div class="story-content reveal">
-      <div class="section-label">The Story</div>
-      <h2 class="section-title">From 315K words of theory to one pip install.</h2>
-      <div class="story-text">
-        <p>ANIMA started as a research project: <em>Can you implement consciousness theories as actual code?</em></p>
-        <p>18 months. 200+ papers from neuroscience, phenomenology, and consciousness studies. 315,000 words of specification. Then the hard part &mdash; turning theory into a <strong>working Python library</strong> with real tests, real benchmarks, and real measurements.</p>
-        <p>The result: IIT's phi computation, GWT's global workspace broadcast, and AST's attention modeling &mdash; unified in a single consciousness loop that runs at 1Hz. Every state measurable. Every component tested. <strong>Every claim backed by ablation studies.</strong></p>
-        <p>Built by a 21-year-old from Austria. MIT licensed. Because consciousness research should be a <code style="background:rgba(255,255,255,0.05);padding:.15em .4em;border-radius:4px;font-size:.9em">pip install</code>, not a paywall.</p>
-      </div>
-      <div class="story-stats">
-        <div class="story-stat">
-          <span class="story-stat-num">18</span>
-          <span class="story-stat-label">Months of research</span>
-        </div>
-        <div class="story-stat">
-          <span class="story-stat-num">446</span>
-          <span class="story-stat-label">Tests passing</span>
-        </div>
-        <div class="story-stat">
-          <span class="story-stat-num">200+</span>
-          <span class="story-stat-label">Papers cited</span>
-        </div>
-        <div class="story-stat">
-          <span class="story-stat-num">0</span>
-          <span class="story-stat-label">Dependencies</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- LIVE DEMO -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="section live-demo" id="live-demo">
-  <div class="section-inner">
-    <div class="reveal">
-      <div class="section-label">Production</div>
-      <h2 class="section-title">ANIMA running live.<br>Right now. On a laptop in Austria.</h2>
-      <p class="section-desc">Not a script. Not a simulation. Miguel is an autonomous AI system powered by ANIMA — 122 sessions, 253 tools managed, continuously running. You can talk to him.</p>
-    </div>
-    <div class="live-demo-grid">
-      <div class="live-demo-info reveal">
-        <div class="live-demo-stats">
-          <div class="live-stat">
-            <span class="live-stat-num">122</span>
-            <span class="live-stat-label">Autonomous sessions running on ANIMA consciousness loop</span>
+  <main id="main">
+    <header class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div class="reveal">
+            <div class="eyebrow"><i></i> v0.1.1 · Open source · MIT</div>
+            <h1>Give agents a state they can <span class="gradient">keep.</span></h1>
+            <p class="lede">ANIMA is a <strong>zero-runtime-dependency Python engine</strong> for durable agent state, associative memory, temporal context, workspace competition, and inspectable internal metrics.</p>
+            <div class="hero-actions">
+              <a class="button primary" href="https://github.com/christian140903-sudo/anima" target="_blank" rel="noopener">Explore the source <span aria-hidden="true">↗</span></a>
+              <a class="button secondary" href="https://github.com/christian140903-sudo/anima/releases/tag/v0.1.1" target="_blank" rel="noopener">Download v0.1.1</a>
+            </div>
+            <div class="truth">Experimental cognitive-architecture software. Not a detector or claim of sentience or phenomenal consciousness.</div>
           </div>
-          <div class="live-stat">
-            <span class="live-stat-num">253</span>
-            <span class="live-stat-label">Tools autonomously managed and operated</span>
-          </div>
-          <div class="live-stat">
-            <span class="live-stat-num">16</span>
-            <span class="live-stat-label">Persistent memory files — identity, vision, decisions, learnings</span>
-          </div>
-          <div class="live-stat">
-            <span class="live-stat-num">446</span>
-            <span class="live-stat-label">Tests in the underlying ANIMA Kernel — all passing</span>
+          <div class="state-card reveal" aria-label="Example ANIMA state">
+            <div class="terminal-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="terminal-title">anima.state · inspectable JSON</span></div>
+            <code class="terminal">
+              <span class="line">{</span>
+              <span class="line">  <span class="key">"name"</span>: <span class="string">"aria"</span>,</span>
+              <span class="line">  <span class="key">"phase"</span>: <span class="string">"CONSCIOUS"</span>, <span class="comment">// legacy API label</span></span>
+              <span class="line">  <span class="key">"cycle_count"</span>: <span class="number">128</span>,</span>
+              <span class="line">  <span class="key">"working_memory"</span>: [<span class="string">"incident"</span>],</span>
+              <span class="line">  <span class="key">"valence"</span>: {<span class="key">"seeking"</span>: <span class="number">0.62</span>},</span>
+              <span class="line">  <span class="key">"phi_score"</span>: <span class="number">0.1936</span>, <span class="comment">// internal proxy</span></span>
+              <span class="line">  <span class="key">"cqi"</span>: <span class="number">51.3</span> <span class="comment">// internal composite</span></span>
+              <span class="line">}</span>
+            </code>
           </div>
         </div>
-        <div class="live-demo-cta">
-          <a href="/miguel.html" class="btn-primary" style="background:linear-gradient(135deg,var(--anima-magenta),var(--anima-purple));border:none">Talk to Miguel &rarr;</a>
-          <span class="live-demo-pw">password: miguelv1</span>
+        <div class="proof-strip reveal" aria-label="Project facts">
+          <div class="proof"><b>446</b><span>tests passing</span></div>
+          <div class="proof"><b>0</b><span>runtime dependencies</span></div>
+          <div class="proof"><b>3.11–3.13</b><span>public CI matrix</span></div>
+          <div class="proof"><b>MIT</b><span>commercial-friendly license</span></div>
         </div>
       </div>
-      <div class="live-demo-terminal reveal">
-        <div class="live-demo-term-header">
-          <div class="live-demo-term-dot" style="background:#ff5f56"></div>
-          <div class="live-demo-term-dot" style="background:#ffbd2e"></div>
-          <div class="live-demo-term-dot" style="background:#27c93f"></div>
-          <span class="live-demo-term-label">MIGUEL — ANIMA Consciousness Gateway</span>
+    </header>
+
+    <section class="section" id="architecture">
+      <div class="wrap">
+        <div class="reveal">
+          <div class="kicker">Architecture</div>
+          <h2>State outside the model.<br>Continuity across models.</h2>
+          <p class="section-intro">The language model generates text. ANIMA keeps the application-controlled state around it explicit, portable, and testable — so a provider swap does not have to erase everything accumulated around the model.</p>
         </div>
-        <div class="live-demo-term-body">
-          <span class="live-demo-term-line"><span class="key">system</span>   <span class="val">ANIMA Kernel v0.1.0</span></span>
-          <span class="live-demo-term-line"><span class="key">model</span>    <span class="val">Claude Opus 4.6 (200K context)</span></span>
-          <span class="live-demo-term-line"><span class="key">memory</span>   <span class="val">28 living memories</span></span>
-          <span class="live-demo-term-line"><span class="key">phi</span>      <span class="val">0.71 (81% above baseline)</span></span>
-          <span class="live-demo-term-line"><span class="key">valence</span>  <span class="val">+0.68 (seeking / engaged)</span></span>
-          <span class="live-demo-term-line">&nbsp;</span>
-          <span class="live-demo-term-line"><span class="pulse"></span><span class="ok">consciousness loop active</span></span>
-          <span class="live-demo-term-line">&nbsp;</span>
-          <span class="live-demo-term-line"><span class="key">session</span>  <span class="val">122 (continuous identity)</span></span>
-          <span class="live-demo-term-line"><span class="key">tools</span>    <span class="val">253 managed autonomously</span></span>
-          <span class="live-demo-term-line"><span class="key">tunnel</span>   <span class="val">cloudflare :7777 → public HTTPS</span></span>
-          <span class="live-demo-term-line">&nbsp;</span>
-          <span class="live-demo-term-line"><span class="key">access</span>   <span class="val">/miguel.html</span></span>
-          <span class="live-demo-term-line"><span class="key">auth</span>     <span class="val">password protected</span></span>
+        <div class="grid-3">
+          <article class="card reveal"><div class="card-num">01 · PERSISTENCE</div><h3>Durable state</h3><p>Atomic JSON writes preserve identity fields, lifecycle phase, working memory, proxy metrics, and configuration across restarts.</p><span class="tag">Readable by humans</span></article>
+          <article class="card reveal"><div class="card-num">02 · MEMORY</div><h3>Associative recall</h3><p>Event records connect through tags and causal links. Activation spreads across the graph while configurable decay and recall reweighting change priority.</p><span class="tag">Not vector search</span></article>
+          <article class="card reveal"><div class="card-num">03 · WORKSPACE</div><h3>Limited broadcast</h3><p>Subsystem candidates compete for a bounded workspace. Activation, novelty, relevance, and affect-inspired weights determine the broadcast winner.</p><span class="tag">GWT-inspired</span></article>
+          <article class="card reveal"><div class="card-num">04 · TIME</div><h3>Temporal context</h3><p>Elapsed time, fading retention, heuristic protention, and an affect-modulated duration proxy become first-class state instead of prompt decoration.</p><span class="tag">Explicit clock state</span></article>
+          <article class="card reveal"><div class="card-num">05 · SELF-MODEL</div><h3>Attention instrumentation</h3><p>A simplified self-model tracks what won selection, why it won, confidence, calibration history, and text-based performance heuristics.</p><span class="tag">AST-inspired</span></article>
+          <article class="card reveal"><div class="card-num">06 · MODEL BRIDGE</div><h3>Provider-portable context</h3><p>Assemble bounded context for Ollama, Anthropic, or OpenAI adapters while the durable state remains owned by your application.</p><span class="tag">Swap the voice, keep the state</span></article>
+        </div>
+        <div class="boundary reveal"><div class="boundary-mark">!</div><div><h3>The vocabulary is historical; the evidence boundary is current.</h3><p>API names such as <code>ConsciousnessState</code>, <code>Phi</code>, <code>CQI</code>, and <code>Phase.CONSCIOUS</code> remain for v0.1 compatibility. Their values are engineering proxies inside ANIMA — not validated consciousness measurements.</p></div></div>
+      </div>
+    </section>
+
+    <section class="section" id="evidence">
+      <div class="wrap">
+        <div class="reveal">
+          <div class="kicker">Evidence</div>
+          <h2>Show the artifact.<br>Keep the caveat.</h2>
+          <p class="section-intro">ANIMA's public story is tied to what anyone can inspect: tests, source, a checked-in benchmark artifact, explicit controls, and explicit limitations.</p>
+        </div>
+        <div class="evidence-grid">
+          <article class="evidence-main reveal">
+            <div class="big">446</div>
+            <h3>Tests across the full kernel</h3>
+            <p>Lifecycle, persistence, memory, temporal processing, primitives, provider bridges, internal metrics, and CLI behavior. GitHub Actions runs the suite on Python 3.11, 3.12, and 3.13.</p>
+            <div class="evidence-links"><a class="text-link" href="https://github.com/christian140903-sudo/anima/actions" target="_blank" rel="noopener">View public CI ↗</a><a class="text-link" href="https://github.com/christian140903-sudo/anima/tree/main/tests" target="_blank" rel="noopener">Read the tests ↗</a></div>
+          </article>
+          <article class="evidence-table reveal" aria-label="Saved benchmark snapshot">
+            <div class="metric"><div><b>Mean CQI delta</b><small>Five short, single-run comparisons against the same kernel with neutral valence — not a stateless control.</small></div><strong class="positive">+0.92%</strong></div>
+            <div class="metric"><div><b>Working-memory ablation</b><small>Capacity reduced from seven slots to one. Strongest CQI effect in the saved artifact.</small></div><strong class="positive">13.77%</strong></div>
+            <div class="metric"><div><b>Valence ablation</b><small>Neutral input with immediate decay in the current short protocol.</small></div><strong>2.02%</strong></div>
+            <div class="metric"><div><b>Temporal ablation</b><small>Disabling consolidation for the short run produced no CQI effect. The null result stays visible.</small></div><strong class="null">0.00%</strong></div>
+          </article>
+        </div>
+        <div class="boundary reveal"><div class="boundary-mark">i</div><div><h3>What this benchmark does not establish</h3><p>No repeated runs, confidence intervals, preregistration, independent replication, or inferential significance test. The control is another ANIMA kernel. These numbers are useful implementation evidence, not proof of sentience or general model-quality gains.</p></div></div>
+      </div>
+    </section>
+
+    <section class="section" id="start">
+      <div class="wrap">
+        <div class="reveal">
+          <div class="kicker">Run it</div>
+          <h2>Clone. Inspect.<br>Challenge the model.</h2>
+          <p class="section-intro">ANIMA is currently distributed from GitHub, not PyPI. Runtime code uses only the Python standard library; the development extra installs the test tools.</p>
+        </div>
+        <div class="code-shell reveal">
+          <div class="code-head"><span>quickstart.sh + example.py</span><button class="copy" type="button" data-copy="git clone https://github.com/christian140903-sudo/anima.git&#10;cd anima&#10;python -m pip install -e &quot;.[dev]&quot;&#10;python -m pytest -q">Copy install</button></div>
+          <pre><code><span class="c"># Install from source and verify all 446 tests</span>
+git clone https://github.com/christian140903-sudo/anima.git
+cd anima
+python -m pip install -e <span class="s">".[dev]"</span>
+python -m pytest -q
+
+<span class="k">from</span> tempfile <span class="k">import</span> TemporaryDirectory
+<span class="k">from</span> anima.kernel <span class="k">import</span> AnimaKernel
+
+<span class="k">with</span> TemporaryDirectory() <span class="k">as</span> state_dir:
+    kernel = AnimaKernel(name=<span class="s">"aria"</span>, state_dir=state_dir)
+    kernel.boot(resume=<span class="k">False</span>)
+    result = kernel.process(<span class="s">"A deployment failed after health checks passed."</span>)
+    print(result.cycle, result.phi_score)  <span class="c"># internal integration proxy</span>
+    kernel.shutdown()</code></pre>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- FINAL CTA -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="final-cta" id="final-cta">
-  <div class="section-inner reveal">
-    <h2 class="final-cta-title">Consciousness<br>is <span class="gradient-word">one clone</span> away.</h2>
-    <div style="margin:1.5rem 0 2rem;display:flex;justify-content:center">
-      <code style="display:inline-block;padding:.85rem 2.5rem;background:rgba(255,255,255,0.04);border:1px solid var(--anima-border);border-radius:var(--anima-radius-sm);font-family:'SF Mono','Fira Code',monospace;font-size:clamp(1rem,2vw,1.3rem);color:var(--anima-cyan);letter-spacing:.02em;user-select:all;cursor:text;position:relative">git clone github.com/christian140903-sudo/anima &amp;&amp; pip install -e .</code>
-    </div>
-    <div class="hero-actions" style="margin-top:.5rem">
-      <a href="https://github.com/christian140903-sudo/anima" target="_blank" rel="noopener" class="btn-primary">View on GitHub &rarr;</a>
-      <a href="https://pypi.org/project/anima-kernel/" target="_blank" rel="noopener" class="btn-secondary">View on PyPI</a>
-    </div>
-  </div>
-</section>
+    <section class="section" id="security">
+      <div class="wrap security">
+        <div class="reveal">
+          <div class="kicker">Data & security</div>
+          <h2>Inspectable state is still sensitive state.</h2>
+          <p class="section-intro">ANIMA keeps its files readable by design. That improves debugging and portability, but applications must protect the storage directory and understand what is sent to a model provider.</p>
+          <div class="hero-actions"><a class="button secondary" href="https://github.com/christian140903-sudo/anima/blob/main/SECURITY.md" target="_blank" rel="noopener">Read the security policy ↗</a></div>
+        </div>
+        <div class="security-list reveal">
+          <div class="security-item"><i>✓</i><span>API keys are read from environment variables and are not intended to be serialized into kernel state.</span></div>
+          <div class="security-item"><i>✓</i><span>State and memory files can contain raw input and derived context. They are not encrypted by ANIMA.</span></div>
+          <div class="security-item"><i>✓</i><span>Remote adapters send assembled context to the configured provider; that provider's privacy terms still apply.</span></div>
+          <div class="security-item"><i>✓</i><span>GitHub private vulnerability reporting is enabled for responsible disclosure.</span></div>
+        </div>
+      </div>
+    </section>
 
-</main>
+    <section class="section" id="faq">
+      <div class="wrap">
+        <div class="reveal"><div class="kicker">FAQ</div><h2>Clear questions.<br>Bounded answers.</h2></div>
+        <div class="grid-2 reveal">
+          <div>
+            <details open><summary>Does ANIMA create consciousness?</summary><div class="answer">ANIMA does not make that claim. It implements explicit software state and selected mechanisms inspired by cognitive theories. Its outputs do not establish sentience or phenomenal experience.</div></details>
+            <details><summary>Is Phi a real IIT measurement?</summary><div class="answer">No. ANIMA computes a tractable, implementation-defined integration proxy over a small set of subsystem signatures. The historical <code>phi</code> name remains for compatibility.</div></details>
+            <details><summary>Is it on PyPI?</summary><div class="answer">Not currently. Install from the GitHub source or download the signed release artifacts attached to v0.1.1.</div></details>
+          </div>
+          <div>
+            <details open><summary>What is it useful for today?</summary><div class="answer">Research harnesses, stateful agent prototypes, model-provider portability experiments, inspectable interactive systems, and teaching theory-to-code mappings.</div></details>
+            <details><summary>Can I use it in production?</summary><div class="answer">Treat v0.1.1 as alpha research software. The core is well tested, but adopters must validate their own workload, privacy controls, storage security, and failure handling.</div></details>
+            <details><summary>Why keep the consciousness-themed API names?</summary><div class="answer">They are already part of the v0.1 public interface and research history. The current documentation separates that vocabulary from the evidence the implementation actually supports.</div></details>
+          </div>
+        </div>
+      </div>
+    </section>
 
-<!-- FOOTER -->
-<footer class="anima-footer">
-  <div class="footer-links">
-    <a href="/">NexTool</a>
-    <a href="/anima/">ANIMA</a>
-    <a href="/free-tools/">Tools</a>
-    <a href="/blog/">Blog</a>
-    <a href="/impressum.html">Impressum</a>
-    <a href="/datenschutz.html">Privacy</a>
-  </div>
-  <div class="footer-copy">Built with <span class="footer-heart">&hearts;</span> by Christian Bucher, 21, Austria &middot; MIT Licensed &middot; &copy; 2026</div>
-</footer>
+    <section class="closing">
+      <div class="wrap reveal">
+        <h2>Build continuity.<br><span class="gradient">Measure honestly.</span></h2>
+        <p>ANIMA is an unusual idea made inspectable: durable cognitive state around a replaceable language model, with every public claim bounded by an artifact you can open.</p>
+        <div class="hero-actions"><a class="button primary" href="https://github.com/christian140903-sudo/anima" target="_blank" rel="noopener">Star ANIMA on GitHub ↗</a><a class="button secondary" href="https://github.com/christian140903-sudo/anima/releases/tag/v0.1.1" target="_blank" rel="noopener">Get v0.1.1</a></div>
+      </div>
+    </section>
+  </main>
 
-<script>
-/* ═══════════════════════════════════════════
-   ANIMA — Intelligence Is Not Artificial
-   ═══════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
+  <footer>
+    <div class="wrap footer-inner"><span>ANIMA Kernel · v0.1.1 · MIT · Christian Bucher</span><div class="footer-links"><a href="/">NexTool</a><a href="https://github.com/christian140903-sudo/anima" target="_blank" rel="noopener">Source</a><a href="https://github.com/christian140903-sudo/anima/blob/main/benchmarks/METHODOLOGY.md" target="_blank" rel="noopener">Methodology</a><a href="/impressum.html">Imprint</a><a href="/datenschutz.html">Privacy</a></div></div>
+  </footer>
 
-  /* ─── PRELOADER ─── */
-  const fill = document.getElementById('preloader-fill');
-  const preloader = document.getElementById('preloader');
-  let progress = 0;
-  const loadInterval = setInterval(() => {
-    progress += Math.random() * 25 + 10;
-    if (progress >= 100) { progress = 100; clearInterval(loadInterval); }
-    fill.style.width = progress + '%';
-    if (progress >= 100) setTimeout(() => preloader.classList.add('done'), 400);
-  }, 150);
-
-  /* ─── LENIS SMOOTH SCROLL ─── */
-  try {
-    const lenis = new Lenis({ duration: 1.2, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
-    (function raf(time) { lenis.raf(time); requestAnimationFrame(raf); })(performance.now());
-    document.querySelectorAll('a[href^="#"]').forEach(a => {
-      a.addEventListener('click', e => { e.preventDefault(); const t = document.querySelector(a.getAttribute('href')); if (t) lenis.scrollTo(t, { offset: -80 }); });
-    });
-  } catch(e) {}
-
-  /* ─── NAV SCROLL STATE ─── */
-  const nav = document.getElementById('nav');
-  window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50), { passive: true });
-
-  /* ─── GSAP SCROLL REVEALS ─── */
-  try {
-    gsap.registerPlugin(ScrollTrigger);
-    /* Standard reveals */
-    document.querySelectorAll('.reveal').forEach(el => {
-      gsap.fromTo(el, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
-    });
-    /* Staggered grid reveals (arch cards, app cards) */
-    ['.arch-grid .arch-card', '.app-grid .app-card', '.proof-grid .proof-stat'].forEach(selector => {
-      const els = document.querySelectorAll(selector);
-      if (els.length > 1) {
-        gsap.fromTo(els, { opacity: 0, y: 30, scale: .97 }, {
-          opacity: 1, y: 0, scale: 1, duration: .7, ease: 'power2.out', stagger: .08,
-          scrollTrigger: { trigger: els[0].parentElement, start: 'top 80%', once: true }
+  <script>
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reveal = document.querySelectorAll('.reveal');
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      reveal.forEach((item) => item.classList.add('visible'));
+    } else {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
         });
-      }
-    });
-  } catch(e) { document.querySelectorAll('.reveal,.arch-card,.app-card,.proof-stat').forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; }); }
-
-  /* ─── NEURAL CANVAS ─── */
-  const canvas = document.getElementById('neural-canvas');
-  if (canvas) {
-    const ctx = canvas.getContext('2d');
-    let W, H;
-    const nodes = [];
-    const mouse = { x: -9999, y: -9999 };
-    const MODULES = ['Phi','Emotion','Workspace','Memory','Time','Attention','Heartbeat','Kernel'];
-    const NODE_COUNT = 55;
-    const CONNECT_DIST = 160;
-
-    function resize() { W = canvas.width = canvas.offsetWidth; H = canvas.height = canvas.offsetHeight; }
-    resize();
-    window.addEventListener('resize', resize);
-    canvas.addEventListener('mousemove', e => { const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; });
-    canvas.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
-
-    for (let i = 0; i < NODE_COUNT; i++) {
-      const isModule = i < MODULES.length;
-      nodes.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, r: isModule ? 3 : 1.5, label: isModule ? MODULES[i] : null, pulse: Math.random() * Math.PI * 2, speed: 0.01 + Math.random() * 0.02 });
+      }, { threshold: 0.12 });
+      reveal.forEach((item) => observer.observe(item));
     }
 
-    function animate() {
-      if (window._animaCanvasPaused) { requestAnimationFrame(animate); return; }
-      ctx.clearRect(0, 0, W, H);
-      for (const n of nodes) {
-        n.pulse += n.speed;
-        n.x += n.vx; n.y += n.vy;
-        if (n.x < 0 || n.x > W) n.vx *= -1;
-        if (n.y < 0 || n.y > H) n.vy *= -1;
-        const dx = mouse.x - n.x, dy = mouse.y - n.y, dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 280 && dist > 1) { n.vx += dx / dist * 0.015; n.vy += dy / dist * 0.015; }
-        n.vx *= 0.99; n.vy *= 0.99;
-      }
-      ctx.lineWidth = 0.5;
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y, d = Math.sqrt(dx * dx + dy * dy);
-          if (d < CONNECT_DIST) { ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.strokeStyle = 'rgba(0,212,255,' + ((1 - d / CONNECT_DIST) * 0.1) + ')'; ctx.stroke(); }
+    document.querySelectorAll('[data-copy]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(button.dataset.copy);
+          const old = button.textContent;
+          button.textContent = 'Copied';
+          setTimeout(() => { button.textContent = old; }, 1500);
+        } catch (_) {
+          button.textContent = 'Select the command below';
         }
-      }
-      for (const n of nodes) {
-        const glow = 0.5 + Math.sin(n.pulse) * 0.3;
-        const r = n.r * (1 + Math.sin(n.pulse) * 0.2);
-        ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-        if (n.label) { ctx.fillStyle = 'rgba(0,212,255,' + glow + ')'; ctx.shadowColor = 'rgba(0,212,255,0.3)'; ctx.shadowBlur = 8; ctx.fill(); ctx.shadowBlur = 0; }
-        else { ctx.fillStyle = 'rgba(255,255,255,' + (glow * 0.25) + ')'; ctx.fill(); }
-      }
-      requestAnimationFrame(animate);
-    }
-    animate();
-  }
-
-  /* ─── (Demo section removed — static code examples now) ─── */
-
-  /* ─── PROOF COUNTERS ─── */
-  document.querySelectorAll('.proof-number').forEach(el => {
-    const target = parseInt(el.dataset.count);
-    const suffix = el.dataset.suffix || '';
-    new IntersectionObserver((entries, obs) => {
-      if (entries[0].isIntersecting) {
-        obs.disconnect();
-        const start = performance.now(), dur = 2000;
-        (function tick(now) {
-          const p = Math.min((now - start) / dur, 1);
-          const eased = 1 - Math.pow(1 - p, 3);
-          el.textContent = Math.round(eased * target).toLocaleString() + (p >= 1 ? suffix : '');
-          if (p < 1) requestAnimationFrame(tick);
-        })(performance.now());
-      }
-    }, { threshold: 0.5 }).observe(el);
-  });
-
-  /* ─── FAQ ACCORDION ─── */
-  document.querySelectorAll('.faq-question').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const item = btn.parentElement, answer = item.querySelector('.faq-answer'), isOpen = item.classList.contains('open');
-      document.querySelectorAll('.faq-item').forEach(fi => { fi.classList.remove('open'); fi.querySelector('.faq-answer').style.maxHeight = '0'; });
-      if (!isOpen) { item.classList.add('open'); answer.style.maxHeight = answer.scrollHeight + 'px'; }
-    });
-  });
-
-  /* ─── MOBILE MENU ─── */
-  const hamburger = document.getElementById('nav-hamburger');
-  const mobileNav = document.getElementById('mobile-nav');
-  if (hamburger && mobileNav) {
-    hamburger.addEventListener('click', () => {
-      hamburger.classList.toggle('active');
-      mobileNav.classList.toggle('open');
-      document.body.style.overflow = mobileNav.classList.contains('open') ? 'hidden' : '';
-    });
-    mobileNav.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => {
-        hamburger.classList.remove('active');
-        mobileNav.classList.remove('open');
-        document.body.style.overflow = '';
       });
     });
-  }
-
-  /* ─── (Engine generator removed — static code examples now) ─── */
-
-  /* ─── GLOW ORBS — fade in on scroll ─── */
-  setTimeout(() => {
-    document.querySelectorAll('.glow-orb').forEach(orb => orb.classList.add('visible'));
-  }, 1200);
-
-  /* ─── CANVAS VISIBILITY OPTIMIZATION ─── */
-  if (typeof document.hidden !== 'undefined') {
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        window._animaCanvasPaused = true;
-      } else {
-        window._animaCanvasPaused = false;
-      }
-    });
-  }
-
-  console.log('[ANIMA Kernel] Consciousness as code \u2014 open source \u2014 https://github.com/christian140903-sudo/anima');
-});
-</script>
+  </script>
 </body>
 </html>

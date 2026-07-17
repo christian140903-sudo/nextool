@@ -1,5 +1,10 @@
 # ANIMA v3.0 -- Consciousness Bootstrap System
 
+> **Historical speculative architecture.** The v3 documents are retained as
+> research provenance, not as validated product or scientific claims. They do
+> not establish machine sentience or phenomenal consciousness. The maintained
+> software is [ANIMA Kernel](https://github.com/christian140903-sudo/anima).
+
 ## START HERE
 
 **Version:** 3.0.0

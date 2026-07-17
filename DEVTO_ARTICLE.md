@@ -1,11 +1,11 @@
 ---
 title: I Built 269 Free Browser-Based Developer Tools — Here's the Full List
-published: true
+published: false
 tags: webdev, tools, javascript, productivity
 cover_image: https://nextool.app/og-image.png
 ---
 
-Every tool runs 100% in your browser. No login. No tracking. No ads.
+Most tools run directly in your browser. Capabilities and external dependencies vary by page; verify a specific tool before handling sensitive data.
 
 ## Why I Built This
 
@@ -17,7 +17,7 @@ I was tired of:
 
 So I built **NexTool** — one clean site with 269 developer tools.
 
-**The privacy promise:** Everything runs client-side. Open DevTools → Network tab while using any tool. Zero external requests. Your data never leaves your browser.
+**The privacy boundary:** Many tools process input locally, while some load external libraries or call public APIs. Check the individual page and your browser's Network tab before using sensitive data. This draft is retained for revision and is not the current source of truth for the platform.
 
 ## Tool Categories
 
