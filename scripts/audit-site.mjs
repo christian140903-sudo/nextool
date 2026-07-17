@@ -150,11 +150,18 @@ for (const slug of uniqueToolSlugs) {
 
 const homeSource = readFileSync(join(root, 'index.html'), 'utf8');
 const soulSource = readFileSync(join(root, 'soul/index.html'), 'utf8');
+const proofspecSource = readFileSync(join(root, 'proofspec/index.html'), 'utf8');
 const servicesSource = readFileSync(join(root, 'services/index.html'), 'utf8');
 if (!/data-count="269"/.test(homeSource) || !/data-count="131"/.test(homeSource)) errors.push('home page evidence counters are stale');
 if (!/Soul MCP 4\.0\.1/.test(homeSource)) errors.push('home page Soul release is stale');
 if (!/Soul MCP 4\.0\.1/.test(soulSource) || !/23 Tools \+ 8 Resources \+ 3 Prompts/.test(soulSource) || !/>358</.test(soulSource)) {
   errors.push('Soul product page release evidence is stale');
+}
+if (!/Proofspec 0\.1\.0/.test(proofspecSource) || !/>70 \/ 70</.test(proofspecSource) || !/>98\.05%</.test(proofspecSource)) {
+  errors.push('Proofspec product page release evidence is stale');
+}
+if (/npmjs\.com\/package\/proofspec/.test(proofspecSource)) {
+  errors.push('Proofspec product page claims an npm surface before registry publication');
 }
 if (!/269 public tool pages/.test(servicesSource) || !/131 technical guides/.test(servicesSource)) {
   errors.push('services page public evidence is stale');
