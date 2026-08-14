@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — Soul</title>
+<meta name="description" content="Soul-Dashboard: API-Keys für den Soul 4.1.0 Proxy verwalten.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#050505">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23050505'/><circle cx='16' cy='16' r='6' fill='%234f46e5'/></svg>">
+<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/JetBrainsMono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/soul.css">
+<noscript><style>.rev{opacity:1!important;transform:none!important}</style></noscript>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+
+<nav class="bar">
+  <div class="in">
+    <a href="index.html" class="brand"><span class="dot"></span>nextool<span class="sub">/soul</span></a>
+    <div class="links">
+      <a href="index.html">Übersicht</a>
+      <a href="docs.html">Docs</a>
+    </div>
+    <a href="#" id="logout" class="cta">Abmelden</a>
+  </div>
+</nav>
+
+<!-- Solange die Sitzung nicht geprüft ist, wird nichts gezeigt: kein Aufblitzen
+     eines Dashboards, das gleich wieder verschwindet. -->
+<div id="gate" class="wrap" style="padding-top:5rem;text-align:center;color:var(--tx-3)">
+  <span class="spinner"></span>
+  <p class="mono" style="font-size:.85rem;margin-top:.8rem">Sitzung wird geprüft …</p>
+</div>
+
+<main id="main" class="hidden">
+  <div class="wrap">
+    <header class="dash-head">
+      <p class="eyebrow">Dashboard</p>
+      <h1 id="greeting">Willkommen</h1>
+      <p class="who">Angemeldet als <code id="who-email">—</code></p>
+    </header>
+  </div>
+
+  <div class="wrap" style="padding-top:2rem;padding-bottom:4rem">
+
+    <!-- Statuszeile der Proxy-API -->
+    <div id="api-status" class="note-box wip">
+      <div class="h"><span class="spinner"></span> Proxy-API wird geprüft …</div>
+      <p>Einen Moment — wir fragen <code class="inline" id="api-base">api.nextool.app</code> an.</p>
+    </div>
+
+    <!-- API-Keys -->
+    <section class="panel" style="margin-top:1.5rem">
+      <div class="ph">
+        <h2>API-Keys <span class="badge" id="key-count" style="font-weight:400">—</span></h2>
+        <button type="button" class="btn sm primary" id="new-key" disabled>Neuen Key erstellen</button>
+        <p>
+          Schlüssel für <code class="inline">Authorization: Bearer soul_live_…</code> am
+          Endpunkt <code class="inline">/v1/chat/completions</code>. Ein Schlüssel wird
+          nur einmal im Klartext angezeigt — danach nie wieder.
+        </p>
+      </div>
+
+      <!-- Formular zum Anlegen -->
+      <div class="pb hidden" id="create-form" style="border-bottom:1px solid var(--line);background:var(--bg-2)">
+        <label class="field" style="margin-bottom:.8rem">
+          <span>Bezeichnung</span>
+          <input type="text" id="key-name" maxlength="60" placeholder="z. B. Laptop, CI, Produktion">
+        </label>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button type="button" class="btn sm primary" id="create-confirm">Erstellen</button>
+          <button type="button" class="btn sm ghost" id="create-cancel">Abbrechen</button>
+        </div>
+      </div>
+
+      <!-- Einmalige Anzeige eines frisch erzeugten Schlüssels -->
+      <div class="pb hidden" id="fresh-key" style="border-bottom:1px solid var(--line)">
+        <div class="note-box acc" style="margin:0">
+          <div class="h">Einmalige Anzeige — jetzt kopieren</div>
+          <p>Dieser Schlüssel wird nicht erneut angezeigt. Speichere ihn an einem sicheren Ort.</p>
+          <div class="reveal-key" id="fresh-key-value"></div>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+            <button type="button" class="btn sm ghost" id="fresh-copy">Kopieren</button>
+            <button type="button" class="btn sm ghost" id="fresh-done">Habe ich gespeichert</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pb flush" id="key-area">
+        <div class="empty">
+          <span class="spinner"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Was jetzt schon geht -->
+    <section class="panel">
+      <div class="ph">
+        <h2>Soul 4.0.1 — schon jetzt nutzbar</h2>
+        <p>Der Gedächtnis-Kernel braucht weder Konto noch Schlüssel. Er läuft lokal.</p>
+      </div>
+      <div class="pb">
+        <div class="copywrap">
+<div class="code-block" style="margin:0">npx -y soul-mcp init
+claude mcp add soul -- npx -y soul-mcp</div>
+        </div>
+        <p style="color:var(--tx-3);font-size:.88rem;margin:.9rem 0 0">
+          Fünf-Minuten-Demo und vollständige Werkzeugliste in den
+          <a href="docs.html#quickstart" style="color:var(--acc-3);border-bottom:1px solid var(--acc-line)">Docs</a>.
+        </p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="site" id="foot" style="margin-top:0">
+  <div class="wrap">
+    <div class="fine">
+      <span>© <span data-year>2026</span> Christian Bucher</span>
+      <span><a href="index.html" style="color:var(--tx-2)">Soul</a></span>
+      <span><a href="/impressum.html" style="color:var(--tx-2)">Impressum</a></span>
+      <span><a href="/datenschutz.html" style="color:var(--tx-2)">Datenschutz</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="vendor/supabase-js-2.112.3.min.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/site.js" defer></script>
+<script>
+(function () {
+  'use strict';
+  var A = window.SoulAuth;
+  var Api = window.SoulApi;
+
+  var gate = document.getElementById('gate');
+  var main = document.getElementById('main');
+  var statusBox = document.getElementById('api-status');
+  var keyArea = document.getElementById('key-area');
+  var keyCount = document.getElementById('key-count');
+  var newKeyBtn = document.getElementById('new-key');
+  var createForm = document.getElementById('create-form');
+  var keyNameInput = document.getElementById('key-name');
+  var freshBox = document.getElementById('fresh-key');
+  var freshValue = document.getElementById('fresh-key-value');
+
+  var token = null;
+  var apiReachable = false;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function fmtDate(v) {
+    if (!v) return '—';
+    var d = new Date(v);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('de-AT', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  }
+
+  /* ---------- Zugangskontrolle ---------- */
+
+  if (!A.isConfigured) {
+    gate.innerHTML =
+      '<div class="note-box err" style="text-align:left;max-width:38rem;margin:0 auto">' +
+      '<div class="h">Nicht konfiguriert</div>' +
+      '<p>Supabase ist auf dieser Instanz nicht eingerichtet — ohne Anmeldung gibt es kein Dashboard. ' +
+      'SUPABASE_URL und SUPABASE_ANON_KEY in <code class="inline">assets/config.js</code> setzen.</p></div>';
+    document.getElementById('foot').classList.remove('hidden');
+    return;
+  }
+
+  A.getSession().then(function (session) {
+    if (!session) {
+      window.location.replace('login.html');
+      return;
+    }
+    token = session.access_token;
+    var user = session.user;
+
+    var name = A.displayName(user);
+    document.getElementById('greeting').textContent = name ? 'Willkommen, ' + name : 'Willkommen';
+    document.getElementById('who-email').textContent = user.email || '—';
+
+    gate.classList.add('hidden');
+    main.classList.remove('hidden');
+
+    probeApi();
+  });
+
+  document.getElementById('logout').addEventListener('click', function (e) {
+    e.preventDefault();
+    A.signOut().then(function () {
+      window.location.replace('index.html');
+    });
+  });
+
+  /* ---------- Zustand der Proxy-API ---------- */
+
+  document.getElementById('api-base').textContent = Api.base || '(nicht konfiguriert)';
+
+  function showOffline(detail) {
+    apiReachable = false;
+    statusBox.className = 'note-box wip';
+    statusBox.innerHTML =
+      '<div class="h"><span class="badge wip" style="padding:.18rem .45rem"><span class="bdot"></span>Proxy-API noch nicht live</span></div>' +
+      '<p>Der Soul-4.1.0-Proxy unter <code class="inline">' +
+      esc(Api.base) +
+      '</code> ist derzeit nicht erreichbar. Das ist der erwartete Zustand: der Dienst ist in Entwicklung und noch nicht deployt.</p>' +
+      '<p>Solange das so ist, lassen sich keine Schlüssel erzeugen. Wir zeigen hier bewusst keine Beispielschlüssel an — ein Schlüssel, der nirgends gilt, wäre schlimmer als keiner.</p>' +
+      (detail ? '<p class="dim mono" style="font-size:.78rem">Details: ' + esc(detail) + '</p>' : '');
+
+    newKeyBtn.disabled = true;
+    newKeyBtn.title = 'Erst möglich, wenn die Proxy-API erreichbar ist';
+    keyCount.textContent = 'nicht verfügbar';
+
+    keyArea.innerHTML =
+      '<div class="empty">' +
+      '<p class="big">Keine Schlüsselverwaltung möglich</p>' +
+      '<p>Sobald der Proxy live ist, erscheinen deine Schlüssel hier — mit Bezeichnung, Erstellungsdatum und der Möglichkeit, sie zu widerrufen.</p>' +
+      '</div>';
+  }
+
+  function showOnline() {
+    apiReachable = true;
+    statusBox.className = 'note-box acc';
+    statusBox.innerHTML =
+      '<div class="h"><span class="badge live" style="padding:.18rem .45rem"><span class="bdot"></span>Proxy-API erreichbar</span></div>' +
+      '<p>Verbunden mit <code class="inline">' +
+      esc(Api.base) +
+      '</code>.</p>';
+    newKeyBtn.disabled = false;
+    newKeyBtn.title = '';
+  }
+
+  function probeApi() {
+    Api.health().then(function (ok) {
+      if (!ok) {
+        showOffline(null);
+        return;
+      }
+      showOnline();
+      loadKeys();
+    });
+  }
+
+  /* ---------- Schlüssel laden ---------- */
+
+  function loadKeys() {
+    keyArea.innerHTML = '<div class="empty"><span class="spinner"></span></div>';
+    Api.listKeys(token).then(
+      function (keys) {
+        renderKeys(keys);
+      },
+      function (err) {
+        if (err.kind === 'offline' || err.kind === 'notfound' || err.kind === 'bad') {
+          showOffline(err.message);
+        } else if (err.kind === 'auth') {
+          keyArea.innerHTML =
+            '<div class="empty"><p class="big">Sitzung nicht akzeptiert</p>' +
+            '<p>Die API hat die Anmeldung abgelehnt. Bitte neu anmelden.</p></div>';
+        } else {
+          keyArea.innerHTML =
+            '<div class="empty"><p class="big">Laden fehlgeschlagen</p><p>' + esc(err.message) + '</p></div>';
+        }
+      }
+    );
+  }
+
+  function renderKeys(keys) {
+    keyCount.textContent = keys.length === 1 ? '1 Schlüssel' : keys.length + ' Schlüssel';
+
+    if (!keys.length) {
+      keyArea.innerHTML =
+        '<div class="empty">' +
+        '<p class="big">Noch kein Schlüssel angelegt</p>' +
+        '<p>Erstelle einen Schlüssel, um den Proxy mit einem OpenAI-kompatiblen SDK anzusprechen.</p>' +
+        '</div>';
+      return;
+    }
+
+    var rows = keys
+      .map(function (k) {
+        var id = k.id || k.key_id || '';
+        var revoked = !!(k.revoked || k.revoked_at);
+        return (
+          '<tr' +
+          (revoked ? ' style="opacity:.5"' : '') +
+          '><td>' +
+          esc(k.name || 'ohne Bezeichnung') +
+          '</td><td class="mono">' +
+          esc(k.prefix || k.masked || 'soul_live_…') +
+          '</td><td class="mono">' +
+          esc(fmtDate(k.created_at || k.created)) +
+          '</td><td class="mono">' +
+          esc(k.last_used_at ? fmtDate(k.last_used_at) : 'nie benutzt') +
+          '</td><td class="act">' +
+          (revoked
+            ? '<span class="badge">widerrufen</span>'
+            : '<button type="button" class="btn sm danger" data-revoke="' + esc(id) + '">Widerrufen</button>') +
+          '</td></tr>'
+        );
+      })
+      .join('');
+
+    keyArea.innerHTML =
+      '<table class="keys"><thead><tr>' +
+      '<th scope="col">Bezeichnung</th><th scope="col">Schlüssel</th>' +
+      '<th scope="col">Erstellt</th><th scope="col">Zuletzt benutzt</th><th scope="col"></th>' +
+      '</tr></thead><tbody>' +
+      rows +
+      '</tbody></table>';
+
+    [].slice.call(keyArea.querySelectorAll('[data-revoke]')).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-revoke');
+        if (!window.confirm('Diesen Schlüssel dauerhaft widerrufen? Anfragen damit werden sofort abgelehnt.')) return;
+        btn.disabled = true;
+        btn.textContent = 'Wird widerrufen …';
+        Api.revokeKey(token, id).then(loadKeys, function (err) {
+          btn.disabled = false;
+          btn.textContent = 'Widerrufen';
+          window.alert('Widerruf fehlgeschlagen: ' + err.message);
+        });
+      });
+    });
+  }
+
+  /* ---------- Schlüssel anlegen ---------- */
+
+  newKeyBtn.addEventListener('click', function () {
+    if (!apiReachable) return;
+    createForm.classList.remove('hidden');
+    keyNameInput.value = '';
+    keyNameInput.focus();
+  });
+
+  document.getElementById('create-cancel').addEventListener('click', function () {
+    createForm.classList.add('hidden');
+  });
+
+  document.getElementById('create-confirm').addEventListener('click', function () {
+    var btn = this;
+    var name = keyNameInput.value.trim();
+    if (!name) {
+      keyNameInput.focus();
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Wird erstellt …';
+    Api.createKey(token, name).then(
+      function (data) {
+        btn.disabled = false;
+        btn.textContent = 'Erstellen';
+        createForm.classList.add('hidden');
+
+        var secret = data && (data.key || data.secret || data.api_key);
+        if (secret) {
+          freshValue.textContent = secret;
+          freshBox.classList.remove('hidden');
+        }
+        loadKeys();
+      },
+      function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Erstellen';
+        if (err.kind === 'offline' || err.kind === 'notfound' || err.kind === 'bad') {
+          createForm.classList.add('hidden');
+          showOffline(err.message);
+        } else {
+          window.alert('Erstellen fehlgeschlagen: ' + err.message);
+        }
+      }
+    );
+  });
+
+  document.getElementById('fresh-copy').addEventListener('click', function () {
+    var btn = this;
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(freshValue.textContent).then(function () {
+      btn.textContent = 'Kopiert';
+      setTimeout(function () {
+        btn.textContent = 'Kopieren';
+      }, 1800);
+    });
+  });
+
+  document.getElementById('fresh-done').addEventListener('click', function () {
+    freshBox.classList.add('hidden');
+    freshValue.textContent = '';
+  });
+})();
+</script>
+</body>
+</html>

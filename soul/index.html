@@ -1,308 +1,577 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>soul-mcp 4.0.1 — Memory Your AI Can Trust</title>
-<meta name="description" content="soul-mcp 4.0.1: persistent memory with provenance, calibration self-knowledge, structured deliberation. MCP server. SQLite. Local-first. v4.0.1 shipping now.">
+<title>Soul — Memory you trust. Judgment the model earned.</title>
+<meta name="description" content="Soul 4.0.1: local-first MCP-Server für persistentes Gedächtnis mit Provenance. Open Source, kein Cloud-Dienst, kein Konto, keine Telemetrie. Soul 4.1.0 Proxy in Entwicklung.">
 <link rel="canonical" href="https://nextool.app/soul/">
-<meta name="theme-color" content="#0B0C0E">
+<meta name="theme-color" content="#050505">
+<meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
-<meta property="og:title" content="soul-mcp 4.0.1 — Memory Your AI Can Trust">
-<meta property="og:description" content="Persistent memory with provenance, event-sourced ledger, model-aware capsules, calibration, deliberation. MCP server. SQLite. No cloud. v4.0.1 shipping now.">
+<meta property="og:title" content="Soul — Memory you trust. Judgment the model earned.">
+<meta property="og:description" content="Local-first MCP-Gedächtnis mit Provenance und auditierbarer Laufzeit. Veröffentlicht auf npm, MIT-lizenziert.">
 <meta property="og:url" content="https://nextool.app/soul/">
 <meta property="og:image" content="https://nextool.app/og-card.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="soul-mcp 4.0.1">
-<meta name="twitter:description" content="Memory your AI can trust. Provenance. Calibration. Deliberation. MCP server.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230B0C0E'/><circle cx='16' cy='16' r='6' fill='%235BDC93'/></svg>">
-<link rel="preload" href="/fonts/Bricolage-latin.woff2" as="font" type="font/woff2" crossorigin>
+<meta name="twitter:title" content="Soul — Memory you trust. Judgment the model earned.">
+<meta name="twitter:description" content="Local-first MCP-Gedächtnis mit Provenance. Open Source, kein Cloud-Zwang.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23050505'/><circle cx='16' cy='16' r='6' fill='%234f46e5'/></svg>">
 <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<style>
-  @font-face{font-family:'Bricolage';src:url('/fonts/Bricolage-latin.woff2') format('woff2');font-weight:400 800;font-display:swap;font-style:normal}
-  @font-face{font-family:'InterV';src:url('/fonts/Inter-Variable.woff2') format('woff2');font-weight:100 900;font-display:swap;font-style:normal}
-  @font-face{font-family:'JBMono';src:url('/fonts/JetBrainsMono-latin.woff2') format('woff2');font-weight:400 600;font-display:swap;font-style:normal}
-  :root{
-    --bg:#0B0C0E; --bg-1:#111318; --bg-2:#171A20; --bg-3:#1D2128;
-    --line:#23262D; --line-2:#31353D;
-    --tx:#EDEEF0; --tx-2:#A6AAB2; --tx-3:#7C818B;
-    --acc:#E8A54A; --acc-2:#F5BE6E; --acc-soft:rgba(232,165,74,.12);
-    --live:#5BDC93; --live-soft:rgba(91,220,147,.14);
-    --disp:'Bricolage','Segoe UI',system-ui,sans-serif;
-    --sans:'InterV',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-    --mono:'JBMono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
-    --w:74rem;
-  }
-  *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-  body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);
-    font-size:1.0625rem;line-height:1.62;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;
-    background-image:radial-gradient(58rem 40rem at 82% -10%,rgba(232,165,74,.055),transparent 60%);background-attachment:fixed}
-  a{color:inherit;text-decoration:none}
-  ::selection{background:var(--acc);color:#100b04}
-  h1,h2,h3{font-family:var(--disp);letter-spacing:-.02em;text-wrap:balance;margin:0;font-weight:600}
-  .progress{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--acc),var(--acc-2));z-index:200;transition:width .1s linear}
-  @media (prefers-reduced-motion:reduce){.progress{transition:none}}
-  .wrap{max-width:var(--w);margin:0 auto;padding:0 clamp(1.25rem,4vw,2.5rem)}
-  nav.bar{position:sticky;top:0;z-index:100;background:rgba(11,12,14,.72);backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--line)}
-  nav.bar .in{max-width:var(--w);margin:0 auto;padding:.85rem clamp(1.25rem,4vw,2.5rem);display:flex;align-items:center;justify-content:space-between;gap:1rem}
-  .brand{font-family:var(--mono);font-weight:600;font-size:.86rem;display:flex;align-items:center;gap:.55rem;letter-spacing:-.01em}
-  .dot{width:.5rem;height:.5rem;border-radius:50%;background:var(--live);flex:none}
-  nav.bar .links{display:flex;gap:1.6rem;align-items:center;font-family:var(--mono);font-size:.73rem;text-transform:uppercase;letter-spacing:.09em}
-  nav.bar .links a{color:var(--tx-2);transition:color .2s}
-  nav.bar .links a:hover,nav.bar .links a.active{color:var(--tx)}
-  nav.bar .cta{border:1px solid var(--line-2);border-radius:8px;padding:.42rem .85rem;color:var(--tx)!important}
-  nav.bar .cta:hover{border-color:var(--acc);color:var(--acc)!important}
-  @media (max-width:760px){nav.bar .in{flex-wrap:wrap;row-gap:.55rem}nav.bar .links{gap:1rem;font-size:.66rem;flex-wrap:wrap}}
-  .eyebrow{font-family:var(--mono);font-size:.73rem;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);display:inline-flex;align-items:center;gap:.65rem}
-  .eyebrow::before{content:"";width:1.9rem;height:1px;background:var(--acc)}
-  .hero{padding:clamp(3.5rem,7vw,6.5rem) 0 clamp(3rem,6vw,5rem)}
-  .hero-grid{display:grid;gap:clamp(2rem,5vw,3.75rem);align-items:center}
-  @media (min-width:920px){.hero-grid{grid-template-columns:1.08fr .92fr}}
-  h1{font-size:clamp(2.7rem,1.5rem+4.6vw,4.6rem);line-height:.98;font-weight:700;letter-spacing:-.035em;margin:1.5rem 0 0}
-  h1 .em{color:var(--acc)}
-  .hero p.lede{color:var(--tx-2);font-size:clamp(1.08rem,1rem+.45vw,1.32rem);line-height:1.5;max-width:36ch;margin:1.7rem 0 0}
-  .hero .cta-row{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:2.3rem}
-  .btn{font-family:var(--mono);font-size:.82rem;padding:.72rem 1.2rem;border-radius:10px;border:1px solid var(--line-2);transition:.2s;display:inline-flex;align-items:center;gap:.5rem;font-weight:500}
-  .btn.primary{background:var(--acc);color:#140d02;border-color:var(--acc);font-weight:600}
-  .btn.primary:hover{background:var(--acc-2);transform:translateY(-1px)}
-  .btn.ghost:hover{border-color:var(--acc);color:var(--acc)}
-  .term{background:linear-gradient(180deg,var(--bg-2),var(--bg-1));border:1px solid var(--line-2);border-radius:15px;overflow:hidden;box-shadow:0 34px 90px -46px rgba(0,0,0,.85);font-family:var(--mono)}
-  .term .top{display:flex;align-items:center;gap:.5rem;padding:.72rem .95rem;border-bottom:1px solid var(--line);background:var(--bg-3)}
-  .term .top .b{width:.7rem;height:.7rem;border-radius:50%;background:#31343b}
-  .term .top .t{margin-left:.6rem;font-size:.72rem;color:var(--tx-3)}
-  .term .body{padding:1.15rem 1.15rem 1.35rem;font-size:.82rem;line-height:1.75}
-  .term .cmd{color:var(--tx-2)}.term .cmd .p{color:var(--live)}
-  .term .out{color:var(--tx)}
-  .term .k{color:var(--tx-3)}.term .v{color:var(--acc)}.term .s{color:var(--live)}
-  .term .note{margin-top:.95rem;padding-top:.85rem;border-top:1px dashed var(--line-2);font-size:.68rem;color:var(--tx-3);line-height:1.6}
-  .strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-1)}
-  .strip .in{max-width:var(--w);margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border-left:1px solid var(--line);border-right:1px solid var(--line)}
-  @media (min-width:820px){.strip .in{grid-template-columns:repeat(4,1fr)}}
-  .stat{background:var(--bg-1);min-height:8.2rem;padding:1.4rem 1.5rem;display:flex;flex-direction:column;justify-content:center;gap:.6rem;position:relative;transition:background .25s}
-  a.stat:hover{background:var(--bg-2)}
-  a.stat::after{content:"→";position:absolute;top:.85rem;right:1.05rem;font-family:var(--mono);font-size:.82rem;color:var(--acc);opacity:0;transform:translateX(-5px);transition:.25s}
-  a.stat:hover::after{opacity:1;transform:none}
-  .stat .n{font-family:var(--disp);font-size:clamp(2rem,1.4rem+1.9vw,2.9rem);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.04em;line-height:1;display:flex;align-items:baseline;gap:.1em}
-  .stat .n .u{color:var(--acc);font-size:.46em;font-weight:600}
-  .stat .l{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--tx-3);line-height:1.4;margin:0}
-  @media (max-width:819px){.stat:last-child{grid-column:1/-1}}
-  section{padding:clamp(4rem,7vw,7rem) 0}
-  .shead{display:flex;flex-direction:column;gap:.9rem;margin-bottom:2.9rem;max-width:54ch}
-  .shead .kx{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-3)}
-  .shead h2{font-size:clamp(1.7rem,1.2rem+1.9vw,2.6rem);line-height:1.06;letter-spacing:-.03em;font-weight:700}
-  .shead p{color:var(--tx-2);margin:0;font-size:1.05rem}
-  .grid{display:grid;gap:1rem}
-  @media (min-width:780px){.grid{grid-template-columns:repeat(2,1fr)}}
-  .card{border:1px solid var(--line);border-radius:14px;background:var(--bg-1);padding:1.6rem;transition:border-color .2s,transform .2s}
-  .card:hover{border-color:var(--line-2);transform:translateY(-2px)}
-  .card .i{font-family:var(--mono);color:var(--acc);font-size:.78rem;margin-bottom:1rem;letter-spacing:.02em}
-  .card h3{font-size:1.18rem;margin-bottom:.55rem;font-weight:600;letter-spacing:-.01em}
-  .card p{color:var(--tx-2);font-size:.96rem;margin:0}
-  .item{border:1px solid var(--line-2);border-radius:15px;background:linear-gradient(180deg,var(--bg-1),var(--bg));overflow:hidden;transition:border-color .25s,box-shadow .25s}
-  .item:hover{border-color:#454952;box-shadow:0 22px 55px -36px rgba(0,0,0,.9)}
-  .item-title{list-style:none;cursor:pointer;padding:1.4rem 1.55rem;display:grid;grid-template-columns:1fr auto;gap:.55rem 1rem;align-items:center}
-  .item-title h3{font-size:clamp(1.3rem,1.15rem+.5vw,1.6rem);font-weight:600;grid-column:1;line-height:1.15;letter-spacing:-.015em;margin:0}
-  .item-title .tz{grid-column:1;color:var(--tx-2);font-size:.98rem;margin:0;max-width:58ch}
-  .item-title .chev{width:1.55rem;height:1.55rem;border-radius:50%;border:1px solid var(--line-2);display:grid;place-items:center;color:var(--tx-2);font-size:1.15rem;transition:.3s;flex:none}
-  .item[open] .chev{transform:rotate(45deg);background:var(--acc);color:#140d02;border-color:var(--acc)}
-  .item-reveal{padding:0 1.55rem 1.7rem;display:grid;gap:1.25rem;animation:slidein .4s ease}
-  @keyframes slidein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:reduce){.item-reveal,.item{animation:none;transition:none}}
-  .item-reveal p{margin:0;color:var(--tx-2);font-size:1rem;max-width:66ch}
-  .code-block{border:1px solid var(--line);border-radius:11px;padding:.95rem 1.05rem;background:var(--bg-1);font-family:var(--mono);font-size:.82rem;line-height:1.7;color:var(--tx-2);overflow-x:auto;margin:1rem 0}
-  .code-block .s{color:var(--live)}.code-block .k{color:var(--tx-3)}.code-block .v{color:var(--acc)}
-  footer{border-top:1px solid var(--line);padding:3.2rem 0 4rem}
-  footer .th{font-family:var(--disp);font-size:1.35rem;color:var(--tx);max-width:40ch;margin:0 0 1.5rem;font-weight:600;letter-spacing:-.02em;line-height:1.25}
-  footer .th .em{color:var(--acc)}
-  footer .fine{font-family:var(--mono);font-size:.72rem;color:var(--tx-3);display:flex;flex-wrap:wrap;gap:.4rem 1.2rem}
-  .rev{opacity:0;transform:translateY(20px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
-  .rev.vis{opacity:1;transform:none}
-  @media (prefers-reduced-motion:reduce){.rev{opacity:1;transform:none;transition:none}}
-  a:focus-visible,summary:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:5px}
-</style>
+<link rel="preload" href="/fonts/JetBrainsMono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/soul.css">
+<noscript><style>.rev{opacity:1!important;transform:none!important}</style></noscript>
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="progress" id="progress" aria-hidden="true"></div>
 
 <nav class="bar">
   <div class="in">
-    <a href="/" class="brand"><span class="dot"></span>nextool</a>
+    <a href="/" class="brand"><span class="dot"></span>nextool<span class="sub">/soul</span></a>
     <div class="links">
-      <a href="/#proof">Proof</a>
-      <a href="https://www.npmjs.com/package/soul-mcp" target="_blank" rel="noopener">npm</a>
-      <a href="https://github.com/christian140903-sudo/soul-mcp" target="_blank" rel="noopener" class="cta">GitHub →</a>
+      <a href="#kernel">4.0.1</a>
+      <a href="#proxy">4.1.0</a>
+      <a href="#linie">Entwicklung</a>
+      <a href="#nachweise">Nachweise</a>
+      <a href="docs.html">Docs</a>
     </div>
+    <a href="login.html" class="cta">Anmelden</a>
   </div>
 </nav>
 
-<main>
+<main id="main">
   <div class="wrap">
-    <section class="hero">
-      <div class="hero-grid">
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" style="padding-bottom:clamp(2.5rem,5vw,4rem)">
+      <div style="display:grid;gap:clamp(2rem,5vw,3.5rem);align-items:center" class="hero-grid">
         <div>
-          <p class="eyebrow rev">Memory · MCP Server · Local-first</p>
-          <h1 class="rev">Your AI's <span class="em">soul.</span></h1>
-          <p class="lede rev">Local-first memory and auditable runtime for AI agents. Persistent memory with provenance, durable runs, and declarative skills. Open Source. No cloud. No accounts. No telemetry.</p>
+          <p class="eyebrow rev">MCP-Server · Local-first · Open Source</p>
+          <h1 class="rev" style="font-size:clamp(2.4rem, 1.4rem + 4.2vw, 4.1rem);line-height:1.02;font-weight:700;letter-spacing:-.04em;margin:1.35rem 0 0">
+            Memory you <span style="color:var(--acc-3)">trust.</span><br>
+            Judgment the model <span style="color:var(--acc-3)">earned.</span>
+          </h1>
+          <p class="lede rev" style="max-width:44ch">
+            Soul gibt Modellen ein Gedächtnis, dem man ansieht, woher jede
+            Aussage stammt. Jeder Fakt trägt seine Herkunft, jede Änderung
+            landet in einem append-only Ledger. Alles läuft lokal auf deiner
+            Maschine.
+          </p>
+          <div class="badge-row rev">
+            <span class="badge live"><span class="bdot"></span>4.0.1 veröffentlicht</span>
+            <span class="badge wip"><span class="bdot"></span>4.1.0 in Entwicklung</span>
+            <span class="badge plan">5.0 Vision</span>
+          </div>
           <div class="cta-row rev">
-            <a href="https://www.npmjs.com/package/soul-mcp" class="btn primary">npm: soul-mcp →</a>
-            <a href="https://github.com/christian140903-sudo/soul-mcp" class="btn ghost" target="_blank" rel="noopener">GitHub</a>
+            <a href="#kernel" class="btn primary">Was 4.0.1 heute kann →</a>
+            <a href="https://github.com/christian140903-sudo/soul-mcp" class="btn ghost" target="_blank" rel="noopener">Quellcode auf GitHub</a>
           </div>
         </div>
-        <div class="term rev" aria-label="soul-mcp 4.0.1 installation">
+
+        <div class="term rev copywrap" aria-label="Installation von soul-mcp">
           <div class="top">
             <span class="b"></span><span class="b"></span><span class="b"></span>
-            <span class="t">install</span>
+            <span class="t">soul-mcp — install</span>
           </div>
           <div class="body">
-            <div class="cmd"><span class="p">$</span> claude mcp add soul --</div>
-            <div class="out" style="margin-top:.5rem">npx -y soul-mcp</div>
-            <div class="note">v4.0.1 shipping now. 23 MCP tools, 9 resources, 3 prompts. Automatic v1/v2 migration with backup.</div>
+<div class="cmd"><span class="p">$</span> npx -y soul-mcp init</div>
+<div class="out"><span class="s">✓</span> ~/.soul angelegt <span class="k">(SQLite, WAL)</span></div>
+<div class="out"><span class="s">✓</span> constitution.json geschrieben</div>
+<div class="cmd" style="margin-top:.7rem"><span class="p">$</span> claude mcp add soul -- npx -y soul-mcp</div>
+<div class="out"><span class="s">✓</span> <span class="v">soul-mcp@4.0.1</span> — 23 MCP tools</div>
+            <div class="note">
+              Nach dem Handshake stehen die Werkzeuge in jedem MCP-Client bereit
+              — Claude Code, Cursor, Windsurf. Kein Konto, kein API-Key, keine
+              ausgehende Verbindung.
+            </div>
           </div>
         </div>
       </div>
     </section>
   </div>
 
-  <div class="strip" id="proof">
+  <!-- ================= KENNZAHLEN ================= -->
+  <div class="strip">
     <div class="in">
-      <div class="stat rev"><div class="n"><span>4</span></div><div class="l">Versions ported</div></div>
-      <div class="stat rev"><div class="n"><span>23</span><span class="u"></span></div><div class="l">Tools · 9 Resources</div></div>
-      <div class="stat rev"><div class="n"><span>53</span></div><div class="l">Tests passing</div></div>
-      <div class="stat rev"><div class="n"><span>219</span><span class="u">kB</span></div><div class="l">Package size</div></div>
+      <div class="stat rev">
+        <span class="ix">01</span>
+        <div class="n"><span>358</span><span class="u">/358</span></div>
+        <p class="l">Tests grün, 12,3 s</p>
+        <span class="src">Arbeitskopie 4.0.1, Audit 2026-08-13</span>
+      </div>
+      <div class="stat rev">
+        <span class="ix">02</span>
+        <div class="n"><span>23</span></div>
+        <p class="l">MCP-Werkzeuge</p>
+        <span class="src">Aus echtem Handshake gegen das gepackte Release</span>
+      </div>
+      <div class="stat rev">
+        <span class="ix">03</span>
+        <div class="n"><span>30</span><span class="u">/30</span></div>
+        <p class="l">Verifier-Läufe deterministisch</p>
+        <span class="src">Eval-Pilot 2026-08-14, 0 Varianz</span>
+      </div>
+      <div class="stat rev">
+        <span class="ix">04</span>
+        <div class="n"><span>0</span></div>
+        <p class="l">Cloud-Dienste · Konten · Telemetrie</p>
+        <span class="src">Für 4.0.1 — der Kernel spricht mit niemandem</span>
+      </div>
     </div>
   </div>
 
-  
   <div class="wrap">
-    <section>
+
+    <!-- ================= SOUL 4.0.1 ================= -->
+    <section id="kernel">
       <div class="shead rev">
-        <span class="kx">The Core</span>
-        <h2>What Soul 4.0.1 is right now.</h2>
-        <p>A completely local-first memory and runtime environment for MCP clients like Claude Code, Cursor, and Windsurf. It gives your models a persistent brain with strict provenance.</p>
+        <span class="kx">Ausgeliefert · npm · MIT</span>
+        <h2>Soul 4.0.1 — der Gedächtnis-Kernel</h2>
+        <p>
+          Ein MCP-Server, der neben deinem Modell läuft und ihm ein Gedächtnis
+          gibt, das über Sessions hinweg hält. Seit dem 9. Februar 2026 auf npm,
+          aktueller Stand 4.0.1 vom 17. Juli 2026.
+        </p>
       </div>
 
-      <div class="grid rev">
+      <div class="grid g2 rev">
         <div class="card">
-          <div class="i">01</div>
-          <h3>Persistent Memory &amp; Provenance</h3>
-          <p>Every fact is stored locally with cryptographic-like provenance. Conflict handling resolves contradictions dynamically, ensuring the model's context is trustworthy and up-to-date.</p>
+          <div class="i">01 — Provenance</div>
+          <h3>Jeder Fakt weiß, woher er kommt</h3>
+          <p>
+            Beim Speichern wird festgehalten, ob eine Aussage vom Nutzer stammt
+            (<code class="inline">user_statement</code>, mit Zitat) oder eine
+            Schlussfolgerung des Modells ist
+            (<code class="inline">agent_inference</code>). Widersprüche werden
+            als solche geführt statt stillschweigend überschrieben — ein
+            umstrittener Eintrag wird nie als Tatsache ausgeliefert.
+          </p>
         </div>
         <div class="card">
-          <div class="i">02</div>
-          <h3>Durable Runs &amp; Receipts</h3>
-          <p>Execution is tracked via durable runs. Every action generates an auditable receipt, providing complete transparency into what the model did and why.</p>
+          <div class="i">02 — Ledger</div>
+          <h3>Append-only statt überschreiben</h3>
+          <p>
+            Jede Mutation ist ein Ereignis in einem append-only Ledger in
+            SQLite (WAL-Modus). Der Zustand ist damit rekonstruierbar, und
+            <code class="inline">soul_timeline</code> zeigt, wann welches Wissen
+            dazukam oder korrigiert wurde.
+          </p>
         </div>
         <div class="card">
-          <div class="i">03</div>
-          <h3>Declarative Skills</h3>
-          <p>Equip your agents with declarative skills that guide deliberation and execution. The system learns and compounds efficiency over time.</p>
+          <div class="i">03 — Runs, Receipts, Episodes</div>
+          <h3>Nachvollziehbare Laufzeit</h3>
+          <p>
+            Grössere Aufgaben laufen als <strong>Run</strong> mit Start,
+            Ergebnis und Rückmeldung. Jeder Run erzeugt ein
+            <strong>Receipt</strong> und wird zu einer <strong>Episode</strong>
+            verdichtet, die später abrufbar bleibt.
+          </p>
+          <p>
+            <strong>Ehrlich dazugesagt:</strong> Diese Receipts sind
+            <code class="inline">self_attested</code> — das System protokolliert,
+            was es selbst getan zu haben glaubt. Ein unabhängiger,
+            deterministischer Verifikator, der das gegenprüft, fehlt noch. Wir
+            nennen den Status im Datenmodell genau so.
+          </p>
         </div>
         <div class="card">
-          <div class="i">04</div>
-          <h3>23 MCP Tools</h3>
-          <p>A massive, production-ready suite of 23 MCP tools and 9 resources, operating entirely in SQLite. Zero cloud dependencies, zero telemetry.</p>
+          <div class="i">04 — Policy in Code</div>
+          <h3>Regeln, die nicht verhandelbar sind</h3>
+          <p>
+            Die Richtlinie liegt in
+            <code class="inline">~/.soul/constitution.json</code> und wird im
+            Code durchgesetzt, nicht nur im Prompt empfohlen: Secrets werden gar
+            nicht erst gespeichert, injection-verdächtige Inhalte werden
+            isoliert und nie zurückgegeben, sensible Kategorien warten auf eine
+            ausdrückliche Bestätigung.
+          </p>
         </div>
+      </div>
+
+      <p class="rev" style="color:var(--tx-3);font-size:.86rem;line-height:1.6;margin:1rem 0 0;max-width:78ch">
+        <strong style="color:var(--tx-2);font-weight:600">Fussnote zu Receipts:</strong>
+        Sie sind <code class="inline">self_attested</code> — ein unabhängiger,
+        deterministischer Verifikator existiert in 4.0 noch nicht. Das Feld
+        heisst im Datenmodell genau so, damit der Unterschied zwischen
+        „protokolliert" und „nachgeprüft" nicht verwischt.
+      </p>
+
+      <div class="note-box acc rev" style="margin-top:2rem">
+        <div class="h"><span class="badge acc" style="padding:.18rem .45rem">Datenlage</span></div>
+        <p>
+          Alles liegt in <code class="inline">~/.soul/memories.db</code>. Kein
+          Konto, kein Cloud-Dienst, keine Telemetrie, kein ausgehender Verkehr.
+          Was der Rechner nicht verlässt, kann unterwegs auch nicht abhanden
+          kommen — und der Export
+          (<code class="inline">soul_export</code>) gehört dir.
+        </p>
+      </div>
+
+      <div class="grid g2 rev" style="margin-top:1.75rem;align-items:start">
+        <div>
+          <h3 style="font-size:1.05rem;margin:0 0 .75rem;color:var(--tx)">In 60 Sekunden installiert</h3>
+          <div class="copywrap">
+<div class="code-block">npx -y soul-mcp init      <span class="k"># ~/.soul anlegen</span>
+claude mcp add soul -- npx -y soul-mcp
+npx soul-mcp status       <span class="k"># Memories, Ledger, Integrität</span>
+npx soul-mcp doctor       <span class="k"># Selbstprüfung</span></div>
+          </div>
+          <p style="color:var(--tx-3);font-size:.86rem;margin:.6rem 0 0">
+            Node.js ab v18. Vollständige Anleitung samt Fünf-Minuten-Demo in den
+            <a href="docs.html#quickstart" style="color:var(--acc-3);border-bottom:1px solid var(--acc-line)">Docs</a>.
+          </p>
+        </div>
+        <div>
+          <h3 style="font-size:1.05rem;margin:0 0 .75rem;color:var(--tx)">23 Werkzeuge, sechs Gruppen</h3>
+          <div class="code-block" style="margin-top:0">
+<span class="k">Gedächtnis  </span> soul_remember · soul_recall · soul_forget
+<span class="k">            </span> soul_correct · soul_confirm · soul_resolve
+<span class="k">Kontext     </span> soul_context · soul_about_me · soul_identity
+<span class="k">Verlauf     </span> soul_timeline · soul_status · soul_export
+<span class="k">            </span> soul_import · soul_reflect
+<span class="k">Laufzeit    </span> soul_run · soul_feedback · soul_goal
+<span class="k">Urteil      </span> soul_deliberate · soul_commit_deliberation
+<span class="k">            </span> soul_predict · soul_mark_useful
+<span class="k">Werkbank    </span> soul_workbench · soul_review_queue</div>
+        </div>
+      </div>
+
+      <div class="cta-row rev">
+        <a href="https://www.npmjs.com/package/soul-mcp" class="btn ghost" target="_blank" rel="noopener">npm: soul-mcp</a>
+        <a href="https://github.com/christian140903-sudo/soul-mcp" class="btn ghost" target="_blank" rel="noopener">Quellcode</a>
+        <a href="docs.html#quickstart" class="btn ghost">Quickstart</a>
       </div>
     </section>
 
-    <section style="padding-top:0">
+    <!-- ================= SOUL 4.1.0 PROXY ================= -->
+    <section id="proxy" class="pt0">
       <div class="shead rev">
-        <span class="kx">The Vision</span>
-        <h2>The next evolution: Soul 5.0</h2>
-        <p>While 4.0.1 provides the ultimate auditable runtime, Soul 5.0 is the upcoming, ambitious next step: The <strong>Dual-Brain / Amplification Proxy</strong>.</p>
+        <span class="kx">In Entwicklung · Benchmark ausstehend</span>
+        <h2>Soul 4.1.0 — der Proxy</h2>
+        <p>
+          Ein OpenAI-kompatibler Endpunkt, der vor dein Modell tritt und genau
+          einen kognitiven Schritt einzieht, bevor die Anfrage weitergereicht
+          wird.
+        </p>
       </div>
 
-      <details class="item rev" open>
-        <summary class="item-title">
-          <h3>Maximal zielorientiert &amp; proaktiv</h3>
-          <span class="chev" aria-hidden="true">+</span>
-        </summary>
-        <div class="item-reveal">
-          <p>Soul 5.0 positions itself as a middleware proxy directly in front of the model. It forces a "Dual-Brain" process: a Meta-Brain that understands the core intent and an Execution layer that fulfills it. It achieves noticeably better results with significantly less prompt engineering effort, turning any base model into a highly proactive agent.</p>
+      <div class="note-box wip rev">
+        <div class="h"><span class="badge wip" style="padding:.18rem .45rem"><span class="bdot"></span>Status</span></div>
+        <p>
+          <strong>4.1.0 ist in Entwicklung und noch nicht öffentlich erreichbar.</strong>
+          Es gibt für den Proxy bislang <strong>keine Wirksamkeitsmessung</strong>.
+          Der Vergleich Baseline gegen Soul-Arm ist präregistriert, aber noch
+          nicht gefahren. Bis dieser Lauf vorliegt, steht auf dieser Seite keine
+          Zahl zur Leistung von 4.1.0 — auch keine vorläufige.
+        </p>
+      </div>
+
+      <div class="grid g2 rev">
+        <div class="card">
+          <div class="i">Mechanismus 1</div>
+          <h3>Intent Analysis</h3>
+          <p>
+            Vor der Ausführung wird bestimmt, worauf die Anfrage tatsächlich
+            zielt: Was ist das Ergebnis, an dem sie gemessen wird? Welche
+            Annahmen sind unausgesprochen? Was wäre ein Fehlschlag, der wie ein
+            Erfolg aussieht?
+          </p>
         </div>
-      </details>
-    </section>
-
-    <section style="padding-top:0">
-      <div class="shead rev">
-        <span class="kx">Data &amp; Policy</span>
-        <h2>Everything local. Policy in code.</h2>
+        <div class="card">
+          <div class="i">Mechanismus 2</div>
+          <h3>Task Restructuring</h3>
+          <p>
+            Aus dieser Analyse wird die Aufgabe neu aufgesetzt — mit
+            explizitem Ziel, Reihenfolge und Abbruchkriterien. Das Modell
+            bekommt eine Aufgabe, die schon geordnet ist, statt sie selbst
+            ordnen zu müssen.
+          </p>
+        </div>
       </div>
 
-      <details class="item rev">
-        <summary class="item-title">
-          <h3>SQLite + WAL + Append-Only Ledger</h3>
-          <span class="chev" aria-hidden="true">+</span>
-        </summary>
-        <div class="item-reveal">
-          <p>Everything lives in <code style="color:var(--acc);font-family:var(--mono)">~/.soul/memories.db</code> (SQLite, WAL). Policy lives in <code style="color:var(--acc);font-family:var(--mono)">~/.soul/constitution.json</code> and is <strong>enforced in code:</strong></p>
-          <ul style="color:var(--tx-2);margin:1rem 0">
-            <li>Secrets are never stored—only a redacted rejection event remains</li>
-            <li>Injection-looking content is quarantined and never recalled</li>
-            <li>Sensitive categories wait for explicit confirmation</li>
-            <li>Every mutation is an append-only ledger event</li>
+      <p class="rev" style="color:var(--tx-2);margin:1.75rem 0 0;max-width:70ch">
+        Der Scope ist bewusst schmal gehalten: <strong>ein</strong> Mechanismus,
+        der nicht auf ein einzelnes Modell zugeschnitten ist, statt einer
+        breiten Plattform ohne Nachweis. Ein moderater, aber messbarer Effekt
+        ist mehr wert als ein grosses Versprechen.
+      </p>
+      <p class="rev" style="color:var(--tx-3);font-size:.86rem;line-height:1.6;margin:.9rem 0 0;max-width:78ch">
+        Ob der Mechanismus über verschiedene Modelle hinweg gleich gut trägt,
+        ist damit ausdrücklich nicht behauptet. Strategie-Transfer zwischen
+        Modellen ist erfahrungsgemäss schwierig; das wird hier erst dann
+        vertreten, wenn es gemessen ist.
+      </p>
+
+      <div class="grid g2 rev" style="margin-top:2rem;align-items:start">
+        <div>
+          <h3 style="font-size:1.05rem;margin:0 0 .75rem;color:var(--tx)">Geplante Schnittstelle</h3>
+          <p style="color:var(--tx-2);font-size:.94rem;margin:0 0 .9rem">
+            OpenAI-kompatibel — ein geänderter Base-URL genügt, bestehende SDKs
+            funktionieren unverändert. Authentifizierung über einen API-Key aus
+            dem Dashboard, Streaming über Server-Sent Events.
+          </p>
+          <ul style="color:var(--tx-2);font-size:.94rem;padding-left:1.15rem;margin:0">
+            <li><code class="inline">POST /v1/chat/completions</code></li>
+            <li><code class="inline">Authorization: Bearer soul_live_…</code></li>
+            <li>SSE-Streaming wie gewohnt</li>
           </ul>
-          <p>Built with high engineering standards and explicit honesty boundaries.</p>
         </div>
-      </details>
+        <div>
+          <h3 style="font-size:1.05rem;margin:0 0 .75rem;color:var(--tx)">So sieht der Aufruf aus</h3>
+          <div class="copywrap">
+<div class="code-block" style="margin-top:0">curl <span class="str">https://api.nextool.app/v1/chat/completions</span> \
+  -H <span class="str">"Authorization: Bearer soul_live_…"</span> \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{"model":"…","messages":[…],"stream":true}'</span>
+
+<span class="k"># Endpunkt noch nicht live — siehe Statushinweis oben.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-row rev">
+        <a href="docs.html#api" class="btn ghost">API-Referenz</a>
+        <a href="signup.html" class="btn ghost">Konto anlegen</a>
+      </div>
     </section>
 
-    <section style="padding-top:0">
+    <!-- ================= ENTWICKLUNGSLINIE ================= -->
+    <section id="linie" class="pt0">
       <div class="shead rev">
-        <span class="kx">CLI</span>
-        <h2>Bootstrap &amp; operate.</h2>
+        <span class="kx">Die Linie</span>
+        <h2>Wo Soul steht — und wohin es geht</h2>
+        <p>
+          Drei Stufen, sauber getrennt. Was ausgeliefert ist, was gebaut wird,
+          und was ausdrücklich noch Vision ist.
+        </p>
       </div>
 
-      <div class="code-block rev">
-npx soul-mcp init        <span class="k"># create ~/.soul (or migrate v1/v2/v3/v4)</span>
-npx soul-mcp status      <span class="k"># memories, ledger, integrity, semantic layer</span>
-npx soul-mcp semantic on <span class="k"># enable local semantic retrieval (opt-in)</span>
-npx soul-mcp doctor      <span class="k"># health checks</span>
+      <div class="line rev">
+        <div class="node">
+          <span class="badge live"><span class="bdot"></span>Ausgeliefert</span>
+          <span class="v">4.0.1</span>
+          <h3>Gedächtnis-Kernel</h3>
+          <p>
+            Local-first MCP-Server mit Provenance, Ledger und auditierbarer
+            Laufzeit. Auf npm, MIT-lizenziert, im täglichen Eigengebrauch.
+          </p>
+          <span class="arrow">→</span>
+        </div>
+        <div class="node now">
+          <span class="badge wip"><span class="bdot"></span>In Arbeit</span>
+          <span class="v">4.1.x</span>
+          <h3>Proxy</h3>
+          <p>
+            Intent Analysis und Task Restructuring als OpenAI-kompatibler
+            Dienst mit Konten und API-Keys. Der präregistrierte Vergleich
+            gegen die Baseline steht noch aus.
+          </p>
+          <span class="arrow">→</span>
+        </div>
+        <div class="node future">
+          <span class="badge plan">Vision</span>
+          <span class="v">5.0</span>
+          <h3>Kognitive Middleware</h3>
+          <p>
+            Die geplante Verallgemeinerung der in 4.1.x nachgewiesenen
+            Mechanismen. Wird bewusst erst dann ausformuliert, wenn die
+            Messungen aus 4.1.x vorliegen. Heute ist das eine Absicht, kein
+            Produkt.
+          </p>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+
+      <div class="note-box rev">
+        <p>
+          Die Trennung ist Absicht. 4.0.1 ist ein Gedächtnis-Kernel und bleibt
+          es; der Proxy ist ein eigenes Stück Software. Was für die eine Stufe
+          gemessen wurde, gilt nicht automatisch für die andere — und wird hier
+          auch nicht so dargestellt.
+        </p>
       </div>
     </section>
 
-    <section style="padding-top:0">
-      <footer>
+    <!-- ================= NACHWEISE ================= -->
+    <section id="nachweise" class="pt0">
+      <div class="shead rev">
+        <span class="kx">Nachweise</span>
+        <h2>Was gemessen ist — und was nicht</h2>
+        <p>
+          Jede Zahl hier hat einen Lauf hinter sich. Was fehlt, steht ebenso
+          dabei: eine Einschränkungsspalte, die nicht leer ist, ist der Punkt
+          der Tabelle.
+        </p>
+      </div>
 
-        <div class="th">Memory you <span class="em">trust.</span> Judgment the model <span class="em">earned.</span></div>
-        <div class="fine">
-          <span>© 2026 Christian Bucher</span><span>v4.0.1</span><span>MIT licensed</span><span><a href="https://www.npmjs.com/package/soul-mcp" target="_blank" rel="noopener" style="color:var(--acc)">npm</a> · <a href="https://github.com/christian140903-sudo/soul-mcp" target="_blank" rel="noopener" style="color:var(--acc)">GitHub</a></span>
+      <div class="tablewrap rev">
+        <table class="proof">
+          <thead>
+            <tr>
+              <th scope="col">Was</th>
+              <th scope="col">Ergebnis</th>
+              <th scope="col">Herkunft</th>
+              <th scope="col">Einschränkung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="what">Testsuite 4.0.1</td>
+              <td class="res">358 / 358</td>
+              <td class="src">Arbeitskopie, real gefahren, 12,3 s<br>Audit 2026-08-13</td>
+              <td class="lim">Tests belegen Korrektheit gegen die eigene Spezifikation, keinen Leistungsvergleich. Eine Coverage-Zahl fehlt bislang.</td>
+            </tr>
+            <tr>
+              <td class="what">Werkzeuge im gepackten Release</td>
+              <td class="res">23 Tools</td>
+              <td class="src">Smoke-Test über echten MCP-Handshake gegen<br>soul-mcp@4.0.1</td>
+              <td class="lim">Gezählt wurde, was der Server im Handshake meldet — nicht die Tiefe der einzelnen Werkzeuge.</td>
+            </tr>
+            <tr>
+              <td class="what">Veröffentlichung auf npm</td>
+              <td class="res">seit 2026-02-09</td>
+              <td class="src">npm-Registry, Paket <code class="inline">soul-mcp</code><br>aktuell 4.0.1 (2026-07-17), MIT</td>
+              <td class="lim">Veröffentlicht zu sein sagt nichts über Verbreitung aus. Download-Zahlen führen wir hier bewusst nicht als Qualitätsbeleg.</td>
+            </tr>
+            <tr>
+              <td class="what">Verifier-Pipeline der präregistrierten Eval</td>
+              <td class="res">30 / 30 deterministisch</td>
+              <td class="src">Eval-Pilot 2026-08-14<br>3 Tasks × 5 Wiederholungen × 2 Arme</td>
+              <td class="lim"><strong>Das misst die Messapparatur, nicht Soul.</strong> Belegt ist, dass die Pipeline reproduzierbar dasselbe Urteil fällt (0 Varianz) — nicht, dass Soul ein Modell besser macht.</td>
+            </tr>
+            <tr>
+              <td class="what">Studie v10: eingepflanztes Verständnis vs. nackte Baseline</td>
+              <td class="res">0,86</td>
+              <td class="src">Einpflanzungs-Score, 2026-08-06<br>products/soul-mcp-v2, Studie v10</td>
+              <td class="lim">Gemessen an einem Vorläufer-Stand, der nicht byte-gleich mit dem ausgelieferten Kern ist. Eine längenkontrollierte Replikation steht aus.</td>
+            </tr>
+            <tr>
+              <td class="what">Wirksamkeit des 4.1.0-Proxy</td>
+              <td class="res" style="color:var(--tx-3)">— offen —</td>
+              <td class="src">präregistriertes Protokoll liegt vor,<br>Lauf noch nicht erfolgt</td>
+              <td class="lim">Es gibt hierzu keine Zahl. Sobald der Vergleich Baseline gegen Soul-Arm gefahren ist, steht das Ergebnis hier — auch wenn es negativ ausfällt.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="rev" style="color:var(--tx-3);font-size:.86rem;line-height:1.6;margin:1rem 0 0;max-width:78ch">
+        <strong style="color:var(--tx-2);font-weight:600">Zur Zahl 0,86:</strong>
+        Studie v10 misst den Einpflanzungs-Score eines Vorläufer-Stands — nicht
+        die Leistungsverbesserung des fertigen 4.0.1. Die beiden sind nicht
+        dasselbe und werden hier auch nicht als dasselbe ausgegeben. Echte
+        Messungen existieren ausschliesslich dort, wo das Evidenz-Inventar sie
+        führt; was dort fehlt, fehlt auch hier.
+      </p>
+
+      <div class="grid g2 rev" style="margin-top:1.75rem;align-items:start">
+        <div class="note-box" style="margin:0">
+          <div class="h">Bekannte Schwächen</div>
+          <ul style="color:var(--tx-2);font-size:.92rem;padding-left:1.15rem;margin:0">
+            <li>Receipts sind überwiegend <code class="inline">self_attested</code>; ein unabhängiger Verifikator fehlt.</li>
+            <li>SQLite im WAL-Modus: bei gleichzeitigen Schreibzugriffen droht <code class="inline">SQLITE_BUSY</code>. Ein Lasttest steht aus.</li>
+            <li>Eine Context-Firewall ist prinzipiell nicht lückenlos — gegen Prompt-Injection gibt es keine Garantie.</li>
+            <li><code class="inline">npm audit</code> meldet vier transitive Schwachstellen; keine davon liegt im genutzten stdio-Pfad.</li>
+          </ul>
         </div>
-      </footer>
+        <div class="note-box" style="margin:0">
+          <div class="h">Was wir nicht behaupten</div>
+          <p style="font-size:.92rem">
+            Kein Produktivitätsfaktor, keine Prozentzahl zur Modellverbesserung,
+            keine Vergleiche mit Systemen, gegen die nie gemessen wurde. Zahlen,
+            die einmal aus Pitch-Material stammten und keinen Lauf hinter sich
+            haben, sind aus diesem Auftritt entfernt worden und kommen nicht
+            zurück.
+          </p>
+        </div>
+      </div>
+
+      <div class="cta-row rev">
+        <a href="https://www.npmjs.com/package/soul-mcp" class="btn primary" target="_blank" rel="noopener">Paket auf npm ansehen →</a>
+        <a href="https://github.com/christian140903-sudo/soul-mcp" class="btn ghost" target="_blank" rel="noopener">Quellcode prüfen</a>
+        <a href="docs.html" class="btn ghost">Dokumentation</a>
+      </div>
+    </section>
+
+    <!-- ================= ZUGANG ================= -->
+    <section class="pt0">
+      <div class="shead rev">
+        <span class="kx">Zugang</span>
+        <h2>Zwei Wege hinein</h2>
+      </div>
+
+      <div class="grid g2 rev">
+        <div class="card">
+          <span class="badge live"><span class="bdot"></span>Sofort nutzbar</span>
+          <h3 style="margin-top:1rem">Soul 4.0.1 — direkt installieren</h3>
+          <p>
+            Kein Konto nötig, kein Schlüssel, keine Anmeldung. Ein Befehl, und
+            der Server läuft lokal.
+          </p>
+          <div class="copywrap" style="margin-top:.9rem">
+<div class="code-block" style="margin:0">npx -y soul-mcp init</div>
+          </div>
+        </div>
+        <div class="card">
+          <span class="badge wip"><span class="bdot"></span>Vorbereitet</span>
+          <h3 style="margin-top:1rem">Soul 4.1.0 — Konto und API-Key</h3>
+          <p>
+            Konto anlegen und Schlüssel verwalten geht schon. Der Proxy selbst
+            ist noch nicht erreichbar — das Dashboard sagt dir das offen, statt
+            einen Schlüssel vorzutäuschen.
+          </p>
+          <div class="cta-row" style="margin-top:1.1rem">
+            <a href="signup.html" class="btn sm primary">Konto anlegen</a>
+            <a href="login.html" class="btn sm ghost">Anmelden</a>
+          </div>
+        </div>
+      </div>
     </section>
   </div>
 </main>
 
-<script>
-(function(){
-  var rm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
-  var bar=document.getElementById("progress");
-  function onScroll(){
-    var h=document.documentElement,max=h.scrollHeight-h.clientHeight;
-    bar.style.width=(max>0?h.scrollTop/max*100:0)+"%";
-  }
-  document.addEventListener("scroll",onScroll,{passive:true});
-  onScroll();
+<footer class="site">
+  <div class="wrap">
+    <p class="th">Memory you <span class="em">trust.</span> Judgment the model <span class="em">earned.</span></p>
 
-  var revs=[].slice.call(document.querySelectorAll(".rev"));
-  if(rm){revs.forEach(function(e){e.classList.add("vis");});}
-  else if("IntersectionObserver" in window){
-    var io=new IntersectionObserver(function(es){
-      es.forEach(function(en){if(en.isIntersecting){en.target.classList.add("vis");io.unobserve(en.target);}});
-    },{threshold:.1,rootMargin:"0px 0px -6% 0px"});
-    revs.forEach(function(e){io.observe(e);});
-  } else {revs.forEach(function(e){e.classList.add("vis");});}
+    <div class="cols">
+      <div class="col">
+        <h4>Produkt</h4>
+        <a href="#kernel">Soul 4.0.1</a>
+        <a href="#proxy">Soul 4.1.0 Proxy</a>
+        <a href="#linie">Entwicklungslinie</a>
+        <a href="#nachweise">Nachweise</a>
+      </div>
+      <div class="col">
+        <h4>Ressourcen</h4>
+        <a href="docs.html#quickstart">Quickstart 4.0.1</a>
+        <a href="docs.html#api">API-Referenz 4.1.0</a>
+        <a href="https://www.npmjs.com/package/soul-mcp" target="_blank" rel="noopener">npm-Paket</a>
+        <a href="https://github.com/christian140903-sudo/soul-mcp" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div class="col">
+        <h4>Konto</h4>
+        <a href="login.html">Anmelden</a>
+        <a href="signup.html">Konto anlegen</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="/">nextool.app</a>
+      </div>
+    </div>
 
-  // detail expand/collapse
-  var details=[].slice.call(document.querySelectorAll("details.item"));
-  details.forEach(function(d){
-    d.addEventListener("toggle",function(){
-      // just let details native behavior work
-    });
-  });
-})();
-</script>
+    <div class="fine">
+      <span>© <span data-year>2026</span> Christian Bucher</span>
+      <span>soul-mcp 4.0.1</span>
+      <span>MIT-Lizenz</span>
+      <span><a href="/impressum.html" style="color:var(--tx-2)">Impressum</a></span>
+      <span><a href="/datenschutz.html" style="color:var(--tx-2)">Datenschutz</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+<style>
+  @media (min-width:920px){.hero-grid{grid-template-columns:1.05fr .95fr}}
+</style>
 </body>
 </html>

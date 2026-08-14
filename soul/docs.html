@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dokumentation — Soul</title>
+<meta name="description" content="Soul-Dokumentation: Quickstart für den local-first MCP-Server 4.0.1 und API-Referenz für den Proxy 4.1.0.">
+<link rel="canonical" href="https://nextool.app/soul/docs.html">
+<meta name="theme-color" content="#050505">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23050505'/><circle cx='16' cy='16' r='6' fill='%234f46e5'/></svg>">
+<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/JetBrainsMono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/soul.css">
+<noscript><style>.rev{opacity:1!important;transform:none!important}</style></noscript>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<nav class="bar">
+  <div class="in">
+    <a href="index.html" class="brand"><span class="dot"></span>nextool<span class="sub">/soul</span></a>
+    <div class="links">
+      <a href="index.html">Übersicht</a>
+      <a href="#quickstart">Quickstart</a>
+      <a href="#api">API 4.1.0</a>
+    </div>
+    <a href="login.html" class="cta">Anmelden</a>
+  </div>
+</nav>
+
+<main id="main" class="wrap" style="padding-top:clamp(2.5rem,5vw,4rem);padding-bottom:5rem">
+
+  <header style="margin-bottom:clamp(2.5rem,5vw,3.5rem);max-width:60ch">
+    <p class="eyebrow">Dokumentation</p>
+    <h1 style="font-size:clamp(2rem, 1.5rem + 2vw, 2.9rem);letter-spacing:-.035em;margin:1.1rem 0 0;font-weight:700">
+      Soul in Betrieb nehmen
+    </h1>
+    <p class="lede" style="margin-top:1rem">
+      Zwei getrennte Dinge: der Gedächtnis-Kernel <strong>4.0.1</strong>, den du
+      sofort installieren kannst, und der Proxy <strong>4.1.0</strong>, der noch
+      gebaut wird.
+    </p>
+  </header>
+
+  <div class="docs-layout">
+
+    <!-- ============ Inhaltsverzeichnis ============ -->
+    <!-- Offen ausgeliefert: ohne JavaScript bleibt das Verzeichnis lesbar.
+         site.js klappt es auf schmalen Displays ein. -->
+    <details class="toc-wrap" open>
+    <summary>Inhalt</summary>
+    <nav class="toc" aria-label="Inhalt">
+      <p class="grp">Soul 4.0.1</p>
+      <a href="#quickstart">Quickstart</a>
+      <a href="#install">Installation</a>
+      <a href="#client">Im MCP-Client einhängen</a>
+      <a href="#demo">Fünf-Minuten-Demo</a>
+      <a href="#tools">Werkzeugreferenz</a>
+      <a href="#cli">CLI</a>
+      <a href="#daten">Wo die Daten liegen</a>
+
+      <p class="grp">Soul 4.1.0</p>
+      <a href="#api">API-Referenz</a>
+      <a href="#auth">Authentifizierung</a>
+      <a href="#byok">Eigener Upstream-Key</a>
+      <a href="#provider">Anbieter pro Anfrage</a>
+      <a href="#completions">Chat Completions</a>
+      <a href="#streaming">Streaming (SSE)</a>
+      <a href="#fehler">Fehler &amp; Limits</a>
+    </nav>
+    </details>
+
+    <!-- ============ Inhalt ============ -->
+    <article class="doc">
+
+      <!-- ===================== 4.0.1 ===================== -->
+      <h2 id="quickstart">Quickstart — Soul 4.0.1</h2>
+
+      <div class="note-box acc">
+        <div class="h"><span class="badge live" style="padding:.18rem .45rem"><span class="bdot"></span>Ausgeliefert</span></div>
+        <p>
+          4.0.1 ist auf npm veröffentlicht und läuft vollständig lokal. Kein
+          Konto, kein API-Key, kein ausgehender Netzwerkverkehr. Voraussetzung
+          ist Node.js ab Version 18.
+        </p>
+      </div>
+
+      <h3 id="install">1 — Installation</h3>
+      <p>
+        Ein Aufruf legt das Datenverzeichnis <code class="inline">~/.soul</code>
+        an. Bestehende Stände aus früheren Versionen werden dabei migriert; vor
+        der Migration wird eine Sicherung geschrieben.
+      </p>
+      <div class="copywrap">
+<div class="code-block">npx -y soul-mcp init</div>
+      </div>
+
+      <h3 id="client">2 — Im MCP-Client einhängen</h3>
+      <p>
+        Soul spricht das Model Context Protocol über stdio. In Claude Code
+        genügt ein Befehl:
+      </p>
+      <div class="copywrap">
+<div class="code-block">claude mcp add soul -- npx -y soul-mcp</div>
+      </div>
+      <p>
+        Andere MCP-Clients (Cursor, Windsurf, Zed) tragen den Server in ihrer
+        Konfigurationsdatei ein:
+      </p>
+      <div class="copywrap">
+<div class="code-block">{
+  <span class="v">"mcpServers"</span>: {
+    <span class="v">"soul"</span>: {
+      <span class="v">"command"</span>: <span class="str">"npx"</span>,
+      <span class="v">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"soul-mcp"</span>]
+    }
+  }
+}</div>
+      </div>
+      <p>
+        Nach dem Neustart des Clients meldet der Handshake
+        <code class="inline">soul-mcp@4.0.1</code> mit 23 Werkzeugen.
+      </p>
+
+      <h3 id="demo">3 — Die Fünf-Minuten-Demo</h3>
+      <p>
+        Der Punkt von Soul lässt sich in vier Schritten zeigen. Entscheidend ist
+        Schritt 2: die Session wird <em>wirklich</em> beendet, damit klar ist,
+        dass die Erinnerung nicht aus dem Kontextfenster kommt.
+      </p>
+
+      <div class="step">
+        <p><strong>Schritt 1 — etwas merken.</strong> In einer laufenden Session:</p>
+        <div class="term copywrap" style="margin:.75rem 0">
+          <div class="top"><span class="b"></span><span class="b"></span><span class="b"></span><span class="t">Session A</span></div>
+          <div class="body">
+<div class="cmd"><span class="p">›</span> Merk dir: Dieses Projekt nutzt pnpm, nicht npm.</div>
+<div class="out" style="margin-top:.5rem"><span class="k">soul_remember →</span> gespeichert</div>
+<div class="out"><span class="k">  source_type:</span> <span class="v">user_statement</span></div>
+<div class="out"><span class="k">  source_ref: </span> <span class="s">"Dieses Projekt nutzt pnpm, nicht npm."</span></div>
+            <div class="note">
+              <code>user_statement</code> wird nur vergeben, wenn es eine
+              tatsächliche Nutzeraussage gibt — mit Zitat. Eigene
+              Schlussfolgerungen des Modells landen als
+              <code>agent_inference</code>. Das ist der Unterschied, um den es
+              geht.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <p><strong>Schritt 2 — Session schliessen.</strong> Fenster zu, Client beenden, neu starten. Kein geteilter Kontext.</p>
+      </div>
+
+      <div class="step">
+        <p><strong>Schritt 3 — in der neuen Session abrufen.</strong></p>
+        <div class="term copywrap" style="margin:.75rem 0">
+          <div class="top"><span class="b"></span><span class="b"></span><span class="b"></span><span class="t">Session B — frisch gestartet</span></div>
+          <div class="body">
+<div class="cmd"><span class="p">›</span> Welchen Paketmanager nutzt dieses Projekt?</div>
+<div class="out" style="margin-top:.5rem"><span class="k">soul_recall →</span> 1 Treffer</div>
+<div class="out"><span class="s">✓</span> pnpm <span class="k">— Quelle: user_statement, du selbst</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <p><strong>Schritt 4 — den Verlauf ansehen.</strong> <code class="inline">soul_timeline</code> zeigt, wann welches Wissen dazukam und was es korrigiert hat.</p>
+        <div class="copywrap">
+<div class="code-block">npx soul-mcp status   <span class="k"># Memories, Ledger-Länge, Integrität</span></div>
+        </div>
+      </div>
+
+      <div class="note-box">
+        <p>
+          <strong>Was die Demo zeigt und was nicht.</strong> Sie belegt, dass
+          Wissen eine Session überlebt und seine Herkunft behält. Sie ist
+          <em>kein</em> Nachweis, dass ein Modell dadurch bessere Antworten
+          gibt — dafür braucht es einen kontrollierten Vergleich, und der ist
+          für den Proxy noch nicht gefahren. Der Stand der Messungen steht auf
+          der <a href="index.html#nachweise" style="color:var(--acc-3)">Nachweise-Seite</a>.
+        </p>
+      </div>
+
+      <h3 id="tools">Werkzeugreferenz</h3>
+      <p>23 Werkzeuge, gruppiert nach Aufgabe.</p>
+
+      <table class="params">
+        <thead><tr><th>Werkzeug</th><th>Gruppe</th><th>Zweck</th></tr></thead>
+        <tbody>
+          <tr><td>soul_remember</td><td>Gedächtnis</td><td>Fakt speichern, mit Herkunftsangabe</td></tr>
+          <tr><td>soul_recall</td><td>Gedächtnis</td><td>Nach gespeichertem Wissen suchen</td></tr>
+          <tr><td>soul_correct</td><td>Gedächtnis</td><td>Bestehenden Eintrag berichtigen</td></tr>
+          <tr><td>soul_confirm</td><td>Gedächtnis</td><td>Eintrag bestätigen, Konfidenz anheben</td></tr>
+          <tr><td>soul_resolve</td><td>Gedächtnis</td><td>Widerspruch zwischen Einträgen entscheiden</td></tr>
+          <tr><td>soul_forget</td><td>Gedächtnis</td><td>Eintrag zurückziehen (Ledger bleibt)</td></tr>
+          <tr><td>soul_context</td><td>Kontext</td><td>Kapsel für die aktuelle Aufgabe abrufen</td></tr>
+          <tr><td>soul_about_me</td><td>Kontext</td><td>Was das System über den Nutzer weiss</td></tr>
+          <tr><td>soul_identity</td><td>Kontext</td><td>Identitätsprofil lesen und pflegen</td></tr>
+          <tr><td>soul_timeline</td><td>Verlauf</td><td>Chronologie der Wissensänderungen</td></tr>
+          <tr><td>soul_status</td><td>Verlauf</td><td>Zustand von Datenbank und Ledger</td></tr>
+          <tr><td>soul_export</td><td>Verlauf</td><td>Vollständigen Bestand exportieren</td></tr>
+          <tr><td>soul_import</td><td>Verlauf</td><td>Bestand einspielen</td></tr>
+          <tr><td>soul_reflect</td><td>Verlauf</td><td>Sitzung abschliessen, Erkenntnisse festhalten</td></tr>
+          <tr><td>soul_run</td><td>Laufzeit</td><td>Aufgabe als nachvollziehbaren Run starten</td></tr>
+          <tr><td>soul_feedback</td><td>Laufzeit</td><td>Ergebnis eines Runs zurückmelden</td></tr>
+          <tr><td>soul_goal</td><td>Laufzeit</td><td>Ziele setzen und verfolgen</td></tr>
+          <tr><td>soul_deliberate</td><td>Urteil</td><td>Strukturierte Abwägung einer Entscheidung</td></tr>
+          <tr><td>soul_commit_deliberation</td><td>Urteil</td><td>Abwägung als Entscheidung festschreiben</td></tr>
+          <tr><td>soul_predict</td><td>Urteil</td><td>Vorhersage mit Konfidenz ablegen (Kalibrierung)</td></tr>
+          <tr><td>soul_mark_useful</td><td>Urteil</td><td>Eintrag als nützlich markieren</td></tr>
+          <tr><td>soul_workbench</td><td>Werkbank</td><td>Offene Aufgaben an Modelle zuweisen</td></tr>
+          <tr><td>soul_review_queue</td><td>Werkbank</td><td>Was auf menschliche Prüfung wartet</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="cli">CLI</h3>
+      <div class="copywrap">
+<div class="code-block">npx soul-mcp init        <span class="k"># ~/.soul anlegen oder migrieren</span>
+npx soul-mcp status      <span class="k"># Memories, Ledger, Integrität</span>
+npx soul-mcp doctor      <span class="k"># Selbstprüfung aller Komponenten</span>
+npx soul-mcp semantic on <span class="k"># lokale semantische Suche (opt-in)</span></div>
+      </div>
+      <p>
+        <code class="inline">semantic on</code> ist bewusst nicht
+        voreingestellt: es lädt ein lokales Modell nach. Auch danach verlässt
+        kein Datum den Rechner.
+      </p>
+
+      <h3 id="daten">Wo die Daten liegen</h3>
+      <table class="params">
+        <thead><tr><th>Pfad</th><th>Art</th><th>Inhalt</th></tr></thead>
+        <tbody>
+          <tr><td>~/.soul/memories.db</td><td>SQLite (WAL)</td><td>Alle Einträge, Ledger, Runs, Episoden</td></tr>
+          <tr><td>~/.soul/constitution.json</td><td>JSON</td><td>Richtlinie — im Code durchgesetzt, nicht nur im Prompt</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Die Richtlinie regelt, was gar nicht erst gespeichert wird: erkannte
+        Secrets werden verworfen, es bleibt nur ein bereinigtes
+        Ablehnungsereignis. Inhalte, die nach Prompt-Injection aussehen, werden
+        isoliert und nie wieder ausgeliefert. Sensible Kategorien warten auf
+        eine ausdrückliche Bestätigung.
+      </p>
+      <div class="note-box">
+        <p>
+          <strong>Grenze, offen gesagt:</strong> Eine Kontext-Firewall kann
+          prinzipiell nicht lückenlos sein. Die Regeln senken das Risiko, sie
+          beseitigen es nicht. Wer damit hochsensible Daten verarbeitet, sollte
+          das wissen.
+        </p>
+      </div>
+
+      <!-- ===================== 4.1.0 ===================== -->
+      <h2 id="api">API-Referenz — Soul 4.1.0 Proxy</h2>
+
+      <div class="note-box wip">
+        <div class="h"><span class="badge wip" style="padding:.18rem .45rem"><span class="bdot"></span>Status: in Entwicklung</span></div>
+        <p>
+          <strong>Dieser Dienst ist noch nicht erreichbar.</strong> Was hier
+          steht, beschreibt die geplante Schnittstelle, damit eine Integration
+          vorbereitet werden kann — es ist keine Beschreibung eines laufenden
+          Systems. Details können sich bis zum Start noch ändern.
+        </p>
+        <p>
+          Es liegt für 4.1.0 auch <strong>keine Wirksamkeitsmessung</strong> vor.
+          Der Vergleich gegen die Baseline ist präregistriert, aber nicht
+          gefahren. Bis dahin steht hier keine Leistungszahl.
+        </p>
+        <p>
+          Was gemessen ist und was nicht, samt der bekannten Schwächen von
+          4.0.1, steht gesammelt auf der Startseite unter
+          <a href="index.html#nachweise" style="color:var(--acc-3);border-bottom:1px solid var(--acc-line)">Nachweise</a>.
+        </p>
+      </div>
+
+      <p>
+        Der Proxy ist OpenAI-kompatibel. Für bestehende Integrationen ändert
+        sich nur der Base-URL — Anfrage- und Antwortformat bleiben, wie die SDKs
+        sie erwarten. Dazwischen laufen Intent Analysis und Task Restructuring.
+      </p>
+
+      <div class="endpoint">
+        <span class="m">POST</span>
+        <span class="u">https://api.nextool.app/v1/chat/completions</span>
+      </div>
+
+      <h3 id="auth">Authentifizierung</h3>
+      <p>
+        Über einen API-Key aus dem <a href="dashboard.html" style="color:var(--acc-3)">Dashboard</a>,
+        als Bearer-Token im Header:
+      </p>
+      <div class="copywrap">
+<div class="code-block">Authorization: Bearer soul_live_xxxxxxxxxxxxxxxxxxxxxxxx</div>
+      </div>
+      <p>
+        Der Schlüssel wird bei der Erstellung genau einmal im Klartext
+        angezeigt; gespeichert wird nur ein Hash. Geht er verloren, wird ein
+        neuer erzeugt — der alte lässt sich im Dashboard widerrufen und ist
+        danach sofort ungültig.
+      </p>
+      <div class="note-box err">
+        <p>
+          Der Schlüssel gehört in eine Umgebungsvariable, nicht in
+          Frontend-Code und nicht ins Repository. Wer ihn hat, kann Aufrufe auf
+          dein Kontingent absetzen.
+        </p>
+      </div>
+
+      <h3 id="byok">Eigener Upstream-Key (BYOK)</h3>
+      <p>
+        Es sind zwei getrennte Schlüssel im Spiel. Der Soul-Key im
+        <code class="inline">Authorization</code>-Header weist dich gegenüber
+        Soul aus. Zusätzlich kannst du optional deinen eigenen Modell-Key
+        mitschicken — dann läuft der Aufruf über dein Konto beim Anbieter statt
+        über den hinterlegten Standard-Key.
+      </p>
+
+      <div class="copywrap">
+<div class="code-block">Authorization: Bearer soul_live_…        <span class="k"># Zugang zu Soul</span>
+X-Soul-Upstream-Key: sk-…              <span class="k"># optional: dein Modell-Key</span></div>
+      </div>
+
+      <p>
+        Der Wert aus <code class="inline">X-Soul-Upstream-Key</code> ersetzt den
+        hinterlegten Standard-Key für <strong>genau diesen einen Aufruf</strong>.
+        Er wird nicht gespeichert und nicht protokolliert. Antwortet der Anbieter
+        mit einem Fehler, wird der verwendete Schlüssel aus dem Antworttext
+        entfernt, bevor er dich erreicht — manche Anbieter spiegeln Schlüssel in
+        Fehlermeldungen zurück.
+      </p>
+
+      <h3 id="provider">Anbieter pro Anfrage wählen</h3>
+      <p>
+        Zusätzlich lässt sich der Anbieter je Anfrage bestimmen. Fehlt der
+        Header, geht der Aufruf an den Upstream, den der Betrieb hinterlegt hat.
+      </p>
+
+      <div class="copywrap">
+<div class="code-block">Authorization:        Bearer soul_live_…
+X-Soul-Upstream-Key:  sk-…                         <span class="k"># dein Key beim Anbieter</span>
+X-Soul-Upstream-Base: https://openrouter.ai/api/v1 <span class="k"># Anbieter dieser Anfrage</span></div>
+      </div>
+
+      <p>
+        Erlaubt sind ausschliesslich Adressen aus einer serverseitigen Liste.
+        Steht der Wert nicht darin, antwortet der Proxy mit
+        <code class="inline">400</code> und dem Fehlertyp
+        <code class="inline">upstream_base_not_allowed</code> — und kontaktiert
+        gar keinen Upstream. Voreingestellt sind fünf OpenAI-kompatible
+        Anbieter:
+      </p>
+      <div class="code-block">https://api.openai.com/v1
+https://openrouter.ai/api/v1
+https://api.groq.com/openai/v1
+https://api.mistral.ai/v1
+https://api.deepseek.com/v1</div>
+
+      <div class="note-box">
+        <div class="h">Warum eine Liste und keine freie URL</div>
+        <p>
+          Eine frei wählbare Adresse hiesse, dass ein Aufruf den Proxy dazu
+          bringen kann, beliebige Ziele anzusprechen — auch interne. Dagegen
+          stehen zwei Schichten: Beim Start weigert sich der Aufbau der Liste,
+          private oder lokale Adressen aufzunehmen, selbst wenn sie
+          versehentlich in der Konfiguration stehen. Bei der Anfrage wird der
+          Header per <strong>exaktem Zeichenkettenvergleich</strong> geprüft —
+          der Nutzerwert wird nicht als URL zerlegt.
+        </p>
+        <p>
+          Das schliesst die üblichen Parser-Tricks aus. Etwa
+          <code class="inline">https://api.openai.com@evil.example/v1</code>:
+          der tatsächliche Host ist <code class="inline">evil.example</code>,
+          obwohl die Zeichenkette harmlos beginnt. Ohne Zerlegung gibt es
+          schlicht keinen Treffer.
+        </p>
+      </div>
+
+      <p>
+        Beides lässt sich kombinieren: Wird eine erlaubte Alt-Adresse gewählt,
+        geht der mitgeschickte Schlüssel an genau diesen Anbieter. Die
+        Bereinigung von Fehlerantworten gilt auch dann — ein Anbieter, der den
+        Schlüssel zurückspiegelt, erreicht dich nicht im Klartext.
+      </p>
+
+      <div class="note-box wip">
+        <p>
+          <strong>Stand:</strong> Beides ist im Proxy implementiert und durch
+          Tests abgedeckt — dass der mitgeschickte Schlüssel den Standard-Key
+          ersetzt, dass eine erlaubte Alt-Adresse wirklich angesprochen wird,
+          dass eine fremde oder interne Adresse mit
+          <code class="inline">400</code> endet, ohne dass ein Upstream
+          kontaktiert wird, und dass die Schlüssel-Bereinigung auch bei
+          gewählter Alt-Adresse greift. Nutzbar ist das trotzdem erst, wenn der
+          Dienst erreichbar ist — siehe das Banner oben.
+        </p>
+      </div>
+
+      <h3 id="completions">Chat Completions</h3>
+      <p>Anfrage (Feldnamen wie bei der OpenAI-API):</p>
+
+      <table class="params">
+        <thead><tr><th>Feld</th><th>Typ</th><th>Beschreibung</th></tr></thead>
+        <tbody>
+          <tr><td>model</td><td>string</td><td>Zielmodell, an das weitergereicht wird</td></tr>
+          <tr><td>messages</td><td>array</td><td>Nachrichtenverlauf mit <code class="inline">role</code> und <code class="inline">content</code></td></tr>
+          <tr><td>stream</td><td>boolean</td><td>Bei <code class="inline">true</code> Antwort als Server-Sent Events</td></tr>
+          <tr><td>temperature</td><td>number</td><td>Optional, wird durchgereicht</td></tr>
+          <tr><td>max_tokens</td><td>integer</td><td>Optional, wird durchgereicht</td></tr>
+        </tbody>
+      </table>
+
+      <p>Mit dem offiziellen OpenAI-SDK genügt der geänderte Base-URL:</p>
+      <div class="copywrap">
+<div class="code-block"><span class="k">import</span> OpenAI <span class="k">from</span> <span class="str">"openai"</span>;
+
+<span class="k">const</span> client = <span class="k">new</span> OpenAI({
+  baseURL: <span class="str">"https://api.nextool.app/v1"</span>,
+  apiKey:  process.env.<span class="v">SOUL_API_KEY</span>,
+});
+
+<span class="k">const</span> res = <span class="k">await</span> client.chat.completions.create({
+  model:    <span class="str">"…"</span>,
+  messages: [{ role: <span class="str">"user"</span>, content: <span class="str">"…"</span> }],
+});</div>
+      </div>
+
+      <h3 id="streaming">Streaming (SSE)</h3>
+      <p>
+        Mit <code class="inline">"stream": true</code> antwortet der Endpunkt als
+        <code class="inline">text/event-stream</code>. Die Chunks haben die
+        gewohnte Form, der Strom endet mit <code class="inline">data: [DONE]</code>:
+      </p>
+      <div class="copywrap">
+<div class="code-block">data: {"id":"…","object":"chat.completion.chunk","choices":[{"delta":{"content":"Hal"}}]}
+
+data: {"id":"…","object":"chat.completion.chunk","choices":[{"delta":{"content":"lo"}}]}
+
+data: [DONE]</div>
+      </div>
+      <p>
+        Die vorgelagerte Analyse geschieht, bevor der erste Chunk fliesst. Die
+        Zeit bis zum ersten Token ist dadurch höher als bei einem direkten
+        Aufruf — wie viel, wird der Benchmark zeigen. Eine Zahl dazu gibt es
+        noch nicht.
+      </p>
+
+      <h3 id="fehler">Fehler und Limits</h3>
+      <table class="params">
+        <thead><tr><th>Status</th><th>Bedeutung</th><th>Was zu tun ist</th></tr></thead>
+        <tbody>
+          <tr><td>400</td><td>Bad Request</td><td>Anfrageformat prüfen. Beim Fehlertyp <code class="inline">upstream_base_not_allowed</code> stand ein nicht erlaubter Wert in <code class="inline">X-Soul-Upstream-Base</code>; die Antwort führt die zulässigen Adressen auf</td></tr>
+          <tr><td>401</td><td>Unauthorized</td><td>Schlüssel fehlt, ist ungültig oder widerrufen</td></tr>
+          <tr><td>429</td><td>Too Many Requests</td><td>Rate-Limit oder Kontingent erreicht; mit exponentiellem Backoff wiederholen</td></tr>
+          <tr><td>5xx</td><td>Serverfehler</td><td>Erneut versuchen; hält es an, ist es unser Problem</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Die konkreten Grenzwerte für Rate-Limit und Kontingent stehen noch nicht
+        fest. Sobald sie es tun, stehen sie hier — mit Zahlen, nicht mit
+        Andeutungen.
+      </p>
+
+      <div class="note-box acc">
+        <div class="h">Was schon jetzt geht</div>
+        <p>
+          Ein Konto lässt sich bereits anlegen. Die Schlüsselverwaltung im
+          Dashboard ist gebaut und zeigt offen an, dass die API noch nicht
+          antwortet — sie täuscht keinen Schlüssel vor, der nirgends gültig
+          wäre.
+        </p>
+        <div class="cta-row" style="margin-top:1rem">
+          <a href="signup.html" class="btn sm primary">Konto anlegen</a>
+          <a href="index.html#nachweise" class="btn sm ghost">Stand der Nachweise</a>
+        </div>
+      </div>
+
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p class="th">Memory you <span class="em">trust.</span> Judgment the model <span class="em">earned.</span></p>
+    <div class="fine">
+      <span>© <span data-year>2026</span> Christian Bucher</span>
+      <span>soul-mcp 4.0.1</span>
+      <span>MIT-Lizenz</span>
+      <span><a href="https://www.npmjs.com/package/soul-mcp" target="_blank" rel="noopener" style="color:var(--acc-3)">npm</a></span>
+      <span><a href="https://github.com/christian140903-sudo/soul-mcp" target="_blank" rel="noopener" style="color:var(--acc-3)">GitHub</a></span>
+      <span><a href="/impressum.html" style="color:var(--tx-2)">Impressum</a></span>
+      <span><a href="/datenschutz.html" style="color:var(--tx-2)">Datenschutz</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>
