@@ -1,0 +1,44 @@
+# Cloudflare-Pages-Header.
+#
+# WICHTIG: Diese Datei wirkt nur, wenn sie in der WURZEL des Deployments
+# liegt — also neben index.html der Gesamtsite, nicht in soul/. Sie gehört
+# beim Ausrollen also ins nextool-Wurzelverzeichnis.
+#
+# Bewusst NICHT gesetzt, weil Cloudflare sie für die ganze Zone bereits
+# ausliefert (am 14.08.2026 gegen die Live-Site geprüft):
+#   x-content-type-options: nosniff
+#   referrer-policy: strict-origin-when-cross-origin
+# Sie hier zu wiederholen brächte nichts und verdeckte nur, woher sie kommen.
+#
+# Alle Regeln sind auf /soul/* begrenzt. Die übrigen Seiten von nextool.app
+# bleiben unangetastet — ein zu strenger Header dort könnte Werkzeugseiten
+# brechen, die wir hier nicht prüfen können.
+
+/soul/*
+  # Die Anmelde- und Dashboard-Seiten dürfen nicht in einem fremden Rahmen
+  # laufen: sonst liesse sich ein Klick auf einen unsichtbaren Rahmen lenken.
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  # Die Soul-Seiten brauchen keinen Zugriff auf Geräte oder Standort.
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+# Das Vorschaubild darf lange zwischengespeichert werden — es ändert sich nur
+# mit einem neuen Auftritt und trägt dann einen neuen Namen.
+/soul/assets/og-soul.png
+  Cache-Control: public, max-age=604800
+
+# Der eingefrorene Supabase-Client ist versioniert; sein Name ändert sich bei
+# jedem Update, deshalb ist langes Zwischenspeichern gefahrlos.
+/soul/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# ANMERKUNG zu einer vollständigen Content-Security-Policy für /soul/*:
+# Machbar wäre etwa
+#   default-src 'self'; script-src 'self' 'unsafe-inline';
+#   style-src 'self' 'unsafe-inline'; img-src 'self' data:;
+#   font-src 'self'; frame-ancestors 'none';
+#   connect-src 'self' https://ereqsthigmethlbipcnw.supabase.co https://api.nextool.app
+# Das ist hier bewusst NICHT aktiv: Eine zu enge connect-src legt die
+# Anmeldung still lahm, und das lässt sich nur am ausgerollten Stand prüfen,
+# nicht lokal. Wer sie einschaltet, muss danach Anmeldung, Registrierung und
+# Dashboard einmal von Hand durchspielen.

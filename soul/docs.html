@@ -5,9 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dokumentation — Soul</title>
 <meta name="description" content="Soul-Dokumentation: Quickstart für den local-first MCP-Server 4.0.2 und API-Referenz für den Proxy 4.1.0.">
-<link rel="canonical" href="https://nextool.app/soul/docs.html">
+<link rel="canonical" href="https://nextool.app/soul/docs">
 <meta name="theme-color" content="#050505">
 <meta name="color-scheme" content="dark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Soul — Dokumentation">
+<meta property="og:description" content="Quickstart für den local-first MCP-Server 4.0.2 samt Fünf-Minuten-Demo und allen 23 Werkzeugen, plus die API-Referenz zum Proxy 4.1.0.">
+<meta property="og:url" content="https://nextool.app/soul/docs">
+<meta property="og:image" content="https://nextool.app/soul/assets/og-soul.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Soul — Memory you trust. Judgment the model earned.">
+<meta property="og:site_name" content="nextool">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Soul — Dokumentation">
+<meta name="twitter:description" content="Quickstart 4.0.2 und API-Referenz 4.1.0.">
+<meta name="twitter:image" content="https://nextool.app/soul/assets/og-soul.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23050505'/><circle cx='16' cy='16' r='6' fill='%234f46e5'/></svg>">
 <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/JetBrainsMono-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -20,13 +34,13 @@
 
 <nav class="bar">
   <div class="in">
-    <a href="index.html" class="brand"><span class="dot"></span>nextool<span class="sub">/soul</span></a>
+    <a href="./" class="brand"><span class="dot"></span>nextool<span class="sub">/soul</span></a>
     <div class="links">
-      <a href="index.html">Übersicht</a>
+      <a href="./">Übersicht</a>
       <a href="#quickstart">Quickstart</a>
       <a href="#api">API 4.1.0</a>
     </div>
-    <a href="login.html" class="cta">Anmelden</a>
+    <a href="login" class="cta">Anmelden</a>
   </div>
 </nav>
 
@@ -63,6 +77,7 @@
 
       <p class="grp">Soul 4.1.0</p>
       <a href="#api">API-Referenz</a>
+      <a href="#amplifier">Was dazwischen passiert</a>
       <a href="#auth">Authentifizierung</a>
       <a href="#byok">Eigener Upstream-Key</a>
       <a href="#provider">Anbieter pro Anfrage</a>
@@ -181,7 +196,7 @@
           <em>kein</em> Nachweis, dass ein Modell dadurch bessere Antworten
           gibt — dafür braucht es einen kontrollierten Vergleich, und der ist
           für den Proxy noch nicht gefahren. Der Stand der Messungen steht auf
-          der <a href="index.html#nachweise" style="color:var(--acc-3)">Nachweise-Seite</a>.
+          der <a href="./#nachweise" style="color:var(--acc-3)">Nachweise-Seite</a>.
         </p>
       </div>
 
@@ -273,7 +288,7 @@ npx soul-mcp semantic on <span class="k"># lokale semantische Suche (opt-in)</sp
         <p>
           Was gemessen ist und was nicht, samt der bekannten Schwächen von
           4.0.2, steht gesammelt auf der Startseite unter
-          <a href="index.html#nachweise" style="color:var(--acc-3);border-bottom:1px solid var(--acc-line)">Nachweise</a>.
+          <a href="./#nachweise" style="color:var(--acc-3);border-bottom:1px solid var(--acc-line)">Nachweise</a>.
         </p>
       </div>
 
@@ -288,9 +303,55 @@ npx soul-mcp semantic on <span class="k"># lokale semantische Suche (opt-in)</sp
         <span class="u">https://api.nextool.app/v1/chat/completions</span>
       </div>
 
+      <h3 id="amplifier">Was dazwischen passiert</h3>
+      <p>
+        Der Proxy legt vor deine Anfrage eine Vorbereitungs-Runde. Im
+        voreingestellten Modus setzt er dafür eine deterministisch
+        zusammengebaute System-Nachricht an den Anfang der Nachrichtenliste —
+        <strong>deine letzte Nutzer-Nachricht bleibt dabei Byte für Byte
+        unverändert</strong>. Es wird also nichts umgeschrieben, was du
+        geschrieben hast; das Modell bekommt zusätzlich eine Anleitung, wie es
+        an die Aufgabe herangehen soll.
+      </p>
+
+      <table class="params">
+        <thead><tr><th><code class="inline">AMPLIFY_MODE</code></th><th>Modellaufruf</th><th>Verhalten</th></tr></thead>
+        <tbody>
+          <tr><td>implant</td><td>nein</td><td>Voreinstellung. System-Nachricht davor, Nutzer-Nachricht unverändert</td></tr>
+          <tr><td>implant-v10</td><td>nein</td><td>Vergleichsarm für die Messung, gleiches Prinzip, anderer Rahmen</td></tr>
+          <tr><td>analyzer</td><td>ja</td><td>Älterer Pfad: <strong>ersetzt</strong> die letzte Nutzer-Nachricht durch eine Vorlage</td></tr>
+          <tr><td>off</td><td>nein</td><td>Reines Durchreichen, keine Vorbereitung</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note-box">
+        <div class="h">Zwei Eigenschaften, die uns wichtig sind</div>
+        <p>
+          <strong>Fail-open.</strong> Geht beim Zusammenbauen irgendetwas
+          schief, wird die Anfrage im Original weitergereicht statt
+          abgebrochen. Ein Fehler im Amplifier soll dich nie einen Aufruf
+          kosten.
+        </p>
+        <p>
+          <strong>Triviales bleibt unangetastet.</strong> Kurze, offensichtliche
+          Anfragen erkennt der Proxy und lässt sie durch — eine Vorbereitungs-Runde
+          für „wie spät ist es" wäre nur Ballast.
+        </p>
+      </div>
+
+      <div class="note-box wip">
+        <p>
+          <strong>Ungemessen.</strong> Ob diese Vorbereitung die Ergebnisse
+          messbar verbessert, ist offen. Der Vergleich gegen die Baseline
+          (Benchmark B2) ist präregistriert und noch nicht gefahren. Bis das
+          Ergebnis vorliegt, ist der Mechanismus eine begründete Annahme — kein
+          belegter Vorteil, und hier steht keine Zahl dazu.
+        </p>
+      </div>
+
       <h3 id="auth">Authentifizierung</h3>
       <p>
-        Über einen API-Key aus dem <a href="dashboard.html" style="color:var(--acc-3)">Dashboard</a>,
+        Über einen API-Key aus dem <a href="dashboard" style="color:var(--acc-3)">Dashboard</a>,
         als Bearer-Token im Header:
       </p>
       <div class="copywrap">
@@ -473,8 +534,8 @@ data: [DONE]</div>
           wäre.
         </p>
         <div class="cta-row" style="margin-top:1rem">
-          <a href="signup.html" class="btn sm primary">Konto anlegen</a>
-          <a href="index.html#nachweise" class="btn sm ghost">Stand der Nachweise</a>
+          <a href="signup" class="btn sm primary">Konto anlegen</a>
+          <a href="./#nachweise" class="btn sm ghost">Stand der Nachweise</a>
         </div>
       </div>
 
@@ -491,8 +552,8 @@ data: [DONE]</div>
       <span>MIT-Lizenz</span>
       <span><a href="https://www.npmjs.com/package/soul-mcp" target="_blank" rel="noopener" style="color:var(--acc-3)">npm</a></span>
       <span><a href="https://github.com/christian140903-sudo/soul-mcp" target="_blank" rel="noopener" style="color:var(--acc-3)">GitHub</a></span>
-      <span><a href="/impressum.html" style="color:var(--tx-2)">Impressum</a></span>
-      <span><a href="/datenschutz.html" style="color:var(--tx-2)">Datenschutz</a></span>
+      <span><a href="/impressum" style="color:var(--tx-2)">Impressum</a></span>
+      <span><a href="/datenschutz" style="color:var(--tx-2)">Datenschutz</a></span>
     </div>
   </div>
 </footer>
