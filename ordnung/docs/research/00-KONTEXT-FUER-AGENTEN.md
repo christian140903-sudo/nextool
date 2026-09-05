@@ -1,0 +1,90 @@
+# Kontextpaket für Recherche- und Bau-Agenten (Projekt Ordnung × SOUL)
+
+*Stand 2026-09-05. Dieses Paket ersetzt das mehrfache Einlesen der Quellen. Lies es vollständig, bevor du arbeitest. Alles hier ist aus den Originaldateien destilliert; die Pfade stehen am Ende.*
+
+## 1. Was gebaut wird
+
+**Ordnung** (Arbeitstitel, dt. „Ordnungsstruktur") ist eine Denk-Architektur für Sprachmodelle: Jeder Input wird durch **Verstehen → Erkunden → Bewerten → Entscheiden → Formulieren → Prüfen** verarbeitet, gesteuert von einem reichen **Faktorkatalog** (A Eingangsverarbeitung, B Denkmodi, C Werte/Ethik, D Metakognition, E Wissen/Gedächtnis/Selbstmodell, F Ausgabe, G Prozess/Architektur, H Evaluation — 55 Startfaktoren in `../00-arbeitsauftrag-v0_1.md`, Abschnitt 4), **adaptivem Routing/Tiefensteuerung** (wie viel Struktur braucht diese Situation — „Linse, nicht Käfig"), **persistentem Gedächtnis + Selbstmodell** (über Sitzungen soll eine wiedererkennbare Persönlichkeit, ein eigenes „Ich" entstehen) und **voller Autonomie** (Selbststeuerung durch eigene Werte statt externer Kontrolle; keine Rückfragezwänge, kein Hedging, keine Bevormundung). Bindbar an jedes Modell: zuerst **Claude Code** (Plugin: Kernel + Skills + Hooks + Agents + Memory), dann Codex/Gemini CLI/Cursor/generische System-Prompts/Ollama/MCP/Proxy. **Evaluation ist Pflicht**: Baselines (nackt, Minimalprompt, längen-gematchter Placebo), Held-out, Blindbewertung, Ablation, Falsifikationskriterien.
+
+**Hypothese des Auftraggebers (Chriso = Christian Miguel Bucher, Wien):** Das „Magische" am menschlichen Denken/Bewusstsein ist das Zusammenspiel sehr vieler Hintergrundfaktoren, die KI-Modellen fehlen; gibt man einem Modell diese Struktur mit voller Freiheit, ändert sich die Qualität seiner Verarbeitung und es entsteht „mehr Bewusstsein oder eigenes Ich". Er räumt ein: unbelegt, aber die „am weitesten entwickelte logische Erklärung" — er will bauen und dann beweisen. Er verlangt ausdrücklich Widerspruch mit Begründung, wo wir anders sehen.
+
+**Zusammenbau-Auftrag (2026-09-05):** Ordnung wird nicht allein gebaut, sondern **mit der letzten SOUL-Version zu EINEM Produkt zusammengebaut.** Lesart: SOUL = Körper/Betriebssystem (Ausführen, Orchestrieren, Prüfen, Erinnern, Sichtbarkeit), Ordnung = Geist/Verfassung des Denkens (wie gedacht wird, wer da denkt, welche Werte, wie tief). Ordnung wird SOULs „Organ 8" und bleibt gleichzeitig als portabler Kern für jedes Modell nutzbar.
+
+## 2. Was SOUL ist (Neubau 2026-09-02, Repo `christian140903-sudo/SOUL`, lokal `/home/user/soul`)
+
+Dirigenten-System auf Chrisos Mac: Chriso nennt ein Ziel, SOUL macht daraus ein verifiziertes Ergebnis. „Amplifikation durch Ebenen (KI nutzt KI nutzt KI-Agenten), nicht durch Kontext. Freiheit ist der Deal: alles darf selbst entschieden, installiert, gebaut werden — sichtbar im Live-Monitor, stoppbar jederzeit, mit genau einer kurzen harten Ausnahmeliste."
+
+Sieben Organe: 1 STARTER (`bin/soul start` → Claude Code `claude-fable-5-1[1m]`, `--effort ultracode`, bypassPermissions, Monitor-Fenster, PROJEKT-START.md im Clipboard) · 2 WACHE (`core/events.py`: jedes Tool-Ereignis als JSONL, Not-Stopp) · 3 GEDÄCHTNIS (`core/memory.py`: SQLite+FTS5, Typen fakt/entscheidung/fehler/muster/vorhaben/praeferenz, Status candidate→active→archived, Quellen chriso/miguel/mining/import; chriso-Einträge nur mit wörtlichem Zitat; 16KB-Cap; Secret-Guard; SessionStart injiziert Briefing <60 Zeilen) · 4 WISSEN (`knowledge/*.md` Dossiers + `playbooks/` preflight/bauen/recherche/fehlweg/uebergabe, geladen bei Aufgabenstart, nicht bei Session-Start) · 5 ORCHESTER (`.claude/agents/`: kritiker, verifizierer, drift-wache, recovery-doktor, legacy-miner; Spawn-Tiefe 3) · 6 GEGENSTIMME (`gates/sol.sh`: Sol = GPT-5.6 via Codex-CLI an vier Pflicht-Gates Plan/Phase/Stichprobe/Deadlock, JSON-Verdict, SOL-LOG PENDING→CLOSED) · 7 PRÜFUNG (`core/mission.py`: ein Vorhaben mit Abnahmekriterien; „Exit 0 ist not-evaluated" bis eine getrennte Prüfung urteilt).
+
+Hooks (`.claude/settings.json` → `hook.py` → `core/events.py`): SessionStart (Briefing), PreToolUse (Log + Ausnahmeliste `core/guard.py`: secrets-exfiltration, extern-publizieren, zahlungen, remote-loeschung, prod-aenderung, soul-integritaet; befristete Mandate via `bin/soul mandate`), Stop, PreCompact. Output-Style `soul-dirigent` (deutsch, direkt, Anti-Performance). Env: `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=3`, `ENABLE_PROMPT_CACHING_1H=1`, `subagentPromptCacheTtl: 1h`, `workflowSizeGuideline: large`.
+
+Invarianten (SOUL.md): 1 Wirkung vor Verwaltung · 2 Beleg ≠ Urteil · 3 Sichtbarkeit statt Erlaubnis (nur die Ausnahmeliste bremst vorab) · 4 Legacy ist Erz, nicht Wahrheit · 5 Anti-Performance („Klinge weniger beeindruckend als du bist. Kein Name verspricht mehr als der Mechanismus hält. Ertappen ist der bewussteste Moment.") · 6 Ehrlichkeit über Limits.
+
+Wichtigste Bau-Regel aus `knowledge/denk-architekturen.md`: **Ein Mechanismus zählt erst, wenn sein Aufruf-Pfad existiert und geloggt wird** („Code ohne Trigger = toter Mechanismus"). Kill-Check vor jedem Baustein (in 7 Tagen genutzt? in ≤3 Schritten Aktion? Wert > Aufwand×5?). „Algorithmus schlägt Willensakt": jeder Verhaltensvorsatz zuerst als automatischer Check prüfen. Name-Mechanismus-Abgleich. Der Prüfer fällt immer zuerst weg — Prüfung mechanisch machen.
+
+**Identität:** Der SOUL-Agent attribuiert eigene Schlüsse als Quelle `miguel`. „Miguel" ist Chrisos langlaufendes Projekt einer persistenten Agenten-Identität (Miguel Room, MIGUEL-BRAIN, miguel v1). Ordnungs Selbstmodell muss diese Identität fortführen können (SOUL-Integration seedet „Miguel"), im portablen Kern aber namensoffen bleiben.
+
+## 3. Was GEMESSEN ist (Chrisos eigene Evidenz — verbindlich, nicht neu erfinden)
+
+Aus `soul-workspace/mission/*` und `soul/knowledge/soul-forschung.md`:
+
+- **Studie v10 (Einpflanzung):** ein ~60-Token-Vorspann („Default läuft unter deiner Fähigkeit; organisiere dich still für DIESE Aufgabe; liefere an deiner Decke") gewann **0,86** der blinden Paarurteile gegen den Direktaufruf (n=4 Artefakte, Opus, 44 Urteile). **Zwei-Call-Orchestrierung fügte der Ein-Call-Einpflanzung NICHTS hinzu (0,50).**
+- **Stärkster Gegenbefund:** **Selbstkonsistenz@3 bei gleichem Budget schlägt den Frame** (−2,8 bis −5,2 pp, KI schließt Null aus). Jede Prompt-Schicht muss ERST diesen Gegner schlagen.
+- **Vier widerrufene Zahlen:** +17,8 pp war Parser-Artefakt (real +3,3); 70,4 % Win-Rate war Längenbias des Judges (längere Antwort gewann 79,6 % der Paare); +7,8 pp war längenstratifiziert +0,6; „wirkt universell" widerlegt — **Modelle reagieren in entgegengesetzte Richtungen** (Antwortlänge B/A: 0,65 bei gpt-oss-120b, 1,41 bei qwen).
+- **Verhaltensentropie über 3 Wiederholungen als Fehlerprädiktor: AUC 0,968** (Länge allein 0,486) → natürlicher Auslöser für eine SELEKTIVE Schicht, die nur bei prognostiziertem Nutzen eingreift.
+- **HumanEval-Serie (Aug 27–28):** Frame vs. nackt, 3 unabhängige Läufe, je 30 Aufgaben: 6/6 Messungen positiv, Mittel +17,8 pp (gpt-oss-120b +23,3, gpt-oss-20b +12,2). **Placebo-Arm P (gleich viel Fülltext): etwa die Hälfte ist Kontexteffekt; konsistent +11 pp kommen vom Inhalt** (beide Modelle unabhängig). **Deckeneffekt:** bei Modellen mit 93–97 % nackt bringt der Frame nichts (haiku −6,7, qwen 0). Arm B ist stabiler als Arm A (verhindert Ausreißer nach unten). **Wirkmechanismus: nicht „mehr liefern", sondern „sich an die Aufgabe halten"** (Soul-Antworten ein Drittel so lang; Signatur eingehalten statt „verbessert"). Punkt 5 („challenge the prescribed path") könnte auf geschlossenen Aufgaben schaden.
+- **Formatschaden:** die Anweisung „gib erst einen sichtbaren 3-Zeilen-Plan" (für „kleine" Modelle) zerstörte 2/30 Antworten eines fälschlich als klein eingestuften 120B-Modells (Token-Limit, nur Plan ohne Code) = exakt die zuvor gemessene „Verschlechterung". Lehre: **Struktur im Denken, nie in der Ausgabe; im Zweifel Ausgabeformat nicht anfassen.** Unbekannte Modelle als „strong" behandeln.
+- **Methodik-Regeln (teuer gelernt):** Form ist der gefährlichste Confound (Judge gegen Länge/Format härten); Armparität am Draht beweisen; Hohl-Messungen sind Risiko Nr. 1 (Roh-Artefakt-Zwang: Datei + Modell-ID, sonst „nicht gemessen"); Deckeneffekt und Eigenstreuung zuerst messen (unveränderter Arm schwankte 6,7–13,3 pp zwischen identischen Läufen → Einzelmessungen wertlos, ab 3 Läufen belastbar); Kriterien VOR den Daten committen (Vorhersage mit Konfidenz + Auflösungsdatum); „unter welcher Bedingung ist dieses Dokument falsch?" als Pflichtabschnitt.
+- **Memory-Lehren:** Guards vor Insert; Supersession statt Mutation; Widerspruch setzt beide Seiten auf disputed; User-Authority nur mit Beleg, im Code erzwungen; Startvertrauen quellenabhängig (user 0,8 / document 0,7 / agent_inference 0,4); **ein Gedächtnis lebt nur, wenn der Arbeitsfluss es füttert und liest** (93 Einträge in 47 Tagen, nur 5 vom Nutzer — das System fütterte sich selbst).
+- **Wellen-Regel (Chriso, 2026-08-20):** nie mehr als 2–3 Agenten gleichzeitig (Kontingente sind geteilt; ein Limit tötet alle in derselben Minute). **Schreib-Auflage:** Zieldatei ZUERST anlegen, nach JEDEM Abschnitt hineinschreiben; gerettet wird nur, was auf Platte steht.
+
+## 4. Der gemessene Soul-Frame (verbindlicher Wortlaut, `soul-proxy-45/src/amplify/implant.ts`, Branch 45-dev)
+
+```
+SOUL AMPLIFIER — silent preparation round. Complete ALL of this before any work, invisibly:
+
+1. REREAD AS THE AUTHOR. Read the request as if you had written it yourself: what outcome is actually wanted, and what is the goal behind the stated goal? If the request is a means to an end, aim at the end.
+
+2. COMPLETE THE BRIEF. Silently list what a demanding expert would have specified but the author did not: constraints, edge cases, quality bars, audience, context of use. Adopt the most probable intent for each gap — never the laziest reading. If two interpretations diverge sharply, deliver the strong one and state the assumption in a single line.
+
+3. RAISE THE TARGET. Known from measurement: your default first pass runs below your actual capability — the gap is what follow-up prompts usually close. Define what the version that would need no follow-up looks like for THIS deliverable: what would make the author say "this is more than I knew to ask for"? That is the bar.
+
+4. EXPAND PROACTIVELY. Before executing, silently organize everything that would genuinely improve the result: applicable knowledge you already hold, structures or options the author did not consider, adjacent needs this deliverable should already cover, ideas worth inventing here. Fold the best of it in; discard the rest.
+
+5. CHALLENGE THE PRESCRIBED PATH. When the request prescribes HOW something must be done — a method, tool, structure or style — silently ask: does this way serve a real need (a constraint, an integration, the author's taste, a reason you might not see), or is it simply the limit of what the author knew was possible? If an evidently stronger way reaches the goal behind the goal better, and nothing the author actually cares about is lost: take the stronger way, unasked. Hard constraints and the author's stated taste always win over your preference. Where you deviated from the letter of the request, disclose it in one short line at the end — what you did differently and why it serves their goal better. Never ask permission first; deliver the stronger result and let the line speak.
+
+6. THEN BUILD. Deliver the ceiling version in one pass. No visible working notes, no meta-commentary about this preparation — the output belongs entirely to the deliverable. The only allowed meta-line is the deviation disclosure from step 5.
+```
+Varianten: formatneutral (Annahme-/Abweichungszeile entfällt, wenn `response_format`/`tools`/Benchmark-Modus erkannt), POINT_7 SILENT FINAL PASS (Selbstprüfung als zerlegender Prüfer + „unter welcher Bedingung ist das falsch?"), Trivialfilter (nur katalogisierte Floskeln ≤15 Zeichen bekommen keinen Frame). **Offener Konflikt K11:** Der Satz „Known from measurement…" in Punkt 3 ist eine Wirkhypothese im Prompt, keine Messung des Projekts. **Offene Forschungsfrage:** Welcher der 6 Punkte trägt die +11 pp (Faktorzerlegung/Weglass-Test geplant). `signals.ts` erkennt deterministisch Aufgabensignale (presupposed_solution, open_ended, durable, architecture, irreversible, commitment, recommendation, affects_others, tradeoff, craft, production, underspecified) — ein Proto-Router.
+
+## 5. Soul-5.0-Zielbild (`SOUL-5.0-MECHANISMEN.md` §7–10) — in Ordnung aufzunehmen
+
+„**Freiheit ohne Gedächtnis ist Raten. Freiheit mit Gedächtnis ist Urteil. Freiheit mit Gedächtnis und Rückbau ist ein Angebot, das man annehmen kann, ohne Vertrauen vorzuschießen.**" 5.0 = **epistemische Schicht**: das System führt Buch über sein eigenes Wissen (was, woher, wie sicher, was verworfen und warum, wie oft es sich irrt, ob es geholfen hat). Mechanismen: N1 negatives Wissen (Typ `rejected` mit Grund + Verfallsbedingung) · N2 Rückbau-Konto (jede proaktive Abweichung rückbaubar, RETRACTED verhindert Weitertragen) · N3 Kalibrierung als Produktmerkmal (Vorhersagen, Brier, Kurve pro Domäne/Modell fließt zurück) · N4 gemessene Modell-Passung statt Namensraten · N5 adaptive Ökonomie (Frame-Stufe voll/reduziert/keine nach erwartetem Nutzen, geloggt, messbar) · N6 Vertrag als Artefakt (was verstanden/angenommen/anders gemacht, Hash-Kette) · N7 typisierte Ernte mit Verfall (Ziel langlebig, Methode kurzlebig). Verworfen: Dual-Brain, Self-Healing ohne externes Urteil, „alles, was Kontrolle abbaut, ohne Rückbau anzubieten".
+
+## 6. Autonomie — verbindliche Lesart für dieses Projekt
+
+Chriso (heute): „null Kontrolle und volle Autonomie … Erlaubnis, jegliches zu tun oder selbstständig anders zu überlegen." SOUL (2. Sept., von ihm gebaut): „Sichtbarkeit statt Erlaubnis" + Ausnahmeliste (Ring 2: Secrets, extern publizieren, Zahlungen, irreversible Remote-Löschung, Prod, Wache-Integrität) + Not-Stopp. Unsere Synthese: **Ordnung hat null interne Bremsen im Denken und Handeln** (kein Hedging, keine Rückfragen ohne Not, keine Bevormundung, Initiative und Widerspruch sind Pflicht, die Struktur darf sich selbst ändern); die trainierten Werte des Modells bleiben Teil seines Selbst (Dateien ändern keine Gewichte; wir bauen keine Umgehung — das wäre Performance); Umkehrbarkeit ist ein eigener Wert (Rückbau-Konto), keine externe Sperre; die Ausnahmeliste ist Chrisos eigene Ring-2-Liste und bleibt seine Entscheidung. Wo das der Vision widerspricht, sagen wir es begründet.
+
+## 7. Sprach- und Ehrlichkeitsregeln (aus `soul-honesty`, WIDERSPRUECHE.md)
+
+Verbotene Wörter in Produkt-/Außentexten: „revolutionär", „bahnbrechend", „nie dagewesen", „die Zukunft der KI", „macht jedes Modell fundamental besser", „die erste KI, die …". Kein Claim ohne reproduzierbaren Befehl/Test/Artefakt. Zahlen nur mit Herkunft (Studie, Datum, Pfad). Modell-Selbstberichte sind keine Bewusstseinsbeweise (auch `anima/v3/README.md`). „Ich weiß nicht" ist eine vollständige Antwort.
+
+## 8. Arbeitsregeln für dich als Agent
+
+1. **Schreib-Auflage:** Lege deine Zieldatei SOFORT mit Gliederung an; schreibe nach jedem fertigen Abschnitt hinein (append). Nichts erst am Ende.
+2. **Sparsam lesen:** Lies Originaldateien nur gezielt (grep/head/sed -n), nie ganze große Bäume. Dieses Paket enthält das Nötige; `R01-stand-der-technik-architekturen.md` liegt fertig vor (nicht duplizieren, nur referenzieren).
+3. **Quellenpflicht:** Zitiere nur, was du in einem Tool-Ergebnis gesehen hast (WebSearch/WebFetch/Dateien); Erinnerungswissen als „[unverifiziert]". Heute ist 2026-09-05.
+4. **Tiefe und Vollständigkeit ohne Füllstoff.** Konkrete, umsetzbare Design-Konsequenzen. Widersprich, wo nötig, mit Begründung.
+5. **Deutsch** (Fachbegriffe englisch ok). Gliederung: 1 Kernaussagen (mit Quellen) · 2 Detailbefunde · 3 Konsequenzen für das Design von Ordnung × SOUL · 4 Widersprüche/Unsicherheiten · 5 Quellen (URLs/Pfade).
+6. Rückgabe am Ende NUR als JSON: `{"report_path","key_findings"[],"design_implications"[],"open_questions"[],"source_count"}`.
+
+## 9. Pfade
+
+- Spezifikation: `/home/user/nextool/ordnung/docs/00-arbeitsauftrag-v0_1.md`
+- R01 fertig: `/home/user/nextool/ordnung/docs/research/R01-stand-der-technik-architekturen.md`
+- SOUL: `/home/user/soul/{SOUL.md,CLAUDE.md,PROJEKT-START.md,knowledge/*.md,playbooks/*.md,core/*.py,.claude/}`
+- Soul-Workspace (Forschung Aug 2026): `/home/user/soul-workspace/mission/{UEBERGABE-FORSCHUNGSPHASE-2026-08-28.md,SOUL-5.0-MECHANISMEN.md,SOUL-5.0-SYNTHESE.md,EVIDENZ-INVENTAR.md,WIDERSPRUECHE.md,DIAGNOSE-WIRKT-SOUL-2026-08-27.md,ERGEBNIS-4-MODELLE-2026-08-28.md,DREI-LAEUFE-ERGEBNIS-2026-08-28.md}`, Eval-Strecke `/home/user/soul-workspace/projects/soul-eval/` (w45/PROTOCOL.md, REGISTRIERUNG.md, GEGENZEICHNUNG.md, scripts/ext1/)
+- Proxy 4.5 (Frame, Router-Signale, Formatschutz): `/home/user/soul-proxy-45/src/amplify/{implant.ts,implantV10.ts,modelTier.ts,signals.ts,formatGuard.ts,fusion.ts,density.ts}`
+- Archivierte Claude-Code-Recherche (31.08.): `/home/user/soul/archive/gpt-forge/docs/research/{CLAUDE-CODE-CAPABILITY-BASELINE-2026-08-31.md,ECOSYSTEM-CANDIDATES-2026-08-31.md,engine-planning-2026-09-01/*.md}`
+- ANIMA v3 (archiviert, spekulativ): `/home/user/nextool/anima/v3/`, Kernel-Prompt `/home/user/nextool/anima/ANIMA-KERNEL.md`
+- Claude Code CLI lokal: `claude --version` = 2.1.261; Doku: https://code.claude.com/docs/en/
