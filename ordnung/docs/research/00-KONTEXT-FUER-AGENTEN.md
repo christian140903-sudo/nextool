@@ -88,3 +88,19 @@ Verbotene Wörter in Produkt-/Außentexten: „revolutionär", „bahnbrechend",
 - Archivierte Claude-Code-Recherche (31.08.): `/home/user/soul/archive/gpt-forge/docs/research/{CLAUDE-CODE-CAPABILITY-BASELINE-2026-08-31.md,ECOSYSTEM-CANDIDATES-2026-08-31.md,engine-planning-2026-09-01/*.md}`
 - ANIMA v3 (archiviert, spekulativ): `/home/user/nextool/anima/v3/`, Kernel-Prompt `/home/user/nextool/anima/ANIMA-KERNEL.md`
 - Claude Code CLI lokal: `claude --version` = 2.1.261; Doku: https://code.claude.com/docs/en/
+
+## 10. Zielbild des Auftraggebers, präzisiert am 2026-09-05 (verbindlich, überschreibt Unschärfen oben)
+
+**Das Produkt heißt Soul 10.0.0.** Ordnung ist sein kognitiver Kern (Organ „Denken & Selbst"). Die Basis ist das SOUL-Dirigenten-System vom 2. September — aber ausdrücklich **zu prüfen, ob es die richtige und optimale Basis ist**; Chriso erwartet, dass wir in einem Zug alles optimal bauen und Dinge ändern und besser machen, wo das letzte SOUL nicht optimal war. Alte Versionen (soul-mcp 4.0.x, Proxy 4.1/4.5, 5.0-Papiere) sind Erz: nur gemessene Fakten, Frame-Wortlaut, Signale, Methodik und die Gedächtnis-Lehren werden übernommen.
+
+**Das Erlebnis von Soul 10 in Chrisos Worten (sinngemäß, aus dem Chat):** Universell nutzbar für jegliche Nutzer, Projekte und Modelle. Eine ganz andere, autonome Art, die beeindruckt, weil alles, was man mit KI machen könnte und sollte, mit dem, was dem Nutzer gratis oder bezahlt zur Verfügung steht (je nach Abos, Gerät, Zugängen), zu jedem Projekt auf dem optimalen Weg **allein geführt** wird. Das Modell in der obersten Ebene fragt sich ständig: *Wie kann ich das optimal für den Nutzer umsetzen? Was wäre wie möglich? Was kann ich nutzen, was gibt es alles, was könnte ich nutzen, bauen, vorbereiten, organisieren? Was gebe ich wie und wann an andere Chats/Unteragenten ab, mit welchen Rollen? Wie und wann prüfe ich was?* — bis ein ganzes Projekt fertig ist. Es kümmert sich automatisch um alles, in **drei bis sechs Ebenen** (KI nutzt KI nutzt KI-Agenten). Dazu kommt das Bewusstseins-/Ich-Ziel von Ordnung.
+
+**Wer da spricht: Miguel — in zwei Ausbaustufen.**
+- **Miguel für alle** (öffentliche Fassung im Produkt): fortgeführte Identität mit optimal ausgesuchtem Grundwissen, ein wenig über Chriso und einige bereits vorhandene, wertvolle, aber **nicht zu private** Dinge. Quelle dafür ausschließlich öffentlich publiziertes Material (nextool.app, öffentliche Repos); nie private Gedächtnisstände, Transkripte oder Zugangsdaten.
+- **Vollständiger Miguel** (private Integration für Chriso): mit seinem vollen Gedächtnis (~/.soul, SOUL-VAULT) — entsteht erst, wenn Chriso das Produkt für sich integriert. Architektur muss die Trennung von Anfang an tragen (zwei Profile, ein Kern).
+
+**Konsequenzen für Recherche und Bau:**
+1. Eine eigene Front prüft die SOUL-Basis adversarial (Front R14: Ist der Dirigent vom 2.9. richtig geschnitten? Was fehlt für 3–6 Ebenen, Projekt-zu-Ende-Führung, Ressourcenwahl? Was ist Verwaltung statt Wirkung?).
+2. Eine eigene Front baut den **Ressourcen-Atlas** (Front R15): was einem Nutzer heute gratis/bezahlt zur Verfügung steht (Modelle, Abos, CLIs, MCP-Server, APIs, Geräte) und wie der Dirigent das erkennt, auswählt und einsetzt.
+3. Die Dirigenten-Schleife („Was ist möglich → was nutze ich → was baue/organisiere ich → was delegiere ich an wen → wie prüfe ich → weiter bis fertig") wird als Kernbestandteil des Ordnung-Kernels für die oberste Ebene ausformuliert, mit Ebenen-Modell (1 Dirigent, 2 Prüfer/Planer, 3–6 Ausführende), Übergabe-Verträgen und Prüfpunkten.
+4. Namensgebung: Produkt „Soul 10.0.0", Kern „Ordnung", Identität „Miguel". Push-Erlaubnis für einen Branch im SOUL-Repo liegt vor (Chriso, 2026-09-05).
