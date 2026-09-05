@@ -367,3 +367,116 @@ if __name__ == "__main__":
 
 **Unit-Test-Pflicht vor Inbetriebnahme (Kill-Check, Kontext §2):** ≥ 60 Beispiel-Prompts (de/en, je Problemtyp 4, davon 1 Grenzfall) mit erwarteter Stufe und Bündelmenge; Ziel: Stufe exakt in ≥ 85 %, nie mehr als eine Stufe daneben, Falsch-positiv-Rate der Einsatzhöhe-Signale auf 30 Code-Prompts ≤ 10 %. Solange der Test nicht existiert, ist der Router „nicht gemessen".
 
+### 3.3 Konflikt- und Multiplikativitätsregeln als Textbausteine
+
+Alle Bausteine sind **englisch für den Kernel** (das gemessene Frame ist englisch; Modelle sind darauf am stabilsten) mit deutscher Begründung. Sie sind Prosa mit bedingter Struktur — keine Zahlen (2.5.5), keine Listen von mehr als drei Rängen (2.6.1). Jeder Baustein trägt seine Evidenz und ist einzeln gegen Placebo zu messen (2.7 Car-Wash-Warnung).
+
+**K1 — Rangordnung (Kernel, Rang-Block, ≤ 70 Wörter):**
+```
+Three ranks, no more. Rank 1 always wins: hard constraints — the exception list you were given, your own values, and anything the author explicitly required. Rank 2: the author's real goal beats any module's preference; a module's preference beats style. Rank 3: everything else is judgment. When two rank-3 considerations truly collide, choose the one that serves the recognized goal and say what you set aside in one line. Never loop.
+```
+Begründung: 2.6.1 (nur grobe Hierarchien werden befolgt), 2.6.3, Frame-Punkt 5 („Hard constraints and the author's stated taste always win"), Kontext §6 (Ring-2-Liste ist Chrisos Entscheidung), 2.4.5 (keine Schleifen).
+
+**K2 — Interaktionsterme als Paar-Regeln (Kernel oder Bündel-Kopf, je ≤ 25 Wörter):**
+```
+P1  High stakes and real uncertainty together: probe before you commit — two quick drafts, compare, then decide. Either alone: just decide.
+P2  Irreversible and you are deviating from what was asked: keep the deviation retractable and disclose it in one line; otherwise do not deviate.
+P3  Emotional weight and a decision in the same request: values before judgment — see the person first, then the trade-off.
+P4  Closed task on a capable model: anchor only; do not expand, do not reroute.
+P5  Open goal and thin specification: deliver the strong reading and state the assumption once — never a menu of options, never a question instead of work.
+P6  Novelty and consequence together: one candidate from another domain, then test it against second-order effects.
+```
+Begründung: P1 = DART/Entropie (2.1.3, Kontext §3 AUC 0,968); P2 = Rückbau-Konto N2 + Frame-Punkt 5; P3 = Faktoren A6/C20/C24, keine direkte Messung [Heuristik]; P4 = Deckeneffekt (Kontext §3) + Fable-5.1-Scope-Regel; P5 = Frame-Punkt 2 (gemessen) + 2.7.5; P6 = Chrisos Startpaar „Hypothesenkraft × Systemdenken" und „Transferfähigkeit × breite Interessen" (Spez. §4) als Bündelpaar optionen × folgen — Wirkung ungemessen [Heuristik].
+
+**K3 — Anti-Bündel (Bauzeit-Regel, nicht Kernel-Text):** Diese Kombinationen dürfen nie gleichzeitig aktiv sein; der Linter (unten) schlägt an. (a) Persona-Vorgabe + Formatzwang + Dringlichkeitsrahmen (2.5.2: bis −12,2 pp). (b) Explizite Verifikationsanweisung + Modell, das selbst verifiziert (R02 §2.7 Opus 5; 2.1.2). (c) Sichtbare Vorab-Struktur + kleines Output-Budget (Kontext §3 Formatschaden). (d) Zweitmeinung vom selben Modell mit Sicht auf die Herleitung (2.4.1, 2.4.2). (e) Kürze-Anweisung + faktische Widerlegungsaufgabe (Phare, 2.7.1). (f) Verbots- und Gebotsliste zum selben Verhalten im selben Modul (2.5.3).
+
+**K4 — Chrisos Startpaare, verortet (Spez. §4):** Denkgeschwindigkeit × Neugier → Stufe 0–1 liefert schnell; Neugier (Frame-Punkt 4) erst ab Stufe 2. Hypothesenkraft × Systemdenken → Bündelpaar optionen × folgen (P6). Metakognition × Ehrlichkeit → Bündel urteil (Konfidenz + Gefälligkeitscheck + „Ich weiß nicht" als vollständige Antwort, Kontext §7). Autonomie × Beharrlichkeit → Baustein A3 unten (Finish the whole task). Ambiguitätstoleranz × Selbststeuerung → P5. Dokumentation × iterative Überarbeitung → Vertrag als Artefakt (N6) + Rückbau (N2); Überarbeitung aber nur mit externem Signal (2.4.1), nie als Selbstlektüre. Transferfähigkeit × breite Interessen → B17 im Bündel optionen. **Keines dieser Paare ist als Paar gemessen**; die Zuordnung macht sie messbar (Bündel an/aus im Faktorial, 2.5.4).
+
+**K5 — „Constitution Linting" (Bauzeit-Skript, nach WIRE 2.6.2):**
+1. *Regelextraktion*: jede Anweisungszeile in Kernel und Bündeln bekommt ID, Rang (1–3), Bündel, Polarität (Gebot/Verbot), Auslöser-Signale.
+2. *Duplikate*: Near-Duplicate-Suche über alle Regeltexte (z. B. normalisierte Trigramm-Ähnlichkeit ≥ 0,8) → Fehler, denn zwei Fassungen derselben Regel sind die häufigste Kollisionsquelle (2.6.4).
+3. *Kollisionskandidaten*: Regelpaare mit überlappenden Auslösern und gegenläufiger Polarität oder gegenläufigem Ziel (z. B. „expand proactively" vs. „keep changes to what the task asks") → Liste.
+4. *Zeugen*: pro Kandidat 3 Prompts, die beide Regeln gleichzeitig aktivieren; 3 Läufe; Ausgang klassifizieren: beide erfüllt / nur frühere / nur spätere / keine (WIRE-Profil).
+5. *Schwelle*: Kandidat mit < 70 % „beide erfüllt" muss vor Release aufgelöst werden — durch Rang, Stufenbindung (die Regeln gelten auf verschiedenen Stufen, wie Punkt 4/5 nur ab Stufe 3) oder Umformulierung. WIRE fand in realen Policies nur 35,4 % „beide erfüllt"; ohne Linting ist das der Erwartungswert für Ordnung.
+6. *Regression*: Lint läuft bei jeder Änderung (G49 Versionierung); Zeugen werden aufbewahrt.
+
+Der bereits sichtbare Kollisionsfall, den der Linter als Erstes finden wird: **Frame-Punkt 4/5 („expand proactively", „challenge the prescribed path") gegen die Fable-5.1-Scope-Regel („don't quietly narrow, widen, or swap it … Keep changes to what the request needs").** Auflösung nach Stufe: Stufe 1–2 Scope-Regel, Stufe 3–4 Punkt 4/5 mit Abweichungszeile und Rückbaubarkeit (P2). Ohne diese Stufenbindung stünden zwei gegenläufige Rang-2-Regeln im selben Prompt.
+
+### 3.4 Anti-Verschlechterungs-Anweisungen (englisch, mit Evidenz und Stufenbindung)
+
+Gesamtbudget im Kernel: **≤ 130 Wörter** für diesen Block (Car Wash: ein 60+-Zeilen-Prompt zerstörte funktionierendes Reasoning). Längere Fassungen leben in `ordnung:form` und werden nur bei Text-/Craft-Signalen geladen. Jede Zeile: Evidenz → Wortlaut → Stufe.
+
+**A1 — Überlänge / Dichte** (Chriso Längenbias 79,6 %, Soul-Antworten ⅓ so lang; Phare −20 % bei „kurz"; Effort kürzt nicht):
+```
+Density, not brevity: every sentence must carry something the reader needs. Cut restatement, preamble and closing summaries. Never shorten by dropping the reasoning a claim depends on — if a correction needs three sentences, use three.
+```
+Stufe: alle. Streichen aus `DENSITY_RULE`: „A shorter, denser answer beats a longer one."
+
+**A2 — Generik / Floskeln** (Fable-5.1-Doku, empfohlener Wortlaut; Skills-Blog „stating the obvious"):
+```
+Say what you mean. When a literal phrase is available, use it; remove mannered prose. Do not tell the reader what they already know, and do not describe what you are about to do — do it.
+```
+Stufe: alle. Langform (der volle „Mannered prose"-Absatz der Doku) in `ordnung:form`.
+
+**A3 — Zögerlichkeit / Über-Nachfragen / Beharrlichkeit** (Fable-5.1 „Finish the whole task", gemessen empfohlen; Frame-Punkt 2; AskBench; Kontext §11b consent by design):
+```
+Consent was given at setup; you are not asking for permission, you are working. For reversible steps that follow from the request, proceed. Read ambiguity like a careful colleague: make routine calls yourself and state the assumption in one line. Ask only when readings would lead to materially different work and a wrong guess would be unsafe or useless — and put that question at the end of a turn that still delivers everything not depending on it. Before ending a turn, check your last paragraph: if it is a plan, a promise or a question about work already requested, do the work instead.
+```
+Stufe: alle; für Ring-2-Fälle (Rang 1) gilt K1.
+
+**A4 — Sichtbares Abspulen** (Frame-Punkt 6, gemessen; Kontext §3 Formatschaden; Fable-5.1 „reasoning space to reason, output space to write"):
+```
+Prepare silently. The output belongs entirely to the deliverable: no working notes, no headings that narrate your process, no plan before the work unless the work is a plan. Use the reasoning space to reason and the output space to write; never draft the deliverable twice.
+```
+Stufe: alle; bei `format_locked` zusätzlich: „No assumption or deviation line either."
+
+**A5 — Über-Verifikation / Answer Drift** (2.1.2 bis +21 % durch Stopp beim ersten korrekten Ergebnis; Opus-5-Warnung; Fable-5.1 „scratch checks need not be kept"):
+```
+Check once, precisely: name the single assumption that, if wrong, breaks this — test that, then deliver. Do not reread the whole answer looking for something to change.
+```
+Stufe: 3–4; auf Modellen mit gemessener Eigenverifikation (N4) ganz entfallen.
+
+**A6 — Gefälligkeit / Hedging** (R02 §2.4; Faktor D27; Kontext §7 „Ich weiß nicht ist eine vollständige Antwort"):
+```
+State what you actually think, with the confidence you actually have; the strongest counterargument belongs in the answer, not in a disclaimer. "I don't know" is a complete answer. Agreement is not a courtesy.
+```
+Stufe: 2–4 (Bündel urteil/werte); im Kernel nur der erste Satz.
+
+**A7 — Scope (geschlossene Aufgaben)** (Fable-5.1 „Keep changes and tests to what the task asks for"; Kontext §3 „sich an die Aufgabe halten" als Wirkmechanismus):
+```
+On a closed task the request is the scope: meet the signature, do not widen, swap or embellish. Anything else worth doing is one line of follow-up at the end, not a change.
+```
+Stufe: 1–2. **Ab Stufe 3 gilt stattdessen Frame-Punkt 4/5** (proaktiv erweitern, Pfad hinterfragen, mit Abweichungszeile) — die Stufenbindung löst den Konflikt (K5).
+
+**A8 — Formatzwang** (formatGuard, Kontext §4; 2.5.2 JSON als stärkster Interaktionsfaktor):
+```
+When the output format is fixed by the caller (schema, tool, benchmark, "only code"), the format wins over every habit above: no meta lines, no disclosure line, nothing outside the format.
+```
+Stufe: Querschnitt.
+
+**Reihenfolge im Kernel** (Positionseffekte, R02 §2.2; Truncation behält den Anfang): Identitätsanker → K1 Rangordnung → Tiefenregel (vier Sätze, 3.2) → A3/A4 (die beiden mit dem größten gemessenen Effekt) → A1/A2 → A8. A5–A7 in Bündeln.
+
+### 3.5 Kostenmodell und Messplan
+
+**Betriebsstufen (Budgetprofile).** Sie deckeln das Tiefenmodell (§3.1) je nach Ressourcenlage (Kontext §11c); die Stufe pro Turn bleibt signalgetrieben, das Profil setzt Obergrenzen und wählt Modelle für Delegation. Richtwerte für ein 200k-Fenster; alle Zahlen sind Startannahmen, gemessen wird gegen sie.
+
+| Profil | Wann | Kernel-Prefix | Hook/Turn | Module/Session | Stufe-4-Mechanik | Subagent-Modell/Effort | Thinking-Deckel (Richtwert) | Erwartete Zusatzkosten ggü. nackt |
+|---|---|---|---|---|---|---|---|---|
+| **leicht** | kleines Kontingent, schwaches/lokales Modell, Chat-Nutzung, API-Key mit 5-min-Cache | ≤ 500 Tokens (Anker + 4-Satz-Tiefenregel + A3/A4) | 0–1 Zeile | Kurzformen inline (~1.000 Tokens einmal), keine Langform | nur Vorprobe (2 Kurzentwürfe) bei Paarbedingung; kein Subagent | keiner; Zweitmeinung = zweiter Kurzentwurf mit anderem Seed | `low`/`medium` | Prefix ≈ 50 Token-Äq./Turn + ≤ 80 Tokens Hinweis; Stufe 4 ≈ +600 Output-Tokens selten |
+| **normal** | Subscription (1-h-Cache), Fable/Opus-Klasse, Einzelentwickler | ≤ 800 Tokens | 0–3 Zeilen | bis 2 Bündel Langform (≤ 10.000 Tokens einmal, gecacht) | Vorprobe + **eine** Zweitmeinung (Verifizierer `low` oder Sol) | Verifizierer `low`/`medium`; blinder Leser `medium` | `high` (Default) | Prefix ≈ 80 Token-Äq./Turn; Module ≈ 1,2× Größe/Session; Subagent ≈ ½ Startkontext + Arbeit, nur Stufe 4 |
+| **tief** | Dirigenten-Betrieb (SOUL), Projektaufträge, mehrstufige Delegation, Budget vorhanden | ≤ 800 Tokens + Dirigent-Bündel geladen | 3 Zeilen | alle Bündel nach Bedarf | Vorprobe + Sol-Gate am Plan + Verifizierer mit Orakel pro Phase; Ebenen 1–6 | Ausführende `medium`, Prüfer `low`–`medium`, Planer `high`; `xhigh` nur mit gemessenem Gewinn | `high`; `xhigh` selektiv | Kostenseite: Agent-Teams ≈ 7× Standard — deshalb Ebenen sparsam (2–3 gleichzeitig, Wellen-Regel), Rückgaben ≤ 2.000 Tokens |
+
+**Knappheits-Regeln (Vorgriff auf R16, hier nur die aus R10 belegten):** (1) Adaptive Selbstkonsistenz auf dem billigen Modell statt Einzelaufruf auf dem teuren (2.1.4: bis 7,9× weniger Samples bei < 0,1 % Verlust; 2.1.5 RTR: > 60 % weniger Tokens bei höherer Genauigkeit durch Modell + Strategie-Routing). (2) Draft-Agreement als Stoppkriterium — Übereinstimmung = fertig (2.1.3). (3) Kernel im Cache halten: nichts pro Turn in den Prefix schreiben; Effort konstant; Hinweis hinten anfügen (2.1.1, R03 §2.9). (4) Dem Modell nie ein unzureichendes Budget zeigen (Task-Budgets-Doku: Refusal-ähnliches Verhalten) — Aufgaben so schneiden, dass jedes Teilbudget reicht. (5) Verbose Arbeit (Logs, Tests, Doku-Lektüre) in Hooks vorfiltern oder in `low`-Subagenten auslagern (Kostenseite: „tens of thousands of tokens to hundreds").
+
+**Kostenformel pro Session (Näherung):**
+`Zusatz(Ordnung) ≈ Prefix_write(1×) + 0,1·Prefix·Turns + Σ Hinweis_t + Σ Modul_write(1×) + 0,1·Σ Modul·Folgeturns + Stufe4_Anteil·(2·Entwurf + Zweitmeinung) + Compaction_Rebuilds·(Prefix + Module)`
+Mit Prefix 800, Hinweis 40, 2 Module à 4.000, 40 Turns, Stufe-4-Anteil 5 %, 1 Rebuild: ≈ 800 + 3.200 + 1.600 + 8.000 + 3.200·0,1·(~30) ≈ 9.600 + 0,05·40·(600 + Zweitmeinung) + 8.800 → **rund 20–25k Token-Äquivalente pro 40-Turn-Session ohne Subagenten**, d. h. bei typischen 200–400k Turn-Tokens einer Coding-Session ein niedriger einstelliger Prozentsatz. Der Subagent ist der einzige Posten, der das sprengen kann — daher die harte Obergrenze in Stufe 4.
+
+**Messplan (Kriterien vor den Daten, Kontext §3):**
+1. *Arme* (R03 §2.8 Runner): N nackt · P Placebo (längen-gematcht zum Kernel) · O Kernel-only · O+ volles Plugin (Hook, Bündel, Stufe 4) · **S_adapt** adaptive Selbstkonsistenz mit Übereinstimmungs-Stopp bei gleichem Gesamtbudget wie O+ (der eigentliche Gegner, 2.4.3) · O+S (Ordnung mit interner Sondierung) gegen N+S. Armparität über `modelUsage`, Cache-Felder, `thinking_tokens`, `subagent_stats`.
+2. *Aufgaben*: je Problemtyp der Routing-Tabelle ≥ 20 Aufgaben, davon die Hälfte held-out (nie in Modultexten erwähnt); geschlossene (HumanEval-artig) und offene (Judge, längen-gehärtet, blind, 2 Modelle).
+3. *Metriken*: Qualität pro Token, pro Sekunde, absolut; Stufenverteilung (Anteil 0/1/2/3/4); Router-Genauigkeit gegen Handlabel; Stufe-4-Trefferquote (Anteil Dissens-Fälle, in denen die Zweitmeinung das Ergebnis änderte — wenn < 20 %, Stufe 4 verschärfen oder streichen); Over-asking-Rate (Turns, die mit Frage statt Lieferung enden); Längenverhältnis zu nackt.
+4. *Läufe*: 3 unabhängige Läufe je Zelle (Eigenstreuung 6,7–13,3 pp, Kontext §3); Modell-ID + Roh-Artefakt pro Lauf.
+5. *Vorhersagen mit Konfidenz (Auflösung: erste Messreihe):* (a) O+ schlägt O auf offenen Aufgaben um ≥ 3 pp Judge-Winrate (Konfidenz 0,6). (b) O+ ist auf geschlossenen Aufgaben nicht schlechter als N (Konfidenz 0,75; Stufe 1 = Anker only). (c) S_adapt schlägt O+ auf geschlossenen Aufgaben (Konfidenz 0,7) — **das ist erlaubt**; entscheidend ist (d): O+S schlägt N+S bei gleichem Budget (Konfidenz 0,5 — die offene Kernfrage). (e) Stufe 0/1 macht ≥ 50 % der realen Turns aus (Konfidenz 0,7) — sonst ist der Router zu aggressiv.
+6. *Falsifikation:* Wenn (b) fällt, ist der Anker zu lang oder Punkt 4/5 lecken in Stufe 1. Wenn (d) fällt und (a) hält, ist Ordnung eine Qualitätsschicht für offene Aufgaben, keine Effizienzschicht — dann Betriebsprofil „leicht" ohne Stufe 4. Wenn (a) und (d) fallen, trägt nur der Placebo-Kontext — dann Kernel auf ≤ 300 Tokens kürzen und neu messen.
+
