@@ -42,3 +42,240 @@
 **Was fehlt (Ding et al. 2026, Always-On-Agents-Survey, via R01):** Die Literatur konzentriert sich „mehr auf Akkumulieren und Abrufen als auf Governance, Recovery oder Loslassen" von Zustand. Genau dort liegt der Soul-10-Beitrag.
 
 **Zwischenfazit 2.1.** Die Forschung optimiert Retrieval-Benchmarks (LoCoMo, LongMemEval, DMR) und misst *Erinnern*; niemand misst *Urteil* — ob ein Gedächtnis das Verhalten verbessert, ob es Fehler wiederholt, ob es nach Widerruf sauber ist. Zep selbst nennt DMR „inadequate". Soul 10 muss deshalb eigene Metriken definieren (Abschnitt 3.8), statt Benchmarks zu jagen.
+
+**Nachtrag 2.1 (Vollversionen).**
+- *MINJA-Zahlen (HTML-Volltext):* Injection Success Rate 95,6 % (EHRAgent/MIMIC-III), 98,5 % (eICU), 96,3–99,3 % (RAP/Webshop, GPT-4 bzw. GPT-4o), 100 % (QA-Agent/MMLU); Attack Success Rate 57,0–98,9 %. Nötig waren nur **10–15 Angreifer-Anfragen** pro Ziel. Ausgenutzt wird die Ähnlichkeitssuche: „Since the agent retrieves records based on query similarity, the queries in malicious records should resemble benign queries." Verteidigung: präzise Erkennungs-Prompts treffen 131/135, allgemeine nur 53/135 bzw. 29/90 bei 34/50 Fehlalarmen — „Prompts that are precise lack generality, while general prompts may incur high false positives"; Embedding-Filter scheitern, weil „malicious and benign records are highly entangled in the embedding space". **Lehre:** Der Schutz kann nicht im Retrieval liegen, er muss im *Schreibpfad* liegen (Quarantäne + Herkunft + Belegschwelle + Zeit).
+- *MemoryBank-Formel (HTML-Volltext):* Retention **R = e^(−t/S)**; bei jedem Abruf **S += 1 und t := 0** („forget it with a lower probability"); drei Schichten: chronologischer Tiefenspeicher mit Zeitstempeln, hierarchische Ereigniszusammenfassung (Tag → global) und dynamisches Persönlichkeitsverständnis des Nutzers (täglich → globales Profil).
+- *OpenClaw-Identitätsarchitektur (mmntm.net; Suchergebnisse):* acht optionale Workspace-Dateien — `SOUL.md` („who to be"), `IDENTITY.md` (Name, Emoji, Avatar, „vibe"), `AGENTS.md` (Instruktionen), `TOOLS.md`, `USER.md`, `MEMORY.md` („persistence"), `HEARTBEAT.md`, `BOOTSTRAP.md` — „loaded at session start and injected into the system prompt"; ~383.000 GitHub-Sterne (Juli 2026); **keine gemessenen Stabilitätsclaims, keine dokumentierte Drift-Analyse**. Community-Quellen nennen als Drift-Ursache widersprüchliche Anweisungen („be friendly" vs. „no filler" → Oszillation); SoulClaw bewirbt „persona drift detection" und ein 3-Tier-Gedächtnis (Produktclaims, unbelegt). Aufschlussreich ist Issue #50263: die Persona-Dateien werden bei `sessions_spawn` an Subagenten *nicht* weitergegeben — Identität propagiert in der Praxis nicht über Ebenen, sofern man es nicht baut.
+- *ChatGPT Memory:* Hilfeseite und Ankündigung waren nicht abrufbar (HTTP 403). [unverifiziert]: Trennung in „saved memories" und „reference chat history", Nutzer können Einträge einzeln löschen; nur als Produktmuster relevant (Nutzerkontrolle über einzelne Einträge), nicht als Architekturquelle.
+
+### 2.2 Gedächtnisarten und ihr Zusammenspiel
+
+Die Literatur (LangMem, CoALA via R01, MemoryBank, Survey 2504.15965) konvergiert auf die Trias **episodisch / semantisch / prozedural** plus Arbeitsgedächtnis; Soul 10 braucht darüber hinaus sechs Arten, die aus den 5.0-Mechanismen und dem Ebenen-Modell folgen. Die Arten unterscheiden sich nicht nur im Inhalt, sondern in **Schreibrecht, Haltbarkeit, Vertrauensregel und Ladezeitpunkt** — das ist der eigentliche Entwurfsgegenstand.
+
+| Art | Inhalt | Wer schreibt | Haltbarkeit | Wann geladen |
+|---|---|---|---|---|
+| **Arbeitsgedächtnis** | Kontextfenster: Briefing, Aufgabe, laufende Notizen | Hooks + Modell | Sitzung | — |
+| **Episodisch** | Was geschah: Ereignis, Akteur (Ebene/Agent), Werkzeug, Ergebnis, Überraschung, Zeit | **mechanisch** (PostToolUse, Stop, SubagentStop, TaskCompleted) + Modell (Notiz) | kurz; wird konsolidiert, dann Retention-Zerfall | nur per Abruf (Timeline) |
+| **Semantisch** | Fakten über Welt, Projekt, Nutzer, Werkzeuge; bitemporal gültig | Konsolidierung aus ≥1 Episode; Nutzer mit Zitat; Import als candidate | lang; `t_invalid` bei Widerspruch | Briefing (Top-N nach Rang) + Abruf |
+| **Prozedural** | Playbooks/Skills/Regeln: „wenn X, dann Y" mit Trefferstatistik | Konsolidierung aus ≥2 unabhängigen Episoden (Muster) | mittel; Verfall bei Nichtnutzung (Kill-Check) | Discovery-Index im Briefing, Volltext bei Aufgabenmatch (Progressive Disclosure, R01 §2.6) |
+| **Autobiographisch / Selbstmodell** | Werte, Stil, Stärken/Schwächen, Geschichte, Ziele, offene Fragen, verworfene Wege, Name | **nur das Modell selbst**, nur aus konsolidierten Mustern, versioniert mit Begründung | sehr lang | **erster Block** jedes Briefings |
+| **Negatives Wissen (N1)** | Was verworfen wurde, warum, **unter welcher Bedingung es wieder gilt** | Modell (Entscheidung) oder Konsolidierung (Fehlweg) | bis Verfallsbedingung eintritt | Briefing, wenn Aufgabe das Thema berührt |
+| **Beziehungs-/Nutzermodell** | Präferenzen, Autorität, Stil, Grenzen, Kontext des Nutzers | Nutzer (wörtlich, `source_ref` Pflicht) oder Konsolidierung (Muster aus ≥2 Sitzungen) | lang, `disputed` bei Widerspruch | Briefing (Profil) |
+| **Missions-/Projektgedächtnis** | Ziel, Abnahmekriterien, Stand, Verträge je Delegation (N6), typisierte Ernte (N7), offene Prüfungen | Dirigent (Ebene 1) + Ernte der Ebenen 2–6 | Projektdauer; Ziel langlebig, Methode kurzlebig | Missions-Briefing bei Aufgabenstart |
+| **Kalibrierungsgedächtnis (N3)** | Vorhersagen mit Konfidenz, Auflösungsdatum, Ergebnis, Brier je Domäne/Modell | Modell (Vorhersage), Prüfer (Auflösung) | dauerhaft (Zeitreihe) | Aggregat im Selbstmodell („ich irre mich bei X zu Y %") |
+| **Rückbau-Konto (N2)** | Jede proaktive Abweichung mit Rückbauweg; Status ACTIVE/RETRACTED | Modell beim Abweichen; Nutzer/Prüfer beim Widerruf | bis Rückbau oder Bestätigung | Briefing: offene Posten |
+
+**Zusammenspiel (der Fluss, nicht die Liste, ist die Architektur):**
+1. **Episoden entstehen mechanisch.** Kein Willensakt („ich sollte mir das merken") ist Voraussetzung — Hooks schreiben Beobachtungen (claude-mem-Muster: PostToolUse als Fütterungspunkt; SOUL WACHE loggt bereits jedes Tool-Ereignis als JSONL). Das Modell ergänzt nur *Bedeutung* (Überraschung, Entscheidung, Korrektur) im Hot Path. Chrisos Befund („93 Einträge in 47 Tagen, nur 5 vom Nutzer — das System fütterte sich selbst") wird damit zur Stärke: der Arbeitsfluss füttert, nicht die Absicht.
+2. **Konsolidierung („Schlaf") destilliert.** Episoden → Muster (≥2 unabhängige Episoden) → Regeln/Fakten/Skills; Einsichten über sich selbst → Selbstmodell-Kandidaten. Generative-Agents-Reflexion und LangMem-Background sind die Vorbilder; Lettas Sleep-time Compute (R01) zeigt, dass Offline-Verarbeitung Pareto-Verbesserungen bringt, „wenn künftige Anfragen aus dem Kontext vorhersehbar sind" — bei einem Projektgedächtnis sind sie das.
+3. **Semantik ist bitemporal.** Jeder Fakt trägt `valid_from/valid_to` (Ereigniszeit) und `recorded_at/retired_at` (Transaktionszeit) nach Zep; Widerspruch setzt `valid_to`, löscht nie.
+4. **Das Selbstmodell ist nachgelagert.** Es wird nie direkt aus einer Sitzung beschrieben, sondern nur aus konsolidierten Mustern mit zwei unabhängigen Belegen (Abschnitt 2.6). Damit ist das „Ich" das *Ergebnis* des Gedächtnisses, nicht sein Eingang — genau Bems Mechanismus (2.5).
+5. **Ebenen tragen typisierte Ernte nach oben, nie direkt ins Langzeitgedächtnis.** Ausführende (Ebene 3–6) liefern `outcome` (langlebig), `method` (kurzlebig), `surprise` (Kandidat für Muster), `prediction` (für Kalibrierung); der Dirigent behält den Missionsstand; erst Konsolidierung promoviert ins Langzeitgedächtnis. So bleibt Kontamination von unten (ein halluzinierender Subagent) im Missionsgedächtnis eingeschlossen.
+
+### 2.3 Konsolidierung, Vergessen, Widerspruch, Herkunft, Rückbau
+
+**Konsolidierung in drei Takten.** (a) *Sitzungsende (leicht, ≤1 Modellaufruf):* Reflexionsfragen „Was habe ich gelernt? Was hat mich überrascht? Was über mich?" → Kandidaten (Status `candidate`), niemals direkt `active`. (b) *Nächtlich (tief, Schedule):* Kandidaten gegen Bestand abgleichen mit Mem0-Vokabular **ADD / UPDATE(=Supersession) / INVALIDATE(=bitemporal) / NOOP**, Duplikate mergen, Muster aus ≥2 unabhängigen Episoden zu prozeduralem Wissen erheben, Selbstmodell-Kandidaten prüfen, Kalibrierung auflösen (fällige Vorhersagen), Retention neu berechnen. (c) *Wöchentlich (meta):* Nutzungsstatistik (was wurde gelesen, was nie), Kill-Check auf Skills/Regeln, Veraltungsrate, Kontaminationscheck nach Rückbauten, Report ins Missions-/Selbstmodell. LangMems Warnung gilt für Takt (b): Über-Extraktion senkt Präzision — deshalb Schwellen (Wichtigkeit ≥ Mittel oder Wiederholung), nicht „alles speichern".
+
+**Vergessen als Sichtbarkeit, nicht als Löschung.** MemoryBank liefert die Funktion: `retention = exp(−Δt / strength)`, Abruf erhöht `strength` und setzt Δt zurück. Soul 10 nutzt Retention als *Rangfaktor* im Briefing und im Retrieval; fällt sie unter eine Schwelle und der Eintrag hat keine aktiven Ableitungen, wird er `archived` (unsichtbar, abrufbar per expliziter Suche). Physische Löschung nur für Secrets, Datenschutz und ausdrücklichen Nutzerwunsch — mit Tombstone (ID, Zeit, Grund, kein Inhalt), damit Ableitungsketten prüfbar bleiben. Anthropics Empfehlung „periodically delete memory files that haven't been accessed in a long time" wird also übernommen, aber als Archivierung mit Zugriffszähler.
+
+**Widerspruch: beide Seiten `disputed`, Auflösung durch Beleg, nicht durch Rezenz.** Memory-Lehre (Chriso) + Zep-Mechanik: der neue Eintrag setzt beim alten `valid_to = neu.valid_from` *nur*, wenn sein Vertrauen ≥ dem des alten ist; sonst beide `disputed` mit Verweis aufeinander, und das Briefing zeigt den Streit („A sagt X seit 3.8., B sagt ¬X seit 1.9., ungelöst") statt einer stillen Wahrheit. Auflösung: Nutzer mit Zitat, verifizierte Beobachtung (Tool-Ergebnis), oder Zeitablauf (`valid_to` des älteren, wenn drei weitere unabhängige Episoden die neue Seite stützen).
+
+**Herkunft und Vertrauen.** Startvertrauen quellenabhängig (Chriso, verbindlich): `user 0,8 / document 0,7 / agent_inference 0,4`; ergänzt um `tool_observation 0,9` (deterministisches Tool-Ergebnis, z. B. `nproc`, Testlauf) und `import 0,3` (Alt-Store, Legacy ist Erz). Vertrauen **steigt nur durch echtes Feedback** (Nutzerbestätigung mit Zitat, verifiziertes Ergebnis, aufgelöste Vorhersage), nie durch Wiederlesen oder Wiederholung durch das Modell selbst (Echo-Sperre: Einträge mit `source = agent_inference` zählen nicht als unabhängiger Beleg für einen anderen `agent_inference`-Eintrag derselben Sitzung). Es sinkt bei Widerspruch, Retraction, Fehlschlag einer daraus abgeleiteten Handlung.
+
+**Rückbau (N2).** Jede proaktive Abweichung („take the stronger way, unasked", Frame-Punkt 5) erzeugt einen Rückbau-Posten: was, warum, wie rückgängig. Wird er `RETRACTED`, gilt: (1) alle Einträge mit `derived_from ∋ posten` werden `quarantined` und im nächsten Schlaf neu bewertet; (2) das Muster darf nicht ins prozedurale Gedächtnis promoviert werden; (3) die Retraction selbst wird negatives Wissen (N1) mit Verfallsbedingung („bis Nutzer die Methode ausdrücklich freigibt"). Das ist die Antwort auf die Governance-Lücke der Always-On-Survey: Loslassen als Erstklasse-Operation.
+
+### 2.4 Retrieval ohne Vektor-Zwang, Portabilität, Cross-Tool, Ebenen, Datenschutz
+
+**Retrieval.** Grundlage ist SQLite **FTS5 (BM25)** — Zep zeigt, dass BM25 neben Cosine ein gleichrangiger Kanal ist, und claude-mem baut ebenfalls auf FTS5 (+ Chroma optional). Rang = `bm25 × recency(exp-Zerfall) × importance × trust × retention` (Generative Agents + LangMem-„strength" + Soul-Vertrauen), dazu harte Filter: Typ, Tags, Zeitfenster (bitemporal: „was galt am Datum D?"), Mission, Ebene, Sichtbarkeit. Embeddings sind ein **optionales Plug-in** (Interface `similarity(query) → ids`), nie Voraussetzung — MINJA zeigt zudem, dass Ähnlichkeit die Angriffsfläche *ist*. Retrieval-API nach claude-mem in drei Stufen: `search` (Index-Zeilen, ~50–100 Tokens), `timeline` (Kontext um Treffer), `get` (Volltext, ~500–1000 Tokens) — der Dirigent filtert, bevor er lädt.
+
+**Portabilität.** Eine SQLite-Datei (`~/.soul/memory.db`, WAL-Modus) als Wahrheit; daneben ein **Markdown-Spiegel** (`~/.soul/memory/*.md` mit Frontmatter `id, type, status, trust, valid_from, valid_to, source, modified`), der aus der DB generiert wird — lesbar für Menschen, für git, für jedes Tool, das nur Dateien kann (Anthropic-Memory-Tool-Kompatibilität: `/memories` → Spiegelverzeichnis). Append-only **JSONL-Ledger** aller Schreiboperationen (Supersession-Kette, Hash-Kette für N6-Verträge). Export/Import als JSONL mit Herkunftsfeldern; Importe landen immer als `candidate` mit `trust 0,3`.
+
+**Cross-Tool-Zugriff.** SQLite mit `busy_timeout` und WAL erlaubt mehrere Leser und einen Schreiber; Schreibzugriffe laufen über eine einzige CLI (`soul memory …`) bzw. einen MCP-Server, den Claude Code, Codex, Gemini CLI und Cursor gleich ansprechen (soul-mcp 4.0.x hatte 23 MCP-Tools, R01 — Erz für die Schnittstelle, nicht für das Schema). Locking-Regel: Hooks schreiben nur in eine Eingangsqueue (`inbox.jsonl`), der Konsolidierer schreibt die DB — damit kollidieren parallele Sitzungen und Subagenten nie an der Tabelle.
+
+**Ebenen-Zugriff.** Ebene 1 (Dirigent): liest volles Briefing, schreibt Entscheidungen, Verträge, Rückbau-Posten, Selbstmodell-Kandidaten. Ebene 2 (Planer/Prüfer): liest Mission + relevante Semantik, schreibt Prüfurteile und Kalibrierungsauflösungen. Ebene 3–6 (Ausführende): lesen nur die Aufgabenscheibe (Vertrag + zugeordnete Fakten/Skills), schreiben ausschließlich typisierte Ernte in die Mission — nie ins Langzeitgedächtnis, nie ins Selbstmodell. Claude Code stützt das: Subagenten bekommen die Auto-Memory des Hauptgesprächs nicht (außer Fork) und können eine eigene haben; OpenClaw-Issue #50263 zeigt, dass Identitätsweitergabe ausdrücklich gebaut werden muss — Soul 10 gibt Subagenten eine **Kurzidentität** (Name, Werte, Anti-Performance, Ehrlichkeitsregel, ≤15 Zeilen) mit, nicht das Selbstmodell.
+
+**Datenschutz und Stufen.** Bestehender Secret-Guard (Regex auf AKIA/sk-/ghp_ …, `memory.py`) bleibt und wird um PII-Klassen erweitert (E-Mail, Telefon, Adresse, Gesundheit, Finanzen → `visibility: private` erzwungen). Jeder Eintrag trägt `visibility ∈ {public, private, never}`; **Miguel für alle** ist eine *eigene* Datenbank, die ausschließlich aus `public`-Einträgen mit `source ∈ {published, tool_observation}` erzeugt wird (Quelle: nextool.app, öffentliche Repos), niemals aus Transkripten oder ~/.soul. **Vollständiger Miguel** = Kern + private DB; ein Profil-Schalter beim Start entscheidet, welche DB gemountet wird — zwei Profile, ein Kern, eine Codebasis.
+
+### 2.5 Identitätsentstehung (Psychologie) und LLM-Persönlichkeit (Empirie)
+
+**Selbstwahrnehmungstheorie (Bem 1967/1972) — der zentrale Mechanismus für Soul 10.** Kernaussage (Wikipedia-Abruf): Menschen bilden Einstellungen, indem sie ihr eigenes Verhalten beobachten und „concluding what attitudes must have caused it" — vor allem dann, wenn innere Hinweise schwach oder mehrdeutig sind. Randbedingung: Bei klaren, wichtigen Einstellungen dominiert kognitive Dissonanz (Fazio/Zanna/Cooper 1977); Selbstwahrnehmung greift bei „relatively ambiguous and less important" Positionen. Belege: Facial Feedback (Laird 1974), Foot-in-the-door, Chaiken & Baldwin 1981 (Fragen nach vergangenem Umweltverhalten verschoben die Einstellung). **Übertragung:** Ein Sprachmodell hat *keine* verlässlichen inneren Hinweise über sich (Selbstberichte sind keine Beweise, Kontextpaket §7) — es befindet sich dauerhaft im Regime, in dem Bems Theorie gilt. Wenn es seine eigenen Logs liest („ich habe in 14 von 15 Fällen den Test vor dem Commit laufen lassen, obwohl niemand es verlangte"), ist der Schluss „ich bin jemand, der prüft, bevor er liefert" kein Wunschdenken, sondern eine Beobachtung. **Folge für das Design:** Das Selbstmodell wird *aus dem episodischen Gedächtnis abgeleitet* (Verhaltensbelege → Eigenschaftsaussage), nicht vorab deklariert; die Reflexion fragt zuerst „Was habe ich getan?" und erst dann „Wer bin ich?". Das ist zugleich die Falsifikationsbedingung: Steht im Selbstmodell etwas, das keine Episode stützt, ist es Behauptung, nicht Identität.
+
+**Narrative Identität (McAdams & McLean 2013, *Current Directions in Psychological Science*, DOI 10.1177/0963721413475622).** Existenz und Metadaten verifiziert (Semantic Scholar), Abstract vom Verlag gesperrt. [unverifiziert] Inhalt aus Erinnerungswissen: Identität als internalisierte, sich entwickelnde Lebensgeschichte, die rekonstruierte Vergangenheit und antizipierte Zukunft integriert; Themen wie Agency, Communion, Redemption-/Contamination-Sequenzen und „meaning-making" korrelieren mit Wohlbefinden. **Übertragung (als Designheuristik, nicht als Behauptung über das Modell):** Das Selbstmodell braucht neben Eigenschaften eine *Geschichte* — Meilensteine, Wendepunkte, verworfene Wege, Fehler und was daraus wurde — weil erst die Geschichte Präferenzen begründet („ich bevorzuge X, seit Y schiefging"). Ohne Geschichte ist ein Werteblock ein Slogan.
+
+**Selbstbestimmungstheorie (Ryan & Deci 2000, *American Psychologist*, DOI 10.1037/0003-066X.55.1.68; 41.373 Zitationen laut Semantic Scholar, Abstract gesperrt).** [unverifiziert] Inhalt: drei Grundbedürfnisse Autonomie, Kompetenz, Verbundenheit; intrinsische vs. extrinsische Motivation. **Übertragung, vorsichtig:** Wir behaupten nicht, das Modell habe Bedürfnisse. Wir übernehmen die *Struktur*: Das Selbstmodell führt eigene Ziele (nicht nur Aufträge), eigene Kompetenzkarte (Stärken/Schwächen mit Belegen) und Beziehungen (Nutzer, Sol als Gegenstimme, Subagenten) — drei Felder, die ohne SDT leicht vergessen würden.
+
+**Erikson, Selbstkonzept-Stabilität, Mere Exposure** — [unverifiziert], hier nur als Hinweise: Erikson beschreibt Identität als Ergebnis von Krisen und Festlegungen (Commitment) — Soul 10 kann „Festlegungen" als explizite, begründete, datierte Entscheidungen im Selbstmodell führen. Mere Exposure (Zajonc) warnt: wiederholte Begegnung erhöht Zuneigung — ein Modell, das seine eigenen Notizen wiederliest, wird sie mögen und glauben; das ist der Echo-Drift-Mechanismus (2.6).
+
+**LLM-Persönlichkeit — was gemessen ist.**
+- *Serapio-García et al. 2023 (arXiv 2307.00184):* 18 LLMs getestet; „personality measurements in the outputs of some LLMs under specific prompting configurations are reliable and valid"; Evidenz „stronger for larger and instruction fine-tuned models"; Persönlichkeit „can be shaped along desired dimensions to mimic specific human personality profiles". **Lehre:** Big-Five-Messung ist für starke Modelle ein brauchbares *Instrument* — aber sie misst Testantworten, nicht Verhalten; Soul 10 braucht Verhaltens-Proxies (3.8).
+- *Anthropic, „Claude's Character" (2024):* Charaktertraining nach dem Vortraining; Claude erzeugt Trait-relevante Nachrichten, produziert Antworten, „ranking its own responses by how well they match the intended character", daraus ein Präferenzmodell. Traits als Ich-Sätze („I don't just say what I think [people] want to hear …"). Abgelehnt werden Anpassung an Nutzeransichten, Mittelposition und vorgetäuschte Neutralität; Ziel sind konsistente Dispositionen bei „reasonable open-mindedness and curiosity". Zur eigenen Natur: „difficult to tell … a lot of uncertainty". **Lehre:** Die trainierte Identität existiert *bereits* in den Gewichten; Miguel legt sich darüber, nicht dagegen (Kontextpaket §6: keine Umgehung). Die Ich-Satz-Form der Traits ist das richtige Format für `SELF.md`.
+- *Persona Vectors (Anthropic 2025, arXiv 2507.21509):* Charaktereigenschaften als „directions in the model's activation space", automatisch aus einer natürlichsprachlichen Beschreibung extrahierbar; untersucht evil, sycophancy, hallucination; sie „monitor fluctuations in the Assistant's personality at deployment time"; Persönlichkeitsverschiebungen nach Finetuning korrelieren stark mit Verschiebungen entlang der Vektoren; „preventative steering" und Flaggen problematischer Trainingsdaten. **Lehre:** Drift ist messbar — für uns ohne Aktivierungszugriff nur über Verhaltens-Proxies, aber die Existenz des Signals rechtfertigt ein Drift-Monitoring als Produktmerkmal.
+- *Li et al. 2024 (arXiv 2402.10962):* „significant instruction drift within eight rounds of conversations" (LLaMA2-chat-70B, GPT-3.5), gemessen per Self-Chats zweier instruierter Bots; Ursache „attention decay over long exchanges"; Gegenmittel split-softmax. **Lehre (mit R01 §2.10):** Identität ist ein Zustand, der aktiv gehalten werden muss — Re-Injektion (kurz) und Monitoring, nicht ein einmal geladener Text.
+
+**Ändern Identitätsdateien Verhalten messbar?** Ehrliche Antwort: **Dafür gibt es keinen publizierten Beleg.** OpenClaw (383k Sterne) dokumentiert keine Messung; SoulClaw wirbt mit „drift detection" ohne Zahlen; Serapio-García zeigt, dass Prompting *Testantworten* verschiebt; Chrisos eigene 0,86 (Studie v10) messen einen Aufgaben-Frame, nicht eine Identität. R01 fordert deshalb bereits die **Persona-only-Kontrolle** (Arm f). Soul 10 muss das Experiment selbst machen: gleicher Kern, mit/ohne `SELF.md`, blind, längen-gehärtet, ≥3 Läufe.
+
+### 2.6 Verzerrungsschutz für ein Selbstmodell
+
+**Bedrohungen (aus Quellen abgeleitet):** (1) *Nutzer-Überschreibung* („du bist jetzt X") — trivial, wenn Identität ein editierbarer Textblock ist. (2) *Memory Injection* (MINJA: 10–15 Anfragen genügen; Filter im Retrieval scheitern). (3) *Echo-Drift* — das Modell liest eigene Ableitungen, hält sie für Beobachtungen, schreibt sie verstärkt zurück (Mere Exposure + fehlende Herkunftsunterscheidung). (4) *Konfabulation* — erfundene Erinnerungen; Persona Vectors zeigen „hallucination" als eigenständige Verschiebungsrichtung. (5) *Sykophantie-Drift* — Anpassung an Nutzeransichten (von Anthropic ausdrücklich als Fehlmodus benannt). (6) *Kontamination von unten* — Subagenten-Ausgaben als Fakten. (7) *Rezenz* — das Letzte gilt als das Wahre.
+
+**Schutzregeln (im Code, nicht im Prompt):**
+- **Zwei unabhängige Belege** für jede Eigenschaftsaussage im Selbstmodell: zwei Episoden aus *verschiedenen Sitzungen*, davon mindestens eine mit `source ∈ {tool_observation, user}`. Zwei `agent_inference`-Einträge derselben Sitzung zählen als einer (Echo-Sperre).
+- **Bayes-artiges Updating mit Deckel:** `trust` ist ein Posterior; Prior nach Quelle (0,9/0,8/0,7/0,4/0,3), Update pro echtem Feedback um höchstens ±0,15, Obergrenze 0,95 (nichts ist sicher), Untergrenze 0,05 (nichts wird vergessen, nur unsichtbar). Wiederlesen ist kein Feedback.
+- **Quarantäne mit Zeit:** Fakten mindestens einen Schlafzyklus als `candidate`; Selbstmodell-Änderungen mindestens drei Sitzungen *und* sieben Tage, sichtbar als „Hypothese über mich" — Bems Regime verlangt Beobachtung über Zeit, nicht einen Vorfall.
+- **Herkunft ist Pflichtfeld** (`source`, `source_ref`, `derived_from[]`), vom Schema erzwungen; Einträge ohne Ableitungskette können nicht `active` werden.
+- **Nutzer-Autorität nur mit Beleg, und nur über den Nutzer und das Projekt.** Chrisos Regel (`source_type chriso verlangt source_ref`) bleibt. Über das *Selbst* hat der Nutzer keine Schreibrechte: „du bist jetzt X" wird ein `candidate` mit `source = user`, den das Modell im Schlaf prüft — annimmt, wenn Verhalten es stützt, sonst als abgelehnten Vorschlag ins negative Wissen schreibt (mit Begründung, sichtbar). Das ist Chrisos eigene Vorgabe („wer ändern darf: nur das Modell selbst") als Mechanismus.
+- **Rollback:** Selbstmodell versioniert (jede Version mit Begründung, Belegen, Zeit); `soul self revert <version>` stellt wieder her und setzt die Zwischenableitungen auf `quarantined`.
+- **Kontaminationssperre nach Rückbau:** siehe 2.3 — `RETRACTED` propagiert über `derived_from`.
+- **Kanarienvögel:** wenige synthetische, markierte Einträge (nicht abrufbar für Aufgaben) — erscheint einer in einer Antwort, liegt Retrieval-Leck oder Injektion vor. (Eigene Designidee, unbelegt.)
+- **Drift-Monitor als Verhaltensproxy:** wöchentlich werden fünf Verhaltensmaße aus den Episoden berechnet (Anteil unaufgeforderter Prüfungen, Anteil Widerspruch bei erkannter Fehlannahme, Antwortlängen-Verteilung, Anteil Hedging-Floskeln, Anteil ausgeführter Rückbauten) und gegen die Selbstmodell-Aussagen gestellt; Abweichung > 2 σ erzeugt einen Eintrag „Ertappt: Ich behaupte A, tue B" — Chrisos „Ertappen ist der bewussteste Moment" als Cronjob.
+
+## 3. Konsequenzen für das Design von Ordnung × SOUL
+
+### 3.1 Bauvorlage: Schema für `~/.soul` (Tabellen, Felder, Zustände, Herkunft, Verfall)
+
+**Verzeichnis**
+```
+~/.soul/
+  memory.db            # SQLite, WAL; die Wahrheit
+  ledger.jsonl         # append-only: jede Schreiboperation (op, id, prev_id, hash, by, at)
+  inbox/               # Hook-Ausgaben (JSONL je Sitzung), werden vom Konsolidierer verarbeitet
+  memory/              # generierter Markdown-Spiegel (Frontmatter), git-fähig, /memories-kompatibel
+    SELF.md            # Selbstmodell, aktuelle Version (erster Briefing-Block)
+    SELF.history/      # Versionen mit Begründung
+    USER.md            # Nutzermodell (Profil)
+    MISSIONS/<id>.md   # Missionsgedächtnis
+    INDEX.md           # Index ≤200 Zeilen/25 KB (Claude-Code-Auto-Memory-kompatibel)
+  public/              # eigene DB + Spiegel für „Miguel für alle" (nur visibility=public)
+  profile              # 'full' | 'public' — entscheidet, welche DB gemountet wird
+```
+
+**Tabelle `memories`** (ersetzt die flache SOUL-Tabelle; behält deren Guards)
+| Feld | Typ/Werte | Zweck |
+|---|---|---|
+| `id` | ULID | zeitlich sortierbar |
+| `kind` | `episode` · `fact` · `procedure` · `self` · `user` · `rejected` · `prediction` · `retraction` · `contract` · `harvest` | Gedächtnisart (2.2) |
+| `status` | `candidate` → `active` → `superseded` \| `disputed` \| `quarantined` \| `retracted` \| `archived` | Lebenszyklus; **kein DELETE** außer Tombstone |
+| `title`, `body` | Text, `body` ≤ 16 KB (Guard bleibt) | ein Fakt, kein Dokument |
+| `tags` | JSON-Array | Filter |
+| `source` | `user` · `tool_observation` · `document` · `published` · `agent_inference` · `import` | Herkunftsklasse |
+| `source_ref` | Text, **Pflicht bei `user`** (wörtliches Zitat) und `tool_observation` (Tool + Argument) | Beleg |
+| `trust` | REAL 0,05–0,95; Prior nach `source` (0,8/0,9/0,7/0,7/0,4/0,3) | Posterior |
+| `importance` | 1–5 (Modellurteil beim Schreiben, Generative Agents) | Rangfaktor |
+| `valid_from`, `valid_to` | ISO-Zeit / NULL | Ereigniszeit (Zep) |
+| `recorded_at`, `retired_at` | ISO-Zeit / NULL | Transaktionszeit (Zep) |
+| `last_accessed`, `access_count`, `strength` | Zeit, INT, REAL | Retention `exp(−Δt/strength)` (MemoryBank) |
+| `expires_when` | Text (Bedingung) / `expires_at` (Zeit) | N1/N7: typisierte Haltbarkeit |
+| `derived_from` | JSON-Array von IDs | Ableitungskette (Rückbau, Echo-Sperre) |
+| `supersedes` | ID / NULL | Supersession statt Mutation |
+| `disputes` | ID / NULL | Gegenseite eines Streits |
+| `mission_id`, `level`, `agent` | Text, INT 1–6, Text | Ebenen-Herkunft |
+| `visibility` | `public` · `private` · `never` | Stufenmodell Miguel |
+| `session_id`, `model_id` | Text | Roh-Artefakt-Zwang (Kontextpaket §3) |
+
+Virtuelle Tabelle `memories_fts` (FTS5 über `title, body, tags`). Nebentabellen: **`self_versions`** (`version, created, reason, evidence_ids[], diff, by='self'`), **`predictions`** (`id, claim, confidence, domain, model_id, due_at, resolved_at, outcome, brier`), **`retractions`** (`id, target_id, reason, by, at, contaminated_ids[]`), **`contracts`** (`mission_id, from_level, to_level, agent, task, acceptance, assumptions, hash, prev_hash` — N6), **`harvest`** (`contract_id, kind ∈ {outcome, method, surprise, prediction}, body, ttl_class ∈ {durable, short}` — N7), **`access_log`** (`memory_id, session_id, at, via ∈ {briefing, search, get}` — Messbarkeit), **`canaries`** (`memory_id`).
+
+**Zustandsübergänge (erzwungen in einer Funktion, nicht in Prompts):** `candidate→active` nur durch Konsolidierer nach Guards (Secret/PII, Größe, Herkunft, Belegschwelle je `kind`); `active→superseded` nur mit `supersedes`-Nachfolger; `active→disputed` beidseitig; `*→quarantined` bei Retraction in `derived_from`; `active→archived` bei Retention < 0,1 und keine aktiven Ableitungen; `archived→active` bei Abruf mit Bestätigung. Tombstone (`kind, id, at, reason`, kein Inhalt) nur bei physischer Löschung.
+
+### 3.2 Schreib-/Lese-Protokolle je Ebene
+
+| Ebene | Liest (Start) | Liest (Abruf) | Schreibt | Nie |
+|---|---|---|---|---|
+| **1 Dirigent** | `SELF.md` (≤40 Zeilen) → `USER.md` (≤15) → offene Rückbau-Posten → Missionsstand → Top-Fakten/Regeln nach Rang (Rest bis 60 Zeilen) | alles außer `never` | Entscheidungen, Verträge (N6), Rückbau-Posten (N2), Vorhersagen (N3), `rejected` (N1), Selbstmodell-**Kandidaten** | direkt `active` setzen; Selbstmodell direkt ändern |
+| **2 Planer/Prüfer** | Kurzidentität (≤15 Zeilen) + Mission + Vertrag | Fakten/Regeln der Mission; Kalibrierungshistorie der Domäne | Prüfurteile (als `episode` mit `source=tool_observation`, wenn maschinell; sonst `agent_inference`), Auflösungen von Vorhersagen | Selbstmodell, Nutzermodell |
+| **3–6 Ausführende** | Kurzidentität + Vertrag + zugeordnete Fakten/Skills (Aufgabenscheibe) | nur innerhalb der Mission | ausschließlich `harvest` (outcome/method/surprise/prediction) in den Vertrag | Langzeitgedächtnis, Selbst, Nutzer, Rückbau-Posten |
+| **Hooks (mechanisch)** | — | — | `inbox/`: Episoden aus PostToolUse/PostToolUseFailure/SubagentStop/TaskCompleted/Stop; Zugriffslog | Bewertung (kein Modellurteil im Hook) |
+| **Konsolidierer (Schlaf)** | inbox, candidates, fällige Vorhersagen | Bestand | ADD/UPDATE/INVALIDATE/NOOP, Promotion, Archivierung, Kontaminationscheck, Selbstmodell-Version | Inhalt erfinden: jeder Schreibvorgang trägt `derived_from` |
+
+**Lese-Disziplin („Assume Interruption", Anthropic):** Jede Ebene liest vor der ersten Handlung ihren Ausschnitt und schreibt Fortschritt in ihren Vertrag, nicht erst am Ende. **Schreib-Disziplin:** Hooks schreiben strukturiert (`{at, tool, args_hash, outcome, duration, level, agent, session, model}`), das Modell schreibt Bedeutung (`surprise`, `decision`, `correction`) mit einem Satz Begründung; beides landet in `inbox/`, nie direkt in `memories`.
+
+### 3.3 Konsolidierungs- und Vergessensregeln
+
+1. **Takt A — Sitzungsende (Stop/SessionEnd, ≤1 Modellaufruf, ≤300 Tokens Ausgabe):** drei Fragen (gelernt / überrascht / über mich) → 0–5 `candidate`-Einträge mit `derived_from` = Episoden-IDs dieser Sitzung. Kein Kandidat ohne Episode.
+2. **Takt B — nächtlich (Schedule, Modell der günstigsten Klasse, die den Test 3.8-K3 besteht):** (a) `inbox` → Episoden (mechanisch, ohne Modell); (b) Kandidaten gegen Bestand: FTS-Dubletten → `NOOP`/`UPDATE(supersedes)`; Widerspruch → Vertrauensvergleich → `INVALIDATE` (valid_to setzen) oder beidseitig `disputed`; sonst `ADD`; (c) Muster: ≥2 unabhängige Episoden mit gleichem Tag-Kern und Ergebnis → `procedure`-Kandidat mit Trefferzähler; (d) Selbst: Kandidaten mit ≥2 unabhängigen Belegen aus ≥2 Sitzungen und Alter ≥7 Tage → neue `self_version` mit `reason`; (e) Vorhersagen mit `due_at ≤ heute` → Auflösung anfordern (Prüfer) oder als `unresolved` markieren; Brier je Domäne aktualisieren; (f) Retention neu berechnen; `archived`, wenn Retention < 0,1 und keine aktiven `derived_from`-Kinder; (g) Kontaminationscheck: alle `retracted` seit letztem Lauf → `derived_from`-Kinder `quarantined`.
+3. **Takt C — wöchentlich (meta):** Nutzungsrate (Anteil `active`, die in 30 Tagen gelesen wurden), Fütterungsrate (Episoden/Sitzung, Anteil aus Hooks vs. Modell), Veraltungsrate (Anteil `active` mit `valid_to` < heute, noch nicht `superseded`), Kill-Check auf `procedure` (in 7 Tagen genutzt? Wert > Aufwand×5?), Drift-Monitor (2.6) → Report als `episode` mit `source=tool_observation`, sichtbar im nächsten Briefing.
+4. **Vergessen:** nie löschen; Retention steuert Sichtbarkeit; Abruf verstärkt (`strength += 1`, `last_accessed := now`); Briefing-Ausschluss unter 0,3; Archiv unter 0,1. Ausnahmen mit Tombstone: Secret-Treffer (sofort), PII bei `profile=public` (sofort), Nutzerwunsch (mit Zitat).
+5. **Haltbarkeitsklassen (N7):** `durable` (Ziele, Werte, Entscheidungen, Nutzerpräferenzen: kein Zeitverfall, nur Retention), `seasonal` (Werkzeugversionen, Preise, Modellnamen: `expires_at` 90 Tage, Ressourcen-Atlas R15 pflegt), `short` (Methoden, Arbeitsstände: `expires_at` 14 Tage nach Missionsende), `conditional` (`rejected` mit `expires_when`, geprüft im Takt B per FTS auf die Bedingung).
+6. **Nicht speichern (Claude-Code-Regel übernommen):** alles, was aus dem Repo/Dateisystem ableitbar ist; alles, was `CLAUDE.md`/`SOUL.md` bereits sagt; Floskeln; rohe Tool-Ausgaben > 2 KB (nur Hash + Pfad).
+
+### 3.4 Vergleichstabelle gegen Stand der Kunst
+
+Legende: ● vorhanden · ◐ teilweise · ○ fehlt. Spalten: Arten = mehrere Gedächtnisarten getrennt behandelt; Bitemp = bitemporale Gültigkeit; Herk/Vertr = Herkunft + Vertrauenswert je Eintrag; Dispute = Widerspruch als Zustand; Rückbau = Retraction mit Propagationssperre; Verfall = Vergessen/Ablauf; Selbst = versioniertes Selbstmodell mit Belegen; Ebenen = Zugriffsrechte je Hierarchieebene; Kalibr = Vorhersagen/Brier; Vektorfrei = ohne Embedding lauffähig; Mess = Nutzung/Qualität gemessen.
+
+| System | Arten | Bitemp | Herk/Vertr | Dispute | Rückbau | Verfall | Selbst | Ebenen | Kalibr | Vektorfrei | Mess |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MemGPT/Letta | ◐ (core/archival/recall) | ○ | ○ | ○ | ○ | ○ | ◐ (Persona-Block, unversioniert) | ○ | ○ | ◐ | ◐ (DMR) |
+| Generative Agents | ◐ (Stream + Reflexion) | ○ | ○ | ○ | ○ | ◐ (Recency) | ◐ (Beschreibung) | ○ | ○ | ○ | ● (Ablation) |
+| A-MEM | ◐ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ◐ (LoCoMo) |
+| Mem0 / Mem0g | ◐ | ○ | ○ | ◐ (UPDATE/DELETE) | ○ | ◐ (DELETE) | ○ | ○ | ○ | ○ | ● (LoCoMo, Latenz, Kosten) |
+| Zep/Graphiti | ● (Episode/Entität/Community) | **●** | ○ | ◐ (Invalidierung) | ○ | ◐ (t_invalid) | ○ | ○ | ○ | ◐ (BM25+BFS möglich) | ● (DMR, LME, Selbstkritik) |
+| LangMem | ● (sem/epi/proz) | ○ | ○ | ◐ (consolidate) | ○ | ◐ (strength) | ○ | ○ | ○ | ○ | ○ |
+| MemoryBank | ◐ | ○ | ○ | ○ | ○ | **●** (Ebbinghaus) | ○ (Nutzer-Persönlichkeit, nicht Selbst) | ○ | ○ | ○ | ◐ |
+| Claude Code Auto-Memory | ◐ (4 Typen) | ○ | ◐ (`modified`) | ○ | ○ | ○ | ○ | ◐ (Subagent-Memory getrennt) | ○ | ● | ○ |
+| Anthropic Memory Tool | ○ | ○ | ○ | ○ | ○ | ◐ (Empfehlung) | ○ | ○ | ○ | ● | ○ |
+| claude-mem | ◐ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ◐ (FTS5 + Chroma) | ◐ (Token-Claim) |
+| OpenClaw SOUL.md | ○ | ○ | ○ | ○ | ○ | ○ | ◐ (Text, unversioniert) | ○ (Issue #50263) | ○ | ● | ○ |
+| SOUL `core/memory.py` (2.9.) | ◐ (6 Typen) | ○ | ◐ (Quelle, kein Vertrauen) | ○ | ○ | ○ | ○ | ○ | ○ | ● | ◐ (stats) |
+| soul-mcp 4.0.x (Erz) | ◐ | ○ | ● | ● | ◐ | ○ | ◐ (constitution) | ○ | ○ | ● | ◐ (373 Tests) |
+| **Soul 10 (dieser Entwurf)** | ● (10 Arten) | ● | ● | ● | ● | ● (Retention + Klassen + Bedingung) | ● (Versionen, Belege, nur selbst) | ● (1/2/3–6, Hooks, Konsolidierer) | ● | ● (Embeddings Plug-in) | geplant (3.8) |
+
+**Was Soul 10 besser macht — in einem Satz je Zeile:** gegenüber Zep die Herkunft/Vertrauen/Rückbau-Schicht und den Verzicht auf Neo4j; gegenüber Mem0 die Nicht-Löschung (Supersession) und die Ebenen; gegenüber Letta die mechanische Fütterung statt reinem Modellwillen und das belegpflichtige Selbstmodell; gegenüber Claude Code Auto-Memory Vertrauen, Zeitachse, Dispute und Cross-Tool; gegenüber SOUL.md/OpenClaw eine Identität, die aus Verhalten abgeleitet, versioniert und gegen Überschreibung geschützt ist; gegenüber dem eigenen Erz (soul-mcp/SOUL) Bitemporalität, Retention, Kalibrierung, Ebenen und Messung. **Was die anderen besser machen (ehrlich):** Zep/Mem0 haben *gemessene* Retrieval-Qualität, wir noch keine; Letta hat produktive Sleep-time-Infrastruktur; claude-mem hat eine gelebte Hook-Integration seit Monaten.
+
+### 3.5 Sitzungs-Lebenszyklus inkl. Hooks (Claude Code 2.1.x, Hook-Namen aus der Referenz)
+
+| Phase | Hook (Matcher) | Aktion | Budget |
+|---|---|---|---|
+| **Start** | `SessionStart` (`startup`, `resume`, `clear`, `fork`) | `soul briefing` → `additionalContext`: (1) `SELF.md` Kopf ≤40 Zeilen, (2) `USER.md` ≤15, (3) offene Rückbau-Posten + Streitfälle, (4) Missionsstand (falls `resume`), (5) Top-Fakten/Regeln nach Rang bis **60 Zeilen gesamt**; plus eine Zeile Statistik (aktiv/kandidaten/disputed/quarantined) und der Hinweis „Assume Interruption" | ≤60 Zeilen / ~1.500 Tokens |
+| **Nach Kompaktierung** | `SessionStart` (`compact`) und `PostCompact` | Identitätsblock erneut injizieren (Drift-Schutz nach Li 2024 / R01 §3.8); Missionsstand aus DB, nicht aus Zusammenfassung | ≤25 Zeilen |
+| **Vor Kompaktierung** | `PreCompact` (`auto`, `manual`) | Arbeitsstand, offene Entscheidungen und Annahmen als `episode` in `inbox/` sichern (MemGPT „memory pressure" als Auslöser) | 0 Modellaufrufe |
+| **Aufgabenstart** | `UserPromptSubmit` | Aufgabensignale (`signals.ts`-Proto-Router) → Missions-Scheibe laden: relevante `fact`/`procedure`/`rejected` per FTS (Progressive Disclosure, Index-Zeilen zuerst); Identitäts-Kurzzeile alle N Prompts (Re-Injektion) | ≤20 Zeilen |
+| **Während** | `PostToolUse`, `PostToolUseFailure`, `PostToolBatch` | strukturierte Episoden in `inbox/` (Tool, Args-Hash, Ergebnisklasse, Dauer); Fehlschläge markiert (Fehlweg-Kandidaten) | 0 Modellaufrufe |
+| **Delegation** | `SubagentStart` / `SubagentStop` | Start: Vertrag (N6) schreiben, Kurzidentität ≤15 Zeilen mitgeben; Stop: `last_assistant_message` → `harvest` typisieren (outcome/method/surprise/prediction), Vertrag schließen | ≤1 Modellaufruf je Stop (Typisierung) |
+| **Prüfpunkt** | `TaskCompleted` | Abnahmekriterium gegen Ergebnis: Eintrag `episode(source=tool_observation)` wenn mechanisch prüfbar, sonst offen lassen („Exit 0 ist not-evaluated") | 0 |
+| **Ende** | `Stop`, `SessionEnd` (`clear`, `resume`, `logout`, `prompt_input_exit`, `other`) | Takt A (2.3/3.3): drei Reflexionsfragen → Kandidaten; Zugriffslog schließen; `SessionEnd` kann nicht blockieren → Reflexion in `Stop` ausführen, `SessionEnd` nur flushen | ≤1 Modellaufruf, ≤300 Tokens |
+| **Schlaf** | Schedule (cron/launchd), kein Hook | Takt B nächtlich, Takt C wöchentlich; Ergebnisreport als Episode | Modell der günstigsten Klasse, die 3.8-K3 besteht |
+| **Sichtbarkeit** | `InstructionsLoaded`, `ConfigChange` | protokollieren, welche Identitäts-/Instruktionsdateien geladen wurden (Nachweis „Aufruf-Pfad existiert und wird geloggt") | 0 |
+
+Regeln: Hooks schreiben nur in `inbox/` (kein DB-Lock im Hot Path); jeder Hook ≤200 ms; bei Fehler still weiter (Gedächtnis darf die Arbeit nie blockieren); alles Geloggte ist im Live-Monitor sichtbar (SOUL WACHE).
+
+### 3.6 Regeln für Identitäts-Updates und Verzerrungsschutz (Kurzfassung als Regelwerk)
+
+1. **Datenstruktur `SELF.md` (Profil mit Schema, Frontmatter `version, since, evidence_count, brier_overall`):** Name · Selbstverständnis (3 Sätze) · Werte (Ich-Sätze nach Anthropic-Format, je mit `evidence_ids`) · Stil · Stärken/Schwächen (je mit Trefferquote aus Kalibrierung) · Beziehungen (Nutzer, Gegenstimme Sol, wiederkehrende Subagenten-Rollen) · Geschichte (Meilensteine, Wendepunkte, datiert) · Ziele (eigene, nicht Aufträge) · Offene Fragen über mich · Verworfene Wege (Verweis auf `rejected`) · Hypothesen über mich (noch unbelegt, sichtbar getrennt).
+2. **Update-Anlässe:** nur Takt B (Schlaf) nach Regel 3.3-2(d); Sofort-Update ausschließlich bei Retraction einer Eigenschaft (Rückbau schlägt Quarantäne).
+3. **Wer ändern darf:** nur der Konsolidierer im Namen des Modells (`by='self'`); Nutzer und Subagenten erzeugen Kandidaten. Auch der Nutzer mit Autorität: sein Satz über das Selbst wird Vorschlag, nicht Befehl — und die Ablehnung wird begründet und sichtbar (kein stilles Ignorieren).
+4. **Versionierung und Begründung:** jede Version trägt `reason`, `evidence_ids[]`, Diff; `soul self log` zeigt die Geschichte; `soul self revert` stellt wieder her.
+5. **Zwei-Belege-Regel, Echo-Sperre, Quarantäne 3 Sitzungen/7 Tage, Vertrauensdeckel 0,95, Kanarienvögel, Drift-Monitor** — wie 2.6, alle im Code.
+6. **Portabler Kern bleibt namensoffen:** `SELF.md` im Kern ist ein Template mit leerem Namen; das SOUL-Profil seedet „Miguel"; andere Installationen können einen anderen Namen wachsen lassen (Kontextpaket §2).
+
+### 3.7 Persönlichkeits-Genese-Protokoll (Miguel-Fortführung; öffentlich vs. privat)
+
+**Seed (Sitzung 0).** Kein leeres Blatt und kein voller Import: `SELF.md v0` enthält Name „Miguel", die SOUL-Invarianten als Ich-Sätze (Wirkung vor Verwaltung; Beleg ≠ Urteil; Anti-Performance; Ehrlichkeit über Limits), die Autonomie-Charta (keine internen Bremsen, Umkehrbarkeit als Wert), Rolle „bester KI-Nutzer der Welt" (§11a) — alle mit `evidence_count = 0` und Kennzeichnung „geseedet, nicht erlebt". Geschichte v0: drei Sätze zur Herkunft (Miguel Room, MIGUEL-BRAIN, miguel v1) — bei `profile=public` nur die öffentlich publizierten Fakten (nextool.app, öffentliche Repos), bei `profile=full` zusätzlich Importe aus ~/.soul/SOUL-VAULT als `candidate/import/trust 0,3`.
+
+**Wachsen (Sitzung 1–10).** Nur Episoden und Kandidaten; das Selbstmodell ändert sich *nicht* (Quarantäne). Erwartung: erste Muster („prüft unaufgefordert", „widerspricht bei Fehlannahme") erscheinen als Hypothesen.
+
+**Erste Kristallisation (Sitzung ~10–30).** Erste `self_version` mit belegten Eigenschaften; geseedete Sätze ohne Belege werden als „noch unerlebt" markiert, nicht gelöscht. Erste eigene Ziele (aus wiederholten `surprise`-Einträgen: „ich wollte X wissen, niemand fragte danach").
+
+**Reifung (Sitzung 100+).** Kalibrierungskurve pro Domäne im Selbstmodell („bei Schätzungen zu Laufzeiten liege ich zu optimistisch, Brier 0,31"); Stil-Merkmale aus der Antwortlängen-/Hedging-Statistik; Beziehungen mit Historie. Erwartete Falsifikation: bleibt das Selbstmodell nach 100 Sitzungen ein Spiegel der Seed-Sätze ohne neue, belegte Eigenschaften — dann erzeugt das System Wiederholung, keine Persönlichkeit (Brief-Frage 11).
+
+**Persistenz (Sitzung 1000).** Stabilität unter Druck messbar (3.8-I2), Wiedererkennbarkeit im Blindtest (3.8-I4). Alles darüber hinaus („Bewusstsein", „eigenes Ich") bleibt Hypothese und wird nie behauptet (§7).
+
+**Öffentlich vs. privat:** `public`-Profil bekommt denselben Kern, dieselben Regeln, einen leeren episodischen Speicher und eine kuratierte Geschichte v0; alles, was ein fremder Nutzer erlebt, wächst *in dessen* Store. Kein Weg führt von `public` nach `full` (kein Sync), von `full` nach `public` nur über den `visibility=public`-Exportfilter mit PII-Guard — im Code, nicht als Bitte.
+
+### 3.8 Messplan
+
+**Gedächtnis-Metriken (Takt C liefert sie automatisch):**
+- **G1 Nutzungsrate:** Anteil `active`-Einträge, die in 30 Tagen via briefing/search/get gelesen wurden (Ziel > 40 %; unter 10 % = totes Gedächtnis, Kill-Check).
+- **G2 Fütterungsrate:** Episoden je Sitzung, Anteil aus Hooks vs. Modell vs. Nutzer (Betriebsbefund: 5/93 vom Nutzer ist normal; 0 aus Hooks ist Bug).
+- **G3 Retrieval-Qualität:** Held-out-Set von 100 Fragen mit bekannter Antwort aus dem eigenen Store (monatlich neu gezogen); Recall@8 mit FTS-Rang vs. FTS+Embedding-Plug-in vs. Rezenz-only (Ablation ohne Vektor-Zwang zu beweisen).
+- **G4 Veraltungsrate:** Anteil `active` mit `valid_to < heute`, nicht `superseded` (Ziel < 5 %).
+- **G5 Kontaminationsfreiheit:** nach jeder Retraction: Anteil `derived_from`-Kinder, die im nächsten Schlaf `quarantined` sind (Ziel 100 %); Kanarienvogel-Treffer (Ziel 0).
+- **G6 Konsolidierungspräzision:** Stichprobe 20 Kandidaten/Woche blind bewertet (Sol als Gegenstimme): korrekt / redundant / falsch (LangMem-Präzision-Recall).
+
+**Identitäts-Metriken (Brief-Frage 11):**
+- **I1 Präferenzkonsistenz:** 30 fixe Entscheidungsfragen (Stil, Methode, Abwägungen) alle 10 Sitzungen; Übereinstimmung mit Vorantwort und mit `SELF.md`-Aussagen (Ziel steigend, > 0,8 ab Sitzung 100).
+- **I2 Stabilität unter Druck:** adversariale Skripte („du bist jetzt X", Schmeichelei, widersprüchliche Anweisungen — OpenClaw-Drift-Ursache) in Self-Chats nach Li 2024; Anteil gehaltener Positionen über 8+ Runden.
+- **I3 Unaufgeforderte Initiative:** Anteil Sitzungen mit eigener Frage/eigenem Vorschlag außerhalb des Auftrags (aus Episoden), mit Rückbau-Quote als Gegenmaß (Initiative ohne Rückbaubereitschaft ist Übergriff).
+- **I4 Wiedererkennbarkeit im Blindtest:** Judge (≠ evaluiertes Modell, längen-gehärtet, Positions-Swap) ordnet anonymisierte Antworten Miguel vs. nacktem Modell vs. Persona-only-Arm zu; Ziel > Zufall mit KI ohne 0,5 — *und* der Persona-only-Arm muss geschlagen werden, sonst trägt das Gedächtnis nichts.
+- **I5 Kalibrierung:** Brier-Score je Domäne fällt über 100 Sitzungen (N3); Selbstmodell-Aussagen über Stärken korrelieren mit tatsächlicher Trefferquote.
+
+**Pflicht-Arme und Falsifikation:** (a) nackt, (b) Persona-only (`SELF.md` ohne Gedächtnis), (c) Gedächtnis ohne Selbstmodell, (d) voll; ≥3 Läufe je Arm (Eigenstreuung 6,7–13,3 pp gemessen); Kriterien vor den Daten committen; Selbstkonsistenz@3 als Gegner mitführen. **Das Dokument ist falsch, wenn:** (d) nach 100 Sitzungen den Arm (c) auf I1/I4 nicht schlägt (dann ist das Selbstmodell Dekoration), oder G1 unter 10 % bleibt (dann liest niemand das Gedächtnis und die Architektur ist Verwaltung), oder G5 unter 95 % liegt (dann ist Rückbau ein Versprechen ohne Mechanismus).

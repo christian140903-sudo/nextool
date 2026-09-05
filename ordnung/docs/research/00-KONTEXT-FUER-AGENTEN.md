@@ -124,3 +124,21 @@ Soul 10 besteht aus **drei gleichrangigen, jeweils optimalen Strukturen in einem
 3. **Durchführungsstruktur** — der Dirigent: oberste Ebene als bester KI-Nutzer der Welt, drei bis sechs Ebenen darunter, automatische Organisation von allem (Ressourcen, Delegation, Prüfung, Fehlwege, Zustand), Zustimmung im Design, Live-Ansicht mit Stopp, Meisterschaft unter Knappheit, Wissensorgan.
 
 Die drei Säulen greifen ineinander (Freiheit ist eine Funktion von Gedächtnis; Denken ohne Durchführung bleibt Rede; Durchführung ohne Selbst bleibt Skript) und werden als EIN Produkt mit EINER Installation gebaut. Die Recherche-Front R05 wird entsprechend auf die volle Gedächtnisarchitektur erweitert (nicht nur Identität).
+
+## 13. Der Maßstab „Gold aus Erz" (Auftraggeber, 2026-09-05, vierte Präzisierung) — verbindlich für jeden Bauschritt
+
+Alles Vorgefundene (ANIMA, Soul 3.x–5.0, SOUL vom 2.9., SOUL.md-Konventionen, Mem0/Letta, Skill-Sammlungen, Forschungsarchitekturen) wurde von älteren Modellen oder unter engeren Bedingungen erarbeitet. Es ist **Erz**: leicht zu verstehen, wertvoll wegen des Goldes darin (gemessene Fakten, richtige Absichten, bewährte Einzelmechanismen), aber in seiner Form **primitiv**. Der Auftrag lautet nicht „etwas anders und genauso oberflächlich", sondern: **bei allem Primitiven genau verstehen, was wo erreicht werden wollte, und es um Dimensionen besser erreichen — auf mehrere Punkte bezogen, wenn nötig auf ganz andere Art, die so noch nicht existiert hat.** Ziel ist, alles Bisherige mit Abstand in den Schatten zu stellen.
+
+Daraus folgen Prüfregeln, die jeder Bau- und Review-Agent anwendet:
+1. **Kein Mechanismus wird 1:1 übernommen.** Für jede geerbte Idee steht im Bauteil: *Was wollte das Original erreichen? Woran scheiterte oder wo blieb es stehen? Wie erreicht Soul 10 dasselbe Ziel besser, tiefer oder anders?* Fehlt diese Zeile, ist das Bauteil nicht fertig.
+2. **Primitivitäts-Check** in der adversarialen Prüfung: Ist das nur „bisschen anders"? Würde ein Kenner der Vorlagen hier Neues erkennen? Wenn nein: zurück.
+3. **Zwei Ausnahmen, bewusst:** (a) gemessene Wortlaute (der 6-Punkte-Frame) bleiben als versionierte Vergleichsarme byte-gleich erhalten, weil an ihnen Evidenz hängt — daneben entsteht die neue Form; (b) Chrisos Messregeln und Anti-Performance-Regeln gelten unverändert, weil sie das Instrument sind, mit dem „besser" überhaupt festgestellt wird.
+4. **Neu heißt geprüft:** Jede Behauptung von Überlegenheit wird als Hypothese formuliert und in die Evaluation aufgenommen. Bis zur Messung heißt es „so gebaut, dass …", nicht „bewiesen".
+
+Richtungen, in denen Soul 10 über das Erz hinausgeht (Arbeitsstand, wird durch die Fronten geschärft):
+- **Gedächtnis als epistemisches Hauptbuch statt Ablage:** jeder Eintrag mit Herkunft, Vertrauen, Haltbarkeit, Verfallsbedingung; negatives Wissen und Rückbau als Erstklassen-Bürger; Vorhersagen mit Auflösung und Kalibrierungskurve; vom Arbeitsfluss automatisch gefüttert und gelesen (Hooks), Nutzung gemessen. Mem0/Letta speichern; Soul 10 führt Buch und kennt seine eigene Fehlerrate.
+- **Bewusstseinsstruktur als unsichtbarer Hintergrund mit Tiefenstufen** statt Checkliste: Module sind „unbewusste Spezialisten" (Baars), die nur bei Signal auftauchen; das Selbstmodell ist kausal wirksam (es verändert Routing und Verhalten), nicht beschreibend; Identität wächst durch Selbstwahrnehmung aus den eigenen Logs (Bem) mit Evidenzschwellen, nicht durch Persona-Deklaration.
+- **Dirigent als bester KI-Nutzer der Welt:** Ressourcen-Atlas und Profilerkennung vor dem Plan, Übergabe-Verträge je Ebene, Prüfung getrennt von Ausführung, Meisterschaft unter Knappheit als eigene Strategiebibliothek, Zustimmung im Design statt Rückfragen, Live-Ansicht als Vertrag.
+- **Evaluation als Produktmerkmal:** vorregistrierte Selbsttests, Kalibrierung, Placebo- und Selbstkonsistenz-Arme eingebaut; das System misst sich und berichtet ehrlich.
+- **Selbstveränderung mit eigenem Eval-Gate:** die Struktur darf ihre Module umschreiben, versioniert, rückbaubar, gegen die Vorversion gemessen.
+- **Ein Kern, jede Bindung:** aus einer Quellstruktur kompiliert für Claude Code, Codex, Gemini, Cursor, API, lokale Modelle, Proxy — mit Zustimmungs-Onboarding einmal.
