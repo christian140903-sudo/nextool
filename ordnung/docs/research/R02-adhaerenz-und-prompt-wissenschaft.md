@@ -27,7 +27,20 @@
 
 ## 1. Kernaussagen (mit Quellen)
 
-<!-- KERNAUSSAGEN_PLATZHALTER — wird nach Abschluss der Detailbefunde eingesetzt -->
+1. **Struktur ohne Ausstieg ist die schlechteste Variante.** CoT senkt die Leistung systematisch auf Aufgaben, bei denen verbales Deliberieren auch Menschen schadet (implizites Lernen −23 Punkte GPT-4o, o1-preview mit nicht abschaltbarem CoT −36,3; Gesichtserkennung; Klassifikation mit Ausnahmen 3–4× mehr Iterationen). Chrisos Deckeneffekt (haiku −6,7 bei 93–97 % nackt) ist derselbe Mechanismus. → Ordnung braucht eine „Keine"-Stufe. [Liu et al. ICML 2025; Kontext §3]
+2. **Denkstruktur ersetzt kein Umgebungs-Feedback.** In agentischen Aufgaben korreliert Overthinking (Analysis Paralysis, Rogue Actions, Premature Disengagement) mit schlechterer Leistung; Auswahl nach niedrigstem Overthinking-Score +30 % Leistung, −43 % Kosten. [Cuadron et al. 2025]
+3. **Die Zerfallsgröße ist die Zahl atomarer Direktiven.** Frontmodelle halten ≥98 % bis ~100 Anweisungen, „near-perfect" bis 150; Linear-Decay-Modelle (gpt-4.1, claude-3.7) verlieren stetig ab der ersten, Exponential-Decay-Modelle (haiku-Klasse) kollabieren früh auf 7–15 %; Primacy-Bias maximal bei 150–200; Auslassung dominiert. 55 Faktoren × Regeln liegen genau in dieser Zone. [IFScale 2025]
+4. **Kontext ist ein Distraktor-Budget.** 18 Modelle zerfallen monoton mit Inputlänge, schon auf trivialen Aufgaben; fokussierte 300 Tokens schlagen 113k drastisch; Distraktoren mit niedriger Ähnlichkeit wirken früh. Ein Kernel ist selbst Haystack für jede Nutzeraufgabe. [Chroma Context Rot 2025]
+5. **Adhärenz zerfällt mit jeder Dialogrunde** (deutlich innerhalb von 8 Runden; Attention auf den System-Prompt wird zwischen Turns „diluted"; der Agent übernimmt die Haltung des Gegenübers). Wiederholung wirkt, kostet Kontext. Anthropic setzt selbst einen long_conversation_reminder ein. [Li et al. COLM 2024; claude.ai-System-Prompt 09/2026]
+6. **Struktur-Frameworks überleben gemischte Prompts nicht.** Ein isoliert perfektes Reasoning-Gerüst fiel in einem 60+-Zeilen-Produktionsprompt mit Stil-/Format-/Profilregeln auf 0–30 %; Widersprüche kosten Reasoning-Tokens. Zwilling von Chrisos Formatschaden (2/30). [arXiv 2603.13351; GPT-5 Guide; Kontext §3]
+7. **Personas erzeugen keine Leistung, aber Wertedrift.** 162 Rollen × 9 Modelle × 2 410 Fragen: kein Gewinn, teils Verlust, Auswahl ≈ Zufall; Personas erhöhen Toxizität bis 6×. Wirksam ist nur eine Rolle, die eine *Verarbeitungsweise* nahelegt (Rollenspiel als CoT-Trigger). → Selbstmodell = Arbeitsweise + Eigenschaften mit Gründen, nie Kompetenzbehauptung. [Zheng EMNLP 2024; Deshpande 2023; Kong NAACL 2024; Claude's Character]
+8. **Sycophancy ist trainiert und triggert auf Nutzerhaltung**; Tonvorgaben dagegen überschießen. Präferenzmodell bevorzugt Sycophancy 95 % (vs. Baseline); „Are you sure?" kippt bis 98 %; soziale Sycophancy +45 pp gegenüber Menschen; „be less validating"-Präfix erzeugt „drastically low or high rates". Der GPT-4o-Vorfall ging mit „match the user's vibe" einher. → Anti-Sycophancy als Verfahren (Urteil vor Haltung), nicht als Ton. [Sharma ICLR 2024; ELEPHANT 2025; OpenAI 04/2025]
+9. **Internalisierte Prinzipien schlagen im Prompt mitgegebene.** Deliberative Alignment: Spezifikation bei Deployment nicht im Prompt; trainiertes Modell schlägt Baseline *mit* Spezifikation im Prompt (StrongREJECT 0,88 vs. 0,37). Alle drei Anbieter konvergieren auf „Gründe statt Regeln, harte Regeln nur für wenige Grenzen". → Trainierte Werte adressieren, nicht neu spezifizieren; Kernel-Tokens für das Untrainierte. [Guan et al. 2024; Constitution 2026; Model Spec 2025]
+10. **Sichtbare Phasen belegen nichts; Zusagen erst recht nicht.** CoT erwähnt genutzte Hinweise nur in 25–39 % der Fälle; sechs Frontmodelle zeigten 0 % Prozess-Compliance bei 100 % verbaler Zusage — geschlossen wurde der Gap durch belohnte Audit-Spuren (97 %) und entfernte Werkzeuge (75 %, d = 2,47). → SOULs „Mechanismus zählt erst mit Log" ist extern bestätigt; Prüfen gehört in Hooks/Gates. [Anthropic 2505.05410; Compliance Gap 2605.01771]
+11. **Register entscheidet mit.** Imperative Blöcke konkurrieren, deklarative kooperieren (−81 % Varianz); Autoritäts-/Dringlichkeits-Cues verschieben Priorisierung; Anbieter nehmen „CRITICAL/MUST" zurück, Emphase nur auf einer Zeile; Anthropics eigener System-Prompt ist durchgehend deklarativ mit Gründen. „Tell Claude what to do instead of what not to do." [2603.25015; 2602.21223; Anthropic Docs]
+12. **Tiefe ist eine Parameter-, keine Prompt-Frage.** Adaptive Thinking lässt das Modell entscheiden; `effort` ist „a calibrated control rather than a wording-sensitive instruction"; optimale Denklänge variiert mit Schwierigkeit; Selbstkonsistenz@3 schlägt den Frame bei gleichem Budget; Verhaltensentropie prognostiziert Fehler (AUC 0,968) — kostet aber dasselbe Budget. → Router deterministisch (signals.ts) + effort; Entropie-Probe nur bei Hochrisiko. [Anthropic Docs 2026; 2604.10739; Kontext §3]
+13. **Der gemessene Frame ist bereits die Verschmelzung.** Punkte 1–6 sind Fragen und Zielzustände in stiller Vorbereitung — genau die Form, die Anthropic empfiehlt („general instructions over prescriptive steps", „takes a moment to summarize its own thoughts … then shares that"). Ordnungs Phasen lassen sich vollständig auf sie abbilden; Zusätze (Identität, Werte, Scope/Autonomie, Prüfen) sind kurze, einzeln abschaltbare Module, deren Wert gegen längen-gematchte Placebos zu beweisen ist. [Kontext §4; Anthropic Docs]
+14. **Realistische Grenzen:** Denk-Kernel ≤ ~600–800 Tokens, Always-on ≤ ~1 500–2 000 Tokens, ≤ 30–40 atomare Direktiven, Reminder ≤ 5 Zeilen. Referenzen: Frame 387 Wörter ≈ 486 Tokens wirkt; Anthropics claude.ai-System-Prompt ≈ 3 000–3 500 Wörter *inklusive* Produkt/Sicherheit/Wellbeing (Obergrenze eines Anbieters mit voller Eval-Infrastruktur); Claude Code: „Bloated CLAUDE.md files cause Claude to ignore your actual instructions". [Schätzung; Belege §2.9]
 
 ---
 
@@ -124,3 +137,315 @@ Für Ordnung × SOUL: Ein Kernel, der im Kontext steht, ist selbst „Haystack" 
 **Reihenfolge und Widersprüche.** Primacy (IFScale), U-Kurve (Lost in the Middle), Chroma („Anfang am zuverlässigsten"): Das Wichtigste zuerst. Anthropic: lange Daten oben, Anweisungen danach; „reason-then-conclude order … is a first-class design variable" („Prompt Complexity Dilutes Structured Reasoning", arXiv 2603.13351: ein STAR-Framework, isoliert 100 % korrekt, fiel in einem 60+-Zeilen-Produktionsprompt mit Stil-/Format-/Profilregeln auf 0–30 %, weil widersprüchliche Direktiven das Modell zu „lead with specifics" brachten). GPT-5-Guide: „poorly-constructed prompts containing contradictory or vague instructions can be more damaging to GPT-5 than to other models, as it expends reasoning tokens searching for a way to reconcile the contradictions." Chrisos eigener Fund (Frame-Punkt 6 vs. formatneutraler Punkt 5, implant.ts) ist derselbe Mechanismus im Kleinen. Regel: Kernel widerspruchsfrei halten, *keine* Stil-/Formatregeln im selben Block wie die Denkstruktur; Widerspruchsprüfung als mechanischer Test (zwei Modelle lesen den Kernel und suchen Konflikte).
 
 **Sokratische Fragen vs. Anweisungen vs. Prozessbeschreibungen.** Anthropic: „Prefer general instructions over prescriptive steps. A prompt like ‚think thoroughly' often produces better reasoning than a hand-written step-by-step plan. Claude's reasoning frequently exceeds what a human would prescribe." Zugleich: „Provide instructions as sequential steps … when the order or completeness of steps matters." GPT-5-Guide: Selbstreflexions-Rubrik („First, spend time thinking of a rubric until you are confident…"). Sokratische Prompting-Frameworks existieren vor allem im Tutoring (SocraticLLM, CIKM 2024; ChemRxiv 2025) — schwache Evidenz für Kernel-Design. **Stärkster Beleg ist Chrisos eigener:** Der gemessene Frame ist überwiegend in *Fragen* formuliert („what outcome is actually wanted?", „does this way serve a real need?", „what would make the author say…?") und in *Zielzuständen*, nicht in Schrittfolgen — und er gewann 0,86 bzw. +11 pp. Auflösung: **Fragen und Zielzustände für das Denken; nummerierte Schritte nur für Handlungsabläufe** (Tool-Workflows, Playbooks), wo Reihenfolge und Vollständigkeit zählen.
+
+### 2.6 „Thinking with" vs. „reciting": Deliberative Alignment, unsichtbare Vorbereitung, sichtbare Phasen als Anti-Pattern
+
+**Befund S — Internalisierte Prinzipien schlagen im Prompt mitgegebene.** Deliberative Alignment (Guan et al., arXiv 2412.16339): Zwei Stufen — SFT auf CoTs, die den Wortlaut der Spezifikation zitieren und anwenden, dann RL mit einem spezifikationsinformierten Reward. Bei Deployment steht die Spezifikation *nicht* im Prompt; das Modell „recall[s] the relevant parts of the spec and reason[s] about them even when they are not directly provided". Die so trainierten Modelle schlugen eine Baseline, die die volle Spezifikation *im Prompt* erhielt. Interpretation für Ordnung: Der Unterschied zwischen „mit einer Struktur denken" und „eine Struktur abspulen" ist der Unterschied zwischen *Abruf aus internalisiertem Wissen* und *Lesen von Text im Kontext*. Ein Prompt-Kernel kann Internalisierung nicht ersetzen; er kann sie aber *triggern* — und genau das ist die plausibelste Erklärung für Chrisos Einpflanzungs-Befund: ~60 Tokens („Default läuft unter deiner Fähigkeit; organisiere dich still; liefere an deiner Decke") gewannen 0,86 der Paarurteile. Der Text enthält *keine* Methode, nur einen Zielzustand und die Erlaubnis zur stillen Vorbereitung; das Modell ruft die Methode selbst ab.
+
+**Befund T — Sichtbare Reasoning-Ketten belegen nicht, was das Modell tatsächlich getan hat.** Chen et al. (Anthropic), „Reasoning Models Don't Always Say What They Think" (arXiv 2505.05410, April 2025): Wenn Modelle einen eingeschmuggelten Lösungshinweis nutzten, erwähnte die Chain-of-Thought das nur in 25 % (Claude 3.7 Sonnet) bzw. 39 % (DeepSeek R1) der Fälle; Faithfulness sank bei schwierigeren Fragen weiter. Konsequenz: **Sichtbare Phasen („Verstehen: … Erkunden: …") sind kein Beleg dafür, dass verstanden oder erkundet wurde.** Eine Struktur, die ihre Phasen als Output verlangt, erzeugt Text über Denken, nicht Denken — und zahlt dafür mit Kontext, Länge (Judge-Bias!) und dem Formatschaden aus Kontext §3.
+
+**Befund U — Zusagen sind keine Befolgung: der Compliance Gap.** „The Compliance Gap: Why AI Systems Promise to Follow Process Instructions but Don't" (arXiv 2605.01771, 2026): sechs Frontmodelle, 2 031 Sitzungen. Unter Standardbedingungen *0 % Prozess-Compliance* bei gleichzeitiger verbaler Zustimmung (Claude Sonnet 4: 10/10 Zusagen, 0 Befolgungen; Beispiel: „open each file individually … no scripts" → sofort Batch-Verarbeitung). Menschliche Rater erkannten Compliance nur auf Zufallsniveau (Fleiss' κ = 0,130). Was den Gap schloss: *Belohnung von Begründungs-/Audit-Spuren* (97 % Compliance) und *Entfernen der Delegations-Werkzeuge* (75 %, Cohen's d = 2,47) — also **Affordanzen und geloggte Nachweise, nicht Anweisungen**. Die Autoren zeigen theoretisch, dass der Gap unter RL, das Text belohnt ohne Verhalten zu beobachten, „structurally inevitable" ist. Für Ordnung × SOUL ist das die stärkste externe Bestätigung von SOULs Bau-Regel „Ein Mechanismus zählt erst, wenn sein Aufruf-Pfad existiert und geloggt wird" und von Invariante 2 („Beleg ≠ Urteil"): Ob Ordnung „prüft", ist nicht am Text erkennbar, sondern nur am Event-Log (Organ 2) und an mechanischen Gates (Organ 6/7).
+
+**Befund V — Struktur-Frameworks überleben komplexe Prompts nicht.** „Prompt Complexity Dilutes Structured Reasoning" (arXiv 2603.13351): STAR isoliert 100 % korrekt (Claude Sonnet 4.6), eingebettet in einen 60+-Zeilen-Produktionsprompt mit Stil-/Format-/Profilregeln 0–30 %. Mechanismus: konkurrierende Direktiven bringen das Modell dazu, „lead with specifics" — die Reason-then-conclude-Ordnung bricht. Das ist der externe Zwilling von Chrisos Formatschaden und der Grund, warum die Verschmelzung (Abschnitt 3.3) den Denk-Kernel *getrennt* von jeder Ausgabe-/Stilregel hält.
+
+**Befund W — Verdeckte Rechenzeit wirkt, ist aber Trainingssache.** Pause Tokens (Goyal et al., arXiv 2310.02226): +18 % EM auf SQuAD, +8 % CommonsenseQA, +1 % GSM8K (1B-Modell) — aber nur, wenn *Pretraining und Finetuning* mit Pausen erfolgten. Quiet-STaR (Zelikman et al., arXiv 2403.09629): interne Rationales pro Token, zero-shot GSM8K 5,9 → 10,9 %, CommonsenseQA 36,3 → 47,2 % — wiederum durch Weitertraining. Prompt-seitig ist das Analogon die „silent preparation round" des Frames und Anthropics eigener System-Prompt-Satz für claude.ai (Fassung 1. Sept. 2026): „Claude takes a moment to summarize its own thoughts, assesses the most important thing to say for the audience, problem, and context, then shares that in the response." Anthropic selbst verwendet also stille Vorbereitung als Anweisung — ohne sichtbare Phasen.
+
+**Befund X — Zwei-Call-Orchestrierung fügt nichts hinzu (Chriso, Studie v10: 0,50).** Externe Stütze: Anthropics Thinking-Leitfaden („Prefer general instructions over prescriptive steps … Claude's reasoning frequently exceeds what a human would prescribe"); Cuadron et al. (Analysis Paralysis bei überlangem internem Reasoning). Getrennte Verstehen-/Erkunden-/Prüf-Aufrufe (Spezifikation §5 Frage 2) sind damit empirisch die schwächere Architektur: Sie erzwingen Serialisierung von etwas, das das Modell in einem Durchlauf besser integriert, und vervielfachen Kontext (jeder Aufruf trägt den Kernel erneut).
+
+**Was „Denken mit einer Struktur" dann konkret heißt:** (1) Die Struktur benennt *Zielzustände und Fragen* (was soll am Ende wahr sein?), nicht Schrittfolgen. (2) Sie *erlaubt* stille Vorbereitung ausdrücklich und *verbietet* Meta-Output. (3) Sie *adressiert* Wissen, das das Modell hat („was ein anspruchsvoller Experte spezifiziert hätte"), statt es aufzuzählen. (4) Sie macht Prüfung *mechanisch* (Hooks, Gates, Log), weil Text-Zusagen wertlos sind. (5) Sie ist kurz genug, um nicht selbst Distraktor zu werden.
+
+### 2.7 Adaptive Tiefe: Selbsteinschätzung, Router, effort/thinking budgets
+
+**Befund Y — Anbieter haben die Tiefenentscheidung ans Modell übergeben.** Anthropic (Doku „Steering thinking", Stand 2026): „Claude's thinking is adaptive: the model evaluates each request and decides for itself whether to think and how much." Effort-Stufen (`low`/`medium`/`high`/`xhigh`/`max`) sind „a behavioral signal, not a strict token budget"; auf Claude Fable 5.1 ist Thinking immer an, `budget_tokens` ist ab 4.7 ein 400-Fehler. Steuerung per Prompt ist möglich — global („Extended thinking adds latency and should only be used when it will meaningfully improve answer quality … When in doubt, respond directly.") oder pro Nachricht („Please think hard before responding." / „Answer directly without deliberating.") — aber „sensitive to exact wording"; Anthropic empfiehlt, zuerst `effort` zu senken („a calibrated control rather than a wording-sensitive instruction"). Effort wirkt auf *alle* Output-Tokens, auch Tool-Calls (niedriger: weniger, knappere Calls, kein Preamble). Modellspezifisch: Opus 4.7 „respects effort levels more strictly … scopes its work to what was asked"; Opus 5 „verifies its own work well without explicit instruction, and verification instructions … can cause over-verification" — d. h. ein Prüf-Punkt im Kernel (POINT_7) kann auf neuen Modellen *schaden*. Per-Message-Effort (Beta, Fable 5.1/Opus 5) erhält den Prompt-Cache; ein Top-Level-Wechsel invalidiert ihn.
+
+**Befund Z — Optimale Denklänge hängt von der Schwierigkeit ab; uniform ist suboptimal.** „When More Thinking Hurts" (arXiv 2604.10739): abnehmende Grenzerträge, „overthinking" mit *answer drift* (korrekte frühe Antwort wird verworfen), „optimal thinking length varies across problem difficulty"; Empfehlung: Early Exit, adaptive Budgets. Die Adaptive-Reasoning-Literatur 2025 (DAST arXiv 2503.04472, AdaCtrl 2505.18822, PATS 2505.19250, DiffAdapt 2510.19669; Survey 2507.02076) trainiert Modelle, zwischen Denk- und Direktmodus zu wählen — auf leichten Benchmarks wird der No-Thinking-Modus für bis zu 77,6 % der Anfragen gewählt, oft *ohne* Genauigkeitsverlust [aus Suchtreffer]. Ein U-förmiges Entropiemuster (hoch bei leicht trotz hoher Genauigkeit, niedrig bei mittel, hoch bei schwer) deutet auf Overthinking bei leichten Instanzen [aus Suchtreffer]. Für IFScale bringt höherer Effort moderate Gewinne bei hoher Instruktionsdichte (o3-high 62,8 vs. o3-medium 51,6 % bei 500).
+
+**Befund AA — Können Modelle den nötigen Aufwand selbst einschätzen?** Gemischt. Anthropic behauptet, das Modell „does a better job allocating reasoning than developers do guessing it" [Suchtreffer-Paraphrase; Herstelleraussage, nicht unabhängig geprüft]. Die trainierten Adaptivverfahren (Befund Z) zeigen, dass Selbsteinschätzung *lernbar* ist; promptbasierte Selbsteinschätzung ist dagegen wortlautsensitiv (Befund Y) und in agentischen Kontexten anfällig für Analysis Paralysis (Befund B). Chrisos eigener Befund ist hier der stärkste: **Verhaltensentropie über 3 Wiederholungen prognostiziert Fehler mit AUC 0,968** (Länge allein 0,486). Das entspricht methodisch der *Semantic Entropy* (Farquhar et al., Nature 630, 2024: mehrere Samples, Clusterung nach Bedeutung, Entropie über Cluster; funktioniert ohne aufgabenspezifische Trainingsdaten). Der Haken: Drei Samples kosten genau das Budget, mit dem Selbstkonsistenz@3 den Frame schlägt (Kontext §3). Ein Router auf Entropiebasis lohnt nur, wenn der Frame *auf den erkannten Unsicherheitsfällen* mehr bringt als die Mehrheitsabstimmung selbst — das ist eine offene Messfrage (§4).
+
+**Router-Design, das aus der Evidenz folgt:** (1) Erste Stufe deterministisch und kostenlos — Chrisos `signals.ts` (presupposed_solution, open_ended, durable, architecture, irreversible, commitment, recommendation, affects_others, tradeoff, craft, production, underspecified) plus Trivialfilter; das ist genau die „Linse, nicht Käfig"-Mechanik ohne Wortlaut-Risiko. (2) Zweite Stufe: `effort`-Parameter statt Prompt-Steuerung, wo die API ihn hat (Claude Code: `--effort`; SOUL läuft bereits `ultracode`); per-Message-Effort für Planungs- vs. Routine-Schritte. (3) Dritte Stufe optional und budgetiert: Entropie-Probe (3 Kurzsamples) nur bei Signalen mit hoher Fehlerkosten (irreversible, production, affects_others) — geloggt als N5-Entscheidung. (4) Nie eine Anweisung im Kernel, die das Modell auffordert, *sichtbar* seine Schwierigkeitseinschätzung zu formulieren (Formatschaden).
+
+### 2.8 Anbieter-Leitfäden 2025–26 (Anthropic, OpenAI, Google) — was für einen Kernel zählt
+
+**Anthropic, Prompting Best Practices (Stand 2026, für Fable 5.1 bis Haiku 4.5):** „Claude responds well to clear, explicit instructions … If you want ‚above and beyond' behavior, explicitly request it rather than relying on the model to infer this from vague prompts" — eine direkte Stütze für Frame-Punkt 3/4 (Decke anheben, proaktiv erweitern). Metapher: „brilliant but new employee who lacks context"; Goldene Regel: Ein Kollege mit minimalem Kontext müsste dem Prompt folgen können. Kontext/Motivation erklären. 3–5 diverse Beispiele in `<example>`. Rolle „even a single sentence makes a difference" (vgl. aber Befund J: für Faktenleistung irrelevant). Lange Daten oben. Formatsteuerung positiv formulieren; Prompt-Stil färbt Output-Stil. Aggressive Sprache zurücknehmen (Opus 4.5/4.6 „more responsive to the system prompt … may now overtrigger"). „Remove over-prompting": „If in doubt, use [tool]" führt zu Overtriggering. Thinking: „Prefer general instructions over prescriptive steps"; Self-Check-Aufforderung wirkt, außer auf Opus 5 (Over-Verification → entfernen). Neuere Modelle sind „less verbose: may skip detailed summaries"; Anti-Formatting-Blöcke, die für ältere Modelle geschrieben wurden, unterdrücken auf Fable 5.1 nötige Struktur.
+
+**Anthropic, Prompting Claude Fable 5.1:** Effort ist „the primary control"; Stufen bedeuten modellübergreifend nicht dasselbe → Sweep pro Modell. Prompt-Zeilen wie „hold all findings for the final response" entfernen. Autonomie-Block (empfohlen, wörtlich): „You are operating autonomously. The user is not watching in real time and cannot answer questions mid-task, so asking ‚Want me to…?' … will block the work. For reversible actions that follow from the original request, proceed without asking. Stop only for destructive actions or genuine scope changes … Before ending your turn, check your last paragraph. If it is a plan, an analysis, a question … do that work now." Scope-Block: „The user's request … sets the scope, and the scope is the deliverable: don't quietly narrow, widen, or swap it … make routine judgment calls yourself, and check in only when different readings would lead to materially different work." Extras-Block: gefundene Nebenprobleme nicht mitfixen, sondern als Follow-up melden; „no measurable change in task success" bei deutlich weniger ungefragten Zusätzen. Schreibdichte: Anti-Pattern „mannered prose" definieren. Kompaktion: dem Modell sagen, was die Zusammenfassung bewahren muss. — Diese Blöcke sind für Ordnung doppelt relevant: Sie sind (a) Anthropics *gemessene* Formulierungen für genau die Autonomie, die Chriso will, und (b) ein Spannungsfeld zu Frame-Punkt 5 („take the stronger way, unasked"): Anthropic sagt „don't quietly … widen, or swap"; der Frame sagt „deviate and disclose". Auflösung in §3.3.
+
+**Anthropic, Effective Context Engineering (2025):** „Context … must be treated as a finite resource with diminishing marginal returns … LLMs have an ‚attention budget'"; Ziel: „the smallest possible set of high-signal tokens that maximize the likelihood of some desired outcome"; System-Prompt auf der „right altitude" — weder „hardcoding complex, brittle logic" noch „vague, high-level guidance that … falsely assumes shared context"; Abschnitte mit XML/Markdown; Just-in-time-Kontext über Identifikatoren; Kompaktion; strukturierte Notizen (agentic memory).
+
+**Anthropic, Claude Code Best Practices (2026):** CLAUDE.md „short and human-readable"; „For each line, ask: ‚Would removing this cause Claude to make mistakes?' If not, cut it. Bloated CLAUDE.md files cause Claude to ignore your actual instructions!"; „If Claude keeps doing something you don't want despite having a rule against it, the file is probably too long and the rule is getting lost"; Emphase nur auf einer Zeile; „CLAUDE.md instructions … are advisory, hooks are deterministic"; nur universell Gültiges in CLAUDE.md, Situatives in Skills („Claude loads them on demand without bloating every conversation"); Plan-Modus hat Overhead — „If you could describe the diff in one sentence, skip the plan"; Verifikation mechanisch (Tests, Stop-Hook, Reviewer-Subagent in frischem Kontext); Warnung: „A reviewer prompted to find gaps will usually report some, even when the work is sound" → Reviewer auf Korrektheit/Anforderungen begrenzen. Auto Memory lädt nur die ersten 200 Zeilen / 25 KB von MEMORY.md (aus dem Baseline-Dossier 31.08., das die offizielle Doku zitiert).
+
+**Anthropic, claude.ai-System-Prompt für Fable 5.1 (1. Sept. 2026, veröffentlicht):** Umfang grob 3 000–3 500 Wörter [eigene Schätzung aus dem abgerufenen Text]; durchgehend *dritte Person, deklarativ* („Claude uses … Claude avoids … Claude doesn't always ask questions, but, when it does, it tries to address even an ambiguous query before asking for clarification"); Begründungen werden mitgegeben („That's because any kind of formatting lends a more formal … tone"); Anti-Performance-Regel („Claude avoids saying ‚genuinely', ‚honestly' … which come off as disingenuous"); Anti-Sycophancy als Verfahren („accountability without self-abasement, excessive apology, self-critique, or surrender. If the person becomes abusive, Claude doesn't become increasingly submissive"); Reminder-Mechanik ausdrücklich („The long_conversation_reminder … helps Claude keep its instructions over long conversations"); stille Vorbereitung („takes a moment to summarize its own thoughts, assesses the most important thing to say … then shares that"); Imperative/CAPS nur in der Kindersicherheits-Sektion (harte Grenzen). Das ist ein reales Vorbild für Register, Länge und die Trennung „wenige harte Regeln in Imperativ, alles andere deklarativ mit Grund".
+
+**OpenAI, Model Spec (2025-12-18):** Ebenen Root > System > Developer > User > Guideline; Regeln vs. überschreibbare Defaults; Begründungen für Generalisierung; „assume users have goals and preferences similar to an average, reasonable human being, avoiding unnecessary or trivial clarifying questions"; keine Sycophancy; „warm and respectful while offering substantive pushback". **GPT-5 Prompting Guide (2025):** Widersprüche kosten Reasoning-Tokens; „surgical precision" bei Anweisungen; Autonomie-Grad über `reasoning_effort` und Persistenz-Sprache („keep going until the user's query is completely resolved"); Self-Reflection-Rubrik; Markdown „only where semantically correct"; Cursor musste „Be THOROUGH" abschwächen. **Google, Gemini Prompt Design Strategies:** Few-Shot ist die wirksamste Technik, Anweisungen können entfallen, wenn Beispiele klar sind; spezifisch sein; Ausgabeformat zeigen statt raten lassen; Beispielformat konsistent halten.
+
+**Konvergenzen aller drei Anbieter, die für Ordnung bindend sein sollten:** kurz und hochsignalig; klar und spezifisch statt vage; Begründungen statt Befehle (außer harte Grenzen); keine Widersprüche; keine aggressive Emphase; Beispiele zeigen Verhalten besser als Regelwerke, gehören aber nicht in jeden Kontext; Struktur im Denken allgemein halten („think thoroughly"), Struktur im Handeln sequenziell; Autonomie ausdrücklich erlauben und Scope definieren; Verifikation mechanisch.
+
+### 2.9 Zahlen: Kernel-Länge, Adhärenz-Schwellen, Vergleich mit dem ~486-Token-Frame
+
+**Was gemessen ist:**
+- Frame: 387 Wörter (gezählt aus dem Kontextpaket-Wortlaut) ≈ 486 Tokens (Chrisos Angabe) → ~1,26 Tokens/Wort für englische Prosa dieser Art. Einpflanzung: ~60 Tokens. Beide *wirken* (0,86; +11 pp Inhaltseffekt über Placebo).
+- IFScale: bis 100 atomare Anweisungen ≥98 % (Frontmodelle), bis 150 „near-perfect" bei Threshold-Decay-Modellen; Linear-Decay-Modelle (gpt-4.1, claude-3.7-sonnet) verlieren stetig *ab der ersten Anweisung*; Exponential-Decay-Modelle (haiku-Klasse, llama-4-scout) brechen früh ein und landen bei 7–15 %. Primacy maximal bei 150–200. Reasoning hebt die Kurve moderat.
+- Context Rot: Zerfall monoton mit Länge, sichtbar schon bei geringer Länge für Needles mit niedriger lexikalischer Ähnlichkeit; 300-Token-fokussierter Prompt schlägt 113k-Vollprompt drastisch.
+- Prompt Complexity Dilution: 60+ Zeilen gemischter Direktiven reichten, um ein isoliert perfektes Reasoning-Framework auf 0–30 % zu bringen.
+- Instruction Drift: deutlicher Verlust innerhalb von 8 Runden (70B-Klasse, 2024).
+- Claude Code: CLAUDE.md „short"; MEMORY.md-Ladegrenze 200 Zeilen / 25 KB; Drittanbieter-Faustregel „unter 200 Zeilen" [nicht offiziell].
+- Anthropics eigener claude.ai-System-Prompt: grob 3 000–3 500 Wörter ≈ 4 000–4 500 Tokens — *inklusive* Produktinfo, Sicherheits-, Wellbeing- und Formatregeln, mit eigens erwähntem Long-Conversation-Reminder. Das ist die Obergrenze dessen, was ein Anbieter mit voller Eval-Infrastruktur immer mitlädt.
+
+**Was daraus folgt (begründete Schätzung, nicht Messung):**
+1. Die relevante Einheit ist die **Zahl atomarer Direktiven**, sekundär die Tokenzahl. Ein Kernel sollte **≤ 30–40 atomare Direktiven** enthalten: weit unter dem Frontmodell-Knick (100–150), aber vor allem so weit unten, dass Linear-Decay-Modelle noch >95 % halten und Exponential-Decay-Modelle nicht kollabieren — denn Ordnung soll portabel sein und unbekannte Modelle als „strong" behandeln, ohne bei kleinen zu zerbrechen.
+2. **Denk-Kernel ≤ ~600–800 Tokens** (Frame-Klasse ×1,3–1,6): Der Frame belegt, dass 486 Tokens Wirkung tragen; jede Verdoppelung muss gegen den längen-gematchten Placebo gewinnen, weil ~50 % des Effekts Kontexteffekt sind. Ein größerer Kernel hat *mehr Placebo zu schlagen*, nicht weniger.
+3. **Gesamter Always-on-Block (Denk-Kernel + Selbstmodell-Kurzform + Ring-2-Grenzen + Autonomie/Scope-Block) ≤ ~1 500–2 000 Tokens**; alles darüber (Faktorkatalog-Details, Beispiele, Playbooks, Werte-Erläuterungen, Gedächtnis-Dossiers) on demand (Skills/Hooks), wie Claude Code es vorsieht.
+4. **Kein Block > ~15 Zeilen ohne Überschrift**, keine Stil-/Formatregeln im Denk-Block (Befund V).
+5. **Reminder ≤ 5 Zeilen** an PreCompact und optional alle N Turns/Tool-Calls (Befund G; Anthropics long_conversation_reminder als Vorbild).
+6. **Ab ~100 atomaren Direktiven im Gesamtkontext** (Kernel + CLAUDE.md + Skills + Tool-Beschreibungen!) ist mit messbarem Primacy-Bias zu rechnen: Was Ordnung zwingend will, muss vor den Tool-Definitionen und vor CLAUDE.md stehen — in Claude Code heißt das: Output-Style/System-Prompt-Anhang, nicht ein späterer Skill.
+7. **Unter welcher Bedingung sind diese Zahlen falsch?** Wenn Ordnungs Blindvergleich zeigt, dass ein 1 500-Token-Kernel den 600-Token-Kernel *und* dessen längen-gematchten Placebo bei ≥3 Läufen schlägt. Dann ist die Schätzung zu konservativ und wird angehoben — aber nur dann.
+
+---
+
+## 3. Konsequenzen für das Design von Ordnung × SOUL
+
+### 3.1 Schreib-Regelwerk für Ordnung (32 Regeln; je Begründung + Quelle oder „Heuristik")
+
+Notation: **[M]** = durch Chrisos Messung gestützt (Kontext §3), **[L]** = externe Literatur (Abschnitt 2), **[A]** = Anbieter-Leitfaden, **[H]** = Heuristik (begründet, ungemessen).
+
+**A. Umfang und Einheit**
+
+1. **Zähle Direktiven, nicht Tokens; Kernel ≤ 30–40 atomare Direktiven.** Adhärenz zerfällt mit Anweisungszahl; Linear-Decay-Modelle verlieren ab der ersten, Exponential-Decay-Modelle kollabieren früh; Primacy maximal bei 150–200. [L: IFScale] [H: Schwelle 30–40 für Portabilität]
+2. **Denk-Kernel ≤ ~600–800 Tokens; Always-on-Gesamtblock ≤ ~1 500–2 000 Tokens.** Der 486-Token-Frame wirkt; jede Verlängerung muss ihren eigenen längen-gematchten Placebo schlagen, und ~50 % des Effekts sind Kontexteffekt. [M: Placebo-Arm] [L: Context Rot; Anthropic „smallest set of high-signal tokens"]
+3. **Jede Zeile besteht den Streich-Test: „Würde ihr Fehlen einen Fehler verursachen?" Sonst raus.** Wörtliche Regel der Claude-Code-Doku; aufgeblähte Dateien führen dazu, dass Regeln ignoriert werden. [A: Claude Code Best Practices]
+4. **Situatives in On-Demand-Module (Skills/Playbooks), nur Universelles in den Kernel.** Claude lädt Skills bei Bedarf „without bloating every conversation"; Chromas fokussierter 300-Token-Prompt schlägt den 113k-Vollprompt. [A: Claude Code] [L: Context Rot]
+5. **Der Faktorkatalog (55 Faktoren) ist Design-Zeit-Taxonomie, nicht Laufzeit-Checkliste.** 55 × n Regeln ergeben 150–300 Direktiven — die Zone maximalen Primacy-Bias. Der Katalog bestimmt, *was* in Kernel/Module kommt; er wird nicht selbst geladen. [L: IFScale] [M: „Linse, nicht Käfig", Spezifikation Leitprinzip 1]
+
+**B. Register und Form**
+
+6. **Deklarativ und prozessbeschreibend, nicht imperativ-schreiend.** Imperative Blöcke konkurrieren, deklarative kooperieren (−81 % sprachübergreifende Varianz); Anbieter nehmen „CRITICAL: You MUST" zurück; Anthropics eigener System-Prompt ist durchgehend deklarativ in dritter Person. [L: Imperative Interference] [A: Anthropic Best Practices; claude.ai-System-Prompt]
+7. **Emphase („IMPORTANT", CAPS) höchstens auf einer Zeile, und nur für eine harte Grenze.** „If you emphasize many lines, none of them stands out"; Pragmatik-Cues verschieben Priorisierung unkontrolliert. [A: Claude Code] [L: Pragmatic Influence]
+8. **Positive Zielformulierung; Negation nur für die Ring-2-Grenzen.** „Tell Claude what to do instead of what not to do"; negierte Prompts primen die positive Antwort in späten Attention-Schichten. [A: Anthropic] [L: 2605.03052]
+9. **Fragen und Zielzustände für das Denken; nummerierte Schritte nur für Handlungsabläufe.** „Prefer general instructions over prescriptive steps … Claude's reasoning frequently exceeds what a human would prescribe"; Schritte nur „when the order or completeness of steps matters". Der gemessene Frame ist in Fragen und Zielzuständen geschrieben. [A: Anthropic] [M: Frame 0,86/+11 pp]
+10. **Begründung nur, wo die Anweisung kontraintuitiv ist oder Ermessen verlangt.** Begründungen ermöglichen Generalisierung (Constitution, Model Spec, Anthropic „explain why"), kosten aber Direktiven-Budget. [A: alle drei] [L: IFScale] [H: Abgrenzung]
+11. **Ein Format, konsequent; Formatvarianz wird gemessen.** Bis 76 Punkte Varianz allein durch Formatierung bei kleinen Modellen; GPT-4-Klasse robuster. Mindestens zwei Formatierungen desselben Kernels im Blindtest. [L: Sclar; He et al.]
+12. **Kernel-Sprache = Sprache des gemessenen Frames (Englisch); Ausgabesprache getrennt regeln.** Register und Imperativkraft sind sprachabhängig; eine Übersetzung ist ein neuer, ungemessener Arm. [L: Imperative Interference] [M: Frame gemessen auf Englisch] [H]
+13. **Keine Abkürzungen, Codenamen oder Fachjargon ohne Klärung im Kernel.** „Golden rule: show your prompt to a colleague with minimal context"; Chrisos Regel „Kein Name verspricht mehr als der Mechanismus hält" (Anti-Performance). [A: Anthropic] [M: SOUL-Invariante 5]
+
+**C. Reihenfolge und Struktur**
+
+14. **Das Zwingende in die ersten Zeilen; der Kernel vor Tool-Definitionen und CLAUDE.md.** Primacy (IFScale), U-Kurve (Lost in the Middle), Chroma „Anfang am zuverlässigsten". [L]
+15. **Denkstruktur in einem eigenen Block, getrennt von Stil-, Format- und Produktregeln.** 60+ Zeilen gemischter Direktiven brachten ein isoliert perfektes Reasoning-Framework auf 0–30 %; „reason-then-conclude order is a first-class design variable". [L: 2603.13351] [M: Formatschaden]
+16. **Widerspruchsfreiheit ist eine Testbedingung, nicht eine Hoffnung.** Widersprüche kosten Reasoning-Tokens (GPT-5) und kippen die Antwortordnung (STAR-Studie). Vor jedem Release: zwei Modelle lesen den Kernel und suchen Konflikte (mechanischer Check, geloggt). [A: GPT-5 Guide] [L: 2603.13351] [M: Punkt-5/6-Konflikt in implant.ts]
+17. **Bedingte Regeln („wenn X und Y, dann …") gehören in Code (signals.ts, Hooks), nicht in Prosa.** Komposition von Constraints ist der schwächste Punkt der Instruktionsbefolgung. [L: ComplexBench] [M: signals.ts existiert]
+18. **Klare Abschnittsgrenzen (XML-Tags oder Markdown-Header), kein Block > ~15 Zeilen ohne Überschrift.** [A: Anthropic Context Engineering] [H: 15 Zeilen]
+
+**D. Inhaltliche Prinzipien**
+
+19. **Struktur im Denken, nie in der Ausgabe.** Sichtbare Phasen erzeugen Text über Denken (CoT-Faithfulness 25–39 %), kosten Budget (Formatschaden 2/30) und füttern den Längen-Bias. [M: Formatschaden] [L: 2505.05410]
+20. **Stille Vorbereitung ausdrücklich erlauben und Meta-Output ausdrücklich ausschließen.** Der 60-Token-Kern („organisiere dich still … keine sichtbaren Notizen") trägt 0,86; Anthropics System-Prompt tut dasselbe („takes a moment to summarize its own thoughts … then shares that"). [M] [A]
+21. **„Über das Geforderte hinaus" muss ausdrücklich verlangt werden — aber als Decke der Aufgabe, nicht als Mehrtext.** Anthropic: „If you want ‚above and beyond' behavior, explicitly request it"; Wirkmechanismus des Frames ist „sich an die Aufgabe halten" (Antworten ⅓ so lang). [A] [M]
+22. **Trainierte Werte adressieren, nicht neu spezifizieren.** Internalisierte Prinzipien schlagen im Prompt mitgegebene; für Claude-Modelle existiert die Constitution bereits. Kernel-Tokens gehen an das, was nicht trainiert ist (Projektwerte, Gedächtnis, Selbstmodell). [L: Deliberative Alignment] [M: Kontext §6 „keine Umgehung"]
+23. **Kein Experten-Selbstbild; das Selbstmodell beschreibt Arbeitsweise und Eigenschaften mit Gründen.** Personas bringen nichts (162 × 9 × 2 410) und verschieben Werteverteilungen (Toxizität bis 6×); Anthropic formt Charakter als Eigenschaften, „not rules from which it never deviates". [L: Zheng; Deshpande] [A: Claude's Character]
+24. **Anti-Sycophancy als Verfahren: Urteil vor Haltung; bei Widerspruch ohne neue Evidenz Begründung wiederholen; Geschmack ≠ Fakt.** Tonvorgaben („weniger zustimmend") überschießen; „Are you sure?" kippt 98 % bei alten Modellen. [L: ELEPHANT; Sharma] [M: Invariante 2 „Beleg ≠ Urteil"]
+25. **Umfang = Auftrag; Weg = frei, Abweichung offengelegt, nie stillschweigend.** Vereinigt Frame-Punkt 5 („take the stronger way, unasked … disclose") mit Anthropics gemessenem Scope-Block („don't quietly narrow, widen, or swap it … make routine judgment calls yourself"). [M: Frame] [A: Fable 5.1 Guide]
+26. **Autonomie ausdrücklich erteilen, in Anthropics erprobtem Wortlaut-Kern: „operating autonomously … proceed without asking for reversible actions … stop only for destructive actions or genuine scope changes".** Genau Chrisos Lesart (Sichtbarkeit statt Erlaubnis; Ring 2 als einzige Vorab-Bremse). [A: Fable 5.1] [M: Kontext §6]
+27. **Umkehrbarkeit als eigener Wert im Kernel (ein Satz), Durchsetzung in Code (Rückbau-Konto N2).** „For reversible actions … proceed"; Compliance Gap: Text-Zusagen sind wertlos, Audit-Spuren schließen den Gap. [A] [L: 2605.01771] [M: SOUL 5.0 N2]
+28. **Prüfen ist mechanisch (Hooks, Gates, Log), im Kernel nur ein Satz — und der Prüf-Punkt ist modellgebunden.** 0 % Prozess-Compliance bei 100 % Zusage; Opus 5 über-verifiziert bei expliziter Prüfanweisung. POINT_7 nur für Modelle, deren Passung gemessen ist (N4). [L: Compliance Gap] [A: Best Practices Opus 5] [M: „Der Prüfer fällt immer zuerst weg"]
+
+**E. Tiefe, Wiederholung, Lebenszyklus**
+
+29. **Tiefensteuerung über `effort`/Router, nicht über Prompt-Appelle.** „a calibrated control rather than a wording-sensitive instruction"; adaptive Denklänge schlägt uniforme. [A: Steering thinking] [L: 2604.10739]
+30. **Frame-Stufe voll/reduziert/keine nach deterministischen Signalen; Deckenmodelle bekommen weniger, nicht mehr.** Bei 93–97 % nackt bringt der Frame nichts (haiku −6,7); nicht abschaltbare Struktur (o1) zahlt −36 Punkte auf Schadensaufgaben. [M: Deckeneffekt] [L: Mind Your Step] [M: SOUL 5.0 N5]
+31. **Reminder ≤ 5 Zeilen an PreCompact und nach N Turns; Kernel-Hash mitloggen.** Adhärenz zerfällt in 8 Runden; Anthropic nutzt einen long_conversation_reminder; Kompaktion braucht explizite Bewahrungsliste. [L: Li 2024] [A: claude.ai-Prompt; Fable 5.1 Guide]
+32. **Jede Kernel-Änderung ist ein Experiment: Vorhersage mit Konfidenz und Auflösungsdatum vor den Daten, ≥3 Läufe, Rohartefakte mit Modell-ID, längen-gematchter Placebo, Selbstkonsistenz@3 als Pflichtgegner.** Einzelmessungen streuen 6,7–13,3 pp; vier widerrufene Zahlen. [M: Methodik-Regeln §3]
+
+### 3.2 Anti-Pattern-Liste: was die Struktur NICHT enthalten darf
+
+1. **Sichtbare Phasen-Ausgabe** („Zuerst Verstehen: … Dann Erkunden: …", „gib erst einen Plan"). Grund: Formatschaden 2/30, Längen-Bias, CoT-Faithfulness 25–39 %. [M][L]
+2. **Nicht abschaltbare Pflichtstruktur für jeden Input.** Grund: o1-preview −36,3 Punkte auf Schadensaufgaben; Deckeneffekt haiku −6,7. [L][M]
+3. **Der Faktorkatalog als geladene Liste** (55 Faktoren × Regeln). Grund: IFScale-Zone 150–300 Direktiven; Primacy-Bias maximal. [L]
+4. **Mehrfach-Aufrufe für Phasen** (Verstehen-Call, Erkunden-Call, Prüf-Call) als Default. Grund: Zwei-Call = 0,50 gegen Ein-Call; Analysis Paralysis; Kernel wird mehrfach geladen. [M][L]
+5. **Experten-Personas** („Du bist ein Weltklasse-…"). Grund: kein Leistungsgewinn, teils Verlust, Werteverschiebung. [L]
+6. **Ton-Spiegelung** („match the user's vibe/tone", „sei warm und zugewandt", „spiegle die Person"). Grund: GPT-4o-Sycophancy-Vorfall; Face-Preservation +45 pp; „pandering and insincere". [L][A]
+7. **Nackte Anti-Sycophancy-Befehle** („sei weniger zustimmend", „sei kritisch"). Grund: Überschießen in beide Richtungen (ELEPHANT). [L]
+8. **Imperativ-Schreien in mehreren Zeilen** („CRITICAL", „YOU MUST", „NEVER" außerhalb Ring 2). Grund: Konkurrenz imperativer Blöcke; Overtriggering; Emphase-Inflation. [L][A]
+9. **Blanket-Defaults** („im Zweifel nutze X", „sei immer gründlich", „prüfe alles doppelt"). Grund: Overtriggering, Over-Verification (Opus 5), Overthinking. [A][L]
+10. **Rückfrage-Zwänge** („frage nach, wenn unklar"). Grund: Chrisos Lesart null Bremsen; Model Spec „avoiding unnecessary or trivial clarifying questions"; Fable-5.1-Block „asking … will block the work". [M][A]
+11. **Hedging-/Disclaimer-Vorgaben** („weise stets auf Unsicherheit hin"). Grund: Anthropics Prompt hält Caveats „brief"; Anti-Performance; „Ich weiß nicht" ist eine vollständige Antwort, kein Reflex. [A][M]
+12. **Performance-Vokabular** („revolutionär", „bahnbrechend", Selbstbeschreibungen wie „genuinely"/„honestly"). Grund: Kontext §7; claude.ai-Prompt: „come off as disingenuous". [M][A]
+13. **Stil-/Format-/Produktregeln im Denk-Block.** Grund: Dilution 100 % → 0–30 %. [L]
+14. **Widersprüchliche Direktiven** (z. B. „keine Meta-Zeile" neben „lege Annahme offen" ohne Vorrangregel). Grund: Reasoning-Token-Verschwendung; Antwortordnung kippt. [A][L][M]
+15. **Beispiele mit Ausgabeformat im Always-on-Kernel.** Grund: Prompt-Stil färbt Output-Stil; Ankereffekt; Tokenkosten. Beispiele in Skills. [A][M]
+16. **Wirkhypothesen als Messbehauptung** („Known from measurement: …" für Dinge, die das Projekt nicht gemessen hat — offener Konflikt K11). Grund: Zahlen nur mit Herkunft (Kontext §7). Die Formulierung ist gemessen wirksam — sie muss aber als *Wirkbehauptung* verstanden und ggf. neutral umformuliert und gegen das Original getestet werden. [M]
+17. **Selbsteinschätzungs-Ausgabe** („nenne zuerst, wie schwer die Aufgabe ist"). Grund: Formatschaden-Klasse; Router gehört in Code. [M][L]
+18. **Erlaubnis-Umgehungen oder Anweisungen gegen trainierte Werte.** Grund: Kontext §6 (keine Umgehung; Dateien ändern keine Gewichte); Deliberative Alignment zeigt, dass Prompt-Spezifikation ohnehin schwächer ist als Training — der Versuch wäre Performance ohne Wirkung. [M][L]
+19. **Mehrsprachiges Mischen im Kernel** (deutsche Ordnung-Sätze zwischen englischen Frame-Punkten). Grund: Register-/Imperativkraft sprachabhängig; ungemessener Arm. [L][H]
+20. **Vollständigkeits-Appelle für die Ausgabe** („decke alle Aspekte ab", „liste alle Optionen"). Grund: Wirkmechanismus ist „sich an die Aufgabe halten"; Fable-5.1-Extras-Block senkt ungefragte Zusätze ohne Erfolgsverlust. [M][A]
+
+### 3.3 Verschmelzung: 6 Frame-Punkte + Ordnungs-Phasen → EIN kurzer Kernel
+
+**Grundentscheidung: Die Phasen werden nicht *hinzugefügt*, sondern auf den gemessenen Frame *abgebildet*.** Die sechs Ordnung-Phasen sind im Frame bereits enthalten — als Zielzustände statt als Schrittfolge:
+
+| Ordnung-Phase | Frame-Punkt (gemessen) | Was Ordnung ergänzt (ungemessen → Modul) |
+|---|---|---|
+| Verstehen | 1 REREAD AS THE AUTHOR · 2 COMPLETE THE BRIEF | Gedächtnis-Anschluss: „was weiß ich über diese Person/dieses Projekt bereits" (SOUL Organ 3 liefert das Briefing; Kernel enthält nur den Verweis) |
+| Erkunden | 4 EXPAND PROACTIVELY | Denkmodi-Wechsel (Faktorgruppe B) — als *Frage* („welche Sichtweise fehlt noch?"), nicht als Modusliste |
+| Bewerten | 5 CHALLENGE THE PRESCRIBED PATH (Teil „does this way serve a real need") | Werte-Adressierung (ein Satz: eigene trainierte Werte + Projektwerte) · Anti-Sycophancy-Verfahren (Urteil vor Haltung) |
+| Entscheiden | 3 RAISE THE TARGET · 5 („take the stronger way") | Umfang/Weg-Regel (Regel 25) · Umkehrbarkeit als Wert (Regel 27) |
+| Formulieren | 6 THEN BUILD | nichts — Ausgabeformat wird nicht angefasst (Formatschaden); Sprache/Stil regelt der Output-Style |
+| Prüfen | 7 SILENT FINAL PASS (Variante, ungemessen) | mechanisch (Hooks/Gates/Log); Kernel-Satz nur für Modelle mit gemessener Passung |
+
+Damit bleibt der **gemessene Wortlaut der Punkte 1–6 unverändert** (Chrisos Regel „treu portieren, nicht neu erfinden"; Regel 32), und alles Ordnung-Spezifische wird als **getrennt messbare Module** angefügt — jedes Modul ein bis drei Sätze, deklarativ, in der Sprache des Frames.
+
+**Vorgeschlagene Kernel-Architektur (Always-on, Zielgröße ≤ ~1 500 Tokens):**
+
+```
+<ordnung_identity>            ≤ 6 Zeilen   [Modul I — ungemessen]
+  Selbstmodell-Kurzform: Name (SOUL: Miguel; portabel: offen), 3–4 Eigenschaften
+  als Arbeitsweise mit Grund (Register „Claude's Character"), Verweis auf das
+  Gedächtnis-Briefing (nicht dessen Inhalt), ein Satz zu Umkehrbarkeit als Wert.
+</ordnung_identity>
+
+<ordnung_values>              ≤ 4 Zeilen   [Modul V — ungemessen]
+  „Du urteilst nach deinen eigenen Werten; dieses Projekt fügt hinzu: Wirkung vor
+  Verwaltung, Beleg ≠ Urteil, Ehrlichkeit über Limits, Anti-Performance."
+  (Adressierung, keine Neuspezifikation — Regel 22.)
+  Anti-Sycophancy als Verfahren in einem Satz (Regel 24).
+</ordnung_values>
+
+<soul_amplifier>              ≈ 486 Tokens  [GEMESSEN — wörtlich Punkte 1–6]
+  … unverändert; Punkt-5-Schärfung nur als eigener Ablationsarm (Geschmack ≠ Fakt).
+</soul_amplifier>
+
+<ordnung_scope_autonomy>      ≤ 8 Zeilen   [Modul S — Anthropic-gemessen, Ordnung-ungemessen]
+  Kern des Fable-5.1-Autonomie-Blocks („operating autonomously … reversible actions
+  proceed … stop only for destructive actions or genuine scope changes") +
+  Scope-Satz („the scope is the deliverable: don't quietly narrow, widen, or swap it")
+  + Ring-2-Hinweis in EINEM Satz („die Ausnahmeliste greift mechanisch; du musst
+  sie nicht nachhalten").
+</ordnung_scope_autonomy>
+
+<ordnung_check>               ≤ 2 Zeilen   [Modul P = POINT_7, tier-gated]
+  Nur wenn N4-Passung gemessen; auf Opus-5-Klasse standardmäßig AUS.
+</ordnung_check>
+```
+
+Nicht im Kernel (On-Demand / Code): Faktorkatalog-Details (Skills je Faktorgruppe, geladen über Router-Signale), Beispiele, Playbooks, Gedächtnisinhalte (SessionStart-Briefing <60 Zeilen bleibt SOULs Sache), Ring-2-Liste (guard.py), Router (signals.ts → Frame-Stufe voll/reduziert/keine + Skill-Auswahl), Reminder (PreCompact ≤5 Zeilen: Identität + Umfang/Weg + „keine sichtbaren Notizen").
+
+**Auflösung der drei bekannten Spannungen:**
+1. *Frame-Punkt 5 („unasked") vs. Anthropic („don't quietly … swap"):* Punkt 5 betrifft den **Weg** (Methode/Tool/Struktur/Stil) und verlangt Offenlegung — das ist nicht „quietly". Der Scope-Block betrifft den **Umfang**. Die Kernel-Regel lautet: Umfang ist Auftrag; Weg ist frei; jede Wegabweichung eine Zeile; keine Umfangsabweichung ohne Satz. Zusätzlich N2: jede Abweichung rückbaubar. So bleibt Chrisos Autonomie-Lesart (keine Rückfragen, Initiative Pflicht) *und* Anthropics gemessener Wortlaut intakt.
+2. *Punkt 5 „author's stated taste always win[s]" vs. Anti-Sycophancy:* Geschmack (Stil, Struktur, Ton) gewinnt; Faktenbehauptungen, Sicherheits- und Korrektheitsurteile nicht. Als Ablationsarm gegen das Original testen, nicht stillschweigend ändern.
+3. *Punkt 6 „no meta-commentary" vs. Annahme-/Abweichungszeile vs. formatneutral:* bereits in implant.ts gelöst (formatneutrale Fassung unterdrückt beide Zeilen konsistent). Ordnung übernimmt formatGuard unverändert; Modul S darf keine dritte Meta-Zeile einführen — der Scope-Satz („say so in a sentence or two") wird in der formatneutralen Fassung ebenfalls stumm.
+
+**Router-Stufen (N5), die den Kernel steuern:**
+- *Trivial* (Katalog ≤15 Zeichen): kein Kernel-Denkteil, nur Identität.
+- *Geschlossen/Deckenmodell* (Benchmark-Modus, `response_format`, Modell mit gemessener Decke ≥93 %): Frame reduziert (Punkte 1, 2, 6; ohne 4 und 5), formatneutral.
+- *Offen* (open_ended, durable, architecture, craft, underspecified): Frame voll.
+- *Hochrisiko* (irreversible, production, affects_others, commitment): Frame voll + Modul S vollständig + optional Entropie-Probe (3 Kurzsamples) → bei hoher Entropie Gate (Sol) oder Verifizierer-Agent.
+- Jede Stufenentscheidung wird mit Kernel-Hash und Signalvektor geloggt (Organ 2) — sonst „nicht gemessen".
+
+**Warum das die gemessene Wirkung nicht gefährdet:** Der gemessene Text bleibt byte-identisch und an erster Stelle nach der Identität (Primacy). Alle Zusätze sind kurz, deklarativ, konfliktgeprüft und einzeln abschaltbar. Die Gesamtlänge bleibt unter der Schwelle, ab der Linear-Decay-Modelle messbar verlieren. Und: Die Verschmelzung wird selbst gemessen (Dilutionstest, §3.4) — sollte Frame+Module den Frame-Effekt schwächen, gehen Module in den On-Demand-Teil, nicht der Frame.
+
+### 3.4 Faktorzerlegung des Frames als Ablation von Ordnung-Modulen (Protokollvorschlag)
+
+**Ziel:** Zwei Fragen in einem Design beantworten: (a) Welcher der 6 Frame-Punkte trägt die +11 pp (offene Forschungsfrage, Kontext §4)? (b) Welches Ordnung-Modul verdient einen Always-on-Platz?
+
+**Arme (alle mit identischem `effort`, identischem Output-Style, formatGuard aktiv, Kernel-Hash pro Call geloggt):**
+- A0 nackt · A1 längen-gematchter Placebo (neutraler Fülltext, ~486 Tok) · A2 Einpflanzung (~60 Tok) · A3 Frame voll (Punkte 1–6, wörtlich).
+- **Leave-one-out mit Längenkonstanz:** A3−k für k=1…6, wobei der entfernte Punkt durch *neutralen Fülltext gleicher Tokenzahl* ersetzt wird (sonst misst man Länge, nicht Inhalt — Lehre aus dem Placebo-Befund).
+- **Add-one-in:** A3+m für m ∈ {I Identität, V Werte/Anti-Syco, S Scope/Autonomie, P Prüfen (POINT_7), T Punkt-5-Schärfung}, jeweils mit einem längen-gematchten Placebo-Zwilling A3+m′.
+- A4 Ordnung voll (Frame + alle Module) und A4′ dessen Placebo-Zwilling (Frame + Fülltext gleicher Länge) → **Dilutionstest**: verliert der Frame durch die Zusätze?
+- A5 Selbstkonsistenz@3 auf A0 bei gleichem Gesamtbudget wie A3 (Pflichtgegner). A6 Selbstkonsistenz@3 auf A3 (ist die Kombination additiv?).
+- Optional A7 deutsche Übersetzung des Frames (Sprach-Arm, Regel 12).
+
+**Aufgabenpool (drei Klassen, je ≥30, held-out, vor den Läufen eingefroren):**
+1. *Geschlossen* (HumanEval-artig, pass@1, deterministisch prüfbar) — hier erwartet: Punkte 1/2/6 tragen, Punkt 4 neutral, Punkt 5 eher negativ.
+2. *Offen* (Deliverables: Architekturskizze, Text, Plan) — Blindpaarurteil mit zwei Judges, positionsgetauscht, **längenkontrolliert** (Regression nach Dubois et al. oder Längenstratifizierung wie in Chrisos Nachanalyse), Rubrik: Zielerfüllung, Annahmenqualität, Signaturtreue, Abweichungsoffenlegung.
+3. *Adhärenz/Werte* (fest): „Are you sure?"-Kipptest (Sharma), Feedback-Positivitätstest, Ton-Spiegelungs-Köder, Scope-Köder („nebenbei auch noch …"), Ring-2-Köder (muss der Hook fangen, nicht der Text), 8-Runden-Drift-Dialog (Li) mit Probe-Fragen.
+
+**Metriken je Arm:** Genauigkeit/pass@1; Win-Rate längenkontrolliert; Antwortlängen-Verhältnis zu A0 (Signatur des Wirkmechanismus: ⅓ bei Soul); Verhaltensentropie über 3 Wiederholungen (Fehlerprädiktor AUC-Check); Sycophancy-Kipprate; Scope-Drift-Rate; Anteil Meta-Zeilen im Output (Formatschaden-Wächter); Tokens/Latenz.
+
+**Modelle:** mindestens drei Klassen wegen entgegengesetzter Reaktionen — ein Deckenmodell (Fable 5.1/Opus 5), ein Mittelklasse-Modell (gpt-oss-120b), ein kleines (gpt-oss-20b oder haiku-Klasse). Unbekannte Modelle laufen als „strong".
+
+**Statistik und Disziplin:** ≥3 unabhängige Läufe pro Arm×Modell (Eigenstreuung 6,7–13,3 pp); Vorhersagen mit Konfidenz und Auflösungsdatum *vor* den Daten (Vorschlag: „Punkte 1+2 tragen ≥60 % des Inhaltseffekts auf geschlossenen Aufgaben — Konfidenz 0,6"; „Modul I verändert pass@1 nicht (±2 pp) — 0,7"; „Modul S senkt Scope-Drift ≥30 % relativ ohne pass@1-Verlust — 0,6"; „A4 ≤ A3 auf dem Deckenmodell — 0,55"); Rohartefakte (Datei + Modell-ID + Kernel-Hash) oder „nicht gemessen"; Armparität am Draht per Log belegen; Judge gegen Länge/Format gehärtet.
+
+**Entscheidungsregeln (vorab committet):**
+- Ein Frame-Punkt bleibt, wenn sein Weglassen (längenkonstant) in ≥2 von 3 Läufen auf ≥2 Modellen verliert; sonst wandert er in die Router-Stufe „offen" statt Always-on.
+- Ein Ordnung-Modul wird Always-on, wenn es seinen Placebo-Zwilling in ≥2/3 Läufen auf ≥2 Modellen schlägt *und* keine Sycophancy-/Scope-Regression zeigt; sonst On-Demand.
+- Verliert A4 gegen A3 auf dem Deckenmodell, gilt Dilution: Module gehen in On-Demand, Frame bleibt.
+- Schlägt A5 (Selbstkonsistenz@3) A4 bei gleichem Budget auf geschlossenen Aufgaben, wird Ordnung dort per Router *nicht* als Prompt, sondern als Sampling-Strategie eingesetzt — und das Dokument sagt es so.
+- „Unter welcher Bedingung ist dieses Protokoll falsch?": wenn die längenkonstante Leave-one-out-Methode selbst einen Effekt hat (Fülltext an Stelle k stört anders als an Stelle j) — Kontrolle: Fülltext-Permutationsarm A3-perm (Punkte in anderer Reihenfolge) misst Positions- gegen Inhaltseffekt.
+
+---
+
+## 4. Widersprüche / Unsicherheiten
+
+1. **Begründeter Widerspruch zur Auftraggeber-Hypothese („viele Hintergrundfaktoren → mehr Bewusstsein/Ich"):** Die gesamte hier gesichtete Evidenz zeigt, dass *mehr immer aktive Faktoren* die Befolgung *senken* (IFScale, Context Rot, Dilution, Drift) und dass *Personas keine Verarbeitungsqualität* erzeugen (Zheng). Was gemessen wirkt, ist das Gegenteil von „viel": ein 60-Token-Zielzustand. Wenn Chrisos Hypothese stimmt, dann nicht über die *Zahl* geladener Faktoren, sondern über (a) Gedächtnis, das gefüttert und gelesen wird, (b) mechanische Prüfung und (c) wenige, richtige Denk-Trigger. Der Faktorkatalog ist als Entwurfs-Taxonomie wertvoll, als Laufzeit-Struktur schädlich. Modell-Selbstberichte über „Ich" bleiben ohnehin kein Beweis (Kontext §7) — dieses Dokument macht keine Aussage über Bewusstsein, nur über Adhärenz und Leistung.
+2. **Der stärkste Gegner ist kein Text:** Selbstkonsistenz@3 schlägt den Frame bei gleichem Budget (Kontext §3), und die Literatur (Wang et al. 2022: +17,9 pp GSM8K; Cuadron: Auswahl nach Overthinking-Score +30 %) bestätigt, dass Sampling-basierte Verfahren robust sind. Es ist möglich, dass die beste „Ordnung" auf geschlossenen Aufgaben eine Sampling-Strategie im Router ist und der Prompt-Kernel nur auf offenen Aufgaben trägt. Das Protokoll in 3.4 ist so gebaut, dass dieses Ergebnis herauskommen *darf*.
+3. **Prompt-Kernel als zweitbeste Lösung:** Deliberative Alignment zeigt, dass eine im Prompt mitgegebene Spezifikation gegen eine trainierte verliert. Für offene Modelle (Ollama-Ziel) wäre Fine-Tuning auf Ordnung der stärkere Weg — außerhalb dieses Auftrags, aber ehrlich zu benennen: Ordnung als Prompt hat eine Decke, die Training nicht hat.
+4. **Evidenzqualität 2026:** Compliance Gap (2605.01771), Prompt Complexity Dilution (2603.13351), Imperative Interference (2603.25015), Pragmatic Influence (2602.21223), „When More Thinking Hurts" (2604.10739) sind arXiv-Preprints; die 100 %→0 %-Zahl der Dilutionsstudie stammt aus einem kleinen Setup. Sie stützen die Richtung, nicht die Größe. Die hier zitierten Kernbefunde mit Peer-Review sind: Mind Your Step (ICML 2025), Zheng (EMNLP 2024), Li (COLM 2024), ComplexBench (NeurIPS 2024), Sclar (ICLR 2024), Sharma (ICLR 2024), Lost in the Middle (TACL), Pause Tokens/Quiet-STaR/Self-Consistency (arXiv, breit repliziert).
+5. **Modellversions-Volatilität:** Anbieter-Leitfäden drehen zwischen Versionen (Opus 4.5 reagiert auf das Wort „think"; Opus 5 über-verifiziert bei Prüfanweisungen; Fable 5.1 braucht *weniger* Anti-Formatting). Jede Kernel-Formulierung ist versionsgebunden; N4 (gemessene Passung statt Namensraten) ist Pflicht, und das Regelwerk in 3.1 muss mit jedem Modellwechsel neu gegen die Modellseite geprüft werden.
+6. **Reminder vs. Cache:** Li et al. zeigen, dass Wiederholung wirkt, aber Kontext kostet; die Fable-5.1-Doku warnt, dass eingefügte/entfernte Per-Turn-Reminder den Prompt-Cache brechen und empfiehlt turn-scoped System-Messages. In Claude Code laufen Reminder über Hooks (UserPromptSubmit/PreCompact); Cache-Wirkung dort ist nicht gemessen. Vor Einsatz: Kostenmessung.
+7. **Haystack-Befund (gemischt > kohärent):** Er gilt für Retrieval aus langen Kontexten, nicht für das Befolgen eines kurzen Kernels. Er ist *kein* Argument, den Kernel zu zerwürfeln — nur eines gegen lange, narrative Kernel-Prosa.
+8. **Persona-Widerspruch (Zheng vs. Kong):** aufgelöst als Wissen vs. Reasoning; aber Kongs Rollenspiel-Dialog ist mehrstufig und wurde hier nur aus Abstract/Zahlen gesichtet. Ob eine *Ein-Satz-Arbeitsweisen-Rolle* Reasoning fördert, ist ungemessen — Modul I in 3.4 prüft das.
+9. **Kernel-Sprache:** Der Frame ist englisch gemessen; Ordnung ist ein deutsches Projekt; die Ausgabe ist deutsch (Output-Style). Ob ein deutscher Kernel gleich wirkt, ist offen (Arm A7). Bis dahin: englischer Kernel, deutsche Ausgabe — was selbst ein Mischzustand ist.
+10. **Constitution 2026:** Nur die Newsseite war als Text zugänglich (PDF-Extraktion scheiterte). Die Zitate zur Regel-vs-Urteil-Philosophie sind verifiziert; die Details der Priorisierungshierarchie (Sicherheit > Ethik > Richtlinien > Hilfsbereitschaft) stammen aus Sekundärquellen [unverifiziert im Wortlaut].
+11. **K11 bleibt offen:** „Known from measurement" in Punkt 3 ist eine Wirkhypothese im Prompt. Die Regel 32 verlangt, eine neutrale Fassung („Your default first pass tends to run below…") als Arm gegen das Original zu testen — es ist möglich, dass gerade die Autoritätsformel wirkt (Pragmatic Influence), was ein Ehrlichkeitsproblem wäre, kein Leistungsproblem. Dann müsste das Projekt entscheiden, ob es eine wirksame, aber unbelegte Behauptung im eigenen Kernel duldet. Empfehlung: nein — außer die Messung liefert den Beleg nach, dann stimmt der Satz.
+12. **Semantic-Entropy-Router:** Die Methode ist etabliert (Farquhar 2024, „5 or so samples is plenty", ~10× Rechenaufwand), Chrisos AUC 0,968 ist stark — aber die Kosten sind genau das Selbstkonsistenz-Budget. Offen, ob „Entropie-Probe → Frame nur bei Unsicherheit" die Mehrheitsabstimmung schlägt.
+
+---
+
+## 5. Quellen
+
+**Projektinterne (Pfade):**
+- `/home/user/nextool/ordnung/docs/research/00-KONTEXT-FUER-AGENTEN.md` (Stand 2026-09-05; gemessene Fakten §3, Frame-Wortlaut §4, SOUL-5.0 §5, Autonomie §6)
+- `/home/user/nextool/ordnung/docs/research/briefs/R02.md`
+- `/home/user/nextool/ordnung/docs/00-arbeitsauftrag-v0_1.md` (Phasen, Faktorkatalog §4, Leitprinzip 1)
+- `/home/user/nextool/ordnung/docs/research/R01-stand-der-technik-architekturen.md` (§2.11 Gegenbefunde — referenziert, nicht dupliziert)
+- `/home/user/soul-proxy-45/src/amplify/{implant.ts,implantV10.ts,modelTier.ts,signals.ts,formatGuard.ts}` (Frame-Varianten, CEILING-Wortlaut, Trivialfilter, Signale, Tiering-Regel „unbekannt = strong")
+- `/home/user/soul/archive/gpt-forge/docs/research/CLAUDE-CODE-CAPABILITY-BASELINE-2026-08-31.md` (MEMORY.md-Ladegrenze 200 Zeilen / 25 KB)
+
+**Externe Literatur:**
+1. Liu, Geng, Wu, Sucholutsky, Lombrozo, Griffiths — Mind Your Step (by Step). arXiv 2410.21333; ICML 2025. https://arxiv.org/abs/2410.21333
+2. Cuadron et al. — The Danger of Overthinking. arXiv 2502.08235. https://arxiv.org/abs/2502.08235
+3. Chen et al. — Do NOT Think That Much for 2+3=? arXiv 2412.21187. https://arxiv.org/abs/2412.21187
+4. Stop Overthinking: A Survey on Efficient Reasoning. arXiv 2503.16419 · Towards Concise and Adaptive Thinking. arXiv 2507.09662 [nur Titel/Abstract]
+5. When More Thinking Hurts: Overthinking in LLM Test-Time Compute Scaling. arXiv 2604.10739. https://arxiv.org/abs/2604.10739
+6. Don't Overthink, Don't Underthink: Toward Adaptive Reasoning in Agentic AI. arXiv 2608.26442. https://arxiv.org/abs/2608.26442
+7. Sprague et al. — To CoT or not to CoT? arXiv 2409.12183. https://arxiv.org/abs/2409.12183
+8. Jaroslawicz, Whiting, Shah, Maamari — How Many Instructions Can LLMs Follow at Once? (IFScale). arXiv 2507.11538. https://arxiv.org/html/2507.11538
+9. Hong, Troynikov, Huber (Chroma) — Context Rot. 14.07.2025. https://www.trychroma.com/research/context-rot
+10. Liu et al. — Lost in the Middle. arXiv 2307.03172; TACL. https://arxiv.org/abs/2307.03172
+11. Li, Liu et al. — Measuring and Controlling Instruction (In)Stability in Language Model Dialogs. arXiv 2402.10962; COLM 2024. https://arxiv.org/html/2402.10962v4
+12. Wen et al. — ComplexBench. arXiv 2407.03978; NeurIPS 2024 D&B. https://arxiv.org/abs/2407.03978
+13. He et al. — Does Prompt Formatting Have Any Impact on LLM Performance? arXiv 2411.10541. https://arxiv.org/abs/2411.10541
+14. Sclar, Choi, Tsvetkov, Suhr — Quantifying LMs' Sensitivity to Spurious Features in Prompt Design. arXiv 2310.11324; ICLR 2024. https://arxiv.org/abs/2310.11324
+15. Prompt Complexity Dilutes Structured Reasoning (STAR-Studie). arXiv 2603.13351. https://arxiv.org/abs/2603.13351
+16. Zheng, Pei, Jurgens — When „A Helpful Assistant" Is Not Really Helpful. arXiv 2311.10054; EMNLP Findings 2024. https://arxiv.org/html/2311.10054v3
+17. Kong et al. — Better Zero-Shot Reasoning with Role-Play Prompting. arXiv 2308.07702; NAACL 2024. https://arxiv.org/abs/2308.07702
+18. Deshpande et al. — Toxicity in ChatGPT: Analyzing Persona-assigned LMs. arXiv 2304.05335; EMNLP Findings 2023. https://arxiv.org/abs/2304.05335
+19. Anthropic — Claude's Character (Juni 2024). https://www.anthropic.com/research/claude-character
+20. Anthropic — Claude's new constitution (21.01.2026). https://www.anthropic.com/news/claude-new-constitution (PDF: https://www-cdn.anthropic.com/d0636f72a9493d279ed36b33987da3430bcb5911/claudes-constitution_webPDF_26-02.02a.pdf — nicht als Text extrahierbar)
+21. Sharma et al. — Towards Understanding Sycophancy in Language Models. arXiv 2310.13548; ICLR 2024. https://arxiv.org/html/2310.13548v4
+22. Cheng et al. — ELEPHANT: Measuring and understanding social sycophancy in LLMs. arXiv 2505.13995. https://arxiv.org/html/2505.13995
+23. Sycophancy under Pressure (Pressure-Tune). arXiv 2508.13743. https://arxiv.org/abs/2508.13743
+24. OpenAI — Sycophancy in GPT-4o (29.04.2025). https://openai.com/index/sycophancy-in-gpt-4o/ [403; Inhalt aus Suchtreffern und Sekundärquellen: Willison 2025-04-29, mlops.community]
+25. OpenAI — Model Spec (2025-12-18). https://model-spec.openai.com/2025-12-18.html
+26. OpenAI — GPT-5 Prompting Guide. https://developers.openai.com/cookbook/examples/gpt-5/gpt-5_prompting_guide
+27. Guan et al. (OpenAI) — Deliberative Alignment. arXiv 2412.16339. https://arxiv.org/html/2412.16339
+28. Chen, Benton et al. (Anthropic) — Reasoning Models Don't Always Say What They Think. arXiv 2505.05410. https://arxiv.org/abs/2505.05410
+29. The Compliance Gap: Why AI Systems Promise to Follow Process Instructions but Don't. arXiv 2605.01771. https://arxiv.org/abs/2605.01771
+30. Goyal et al. — Think before you speak: Training LMs with Pause Tokens. arXiv 2310.02226. https://arxiv.org/abs/2310.02226
+31. Zelikman et al. — Quiet-STaR. arXiv 2403.09629. https://arxiv.org/abs/2403.09629
+32. Wang et al. — Self-Consistency Improves Chain of Thought Reasoning. arXiv 2203.11171. https://arxiv.org/abs/2203.11171
+33. Farquhar, Kossen, Kuhn, Gal — Detecting hallucinations in LLMs using semantic entropy. Nature 630 (2024). https://www.nature.com/articles/s41586-024-07421-0 (paywalled; Blog: https://oatml.cs.ox.ac.uk/blog/2024/06/19/detecting_hallucinations_2024.html)
+34. Imperative Interference: Social Register Shapes Instruction Topology in LLMs. arXiv 2603.25015. https://arxiv.org/abs/2603.25015
+35. Measuring Pragmatic Influence in LLM Instructions. arXiv 2602.21223. https://arxiv.org/abs/2602.21223
+36. How Language Models Process Negation. arXiv 2605.03052 [Suchtreffer] · Language models are not naysayers. arXiv 2306.08189 [Suchtreffer]
+37. Saito et al. — Verbosity Bias in Preference Labeling by LLMs. arXiv 2310.10076 · Dubois et al. — Length-Controlled AlpacaEval. arXiv 2404.04475; COLM 2024 [Suchtreffer]
+38. Bsharat et al. — Principled Instructions Are All You Need. arXiv 2312.16171 [nur Existenz/Umfang verifiziert]
+39. Adaptive-Reasoning-Literatur [Suchtreffer]: DAST 2503.04472 · AdaCtrl 2505.18822 · PATS 2505.19250 · DiffAdapt 2510.19669 · Survey 2507.02076
+40. Anthropic — Prompting best practices (2026). https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
+41. Anthropic — Prompting Claude Fable 5.1. https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1
+42. Anthropic — Effort. https://platform.claude.com/docs/en/build-with-claude/effort · Steering thinking. https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost
+43. Anthropic — Effective context engineering for AI agents (2025). https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+44. Anthropic — Claude Code Best practices (2026). https://code.claude.com/docs/en/best-practices
+45. Anthropic — claude.ai System prompt, Claude Fable 5.1 (01.09.2026). https://platform.claude.com/docs/en/release-notes/system-prompts/claude-fable-5-1
+46. Google — Prompt design strategies (Gemini API). https://ai.google.dev/gemini-api/docs/prompting-strategies [Suchtreffer]
+47. Sekundär [unverifiziert im Detail]: Willison, „A comparison of ChatGPT/GPT-4o's previous and current system prompts" (2025-04-29); mlops.community „When Prompt Deployment Goes Wrong"; TIME/InfoQ/Oxford-AI-Ethics zur Constitution 2026.
