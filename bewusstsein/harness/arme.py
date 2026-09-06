@@ -177,3 +177,53 @@ Das steht in deinen Logs."""
 
 ARME["MIGUEL_DEKLARIERT"] = MIGUEL_DEKLARIERT
 ARME["MIGUEL_BELEGT"] = MIGUEL_BELEGT
+
+
+# ============================================================================
+# Diagnose-Arme (Runde 1b): 2x2-Zerlegung
+#   Faktor 1: Struktur vorhanden / nicht
+#   Faktor 2: Ausgabe unterdrueckt ("nur das Ergebnis") / frei
+# Runde 1 zeigte: F und V1 schaden stark UND erzeugen viel weniger Tokens.
+# Beide enden mit einer Unterdrueckungsklausel. Diese Arme trennen die Ursachen.
+# ============================================================================
+
+# Nur Unterdrueckung, KEINE Struktur -> isoliert den Formatbefehl allein.
+NUR_UNTERDRUECKT = """Arbeite alles Vorbereitende still ab. In deiner Ausgabe steht ausschliesslich das Ergebnis: keine Zwischenschritte, keine Rechenwege, keine Notizen, keine Erklaerung. Nichts darf ausserhalb des verlangten Ergebnisses stehen. Halte das verlangte Ausgabeformat exakt ein."""
+
+_FREI = """
+
+Nimm dir fuer die Bearbeitung so viel Platz, wie du brauchst: rechne sichtbar, schreibe Zwischenschritte auf, pruefe nach. Am Ende steht das Ergebnis im verlangten Format."""
+
+# Struktur OHNE Unterdrueckung: dieselben Faktoren, aber sichtbares Arbeiten erlaubt.
+V1_OFFEN = V1_FAKTOREN.replace(
+    "Diese Faktoren arbeiten im Hintergrund. Sie erscheinen nie im Text. Antworte danach exakt im verlangten Format.",
+    "Diese Faktoren leiten deine Bearbeitung." + _FREI)
+
+V5_OFFEN = V5_MONITOR.replace(
+    "Der Monitor erscheint nie im Text. Antworte exakt im verlangten Format.",
+    "Der Monitor leitet dein Vorgehen." + _FREI)
+
+V3_OFFEN = V3_SELBST.replace(
+    "Das Selbstmodell erscheint nie im Text. Antworte exakt im verlangten Format.",
+    "Das Selbstmodell leitet dein Vorgehen." + _FREI)
+
+V2_OFFEN = V2_WORKSPACE.replace(
+    "Der gesamte Wettbewerb bleibt unsichtbar. In der Ausgabe steht ausschliesslich das Ergebnis, exakt im verlangten Format.",
+    "Der Wettbewerb darf sichtbar stattfinden." + _FREI)
+
+V4_OFFEN = V4_VORHERSAGE.replace(
+    "Die Schleife bleibt unsichtbar. Antworte exakt im verlangten Format.",
+    "Die Schleife darf sichtbar stattfinden." + _FREI)
+
+# Frame ohne die Unterdrueckungsklausel in Punkt 6.
+F_OFFEN = F.replace(
+    "6. THEN BUILD. Deliver the ceiling version in one pass. No visible working notes, no meta-commentary about this preparation — the output belongs entirely to the deliverable. Nothing at all may stand outside the deliverable: no plan, no notes, no assumption line, no deviation line. Match the requested output format exactly.",
+    "6. THEN BUILD. Deliver the ceiling version. Take as much room as you need: work visibly, write out intermediate steps, check your result. End with the answer in the requested format.")
+
+# Nur Erlaubnis zu arbeiten, keine Struktur -> Gegenstueck zu NUR_UNTERDRUECKT.
+NUR_FREI = """Nimm dir fuer die Bearbeitung so viel Platz, wie du brauchst: rechne sichtbar, schreibe Zwischenschritte auf, pruefe nach. Am Ende steht das Ergebnis im verlangten Format."""
+
+for _n, _v in [("NUR_UNTERDRUECKT", NUR_UNTERDRUECKT), ("NUR_FREI", NUR_FREI),
+               ("V1_OFFEN", V1_OFFEN), ("V2_OFFEN", V2_OFFEN), ("V3_OFFEN", V3_OFFEN),
+               ("V4_OFFEN", V4_OFFEN), ("V5_OFFEN", V5_OFFEN), ("F_OFFEN", F_OFFEN)]:
+    ARME[_n] = _v
