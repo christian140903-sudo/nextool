@@ -2,7 +2,7 @@
 
 *Recherche-Front R17, Projekt Ordnung × SOUL (Produkt Soul 10.0.0). Stand 2026-09-06. Autor: Recherche-Agent (Claude Fable 5.1). Auftrag: `briefs/R17.md`. Kontext: `00-KONTEXT-FUER-AGENTEN.md` §10–13.*
 
-*Status: IN ARBEIT — Abschnitte werden nach Fertigstellung angehängt. Quellenregel: nur Zitiertes, das in einem Tool-Ergebnis gesehen wurde; Erinnerungswissen als [unverifiziert].*
+*Status: FERTIG (2026-09-06). Umfang ≈ 7.800 Wörter Bericht + 10 Dossier-Skelette (≈ 6.900 Wörter) in `wissen/`. Quellenregel: nur Zitiertes, das in einem Tool-Ergebnis gesehen wurde; Erinnerungswissen als [unverifiziert].*
 
 ## 0. Gliederung
 
@@ -20,7 +20,7 @@
 
 ---
 
-## 1. Kernaussagen (mit Quellen) — Entwurf, wird am Ende aktualisiert
+## 1. Kernaussagen (mit Quellen)
 
 1. **SOULs Wissensorgan ist Gold im Inhalt und Willensakt in der Mechanik.** Die fünf Dossiers (`/home/user/soul/knowledge/`) und fünf Playbooks tragen belegte Mechanismen (Kill-Check, 12 Anti-Patterns, Messregeln), aber `INDEX.md` sagt „Lies bei Aufgabenstart, was die Aufgabe braucht" — es gibt keinen Trigger, keinen Hook, keine Aufgabenklassifikation, kein Verfallsdatum, keine Herkunftsstufen je Aussage (R14 §Organ 4 bestätigt: „Anweisung, kein Mechanismus"). Das Dossier `forschung-2026-09.md` beweist mit seiner eigenen KORREKTUR-Sektion, dass Wissen ohne Verfall veraltet. Konsequenz: Soul 10 baut das Wissensorgan als **geladenes, gemessenes, verfallendes System**, nicht als Ordner mit Leseempfehlung.
 
@@ -310,3 +310,91 @@ Zehn Dossier-Skelette nach dem Schema aus §2.3, je 300–900 Wörter, mit Quell
 | — | [INDEX.md](wissen/INDEX.md) | generiert | public | — |
 
 Die Skelette sind als Einzeldateien (`<name>.md`) angelegt, nicht als Ordner — der Ordner-Schnitt (`quellen.jsonl`, `proben/`, `SUPERSEDED/`) entsteht beim Bau (AP5); die Frontmatter-Felder sind bereits vollständig, damit der Linter aus §2.5 sie ab Tag 1 prüfen kann. Nicht angelegt (bewusst, Kill-Check): Schreiben & Kommunikation und Design & Produkt — beides liegt zu großen Teilen im Kernel (Anti-Performance, Formatregel) und in D6/D4 der Wissenskarte; ein eigenes Dossier entsteht erst, wenn der Lückenzähler es belegt.
+
+---
+
+## 3. Konsequenzen für das Design von Ordnung × SOUL
+
+Alle Punkte als Bauvorlage formuliert; jede Zeile ist eine Hypothese („so gebaut, dass …") bis zur Messung (Kontext §13.4).
+
+### 3.1 Struktur des Wissensorgans (Säule 3, Organ 4 neu)
+
+1. **Verzeichnis `wissen/` mit drei Schichten und zwei Sichtbarkeiten.** `handwerk/` (universell, public, H1/H2), `atlas/` (R15-Daten, public außer Kontingentstände, H3), `profil/` (Nutzer/Projekt, private, aus Preflight gespeist). Der Build für „Miguel für alle" kompiliert nur `public`; der Linter blockiert `private`-Verweise aus `public`-Dossiers.
+2. **Dossier = Ordner nach Agent-Skills-Schnitt** (§2.3): `DOSSIER.md` (Frontmatter + Kurzform ≤ 160 Tokens + Langform ≤ 5.000), `quellen.jsonl`, `regeln.md` (englische Textbausteine für Kernel/Übergabe-Verträge), `proben/`, `SUPERSEDED/`. Derselbe Ordner wird als Claude-Code-Skill, als `AGENTS.md`-Import und als Inline-Kurzform im portablen Kern verwendet.
+3. **Index wird generiert, nie geschrieben.** `wissen/INDEX.md` entsteht aus den Frontmatters (Single Source of Truth); L0-Kosten ≤ 500 Tokens für 12 Dossiers; abgelaufene Dossiers erscheinen mit ⚠ und werden nicht in L1 gehoben.
+4. **Erstbestand:** die zehn Skelette in `docs/research/wissen/` werden 1:1 nach `soul/wissen/` übernommen und beim Bau in den Ordner-Schnitt gebracht; die Frontmatters sind bereits linter-fähig.
+
+### 3.2 Ladeprotokoll als Mechanismus (kein Willensakt)
+
+5. **UserPromptSubmit-Hook `wissen_router.py`** (< 200 ms, ohne Netz): Signale (R10-`signals.ts`-Erweiterung + 11 Domänensignale) → Index-Match → Verfallsprüfung → ≤ 3 Zeilen additionalContext mit L1-Kurzformen (max. 3) und L2-Angebot (max. 2) → JSONL-Log `{ts, signale, kandidaten, geladen_stufe, versionen}` in die Wache. **Ohne Log-Zeile hat kein Laden stattgefunden.**
+6. **Kernel-Regel für die Nachwahl** (englisch, ≤ 40 Wörter): *After rereading the request as the author and completing the brief, check the knowledge index for a domain the hook did not flag; load at most one short form. Never load more than two long forms per task.*
+7. **Tiefenkopplung an R10-Stufen:** trivial → L0; Standard → L1; durable/irreversible/architecture → L1+L2+L3 für entscheidungsrelevante H3-Zahlen; Preflight → Atlas L2 + Proben; Ebenen 3–6 → nur `regeln.md`-Bausteine im Übergabe-Vertrag.
+8. **Subagenten-Preload:** Agent-Frontmatter `skills:` (R14 nennt es als ungenutzten nativen Mechanismus) lädt für Verifizierer `evaluation-ehrlichkeit`, für Recherche-Agenten `recherche-quellenpflicht` + `sicherheit-autonome-agenten` — statt es ihnen im Prompt zu erzählen.
+9. **Lückenzähler:** Signal ohne Index-Treffer → `luecke`-Ereignis; ≥ 3 in 7 Tagen → Dossier-Kandidat mit Auslöser-Description zuerst.
+
+### 3.3 Pflege als Schedule + Linter + Konto
+
+10. **Linter `soul wissen lint`** mit den zehn Regeln aus §2.5 (Frontmatter, Zahl ohne Stufe/@q/Datum, kein [U] in Kurzform, Budgets, Duplikatzahl, Verfall, Quellen-IDs, Widersprüche, verbotene Wörter, Sichtbarkeitsleck) — läuft täglich und als PreToolUse-Guard vor jedem Schreibzugriff auf `wissen/`; Schreibzugriff ohne `log.jsonl`-Eintrag wird blockiert (Algorithmus schlägt Willensakt).
+11. **Routinen:** täglich Lint + Verfallsvorschau (deterministisch, $0); wöchentlich H3-Prüfwelle in frischer Session ohne Netz-Schreibrecht auf Dossiers (≤ 10 Fetches, Batch + 1-h-Cache); monatlich Nutzungskonto + Kill-Check + Placebo-Stichprobe (10 Aufgaben × 2 Arme × 3 Läufe, Batch am Fensterende); bei Projekt-Ende Ernte-Schritt im `uebergabe`-Playbook; bei CLI-/Modellwechsel (SessionStart vergleicht Version/Modell-ID mit `profile.json`) H2-Aussagen des Werkzeugketten-Dossiers auf „zu prüfen".
+12. **Kandidaten-Quarantäne:** `wissen/_candidates/` mit `trust: untrusted|document|user|measured`; untrusted wird nur in einer Session ohne Netz und ohne Secrets promoted (Lethal Trifecta gebrochen). Das gilt auch für Legacy-Mining aus fremden Repos.
+13. **Supersession und Rückbau:** `soul wissen promote <kandidat>` erzeugt neue Version, verschiebt die alte, schreibt `log.jsonl` mit Begründung und `rollback`-Befehl; RETRACTED-Versionen sind nie wieder promotbar (N2).
+14. **Nutzungskonto als Produktmerkmal:** `geladen` aus dem Hook-Log; `gewirkt` aus (a) deterministisch geparsten `used: wissen/<name>#regel-n`-Referenzen in Abweichungszeile/Übergabe-Vertrag, (b) Prüfer-Frage „hat eine Dossier-Regel den Fehler verhindert/verursacht?", (c) monatlicher Blind-Stichprobe. `gewirkt/geladen < 0,1` über 60 Tage → L0-only; 180 Tage ohne Nutzung → `SUPERSEDED/` mit Grund (negatives Wissen).
+
+### 3.4 Schnittstellen zu den anderen Säulen und Fronten
+
+15. **Zum Gedächtnis (Säule 1):** Wissen und Gedächtnis bleiben getrennte Speicher mit gleicher Herkunfts-/Vertrauens-/Verfallssemantik; die 3–5 tragendsten Aussagen jedes promoteten Dossiers werden Gedächtnis-Kandidaten (`muster`/`fakt`, Quelle `mining`, Vertrauen 0,4) mit `ref: wissen/<name>@<version>`; umgekehrt werden Gedächtnis-Muster, die ≥ 3× über Projekte hinweg bestätigt sind, Dossier-Kandidaten (Konsolidierung/„Schlaf").
+16. **Zum Kernel (Säule 2):** Der Kernel trägt nur (a) die Nachwahl-Regel (6), (b) die Haltung „bester KI-Nutzer" als eine Zeile, (c) im portablen Modus Index + Kurzformen inline (≈ 1.000 Tokens, gegen Placebo zu messen — R10 §2.9.5). Kein Dossier-Inhalt im Kernel.
+17. **Zum Atlas (R15):** `atlas/` ist die Schicht mit dem kürzesten Verfall; R15 §3.1 (Datenstruktur) und §3.5 (Pflege) werden als `atlas/`-Dossiers mit H3-Default übernommen; `profile.json` ist die `profil/`-Schicht.
+18. **Zur Knappheit (R16):** `kontingent-kosten` ist die Dossier-Form von R16 §3.1; die Scarcity-Textbausteine leben in dessen `regeln.md` und werden Ebenen 3–6 im Vertrag mitgegeben.
+19. **Zur Evaluation (R08/Säule „Evaluation als Produktmerkmal"):** Vorregistrierte Falsifikationsbedingung des Wissensorgans (im Dossier `wissensorgan-selbstpflege`): Zeigt die monatliche Placebo-Stichprobe über 3 Monate keine Wirkung geladener Kurzformen, ist das Handwerks-Wissensorgan Verwaltung — dann bleibt nur `atlas/` (Fakten, die kein Modell wissen kann). Auflösung 2026-12-06.
+
+### 3.5 Onboarding und Consent by Design
+
+20. Der Preflight (R15 §3.3) füllt `profil/` und markiert im Index, welche Atlas-Dossiers für diesen Nutzer relevant sind (kein lokales Modell → `lokale-ki-einrichten` bleibt L0-only). Die einmalige Zustimmung (Kontext §11b) umfasst ausdrücklich: „Soul darf Dossiers anlegen, ändern, verwerfen und dafür Quellen abrufen — sichtbar im Log, rückbaubar per Befehl." Ring-2-Fragen aus Dossiers (Abos, Konten, Förderanträge) werden gebündelt gestellt, mit Optionen und „was passiert ohne".
+
+---
+
+## 4. Widersprüche / Unsicherheiten
+
+1. **Gegen den Brief:** „SOUL hat dafür bereits knowledge/ und playbooks/, geladen bei Aufgabenstart" — das Laden ist eine Anweisung in einem Playbook, das selbst nur auf Anweisung gelesen wird; nach SOULs eigener Regel ist das ein toter Mechanismus (§2.1). Der Befund von R14 (Organ 4: „Anweisung, kein Mechanismus") wird hier bestätigt und verschärft.
+2. **Gegen Chrisos These §11a („das Modell weiß mit der richtigen Anforderung mehr als jeder Mensch"):** Für Handwerkswissen (H1) plausibel, für Atlas-Wissen (H3) falsch — Modellwissen hat Stichtage; in dieser Front nannte die aws-Programmseite keine Beträge, die FAQ schon; Modellnamen/Preise ändern sich monatlich. Das Wissensorgan muss deshalb genau dort am dichtesten sein, wo das Modell am wenigsten weiß (Atlas), und dort am dünnsten, wo es viel weiß (Handwerk) — die Wirkungsmessung wird zeigen, ob Handwerks-Dossiers überhaupt tragen (Falsifikationsbedingung 3.4/19).
+3. **Unsicherheit Wirkung vs. Placebo:** R10/R16 und Chrisos HumanEval zeigen, dass etwa die Hälfte eines Prompt-Effekts Kontexteffekt ist. Geladene Kurzformen (≈ 500 Tokens) könnten denselben Kontexteffekt erzeugen wie Fülltext. Die monatliche Placebo-Stichprobe ist deshalb nicht optional.
+4. **Karpathy-Gist nicht direkt gelesen** (403); Wortlaut aus Sekundärquellen (Hermes-Doku, Blogs). Die Struktur (raw/wiki/schema, lint, log) ist konsistent über drei Sekundärquellen, der Gist-Wortlaut bleibt [U].
+5. **Sekundärzahlen:** Quantisierungs-Perplexitäten (arXiv 2601.14277 Tabelle nicht abgerufen), Zitat-Halluzinationsraten 14–95 % und 1:458 (Primärpapiere nicht abgerufen), FlexKapG-Details (WKO-Seite nicht abgerufen), Vercel/Netlify/Supabase (R15 Sekundär). Alle sind im Schema als `B-Sekundär` markiert und stehen auf der ersten H3-Prüfliste.
+6. **Skill-Listing-Budget vs. 10 Dossiers:** R10 §2.9.2 nennt ≤ 6 modell-aufrufbare Skills auf 200k-Modellen. Zehn Dossiers als Skills sprengen das. Lösung im Design: Dossiers sind *nicht* modell-aufrufbare Skills, sondern werden vom Hook gereicht (L1) und per Dateipfad geladen (L2); nur 2–3 Bündel-Skills (z. B. `wissen-handwerk`, `wissen-atlas`) bleiben im Listing. Das ist zu messen (Trefferquote Hook vs. Skill-Router).
+7. **Wer misst „gewirkt"?** Die Regel-Referenz (`used: …`) verlangt vom Modell eine Selbstauskunft — dieselbe Klasse von Beleg, die Chriso für Bewusstsein ablehnt. Sie ist deshalb nur *ein* Signal von drei; die Blind-Stichprobe ist das tragende.
+8. **Zwei Domänen bewusst ohne Dossier** (Schreiben/Kommunikation, Design/Produkt): Kill-Check ohne Lückenbeleg. Wenn der Lückenzähler sie einfordert, entstehen sie; bis dahin ist der Kernel (Anti-Performance, Formatregel) zuständig. Mögliche Fehleinschätzung.
+9. **Kosten der Pflege** sind Schätzungen (§2.5), keine Messung. Die erste monatliche Auswertung liefert die Zahl.
+10. **Datum-Inkonsistenz in Quellen:** Die MCP-Security-Seite ist unter dem Pfad `2025-06-18` erreichbar, verweist aber intern auf Spec `2025-11-25`; im Dossier so vermerkt.
+
+---
+
+## 5. Quellen
+
+**Web (alle Abruf 2026-09-06):**
+- https://code.claude.com/docs/en/memory — CLAUDE.md-Hierarchie, Imports, Rules, Auto-Memory
+- https://code.claude.com/docs/en/security — Prompt-Injection-Schutz, Sandbox, MCP-Security, Cloud
+- https://agentskills.io/specification — Agent-Skills-Schema, Progressive Disclosure, Budgets
+- https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents — Initializer/Coder, Feature-Liste, Fehlbilder
+- https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/ — Lethal Trifecta
+- https://genai.owasp.org/llm-top-10/ — OWASP LLM Top 10 2025
+- https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices — MCP Security Best Practices (verweist auf 2025-11-25)
+- https://developers.cloudflare.com/workers/platform/limits/ — Workers Free/Paid
+- https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits — Pages-Limits, Kommerzklausel
+- https://google.github.io/styleguide/docguide/best_practices.html — Doku-Praxis
+- https://arxiv.org/abs/2605.07723 — Zhao et al., LLM hallucinations in the wild (Zitate)
+- https://arxiv.org/abs/2601.14277 — Kurt, llama.cpp-Quantisierungs-Evaluation (nur Abstract)
+- https://www.aws.at/en/aws-preseed-faq/ — Preseed-Zahlen
+- https://www.aws.at/en/aws-preseed-seedfinancing/ — Programmlinien
+- https://paulgraham.com/ds.html — Do Things That Don't Scale
+- https://hermes-agent.nousresearch.com/docs/user-guide/skills/bundled/research/research-llm-wiki — LLM-Wiki-Muster (Karpathy-Gist-Sekundär)
+- WebSearch-Zusammenfassungen (Sekundär): GGUF-Quantisierung 2026; Zitat-Halluzinationsraten; aws Preseed 2026; FlexKapG/FlexCo; Karpathy LLM Wiki
+- Fehlgeschlagen (403): https://www.kunalganglani.com/blog/llm-wiki-karpathy-local-knowledge-base
+
+**Lokal:**
+- `/home/user/nextool/ordnung/docs/research/00-KONTEXT-FUER-AGENTEN.md` (§1–13)
+- `/home/user/nextool/ordnung/docs/research/briefs/R17.md`
+- `/home/user/soul/knowledge/{INDEX.md, denk-architekturen.md, forschung-2026-09.md}`, `/home/user/soul/playbooks/{preflight.md, recherche.md}`, `/home/user/soul/.claude/agents/legacy-miner.md`
+- Nachbarfronten: `R10-tiefensteuerung-routing-kosten.md` (§2.3, §2.9), `R14-soul-basis-kritik-und-dirigent.md` (Organ 4, Ä11), `R15-ressourcen-atlas.md` (§2.1.6, §2.2), `R16-meisterschaft-unter-knappheit.md` (§2.3, §2.4)
+
+**Erzeugte Artefakte:** `/home/user/nextool/ordnung/docs/research/wissen/{INDEX.md, werkzeugkette-claude-code.md, lokale-ki-einrichten.md, kontingent-kosten.md, projekt-zu-ende-fuehren.md, deployment-ohne-kosten.md, recherche-quellenpflicht.md, startup-solo-gruender-at.md, sicherheit-autonome-agenten.md, evaluation-ehrlichkeit.md, wissensorgan-selbstpflege.md}`
