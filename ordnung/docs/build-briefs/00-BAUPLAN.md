@@ -1,6 +1,6 @@
 # Bauplan Soul 10.0.0 — Reihenfolge, Regeln, Abnahme
 
-*Stand 2026-09-06. Jeder Schritt ist EIN Agent (strikt nacheinander). Jeder Agent liest zuerst `../research/00-KONTEXT-FUER-AGENTEN.md` (Abschnitte 1–13), dann `../02-design-entscheidungsregister.md` (ab B2), dann seinen Auftrag hier. Schreib-Auflage gilt: Zieldateien zuerst anlegen, nach jedem Teil speichern.*
+*Stand 2026-09-06. Jeder Schritt ist EIN Agent (strikt nacheinander). Jeder Agent liest zuerst `../research/00-KONTEXT-FUER-AGENTEN.md` (Abschnitte 1–13), dann `../02-design-entscheidungsregister.md` (ab B2), dann `00b-ERFINDUNGEN.md` (die Sprünge je Säule, verbindlich), dann seinen Auftrag hier. Schreib-Auflage gilt: Zieldateien zuerst anlegen, nach jedem Teil speichern.*
 
 ## Reihenfolge
 

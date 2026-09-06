@@ -1,7 +1,7 @@
 # B2 — Architektur Soul 10.0.0 (Entwurf), B2k Kritik, B2r Revision
 
 ## B2 (Architekt)
-Lies Kontextpaket, `docs/03-baukontext.md`, `docs/02-design-entscheidungsregister.md` vollständig; gezielt R14 (Kritik der SOUL-Basis, Dirigent, Ebenen), R03 (Plugin-Blaupause, Hooks), R10 (Tiefenstufen, Routing-Tabelle, Kostenmodell), R05 (Gedächtnisschema), R04 (Kompilat). Schreibe `docs/04-architektur.md` (deutsch, 5.000–8.000 Wörter) mit:
+Lies Kontextpaket, `docs/03-baukontext.md`, `docs/02-design-entscheidungsregister.md` und `docs/build-briefs/00b-ERFINDUNGEN.md` (verbindlich: E1–E19 und das Überraschungs-Prinzip integrieren oder begründet verschieben) vollständig; gezielt R14 (Kritik der SOUL-Basis, Dirigent, Ebenen), R03 (Plugin-Blaupause, Hooks), R10 (Tiefenstufen, Routing-Tabelle, Kostenmodell), R05 (Gedächtnisschema), R04 (Kompilat). Schreibe `docs/04-architektur.md` (deutsch, 5.000–8.000 Wörter) mit:
 1. Zielbild und Nicht-Ziele (inkl. Verbotsliste).
 2. Die drei Säulen und ihre Schnittstellen (Diagramm als ASCII/Mermaid): Gedächtnis ↔ Denken ↔ Durchführung; „Freiheit ist eine Funktion von Gedächtnis" als Datenfluss.
 3. **Dateibaum des Produkts** (vollständig, jede Datei mit Zweck, Sprache, Größe, Trigger): `ordnung/structure/` (Kernel, Bündel, Selbst, Werte, Robustheit, Implant), `ordnung/plugin/` (Claude-Code-Plugin), `ordnung/adapters/` + `build/`, `ordnung/eval/`, `ordnung/soul10/` (die neue SOUL-Fassung: core/, .claude/, bin/, knowledge/, atlas/, onboarding/, playbooks/, tests/), `ordnung/docs/`.
