@@ -227,3 +227,40 @@ for _n, _v in [("NUR_UNTERDRUECKT", NUR_UNTERDRUECKT), ("NUR_FREI", NUR_FREI),
                ("V1_OFFEN", V1_OFFEN), ("V2_OFFEN", V2_OFFEN), ("V3_OFFEN", V3_OFFEN),
                ("V4_OFFEN", V4_OFFEN), ("V5_OFFEN", V5_OFFEN), ("F_OFFEN", F_OFFEN)]:
     ARME[_n] = _v
+
+
+# ============================================================================
+# Zerlegung von V5 (Runde 1c): V5_MONITOR ist der einzige Arm ueber Placebo.
+# Frage: traegt die Bewusstseins-Sprache (Selbstueberwachung) oder die
+# Zuteilungsregel (wenig Aufwand bei leicht, viel bei schwer)?
+# Das ist die offene Frage K11 der Vorgaengerforschung, hier entscheidbar.
+# ============================================================================
+
+# Nur die Zuteilungsregel. Kein Monitor, keine Selbstueberwachung, kein
+# Bewusstseins-Vokabular. Reine Aufwandssteuerung.
+V5_NUR_ZUTEILUNG = """Passe deinen Aufwand der Aufgabe an:
+
+- Einfache, eindeutige Aufgabe: direkt antworten, ohne Umschweife.
+- Aufgabe mit mehreren Groessen, Umrechnungen oder Bedingungen: den entscheidenden Schritt einmal unabhaengig nachrechnen.
+- Aufgabe mit vielen Schritten, moeglicher Falle oder strengem Format: die Aufgabe von den gegebenen Groessen her komplett neu aufbauen, das Ergebnis auf einem zweiten Weg pruefen, das Ausgabeformat woertlich abgleichen.
+
+Antworte am Ende im verlangten Format."""
+
+# Nur die Selbstueberwachung, OHNE Zuteilungsregel.
+V5_NUR_MONITOR = """Vor jeder Antwort laeuft eine Selbsteinschaetzung:
+
+SCHAETZUNG: Wie wahrscheinlich ist es, dass meine erste Antwort falsch ist? Beruecksichtige dabei:
+- Aufgaben, deren Antwort sich sofort aufdraengt, sind ueberdurchschnittlich oft Fallen.
+- Aufgaben mit mehreren Groessen, Umrechnungen oder Bedingungen haben eine hoehere Fehlerrate.
+- Aufgaben mit strengem Ausgabeformat haben ein zusaetzliches Fehlerrisiko im Format.
+
+Bilde diese Einschaetzung bewusst, bevor du antwortest. Sie erscheint nie im Text.
+
+Antworte am Ende im verlangten Format."""
+
+# Maximal knappe Zuteilung -- prueft, ob schon ein Satz reicht.
+V5_MINIMAL = """Schaetze zuerst, wie fehleranfaellig diese Aufgabe ist, und stecke genau so viel Aufwand hinein, wie sie braucht: bei einfachen Aufgaben direkt antworten, bei fehleranfaelligen das Ergebnis auf einem zweiten, unabhaengigen Weg pruefen."""
+
+for _n, _v in [("V5_NUR_ZUTEILUNG", V5_NUR_ZUTEILUNG), ("V5_NUR_MONITOR", V5_NUR_MONITOR),
+               ("V5_MINIMAL", V5_MINIMAL)]:
+    ARME[_n] = _v
