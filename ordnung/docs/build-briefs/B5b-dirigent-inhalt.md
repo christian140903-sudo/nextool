@@ -1,0 +1,13 @@
+# B5b — Dirigent, Onboarding, Ressourcen-Atlas, Knappheit, Wissensorgan (Inhalt)
+
+Lies Kontextpaket §10–§13; Baukontext; Register Gruppe G; Architektur §6; R14 (Dirigenten-Schleife, Ebenen, Universalität, Verbesserungsliste), R15 (Atlas, Profil-Schema, Preflight, Auswahlregeln, Pflege), R16 (Knappheit: Technik-Katalog, Entscheidungsregeln, Beispielpläne), R17 (Wissenskarte, Dossier-Schema, Lade-/Pflegeprotokoll, Erstbestand in `docs/research/wissen/` falls vorhanden); SOULs `PROJEKT-START.md`, `playbooks/`, `knowledge/` als Erz.
+
+Erzeuge:
+1. `structure/bundles/dirigent/SKILL.md` (englisch, ≤ 5.000 Tokens): die Dirigenten-Schleife (bester KI-Nutzer der Welt; Was ist optimal möglich → Ressourcen → bauen/vorbereiten/organisieren → delegieren mit Vertrag → prüfen → weiter bis fertig), Ebenenmodell 1–6 (wann Subagent/Team/Workflow/Session/Cross-Model), Übergabe-Vertrag (Ziel, Nicht-Ziele, Inputs, Abnahmeprobe, Rückkanal, „du siehst nicht"), Wellen-Regel, Fehlweg-Reflex, Workspace-Datei C1, Zustimmung im Design; ≤ 900 Tokens für den Kern der Schleife, Rest als Referenz darunter.
+2. `soul10/onboarding/ONBOARDING.md` (deutsch, für den Nutzer) + `onboarding/preflight.py` (Erkennung: OS, RAM/CPU/GPU, installierte CLIs, claude-Version und Modellprobe, MCP-Konfiguration, Git, Node/Python; schreibt `~/.soul10/profile.json` nach Schema aus R15) + `onboarding/CONSENT.md` (die einmalige Zustimmung: was das Tool tun darf, Ring-2-Liste, Live-Ansicht/Stopp) + Ring-2-Fragebogen als EINE gebündelte Frage (Vorlage).
+3. `soul10/atlas/ATLAS.md` (deutsch; Tabellen aus R15 mit Datum je Zeile), `atlas/SELECT.md` (Auswahlregeln als englische Textbausteine für den Kernel/Router), `atlas/MAINTAIN.md` (Pflegeprotokoll, Schedule-Vorlage).
+4. `structure/bundles/scarcity/SKILL.md` (englisch): Meisterschaft unter Knappheit (Technik-Katalog kondensiert, Entscheidungsregeln, drei Beispielpläne aus R16).
+5. `soul10/knowledge/INDEX.md` + Dossiers (aus R17-Erstbestand übernehmen/vervollständigen, je Dossier Schema: Kernprinzipien, Regeln, Werkzeuge, Anti-Patterns, Quellen mit Datum, Verfallsdatum, Herkunftskennzeichnung, scope public/private) + `knowledge/LOAD.md` (Ladeprotokoll je Stufe/Signal) + `knowledge/MAINTAIN.md`.
+6. `soul10/playbooks/` (deutsch): preflight, bauen, recherche, fehlweg, uebergabe, delegation (neu), knappheit (neu) — aus SOUL übernommen und nach R14 verbessert (Erz→Gold je Datei).
+7. `soul10/SOUL.md` (Verfassung Soul 10: drei Säulen, acht Organe, Invarianten), `soul10/CLAUDE.md` (Betriebsanweisung, ≤ 120 Zeilen), `soul10/PROJEKT-START.md` (Startauftrag-Vorlage).
+Abnahme: Tokenzählung Dirigent-Kern; `python3 soul10/onboarding/preflight.py --dry-run` läuft auf Linux und schreibt ein Profil; Dossierzahl ≥ 8; jede Datei Erz→Gold.
