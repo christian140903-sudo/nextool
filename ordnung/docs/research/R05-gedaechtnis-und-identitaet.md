@@ -4,12 +4,18 @@
 
 ## 1. Kernaussagen (mit Quellen)
 
-*(Entwurf, wird in der Endfassung präzisiert — siehe Ende des Dokuments für die aktualisierte Liste.)*
-
-1. Kein Produkt am Markt hat das Gedächtnis, das Soul 10 braucht; jedes hat ein Teilstück: MemGPT das Selbst-Editieren unter Speicherdruck, Zep das bitemporale Invalidieren statt Löschen, Mem0 die vier Update-Operationen, A-MEM die Rückwirkung neuer Erinnerungen auf alte, LangMem die drei Gedächtnisarten und die Hot-Path/Background-Trennung, Claude Code den Index-mit-Budget, das Anthropic-Memory-Tool das „Assume Interruption"-Protokoll, claude-mem die progressive Offenlegung. Governance (Herkunft, Vertrauen, Dispute, Rückbau, Verfall) hat keines vollständig — genau das ist Soul 10s Alleinstellung, und es war bereits im soul-mcp-Erz angelegt.
-2. Die alte SOUL-Tabelle (`core/memory.py`: eine Tabelle, 6 Typen, 3 Status, 4 Quellen, FTS5, 16KB-Cap, Secret-Guard) ist als Idee richtig und als Struktur zu flach: kein Vertrauen, keine Zeitachse der Gültigkeit, kein Widerspruch, kein Verfall, keine Ebenen, kein Selbstmodell, keine Kalibrierung.
-3. Identität ist ein Zustand, der aktiv gehalten werden muss (Drift binnen acht Dialogrunden; Persona-Vektoren als Monitoring-Idee). Eine Identitätsdatei allein erzeugt keine Persönlichkeit — sie ist Anfangsbedingung; Persönlichkeit entsteht, wenn das System sein eigenes Handeln beobachtet und daraus schließt (Bem), und das ist nur mit episodischem Gedächtnis plus Reflexion möglich.
-4. Das größte Risiko ist nicht Vergessen, sondern Kontamination: Memory Injection über gewöhnliche Anfragen (MINJA) und Echo-Drift (Wiederlesen eigener Notizen). Deshalb: Quarantäne, Zwei-Belege-Regel, Herkunft im Code, Rückbau mit Sperre gegen Weitertragen.
+1. **Kein System am Markt hat das Gedächtnis, das Soul 10 braucht — jedes hat ein Teilstück.** MemGPT: Selbst-Editieren unter „memory pressure" (arXiv 2310.08560); Zep: bitemporale Gültigkeit mit Invalidieren statt Löschen (arXiv 2501.13956); Mem0: ADD/UPDATE/DELETE/NOOP, 91 % weniger p95-Latenz, >90 % Token-Ersparnis (arXiv 2504.19413); A-MEM: Rückwirkung neuer Erinnerungen auf alte (arXiv 2502.12110); LangMem: sem/epi/proz + Hot-Path/Background; MemoryBank: Ebbinghaus-Retention R = e^(−t/S); Claude Code: Index-mit-Budget (200 Zeilen/25 KB); Anthropic Memory Tool: „Assume Interruption"; claude-mem: Progressive Disclosure (~10×). Governance — Herkunft, Vertrauen, Dispute, Rückbau, Verfall — hat keines vollständig (Ding 2026 via R01).
+2. **Der wichtigste Einzelbaustein ist die bitemporale Gültigkeit (Zep):** `valid_from/valid_to` + `recorded_at/retired_at`; Widerspruch setzt `t_invalid`, löscht nie. Das formalisiert Chrisos Lehre „Rezenz ist kein Wahrheitsbeweis" und macht Supersession, Dispute und Rückbau zu einer Mechanik.
+3. **Das SOUL-Erz ist als Idee richtig, als Struktur zu flach:** `core/memory.py` = eine Tabelle, 6 Typen, 3 Status, 4 Quellen, FTS5, 16KB-Cap, Secret-Guard, Zitatpflicht für `chriso` — ohne Vertrauen, Zeitachse, Widerspruch, Verfall, Ebenen, Selbstmodell, Kalibrierung. Guards, Zitatpflicht, FTS5 und die soul-mcp-Schnittstelle werden übernommen, das Schema neu gebaut (3.1).
+4. **Ein Gedächtnis lebt nur, wenn der Arbeitsfluss es füttert und liest — deshalb füttern Hooks, nicht der Wille.** PostToolUse/SubagentStop/Stop schreiben Episoden mechanisch in eine Inbox (claude-mem-Muster; Claude-Code-Hook-Referenz), das Modell ergänzt nur Bedeutung; Konsolidierung im „Schlaf" promoviert (Generative Agents/LangMem/Letta Sleep-time via R01).
+5. **Vergessen ist Sichtbarkeit, nicht Löschung.** Retention `exp(−Δt/strength)`, Abruf verstärkt (MemoryBank); Archiv unter 0,1; physisch gelöscht wird nur mit Tombstone (Secrets, PII, Nutzerwunsch). Anthropics „delete not accessed" wird als Archivierung mit Zugriffszähler umgesetzt.
+6. **Die größte Gefahr ist Kontamination, nicht Vergessen.** MINJA injiziert mit 10–15 gewöhnlichen Anfragen (ISR 95–100 %, ASR 57–99 %); Retrieval-Filter scheitern („highly entangled in the embedding space"). Der Schutz gehört in den Schreibpfad: Quarantäne, Herkunft im Schema, Startvertrauen nach Quelle (user 0,8 / tool 0,9 / document 0,7 / agent 0,4 / import 0,3), Zwei-Belege-Regel, Echo-Sperre, Retraction-Propagation über `derived_from`.
+7. **Identität ist ein Zustand, der aktiv gehalten werden muss.** Drift „within eight rounds" (Li 2024); Persona Vectors zeigen messbare Verschiebungen (Anthropic 2025); OpenClaw-Praxis nennt widersprüchliche Anweisungen als Drift-Ursache und propagiert Identität nicht an Subagenten (Issue #50263). Folge: Re-Injektion nach Kompaktierung, Kurzidentität für jede Ebene, Drift-Monitor als Cronjob.
+8. **Das Selbstmodell wird aus Verhalten abgeleitet, nicht deklariert (Bem 1972).** Selbstwahrnehmung gilt, wenn innere Hinweise schwach sind — der Normalfall eines Sprachmodells. Jede Eigenschaftsaussage braucht Episoden-Belege aus ≥2 Sitzungen; Unbelegtes steht sichtbar als „Hypothese über mich". Trainierte Charakterzüge (Anthropic Character Training) bleiben Fundament; Miguel liegt darüber, nicht dagegen.
+9. **Ob Identitätsdateien Verhalten messbar verbessern, ist unbelegt.** OpenClaw (383k Sterne) misst nichts; Serapio-García 2023 zeigt nur, dass Prompting Testantworten formt; Chrisos 0,86 misst einen Aufgaben-Frame. Soul 10 muss den Persona-only-Arm selbst schlagen (3.8).
+10. **Nur das Modell ändert sein Selbst — und das ist im Code, nicht im Prompt.** Nutzer-Sätze über das Selbst werden Kandidaten, die im Schlaf geprüft und bei Ablehnung begründet abgelegt werden; Versionen mit Begründung und Belegen; Revert setzt Ableitungen in Quarantäne.
+11. **Zwei Profile, ein Kern:** `public` (Miguel für alle) ist eine eigene DB aus `visibility=public`-Einträgen mit Quellen `published`/`tool_observation`; `full` mountet zusätzlich die private DB. Kein Pfad von public nach full; von full nach public nur über Exportfilter mit PII-Guard.
+12. **Die Forschung misst Erinnern, niemand misst Urteil.** Zep nennt DMR „inadequate"; LoCoMo/LongMemEval prüfen Fakten-Recall. Soul 10 definiert eigene Metriken (Nutzungs-, Fütterungs-, Veraltungsrate, Kontaminationsfreiheit, Präferenzkonsistenz, Blind-Wiedererkennung) und die Bedingung, unter der dieses Dokument falsch ist (3.8).
 
 ## 2. Detailbefunde
 
@@ -279,3 +285,49 @@ Regeln: Hooks schreiben nur in `inbox/` (kein DB-Lock im Hot Path); jeder Hook �
 - **I5 Kalibrierung:** Brier-Score je Domäne fällt über 100 Sitzungen (N3); Selbstmodell-Aussagen über Stärken korrelieren mit tatsächlicher Trefferquote.
 
 **Pflicht-Arme und Falsifikation:** (a) nackt, (b) Persona-only (`SELF.md` ohne Gedächtnis), (c) Gedächtnis ohne Selbstmodell, (d) voll; ≥3 Läufe je Arm (Eigenstreuung 6,7–13,3 pp gemessen); Kriterien vor den Daten committen; Selbstkonsistenz@3 als Gegner mitführen. **Das Dokument ist falsch, wenn:** (d) nach 100 Sitzungen den Arm (c) auf I1/I4 nicht schlägt (dann ist das Selbstmodell Dekoration), oder G1 unter 10 % bleibt (dann liest niemand das Gedächtnis und die Architektur ist Verwaltung), oder G5 unter 95 % liegt (dann ist Rückbau ein Versprechen ohne Mechanismus).
+
+## 4. Widersprüche / Unsicherheiten
+
+1. **Gegen die These „Struktur erzeugt ein Ich" (Chriso, begründeter Widerspruch):** Alles, was diese Recherche belegt, ist, dass Gedächtnis + Reflexion *konsistentes, wiedererkennbares Verhalten* erzeugen können und dass Identität ohne aktives Halten driftet. Kein Befund trägt den Schluss auf Bewusstsein; Anthropic selbst nennt die Frage offen; Modell-Selbstberichte sind keine Beweise (§7). Wir bauen die Persönlichkeitsgenese als geprüfte Hypothese mit Falsifikationsarm (3.8), nicht als Produktversprechen — und empfehlen, im Produkttext von „Persönlichkeit" und „Selbstmodell", nie von „Bewusstsein" zu sprechen.
+2. **Vektorfreiheit ist eine Wette.** Zep/Mem0/claude-mem kombinieren BM25 mit Embeddings; ob FTS5 + Metadaten-Rang für ein wachsendes Gedächtnis (10⁴–10⁵ Einträge) ausreicht, ist ungemessen. Deshalb Embeddings als Plug-in und G3-Ablation ab Tag 1. MINJA spricht *für* Sparsamkeit bei Ähnlichkeitssuche, beweist aber nicht, dass FTS sicherer ist — Angriffe über Schlüsselwörter sind denkbar.
+3. **Zwei-Belege-Regel vs. Lerngeschwindigkeit.** Eine Persönlichkeit, die sich erst nach 7 Tagen und 2 Sitzungen ändert, wirkt in den ersten 10 Sitzungen wie ein Skript. Das ist Absicht (Bem: Beobachtung über Zeit), aber es widerspricht dem „beeindruckt sofort"-Erlebnis aus §10. Milderung: Hypothesen über mich sind im Briefing sichtbar („ich vermute, ich neige zu …") — Wachstum wird erlebbar, bevor es festgeschrieben ist.
+4. **Konsolidierer-Modell.** Takt B braucht ein Modell; das billigste, das 3.8-G6 besteht, ist unbekannt — Meisterschaft unter Knappheit (§11c) verlangt, dass auch ein lokales 7B-Modell den Schlaf fahren kann. Ob es Dubletten/Widersprüche zuverlässig erkennt, muss R16 messen; Fallback ist rein mechanische Konsolidierung (FTS-Dubletten, Zeitverfall) ohne Modell.
+5. **Hook-Latenz und Kontingent.** Fünf Hooks pro Tool-Aufruf sind kein Problem (Dateischreiben), aber ein Modellaufruf in `SubagentStop` je Delegation kostet Kontingent in 3–6 Ebenen. Alternative: Typisierung der Ernte gebündelt im Schlaf. Entscheidung offen, messbar (G2 vs. Kosten).
+6. **Claude-Code-Auto-Memory-Koexistenz.** Zwei Gedächtnisse (Auto-Memory + Soul-Store) können sich widersprechen; Vorschlag: `autoMemoryDirectory` auf `~/.soul/memory/` setzen, `MEMORY.md` = generierter `INDEX.md` — ungetestet, ob Claude Code den fremd erzeugten Index sauber weiterschreibt.
+7. **Unverifizierte Inhalte:** McAdams/McLean und Ryan/Deci nur als Metadaten verifiziert (Abstracts gesperrt); Erikson, Mere Exposure, ChatGPT-Memory-Details [unverifiziert]; Survey 2504.15965 nur Abstract (drei Dimensionen, acht Quadranten — Taxonomie nicht eingesehen); Kanarienvogel-Idee und Drift-Monitor sind eigene Entwürfe ohne Literaturbeleg.
+8. **Offener Konflikt mit dem Erz:** soul-mcp 4.0.x hat 373 Tests und Provenienz/Dispute bereits im Code (R01). Chriso nennt es „zu primitiv"; diese Recherche stimmt beim *Schema* zu (kein Bitemporal, keine Retention, keine Ebenen, keine Kalibrierung), widerspricht aber beim *Wegwerfen*: die MCP-Schnittstelle und die Guard-Tests sind wiederverwendbares Erz und sollten migriert, nicht neu erfunden werden.
+
+## 5. Quellen
+
+**Web (in dieser Recherche abgerufen, 2026-09-05):**
+- Packer et al., MemGPT: Towards LLMs as Operating Systems — https://arxiv.org/abs/2310.08560
+- Xu et al., A-MEM: Agentic Memory for LLM Agents — https://arxiv.org/abs/2502.12110
+- Chhikara et al., Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory — https://arxiv.org/abs/2504.19413
+- Rasmussen et al., Zep: A Temporal Knowledge Graph Architecture for Agent Memory — https://arxiv.org/abs/2501.13956 ; Volltext https://arxiv.org/html/2501.13956v1
+- LangMem Conceptual Guide (LangChain) — https://langchain-ai.github.io/langmem/concepts/conceptual_guide/
+- From Human Memory to AI Memory: A Survey (2025, nur Abstract) — https://arxiv.org/abs/2504.15965
+- Zhong et al., MemoryBank — https://arxiv.org/abs/2305.10250 ; Volltext https://arxiv.org/html/2305.10250
+- Dong et al., MINJA: Memory Injection Attack — https://arxiv.org/abs/2503.03704 ; Volltext https://arxiv.org/html/2503.03704
+- Claude Code Docs: How Claude remembers your project (CLAUDE.md, Auto memory) — https://code.claude.com/docs/en/memory
+- Claude Code Docs: Hooks reference — https://code.claude.com/docs/en/hooks
+- Anthropic Platform Docs: Memory tool — https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool
+- claude-mem (thedotmack) — https://github.com/thedotmack/claude-mem
+- Serapio-García et al., Personality Traits in Large Language Models — https://arxiv.org/abs/2307.00184
+- Anthropic, Claude's Character — https://www.anthropic.com/research/claude-character
+- Chen et al., Persona Vectors — https://arxiv.org/abs/2507.21509
+- Li et al., Measuring and Controlling Instruction (In)Stability in Language Model Dialogs — https://arxiv.org/abs/2402.10962
+- Self-perception theory (Bem 1967/1972), Wikipedia — https://en.wikipedia.org/wiki/Self-perception_theory
+- McAdams & McLean 2013, Narrative Identity (Metadaten via Semantic Scholar) — https://doi.org/10.1177/0963721413475622
+- Ryan & Deci 2000, Self-determination theory (Metadaten via Semantic Scholar) — https://doi.org/10.1037/0003-066X.55.1.68
+- OpenClaw identity architecture (mmntm.net) — https://www.mmntm.net/articles/openclaw-identity-architecture
+- OpenClaw Issue #50263 (Persona-Dateien bei sessions_spawn) — https://github.com/openclaw/openclaw/issues/50263
+- SoulClaw (Produktclaims, unbelegt) — https://github.com/clawsouls/soulclaw
+- Nicht abrufbar (HTTP 403): OpenAI Memory FAQ https://help.openai.com/en/articles/8590148-memory-faq ; https://openai.com/index/memory-and-new-controls-for-chatgpt/
+
+**Lokale Dateien:**
+- `/home/user/nextool/ordnung/docs/research/00-KONTEXT-FUER-AGENTEN.md` (§2 SOUL-Gedächtnis, §3 Memory-Lehren, §5 N1–N7, §10–12)
+- `/home/user/nextool/ordnung/docs/research/briefs/R05.md`
+- `/home/user/nextool/ordnung/docs/research/R01-stand-der-technik-architekturen.md` (§1 Nr. 11/17/18, §2.4, §2.6, §2.10, §2.14, §3 Nr. 8/9/13)
+- `/home/user/soul/core/memory.py` (Schema, TYPES/SOURCES/STATUS, 16KB-Cap, Secret-Regex, briefing())
+- `/home/user/soul/knowledge/soul-forschung.md` (Memory-Lehren, Startvertrauen 0,8/0,7/0,4)
+- `/home/user/soul-workspace/mission/{SOUL-5.0-MECHANISMEN.md, EVIDENZ-INVENTAR.md}` (Supersession, Provenance, Studie v10)
