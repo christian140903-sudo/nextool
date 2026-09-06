@@ -19,6 +19,8 @@ SUFFIX = {
     "plan7": "",
     "zaehl60": "\n\nGib am Ende NUR die Anzahl als Zahl in einer eigenen letzten Zeile aus.",
     "zaehl90": "\n\nGib am Ende NUR die Anzahl als Zahl in einer eigenen letzten Zeile aus.",
+    "kette60": "\n\nGib am Ende NUR den Endwert als Zahl in einer eigenen letzten Zeile aus.",
+    "zaehl150": "\n\nGib am Ende NUR die Anzahl als Zahl in einer eigenen letzten Zeile aus.",
 }
 
 

@@ -145,3 +145,6 @@ BEWERTER["kette32"] = bewerte_zahl
 BEWERTER["zaehl60"] = bewerte_zahl
 BEWERTER["zaehl90"] = bewerte_zahl
 BEWERTER["plan7"] = bewerte_plan
+
+BEWERTER["kette60"] = bewerte_zahl
+BEWERTER["zaehl150"] = bewerte_zahl
