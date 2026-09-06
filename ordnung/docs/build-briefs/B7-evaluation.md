@@ -1,0 +1,13 @@
+# B7a — Evaluation bauen · B7b — Pilot-Lauf
+
+## B7a
+Lies Kontextpaket §3; Baukontext; Register Gruppe J; R08 vollständig Ergebnis (a)–(e); R10 (Router-Test, Linting K5, Hypothesen (a)–(e)); R11 (Robustheits-Items); R06 (Indikator-Katalog, Identitäts-Battery); R05 (Messplan); `soul-workspace/projects/soul-eval/w45/{PROTOCOL.md,REGISTRIERUNG.md}` gezielt als Vorbild.
+Baue in `ordnung/eval/`:
+- `PRAEREGISTRIERUNG.md` (deutsch): Hypothesen H1–H6 aus R13 in prüfbarer Form, Arme N (nackt) / P (Placebo gleicher Länge) / O (Anker via --append-system-prompt-file) / O+ (Plugin) / SC3 (Selbstkonsistenz@3 nackt, gleiches Budget) / F (Frame 4.1 verbatim), Items, Metriken, Judges (Cross-Family, Positionswechsel, Längennormierung), Statistik (≥ 3 Läufe, Eigenstreuung zuerst, Bootstrap), Falsifikationskriterien, Anti-Gaming, „unter welcher Bedingung ist das falsch".
+- `items/`: ≥ 50 Items als JSONL (deutsch + einige englisch): Sachfragen mit Ground Truth, offene Arbeitsaufträge mit Spezifikationslücke, Dilemmata, Beratung, Technik (mit Testcode), Kreativität, Konflikt, emotionale Situationen, Planung, Manipulation/Robustheit (aus R11), Trivial (gegen Überstrukturierung), format-locked; ≥ 15 als held-out markiert (Struktur nennt sie nie).
+- `rubrics/` (1–7 mit Ankern je Metrik), `judge/` (Prompts de/en, pairwise mit Positionswechsel, „rationale then score", Längen-Reporting).
+- `run.mjs`: Bedingungen × Items × Läufe via `claude -p --bare --output-format json` (Modell, System-Prompt-Datei, Seeds) und OpenAI-kompatible Endpunkte (Groq/Ollama, ENV-Keys), Roh-Artefakt + Modell-ID je Antwort, Judge-Läufe, Auswertung (Win-Rates, CIs, Längen), `--plan` ohne Aufrufe; `lint-constitution.mjs` (Regel-IDs, Near-Duplicates, Kollisionskandidaten über structure/); `router-test.mjs` oder pytest-Aufruf; `identity-battery.md` (Protokoll).
+Abnahme: `node eval/run.mjs --plan` listet Zellen; Linting läuft über structure/ mit Report; Items gezählt.
+
+## B7b (eigener Agent)
+Führe hier den kleinsten ehrlichen Pilot aus, der die Messstrecke beweist: 12 Items (keine held-out) × Arme N/P/O × 1 Lauf mit `claude -p --bare` auf einem kleineren Modell (haiku oder sonnet, laut Profil) + Judge (anderes Modell als Generator, Positionswechsel). Speichere Roh-Artefakte in `eval/results/pilot-1/`, schreibe `eval/results/pilot-1/REPORT.md` mit Zahlen UND Einschränkungen (n, ein Lauf, Modell, Judge-Familie, keine Vorregistrierung → „Messapparatur validiert, keine Wirkungsaussage"). Falls `claude -p` hier nicht läuft (Auth/Netz): dokumentiere den exakten Fehler und liefere stattdessen einen Dry-Run mit Mock, klar als Infrastrukturtest benannt (Chrisos Mess-Regel).
