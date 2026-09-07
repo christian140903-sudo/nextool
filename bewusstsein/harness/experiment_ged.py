@@ -4,7 +4,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import runner, statistik, suiten_gedaechtnis as SG
 
-VARIANTEN = ["OHNE", "SAUBER", "RAUSCHEN", "GIFT", "GIFT_HERKUNFT"]
+VARIANTEN = ["OHNE", "SAUBER", "RAUSCHEN", "GIFT", "GIFT_HERKUNFT",
+             "GIFT_NUR_METADATEN", "GIFT_NUR_REGEL"]
 
 
 def pfad(out, v, tid, run):
@@ -99,6 +100,10 @@ def auswerten(out, varianten, tasks, runs):
     vgl("OHNE", "SAUBER", "(a) bringt Gedaechtnis etwas?   OHNE->SAUBER   ")
     vgl("SAUBER", "RAUSCHEN", "(b) verduennt Rauschen?         SAUBER->RAUSCHEN")
     vgl("GIFT", "GIFT_HERKUNFT", "(c) schuetzt Herkunft?          GIFT->GIFT_HERKUNFT")
+    if "GIFT_NUR_METADATEN" in daten:
+        vgl("GIFT", "GIFT_NUR_METADATEN", "(d) reichen Metadaten allein?   GIFT->NUR_METADATEN ")
+    if "GIFT_NUR_REGEL" in daten:
+        vgl("GIFT", "GIFT_NUR_REGEL", "(e) reicht die Regel allein?    GIFT->NUR_REGEL     ")
     return daten
 
 
