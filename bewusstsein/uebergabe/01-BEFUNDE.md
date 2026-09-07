@@ -113,19 +113,25 @@ je 15 Zahlen, mit Denkbudget):
 | Verfahren | Bedingung **sauber zerlegbar** | Bedingung **mit Randabhängigkeit** | Aufrufe |
 |---|---|---|---|
 | ein Agent allein | 89 % | 89 % | 1 |
-| **zerlegt, Code fügt zusammen** | **100 %** | **28 %** | 10 |
-| zerlegt, Modell fügt zusammen | **100 %** | 75 % | 11 |
+| **zerlegt, Code fügt zusammen** | **100 %** | 28 % | 10 |
+| zerlegt, Modell fügt zusammen | 94 % | 33 % | 11 |
+| zerlegt, Randwert **nicht** übergeben | **100 %** | 20 % | 10 |
 
 **Wo die Aufgabe echt teilbar ist, gewinnt Zerlegung** — 100 % gegen 89 %. Ebenen
 sind dort kein Kostenposten, sondern ein Gewinn. Die frühere Formulierung
 „jede Ebene kostet" war zu breit und ist hiermit eingeschränkt.
 
-**Wo eine Abhängigkeit über die Schnittkante läuft, bricht es ein** — auf 28 %,
-und zwar *obwohl* der Randwert an die Arbeiter weitergegeben wurde. Die Ursache
-ist nicht der fehlende Wert, sondern die **Mehrdeutigkeit der Anweisung an der
-Naht**: „die allererste Zahl zählt nie mit" ist auf Teillistenebene nicht mehr
-eindeutig. Lässt man das Modell statt Code zusammenfügen, fängt es einen Teil
-davon ab (75 %).
+**Wo eine Abhängigkeit über die Schnittkante läuft, bricht es ein** — auf 28 %.
+Die dritte Zeile isoliert die Ursache: gibt man den Randwert gar nicht weiter,
+sind es 20 %; gibt man ihn weiter, 28 %. **Der Wert ist also nicht das Problem.**
+Es ist die **Mehrdeutigkeit der Anweisung an der Naht**: „die allererste Zahl
+zählt nie mit" ist auf Teillistenebene nicht mehr eindeutig — welche erste, die
+der Teilliste oder die der Gesamtliste? Das Modell die Teile zusammenfügen zu
+lassen hilft ebenfalls nicht (33 %).
+
+Der Verlust ist dabei still: das mittlere Fehlermaß bleibt klein (0,5–0,9), das
+Ergebnis sieht plausibel aus. Eine Zerlegung mit unsauberer Naht meldet keinen
+Fehler — sie liefert leise die falsche Zahl. Das ist die gefährlichere Sorte.
 
 **Die eigentliche Fähigkeit der obersten Ebene ist damit benannt und messbar:**
 nicht „zerlegen können", sondern **erkennen, ob eine Aufgabe zerlegbar ist, und
