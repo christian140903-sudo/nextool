@@ -143,6 +143,11 @@ Abweichung wird der Prüfer gerufen.
   trennt nicht) **oder** Überraschungsrate > 85 % (der Arm ist nur ein teurer
   A_PRUEFER). Dann wird der Schalter allein über Uneinigkeit gebaut; die
   Vorhersage bleibt als `predict.py` erhalten (Kalibrierung), nicht als Schalter.
+- **Ergebnis (2026-09-07, n=75 je Arm): widerlegt.** Überraschungsrate 92,0 %; Zweig
+  „nicht überrascht" n=6 bei 66,7 %; 81,3 % bei 2,92 Aufrufen gegen A_PRUEFER 77,3 % bei
+  2,00 (+4,0 pp, p=0,595 — Rauschen); Spezifität 8 %. Der Fallback greift: `switch.py`
+  schaltet über Vorfilter und Uneinigkeit, `predict.py` bleibt Kalibrierung. Details in
+  `bewusstsein/berichte/03-RUNDE4-BAU.md` §M1.
 
 **M2 · Nahtprotokoll** (`ZERLEGT_NAHT` in `harness/zerlegung.py`; 12 Aufgaben × 3 Läufe,
 10 Teile, Denkbudget wie in der Vorgängermessung, gegen `GANZ` und `ZERLEGT_CODE`).
