@@ -61,16 +61,18 @@ Die unteren Ebenen sehen nie das Original — wie in einer echten Hierarchie.
 | E2 Vertrag | 62,5 % | 2 | 354 | −15,3 pp p=0,024 |
 | E3 frei | 63,4 % | 3 | 1 485 | −14,1 pp p=0,050 |
 | E3 Vertrag | 52,1 % | 3 | 770 | −25,4 pp p=0,003 |
-| E4 frei | 63,3 % | 4 | 785 | −20,0 pp p=0,060 |
+| E4 frei | 57,7 % | 4 | 1 054 | −19,7 pp p=0,009 |
+| E4 Vertrag | **45,9 %** | 4 | 828 | **−34,4 pp** p<0,001 |
 
-**B1 — Der ganze Verlust entsteht bei der ERSTEN Delegation.** −13,9 pp beim
-Schritt von einer auf zwei Ebenen. Danach Plateau: zwei, drei und vier Ebenen
-liegen alle bei 63–64 %. Zusätzliche Tiefe kostet Tokens, aber kaum weitere
-Genauigkeit.
+**B1 — Der größte Einzelsprung ist die ERSTE Delegation** (−13,9 pp), danach
+folgt ein Plateau bei zwei und drei Ebenen (63–64 %) und ab der vierten ein
+zweiter Abfall (57,7 %). Die Kosten steigen durchgehend: 92 → 323 → 1 485 Tokens.
+Es gibt also keinen Bereich, in dem zusätzliche Tiefe sich selbst bezahlt.
 
-**B2 — Der Übergabe-Vertrag (E7) schadet, und mit der Tiefe zunehmend.**
-−15,3 pp bei zwei, **−25,4 pp bei drei Ebenen**. Bei E3_VERTRAG brechen
-Formatauflagen auf 73 % ein.
+**B2 — Der Übergabe-Vertrag (E7) schadet, und zwar monoton mit der Tiefe:**
+−15,3 pp (2 Ebenen) → −25,4 pp (3) → **−34,4 pp (4)**. Bei vier Ebenen brechen
+Formatauflagen auf 69 % ein. Je mehr Ebenen den Auflagenblock wörtlich
+weiterreichen, desto länger der Auftrag und desto schlechter das Ergebnis.
 
 **B3 — Und der Grund ist nicht der, den alle annehmen.** Die Diagnose trennt
 Übergabe von Ausführung:
