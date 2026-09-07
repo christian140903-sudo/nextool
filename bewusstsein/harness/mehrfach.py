@@ -123,3 +123,81 @@ def arch_direkt(frage, suite, model, thinking):
 
 
 ARCHITEKTUREN["A_DIREKT"] = arch_direkt
+
+
+# ============================================================================
+# Runde 4 (bauendes Modell, 2026-09-07): Ueberraschung als Schalter.
+#
+# Das Ueberraschungs-Prinzip des Entwurfs (00b-ERFINDUNGEN, "Ueberraschung als
+# Waehrung", E18) war als Prompt-Variante gemessen (V4_VORHERSAGE: -12,2 pp) und
+# als Architektur ZWISCHEN Aufrufen ungeprueft (06-AUFTRAG §4.2). Hier die
+# billigste ehrliche Form: eine Vorhersage OHNE Rechnung vor der Loesung; weicht
+# die Loesung von der Vorhersage ab, ist das eine Ueberraschung und ruft den
+# Pruefer (wie A_PRUEFER). Keine Ueberraschung: fertig mit 2 Aufrufen.
+#
+# Frage: Ist Ueberraschung ein Fehlersignal? Dann ist das der Schalter, den
+# 02-UEBERGABE-BAU §5 verlangt -- Pruefer nur dort, wo er gebraucht wird.
+# Vorregistriert in ordnung/soul10/ENTSCHEIDUNG.md §4 (M1).
+# ============================================================================
+import experiment as _experiment
+
+
+def _bereich(text):
+    """Zwei Zahlen aus der Vorhersage -> (lo, hi). Weniger als zwei: (None, None)."""
+    zs = bewerten.alle_zahlen(text or "")
+    if len(zs) < 2:
+        return None, None
+    lo, hi = zs[0], zs[1]
+    return (lo, hi) if lo <= hi else (hi, lo)
+
+
+def _ohne_antwortsuffix(frage, suite):
+    """Die Vorhersage bekommt die Aufgabe OHNE die Antwortformat-Anweisung der Suite,
+    sonst konkurriert 'Antworte SOFORT mit nur dem Endwert' mit dem Bereichsformat."""
+    sfx = _experiment.suffix_fuer(suite)
+    if sfx and frage.endswith(sfx):
+        return frage[: -len(sfx)]
+    return frage
+
+
+def arch_ueberraschung(frage, suite, model, thinking):
+    """Ueberraschung als Schalter: Vorhersage ohne Rechnung -> Loesung -> Vergleich.
+    Liegt die Loesung im vorhergesagten Bereich: fertig (2 Aufrufe).
+    Sonst (Ueberraschung): unabhaengiger Pruefer wie in arch_pruefer (3 Aufrufe).
+    Fehlt eine auswertbare Vorhersage, gilt das konservativ als Ueberraschung."""
+    spuren = []
+    v = runner.call_model(
+        "Du schaetzt das Endergebnis einer Aufgabe, OHNE sie zu loesen und ohne zu "
+        "rechnen. Antworte in genau einer Zeile im Format 'BEREICH: <von> bis <bis>' "
+        "mit zwei Zahlen, zwischen denen das Endergebnis sehr wahrscheinlich liegt. "
+        "Waehle den Bereich so eng, wie du es dir zutraust. Sonst nichts.",
+        _ohne_antwortsuffix(frage, suite), model=model, thinking=thinking)
+    spuren.append(("vorhersage", v))
+    a = runner.call_model(None, frage, model=model, thinking=thinking)
+    spuren.append(("loesung", a))
+    lo, hi = _bereich(v.get("text", ""))
+    wert = _endwert(a.get("text", ""), suite)
+    ueberrascht = 1
+    try:
+        w = float(wert)
+        if lo is not None and lo <= w <= hi:
+            ueberrascht = 0
+    except (TypeError, ValueError):
+        pass
+    spuren.append(("schalter", {"text": f"ueberrascht={ueberrascht} bereich={lo}..{hi} wert={wert}",
+                                "ok": True, "output_tokens": 0, "pseudo": True}))
+    if not ueberrascht:
+        return a.get("text", ""), spuren
+    p = (f"AUFGABE:\n{frage}\n\nVORGESCHLAGENE ANTWORT:\n{a.get('text','')}\n\n"
+         f"Pruefe diese Antwort unabhaengig nach, indem du die Aufgabe selbst von den "
+         f"gegebenen Groessen her neu aufbaust. Wenn sie richtig ist, wiederhole sie "
+         f"unveraendert. Wenn sie falsch ist, gib die korrigierte Antwort. "
+         f"Antworte am Ende exakt im verlangten Format.")
+    b = runner.call_model(
+        "Du bist ein unabhaengiger Pruefer. Du uebernimmst nichts ungeprueft.",
+        p, model=model, thinking=thinking)
+    spuren.append(("pruefung", b))
+    return b.get("text", ""), spuren
+
+
+ARCHITEKTUREN["A_UEBERRASCHUNG"] = arch_ueberraschung

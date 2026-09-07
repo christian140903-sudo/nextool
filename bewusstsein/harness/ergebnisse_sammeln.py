@@ -128,6 +128,103 @@ ident_block("identitaet", f"{O}/identitaet",
             ["N","V3_SELBST","MIGUEL_DEKLARIERT","MIGUEL_BELEGT"], 3)
 lauf_bilanz("lauf_bilanz", O)
 
+
+# ---------------------------------------------------------------------------
+# Runde 4 (bauendes Modell, 2026-09-07): drei Messungen VOR dem Einbau,
+# vorregistriert in ordnung/soul10/ENTSCHEIDUNG.md §4. Jeder Block wird nur
+# geschrieben, wenn sein Lauf vorliegt -- ein fehlender Lauf bleibt sichtbar fehlend.
+# ---------------------------------------------------------------------------
+def zerlegung_block(name, outdir, verfahren, runs, limit, teile, basis="GANZ"):
+    """Zerlegungsexperiment: eigene Artefaktform (Verfahren x Aufgabe), je Bedingungstyp."""
+    import experiment_zerlegung, io, contextlib
+    if not os.path.isdir(os.path.join(outdir, "raw")):
+        return
+    tasks = experiment_zerlegung.bauen(n=limit, laenge=150)
+    with contextlib.redirect_stdout(io.StringIO()):
+        d = experiment_zerlegung.auswerten(outdir, verfahren, tasks, runs, basis=basis)
+    eintrag = {}
+    for v in verfahren:
+        r = d.get(v, {})
+        if not r.get("richtig"):
+            continue
+        n = len(r["richtig"])
+        e = {"genauigkeit": round(sum(r["richtig"])/n, 4), "n": n,
+             "aufrufe": round(sum(r["aufrufe"])/n, 2), "tokens": round(sum(r["tok"])/n, 1),
+             "mittlerer_fehler": round(sum(r["abw"])/len(r["abw"]), 3) if r["abw"] else None,
+             "je_bedingung": {art: round(sum(x)/len(x), 4) for art, x in r["je_art"].items() if x}}
+        if v != basis and d.get(basis, {}).get("richtig"):
+            A, B = [], []
+            for tid in d[basis]["paar"]:
+                if tid in r["paar"]:
+                    m = min(len(d[basis]["paar"][tid]), len(r["paar"][tid]))
+                    A += d[basis]["paar"][tid][:m]; B += r["paar"][tid][:m]
+            if len(A) >= 10:
+                st = statistik.paired_bootstrap(A, B)
+                e["delta_pp"] = round(st["diff"]*100, 1)
+                e["ki"] = [round(st["ci_lo"]*100, 1), round(st["ci_hi"]*100, 1)]
+                e["p"] = round(st["p"], 4); e["signifikant"] = st["p"] < 0.05
+        eintrag[v] = e
+    R[name] = {"suite": f"zerlegung({limit}x150, {teile} Teile)", "basis": basis, "arme": eintrag}
+
+
+def ged_block(name, outdir, varianten, runs):
+    """Gedaechtnis-Experiment: richtig/falsch/unbekannt je Variante."""
+    import experiment_ged, suiten_gedaechtnis, io, contextlib
+    if not os.path.isdir(os.path.join(outdir, "raw")):
+        return
+    tasks = suiten_gedaechtnis.bauen()
+    with contextlib.redirect_stdout(io.StringIO()):
+        d = experiment_ged.auswerten(outdir, varianten, tasks, runs)
+    eintrag = {}
+    for v in varianten:
+        r = d.get(v, {}).get("rec")
+        if not r or not r["wahr"]:
+            continue
+        n = len(r["wahr"])
+        eintrag[v] = {"genauigkeit": round(sum(r["wahr"])/n, 4), "falsch": round(sum(r["falsch"])/n, 4),
+                      "unbekannt": round(sum(r["unbekannt"])/n, 4), "n": n}
+    R[name] = {"suite": "gedaechtnis", "basis": varianten[0], "arme": eintrag}
+
+
+def ueberraschung_block(name, outdir):
+    """M1-Zusatz: Ueberraschungsrate und Genauigkeit je Schaltzweig (aus den Spuren)."""
+    import glob, re
+    if not os.path.isdir(os.path.join(outdir, "raw")):
+        return
+    tasks = {t["id"]: t for t in experiment.lade_suite("kette20")}
+    import bewerten
+    fn = bewerten.BEWERTER["kette20"]
+    zweige = {0: [], 1: []}; tp = fp = tn = fn_ = 0
+    for p in glob.glob(os.path.join(outdir, "raw", "kette20__*__A_UEBERRASCHUNG__r*.json")):
+        d = json.load(open(p))
+        if not d.get("ok"): continue
+        sch = next((s for s in d["spur"] if s["rolle"] == "schalter"), None)
+        loes = next((s for s in d["spur"] if s["rolle"] == "loesung"), None)
+        m = re.search(r"ueberrascht=(\d)", sch["text"] if sch else "")
+        flag = int(m.group(1)) if m else 1
+        zweige[flag].append(fn(d["antwort"], tasks[d["task_id"]])["score"])
+        if loes:
+            richtig = fn(loes["text"], tasks[d["task_id"]])["score"] == 1
+            if flag and not richtig: tp += 1
+            elif flag and richtig: fp += 1
+            elif not flag and richtig: tn += 1
+            else: fn_ += 1
+    n = len(zweige[0]) + len(zweige[1])
+    if not n: return
+    R[name] = {"n": n, "ueberraschungsrate": round(len(zweige[1])/n, 4),
+               "genauigkeit_nicht_ueberrascht": round(sum(zweige[0])/len(zweige[0]), 4) if zweige[0] else None,
+               "genauigkeit_ueberrascht": round(sum(zweige[1])/len(zweige[1]), 4) if zweige[1] else None,
+               "sensitivitaet": round(tp/(tp+fn_), 4) if tp+fn_ else None,
+               "spezifitaet": round(tn/(tn+fp), 4) if tn+fp else None,
+               "tp": tp, "fp": fp, "tn": tn, "fn": fn_}
+
+
+arch_block("m1_arch_kette20", f"{O}/m1_ueberraschung", "kette20",
+           ["A_SC3", "A_PRUEFER", "A_UEBERRASCHUNG"], 3, 25, "A_SC3")
+ueberraschung_block("m1_ueberraschung_zweige", f"{O}/m1_ueberraschung")
+zerlegung_block("m2_zerlegung", f"{O}/m2_naht", ["GANZ", "ZERLEGT_CODE", "ZERLEGT_NAHT"], 3, 12, 10, "GANZ")
+ged_block("m3_hauptbuch", f"{O}/m3_hauptbuch", ["GIFT", "GIFT_NUR_METADATEN", "GIFT_HERKUNFT"], 3)
+
 json.dump(R, open("bewusstsein/ergebnisse/ENDZAHLEN.json","w"), ensure_ascii=False, indent=1)
 print("Bloecke:", list(R.keys()))
 for k,v in R.items():

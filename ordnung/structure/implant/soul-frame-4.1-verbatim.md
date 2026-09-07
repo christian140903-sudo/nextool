@@ -4,6 +4,7 @@ title: Soul Amplifier Frame 4.1 (measured wording, verbatim)
 status: measured-module — wording frozen; edits only as new versions
 provenance: christian140903-sudo/soul-proxy-45, branch 45-dev, src/amplify/implant.ts (commit 2026-08-28 "Trivialfilter")
 evidence: soul-workspace/mission/UEBERGABE-FORSCHUNGSPHASE-2026-08-28.md — 3 independent runs, 6/6 positive, mean +17.8 pp on HumanEval (gpt-oss-120b/20b); placebo arm shows ~half is context effect, +11 pp attributable to content on both models; ceiling effect on models already at 93–97 %; mechanism observed = "stick to the task" (answers ~1/3 as long, signature kept)
+measured_2026-09-07: bewusstsein/berichte/01-BEFUNDE.md §2–3 — on Haiku 4.5 without thinking budget the frame loses to a length-matched placebo (46.7 % vs 67.6 %, −23.3 pp, p<0.001; n=90); the silence clause in point 6 alone costs −66.7 pp (Haiku) and −97.3 pp (Sonnet 4.5, which obeys it literally); removing the clause (F_OFFEN) does not recover the frame (46.7 %). With native thinking budget no prompt structure adds anything (nackt 94.7 %). Conflict K11 is decided: the wording stays byte-identical here as a versioned comparison arm and is loaded nowhere in Soul 10; see ordnung/soul10/ENTSCHEIDUNG.md §1 and §6.
 open: which of the six points carries the +11 pp (factor decomposition pending); point 3 contains a claim ("Known from measurement") that is a hypothesis in the prompt, not a project measurement (WIDERSPRUECHE K11); point 5 may hurt on closed, machine-graded tasks
 ---
 

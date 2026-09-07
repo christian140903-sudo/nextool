@@ -93,3 +93,83 @@ VERFAHREN = {
     # Zeigt, wie eine Zerlegung still falsch wird, ohne dass jemand es merkt.
     "ZERLEGT_NAIV": zerlegt_code,
 }
+
+
+# ============================================================================
+# Runde 4 (bauendes Modell, 2026-09-07): Nahtprotokoll.
+#
+# Befund B5 (01-BEFUNDE): Zerlegung bricht bei Randabhaengigkeit auf 28 % ein,
+# und die Ursache ist die mehrdeutige Anweisung an der Naht, nicht der fehlende
+# Randwert (ohne Randwert 20 %, mit Randwert 28 %). Das Nahtprotokoll macht die
+# Teilanweisung FUER SICH ALLEIN eindeutig: Position des Ausschnitts in der
+# Gesamtliste, Randwerte auf beiden Seiten, und die Lesart listenbezogener
+# Ausdruecke ("die Zahl davor", "die erste Zahl der Liste") als Bezug auf die
+# GESAMTLISTE. Das ist die Zerlegungsfunktion aus 06-AUFTRAG §6.4 als Code --
+# gemessen, bevor sie in ordnung/soul10/core/decompose.py eingebaut wird.
+#
+# Das Protokoll gibt die Raender IMMER weiter: die Zerlegungsfunktion soll nicht
+# wissen muessen, ob die Bedingung sie braucht. Auf der sauber zerlegbaren
+# Bedingung darf es deshalb nichts kosten (Vorgaenger: 100 %).
+# Vorregistriert in ordnung/soul10/ENTSCHEIDUNG.md §4 (M2).
+# ============================================================================
+
+def _teil_frage_naht(teil, bedingung, offset, n_gesamt, vorgaenger, nachfolger):
+    von, bis = offset + 1, offset + len(teil)
+    zeilen = [
+        f"Du bearbeitest einen AUSSCHNITT einer Gesamtliste mit {n_gesamt} Zahlen: "
+        f"die Positionen {von} bis {bis}.",
+    ]
+    if vorgaenger is None:
+        zeilen.append("Dieser Ausschnitt ist der ANFANG der Gesamtliste. Vor seiner "
+                      "ersten Zahl steht nichts.")
+    else:
+        zeilen.append(f"Unmittelbar VOR diesem Ausschnitt (Position {offset}) steht die "
+                      f"Zahl {vorgaenger}.")
+    if nachfolger is None:
+        zeilen.append("Dieser Ausschnitt ist das ENDE der Gesamtliste.")
+    else:
+        zeilen.append(f"Unmittelbar NACH diesem Ausschnitt (Position {bis + 1}) steht die "
+                      f"Zahl {nachfolger}.")
+    zeilen.append(f"Ausschnitt: {', '.join(map(str, teil))}")
+    zeilen.append("")
+    zeilen.append(f"Bedingung (formuliert fuer die GESAMTLISTE): {bedingung}")
+    zeilen.append("Lies die Bedingung so, als stuende die Gesamtliste vor dir:")
+    zeilen.append("- 'die Zahl davor' ist die Zahl an der vorigen Position der GESAMTLISTE; "
+                  "fuer die erste Zahl dieses Ausschnitts ist das die oben genannte Zahl "
+                  "vor dem Ausschnitt.")
+    zeilen.append("- 'die erste Zahl der Liste' oder 'die allererste Zahl' meint "
+                  "ausschliesslich Position 1 der GESAMTLISTE"
+                  + (" -- das ist die erste Zahl dieses Ausschnitts."
+                     if offset == 0 else
+                     " -- sie liegt NICHT in diesem Ausschnitt; fuer diesen Ausschnitt "
+                     "gilt daraus keine Ausnahme."))
+    zeilen.append("- 'die letzte Zahl der Liste' meint ausschliesslich die letzte Position "
+                  "der GESAMTLISTE"
+                  + (" -- das ist die letzte Zahl dieses Ausschnitts."
+                     if nachfolger is None else
+                     " -- sie liegt NICHT in diesem Ausschnitt."))
+    zeilen.append("")
+    zeilen.append("Wie viele Zahlen DIESES Ausschnitts erfuellen die Bedingung? "
+                  "Antworte NUR mit der Anzahl als Zahl.")
+    return "\n".join(zeilen)
+
+
+def zerlegt_naht(frage, zahlen, bedingung, model, thinking, teile=5,
+                 braucht_vorgaenger=False):
+    """Zerlegung mit Nahtprotokoll; Zusammenfuehrung mechanisch (wie ZERLEGT_CODE).
+    braucht_vorgaenger wird absichtlich ignoriert (siehe Kopfkommentar)."""
+    n = len(zahlen)
+    gr = (n + teile - 1) // teile
+    auftraege = []
+    for i in range(0, n, gr):
+        teil = zahlen[i:i + gr]
+        vorg = zahlen[i - 1] if i > 0 else None
+        nach = zahlen[i + gr] if i + gr < n else None
+        auftraege.append(_teil_frage_naht(teil, bedingung, i, n, vorg, nach))
+    ergebnisse = _arbeiter_parallel(auftraege, model, thinking)
+    spuren = [(f"arbeiter{j}", r) for j, r in enumerate(ergebnisse)]
+    summe = sum(v for r in ergebnisse if (v := _zahl(r.get("text", ""))) is not None)
+    return summe, spuren
+
+
+VERFAHREN["ZERLEGT_NAHT"] = zerlegt_naht

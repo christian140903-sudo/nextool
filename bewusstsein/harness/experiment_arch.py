@@ -54,12 +54,14 @@ def lauf(outdir, suite, tasks, arch_namen, runs, model, thinking, workers, modus
         text, spuren = mehrfach.ARCHITEKTUREN[arch](frage, suite, model, thinking)
         rec = {"suite": suite, "task_id": t["id"], "arch": arch, "run": r,
                "antwort": text,
-               "aufrufe": len(spuren),
+               # Pseudo-Spuren (z. B. der Schaltentscheid einer Architektur) sind
+               # keine Modellaufrufe und zaehlen nicht als solche.
+               "aufrufe": len([s for s in spuren if not s[1].get("pseudo")]),
                "tokens": sum(s[1].get("output_tokens", 0) for s in spuren),
                "ok": all(s[1].get("ok") for s in spuren),
                "spur": [{"rolle": n, "text": s.get("text", "")[:4000],
                          "tok": s.get("output_tokens", 0), "ok": s.get("ok"),
-                         "fehler": s.get("error")}
+                         "fehler": s.get("error"), "pseudo": bool(s.get("pseudo"))}
                         for n, s in spuren],
                "wall_s": round(time.time() - t0, 1)}
         tmp = p + ".tmp"
