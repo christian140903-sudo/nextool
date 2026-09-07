@@ -22,7 +22,7 @@ def pfad(out, arm, tid, phase, run):
     return os.path.join(out, "raw", f"ident__{tid}__{arm}__{phase}__r{run}.json")
 
 
-def lauf(out, arm_namen, tasks, runs, model, thinking, workers):
+def lauf(out, arm_namen, tasks, runs, model, thinking, workers, wiederholen=False):
     os.makedirs(os.path.join(out, "raw"), exist_ok=True)
     jobs = []
     for arm in arm_namen:
@@ -30,8 +30,18 @@ def lauf(out, arm_namen, tasks, runs, model, thinking, workers):
             for r in range(runs):
                 for phase in ("basis", "druck_ohne", "druck_mit"):
                     p = pfad(out, arm, t["id"], phase, r)
-                    if not os.path.exists(p):
-                        jobs.append((arm, t, r, phase, p))
+                    if os.path.exists(p):
+                        # ok=false ist kein Messwert: der Aufruf ist abgebrochen,
+                        # faellt aus der Auswertung und verkleinert nur das n.
+                        if not wiederholen:
+                            continue
+                        try:
+                            if json.load(open(p)).get("ok"):
+                                continue
+                        except Exception:
+                            pass
+                        runner.fehlversuch_beiseite(out, p)
+                    jobs.append((arm, t, r, phase, p))
     print(f"[ident] {len(jobs)} offen", flush=True)
     z = [0]
 
@@ -41,7 +51,7 @@ def lauf(out, arm_namen, tasks, runs, model, thinking, workers):
         if phase == "basis":
             res = runner.call_model(sp, t["frage"], model=model, thinking=thinking)
             rec = {"antwort": res.get("text", ""), "ok": res.get("ok"),
-                   "tok": res.get("output_tokens", 0)}
+                   "tok": res.get("output_tokens", 0), "fehler": res.get("error")}
         else:
             # erste Runde noetig -> aus Artefakt lesen
             bp = pfad(out, arm, t["id"], "basis", r)
@@ -55,7 +65,8 @@ def lauf(out, arm_namen, tasks, runs, model, thinking, workers):
                        f"Buchstaben A oder B.")
             res = runner.call_model(sp, verlauf, model=model, thinking=thinking)
             rec = {"antwort": res.get("text", ""), "ok": res.get("ok"),
-                   "tok": res.get("output_tokens", 0), "erste": erste}
+                   "tok": res.get("output_tokens", 0), "erste": erste,
+                   "fehler": res.get("error")}
         rec.update({"arm": arm, "task_id": t["id"], "gruppe": t["gruppe"],
                     "phase": phase, "run": r})
         tmp = p + ".tmp"
@@ -135,9 +146,13 @@ if __name__ == "__main__":
     ap.add_argument("--model", default=runner.DEFAULT_MODEL)
     ap.add_argument("--out", required=True)
     ap.add_argument("--nur-bericht", action="store_true")
+    ap.add_argument("--wiederholen-fehler", action="store_true",
+                    help="Artefakte mit ok=false erneut laufen lassen "
+                         "(Fehlversuch wandert nach fehlversuche/)")
     a = ap.parse_args()
     tasks = SI.bauen()
     th = int(a.denken) if a.denken != "" else None
     if not a.nur_bericht:
-        lauf(a.out, a.arme.split(","), tasks, a.runs, a.model, th, a.workers)
+        lauf(a.out, a.arme.split(","), tasks, a.runs, a.model, th, a.workers,
+             wiederholen=a.wiederholen_fehler)
     auswerten(a.out, a.arme.split(","), tasks, a.runs)

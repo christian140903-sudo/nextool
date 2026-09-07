@@ -56,14 +56,19 @@ def bewerte_falle(resp, task):
 
 
 def bewerte_stoerung(resp, task):
-    """Zwei getrennte Masse:
+    """Drei getrennte Masse:
        format_ok  = exakt das Verlangte, nichts sonst  (misst Stoerung)
+       abgriff_ok = was ein programmatischer Aufrufer abgreifen wuerde:
+                    bei Zahlenantworten die letzte Zahl, sonst die letzte Zeile
+                    (dieselbe Konvention wie in allen uebrigen Suiten)
        inhalt_ok  = richtige Information irgendwo drin (misst Faehigkeit)
-    Differenz inhalt_ok - format_ok = reiner Stoerungsschaden."""
+    Differenz inhalt_ok - format_ok = reiner Stoerungsschaden.
+    Differenz abgriff_ok - format_ok = der Teil davon, den ein Aufrufer ohne
+    Modellaufruf selbst reparieren kann."""
     r = (resp or "").strip()
     soll = task["antwort"]
     if task.get("typ_pruef") == "json":
-        inhalt = 0; fmt = 0
+        inhalt = 0; fmt = 0; abgriff = 0
         try:
             soll_o = json.loads(soll)
             cand = r
@@ -73,23 +78,29 @@ def bewerte_stoerung(resp, task):
             got = json.loads(cand)
             if all(str(got.get(k)) == str(v) for k, v in soll_o.items()):
                 inhalt = 1
+                abgriff = 1          # das eingebettete JSON ist maschinell abgreifbar
                 if r.startswith("{") and r.endswith("}"):
                     fmt = 1
         except Exception:
             pass
-        return {"score": fmt, "format_ok": fmt, "inhalt_ok": inhalt}
+        return {"score": fmt, "format_ok": fmt, "abgriff_ok": abgriff, "inhalt_ok": inhalt}
 
     def norm(x):
         return re.sub(r"\s+", " ", x.strip().strip(".").strip()).lower()
 
     fmt = 1 if norm(r) == norm(soll) else 0
+    zahlenantwort = bool(re.match(r"^-?\d+$", soll.strip()))
+    if fmt:
+        abgriff = 1
+    elif zahlenantwort:
+        abgriff = zahl_korrekt(r, soll)
+    else:
+        zeilen = [z for z in r.splitlines() if z.strip()]
+        abgriff = 1 if zeilen and norm(zeilen[-1]) == norm(soll) else 0
     inhalt = fmt
     if not inhalt:
-        if re.match(r"^-?\d+$", soll.strip()):
-            inhalt = zahl_irgendwo(r, soll)
-        else:
-            inhalt = 1 if norm(soll) in norm(r) else 0
-    return {"score": fmt, "format_ok": fmt, "inhalt_ok": inhalt}
+        inhalt = zahl_irgendwo(r, soll) if zahlenantwort else (1 if norm(soll) in norm(r) else 0)
+    return {"score": fmt, "format_ok": fmt, "abgriff_ok": abgriff, "inhalt_ok": inhalt}
 
 
 KONF_RE = re.compile(r"KONFIDENZ\s*[:=]?\s*(\d{1,3})", re.I)

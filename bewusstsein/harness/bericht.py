@@ -12,7 +12,7 @@ def tab(outdir, suite, arme, runs, basis, limit=None, titel=None):
     d = analyse.sammle(outdir, suite, tasks, arme, runs)
     vorhanden = [a for a in arme if d.get(a, {}).get("score")]
     if not vorhanden: return None
-    analyse.tabelle(titel or suite, d, vorhanden, basis=basis)
+    analyse.tabelle(suite, d, vorhanden, basis=basis, titel=titel)
     return d
 
 def zeile(d, a):

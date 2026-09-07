@@ -9,7 +9,20 @@ def pfad(outdir, suite, tid, arch, run):
     return os.path.join(outdir, "raw", f"{suite}__{tid}__{arch}__r{run}.json")
 
 
-def lauf(outdir, suite, tasks, arch_namen, runs, model, thinking, workers, modus):
+def _fehlversuch_beiseite(outdir, p):
+    """Legt ein fehlgeschlagenes Artefakt weg, statt es zu ueberschreiben.
+    Der Roh-Artefakt-Zwang gilt auch fuer Fehlversuche: sie bleiben nachweisbar."""
+    ziel = os.path.join(outdir, "fehlversuche")
+    os.makedirs(ziel, exist_ok=True)
+    basis = os.path.basename(p)[:-5]
+    k = 0
+    while os.path.exists(os.path.join(ziel, f"{basis}__v{k}.json")):
+        k += 1
+    os.rename(p, os.path.join(ziel, f"{basis}__v{k}.json"))
+
+
+def lauf(outdir, suite, tasks, arch_namen, runs, model, thinking, workers, modus,
+         wiederholen=False):
     os.makedirs(os.path.join(outdir, "raw"), exist_ok=True)
     experiment.MODUS["aktiv"] = modus
     jobs = []
@@ -17,8 +30,20 @@ def lauf(outdir, suite, tasks, arch_namen, runs, model, thinking, workers, modus
         for t in tasks:
             for r in range(runs):
                 p = pfad(outdir, suite, t["id"], arch, r)
-                if not os.path.exists(p):
-                    jobs.append((arch, t, r, p))
+                if os.path.exists(p):
+                    # Ein Artefakt mit ok=false ist kein Messwert, sondern ein
+                    # abgebrochener Aufruf. Ohne --wiederholen-fehler blieb er
+                    # dauerhaft als "erledigt" liegen und fiel still aus der
+                    # Auswertung.
+                    if not wiederholen:
+                        continue
+                    try:
+                        if json.load(open(p)).get("ok"):
+                            continue
+                    except Exception:
+                        pass
+                    _fehlversuch_beiseite(outdir, p)
+                jobs.append((arch, t, r, p))
     print(f"[{suite}] {len(jobs)} Architektur-Laeufe offen", flush=True)
     zaehler = [0]
 
@@ -33,7 +58,8 @@ def lauf(outdir, suite, tasks, arch_namen, runs, model, thinking, workers, modus
                "tokens": sum(s[1].get("output_tokens", 0) for s in spuren),
                "ok": all(s[1].get("ok") for s in spuren),
                "spur": [{"rolle": n, "text": s.get("text", "")[:4000],
-                         "tok": s.get("output_tokens", 0), "ok": s.get("ok")}
+                         "tok": s.get("output_tokens", 0), "ok": s.get("ok"),
+                         "fehler": s.get("error")}
                         for n, s in spuren],
                "wall_s": round(time.time() - t0, 1)}
         tmp = p + ".tmp"
@@ -54,25 +80,58 @@ def lauf(outdir, suite, tasks, arch_namen, runs, model, thinking, workers, modus
                 print(f"[{suite}] FEHLER: {e}", flush=True)
 
 
-def auswerten(outdir, suite, tasks, arch_namen, runs, basis="A_SC3"):
+def sammle(outdir, suite, tasks, arch_namen, runs):
+    """-> arch -> {'score','aufrufe','tok','paar','paar_inhalt','detail','fehl'}"""
     fn = bewerten.BEWERTER[suite]
     tmap = {t["id"]: t for t in tasks}
     daten = {}
     for arch in arch_namen:
-        rec = {"score": [], "aufrufe": [], "tok": [], "paar": collections.defaultdict(list)}
+        rec = {"score": [], "aufrufe": [], "tok": [], "paar": collections.defaultdict(list),
+               "detail": [], "paar_inhalt": collections.defaultdict(list), "fehl": 0}
         for t in tasks:
             for r in range(runs):
                 p = pfad(outdir, suite, t["id"], arch, r)
                 if not os.path.exists(p):
+                    rec["fehl"] += 1
                     continue
                 d = json.load(open(p))
                 if not d.get("ok"):
+                    rec["fehl"] += 1
                     continue
-                s = fn(d["antwort"], tmap[t["id"]])["score"]
-                rec["score"].append(s); rec["aufrufe"].append(d["aufrufe"])
-                rec["tok"].append(d["tokens"]); rec["paar"][t["id"]].append(s)
+                b = fn(d["antwort"], tmap[t["id"]])
+                rec["score"].append(b["score"]); rec["aufrufe"].append(d["aufrufe"])
+                rec["tok"].append(d["tokens"]); rec["paar"][t["id"]].append(b["score"])
+                rec["detail"].append(b)
+                if "inhalt_ok" in b:
+                    rec["paar_inhalt"][t["id"]].append(b["inhalt_ok"])
         daten[arch] = rec
+    return daten
 
+
+def paar_delta(x, y, schluessel, mindest=10):
+    """Gepaarter Bootstrap ueber die Aufgaben, die beide Arme gemessen haben."""
+    A, B = [], []
+    for tid in x[schluessel]:
+        if tid in y[schluessel]:
+            k = min(len(x[schluessel][tid]), len(y[schluessel][tid]))
+            A += x[schluessel][tid][:k]; B += y[schluessel][tid][:k]
+    if len(A) < mindest:
+        return None
+    return statistik.paired_bootstrap(A, B)
+
+
+def auswerten(outdir, suite, tasks, arch_namen, runs, basis="A_SC3"):
+    daten = sammle(outdir, suite, tasks, arch_namen, runs)
+
+    def delta(x, y, schluessel):
+        st = paar_delta(x, y, schluessel)
+        if not st:
+            return ""
+        sig = "*" if st["p"] < 0.05 else " "
+        return (f"{st['diff']*100:+6.1f}pp [{st['ci_lo']*100:+5.1f},"
+                f"{st['ci_hi']*100:+5.1f}] p={st['p']:.3f}{sig}")
+
+    getrennt = any("inhalt_ok" in d for a in arch_namen for d in daten[a]["detail"])
     print(f"\n{'='*96}\n{suite}  — Mehrfachaufruf-Architekturen\n{'='*96}")
     print(f"{'Architektur':16s} {'Genau.':>7s} {'n':>5s} {'Aufrufe':>8s} {'Tok':>7s} "
           f"{'Genau./Aufruf':>14s}  Δ vs {basis}")
@@ -85,20 +144,27 @@ def auswerten(outdir, suite, tasks, arch_namen, runs, basis="A_SC3"):
         ca = sum(d["aufrufe"]) / len(d["aufrufe"])
         tk = sum(d["tok"]) / len(d["tok"])
         eff = acc / ca * 100
-        zus = ""
-        if b and arch != basis and b["score"]:
-            A, B = [], []
-            for tid in b["paar"]:
-                if tid in d["paar"]:
-                    k = min(len(b["paar"][tid]), len(d["paar"][tid]))
-                    A += b["paar"][tid][:k]; B += d["paar"][tid][:k]
-            if len(A) >= 10:
-                st = statistik.paired_bootstrap(A, B)
-                sig = "*" if st["p"] < 0.05 else " "
-                zus = (f"{st['diff']*100:+6.1f}pp [{st['ci_lo']*100:+5.1f},"
-                       f"{st['ci_hi']*100:+5.1f}] p={st['p']:.3f}{sig}")
+        zus = "" if (not b or arch == basis or not b["score"]) else delta(b, d, "paar")
         print(f"{arch:16s} {acc*100:6.1f}% {len(d['score']):5d} {ca:8.2f} {tk:7.0f} "
               f"{eff:13.1f}%  {zus}")
+
+    if getrennt:
+        # Bei formatstrengen Suiten ist "score" die Formattreue. Der Inhalt wird
+        # getrennt ausgewiesen; die Differenz ist der reine Stoerungsschaden.
+        print(f"\n{'Architektur':16s} {'Format':>7s} {'Inhalt':>7s} {'Schaden':>8s}  Δ Inhalt vs {basis}")
+        for arch in arch_namen:
+            d = daten[arch]
+            det = [x for x in d["detail"] if "inhalt_ok" in x]
+            if not det:
+                continue
+            fo = sum(x["format_ok"] for x in det) / len(det)
+            io = sum(x["inhalt_ok"] for x in det) / len(det)
+            zus = "" if (not b or arch == basis) else delta(b, d, "paar_inhalt")
+            print(f"{arch:16s} {fo*100:6.1f}% {io*100:6.1f}% {(io-fo)*100:7.1f}pp  {zus}")
+
+    fehl = {a: daten[a]["fehl"] for a in arch_namen if daten[a]["fehl"]}
+    if fehl:
+        print(f"\nNicht verwertbar (fehlend oder abgebrochen): {fehl}")
 
 
 if __name__ == "__main__":
@@ -114,11 +180,15 @@ if __name__ == "__main__":
     ap.add_argument("--out", required=True)
     ap.add_argument("--basis", default="A_SC3")
     ap.add_argument("--nur-bericht", action="store_true")
+    ap.add_argument("--wiederholen-fehler", action="store_true",
+                    help="Artefakte mit ok=false erneut laufen lassen "
+                         "(Fehlversuch wandert nach fehlversuche/)")
     a = ap.parse_args()
     th = int(a.denken) if a.denken != "" else None
     archs = a.arch.split(",")
     for sn in a.suiten.split(","):
         tasks = experiment.lade_suite(sn)[:a.limit]
         if not a.nur_bericht:
-            lauf(a.out, sn, tasks, archs, a.runs, a.model, th, a.workers, a.modus)
+            lauf(a.out, sn, tasks, archs, a.runs, a.model, th, a.workers, a.modus,
+                 wiederholen=a.wiederholen_fehler)
         auswerten(a.out, sn, tasks, archs, a.runs, basis=a.basis)

@@ -187,6 +187,9 @@ def main():
     ap.add_argument("--modus", default="offen", choices=["offen","direkt"])
     ap.add_argument("--denken", default="", help="MAX_THINKING_TOKENS (leer=Standard, 0=aus)")
     ap.add_argument("--nur-bericht", action="store_true")
+    ap.add_argument("--wiederholen-fehler", action="store_true",
+                    help="Artefakte mit ok=false erneut laufen lassen "
+                         "(Fehlversuch wandert nach fehlversuche/)")
     a = ap.parse_args()
 
     MODUS["aktiv"] = a.modus
@@ -199,7 +202,8 @@ def main():
             tasks = tasks[:a.limit]
         jobs = baue_jobs(sn, tasks, arm_namen, a.runs, a.model)
         if not a.nur_bericht:
-            runner.run_jobs(jobs, a.out, workers=a.workers, label=sn)
+            runner.run_jobs(jobs, a.out, workers=a.workers, label=sn,
+                            wiederholen=a.wiederholen_fehler)
         erg, detail, tokens = bewerte_lauf(a.out, sn, tasks, arm_namen, a.runs)
         bericht(sn, tasks, arm_namen, erg, detail, tokens, basis=a.basis)
 

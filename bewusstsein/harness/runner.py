@@ -91,9 +91,25 @@ def artifact_path(outdir, suite, task_id, arm, run):
     return os.path.join(outdir, "raw", safe + ".json")
 
 
-def run_jobs(jobs, outdir, workers=5, label=""):
+def fehlversuch_beiseite(outdir, p):
+    """Legt ein abgebrochenes Artefakt nach fehlversuche/, statt es zu ueberschreiben.
+    Der Roh-Artefakt-Zwang gilt auch fuer Fehlversuche: sie bleiben nachweisbar."""
+    ziel = os.path.join(outdir, "fehlversuche")
+    os.makedirs(ziel, exist_ok=True)
+    basis = os.path.basename(p)[:-5]
+    k = 0
+    while os.path.exists(os.path.join(ziel, f"{basis}__v{k}.json")):
+        k += 1
+    os.rename(p, os.path.join(ziel, f"{basis}__v{k}.json"))
+
+
+def run_jobs(jobs, outdir, workers=5, label="", wiederholen=False):
     """jobs: Liste von dicts mit suite/task_id/arm/run/system/user/model/meta.
-    Schreibt je Job ein Artefakt. Ueberspringt vorhandene. Gibt alle Ergebnisse zurueck."""
+    Schreibt je Job ein Artefakt. Ueberspringt vorhandene. Gibt alle Ergebnisse zurueck.
+
+    wiederholen=True laeuft Artefakte mit ok=false erneut. Ohne das galt ein am
+    Sitzungslimit abgebrochener Aufruf dauerhaft als erledigt: er fiel still aus
+    der Auswertung und verkleinerte nur das n des betroffenen Arms."""
     os.makedirs(os.path.join(outdir, "raw"), exist_ok=True)
     todo, done = [], []
     for j in jobs:
@@ -101,8 +117,11 @@ def run_jobs(jobs, outdir, workers=5, label=""):
         if os.path.exists(p):
             try:
                 with open(p) as f:
-                    done.append(json.load(f))
-                continue
+                    alt = json.load(f)
+                if alt.get("ok") or not wiederholen:
+                    done.append(alt)
+                    continue
+                fehlversuch_beiseite(outdir, p)
             except Exception:
                 pass
         todo.append((j, p))

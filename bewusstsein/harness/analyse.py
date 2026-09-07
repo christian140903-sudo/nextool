@@ -53,8 +53,10 @@ def sammle(outdir, suite, tasks, arme, runs):
     return out
 
 
-def tabelle(suite, daten, arme, basis="N"):
-    print(f"\n{'='*92}\n{suite}\n{'='*92}")
+def tabelle(suite, daten, arme, basis="N", titel=None):
+    """suite muss der echte Suitenname bleiben -- an ihm haengt die Zusatzspalte.
+    Wer eine Ueberschrift will, gibt sie als titel."""
+    print(f"\n{'='*92}\n{titel or suite}\n{'='*92}")
     print(f"{'Arm':16s} {'Genau.':>7s} {'n':>5s} {'Tok':>7s} {'Δ vs '+basis:>12s} "
           f"{'95%-KI':>18s} {'p':>7s}  Hinweis")
     b = daten.get(basis)
@@ -67,7 +69,9 @@ def tabelle(suite, daten, arme, basis="N"):
         extra = ""
         if suite == "stoerung":
             fo = [x["format_ok"] for x in d["detail"]]; io = [x["inhalt_ok"] for x in d["detail"]]
-            extra = f"inhalt {sum(io)/len(io)*100:.1f}% / Formatschaden {(sum(io)-sum(fo))/len(io)*100:.1f}pp"
+            ao = [x["abgriff_ok"] for x in d["detail"]]
+            extra = (f"abgriff {sum(ao)/len(ao)*100:.1f}% / inhalt {sum(io)/len(io)*100:.1f}% "
+                     f"/ Formatschaden {(sum(io)-sum(fo))/len(io)*100:.1f}pp")
         if arm == basis or not b:
             print(f"{arm:16s} {acc:6.1f}% {len(d['score']):5d} {tok:7.0f} {'—':>12s} "
                   f"{'':>18s} {'':>7s}  {extra}")
