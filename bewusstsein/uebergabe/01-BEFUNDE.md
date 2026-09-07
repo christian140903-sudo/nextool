@@ -102,6 +102,35 @@ nativem Extended Thinking erzeugte Ausführer-Antworten von bis zu 18 137 Tokens
 und einen Aufruf, der nach 1 953 s abbrach. Untere Ebenen brauchen ein
 **begrenztes** Denkbudget, sonst eskalieren vage Arbeitsaufträge.
 
+**B5 — KORREKTUR: Das obige gilt fürs DURCHREICHEN, nicht fürs ZERLEGEN.**
+
+Die Messungen B1–B4 reichen dieselbe Aufgabe durch mehrere Ebenen, wobei jede
+sie neu formuliert. Der Entwurf sieht aber etwas anderes vor: die oberste Ebene
+**zerlegt** eine Aufgabe in Teile, jede untere Ebene bearbeitet nur ihren Teil.
+Das wurde getrennt gemessen (bedingtes Zählen über 150 Zahlen, Arbeiter parallel,
+je 15 Zahlen, mit Denkbudget):
+
+| Verfahren | Bedingung **sauber zerlegbar** | Bedingung **mit Randabhängigkeit** | Aufrufe |
+|---|---|---|---|
+| ein Agent allein | 89 % | 89 % | 1 |
+| **zerlegt, Code fügt zusammen** | **100 %** | **28 %** | 10 |
+| zerlegt, Modell fügt zusammen | **100 %** | 75 % | 11 |
+
+**Wo die Aufgabe echt teilbar ist, gewinnt Zerlegung** — 100 % gegen 89 %. Ebenen
+sind dort kein Kostenposten, sondern ein Gewinn. Die frühere Formulierung
+„jede Ebene kostet" war zu breit und ist hiermit eingeschränkt.
+
+**Wo eine Abhängigkeit über die Schnittkante läuft, bricht es ein** — auf 28 %,
+und zwar *obwohl* der Randwert an die Arbeiter weitergegeben wurde. Die Ursache
+ist nicht der fehlende Wert, sondern die **Mehrdeutigkeit der Anweisung an der
+Naht**: „die allererste Zahl zählt nie mit" ist auf Teillistenebene nicht mehr
+eindeutig. Lässt man das Modell statt Code zusammenfügen, fängt es einen Teil
+davon ab (75 %).
+
+**Die eigentliche Fähigkeit der obersten Ebene ist damit benannt und messbar:**
+nicht „zerlegen können", sondern **erkennen, ob eine Aufgabe zerlegbar ist, und
+die Nahtstellen eindeutig machen.** Das ist der Unterschied zwischen 100 % und 28 %.
+
 ---
 
 ## C · Was gegen den stärksten Gegner gewinnt

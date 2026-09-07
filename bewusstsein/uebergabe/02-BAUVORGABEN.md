@@ -68,7 +68,24 @@ Vor dem Bau je einen Arm durch die Strecke schicken.
 
 ## 3. Ebenen — die Kostenentscheidung
 
-### 3.1 Regel
+### 3.0 Zuerst: zerlegen oder durchreichen?
+
+Das ist die Unterscheidung, an der alles hängt.
+
+| | gemessen | Urteil |
+|---|---|---|
+| **Zerlegen** (Teilaufgaben, Arbeiter sieht nur seinen Teil) | 100 % gegen 89 % — **wenn sauber teilbar** | **bauen** |
+| **Zerlegen mit Abhängigkeit über die Naht** | 28 % gegen 89 % | Naht zuerst eindeutig machen, sonst nicht zerlegen |
+| **Durchreichen** (dieselbe Aufgabe, neu formuliert) | −13,9 pp je Ebene | vermeiden |
+
+**Die Prüffrage vor jeder Zerlegung lautet: Gibt es eine Abhängigkeit, die über
+eine Schnittkante läuft?** Wenn ja, muss die Teilanweisung an der Naht eindeutig
+sein — der Randwert allein genügt nicht (gemessen: 28 % trotz übergebenem
+Randwert). Wenn die Naht nicht eindeutig gemacht werden kann, nicht zerlegen.
+
+Diese Prüfung gehört in den Code der Zerlegungsfunktion, nicht in die Absicht.
+
+### 3.1 Regel für Durchreichen
 
 > **Eine Ebene wird nur eröffnet, wenn sie einen Grund hat, den ein einzelner
 > Aufruf nicht erfüllen kann.** Gültige Gründe: echte Parallelität, Kontextgrenze,
