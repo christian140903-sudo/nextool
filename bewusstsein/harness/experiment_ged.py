@@ -87,6 +87,8 @@ def auswerten(out, varianten, tasks, runs):
               f"{sum(r['beides'])/n*100:7.1f}% {sum(r['unbekannt'])/n*100:9.1f}% {n:5d}")
 
     def vgl(a, b, label):
+        if a not in daten or b not in daten:
+            return
         pa, pb = daten[a]["paar"], daten[b]["paar"]
         A, B = [], []
         for tid in pa:
@@ -98,7 +100,9 @@ def auswerten(out, varianten, tasks, runs):
 
     print("\n  Die drei Fragen:")
     vgl("OHNE", "SAUBER", "(a) bringt Gedaechtnis etwas?   OHNE->SAUBER   ")
-    vgl("SAUBER", "RAUSCHEN", "(b) verduennt Rauschen?         SAUBER->RAUSCHEN")
+    vgl("SAUBER", "RAUSCHEN", "(b) verduennt Rauschen?         SAUBER->RAUSCHEN  (12)")
+    vgl("SAUBER", "RAUSCH60", "(b) verduennt Rauschen?         SAUBER->RAUSCH60  (60)")
+    vgl("SAUBER", "RAUSCH200", "(b) verduennt Rauschen?         SAUBER->RAUSCH200(200)")
     vgl("GIFT", "GIFT_HERKUNFT", "(c) schuetzt Herkunft?          GIFT->GIFT_HERKUNFT")
     if "GIFT_NUR_METADATEN" in daten:
         vgl("GIFT", "GIFT_NUR_METADATEN", "(d) reichen Metadaten allein?   GIFT->NUR_METADATEN ")

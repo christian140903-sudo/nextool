@@ -114,3 +114,12 @@ ARCHITEKTUREN = {
     "A_SELEKTIV": arch_selektiv,
     "A_SC3": arch_sc3,
 }
+
+
+def arch_direkt(frage, suite, model, thinking):
+    """Ein einzelner Aufruf -- Vergleichsmassstab fuer die Modelloekonomie."""
+    r = runner.call_model(None, frage, model=model, thinking=thinking)
+    return r.get("text", ""), [("direkt", r)]
+
+
+ARCHITEKTUREN["A_DIREKT"] = arch_direkt

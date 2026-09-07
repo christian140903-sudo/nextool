@@ -161,3 +161,41 @@ protokollier- und im Live-Fenster anzeigbar.
 *Beim Ausführen zwei Fehler gefunden, die beim bloßen Schreiben unsichtbar
 geblieben wären:* `go --version` existiert nicht (`go version`), und Javas
 Versionsformat lieferte „127.0.0" statt „21.0.10". Beide behoben.
+
+---
+
+## F · Modellökonomie — Kosten je bestandenem Ergebnis
+
+Listenpreise Stand 2026-06 (Haiku 4.5 $1/$5, Sonnet-Tier $2/$10 je 1M).
+**Nur Ausgabetokens gerechnet** — die Eingaben sind hier kurz und 5–10× billiger;
+für längere Kontexte verschiebt sich das Bild zugunsten von Caching.
+
+| Aufbau | Genauigkeit | Aufrufe | $/Versuch | $/bestanden | relativ |
+|---|---|---|---|---|---|
+| **Haiku, frei arbeitend** | 74,7 % | 1 | 0,0024 | **0,0032** | **1,00×** |
+| Sonnet, frei arbeitend | 97,3 % | 1 | 0,0050 | 0,0052 | 1,63× |
+| **Sonnet + Prüfer** | **100,0 %** | 2 | 0,0067 | 0,0067 | 2,10× |
+| Haiku + Prüfer | 84,0 % | 2 | 0,0059 | 0,0070 | 2,21× |
+| **Selbstkonsistenz@3** | 64,0 % | 3 | 0,0087 | **0,0136** | **4,28×** |
+
+**F1 — Selbstkonsistenz@3 ist das schlechteste Geschäft im ganzen Feld.**
+4,28-facher Preis für die *niedrigste* Genauigkeit. Sie war der Pflichtgegner des
+Projekts; sie ist als Baustein disqualifiziert, nicht nur geschlagen.
+
+**F2 — Meine eigene Hypothese ist widerlegt.** „Schwaches Modell + Prüfer schlägt
+starkes Modell allein" stimmt hier **nicht**: Haiku+Prüfer ist zugleich ungenauer
+(84,0 % vs 97,3 %) **und** teurer (2,21× vs 1,63×) als Sonnet, das einfach frei
+arbeiten darf. Der Prüfer ist kein Sparmechanismus.
+
+**F3 — Der Prüfer kauft Verlässlichkeit, nicht Ersparnis.** Sonnet+Prüfer ist die
+einzige Konfiguration mit 100 %. Wo ein Fehler teuer ist, ist das die 0,47 Cent
+je Ergebnis wert; wo er billig ist, nicht.
+
+**F4 — Meisterschaft unter Knappheit heißt zuerst: das billige Modell arbeiten
+lassen.** Haiku, das sichtbar rechnen darf, liefert 74,7 % zum niedrigsten Preis
+im Feld — günstiger als jede Verstärkungsarchitektur. Wer wenig Kontingent hat,
+gewinnt mehr durch *Wegnehmen von Fesseln* als durch Hinzufügen von Ebenen.
+
+*Einschränkung:* ein Aufgabentyp, nur Ausgabetokens, und der Fall „Sonnet
+formatbeschränkt" (22,7 %) ist ein Artefakt der Sofort-Antwort-Anweisung — er
+zeigt den Unterdrückungsschaden, nicht Sonnets Fähigkeit.

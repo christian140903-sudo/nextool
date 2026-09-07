@@ -142,6 +142,21 @@ Vorfilter (`signals.ts`) plus Chrisos Verhaltensentropie (AUC 0,968).
 
 ---
 
+## 5b. Modellwahl — die Ökonomie
+
+| Regel | Messwert |
+|---|---|
+| **Zuerst dem billigen Modell die Fesseln nehmen.** Haiku, das sichtbar arbeiten darf: 74,7 % zum niedrigsten Preis im Feld. | 1,00× |
+| Wo Genauigkeit zählt, das starke Modell **frei arbeiten lassen** — nicht das billige mit Architektur aufrüsten. | 97,3 % bei 1,63× |
+| Prüfer dort, wo ein Fehler teuer ist. Er kauft Verlässlichkeit (100 %), keine Ersparnis. | 2,10× |
+| **Selbstkonsistenz@3 nicht bauen.** 4,28× Preis für die niedrigste Genauigkeit. | disqualifiziert |
+
+„Schwaches Modell + Prüfer schlägt starkes Modell allein" wurde geprüft und ist
+**falsch** (84,0 % bei 2,21× gegen 97,3 % bei 1,63×). Der Prüfer ist kein
+Sparmechanismus.
+
+---
+
 ## 6. Weglassen — mit Zahlen
 
 | Was | Messwert |
@@ -153,7 +168,8 @@ Vorfilter (`signals.ts`) plus Chrisos Verhaltensentropie (AUC 0,968).
 | Übergabe-Vertrag mit wörtlicher Weitergabe (E7) | −15,3 bis −25,4 pp |
 | Identität als Persona-Deklaration | Rückgrat 13,6 % vs 12,8 % nackt |
 | Bewusstseins-Vokabular im Produkt | trägt 0 messbar bei |
-| Retrieval-Optimierung als erste Baumaßnahme | Rauschen kostet nur 3,3 pp (n.s.) |
+| Retrieval-Optimierung als erste Baumaßnahme | Rauschen kostet 3,3 pp bei 12, 3,3 pp bei 60, 0 pp bei 200 Einträgen — alle n.s. |
+| Selbstkonsistenz@3 als Verstärkungsschicht | 4,28× Kosten je bestandenem Ergebnis, niedrigste Genauigkeit |
 
 ---
 
