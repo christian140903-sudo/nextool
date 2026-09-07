@@ -1,6 +1,6 @@
 # Bauplan Soul 10.0.0 — Reihenfolge, Regeln, Abnahme
 
-*Stand 2026-09-06. Jeder Schritt ist EIN Agent (strikt nacheinander). Jeder Agent liest zuerst `../research/00-KONTEXT-FUER-AGENTEN.md` (Abschnitte 1–13), dann `../02-design-entscheidungsregister.md` (ab B2), dann `00b-ERFINDUNGEN.md` (die Sprünge je Säule, verbindlich), dann seinen Auftrag hier. Schreib-Auflage gilt: Zieldateien zuerst anlegen, nach jedem Teil speichern.*
+*Stand 2026-09-06. Jeder Schritt ist EIN Agent (strikt nacheinander). Jeder Agent liest zuerst `../research/00-KONTEXT-FUER-AGENTEN.md` (Abschnitte 1–13), dann `../02-design-entscheidungsregister.md` (ab B2), dann `00b-ERFINDUNGEN.md` (die Sprünge je Säule, verbindlich), dann `00c-DENK-VOR-BAU.md` (Pflichtprotokoll: Überblick → Eigenentwurf → Bau → Hebungsprotokoll), dann seinen Auftrag hier. Schreib-Auflage gilt: Zieldateien zuerst anlegen, nach jedem Teil speichern.*
 
 ## Reihenfolge
 
@@ -25,6 +25,8 @@
 | B11 | SOUL-Branch | Overlay auf SOUL-Checkout, Branch `soul-10` | Diff-Liste; Doctor grün im Overlay |
 
 ## Regeln für jeden Bau-Agenten
+
+0. **Denk vor Bau** (`00c-DENK-VOR-BAU.md`): erst Überblick, dann schriftlicher Eigenentwurf mit Hebung über den Auftrag hinaus, dann Bau auf dem Eigenentwurf, dann Hebungsprotokoll. Der Eigenentwurf liegt in `docs/entwuerfe/<Schritt>-eigenentwurf.md`.
 
 1. **Gold aus Erz** (Kontextpaket §13): jede Datei, die eine geerbte Idee umsetzt, trägt am Ende eine Zeile `Erz → Gold: <was das Original wollte> → <wie hier besser/anders>`.
 2. **Kein toter Mechanismus:** jeder Mechanismus hat einen Aufruf-Pfad (Hook, Skill-Trigger, Skript, Schedule) und einen Log-Eintrag; steht beides nicht, wird er als „nicht gebaut" markiert, nicht als fertig.
