@@ -63,9 +63,10 @@ def _rank(entry: dict, *, relevance: float = 1.0, now: str | None = None) -> flo
 
 # --- Suche ------------------------------------------------------------------------------------
 def _tokens(query: str) -> list[str]:
-    """SOUL-Muster: nur Wortzeichen je Token; jedes Token wird gequotet, FTS5-Syntax bricht nie."""
-    tokens = [re.sub(r"[^\w]", "", t) for t in (query or "").split()]
-    return [t for t in tokens if t]
+    """SOUL-Muster, eine Stelle schärfer: Tokens sind Läufe aus Wortzeichen, getrennt an allem
+    anderen (auch Bindestrich und Unterstrich — dort trennt FTS5 ebenfalls); jedes Token wird
+    gequotet, FTS5-Syntax bricht nie."""
+    return re.findall(r"[^\W_]+", query or "")
 
 
 def search(query: str, *, limit: int = 8, status: Iterable[str] = ("active",),
@@ -176,10 +177,11 @@ def _assemble(header: str, blocks: list[list[str]], entry_lines: list[tuple[dict
     """Baut den Text: Kopf, feste Blöcke (in Prioritätsfolge), Einträge, Regel.
 
     Kürzt zuerst die Einträge, dann die festen Blöcke von hinten, nie die Regel, nie den Kopf.
-    Das Ergebnis hat höchstens max_lines Zeilen.
+    Das Ergebnis hat höchstens max_lines Zeilen; Boden ist Kopf + Regel (mit Regel 6 Zeilen,
+    ohne 1), weil weniger nur durch Kürzen der Regel ginge.
     """
     rule_lines = _rule_line_count() if with_rule else 0
-    budget = max(1, int(max_lines)) - rule_lines
+    budget = max(int(max_lines), 1 + rule_lines) - rule_lines
     lines: list[str] = [header]
     fixed: list[str] = []
     for block in blocks:
