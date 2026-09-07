@@ -13,10 +13,18 @@ Diese Mappe misst. Rund **10 000 kontrollierte Modellaufrufe**, objektive
 Grundwahrheit (in Python gerechnet, kein Judge-Modell), vorregistrierte Schwellen,
 Rohbelege als Archive.
 
+## Wenn du das bauende Modell bist
+
+**Fang mit `06-AUFTRAG.md` an.** Das ist der einzige Text, der an dich gerichtet
+ist: das vollständige Ziel, was gemessen ist und wie fest, was ungeprüft blieb,
+wo ich vermutlich falsch liege — und die ausdrückliche Vollmacht, alles davon
+umzustoßen. Der Rest ist Material, das du danach gezielt liest.
+
 ## Wie du sie liest
 
 | Datei | Inhalt |
 |---|---|
+| **`06-AUFTRAG.md`** | **Einstieg für das bauende Modell — Ziel, Vollmacht, Bauordnung** |
 | `01-BEFUNDE.md` | Alle gemessenen Befunde mit Zahlen und Belegpfaden |
 | `02-BAUVORGABEN.md` | Was bauen, was weglassen — jede Zeile mit Messwert |
 | `03-OFFENE-FRAGEN.md` | Was **nicht** gemessen ist, nach Wert sortiert |
