@@ -4,7 +4,8 @@ Befund: die Aufwandsregel gewinnt +12,4 pp auf schweren Aufgaben, kostet aber al
 −16,7 pp Formattreue auf trivialen (bewusstsein/berichte/01-BEFUNDE.md §4); der Prüfer ist auf
 trivialen Aufgaben 100 % richtig und 0 % formattreu (§5); A_SELEKTIV hält sich mit 2,08 Aufrufen
 zurück, wo nichts zu tun ist (§5). Beide Mechanismen sind als Dauerschicht abgelehnt und als
-geschaltete Stufe angenommen (02-UEBERGABE-BAU §5).
+geschaltete Stufe angenommen (02-UEBERGABE-BAU §5). M1 (2026-09-07) hat die Überraschung als
+zweiten Schaltereingang widerlegt (Spezifität 8 %); geschaltet wird über Vorfilter und Uneinigkeit.
 Erz → Gold: soul-proxy-45/src/amplify/signals.ts war ein Proto-Router ohne Test, mit
 Falsch-Positiven auf Allerweltswörtern (`oder`, `besser`, `live`, `user\\w*`; R10 §2.2.4).
 Hier derselbe Katalog ohne diese Wörter, deterministisch, stdlib, mit Datensatz-Test und einem
@@ -22,14 +23,15 @@ from . import model as _model  # Alias: der Parameter `model` (Modellname) über
 STAGES = ("direkt", "aufwand", "pruefer")
 TRIVIAL_MAX_CHARS = 200
 
-# --- Signale: Port von signals.ts ohne die Falsch-Positiv-Wörter ------------------------
+# --- Signale: Port von signals.ts ohne die Falsch-Positiv-Wörter ------------------------------
 # Entfernt gegenüber der Vorlage (R10 §2.2.4): `oder` und `entweder` allein (tradeoff), `besser`
 # und `rat\w*` (recommendation), `live` und `kunde`/`customer`-Dublette (production), `user\w*`
 # (affects_others), `text\w*`/`copy` (craft), `pick`/`einstell\w*` (commitment: Einstellungen),
-# `underspecified` (Negativmuster, feuert auf „Wie spät ist es?"). Dubletten `vertrag`/`architect`
-# stehen nur noch in je einer Klasse. Neu: `format_locked` (Formatzwang), `text` (aus
-# signals.ts TEXT_SIGNAL_PATTERN), `reasoning` (Beweis/Herleitung/Erklärung) und
-# `mehrere_groessen` (≥ 3 Zahlen im Prompt) — die letzten beiden sind Erweiterungen.
+# `drop` allein (irreversible: Drop-down), `underspecified` (Negativmuster, feuert auf „Wie spät
+# ist es?"). Dubletten `vertrag`/`architect` stehen nur noch in je einer Klasse. Neu:
+# `format_locked` (Formatzwang), `text` (aus signals.ts TEXT_SIGNAL_PATTERN), `reasoning`
+# (Beweis/Herleitung/Erklärung) und `mehrere_groessen` (≥ 3 Zahlen im Prompt — „mehrere Größen"
+# im Sinn der Aufwandsregel); die letzten beiden sind Erweiterungen.
 SIGNALS: dict[str, re.Pattern] = {
     "presupposed_solution": re.compile(
         r"\b(?:add|introduce|implement|build|use|switch to|migrate to|integrate"
@@ -44,7 +46,7 @@ SIGNALS: dict[str, re.Pattern] = {
         r"|protokoll|protocol|datenmodell|data model|langfristig|long-?term|wartbar"
         r"|maintainab\w*)\b", re.IGNORECASE),
     "architecture": re.compile(
-        r"\b(?:architect\w*|architekt\w*|struktur|structure|refactor\w*|umbau|redesign|neubau"
+        r"\b(?:architect\w*|architekt\w*|struktur|structure|refactor\w*|umbau\w*|redesign|neubau"
         r"|system design)\b", re.IGNORECASE),
     "irreversible": re.compile(
         r"\b(?:deploy\w*|prod(?:uction)?|release|publish|ver(?:ö|oe)ffentlich\w*|migrat\w*"
@@ -83,9 +85,12 @@ SIGNALS: dict[str, re.Pattern] = {
         r"|explain|diskutier\w*|discuss|bewert\w*|evaluate)\b", re.IGNORECASE),
     # mindestens drei Zahlen: „mehrere Größen" im Sinn der Aufwandsregel
     "mehrere_groessen": re.compile(r"\d+(?:[.,]\d+)*(?:\D+\d+(?:[.,]\d+)*){2}"),
+    # Formatzwang (ARCHITEKTUR 5.5): nur/only/exakt/genau … Zahl/Wort/Zeile/JSON; JSON; Gib … aus;
+    # kein weiterer Text; nichts sonst — plus englische Entsprechungen. Der Abstand zwischen
+    # „nur" und dem Formatwort ist auf einen Satz und 60 Zeichen begrenzt.
     "format_locked": re.compile(
         r"\b(?:nur|only|exakt|genau|exactly)\b[^\n.!?]{0,60}?"
-        r"\b(?:Zahl|Wort|Zeile|Ziffer|JSON|number|word|line|digit|code)\b"
+        r"\b(?:Zahl|Wort|Zeile|Ziffer|JSON|number|word|line|digit)\b"
         r"|\bJSON\b"
         r"|\bGib\b[^\n.!?]{0,80}\baus\b"
         r"|\bkein weiterer Text\b|\bnichts sonst\b|\bnothing else\b"
@@ -95,13 +100,22 @@ SIGNALS: dict[str, re.Pattern] = {
         re.IGNORECASE),
 }
 
-# Signale, die eine Aufgabe NICHT aus der Trivialität heben: der Formatzwang führt selbst zu
-# „direkt", und „add/use/build" stehen auch in Einzeilern („Use two decimals").
-WEAK_SIGNALS = frozenset({"format_locked", "presupposed_solution"})
+# Der Formatzwang hebt eine Aufgabe nicht aus der Trivialität: er führt selbst zu „direkt".
+FORMAT_SIGNAL = "format_locked"
 
-# Satzgrenzen: Satzzeichen nach einem Nicht-Digit plus Leerraum (damit „1. Januar" und „2.5"
-# nicht trennen) oder ein Zeilenumbruch.
-_SENTENCE_SPLIT = re.compile(r"(?<=[^\d][.!?:])\s+|\n+")
+# --- Satzzählung ------------------------------------------------------------------------------
+# Ein Satz endet an . ! ? gefolgt von Leerraum und Großbuchstabe/Ziffer/Anführungszeichen, oder
+# an einem Zeilenumbruch. Ordinal-Daten („1. Januar") und gängige Abkürzungen („z. B.", „Nr.")
+# werden vorher entschärft, damit sie nicht als Satzende zählen.
+_MONTHS = (r"(?:Jan(?:uar)?|Feb(?:ruar)?|M(?:ä|ae)rz|Apr(?:il)?|Mai|Juni?|Juli?|Aug(?:ust)?"
+           r"|Sep(?:t|tember)?|Okt(?:ober)?|Nov(?:ember)?|Dez(?:ember)?)")
+_ORDINAL_DATE = re.compile(r"\b(\d{1,2})\.\s+(?=" + _MONTHS + r"\b)")
+# abgekürzter Monat vor einer Jahreszahl („Okt. 1990") ist ebenfalls kein Satzende
+_MONTH_ABBREV = re.compile(r"\b(Jan|Feb|M(?:ä|ae)r|Apr|Jun|Jul|Aug|Sept?|Okt|Nov|Dez)\.\s+(?=\d)")
+_ABBREVIATION = re.compile(
+    r"\b(?:z\.\s?B|u\.\s?a|d\.\s?h|o\.\s?(?:ä|ae)|bzw|etc|ca|vgl|inkl|Nr|Dr|Prof|St|Mr|Mrs|Ms"
+    r"|e\.\s?g|i\.\s?e|approx)\.\s+", re.IGNORECASE)
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+(?=[A-ZÄÖÜ0-9\"'(])|\n+")
 
 
 def detect_signals(prompt: str) -> list[str]:
@@ -112,26 +126,31 @@ def detect_signals(prompt: str) -> list[str]:
 
 def sentence_count(prompt: str) -> int:
     """Anzahl Sätze/Fragen; ein Prompt ohne Satzzeichen zählt als ein Satz."""
-    pieces = [p for p in _SENTENCE_SPLIT.split((prompt or "").strip()) if p and p.strip()]
+    text = (prompt or "").strip()
+    text = _ORDINAL_DATE.sub(r"\1 ", text)
+    text = _MONTH_ABBREV.sub(r"\1 ", text)
+    text = _ABBREVIATION.sub(lambda m: m.group(0).replace(".", "") + " ", text)
+    pieces = [p for p in _SENTENCE_SPLIT.split(text) if p and p.strip()]
     return max(1, len(pieces))
 
 
 def prefilter(prompt: str) -> dict:
     """Deterministischer Vorfilter: {"len", "signals", "trivial", "format_locked", "sentences"}.
 
-    trivial: ≤ 200 Zeichen UND kein (starkes) Signal UND höchstens ein Satz/eine Frage.
+    trivial: ≤ 200 Zeichen UND kein Signal (der Formatzwang zählt nicht, er führt selbst zu
+    „direkt") UND höchstens ein Satz/eine Frage.
     format_locked: der Prompt schreibt das Ausgabeformat fest (nur die Zahl, JSON, nichts sonst).
     """
     text = (prompt or "").strip()
     signals = detect_signals(text)
-    strong = [s for s in signals if s not in WEAK_SIGNALS]
+    stakes = [s for s in signals if s != FORMAT_SIGNAL]
     sentences = sentence_count(text)
-    trivial = len(text) <= TRIVIAL_MAX_CHARS and not strong and sentences <= 1
+    trivial = len(text) <= TRIVIAL_MAX_CHARS and not stakes and sentences <= 1
     return {"len": len(text), "signals": signals, "trivial": trivial,
-            "format_locked": "format_locked" in signals, "sentences": sentences}
+            "format_locked": FORMAT_SIGNAL in signals, "sentences": sentences}
 
 
-# --- Entropie-Sonde -------------------------------------------------------------------------
+# --- Entropie-Sonde -------------------------------------------------------------------------------
 def _comparable(result: dict):
     """Vergleichswert einer Stichprobe: letzte Zahl, sonst letzte Zeile (normalisiert); None bei Fehler."""
     if not result.get("ok"):
@@ -148,17 +167,19 @@ def entropy_probe(task: str, *, model: str | None = None, thinking: int = 0, n: 
     """n billige Aufrufe ohne Systemprompt; einig, wenn alle Endwerte gleich sind.
 
     Ein fehlgeschlagener Aufruf zählt als uneinig (lieber ein Prüfer zu viel als ein Fehler
-    unbemerkt). Rückgabe {"agree", "values", "calls"}.
+    unbemerkt). Rückgabe {"agree", "values", "calls"}. Der Bus erhält nur Einigkeit und die
+    Zahl der verschiedenen Werte, nie Text.
     """
     n = max(1, int(n))
     results = [_model.call(None, task, model=model, thinking=thinking) for _ in range(n)]
     values = [_comparable(r) for r in results]
     agree = all(v is not None for v in values) and len(set(values)) == 1
-    bus.emit("switch.entropy_probe", agree=agree, calls=n, values=values)
+    bus.emit("switch.entropy_probe", agree=agree, calls=n, distinct=len(set(values)),
+             failed=sum(1 for v in values if v is None))
     return {"agree": agree, "values": values, "calls": n}
 
 
-# --- Entscheidung ---------------------------------------------------------------------------
+# --- Entscheidung ---------------------------------------------------------------------------------
 def _log_routing(record: dict) -> None:
     """Eine Zeile routing.jsonl — fail-open, nie eine Exception nach außen."""
     try:
@@ -175,7 +196,8 @@ def decide(prompt: str, *, probe: bool = False, model: str | None = None) -> dic
     aufwand  : sonst → model.AUFWANDSREGEL einblenden.
     pruefer  : nur wenn probe=True, die Stufe sonst aufwand wäre und die Entropie-Sonde
                uneinig ist → Aufwandsregel einblenden UND Prüfer rufen.
-    Rückgabe {"stage", "reason", "inject", "signals", "len", "trivial", "format_locked", "sha", "probe"}.
+    Rückgabe {"stage", "reason", "inject", "signals", "len", "trivial", "format_locked",
+              "sentences", "sha", "probe"}.
     """
     text = (prompt or "").strip()
     pf = prefilter(text)
@@ -186,9 +208,9 @@ def decide(prompt: str, *, probe: bool = False, model: str | None = None) -> dic
         stage, reason = "direkt", "format_locked: Ausgabeformat festgeschrieben"
     else:
         stage = "aufwand"
-        strong = [s for s in pf["signals"] if s not in WEAK_SIGNALS]
-        if strong:
-            reason = "Signale: " + ", ".join(strong)
+        stakes = [s for s in pf["signals"] if s != FORMAT_SIGNAL]
+        if stakes:
+            reason = "Signale: " + ", ".join(stakes)
         elif pf["len"] > TRIVIAL_MAX_CHARS:
             reason = f"Länge {pf['len']} > {TRIVIAL_MAX_CHARS}"
         else:

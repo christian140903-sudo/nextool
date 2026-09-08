@@ -330,9 +330,9 @@ def undo(id: str, *, dry_run: bool = False) -> dict:
 
 
 def list_open() -> list[dict]:
-    """Alle Posten mit Status open (auch die ohne Rückweg), zeitlich sortiert."""
-    return sorted((p for p in _load().values() if p.get("status") == "open"),
-                  key=lambda p: (p.get("at", ""), p.get("id", "")))
+    """Alle Posten mit Status open (auch die ohne Rückweg), in Reihenfolge der Registrierung
+    (die Dateireihenfolge des Kontos ist die Zeitachse — genauer als Sekunden-Zeitstempel)."""
+    return [p for p in _load().values() if p.get("status") == "open"]
 
 
 def quota() -> dict:

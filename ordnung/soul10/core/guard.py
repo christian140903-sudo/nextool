@@ -151,7 +151,7 @@ def own_remotes() -> list[str]:
     except ImportError:
         profile = None
     remotes = (profile or {}).get("own_remotes") if isinstance(profile, dict) else None
-    out = [str(r).strip() for r in (remotes or []) if str(r).strip()]
+    out = [r.strip() for r in (remotes or []) if isinstance(r, str) and r.strip()]
     return out or list(DEFAULT_OWN_REMOTES)
 
 
