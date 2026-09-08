@@ -278,3 +278,17 @@ def test_quarantaene_aus_archiv_und_abloesung_erlaubt():
     ledger.transition(a, "archived")
     ledger.transition(a, "quarantined", reason="Kontaminationscheck")
     assert ledger.get(a)["status"] == "quarantined"
+
+
+def test_nebentabellen_haengen_an_der_hash_kette():
+    """Rücknahme und Vorhersage schreiben Kettenzeilen; die Kette bleibt intakt."""
+    import json as _json
+    from core.memory import predict, retract
+    a = _nutzer("Annahme")
+    b = ledger.remember("Folgerung", "aus A", source="eigener_schluss", derived_from=[a])
+    retract.retract(a, reason="widerlegt")
+    pid = predict.predict("morgen regnet es", 0.7, domain="wetter")
+    predict.resolve(pid, True)
+    ops = [_json.loads(z)["op"] for z in paths.ledger_file().read_text().splitlines()]
+    assert "retract" in ops and "predict" in ops and "resolve" in ops
+    assert ledger.verify_chain()

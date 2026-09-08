@@ -226,6 +226,12 @@ def _append_ledger(op: str, id: str, *, by: str, **extra) -> dict:
     return line
 
 
+def append_ledger(op: str, id: str, *, by: str, **extra) -> dict:
+    """Öffentlich: Nebentabellen (Rücknahmen, Vorhersagen) hängen sich damit an die Hash-Kette.
+    Jede Schreiboperation, die Wissen verändert, ist so nachweisbar — nicht nur Statuswechsel."""
+    return _append_ledger(op, id, by=by, **extra)
+
+
 def verify_chain() -> bool:
     """True, wenn jede Zeile auf den Hash der vorigen zeigt und ihren eigenen Hash trägt."""
     try:

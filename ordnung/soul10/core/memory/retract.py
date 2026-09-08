@@ -109,6 +109,8 @@ def retract(id: str, *, reason: str, by: str = "nutzer") -> dict:
             (retraction_id, id, reason, by, paths.now_iso(),
              json.dumps(contaminated, ensure_ascii=False)),
         )
+    ledger.append_ledger("retract", id, by=by, retraction_id=retraction_id, reason=reason,
+                         contaminated=len(contaminated))
     bus.emit("memory.retract", id=id, retraction_id=retraction_id, reason=reason, by=by,
              contaminated=len(contaminated), skipped=len(result["skipped"]))
     return {"target": id, "contaminated": contaminated, "skipped": result["skipped"],

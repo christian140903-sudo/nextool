@@ -69,6 +69,7 @@ def predict(claim: str, confidence: float, *, domain: str = "allgemein", model_i
             (prediction_id, claim, confidence, domain, model_id or "", due_iso, None, None, None,
              contract_id, paths.now_iso()),
         )
+    ledger.append_ledger("predict", prediction_id, by="predict", confidence=confidence, domain=domain)
     bus.emit("memory.predict", id=prediction_id, confidence=confidence, domain=domain,
              model_id=model_id or "", due_at=due_iso, contract_id=contract_id)
     return prediction_id
@@ -100,6 +101,7 @@ def resolve(id: str, outcome: bool) -> dict:
             "UPDATE predictions SET resolved_at = ?, outcome = ?, brier = ? WHERE id = ?",
             (now, outcome_int, score, id),
         )
+    ledger.append_ledger("resolve", id, by="predict", outcome=bool(outcome))
     bus.emit("memory.resolve", id=id, outcome=outcome_int, brier=score,
              confidence=row["confidence"], domain=row["domain"], model_id=row["model_id"])
     return get(id)
