@@ -1,5 +1,11 @@
 """Pfade, IDs, Zeit — alles lazy, damit Tests SOUL10_HOME setzen können.
 
+Befund: Zahlen aus Zwischenständen und versteckte Zustände (MAX_THINKING_TOKENS in der
+Umgebung) haben die Vorgängerforschung vier Zahlen gekostet (05-VORGEHEN §8); Zustand muss
+an genau einer Stelle liegen und überall gleich gerechnet werden.
+Erz → Gold: SOUL rechnete ROOT beim Import und mischte Repo und Zustand ($HOME/SOUL); hier
+liegt Zustand unter SOUL10_HOME, nie im Repo, und Zeitrechnung hat eine Funktion.
+
 Zustand liegt NIE im Repo, sondern unter SOUL10_HOME (Standard ~/.soul10).
 Kein Modul darf Pfade beim Import berechnen; deshalb hier nur Funktionen.
 """

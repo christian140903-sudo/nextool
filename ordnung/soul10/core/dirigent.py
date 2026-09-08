@@ -53,6 +53,17 @@ def _darstellung(items: list) -> str:
     return ", ".join(map(str, items))
 
 
+def pruefe_liste(items: list | None, condition: str | None) -> None:
+    """Stoppregel vor dem ersten Schreibvorgang: eine Liste braucht eine Bedingung und Inhalt.
+    Ohne Liste gibt es nichts zu prüfen."""
+    if items is None:
+        return
+    if not condition:
+        raise ValueError("items ohne condition: die Bedingung fehlt, die Nahtprüfung braucht sie")
+    if len(items) == 0:
+        raise ValueError("leere Liste: nichts zu zählen, kein Auftrag")
+
+
 def aufgabentext(goal: str, items: list | None, condition: str | None) -> str:
     """Der Text für einen Einzelaufruf. Ohne Liste ist es das Ziel selbst; mit Liste folgt die
     Gesamtliste und die Bedingung — der Einzelaufruf sieht die ganze Liste (M2: ein Agent 94 %)."""
@@ -89,16 +100,17 @@ def vertrag(goal: str, probes: list[dict], *, session_id: str) -> dict:
 
 
 # --- Schritt 2: Schalter ----------------------------------------------------------------------
-def schalter(goal: str, *, probe: bool, model: str | None) -> dict:
+def schalter(goal: str, *, probe: bool, model: str | None, contract_id: str | None = None) -> dict:
     """Stufe direkt/aufwand/pruefer aus switch.decide; die Aufwandsregel liegt in s["inject"]."""
     s = switch.decide(goal, probe=probe, model=model)
-    bus.emit("dirigent.schalter", stage=s["stage"], reason=s["reason"], inject=bool(s["inject"]),
-             probe_calls=s["probe"]["calls"] if s.get("probe") else 0)
+    bus.emit("dirigent.schalter", contract_id=contract_id, stage=s["stage"], reason=s["reason"],
+             inject=bool(s["inject"]), probe_calls=s["probe"]["calls"] if s.get("probe") else 0)
     return s
 
 
 # --- Schritt 3: Plan ---------------------------------------------------------------------------
-def plan(items: list | None, condition: str | None, *, parts: int) -> dict:
+def plan(items: list | None, condition: str | None, *, parts: int,
+         contract_id: str | None = None) -> dict:
     """Form der Ausführung aus der Nahtprüfung (M2-Regel, ARCHITEKTUR 5.4/5.10).
 
     Ohne Liste: Einzelaufruf. Mit Liste: 'zerlegen' → decompose.run ohne Protokoll;
@@ -110,8 +122,7 @@ def plan(items: list | None, condition: str | None, *, parts: int) -> dict:
         p = {"form": "einzeln", "protocol": "none", "forced": False, "empfehlung": None,
              "classes": [], "reason": "keine Liste: ein Aufruf", "n_items": 0, "chars": 0, "parts": 1}
     else:
-        if not condition:
-            raise ValueError("items ohne condition: die Bedingung fehlt, die Nahtprüfung braucht sie")
+        pruefe_liste(items, condition)
         check = decompose.seam_check(condition)
         chars = len(_darstellung(items))
         if check["empfehlung"] == "zerlegen":
@@ -123,8 +134,8 @@ def plan(items: list | None, condition: str | None, *, parts: int) -> dict:
         p = {"form": form, "protocol": protocol, "forced": forced, "empfehlung": check["empfehlung"],
              "classes": check["classes"], "reason": check["reason"], "n_items": len(items),
              "chars": chars, "parts": int(parts)}
-    bus.emit("dirigent.plan", **{k: v for k, v in p.items() if k != "reason"},
-             reason=p["reason"][:200])
+    bus.emit("dirigent.plan", contract_id=contract_id,
+             **{k: v for k, v in p.items() if k != "reason"}, reason=p["reason"][:200])
     return p
 
 
@@ -135,18 +146,25 @@ def ausfuehren(c: dict, s: dict, p: dict, *, items: list | None, condition: str 
 
     Zerlegt: decompose.run ruft je Ausschnitt mit dem gemessenen Arbeiter-Systemprompt und führt
     im Code zusammen; ein fehlender Ausschnitt macht das Ergebnis unbrauchbar → Blockade statt
-    Lieferung einer plausiblen falschen Zahl. Einzeln: ein Aufruf; Fehler → Blockade.
+    Lieferung einer plausiblen falschen Zahl; eine verweigerte Zerlegung (DecomposeError) ebenso.
+    Einzeln: ein Aufruf; Fehler → Blockade.
     Rückgabe {"ok", "text", "calls", "missing", "error", "system_injected"}.
     """
     contract.start(c["id"])
     system = s["inject"] or None
     if p["form"] == "zerlegt":
-        r = decompose.run(items, condition, parts=p["parts"], model=model, thinking=thinking,
-                          force=p["forced"])
-        calls, missing, value = r["calls"], r["missing"], r["value"]
-        ok = value is not None and missing == 0
-        text = _fmt(value) if ok else ""
-        error = None if ok else f"{missing} von {r['chunks']} Ausschnitten ohne Wert"
+        try:
+            r = decompose.run(items, condition, parts=p["parts"], model=model, thinking=thinking,
+                              force=p["forced"])
+            calls, missing, value = r["calls"], r["missing"], r["value"]
+            ok = value is not None and missing == 0
+            text = _fmt(value) if ok else ""
+            error = None if ok else f"{missing} von {r['chunks']} Ausschnitten ohne Wert"
+        except decompose.DecomposeError as exc:
+            # Stoppregel: verweigert decompose die Zerlegung, gibt es kein Ergebnis — Blockade,
+            # nie ein Einzelaufruf als Ausweg, den der Plan nicht vorgesehen hat.
+            calls, missing, ok, text = 0, 0, False, ""
+            error = f"Zerlegung verweigert: {str(exc)[:200]}"
     else:
         r = _model.call(system, aufgabentext(c["goal"], items, condition), model=model, thinking=thinking)
         calls, missing = 1, 0
@@ -231,10 +249,11 @@ def run(goal: str, probes: list[dict], *, items: list | None = None, condition: 
     "form", "verdict", "final_text", "final_value", "korrektur", "calls", "receipt", "memory_id",
     "plan", "profile_written"}.
     """
+    pruefe_liste(items, condition)  # kaputte Eingabe: nichts wird geschrieben, auch kein Profil
     profile, profile_written = situieren()
     c = vertrag(goal, probes, session_id=session_id)
-    s = schalter(goal, probe=probe_switch, model=model)
-    p = plan(items, condition, parts=parts)
+    s = schalter(goal, probe=probe_switch, model=model, contract_id=c["id"])
+    p = plan(items, condition, parts=parts, contract_id=c["id"])
     a = ausfuehren(c, s, p, items=items, condition=condition, model=model, thinking=thinking)
     v = pruefen(c, s, a, use_model_verifier=use_model_verifier, model=model, thinking=thinking,
                 cwd=cwd, counter_voice_cmd=counter_voice_cmd)
