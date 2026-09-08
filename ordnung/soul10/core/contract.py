@@ -163,7 +163,8 @@ def _check_before_save(c: dict) -> None:
     validate_receipt(receipt, c["id"])
     if receipt["hash"] != ref.get("hash") or receipt["verdict"] != verdict:
         raise ContractError("Urteil widerspricht der abgelegten Quittung")
-    if c["status"] != _status_for(verdict):
+    # Nacharbeit nach fail (running/delivered) lässt das letzte Urteil stehen; ein Endstatus muss passen.
+    if c["status"] in FINAL_STATUS and c["status"] != _status_for(verdict):
         raise ContractError("Status passt nicht zum Urteil der Quittung")
 
 

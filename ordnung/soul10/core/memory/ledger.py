@@ -29,7 +29,8 @@ SOURCES = {"nutzer": 0.8, "werkzeug": 0.9, "dokument": 0.7, "eigener_schluss": 0
            "import": 0.3, "extern": 0.3}
 TTL = ("durable", "seasonal", "short", "conditional")
 VISIBILITY = ("public", "private", "never")
-TRANSITIONS = {  # (von, nach) — alles andere ist LedgerError
+TRANSITIONS = {
+    ("candidate", "disputed"),  # takt_b: Widerspruch bei gleichem Vertrauen auch für Kandidaten  # (von, nach) — alles andere ist LedgerError
     ("candidate", "active"), ("candidate", "archived"), ("candidate", "quarantined"),
     ("candidate", "retracted"),
     ("active", "superseded"), ("active", "disputed"), ("active", "archived"),

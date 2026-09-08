@@ -5,6 +5,7 @@ Kein Modul darf Pfade beim Import berechnen; deshalb hier nur Funktionen.
 """
 from __future__ import annotations
 
+import datetime as _dt
 import hashlib
 import os
 import secrets
@@ -95,3 +96,24 @@ def new_id(prefix: str = "") -> str:
 
 def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def parse_iso(text: str) -> _dt.datetime:
+    """ISO-Zeit nach UTC-bewusstem datetime; akzeptiert '...Z', Offsets und reines Datum.
+    Eine Stelle für alle Zeitrechnung (Retention, Fälligkeit, Ablauf)."""
+    t = (text or "").strip()
+    if not t:
+        raise ValueError("leere Zeitangabe")
+    if t.endswith("Z"):
+        t = t[:-1] + "+00:00"
+    if len(t) == 10:  # YYYY-MM-DD
+        t += "T00:00:00+00:00"
+    d = _dt.datetime.fromisoformat(t)
+    if d.tzinfo is None:
+        d = d.replace(tzinfo=_dt.timezone.utc)
+    return d.astimezone(_dt.timezone.utc)
+
+
+def days_between(a_iso: str, b_iso: str) -> float:
+    """b − a in Tagen (positiv, wenn b später liegt)."""
+    return (parse_iso(b_iso) - parse_iso(a_iso)).total_seconds() / 86400.0

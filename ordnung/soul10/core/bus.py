@@ -54,15 +54,22 @@ def emit(event: str, **fields) -> None:
         pass
 
 
-def tail(n: int = 50) -> list[dict]:
+def tail(n: int = 50, event: str | None = None) -> list[dict]:
+    """Die letzten n Zeilen; mit event nur die Zeilen dieses Ereignisses (Präfix-Treffer erlaubt: 'contract.')."""
     try:
         lines = paths.bus_file().read_text(encoding="utf-8").splitlines()
     except OSError:
         return []
     out = []
-    for line in lines[-n:]:
+    for line in reversed(lines):
         try:
-            out.append(json.loads(line))
+            rec = json.loads(line)
         except ValueError:
             continue
+        if event is not None and not str(rec.get("event", "")).startswith(event):
+            continue
+        out.append(rec)
+        if len(out) >= n:
+            break
+    out.reverse()
     return out

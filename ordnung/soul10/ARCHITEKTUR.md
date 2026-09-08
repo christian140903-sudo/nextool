@@ -100,13 +100,15 @@ now_iso() -> str               # UTC, Sekunden, z. B. 2026-09-07T21:30:00Z
 today() -> str                 # YYYY-MM-DD (UTC)
 new_id(prefix: str = "") -> str  # zeitlich sortierbar: <ms seit Epoche 13-stellig>-<6 hex>
 sha256_text(text: str) -> str
+parse_iso(text: str) -> datetime    # UTC-bewusst; akzeptiert '…Z', Offsets, reines Datum — EINE Stelle für Zeitrechnung
+days_between(a_iso: str, b_iso: str) -> float   # b − a in Tagen
 ```
 
 ### `core/bus.py`
 ```python
 emit(event: str, **fields) -> None   # JSONL {"ts", "event", **fields}; maskiert Secret-Muster;
                                      # Rotation ab 5 MB; fail-open
-tail(n: int = 50) -> list[dict]
+tail(n: int = 50, event: str|None = None) -> list[dict]   # event filtert per Präfix, z. B. 'contract.'
 ```
 
 ### `core/model.py`
@@ -364,14 +366,19 @@ class DecomposeError(ValueError)
 NEIGHBOR_RE, POSITION_RE, CUMULATIVE_RE   # de/en; Nachbar (davor/danach/vorherig/unmittelbar/previous/next/adjacent/consecutive),
                                           # Position (erste/letzte/allererste/position/stelle/first/last/index),
                                           # Kumulation (bisher/kumuliert/laufend/summe bis/so far/running/cumulative/zwischensumme/median/sortier)
-seam_check(condition: str) -> dict        # {"classes": [...], "decomposable": bool, "protocol": "none"|"naht", "reason": str}
-                                          # cumulative → decomposable False; neighbor/position → "naht"; sonst "none"
+seam_check(condition: str) -> dict        # {"classes": [...], "decomposable": bool, "protocol": "none"|"naht", "reason": str, "empfehlung": "zerlegen"|"einzeln"|"nicht_zerlegbar"}
+                                          # cumulative → decomposable False, empfehlung nicht_zerlegbar; neighbor/position → "naht", empfehlung "einzeln"
+                                          # (ein Agent ist genauer, M2); sonst "none", empfehlung "zerlegen"
 chunk_instruction(items: list, condition: str, offset: int, n_total: int, before, after) -> str
                                           # das Nahtprotokoll (Wortlaut wie in zerlegung._teil_frage_naht, Test vergleicht die drei Lesart-Zeilen)
-plan(items: list, condition: str, *, parts: int) -> dict
-                                          # DecomposeError wenn nicht zerlegbar; sonst {"protocol", "chunks":[{"index","offset","items","before","after","instruction"}], "merge":"sum"}
+plan(items: list, condition: str, *, parts: int, force: bool = False) -> dict
+                                          # DecomposeError wenn nicht zerlegbar (Kumulation); bei Protokoll "naht" ebenfalls DecomposeError,
+                                          # solange force=False — GEMESSEN (M2, 2026-09-08): mit Nahtprotokoll 72 % gegen 43 % ohne, aber ein
+                                          # einzelner Agent liegt bei 94 %. Regel: randabhängig → ein Agent, solange die Aufgabe in einen Kontext
+                                          # passt; force=True nur, wenn sie das nicht tut (dann ist 72 % besser als 43 %). Sauber teilbar: 100 %
+                                          # gegen 83–89 % → zerlegen. Rückgabe sonst {"protocol", "chunks":[{"index","offset","items","before","after","instruction"}], "merge":"sum", "empfehlung"}
 merge(values: list, op: str = "sum") -> tuple   # (wert, fehlend) — mechanisch; None zählt als fehlend
-run(items: list, condition: str, *, parts: int, model: str|None = None, thinking: int = 0, workers: int = 5) -> dict
+run(items: list, condition: str, *, parts: int, model: str|None = None, thinking: int = 0, workers: int = 5, force: bool = False) -> dict
                                           # plan → parallele model.call je Chunk → merge; bus.emit("decompose.run", protocol=…, calls=…, missing=…)
                                           # {"value", "calls", "missing", "protocol", "chunks": n}
 ```

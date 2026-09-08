@@ -75,6 +75,8 @@ def call(system: str | None, user: str, *, model: str | None = None, thinking: i
         res.setdefault("output_tokens", 0)
         res.setdefault("model", model)
         res.setdefault("error", None)
+        bus.emit("model.call", model=model, thinking=thinking, output_tokens=res["output_tokens"],
+                 system_chars=len(system or ""), user_chars=len(user), fake=True)
         return res
 
     cmd = [CLI, "-p", "--restricted", "--no-session-persistence",

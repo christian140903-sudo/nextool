@@ -136,7 +136,7 @@ def test_supersession_eines_kandidaten_ist_illegal():
 
 @pytest.mark.parametrize("von,nach", [
     ("active", "candidate"), ("retracted", "active"), ("superseded", "active"),
-    ("candidate", "superseded"), ("candidate", "disputed"), ("archived", "superseded"),
+    ("candidate", "superseded"), ("archived", "superseded"),
 ])
 def test_illegale_uebergaenge(von, nach):
     eid = _nutzer(status="candidate")
