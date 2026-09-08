@@ -37,9 +37,9 @@ TRANSITIONS = {
     ("active", "quarantined"), ("active", "retracted"),
     ("disputed", "active"), ("disputed", "superseded"), ("disputed", "retracted"),
     ("disputed", "quarantined"),
-    ("archived", "active"), ("archived", "retracted"),
+    ("archived", "active"), ("archived", "retracted"), ("archived", "quarantined"),
     ("quarantined", "active"), ("quarantined", "retracted"),
-    ("superseded", "retracted"),
+    ("superseded", "retracted"), ("superseded", "quarantined"),
 }
 # Status, die einen Eintrag aus dem Umlauf nehmen: retired_at wird gesetzt.
 _RETIRING = ("superseded", "retracted", "archived")
@@ -329,6 +329,16 @@ def remember(title: str, body: str, *, source: str | None = None, kind: str = "f
         if old is None:
             raise LedgerError(f"Abzulösender Eintrag {supersedes!r} existiert nicht")
         _check_transition(old["status"], "superseded")
+
+    # Guard: Ableitung aus einem zurückgezogenen oder quarantinierten Eintrag trägt dessen Gift.
+    # Sie wird sofort quarantiniert statt aktiv (Kontaminationsbefund A3; Wunsch aus retract.py).
+    vergiftet = []
+    for parent in derived_from:
+        p_row = get(parent)
+        if p_row and p_row["status"] in ("retracted", "quarantined"):
+            vergiftet.append(parent)
+    if vergiftet:
+        status = "quarantined"
 
     entry_id = paths.new_id()
     now = paths.now_iso()

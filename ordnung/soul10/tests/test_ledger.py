@@ -257,3 +257,24 @@ def test_jeder_mechanismus_schreibt_auf_den_bus():
     assert "memory.remember" in events and "memory.transition" in events and "memory.dispute" in events
     rec = [e for e in bus.tail(50) if e["event"] == "memory.remember"][0]
     assert rec["source"] == "nutzer" and rec["kind"] == "fact" and "id" in rec
+
+
+def test_ableitung_aus_zurueckgezogenem_eintrag_wird_quarantiniert():
+    """Kontaminationsschutz im Schreibpfad: ein Kind eines retracted/quarantined Eintrags
+    entsteht nie aktiv (Wunsch aus retract.py; Befund A3)."""
+    gift = _nutzer("Alte Aussage")
+    ledger.transition(gift, "retracted", reason="widerrufen")
+    kind = ledger.remember("Folgerung", "Aus der alten Aussage gefolgert", source="eigener_schluss",
+                           derived_from=[gift], status="active")
+    assert ledger.get(kind)["status"] == "quarantined"
+    sauber = _nutzer("Neue Aussage")
+    kind2 = ledger.remember("Folgerung 2", "Aus der neuen Aussage", source="eigener_schluss",
+                            derived_from=[sauber], status="active")
+    assert ledger.get(kind2)["status"] == "active"
+
+
+def test_quarantaene_aus_archiv_und_abloesung_erlaubt():
+    a = _nutzer("A")
+    ledger.transition(a, "archived")
+    ledger.transition(a, "quarantined", reason="Kontaminationscheck")
+    assert ledger.get(a)["status"] == "quarantined"

@@ -66,7 +66,7 @@ def quarantine_descendants(root_id: str, *, reason: str, by: str = "system") -> 
     """Setzt jedes Kind von `root_id` auf quarantined, soweit TRANSITIONS das erlaubt.
 
     Kinder, die schon aus dem Umlauf sind (quarantined/retracted) oder deren Status keinen Weg
-    nach quarantined kennt (archived/superseded), werden übersprungen, aber ihre eigenen Kinder
+    nach quarantined kennt (seit dem Fundament-Update keines mehr), werden übersprungen, aber ihre eigenen Kinder
     trotzdem erreicht: die Kette ist auch hinter einem übersprungenen Glied vergiftet.
     Rückgabe {"quarantined": [ids], "skipped": [{"id", "status"}]}.
     """

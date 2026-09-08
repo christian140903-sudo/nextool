@@ -117,3 +117,19 @@ def parse_iso(text: str) -> _dt.datetime:
 def days_between(a_iso: str, b_iso: str) -> float:
     """b − a in Tagen (positiv, wenn b später liegt)."""
     return (parse_iso(b_iso) - parse_iso(a_iso)).total_seconds() / 86400.0
+
+
+def iso(dt: _dt.datetime) -> str:
+    """Kanonische Schreibweise eines datetime (UTC, Sekunden, 'Z')."""
+    return dt.astimezone(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def plus_days(text: str, days: float) -> str:
+    """ISO-Zeit plus n Tage, kanonisch."""
+    return iso(parse_iso(text) + _dt.timedelta(days=days))
+
+
+def inbox_processed_dir() -> Path:
+    d = inbox_dir() / "verarbeitet"
+    d.mkdir(parents=True, exist_ok=True)
+    return d

@@ -137,7 +137,13 @@ def _selfmodel_lines(*, name: str | None, max_lines: int) -> list[str]:
     except Exception as exc:  # noqa: BLE001 — ein kaputtes Selbstmodell darf das Briefing nicht anhalten
         bus.emit("memory.briefing.selfmodel_fehler", error=str(exc)[:200])
         return []
-    return [ln for ln in (text or "").splitlines()][:max_lines]
+    lines = [ln for ln in (text or "").splitlines()]
+    # Ein Selbstmodell ohne belegte Züge und ohne Hypothesen ist eine leere Zeile im Budget:
+    # Kopf + "noch keine belegten Züge". Es bleibt aus dem Briefing, bis es etwas zu sagen hat.
+    rest = [ln for ln in lines[1:] if ln.strip()]
+    if not rest or all("noch keine belegten" in ln for ln in rest):
+        return []
+    return lines[:max_lines]
 
 
 def _active_entries(*, mission_id: str | None = None, kinds: Iterable[str] | None = None,

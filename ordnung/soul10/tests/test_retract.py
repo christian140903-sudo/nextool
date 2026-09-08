@@ -88,19 +88,21 @@ def test_mehrere_eltern_und_bereits_quarantiniertes_glied():
     assert retract.descendants(a) == [b, c]
 
 
-def test_anteil_ist_ehrlich_bei_archiviertem_kind():
-    """Ein archiviertes Kind kennt keinen Übergang nach quarantined und kann nach active zurück:
-    es zählt nicht als sauber, der Anteil sinkt unter 1.0 statt das Loch zu verdecken."""
+def test_archiviertes_kind_wird_quarantiniert():
+    """Seit ledger.TRANSITIONS archived→quarantined kennt, bleibt kein Loch: ein archiviertes
+    Kind kann nicht mehr nach active zurück und das Gift mitbringen (Wunsch aus retract.py,
+    umgesetzt im Fundament). G5 erreicht 1.0."""
     a = _eintrag("A", "Annahme.")
     b = _eintrag("B", "Folgerung, inzwischen archiviert.", derived_from=[a])
     c = _eintrag("C", "Folgerung aus B.", derived_from=[b])
     ledger.transition(b, "archived", reason="abgelaufen")
     result = retract.retract(a, reason="Annahme widerlegt")
-    assert result["contaminated"] == [c]
-    assert result["skipped"] == [{"id": b, "status": "archived"}]
-    assert retract.contamination_share() == pytest.approx(0.5)
+    assert set(result["contaminated"]) == {b, c}
+    assert result["skipped"] == []
+    assert ledger.get(b)["status"] == "quarantined"
+    assert retract.contamination_share() == pytest.approx(1.0)
     letzte = bus.tail(1, event="memory.contamination_share")[0]
-    assert letzte["children"] == 2 and letzte["clean"] == 1
+    assert letzte["children"] == 2 and letzte["clean"] == 2
 
 
 def test_anteil_ohne_ruecknahme_ist_eins():

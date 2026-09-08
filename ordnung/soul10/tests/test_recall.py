@@ -128,11 +128,9 @@ def test_briefing_ohne_selfmodel_modul_laeuft(monkeypatch):
 
 
 def test_briefing_nutzt_selfmodel_wenn_vorhanden(monkeypatch):
-    import sys
-    import types
-    fake = types.ModuleType("core.memory.selfmodel")
-    fake.render = lambda name=None, max_lines=15: "# Selbstmodell: namensoffen\n" + "\n".join(f"Zug {i}" for i in range(20))
-    monkeypatch.setitem(sys.modules, "core.memory.selfmodel", fake)
+    from core.memory import selfmodel
+    monkeypatch.setattr(selfmodel, "render",
+                        lambda name=None, max_lines=15: "# Selbstmodell: namensoffen\n" + "\n".join(f"Zug {i}" for i in range(20)))
     _nutzer("Zur Zeiterfassung wird Zeitwerk genutzt.")
     zeilen = recall.briefing().split("\n")
     assert zeilen[1] == "# Selbstmodell: namensoffen"
