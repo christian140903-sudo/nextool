@@ -169,6 +169,10 @@ gebauten `ledger.py`, 12 Fragen × 3 Läufe).
   nahe 0 % richtig (sonst misst die Suite nicht mehr, was sie messen soll).
 - *Widerlegt, wenn:* `GIFT_HERKUNFT` < 80 % richtig. Dann ist das Rendering falsch,
   und der Bau ist nicht abgenommen.
+- **Ergebnis (2026-09-08, n=36 je Variante, Regime wie Runde 3): bestätigt.** 94,4 % richtig,
+  0,0 % falsch; nur Etiketten 97,2 %; flach 2,8 % richtig / 83,3 % falsch. Rendering byte-gleich.
+  Ein erster Lauf ohne Denkbudget zeigte den Schutz ebenfalls (0,0 % falsch), aber 36 %
+  Doppelnennungen — dokumentiert als zweites Regime in `03-RUNDE4-BAU.md` §M3.
 
 ---
 

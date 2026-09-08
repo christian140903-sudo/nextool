@@ -242,6 +242,7 @@ arch_block("m1_arch_kette20", f"{O}/m1_ueberraschung", "kette20",
 ueberraschung_block("m1_ueberraschung_zweige", f"{O}/m1_ueberraschung")
 zerlegung_block("m2_zerlegung", f"{O}/m2_naht", ["GANZ", "ZERLEGT_CODE", "ZERLEGT_NAHT"], 3, 12, 10, "GANZ")
 ged_block("m3_hauptbuch", f"{O}/m3_hauptbuch", ["GIFT", "GIFT_NUR_METADATEN", "GIFT_HERKUNFT"], 3)
+ged_block("m3_hauptbuch_denken0", f"{O}/m3_hauptbuch_denken0", ["GIFT", "GIFT_NUR_METADATEN", "GIFT_HERKUNFT"], 3)
 
 json.dump(R, open("bewusstsein/ergebnisse/ENDZAHLEN.json","w"), ensure_ascii=False, indent=1)
 print("Bloecke:", list(R.keys()))
@@ -268,4 +269,6 @@ for k,v in R.items():
         fs = (f" fmt={e['format_ok']*100:.1f} abgriff={e['abgriff_ok']*100:.1f} "
               f"inhalt={e['inhalt_ok']*100:.1f}") if "formatschaden_pp" in e else ""
         au = f" auf={e['aufrufe']}" if "aufrufe" in e else ""
-        print(f"  {a:18s} {e['genauigkeit']*100:5.1f}% n={e['n']:3d} tok={e['tokens']:6.0f}{au}{d}{fs}")
+        tk = f" tok={e['tokens']:6.0f}" if "tokens" in e else ""
+        fa = f" falsch={e['falsch']*100:.1f}%" if "falsch" in e else ""
+        print(f"  {a:18s} {e['genauigkeit']*100:5.1f}% n={e['n']:3d}{tk}{au}{d}{fs}{fa}")

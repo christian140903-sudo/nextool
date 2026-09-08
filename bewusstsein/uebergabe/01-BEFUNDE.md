@@ -236,3 +236,20 @@ gewinnt mehr durch *Wegnehmen von Fesseln* als durch Hinzufügen von Ebenen.
 *Einschränkung:* ein Aufgabentyp, nur Ausgabetokens, und der Fall „Sonnet
 formatbeschränkt" (22,7 %) ist ein Artefakt der Sofort-Antwort-Anweisung — er
 zeigt den Unterdrückungsschaden, nicht Sonnets Fähigkeit.
+
+---
+
+## G · Runde 4 — drei Messungen der Bauphase (2026-09-08)
+
+Vollständig in `../berichte/03-RUNDE4-BAU.md`; Endzahlen-Blöcke `m1_*`, `m2_*`, `m3_*`;
+Belege `../belege/m1_ueberraschung.tgz`, `m2_naht.tgz`, `m3_hauptbuch*.tgz`. Vorregistriert
+in `ordnung/soul10/ENTSCHEIDUNG.md` §4.
+
+| Messung | Ergebnis | Folge für den Bau |
+|---|---|---|
+| **M1** Überraschung als Schalter (Vorhersage ohne Rechnung → Lösung → Prüfer nur bei Abweichung) | **widerlegt**: Überraschungsrate 92,0 %, Spezifität 8 %; 81,3 % bei 2,92 Aufrufen gegen A_PRUEFER 77,3 % bei 2,00 (+4,0 pp, p=0,595) | Schalter über Vorfilter und Uneinigkeit; Vorhersage bleibt Kalibrierungsmaß |
+| **M2** Nahtprotokoll bei Zerlegung | **unentschieden** nach Schwelle, Richtung eindeutig: randabhängig 72 % gegen 33 % ohne Protokoll (+38,9 pp, p=0,030), sauber teilbar 100 %; ein Agent 94 % | sauber → zerlegen; randabhängig → ein Agent solange er passt, sonst Naht; Kumulation → nie |
+| **M3** gebautes Hauptbuch | **bestätigt**: Rendering byte-gleich; 94,4 % richtig, 0,0 % falsch (flach 2,8 % / 83,3 %) | Hauptbuch abgenommen. Ohne Denkbudget hält der Schutz (0,0 % falsch), aber 36 % Doppelnennungen → Endwert abgreifen |
+
+**Nebenbefund Streuung:** A_PRUEFER frisch 77,3 % (Runde 2: 84,0 %), A_SC3 66,7 % (64,0 %).
+Der Prüfer-Vorsprung ist mit **+10,7 bis +20,0 pp** zu zitieren.

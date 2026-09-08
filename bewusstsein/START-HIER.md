@@ -21,11 +21,14 @@
 | `bewusstsein/harness/` | die Prüfstrecke, lauffähig |
 | `bewusstsein/werkzeuge/bestandsaufnahme.py` | Geräte-Erkennung, läuft |
 | `bewusstsein/belege/` | Rohdaten aller ~10 500 Modellaufrufe |
-| `ordnung/` | die Entwurfsarbeit des Vorgängers — **unverändert** |
+| `ordnung/` | die Entwurfsarbeit des Vorgängers — unverändert bis auf die Frame-Kopfzeile und das Register (bis D099) |
+| **`ordnung/soul10/`** | **der Bau (2026-09-08):** `ENTSCHEIDUNG.md` (was, was nicht, warum), `ARCHITEKTUR.md`, `core/` (Code), `tests/`, `README.md` |
+| `berichte/03-RUNDE4-BAU.md` | drei Messungen der Bauphase: M1 widerlegt, M2 unentschieden, M3 bestätigt |
 
 ## Prüfen, ob alles stimmt
 
 ```bash
-python3 bewusstsein/harness/bericht_pruefen.py      # Zahlen gegen die Daten
+python3 bewusstsein/harness/bericht_pruefen.py      # Zahlen gegen die Daten (54 Armzahlen, inkl. Runde 4)
 python3 bewusstsein/werkzeuge/bestandsaufnahme.py   # Geräte-Erkennung
+cd ordnung/soul10 && python3 -m pytest tests -q     # der gebaute Kern
 ```

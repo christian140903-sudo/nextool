@@ -38,7 +38,7 @@ Code (`core/events.py`) und die Kommandozeile `bin/soul`.
 |---|---|---|
 | **M1** Überraschung als Schalter | **widerlegt**: Überraschungsrate 92 %, Spezifität 8 %; 81,3 % bei 2,92 Aufrufen gegen A_PRUEFER 77,3 % bei 2,00 (p=0,595) | Schalter über Vorfilter und Uneinigkeit; Vorhersage bleibt Kalibrierungsmaß (`predict.py`) |
 | **M2** Nahtprotokoll | **unentschieden** nach Vorregistrierung, Richtung eindeutig: +38,9 pp gegen Zerlegung ohne Protokoll auf randabhängigen Aufgaben (p=0,030), null Kosten auf sauber teilbaren; ein Agent bleibt mit 94 % besser als 72 % | dreiteilige Zerlegungsregel in `decompose.py` |
-| **M3** gebautes Hauptbuch | *wird nach Abschluss des Laufs eingetragen* — Rendering byte-gleich zum gemessenen Format; erster Lauf ohne Denkbudget: 0,0 % falsch, aber 36 % „beides"-Antworten (Regime-Falle, siehe Bericht) | |
+| **M3** gebautes Hauptbuch | **bestätigt**: Rendering byte-gleich; 94,4 % richtig, 0,0 % falsch (flach 2,8 % / 83,3 %), Regime wie Runde 3. Ohne Denkbudget hält der Schutz (0,0 % falsch), aber 36 % Doppelnennungen | Hauptbuch abgenommen; ohne Denkbudget Endwert abgreifen |
 
 Vollständig: `bewusstsein/berichte/03-RUNDE4-BAU.md`; Endzahlen in
 `bewusstsein/ergebnisse/ENDZAHLEN.json`; Rohbelege in `bewusstsein/belege/m*.tgz`.
