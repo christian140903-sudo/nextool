@@ -96,3 +96,9 @@ def test_bus_zeilen_je_mechanismus():
             "memory.calibration"} <= ereignisse
     vorhersage = bus.tail(5, event="memory.predict")[0]
     assert vorhersage["id"] == pid and vorhersage["contract_id"] == "c1"
+
+
+def test_secret_in_behauptung_abgelehnt():
+    with pytest.raises(PredictError, match="Secret"):
+        predict.predict("Der Schlüssel sk-abcdefghijklmnopqrstuvwxyz1234 gilt noch", 0.5)
+    assert predict.calibration()["unresolved"] == 0

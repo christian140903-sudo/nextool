@@ -97,6 +97,7 @@ def retract(id: str, *, reason: str, by: str = "nutzer") -> dict:
     reason = (reason or "").strip()
     if not reason:
         raise ledger.LedgerError("Rücknahme ohne Grund abgelehnt")
+    ledger.check_secrets(reason)  # der Grund landet in retractions und in der Kette
     ledger.transition(id, "retracted", reason=reason, by=by)
     result = quarantine_descendants(
         id, reason=f"abgeleitet aus zurückgezogenem Eintrag {id}: {reason}", by=by)

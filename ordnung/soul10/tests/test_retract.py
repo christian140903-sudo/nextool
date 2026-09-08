@@ -89,9 +89,10 @@ def test_mehrere_eltern_und_bereits_quarantiniertes_glied():
 
 
 def test_archiviertes_kind_wird_quarantiniert():
-    """Seit ledger.TRANSITIONS archived→quarantined kennt, bleibt kein Loch: ein archiviertes
-    Kind kann nicht mehr nach active zurück und das Gift mitbringen (Wunsch aus retract.py,
-    umgesetzt im Fundament). G5 erreicht 1.0."""
+    """ledger.TRANSITIONS kennt archived→quarantined: ein archiviertes Kind bleibt nicht im Archiv
+    liegen, von wo es (archived→active ist legal) das Gift zurückbrächte, sondern wird sichtbar
+    quarantiniert. Der Weg quarantined→active bleibt legal, aber ledger.transition lehnt ihn ab,
+    solange ein Elternteil zurückgezogen oder quarantiniert ist (Test unten). G5 erreicht 1.0."""
     a = _eintrag("A", "Annahme.")
     b = _eintrag("B", "Folgerung, inzwischen archiviert.", derived_from=[a])
     c = _eintrag("C", "Folgerung aus B.", derived_from=[b])
@@ -111,3 +112,20 @@ def test_anteil_ohne_ruecknahme_ist_eins():
     a = _eintrag("Solo", "Ohne Kinder.")
     retract.retract(a, reason="falsch")
     assert retract.contamination_share() == 1.0
+
+
+def test_quarantiniertes_kind_kommt_nicht_zurueck_solange_der_elternteil_draussen_ist():
+    a = _eintrag("A", "Annahme.")
+    b = _eintrag("B", "Folgerung.", derived_from=[a])
+    retract.retract(a, reason="Annahme widerlegt")
+    with pytest.raises(ledger.LedgerError, match="abgeleitet aus retracted"):
+        ledger.transition(b, "active", reason="Hand")
+    assert ledger.get(b)["status"] == "quarantined"
+    assert retract.contamination_share() == pytest.approx(1.0)
+
+
+def test_grund_mit_secret_wird_abgelehnt_bevor_etwas_passiert():
+    a = _eintrag("A", "Annahme.")
+    with pytest.raises(ledger.LedgerError, match="Secret"):
+        retract.retract(a, reason="Token sk-abcdefghijklmnopqrstuvwxyz1234")
+    assert ledger.get(a)["status"] == "active" and retract.list_retractions() == []

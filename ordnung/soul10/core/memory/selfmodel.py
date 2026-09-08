@@ -35,18 +35,31 @@ def _session_key(episode: dict) -> str:
     return "tag:" + (episode.get("valid_from") or episode.get("recorded_at") or "")[:10]
 
 
-def evidence(entry: dict) -> dict:
+def evidence(entry: dict, *, vergeben: frozenset[str] | set[str] = frozenset()) -> dict:
     """{"episodes": n, "sessions": k} über derived_from: nur Einträge der Art episode zählen,
-    zurückgezogene und quarantinierte nicht. Unbekannte IDs belegen nichts."""
+    zurückgezogene und quarantinierte nicht, und keine aus `vergeben` — eine Episode belegt
+    höchstens einen Zug (Prüfbefund C2: zwei beliebige Episoden beglaubigten beliebig viele
+    Behauptungen). Unbekannte IDs belegen nichts."""
     sessions: set[str] = set()
     episodes = 0
     for ref in entry.get("derived_from") or []:
-        ep = ledger.get(str(ref))
+        ref = str(ref)
+        if ref in vergeben:
+            continue
+        ep = ledger.get(ref)
         if ep is None or ep.get("kind") != "episode" or ep.get("status") in _NO_EVIDENCE_STATUS:
             continue
         episodes += 1
         sessions.add(_session_key(ep))
     return {"episodes": episodes, "sessions": len(sessions)}
+
+
+def _vergebene_belege() -> set[str]:
+    """Episoden, die bereits einen aktiven Zug tragen."""
+    vergeben: set[str] = set()
+    for entry in _self_entries("active"):
+        vergeben.update(str(r) for r in entry.get("derived_from") or [])
+    return vergeben
 
 
 def _self_entries(status: str) -> list[dict]:
@@ -67,8 +80,9 @@ def promote_eligible(*, min_episodes: int = MIN_EPISODES, min_sessions: int = MI
     """Selbst-Kandidaten mit Belegschwelle → active. Der einzige Weg, auf dem ein Zug aktiv wird
     (außer Hand-Übergang im Hauptbuch, den render() dann trotzdem nur als Hypothese zeigt)."""
     promoted: list[str] = []
+    vergeben = _vergebene_belege()
     for cand in _self_entries("candidate"):
-        ev = evidence(cand)
+        ev = evidence(cand, vergeben=vergeben)
         if not _belegt(ev, min_episodes=min_episodes, min_sessions=min_sessions):
             continue
         ledger.transition(cand["id"], "active", by=BY,
@@ -76,6 +90,7 @@ def promote_eligible(*, min_episodes: int = MIN_EPISODES, min_sessions: int = MI
         bus.emit("memory.selfmodel.promote", id=cand["id"], episodes=ev["episodes"],
                  sessions=ev["sessions"])
         promoted.append(cand["id"])
+        vergeben.update(str(r) for r in cand.get("derived_from") or [])
     bus.emit("memory.selfmodel.promote_eligible", promoted=len(promoted),
              min_episodes=min_episodes, min_sessions=min_sessions)
     return promoted
@@ -109,8 +124,8 @@ def render(*, name: str | None = None, max_lines: int = 15) -> str:
     traits.sort()
     hypotheses.sort()
     budget = max(1, int(max_lines)) - 1
-    body = [" ".join(t[2].split("\n")) for t in traits][:budget]
-    body += [" ".join(h[2].split("\n")) for h in hypotheses][:max(0, budget - len(body))]
+    body = [" ".join(t[2].splitlines()) for t in traits][:budget]
+    body += [" ".join(h[2].splitlines()) for h in hypotheses][:max(0, budget - len(body))]
     if not body:
         body = ["noch keine belegten Züge"][:budget]
     text = "\n".join([header] + body)

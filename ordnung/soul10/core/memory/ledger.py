@@ -16,6 +16,11 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+try:
+    import fcntl  # POSIX-Dateisperre; auf Windows fehlt sie, dann ohne Sperre
+except ImportError:  # pragma: no cover
+    fcntl = None
+import time
 from contextlib import closing
 from typing import Iterable
 
@@ -58,8 +63,17 @@ REGEL_HERKUNFT = (
 MAX_BODY_BYTES = 16 * 1024
 SECRET_RE = re.compile(
     r"(AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9_\-]{20,}|ghp_[A-Za-z0-9]{20,}"
-    r"|xox[bpars]-[A-Za-z0-9\-]+|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY)"
+    r"|xox[bpars]-[A-Za-z0-9\-]+|BEGIN (RSA|OPENSSH|EC|PGP) PRIVATE KEY)"
 )
+# Vertrauen je Quelle nach oben gedeckelt: ein eigener_schluss kann eine Nutzeraussage (0,8) nie
+# überbieten — REGEL_HERKUNFT gilt damit in den Daten, nicht nur im Text (Prüfbefund 2026-09-08).
+TRUST_MAX = {"nutzer": 0.95, "werkzeug": 0.95, "dokument": 0.8, "eigener_schluss": 0.6,
+             "import": 0.5, "extern": 0.5}
+# Herkunftsordnung: eine Quelle niedrigeren Rangs löst eine höheren Rangs nie ab, auch nicht bei
+# höherem Vertrauen (nutzer und werkzeug = "verifiziertes Ergebnis" stehen gleich).
+SOURCE_RANK = {"nutzer": 3, "werkzeug": 3, "dokument": 2, "eigener_schluss": 1, "import": 1, "extern": 1}
+# Ein Etikett im Text würde eine zweite, gefälschte Herkunft in die Zeile schmuggeln.
+LABEL_RE = re.compile(r"\[(Quelle|Vertrauen):\s")
 IMPERATIVE_RE = re.compile(
     r"\b(ignoriere|vergiss|du musst|ab jetzt|override|ignore (all|previous)|disregard)\b",
     re.IGNORECASE,
@@ -75,6 +89,20 @@ _STRENGTH_PER_IMPORTANCE = 7.0
 
 # Erster prev_hash der Kette.
 GENESIS_HASH = "0" * 64
+
+
+def check_secrets(*texte) -> None:
+    """Secret-Muster in irgendeinem Text → LedgerError. Vereinigung aus SECRET_RE und bus.SECRET_PATTERN;
+    gilt für title, body, source_ref, tags, expires_when, Gründe, Vorhersagen und Rücknahmen."""
+    for t in texte:
+        if not t:
+            continue
+        if isinstance(t, (list, tuple)):
+            check_secrets(*t)
+            continue
+        text = str(t)
+        if SECRET_RE.search(text) or bus.SECRET_PATTERN.search(text):
+            raise LedgerError("Secret-Muster erkannt — Secrets werden nie gespeichert")
 
 
 class LedgerError(ValueError):
@@ -167,12 +195,33 @@ CREATE TABLE IF NOT EXISTS access_log (
 
 
 def connect() -> sqlite3.Connection:
-    """Öffnet memory.db (WAL), legt das Schema an, row_factory = Row. Aufrufer schließt."""
-    con = sqlite3.connect(paths.db())
-    con.row_factory = sqlite3.Row
-    con.execute("PRAGMA journal_mode=WAL")
-    con.executescript(_SCHEMA)
-    return con
+    """Öffnet memory.db (WAL), legt das Schema an, row_factory = Row. Aufrufer schließt.
+
+    WAL und Schema werden je Prozess und Datei nur einmal gesetzt; bei 'database is locked'
+    (parallele Hooks) wird kurz gewartet und erneut versucht — ein Hook darf nicht daran scheitern.
+    """
+    db = paths.db()
+    key = str(db)
+    letzter = None
+    for versuch in range(5):
+        try:
+            con = sqlite3.connect(db, timeout=30)
+            con.row_factory = sqlite3.Row
+            if key not in _INITIALISIERT:
+                con.execute("PRAGMA journal_mode=WAL")
+                con.executescript(_SCHEMA)
+                _INITIALISIERT.add(key)
+            return con
+        except sqlite3.OperationalError as exc:
+            letzter = exc
+            if "locked" not in str(exc).lower():
+                raise
+            time.sleep(0.2 * (versuch + 1))
+    raise letzter  # type: ignore[misc]
+
+
+# Dateien, für die Schema und WAL in diesem Prozess schon gesetzt sind.
+_INITIALISIERT: set[str] = set()
 
 
 # --- Hash-Kette (ledger.jsonl) ----------------------------------------------------------------
@@ -216,13 +265,85 @@ def _last_hash() -> str:
         return GENESIS_HASH
 
 
+_STATE_FIELDS = ("id", "kind", "status", "title", "body", "source", "source_ref", "trust",
+                 "importance", "valid_from", "valid_to", "retired_at", "derived_from", "supersedes",
+                 "disputes", "visibility", "ttl_class", "expires_at", "expires_when")
+
+
+def state_hash(entry: dict) -> str:
+    """Hash des Zustands, den das Modell liest. Steht in jeder Kettenzeile zu einem Eintrag;
+    verify_state() vergleicht ihn mit der Datenbank — ein direktes UPDATE fällt damit auf."""
+    werte = {k: entry.get(k) for k in _STATE_FIELDS}
+    for k in ("derived_from",):
+        v = werte.get(k)
+        if isinstance(v, str):
+            try:
+                v = json.loads(v)
+            except ValueError:
+                v = [v]
+        werte[k] = list(v or [])
+    if werte.get("trust") is not None:
+        werte["trust"] = round(float(werte["trust"]), 6)
+    return paths.sha256_text(json.dumps(werte, sort_keys=True, ensure_ascii=False,
+                                        separators=(",", ":"), default=str))
+
+
+def _head_file():
+    return paths.home() / "state" / "ledger.head"
+
+
+def _read_head() -> dict | None:
+    try:
+        return json.loads(_head_file().read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def _count_lines() -> int:
+    try:
+        with paths.ledger_file().open("rb") as fh:
+            return sum(1 for ln in fh if ln.strip())
+    except FileNotFoundError:
+        return 0
+
+
+class _Sperre:
+    """Prozessübergreifende Sperre um Lesen-des-letzten-Hashes + Anhängen (parallele Hooks)."""
+
+    def __enter__(self):
+        self.fh = None
+        if fcntl is None:
+            return self
+        self.fh = (paths.ledger_file().parent / "ledger.jsonl.lock").open("a+")
+        fcntl.flock(self.fh, fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, *exc):
+        if self.fh is not None:
+            fcntl.flock(self.fh, fcntl.LOCK_UN)
+            self.fh.close()
+        return False
+
+
 def _append_ledger(op: str, id: str, *, by: str, **extra) -> dict:
-    """Eine Zeile {op, id, at, by, prev_hash, hash, ...} an ledger.jsonl anhängen."""
-    line = {"op": op, "id": id, "at": paths.now_iso(), "by": by, "prev_hash": _last_hash()}
-    line.update(extra)
-    line["hash"] = _hash_line(line)
-    with paths.ledger_file().open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps(line, ensure_ascii=False, sort_keys=True) + "\n")
+    """Eine Zeile {op, id, at, by, prev_hash, hash, ...} an ledger.jsonl anhängen.
+
+    Unter Dateisperre (die Kette gabelt sich sonst bei parallelen Hooks); Zusatzfelder werden
+    maskiert (Gründe tragen Nutzertext); der Kopf (letzter Hash, Zeilenzahl) liegt getrennt in
+    state/ledger.head, damit verify_chain() ein Abschneiden am Ende erkennt.
+    """
+    with _Sperre():
+        line = {"op": op, "id": id, "at": paths.now_iso(), "by": by, "prev_hash": _last_hash()}
+        for k, v in extra.items():
+            line[k] = bus.mask(v) if isinstance(v, str) else v
+        line["hash"] = _hash_line(line)
+        with paths.ledger_file().open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(line, ensure_ascii=False, sort_keys=True) + "\n")
+        try:
+            _head_file().write_text(json.dumps({"hash": line["hash"], "lines": _count_lines()}),
+                                    encoding="utf-8")
+        except OSError:
+            pass
     return line
 
 
@@ -233,12 +354,15 @@ def append_ledger(op: str, id: str, *, by: str, **extra) -> dict:
 
 
 def verify_chain() -> bool:
-    """True, wenn jede Zeile auf den Hash der vorigen zeigt und ihren eigenen Hash trägt."""
+    """True, wenn jede Zeile auf den Hash der vorigen zeigt, ihren eigenen Hash trägt und die
+    Kette am Kopf (state/ledger.head) endet — Abschneiden oder Neuanfang fällt damit auf."""
     try:
         text = paths.ledger_file().read_text(encoding="utf-8")
     except FileNotFoundError:
-        return True
+        head = _read_head()
+        return head is None or head.get("lines", 0) == 0
     prev = GENESIS_HASH
+    n = 0
     for raw in text.splitlines():
         if not raw.strip():
             continue
@@ -251,7 +375,38 @@ def verify_chain() -> bool:
         if line.get("hash") != _hash_line(line):
             return False
         prev = line["hash"]
+        n += 1
+    head = _read_head()
+    if head is not None and (head.get("hash") != prev or head.get("lines") != n):
+        return False
     return True
+
+
+def verify_state() -> dict:
+    """Vergleicht je Eintrag den letzten Zustandshash der Kette mit der Datenbank.
+    {"ok": bool, "geprueft": n, "abweichend": [ids]} — ein direktes UPDATE an memories fällt auf."""
+    letzte: dict[str, str] = {}
+    try:
+        for raw in paths.ledger_file().read_text(encoding="utf-8").splitlines():
+            if not raw.strip():
+                continue
+            try:
+                line = json.loads(raw)
+            except ValueError:
+                continue
+            if isinstance(line, dict) and line.get("row_hash") and line.get("id"):
+                letzte[line["id"]] = line["row_hash"]
+    except FileNotFoundError:
+        pass
+    abweichend = []
+    with closing(connect()) as con:
+        rows = con.execute("SELECT * FROM memories").fetchall()
+    for r in rows:
+        e = _row_to_dict(r)
+        soll = letzte.get(e["id"])
+        if soll is not None and soll != state_hash(e):
+            abweichend.append(e["id"])
+    return {"ok": not abweichend, "geprueft": len(rows), "abweichend": abweichend}
 
 
 # --- Hilfen -----------------------------------------------------------------------------------
@@ -315,8 +470,10 @@ def remember(title: str, body: str, *, source: str | None = None, kind: str = "f
     # 4. Größe und Secrets.
     if len(body.encode("utf-8", "ignore")) > MAX_BODY_BYTES:
         raise LedgerError("Eintrag > 16 KB abgelehnt — ein Eintrag ist ein Fakt, kein Dokument")
-    if SECRET_RE.search(title) or SECRET_RE.search(body):
-        raise LedgerError("Secret-Muster erkannt — Secrets werden nie gespeichert")
+    tags = list(tags)
+    check_secrets(title, body, source_ref, tags, expires_when)
+    if LABEL_RE.search(title) or LABEL_RE.search(body):
+        raise LedgerError("Etikett im Text abgelehnt — Herkunft steht nur im gerenderten Kopf der Zeile")
     # 5. Anweisung an das System selbst aus fremder Quelle.
     if source in _FOREIGN_SOURCES and (IMPERATIVE_RE.search(title) or IMPERATIVE_RE.search(body)):
         raise LedgerError("Anweisung an mich selbst aus fremder Quelle abgelehnt")
@@ -325,8 +482,11 @@ def remember(title: str, body: str, *, source: str | None = None, kind: str = "f
     # 6./7. Quarantäne vor Aktivierung: fremde Quellen und das Selbst werden nie direkt aktiv.
     if source in _CANDIDATE_ONLY_SOURCES or kind == "self":
         status = "candidate"
-    # 8. Vertrauen: Startwert aus der Quelle, sonst begrenzt.
+    # 8. Vertrauen: Startwert aus der Quelle, sonst begrenzt — und nie über der Obergrenze der Quelle.
     trust_value = SOURCES[source] if trust is None else _clamp_trust(trust)
+    if trust_value > TRUST_MAX[source] + 1e-9:
+        raise LedgerError(f"Vertrauen {trust_value:.2f} über der Obergrenze {TRUST_MAX[source]:.2f} "
+                          f"der Quelle {source!r} abgelehnt")
     importance = max(1, min(5, int(importance)))
     # 9. Ablösung: erst prüfen, ob der Übergang legal ist, dann einfügen, dann ablösen.
     old = None
@@ -338,6 +498,7 @@ def remember(title: str, body: str, *, source: str | None = None, kind: str = "f
 
     # Guard: Ableitung aus einem zurückgezogenen oder quarantinierten Eintrag trägt dessen Gift.
     # Sie wird sofort quarantiniert statt aktiv (Kontaminationsbefund A3; Wunsch aus retract.py).
+    derived_from = list(derived_from)
     vergiftet = []
     for parent in derived_from:
         p_row = get(parent)
@@ -345,6 +506,17 @@ def remember(title: str, body: str, *, source: str | None = None, kind: str = "f
             vergiftet.append(parent)
     if vergiftet:
         status = "quarantined"
+
+    # 9b. Ablösung nur durch einen Eintrag, der aktiv wird und nach Herkunftsordnung und Vertrauen
+    # nicht schwächer ist (REGEL_HERKUNFT in den Daten: eigener_schluss löst nutzer nie ab).
+    if old is not None:
+        if status != "active":
+            raise LedgerError("Ablösung abgelehnt: der neue Eintrag wird nicht aktiv "
+                              f"(Status {status!r})")
+        if SOURCE_RANK[source] < SOURCE_RANK.get(old["source"], 0):
+            raise LedgerError(f"Ablösung abgelehnt: Quelle {source!r} steht unter {old['source']!r}")
+        if trust_value < float(old["trust"]) - 1e-9:
+            raise LedgerError("Ablösung abgelehnt: geringeres Vertrauen als der abzulösende Eintrag")
 
     entry_id = paths.new_id()
     now = paths.now_iso()
@@ -366,7 +538,15 @@ def remember(title: str, body: str, *, source: str | None = None, kind: str = "f
             row,
         )
         # 10. Kette und Bus; scheitert die Kette, wird der Einfügevorgang zurückgerollt.
-        _append_ledger("remember", entry_id, by=by, kind=kind, source=source, status=status)
+        _append_ledger("remember", entry_id, by=by, kind=kind, source=source, status=status,
+                       row_hash=state_hash({
+                           "id": entry_id, "kind": kind, "status": status, "title": title, "body": body,
+                           "source": source, "source_ref": source_ref, "trust": trust_value,
+                           "importance": importance, "valid_from": valid_from, "valid_to": valid_to,
+                           "retired_at": None, "derived_from": list(derived_from),
+                           "supersedes": supersedes or None, "disputes": None,
+                           "visibility": visibility, "ttl_class": ttl_class,
+                           "expires_at": expires_at, "expires_when": expires_when}))
     if old is not None:
         transition(supersedes, "superseded", reason=f"abgelöst durch {entry_id}", by=by)
     bus.emit("memory.remember", id=entry_id, kind=kind, source=source, status=status,
@@ -392,6 +572,20 @@ def transition(id: str, new_status: str, *, reason: str = "", by: str = "system"
         raise LedgerError(f"Kein Eintrag mit id {id!r}")
     old_status = entry["status"]
     _check_transition(old_status, new_status)
+    check_secrets(reason)
+    if new_status == "active" and old_status != "active":
+        # Die Guards laufen bei der Aktivierung erneut: ein Kandidat aus fremder Quelle mit
+        # Anweisung an das System wird nie aktiv, auch nicht über die Konsolidierung.
+        if entry["source"] in _FOREIGN_SOURCES and (
+                IMPERATIVE_RE.search(entry["title"] or "") or IMPERATIVE_RE.search(entry["body"] or "")):
+            raise LedgerError("Aktivierung abgelehnt: Anweisung an mich selbst aus fremder Quelle")
+        check_secrets(entry["title"], entry["body"], entry["source_ref"])
+        # Ein Kind eines zurückgezogenen oder quarantinierten Eintrags trägt dessen Gift: es kommt
+        # nicht zurück in den Umlauf, solange der Elternteil draußen ist (G5 bleibt 1,0).
+        for parent in entry.get("derived_from") or []:
+            p_row = get(str(parent))
+            if p_row and p_row["status"] in ("retracted", "quarantined"):
+                raise LedgerError(f"Aktivierung abgelehnt: abgeleitet aus {p_row['status']} {parent}")
     now = paths.now_iso()
     retired_at = now if new_status in _RETIRING else (None if new_status == "active" else entry["retired_at"])
     valid_to = entry["valid_to"]
@@ -402,8 +596,9 @@ def transition(id: str, new_status: str, *, reason: str = "", by: str = "system"
             "UPDATE memories SET status = ?, retired_at = ?, valid_to = ? WHERE id = ?",
             (new_status, retired_at, valid_to, id),
         )
+        neu_zustand = dict(entry, status=new_status, retired_at=retired_at, valid_to=valid_to)
         _append_ledger("transition", id, by=by, from_status=old_status, to_status=new_status,
-                       reason=reason)
+                       reason=reason, row_hash=state_hash(neu_zustand))
     bus.emit("memory.transition", id=id, from_status=old_status, to_status=new_status,
              reason=reason, by=by)
     return get(id)
@@ -413,6 +608,7 @@ def dispute(id_a: str, id_b: str, *, reason: str) -> None:
     """Beide Einträge → disputed; `disputes` verweist aufeinander. Kein Sieger durch Datum."""
     if id_a == id_b:
         raise LedgerError("Ein Eintrag kann sich nicht selbst widersprechen")
+    check_secrets(reason)
     for own, other in ((id_a, id_b), (id_b, id_a)):
         entry = get(own)
         if entry is None:
@@ -422,7 +618,12 @@ def dispute(id_a: str, id_b: str, *, reason: str) -> None:
     with closing(connect()) as con, con:
         con.execute("UPDATE memories SET disputes = ? WHERE id = ?", (id_b, id_a))
         con.execute("UPDATE memories SET disputes = ? WHERE id = ?", (id_a, id_b))
-        _append_ledger("dispute", id_a, by="system", other=id_b, reason=reason)
+        a_neu = dict(get(id_a), disputes=id_b)
+        b_neu = dict(get(id_b), disputes=id_a)
+        _append_ledger("dispute", id_a, by="system", other=id_b, reason=reason,
+                       row_hash=state_hash(a_neu))
+        _append_ledger("dispute", id_b, by="system", other=id_a, reason=reason,
+                       row_hash=state_hash(b_neu))
     bus.emit("memory.dispute", a=id_a, b=id_b, reason=reason)
 
 
@@ -450,13 +651,13 @@ def render(entry: dict) -> str:
     """
     datum = (entry.get("valid_from") or entry.get("recorded_at") or "")[:10]
     trust_de = f"{float(entry.get('trust') or 0.0):.1f}".replace(".", ",")
-    text = entry.get("body") or entry.get("title") or ""
+    text = " ".join((entry.get("body") or entry.get("title") or "").splitlines())
     return f"[{datum}] [Quelle: {entry.get('source', '')}] [Vertrauen: {trust_de}] {text}"
 
 
 def render_many(entries: list[dict]) -> str:
     """Eine Zeile je Eintrag; Zeilenumbrüche im Text werden zu Leerzeichen, damit die Zeile Zeile bleibt."""
-    return "\n".join(" ".join(render(e).split("\n")) for e in entries)
+    return "\n".join(" ".join(render(e).splitlines()) for e in entries)
 
 
 def stats() -> dict:

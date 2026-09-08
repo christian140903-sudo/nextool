@@ -49,8 +49,10 @@ def test_promote_erst_ab_zwei_episoden_aus_zwei_sitzungen():
     ev = [e for e in _events("memory.selfmodel.promote") if e.get("id") == zwei_sitzungen]
     assert ev and ev[0]["episodes"] == 2 and ev[0]["sessions"] == 2
     assert ledger.verify_chain()
-    # Eigene Schwellen: mit min_sessions=1 reicht die eine Sitzung.
-    assert selfmodel.promote_eligible(min_sessions=1) == [eine_sitzung]
+    # Eigene Schwellen — aber e1 belegt schon den aktiven Zug, eine Episode trägt nur einen Zug:
+    # mit min_sessions=1 bleibt nur e2, das reicht nicht für zwei Episoden; mit min_episodes=1 schon.
+    assert selfmodel.promote_eligible(min_sessions=1) == []
+    assert selfmodel.promote_eligible(min_episodes=1, min_sessions=1) == [eine_sitzung]
 
 
 def test_render_ohne_eintraege_und_name_von_aussen():
@@ -87,9 +89,9 @@ def test_render_deklariert_nichts_aktiv_ohne_belege_bleibt_hypothese():
 
 
 def test_render_haelt_max_lines_und_kuerzt_hypothesen_zuerst():
-    e1, e2 = _episode("s1"), _episode("s2")
-    for i in range(3):
-        _selbst(f"Belegter Zug {i}.", derived_from=[e1, e2])
+    e1 = _episode("s1")
+    for i in range(3):  # je Zug eigene Belege: eine Episode trägt höchstens einen Zug
+        _selbst(f"Belegter Zug {i}.", derived_from=[_episode(f"a{i}"), _episode(f"b{i}")])
     selfmodel.promote_eligible()
     for i in range(5):
         _selbst(f"Hypothese {i}.", derived_from=[e1])
@@ -100,3 +102,18 @@ def test_render_haelt_max_lines_und_kuerzt_hypothesen_zuerst():
     assert len(zeilen) == 6 and sum(1 for z in zeilen if z.startswith("Hypothese")) == 2
     assert len(selfmodel.render(max_lines=1).split("\n")) == 1
     assert len(selfmodel.render(max_lines=50).split("\n")) == 9
+
+
+def test_eine_episode_belegt_hoechstens_einen_zug():
+    """Prüfbefund C2: zwei beliebige Episoden beglaubigten beliebig viele Selbstbehauptungen."""
+    e1, e2 = _episode("s1"), _episode("s2")
+    ids = [_selbst(f"Ich bin ein Weltklasse-Entwickler Nr. {i}.", derived_from=[e1, e2]) for i in range(5)]
+    assert selfmodel.promote_eligible() == [ids[0]]
+    assert [ledger.get(i)["status"] for i in ids] == ["active"] + ["candidate"] * 4
+    # Ein zweiter Lauf befördert nichts nach: die Belege sind vergeben.
+    assert selfmodel.promote_eligible() == []
+    # Frische, eigene Belege tragen einen weiteren Zug.
+    weiterer = _selbst("Ich melde Blockaden.", derived_from=[_episode("s7"), _episode("s8")])
+    assert selfmodel.promote_eligible() == [weiterer]
+    text = selfmodel.render()
+    assert sum(1 for z in text.split("\n") if z.startswith("[")) == 2

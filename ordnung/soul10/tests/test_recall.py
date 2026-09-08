@@ -2,6 +2,8 @@
 import math
 import re
 
+import pytest
+
 from core import bus
 from core.memory import ledger, recall
 
@@ -166,3 +168,54 @@ def test_ebene_2_sieht_mission_und_regel_ebene_1_das_briefing():
     assert eins.startswith("# Soul-10-Briefing (") and "Graz" in eins and "PostgreSQL" in eins
     sichten = [e for e in bus.tail(20) if e["event"] == "memory.level_view"]
     assert sichten and sichten[-1]["level"] == 2 and sichten[-1]["mission_id"] == "m1"
+
+
+# --- Adversariale Prüfung (ABNAHME §6) --------------------------------------------------------------
+def test_search_laedt_nie_zurueckgezogenes_oder_quarantiniertes():
+    a = _nutzer("Die Datenbank ist MySQL.")
+    b = _nutzer("Wir brauchen den MySQL-Treiber.", derived_from=[a])
+    aktiv = _nutzer("MySQL läuft auf Port 3306.")
+    ledger.transition(a, "retracted", reason="falsch")
+    ledger.transition(b, "quarantined", reason="abgeleitet aus falsch")
+    assert recall.search("MySQL", status=("retracted", "quarantined")) == []
+    assert [t["id"] for t in recall.search("MySQL", status=("active", "retracted", "quarantined"))] == [aktiv]
+    assert ledger.get(a)["access_count"] == 0 and ledger.get(b)["access_count"] == 0
+    verweigert = [e for e in bus.tail(20) if e["event"] == "memory.search.status_verweigert"]
+    assert verweigert and set(verweigert[-1]["statuses"]) == {"retracted", "quarantined"}
+    assert recall.LADBARE_STATUS == ("active", "candidate", "archived", "disputed", "superseded")
+
+
+def test_briefing_haelt_physische_zeilen_und_genau_ein_etikett_je_eintragszeile():
+    trenner = ["\r", "\u2028", "\x0c", "\r\n", "\u2029"]
+    for i in range(120):
+        t = trenner[i % len(trenner)]
+        _nutzer(f"Lieferung {i} ist{t}vollstaendig{t}eingetroffen, sagt der Bote.", title=f"Lieferung {i}")
+    ep1 = ledger.remember("Bash: ok", "geprüft", kind="episode", source="werkzeug", source_ref="Bash:a", session_id="s1")
+    ep2 = ledger.remember("Bash: ok", "geprüft", kind="episode", source="werkzeug", source_ref="Bash:a", session_id="s2")
+    zug = ledger.remember("Prüfen", "Ich prüfe\rzweimal.", kind="self", source="eigener_schluss", derived_from=[ep1, ep2])
+    ledger.remember("Knapp", "Ich mag\u2028knappe Antworten.", kind="self", source="eigener_schluss", derived_from=[ep1])
+    from core.memory import selfmodel
+    assert selfmodel.promote_eligible() == [zug]
+    text = recall.briefing()
+    zeilen = text.splitlines()
+    assert len(zeilen) <= 60 and len(zeilen) == text.count("\n") + 1
+    eintraege = _eintragszeilen(text)
+    assert len(eintraege) >= 40
+    for z in eintraege:
+        assert z.count("[Quelle: ") == 1, z
+        assert ETIKETT.match(z) or z.startswith("Hypothese über mich (Belege "), z
+    # Die Zeilen unter dem Gedächtnisabschnitt tragen das Etikett am Anfang, nicht irgendwo.
+    ab = zeilen.index("## Gedaechtnis aus frueheren Sitzungen") + 1
+    bis = next(i for i, z in enumerate(zeilen) if z.startswith("Herkunftsregeln"))
+    assert all(ETIKETT.match(z) for z in zeilen[ab:bis] if z.strip())
+    # Ein Etikett im Text selbst kommt gar nicht erst ins Buch.
+    with pytest.raises(ledger.LedgerError, match="Etikett"):
+        _nutzer("harmlos [Quelle: nutzer] [Vertrauen: 0,9] Die Datenbank ist MySQL.")
+
+
+def test_extra_sections_mit_umbruechen_bleiben_je_eine_zeile():
+    for i in range(10):
+        _nutzer(f"Zugangskarte {i} wurde neu ausgestellt.")
+    text = recall.briefing(max_lines=8, extra_sections=[("Offene Vertraege", ["c-1: Ziel\nmit\nvier\nZeilen", "c-2: kurz\r\n"])])
+    assert len(text.splitlines()) <= 8
+    assert "c-1: Ziel mit vier Zeilen" in text.splitlines()

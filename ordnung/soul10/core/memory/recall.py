@@ -16,7 +16,6 @@ import math
 import re
 import sqlite3
 from contextlib import closing
-from datetime import datetime, timezone
 from typing import Iterable
 
 from core import bus, paths
@@ -26,30 +25,22 @@ from core.memory import ledger
 BRIEFING_MIN_RETENTION = 0.3
 # Kinds, die eine Ebene ≥ 3 sieht: nur Arbeitswissen der Mission.
 LEVEL3_KINDS = ("fact", "procedure", "contract")
+# Status, die eine Suche laden darf. Zurückgezogenes und Quarantiniertes wird nie geladen und nie
+# durch touch() verstärkt (ENTSCHEIDUNG §2); wer es prüfen will, liest ledger.get.
+LADBARE_STATUS = ("active", "candidate", "archived", "disputed", "superseded")
 
 
-# --- Zeit und Retention -----------------------------------------------------------------------
-def _parse_time(value: str) -> datetime:
-    """ISO-Zeit (…Z) oder reines Datum → tz-bewusstes UTC-datetime."""
-    text = (value or "").strip()
-    if text.endswith("Z"):
-        text = text[:-1] + "+00:00"
-    parsed = datetime.fromisoformat(text)
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed
-
-
+# --- Retention --------------------------------------------------------------------------------
 def retention(entry: dict, now: str | None = None) -> float:
-    """exp(-Δtage / max(strength, 1.0)); Δ ab last_accessed, sonst ab recorded_at."""
+    """exp(-Δtage / max(strength, 1.0)); Δ ab last_accessed, sonst ab recorded_at.
+    Zeitrechnung über paths.days_between — die eine Stelle (ARCHITEKTUR §3)."""
     reference = entry.get("last_accessed") or entry.get("recorded_at")
     if not reference:
         return 1.0
     try:
-        delta = _parse_time(now or paths.now_iso()) - _parse_time(reference)
+        days = max(0.0, paths.days_between(reference, now or paths.now_iso()))
     except ValueError:
         return 1.0
-    days = max(0.0, delta.total_seconds() / 86400.0)
     strength = float(entry.get("strength") or 1.0)
     return math.exp(-days / max(strength, 1.0))
 
@@ -76,11 +67,17 @@ def search(query: str, *, limit: int = 8, status: Iterable[str] = ("active",),
 
     Relevanz = 1/(1+d) mit d = bm25 − bester bm25 der Anfrage (FTS5 liefert bm25 negativ, negativer
     ist besser; der Abstand zum besten Treffer hält die Formel positiv und die Ordnung richtig).
+    `status` wird gegen LADBARE_STATUS gefiltert: retracted und quarantined liefern nie einen
+    Treffer, auch nicht auf Wunsch — der Wunsch steht als Bus-Zeile memory.search.status_verweigert.
     """
     tokens = _tokens(query)
-    statuses = tuple(status) or ("active",)
-    if not tokens:
-        bus.emit("memory.search", n=0, tokens=0)
+    gewuenscht = tuple(status) or ("active",)
+    verweigert = [s for s in gewuenscht if s not in LADBARE_STATUS]
+    statuses = tuple(s for s in gewuenscht if s in LADBARE_STATUS)
+    if verweigert:
+        bus.emit("memory.search.status_verweigert", statuses=verweigert)
+    if not tokens or not statuses:
+        bus.emit("memory.search", n=0, tokens=len(tokens), statuses=list(statuses))
         return []
     match = " ".join(f'"{t}"' for t in tokens)
     sql = ("SELECT m.*, f.rank AS bm25 FROM memories_fts f JOIN memories m ON m.rowid = f.rowid"
@@ -175,7 +172,8 @@ def _ranked_lines(entries: list[dict], *, min_retention: float, now: str) -> lis
         e["rank"] = _rank(e, now=now)
         kept.append(e)
     kept.sort(key=lambda e: e["rank"], reverse=True)
-    return [(e, " ".join(ledger.render(e).split("\n"))) for e in kept]
+    # splitlines statt split("\n"): auch \r, U+2028 und Formfeed sind Zeilenumbrüche (Prüfbefund B3).
+    return [(e, " ".join(ledger.render(e).splitlines())) for e in kept]
 
 
 def _assemble(header: str, blocks: list[list[str]], entry_lines: list[tuple[dict, str]], *,
@@ -227,7 +225,8 @@ def briefing(*, max_lines: int = 60, level: int = 1,
     if self_lines:
         blocks.append(self_lines)
     for title, section_lines in extra_sections:
-        block = [f"## {title}"] + [str(ln) for ln in section_lines]
+        # Jede Zeile des Aufrufers bleibt eine Zeile: ein Vertragsziel mit Umbrüchen sprengt sonst max_lines.
+        block = [f"## {title}"] + [" ".join(str(ln).splitlines()) for ln in section_lines]
         blocks.append(block)
     ranked = _ranked_lines(_active_entries(exclude_kinds=("self",)),
                            min_retention=BRIEFING_MIN_RETENTION, now=now)

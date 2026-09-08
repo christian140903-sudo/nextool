@@ -54,6 +54,10 @@ def predict(claim: str, confidence: float, *, domain: str = "allgemein", model_i
     if not claim:
         raise PredictError("Vorhersage ohne Behauptung abgelehnt")
     try:
+        ledger.check_secrets(claim, domain)  # kein Secret in predictions und in ledger.jsonl
+    except ledger.LedgerError as exc:
+        raise PredictError(str(exc)) from exc
+    try:
         confidence = float(confidence)
     except (TypeError, ValueError) as exc:
         raise PredictError(f"Konfidenz {confidence!r} ist keine Zahl") from exc

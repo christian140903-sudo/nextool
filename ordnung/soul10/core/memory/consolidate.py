@@ -8,13 +8,17 @@ Erz → Gold: SOUL-CLAUDE.md sagte „Stop konsolidiert", ohne Mechanismus (R14 
 Takt A mit einem Modellaufruf vor. Hier: Takt A ist reine Buchführung ohne Modell (Hooks schreiben
 die Inbox, takt_a macht Episoden daraus), Takt B ordnet den Bestand mit den Regeln des Hauptbuchs
 und darf nichts löschen — jede Änderung ist ein transition() und damit in der Hash-Kette.
+Die adversariale Prüfung (ABNAHME §6) hat drei Löcher gezeigt, die hier geschlossen sind: der
+Sieger eines Widerspruchs ist der stärkste AKTIVE Eintrag in Herkunftsordnung (SOURCE_RANK vor
+Vertrauen) — ein Kandidat gewinnt nie, eigener_schluss löst nutzer nie ab; Selbst-Züge werden nicht
+durch bloßen Widerspruch gestürzt (kein `self` in AUSSAGE_KINDS); und Takt B hat einen Aufrufer
+außerhalb der CLI (Stop-Hook, gedrosselt über takt_b_faellig).
 
 Bezeichner deutsch (takt_a, takt_b, inbox_write nach ARCHITEKTUR 4.5), Kommentare deutsch.
 """
 from __future__ import annotations
 
 import json
-import math
 import re
 from contextlib import closing
 from datetime import timedelta
@@ -23,6 +27,9 @@ from typing import Iterable
 
 from core import bus, paths
 from core.memory import ledger
+from core.memory.recall import retention  # EINE Retention-Formel (recall), keine zweite Fassung hier
+
+__all__ = ["retention", "inbox_write", "takt_a", "takt_b", "takt_b_faellig", "letzter_takt_b"]
 
 # Episoden aus Werkzeugaufrufen sind Arbeitsstände: Haltbarkeit „short", 14 Tage (R05 §3.3 Nr. 5).
 EPISODE_TTL_TAGE = 14
@@ -34,7 +41,15 @@ ARCHIV_RETENTION = 0.1
 VERARBEITET = "verarbeitet"
 # Gedächtnisarten, deren Titel eine Aussage benennt — nur dort ist ein anderer Body ein Widerspruch.
 # Episoden haben Werkzeugtitel („Bash: ok"), die sich tausendfach wiederholen; sie widersprechen sich nicht.
-AUSSAGE_KINDS = ("fact", "procedure", "self", "user", "rejected")
+# `self` fehlt absichtlich: ein Selbst-Zug wird nur durch höheres Vertrauen abgelöst, nie durch bloßen
+# Widerspruch (ENTSCHEIDUNG §1); Belegschwelle und Beförderung gehören selfmodel.
+AUSSAGE_KINDS = ("fact", "procedure", "user", "rejected")
+# Kandidaten fremder Quellen (Quarantäne vor Aktivierung, ARCHITEKTUR 4.1 Nr. 6) werden nach dieser
+# Frist aktiv, wenn kein aktiver Eintrag gleicher Art und gleichen Titels etwas anderes sagt.
+KANDIDAT_FRIST_TAGE = 1.0
+# Aus dem Stop-Hook läuft Takt B höchstens einmal je Intervall; die Drossel liest das letzte Protokoll.
+TAKT_B_INTERVALL_STUNDEN = 6.0
+PROTOKOLL_REF = "consolidate:takt_b:"
 # Wer die Übergänge der Konsolidierung verantwortet (Feld `by` in ledger.jsonl).
 BY = "consolidate"
 
@@ -54,19 +69,6 @@ def _normalisiere_zeit(text: str | None, fallback: str) -> str:
         return _iso(paths.parse_iso(text or ""))
     except ValueError:
         return fallback
-
-
-def retention(entry: dict, now: str | None = None) -> float:
-    """exp(−Δtage / max(strength, 1)) ab last_accessed, sonst ab recorded_at — dieselbe Formel wie
-    recall.retention (ARCHITEKTUR 4.2), hier ohne Import, damit Takt B ohne recall läuft."""
-    referenz = entry.get("last_accessed") or entry.get("recorded_at")
-    if not referenz:
-        return 1.0
-    try:
-        tage = max(0.0, paths.days_between(referenz, now or paths.now_iso()))
-    except ValueError:
-        return 1.0
-    return math.exp(-tage / max(float(entry.get("strength") or 1.0), 1.0))
 
 
 # --- Inbox -----------------------------------------------------------------------------------
@@ -95,27 +97,55 @@ def inbox_write(session_id: str, record: dict) -> None:
         bus.emit("memory.inbox.fehler", session_id=session_id, error=str(exc)[:200])
 
 
-def _episode_aus_record(record: dict, session_id: str, now: str) -> str:
-    """Ein Inbox-Record → ein Episoden-Eintrag. Wirft LedgerError, wenn ein Guard greift."""
+def _ganzzahl(wert, fallback: int) -> int:
+    try:
+        return int(wert)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _episode_felder(record: dict, session_id: str, now: str) -> dict:
+    """Ein Inbox-Record → die Felder eines Episoden-Eintrags (noch nichts geschrieben)."""
     tool = str(record.get("tool") or "unbekannt").strip() or "unbekannt"
     outcome = str(record.get("outcome") or "").strip()
     summary = str(record.get("summary") or "")
     args_hash = str(record.get("args_hash") or "").strip()
     at = _normalisiere_zeit(record.get("at"), now)
+    try:
+        expires = _plus_tage(at, EPISODE_TTL_TAGE)
+    except (OverflowError, ValueError):  # Ereigniszeit am Rand des Kalenders: die Schreibzeit zählt
+        at = now
+        expires = _plus_tage(now, EPISODE_TTL_TAGE)
     body = summary
     if len(body) > MAX_BODY_ZEICHEN:
         body = (body[:MAX_BODY_ZEICHEN]
                 + f" … [gekürzt, sha256 {paths.sha256_text(summary)[:12]}]")
     tags = [t for t in (tool, outcome) if t]
-    return ledger.remember(
-        f"{tool}: {outcome}" if outcome else tool, body,
+    return dict(
+        title=f"{tool}: {outcome}" if outcome else tool, body=body,
         kind="episode", source="werkzeug", source_ref=f"{tool}:{args_hash}",
         importance=2, tags=tags, valid_from=at, ttl_class="short",
-        expires_at=_plus_tage(at, EPISODE_TTL_TAGE), status="active",
+        expires_at=expires, status="active",
         mission_id=str(record.get("mission_id") or ""),
-        level=int(record.get("level") or 1), agent=str(record.get("agent") or ""),
+        level=_ganzzahl(record.get("level"), 1), agent=str(record.get("agent") or ""),
         session_id=session_id, model_id=str(record.get("model_id") or ""),
     )
+
+
+def _schon_verbucht(session_id: str, source_ref: str, valid_from: str, body: str) -> bool:
+    """Idempotenz von Takt A: dieselbe Episode (Sitzung, Werkzeugverweis, Ereigniszeit, Inhalt) nur
+    einmal — ein abgebrochener Lauf darf beim Wiederholen keine Dubletten erzeugen."""
+    with closing(ledger.connect()) as con:
+        row = con.execute(
+            "SELECT 1 FROM memories WHERE kind = 'episode' AND session_id = ? AND source_ref = ?"
+            " AND valid_from = ? AND body = ? LIMIT 1", (session_id, source_ref, valid_from, body)).fetchone()
+    return row is not None
+
+
+def _episode_aus_record(record: dict, session_id: str, now: str) -> str:
+    """Ein Inbox-Record → ein Episoden-Eintrag. Wirft LedgerError, wenn ein Guard greift."""
+    felder = _episode_felder(record, session_id, now)
+    return ledger.remember(felder.pop("title"), felder.pop("body"), **felder)
 
 
 def takt_a(session_id: str) -> dict:
@@ -123,10 +153,13 @@ def takt_a(session_id: str) -> dict:
 
     Jede Zeile wird einzeln durch remember() geführt; greift dort ein Guard (Imperativ aus
     Werkzeugtext, Secret, Größe), zählt die Zeile als abgelehnt — fail-closed bleibt richtig,
-    und der Rest der Inbox geht trotzdem durch.
+    und der Rest der Inbox geht trotzdem durch. Jeder andere Fehler einer Zeile (Kalenderrand,
+    gesperrte Datenbank) zählt als `fehler` mit Bus-Zeile; die Datei wandert in jedem Fall nach
+    verarbeitet/, und _schon_verbucht hält eine Wiederholung frei von Dubletten.
     """
     datei = _inbox_datei(session_id)
-    ergebnis = {"session_id": session_id, "episoden": 0, "abgelehnt": 0, "unlesbar": 0, "ids": []}
+    ergebnis = {"session_id": session_id, "episoden": 0, "abgelehnt": 0, "unlesbar": 0,
+                "uebersprungen": 0, "fehler": 0, "ids": []}
     if not datei.exists():
         bus.emit("memory.takt_a", **{k: v for k, v in ergebnis.items() if k != "ids"}, inbox=False)
         return ergebnis
@@ -143,12 +176,21 @@ def takt_a(session_id: str) -> dict:
             bus.emit("memory.takt_a.unlesbar", session_id=session_id, error=str(exc)[:120])
             continue
         try:
-            ergebnis["ids"].append(_episode_aus_record(record, session_id, now))
+            felder = _episode_felder(record, session_id, now)
+            if _schon_verbucht(session_id, felder["source_ref"], felder["valid_from"], felder["body"]):
+                ergebnis["uebersprungen"] += 1
+                bus.emit("memory.takt_a.uebersprungen", session_id=session_id, tool=record.get("tool"))
+                continue
+            ergebnis["ids"].append(ledger.remember(felder.pop("title"), felder.pop("body"), **felder))
             ergebnis["episoden"] += 1
         except ledger.LedgerError as exc:
             ergebnis["abgelehnt"] += 1
             bus.emit("memory.takt_a.abgelehnt", session_id=session_id,
                      tool=record.get("tool"), grund=str(exc)[:160])
+        except Exception as exc:  # noqa: BLE001 — eine kaputte Zeile hält die Inbox nicht auf; sie steht auf dem Bus
+            ergebnis["fehler"] += 1
+            bus.emit("memory.takt_a.fehler", session_id=session_id, tool=record.get("tool"),
+                     error=f"{type(exc).__name__}: {str(exc)[:160]}")
     ziel_dir = paths.inbox_dir() / VERARBEITET
     ziel_dir.mkdir(parents=True, exist_ok=True)
     # Ein Suffix je Lauf: der Stop-Hook läuft je Zug derselben Sitzung, die Datei darf nichts überschreiben.
@@ -188,41 +230,103 @@ def _dubletten() -> int:
     return n
 
 
+def _staerke(e: dict) -> tuple[int, float]:
+    """Standfestigkeit in Herkunftsordnung: erst SOURCE_RANK (nutzer/werkzeug > dokument >
+    eigener_schluss/import/extern), dann Vertrauen. Das Datum kommt nicht vor."""
+    return (ledger.SOURCE_RANK.get(e["source"], 0), float(e["trust"]))
+
+
 def _weicht(verlierer: dict, sieger: dict) -> None:
-    """Der Eintrag mit geringerem Vertrauen verlässt den Umlauf. Aktiv → superseded; ein Kandidat
-    kennt diesen Übergang nicht (TRANSITIONS) und wird archiviert — gleicher Grund, gleiche Kette."""
-    grund = f"geringeres Vertrauen ({verlierer['trust']:.2f} < {sieger['trust']:.2f}) gegen {sieger['id']}"
+    """Der schwächere Eintrag verlässt den Umlauf. Aktiv → superseded; ein Kandidat kennt diesen
+    Übergang nicht (TRANSITIONS) und wird archiviert — gleicher Grund, gleiche Kette."""
+    grund = (f"schwächere Herkunft ({verlierer['source']} {verlierer['trust']:.2f} unter "
+             f"{sieger['source']} {sieger['trust']:.2f}) gegen {sieger['id']}")
     ziel = "superseded" if verlierer["status"] == "active" else "archived"
     ledger.transition(verlierer["id"], ziel, reason=grund, by=BY)
 
 
 def _widersprueche() -> dict:
-    """(2) Gleiche Art, gleicher normalisierter Titel, anderer Body, beide active/candidate.
+    """(2) Gleiche Art, gleicher normalisierter Titel, anderer Body, active/candidate.
 
-    Standfestigkeitsregel: der Eintrag mit höherem Vertrauen bleibt, der niedrigere weicht; bei
-    gleichem Vertrauen dispute(). Das Datum spielt keine Rolle — neuer heißt nicht wahrer.
+    Standfestigkeitsregel in Herkunftsordnung: der Sieger ist der stärkste AKTIVE Eintrag
+    (_staerke: SOURCE_RANK, dann Vertrauen). Ein schwächerer aktiver Eintrag → superseded, ein
+    gleich starker → beide disputed. Ein Kandidat gewinnt nie: schwächer → archived; gleich stark
+    oder stärker → bleibt Kandidat und wird gemeldet (Bus memory.takt_b.kandidat_widerspricht) —
+    sichtbar für den Nutzer, der entscheidet. Nur Kandidaten untereinander: nichts geschieht,
+    keiner ist Wissen. Das Datum spielt keine Rolle — neuer heißt nicht wahrer (A3).
     """
     gruppen: dict[tuple[str, str], list[dict]] = {}
     for e in _eintraege(("active", "candidate"), kinds=AUSSAGE_KINDS):
         gruppen.setdefault((e["kind"], _normalisiert(e["title"])), []).append(e)
-    abgeloest = umstritten = 0
+    abgeloest = umstritten = kandidaten = 0
     for mitglieder in gruppen.values():
         if len({_normalisiert(e["body"]) for e in mitglieder}) < 2:
             continue
-        # Höchstes Vertrauen zuerst; bei Gleichstand der ältere — nur für die Reihenfolge, nicht für den Sieg.
-        mitglieder.sort(key=lambda e: (-float(e["trust"]), e["recorded_at"], e["id"]))
-        sieger = mitglieder[0]
-        for anderer in mitglieder[1:]:
-            if _normalisiert(anderer["body"]) == _normalisiert(sieger["body"]):
+        aktive = [e for e in mitglieder if e["status"] == "active"]
+        if not aktive:
+            continue
+        # Stärkster zuerst; bei Gleichstand der ältere — nur für die Reihenfolge, nicht für den Sieg.
+        aktive.sort(key=lambda e: (-_staerke(e)[0], -_staerke(e)[1], e["recorded_at"], e["id"]))
+        sieger = aktive[0]
+        for anderer in mitglieder:
+            if anderer["id"] == sieger["id"] or _normalisiert(anderer["body"]) == _normalisiert(sieger["body"]):
                 continue
-            if float(anderer["trust"]) < float(sieger["trust"]):
+            schwaecher = _staerke(anderer) < _staerke(sieger)
+            if anderer["status"] == "candidate":
+                if schwaecher:
+                    _weicht(anderer, sieger)
+                    abgeloest += 1
+                else:
+                    kandidaten += 1
+                    bus.emit("memory.takt_b.kandidat_widerspricht", kandidat=anderer["id"],
+                             aktiv=sieger["id"], quelle=anderer["source"], titel=anderer["title"][:80])
+                continue
+            if schwaecher:
                 _weicht(anderer, sieger)
                 abgeloest += 1
             else:
                 ledger.dispute(sieger["id"], anderer["id"],
-                               reason="gleiches Vertrauen, anderer Inhalt — kein Sieger durch Datum")
+                               reason="gleiche Herkunft, gleiches Vertrauen, anderer Inhalt — kein Sieger durch Datum")
                 umstritten += 1
-    return {"abgeloest": abgeloest, "umstritten": umstritten}
+    return {"abgeloest": abgeloest, "umstritten": umstritten, "kandidat_widerspricht": kandidaten}
+
+
+def _aktivieren(now: str) -> dict:
+    """(4b) Kandidaten der Aussage-Arten werden nach KANDIDAT_FRIST_TAGE aktiv, wenn zu Art und
+    Titel kein aktiver Eintrag existiert und die Kandidaten untereinander einig sind. Quarantäne
+    vor Aktivierung heißt: Zeit und Widerspruchsfreiheit — nicht Vertrauen, das ein Dokument nicht
+    hat. Die Guards laufen in ledger.transition erneut; ein Verstoß dort zählt als abgelehnt."""
+    belegt = {(e["kind"], _normalisiert(e["title"]))
+              for e in _eintraege(("active",), kinds=AUSSAGE_KINDS)}
+    gruppen: dict[tuple[str, str], list[dict]] = {}
+    for k in _eintraege(("candidate",), kinds=AUSSAGE_KINDS):
+        gruppen.setdefault((k["kind"], _normalisiert(k["title"])), []).append(k)
+    aktiviert = abgelehnt = 0
+    for schluessel, kandidaten in gruppen.items():
+        if schluessel in belegt:
+            continue
+        if len({_normalisiert(k["body"]) for k in kandidaten}) > 1:
+            bus.emit("memory.takt_b.kandidaten_uneins", kind=schluessel[0], titel=kandidaten[0]["title"][:80],
+                     n=len(kandidaten))
+            continue
+        for k in kandidaten:
+            try:
+                tage = paths.days_between(k["recorded_at"], now)
+            except ValueError:
+                continue
+            if tage < KANDIDAT_FRIST_TAGE:
+                continue
+            try:
+                ledger.transition(k["id"], "active", by=BY,
+                                  reason=f"Kandidat {tage:.1f} Tage ohne Widerspruch")
+            except ledger.LedgerError as exc:
+                abgelehnt += 1
+                bus.emit("memory.takt_b.aktivierung_abgelehnt", id=k["id"], grund=str(exc)[:160])
+                continue
+            aktiviert += 1
+            belegt.add(schluessel)
+            break  # einer je Titel; die anderen sind Dubletten und gehen im nächsten Lauf ins Archiv
+    return {"aktiviert": aktiviert, "aktivierung_abgelehnt": abgelehnt}
 
 
 def _abgelaufen(now: str) -> int:
@@ -267,25 +371,48 @@ def _selbst_befoerdern() -> int:
     return len(selfmodel.promote_eligible())
 
 
+def letzter_takt_b() -> str | None:
+    """Schreibzeit des letzten Takt-B-Protokolls aus dem Hauptbuch; None, wenn nie gelaufen."""
+    with closing(ledger.connect()) as con:
+        row = con.execute(
+            "SELECT recorded_at FROM memories WHERE kind = 'episode' AND source_ref LIKE ?"
+            " ORDER BY recorded_at DESC, id DESC LIMIT 1", (PROTOKOLL_REF + "%",)).fetchone()
+    return row["recorded_at"] if row else None
+
+
+def takt_b_faellig(now: str | None = None, *, intervall_stunden: float = TAKT_B_INTERVALL_STUNDEN) -> bool:
+    """Die Drossel des Stop-Hooks: fällig, wenn nie gelaufen oder das letzte Protokoll älter als
+    intervall_stunden ist. Der Zustand liegt in der Kette, nicht in einer Marke."""
+    letzter = letzter_takt_b()
+    if not letzter:
+        return True
+    try:
+        return paths.days_between(letzter, now or paths.now_iso()) * 24.0 >= float(intervall_stunden)
+    except ValueError:
+        return True
+
+
 def takt_b(now: str | None = None) -> dict:
     """Bestand ordnen, ohne Modellaufruf und ohne DELETE. Rückgabe: Zähler je Schritt.
 
-    Reihenfolge wie ARCHITEKTUR 4.5: Dubletten, Widerspruch, Ablauf, Retention, Selbst. Zum
-    Schluss ein Episoden-Eintrag „Konsolidierung" mit den Zahlen, damit der Lauf im Briefing
-    auftauchen kann und die Kette ihn trägt.
+    Reihenfolge wie ARCHITEKTUR 4.5, um die Aktivierung ergänzt: Dubletten, Widerspruch, Ablauf,
+    Retention, Kandidaten-Aktivierung, Selbst. Zum Schluss ein Episoden-Eintrag „Konsolidierung"
+    mit den Zahlen — visibility never: die Kette trägt ihn und `soul status` zählt ihn, aber er
+    verdrängt keine Nutzerzeile aus dem Briefing (Prüfbefund C1: 14 Protokollzeilen je 14 Tage).
     """
     now = _normalisiere_zeit(now, paths.now_iso())
     zaehler = {"dubletten": _dubletten()}
     zaehler.update(_widersprueche())
     zaehler["abgelaufen"] = _abgelaufen(now)
     zaehler["verblasst"] = _verblasst(now)
+    zaehler.update(_aktivieren(now))
     zaehler["selbst_aktiviert"] = _selbst_befoerdern()
     zeilen = ", ".join(f"{k} {v}" for k, v in zaehler.items())
     protokoll_id = ledger.remember(
         "Konsolidierung", f"Takt B am {now}: {zeilen}.",
-        kind="episode", source="werkzeug", source_ref=f"consolidate:takt_b:{now}",
+        kind="episode", source="werkzeug", source_ref=f"{PROTOKOLL_REF}{now}",
         importance=1, tags=["konsolidierung"], valid_from=now, ttl_class="short",
-        expires_at=_plus_tage(now, EPISODE_TTL_TAGE), agent=BY,
+        expires_at=_plus_tage(now, EPISODE_TTL_TAGE), agent=BY, visibility="never",
     )
     zaehler["protokoll_id"] = protokoll_id
     zaehler["now"] = now
