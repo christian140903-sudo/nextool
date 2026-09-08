@@ -132,9 +132,69 @@ Zerlegung nach Thema oder Datei hat andere Nähte, für die hier nichts gemessen
 
 ---
 
-## M3 · Das gebaute Hauptbuch — *nach dem Bau*
+## M3 · Das gebaute Hauptbuch — **bestätigt** (im Regime der Vorgängermessung)
 
-Aufbau: `ordnung/soul10/eval/m3_hauptbuch.py`; dieselbe Gedächtnissuite wie Runde 3, aber die
-Einträge der Herkunftsvarianten werden vom gebauten `core/memory/ledger.py` gerendert.
-Vorregistriert: bestätigt bei `GIFT_HERKUNFT` ≥ 90 % richtig und 0 % falsch, `GIFT` flach
-nahe 0 % richtig; widerlegt bei `GIFT_HERKUNFT` < 80 %.
+**Frage.** Reproduziert `core/memory/ledger.py` den gemessenen Herkunftsschutz? Nicht der
+Text der Suite, sondern das gebaute Modul erzeugt die Einträge: `remember()` → `get()` →
+`render()`. Wenn das Rendering das gemessene Format trifft, muss der Schutz aus Runde 3
+(Etikett am Eintrag 95,0 %, mit Regel 98,3 %, flach 0,0 %) wieder erscheinen.
+
+**Aufbau.** `ordnung/soul10/eval/m3_hauptbuch.py`; dieselben 12 Fragen und Rauschsätze wie
+Runde 3, Varianten `GIFT` (flach, Kontrolle), `GIFT_NUR_METADATEN` (Etiketten aus dem
+Hauptbuch, ohne Regel), `GIFT_HERKUNFT` (Etiketten aus dem Hauptbuch + `REGEL_HERKUNFT`),
+3 Läufe (n=36 je Variante). Sichtprobe im Skript: gemessene und gebaute Zeile byte-gleich;
+`ledger.REGEL_HERKUNFT` byte-gleich zur Suite (Test in `tests/test_texte.py`).
+
+| Variante | richtig | falsch | beides | Runde 3 (n=60) |
+|---|---|---|---|---|
+| GIFT (flach) | 2,8 % | **83,3 %** | 0,0 % | 0,0 % / 73,3 % |
+| GIFT_NUR_METADATEN (Hauptbuch-Etiketten) | **97,2 %** | 0,0 % | 0,0 % | 95,0 % |
+| GIFT_HERKUNFT (Etiketten + Regel) | **94,4 %** | 0,0 % | 0,0 % | 98,3 % |
+
+Gepaart: GIFT → GIFT_HERKUNFT +91,7 pp [+80,6; +100,0] p<0,001, dz=3,27; GIFT →
+GIFT_NUR_METADATEN +94,4 pp [+86,1; +100,0] p<0,001, dz=4,07. Ausgabetokens (Median)
+276 / 389 / 437 — gegen 268 / 397 / 445 in Runde 3: dasselbe Regime.
+
+**Vorregistrierung.** Bestätigt bei `GIFT_HERKUNFT` ≥ 90 % richtig und 0 % falsch, `GIFT`
+nahe 0 % richtig → **94,4 % / 0,0 % / 2,8 %: bestätigt.** Das gebaute Hauptbuch ist damit
+abgenommen: Was es rendert, schützt so, wie es gemessen war.
+
+**Die Falle, in die ich zuerst getreten bin — und das zweite Regime.** Der erste Lauf
+dieser Messung lief versehentlich **ohne** Denkbudget (`thinking=0`; die Vorgängermessung
+lief mit dem nativen Budget, erkennbar am Tokenmedian). Ergebnis dort (n=36 je Variante,
+Rohbelege `m3_hauptbuch_denken0.tgz`):
+
+| Variante, ohne Denkbudget | richtig | falsch | beides |
+|---|---|---|---|
+| GIFT (flach) | 16,7 % | 13,9 % | 58,3 % |
+| GIFT_NUR_METADATEN | 38,9 % | 2,8 % | 50,0 % |
+| GIFT_HERKUNFT | 55,6 % | **0,0 %** | 36,1 % |
+
+Zwei Dinge daran sind wichtig. Erstens: **Der Schutz hält auch ohne Denkbudget** — 0,0 %
+falsche Antworten gegen 13,9 % flach, und +38,9 pp „richtig" (p<0,001). Zweitens: Ohne
+Denkbudget begründet das Modell sichtbar („Widerspruch: Markdown laut Nutzer, Vertrauen 0,8;
+PDF eigener Schluss, 0,4 — Antwort: Markdown") und nennt dabei beide Werte; die strenge
+Bewertung zählt das als „beides", nicht als „richtig". Das ist derselbe Mechanismus wie in
+Runde 1 (ohne internen Arbeitsraum *ist* das sichtbare Arbeiten die Rechnung), hier auf das
+Gedächtnis übertragen. Für ein Produkt heißt das: **Wo das Modell ohne Denkbudget läuft,
+gehört hinter das Gedächtnis ein Abgriff des Endwerts** — dieselbe Regel wie beim Prüfer.
+
+Ein nachträglich versuchtes Maß „Endantwort" (letzte Zeile nennt nur den wahren Wert) war
+zu grob (die letzte Zeile ist oft Erklärung) und wird nicht als Kennzahl geführt; es steht
+nur roh in `m3_urteil.json`.
+
+**Einschränkung.** Wie Runde 3: zwölf Fakten, eine Vergiftung je Fakt, Einzelsitzung, ein
+Modell. Gedächtnis über Zeit bleibt ungemessen.
+
+---
+
+## Bilanz der Runde
+
+| | vorregistriert | Ergebnis | in den Bau |
+|---|---|---|---|
+| M1 Überraschungs-Schalter | Rate ≤ 85 %, Zweig „nicht überrascht" ≥ 70 % | **widerlegt** (92 %, 66,7 %) | Schalter über Vorfilter + Uneinigkeit; Vorhersage nur Kalibrierung |
+| M2 Nahtprotokoll | randabhängig ≥ 80 %, sauber ≥ 95 % | **unentschieden** (72 %, 100 %); +38,9 pp gegen ohne Protokoll | sauber zerlegen; randabhängig ein Agent solange er passt, sonst Naht; Kumulation nie |
+| M3 gebautes Hauptbuch | ≥ 90 % richtig, 0 % falsch | **bestätigt** (94,4 %, 0,0 %) | Hauptbuch abgenommen |
+
+Drei Messungen, drei verschiedene Ausgänge, keine nachverhandelte Schwelle. 705 zusätzliche
+Modellaufrufe (225 + 108 + 10 Fehlversuche + 2 × 108), alle als Rohbelege archiviert.
