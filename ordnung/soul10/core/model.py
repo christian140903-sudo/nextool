@@ -44,16 +44,25 @@ def pruefer_prompt(aufgabe: str, vorschlag: str) -> str:
 
 
 # --- Abgriff -------------------------------------------------------------------------
-_NUM = re.compile(r"-?\d+(?:[.,]\d+)?")
+# Zuerst die deutsch gruppierte Form (10.000 / 1.000.000,5), sonst die einfache Form.
+# Die gruppierte Form darf nicht von einer weiteren Ziffer gefolgt sein, damit 3.14159
+# nicht als 3.141 + 59 gelesen wird.
+_NUM = re.compile(r"-?\d{1,3}(?:\.\d{3})+(?:,\d+)?(?!\d)|-?\d+(?:[.,]\d+)?")
+_GRUPPIERT = re.compile(r"^-?\d{1,3}(?:\.\d{3})+(?:,\d+)?$")
 
 
 def extract_last_number(text: str) -> float | None:
-    """Letzte Zahl im Text; deutsche (1,5) und englische (1.5) Dezimalschreibweise."""
+    """Letzte Zahl im Text; deutsche (1,5 / 10.000) und englische (1.5) Schreibweise.
+    Ein Punkt zwischen Dreiergruppen ohne Dezimalstelle ist ein Tausendertrenner
+    (die Pruefstrecke tilgt Punkte vor dem Abgriff; hier dieselbe Lesart)."""
     zs = _NUM.findall(text or "")
     if not zs:
         return None
+    z = zs[-1]
+    if _GRUPPIERT.match(z):
+        z = z.replace(".", "")
     try:
-        return float(zs[-1].replace(",", "."))
+        return float(z.replace(",", "."))
     except ValueError:
         return None
 

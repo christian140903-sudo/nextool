@@ -472,7 +472,9 @@ run(goal: str, probes: list[dict], *, items: list|None = None, condition: str|No
     # 0 situieren: profile = inventory.load_profile() or inventory.write_profile()
     # 1 vertrag  : c = contract.new(goal, probes, mission_id=…)  (ContractError propagiert — ohne Probe kein Auftrag)
     # 2 schalter : s = switch.decide(goal, probe=probe_switch)
-    # 3 plan     : items+condition → decompose.seam_check; zerlegbar → decompose.run; sonst Einzelaufruf
+    # 3 plan     : items+condition → decompose.seam_check; empfehlung 'zerlegen' → decompose.run;
+    #              'einzeln' → Einzelaufruf, solange die Item-Darstellung ≤ EINZELN_MAX_ZEICHEN (4 000) ist,
+    #              sonst decompose.run(force=True) (M2: 72 % > 33 %); 'nicht_zerlegbar' → Einzelaufruf, geloggt
     # 4 ausführen: system = s["inject"] or None; model.call(system, goal) → proposal; contract.deliver
     # 5 prüfen   : verifier.verify(c["id"], use_model=use_model_verifier or s["stage"]=="pruefer", proposal_text=…)
     # 6 erinnern : ledger.remember(title=goal[:80], body=<endergebnis>, kind="episode", source="werkzeug",

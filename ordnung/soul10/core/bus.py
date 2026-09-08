@@ -15,7 +15,8 @@ from pathlib import Path
 
 from . import paths
 
-_SECRET_MASK = re.compile(
+# Oeffentlich, damit ledger/inventory dasselbe Muster pruefen statt es zu kopieren.
+SECRET_PATTERN = _SECRET_MASK = re.compile(
     r"(AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9_\-]{20,}|ghp_[A-Za-z0-9]{20,}"
     r"|xox[bpars]-[A-Za-z0-9\-]+|eyJ[A-Za-z0-9_\-]{20,})"
 )

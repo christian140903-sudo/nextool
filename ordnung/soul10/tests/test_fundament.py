@@ -47,6 +47,20 @@ def test_abgriff():
     assert model.extract_last_line("a\n\n b \n") == "b"
 
 
+def test_abgriff_tausendertrennung_und_dezimalen():
+    assert model.extract_last_number("Ergebnis: 10.000") == 10000.0
+    assert model.extract_last_number("Summe 1.000.000,5") == 1000000.5
+    assert model.extract_last_number("pi ist 3.14159") == 3.14159
+    assert model.extract_last_number("Wert 12.5") == 12.5
+    assert model.extract_last_number("also 10000") == 10000.0
+    assert model.extract_last_number("Bus.SECRET_PATTERN") is None
+
+
+def test_secret_pattern_oeffentlich():
+    assert bus.SECRET_PATTERN.search("ghp_abcdefghijklmnopqrstuvwxyz1234")
+    assert not bus.SECRET_PATTERN.search("harmloser Text")
+
+
 def test_aufwandsregel_byte_gleich_zur_pruefstrecke():
     sys.path.insert(0, str(paths.repo_root() / "bewusstsein" / "harness"))
     import arme  # noqa: E402
