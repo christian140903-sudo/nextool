@@ -229,7 +229,8 @@ retention(entry: dict, now: str|None = None) -> float     # exp(-Δtage / max(st
 search(query: str, *, limit: int = 8, status: Iterable[str] = ("active",), kinds: Iterable[str]|None = None,
        min_trust: float = 0.0, mission_id: str|None = None, session_id: str = "") -> list[dict]
     # FTS5 mit gequoteten Tokens (SOUL-Muster), Rang = (1/(1+bm25)) * trust * (0.5 + 0.5*retention) * (1 + 0.1*importance);
-    # touch() je Treffer; bus.emit("memory.search", n=…)
+    # touch() je Treffer; bus.emit("memory.search", n=…). status nur aus LADBARE_STATUS (active, candidate,
+    # archived, disputed, superseded): retracted/quarantined wird nie geladen, nie berührt (Bus status_verweigert).
 briefing(*, max_lines: int = 60, level: int = 1, extra_sections: list[tuple[str, list[str]]] = (),
          with_rule: bool = True, name: str|None = None) -> str
     # Reihenfolge: Kopfzeile "# Soul-10-Briefing (<datum>)"; Selbstmodell-Kurzform (≤ 10 Zeilen,
@@ -271,16 +272,26 @@ inbox_write(session_id: str, record: dict) -> None       # inbox/<session_id>.js
 takt_a(session_id: str) -> dict
     # Inbox → Einträge kind="episode", source="werkzeug", source_ref=f"{tool}:{args_hash}", status active,
     # ttl_class "short", expires_at +14 Tage; danach Inbox-Datei nach inbox/verarbeitet/ verschieben.
-    # Kein Modellaufruf. Rückgabe {"episoden": n}
+    # Kein Modellaufruf. Jede Zeile einzeln: Guard → "abgelehnt", anderer Fehler → "fehler" (Bus-Zeile),
+    # schon verbucht (Sitzung, Verweis, Ereigniszeit, Inhalt) → "uebersprungen"; die Datei wandert immer.
+    # Rückgabe {"episoden", "abgelehnt", "unlesbar", "uebersprungen", "fehler", "ids"}
 takt_b(now: str|None = None) -> dict
     # (1) Dubletten: candidate mit identischem normalisiertem Titel+Body wie ein active → candidate archived (Grund "dublette")
-    # (2) Widerspruch: gleicher normalisierter Titel, anderer Body, beide active/candidate:
-    #     höheres Vertrauen bleibt, niedrigeres → superseded (Grund "geringeres Vertrauen"); gleich → dispute()
-    #     (das ist die Standfestigkeitsregel: nur ein höher vertrauter Eintrag löst ab, nie ein bloß neuerer)
+    # (2) Widerspruch: gleicher normalisierter Titel, anderer Body, Arten fact/procedure/user/rejected (nie self,
+    #     nie episode). Sieger = stärkster AKTIVER Eintrag in Herkunftsordnung (SOURCE_RANK, dann Vertrauen).
+    #     Aktiv und schwächer → superseded; aktiv und gleich stark → dispute(); Kandidat schwächer → archived;
+    #     Kandidat gleich stark oder stärker → bleibt Kandidat, Bus "memory.takt_b.kandidat_widerspricht".
+    #     Nur Kandidaten: nichts. (Standfestigkeitsregel: ein Kandidat gewinnt nie, eigener_schluss löst nutzer
+    #     nie ab, das Datum zählt nicht.)
     # (3) expires_at überschritten → archived (Grund "abgelaufen")
     # (4) Retention < 0.1 und keine aktiven derived_from-Kinder → archived
+    # (4b) Aktivierung: Kandidaten der Aussage-Arten, ≥ KANDIDAT_FRIST_TAGE (1) alt, ohne aktiven Eintrag
+    #     gleicher Art und gleichen Titels, untereinander einig → active (Guards laufen in transition erneut)
     # (5) Selbst-Kandidaten prüfen → selfmodel.promote_eligible()
     # Rückgabe: Zähler je Schritt; schreibt einen episode-Eintrag "Konsolidierung" mit den Zahlen
+    # (visibility never: in Kette und Zählung, nicht im Briefing)
+takt_b_faellig(now=None, *, intervall_stunden=6.0) -> bool   # Drossel für den Stop-Hook; liest das letzte Protokoll
+letzter_takt_b() -> str|None
 ```
 Tests (≥ 6): Inbox → Episoden; Dublette; niedrigeres Vertrauen weicht; gleiches Vertrauen → disputed; Ablauf; Retention.
 
@@ -453,10 +464,10 @@ Vorlage: `/home/user/soul/core/events.py` (Fail-open/-closed, Maskierung, Zusamm
 | `user-prompt` | `{session_id, prompt}` | `switch.decide(prompt)`; Routing-Log | bei stage `aufwand`: JSON `{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext": AUFWANDSREGEL}}`; sonst nichts |
 | `pre-tool` | `{session_id, tool_name, tool_input}` | `guard.classify` → deny-JSON wie SOUL bei Treffer ohne Mandat; sonst: Bash → `rollback.infer_from_bash` → `register`; Write/Edit auf bestehende Datei → `rollback.snapshot_file`; `bus.emit("pre", …)` | deny-JSON oder nichts |
 | `post-tool` | `{session_id, tool_name, tool_input, tool_response}` | `consolidate.inbox_write(session_id, {at, tool, args_hash, outcome, summary})`; bus | nichts |
-| `stop` | `{session_id, stop_hook_active}` | **Prüfgate:** Verträge mit status `delivered` und ohne Quittung → JSON `{"decision":"block","reason":"Vertrag <id> ist geliefert, aber nicht geprüft. `soul verify <id>` ausführen oder `soul contract block <id> <grund>`."}` — außer `stop_hook_active` ist true (keine Schleife). Sonst `consolidate.takt_a(session_id)`; bus | block-JSON oder nichts |
+| `stop` | `{session_id, stop_hook_active}` | **Prüfgate:** Verträge mit status `delivered` und ohne Quittung → JSON `{"decision":"block","reason":"Vertrag <id> ist geliefert, aber nicht geprüft. `soul verify <id>` ausführen oder `soul contract block <id> <grund>`."}` — außer `stop_hook_active` ist true (keine Schleife). Sonst `consolidate.takt_a(session_id)`, dann `consolidate.takt_b()` wenn `takt_b_faellig()` (höchstens alle 6 h, fail-open); bus | block-JSON oder nichts |
 | `pre-compact` | `{session_id}` | `snapshot.json` = {offene Verträge, offene Rückbau-Posten, at}; bus | nichts |
 | `subagent-stop` | `{session_id, agent_id?}` | bus mit level-Feld | nichts |
-| `session-end` | `{session_id}` | `consolidate.takt_a`; bus | nichts |
+| `session-end` | `{session_id}` | `consolidate.takt_a`; `consolidate.takt_b` wenn fällig; bus | nichts |
 
 Exit-Code immer 0 (Entscheidungen über JSON). Hook-Fehler → `bus.emit("hook-fehler", …)`, Exit 0.
 `.claude/settings.json`: alle Modi registriert (`"command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/hook.py\" <modus>"`),
