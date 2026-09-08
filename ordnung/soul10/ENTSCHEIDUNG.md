@@ -155,6 +155,12 @@ Abweichung wird der Prüfer gerufen.
   teilbare Bedingung ≥ 95 % (das Protokoll darf dort nichts kosten).
 - *Widerlegt, wenn:* randabhängig < 60 % **oder** sauber teilbar < 90 %. Dann verweigert
   `decompose.py` jede Zerlegung mit erkannter Randabhängigkeit (Fallback: ein Agent).
+- **Ergebnis (2026-09-08, n=36 je Verfahren): unentschieden — 72 % randabhängig
+  (ZERLEGT_CODE 33 %, GANZ 94 %), 100 % sauber teilbar.** Gepaart: +38,9 pp gegen
+  Zerlegung ohne Protokoll (p=0,030), −22,2 pp gegen einen Agenten (p=0,113). Regel in
+  `ARCHITEKTUR.md` §5.4: sauber → zerlegen; randabhängig → ein Agent, solange die Aufgabe
+  in einen Kontext passt, sonst Nahtprotokoll; Kumulation → nicht zerlegbar. Details in
+  `bewusstsein/berichte/03-RUNDE4-BAU.md` §M2.
 
 **M3 · Das gebaute Hauptbuch besteht die gemessene Schwelle** (nach dem Bau;
 `experiment_ged.py`, Varianten `GIFT` und `GIFT_HERKUNFT`, Einträge gerendert vom

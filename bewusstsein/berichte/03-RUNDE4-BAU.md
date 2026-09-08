@@ -73,12 +73,62 @@ Das ist die Eigenstreuung, vor der `05-VORGEHEN.md` §8 warnt, hier als Zahl.
 
 ---
 
-## M2 · Nahtprotokoll — *läuft*
+## M2 · Nahtprotokoll — **unentschieden** nach Vorregistrierung, Richtung eindeutig
 
-Aufbau: `ZERLEGT_NAHT` in `harness/zerlegung.py`; 12 Aufgaben × 3 Läufe, 10 Teile, Denkbudget
-wie in der Vorgängermessung, gegen `GANZ` und `ZERLEGT_CODE`. Vorregistriert: bestätigt bei
-randabhängig ≥ 80 % (Vorgänger 28 %) **und** sauber teilbar ≥ 95 %; widerlegt bei
-randabhängig < 60 % **oder** sauber teilbar < 90 %. Ergebnis folgt nach Abschluss des Laufs.
+**Frage.** Befund B5 (Runde 3): Zerlegung gewinnt, wo die Aufgabe sauber teilbar ist
+(100 % gegen 89 %), und bricht bei einer Abhängigkeit über die Schnittkante auf 28 % ein —
+Ursache ist die mehrdeutige Anweisung an der Naht, nicht der fehlende Randwert. Das
+Nahtprotokoll macht die Teilanweisung für sich allein eindeutig: Position des Ausschnitts
+in der Gesamtliste, Randwerte beidseitig, und die Lesart listenbezogener Ausdrücke („die
+Zahl davor", „die erste Zahl der Liste") als Bezug auf die **Gesamtliste**. Es gibt die
+Ränder immer weiter, ob die Bedingung sie braucht oder nicht — die Zerlegungsfunktion soll
+das nicht wissen müssen.
+
+**Aufbau.** `ZERLEGT_NAHT` in `harness/zerlegung.py`; bedingtes Zählen über 150 Zahlen,
+12 Aufgaben (6 sauber teilbar, 6 randabhängig) × 3 Läufe, 10 Teile à 15 Zahlen,
+Denkbudget wie in Runde 3, gegen `GANZ` (ein Agent) und `ZERLEGT_CODE` (Zerlegung ohne
+Protokoll, Randwert übergeben). 10 der 36 `ZERLEGT_CODE`-Läufe endeten am Sitzungslimit
+und wurden nachgelaufen; die Fehlversuche liegen im Beleg-Archiv. n=36 je Verfahren.
+
+| Verfahren | richtig | Aufrufe | Tokens | mittl. Fehler | sauber teilbar | randabhängig | Δ vs GANZ |
+|---|---|---|---|---|---|---|---|
+| GANZ (ein Agent) | 88,9 % | 1 | 7 900 | 0,17 | 83 % | **94 %** | — |
+| ZERLEGT_CODE | 66,7 % | 10 | 10 774 | 0,56 | **100 %** | 33 % | −22,2 pp [−41,7; −2,8] p=0,029 |
+| **ZERLEGT_NAHT** | 86,1 % | 10 | 10 070 | 0,17 | **100 %** | 72 % | −2,8 pp [−19,4; +13,9] p=0,873 |
+
+**Gepaart (Bootstrap, je Bedingung n=18):**
+
+| Vergleich | gesamt (n=36) | nur randabhängig | nur sauber teilbar |
+|---|---|---|---|
+| NAHT gegen ZERLEGT_CODE | **+19,4 pp** [+2,8; +36,1] p=0,034 | **+38,9 pp** [+5,6; +66,7] p=0,030 | ±0,0 pp |
+| NAHT gegen GANZ | −2,8 pp p=0,873 | −22,2 pp [−44,4; +0,0] p=0,113 | +16,7 pp [+0,0; +33,3] p=0,077 |
+
+**Drei Sätze.**
+
+1. **Das Protokoll wirkt, wo es gebraucht wird, und kostet nichts, wo nicht.** Randabhängig
+   33 % → 72 % (Runde 3 ohne Protokoll: 28 % — repliziert), sauber teilbar 100 % → 100 %.
+   Der mittlere Fehler fällt von 0,56 auf 0,17 — auf das Niveau des einzelnen Agenten.
+   Die Ursache aus B5 ist damit bestätigt: es war die Naht, nicht der Randwert.
+2. **Es heilt nicht vollständig.** 72 % gegen 94 % für einen einzelnen Agenten, der die ganze
+   Liste sieht. Die verbleibenden Fehler sitzen weiter an den Nähten (mittlerer Fehler 0,17,
+   also meist ±1). Zehn Nähte sind zehn Gelegenheiten, eine Lesart doch zu verfehlen.
+3. **Die Regel für die Zerlegungsfunktion ist deshalb dreiteilig**, und sie steht jetzt so in
+   `ordnung/soul10/ARCHITEKTUR.md` §5.4 und in `core/decompose.py`: sauber teilbar → zerlegen
+   (100 % gegen 83–89 %); randabhängig → **ein Agent, solange die Aufgabe in einen Kontext
+   passt** (94 % gegen 72 %), sonst Nahtprotokoll (72 % gegen 33 %); Kumulationsbezug
+   („bisher", „laufend", „Median") → nicht zerlegbar, weil kein Randwert die Naht eindeutig
+   machen kann.
+
+**Vorregistrierung.** Bestätigt wäre: randabhängig ≥ 80 % **und** sauber teilbar ≥ 95 %.
+Widerlegt: randabhängig < 60 % **oder** sauber teilbar < 90 %. Ergebnis: 72 % / 100 % —
+**weder bestätigt noch widerlegt.** Die Bestätigungsschwelle war zu hoch gesetzt: sie
+verlangte vom Protokoll, den einzelnen Agenten fast einzuholen. Die Schwelle wird nicht
+nachverhandelt; das Ergebnis heißt „unentschieden", und die Bauregel oben folgt aus den
+gepaarten Vergleichen, nicht aus der Schwelle.
+
+**Einschränkung.** Ein Aufgabentyp (Zählen über eine Sequenz), zwei Bedingungen, n=18 je
+Zelle, ein Modell. Die Nahtklassen „Nachbar" und „Position" sind die der Sequenzzerlegung;
+Zerlegung nach Thema oder Datei hat andere Nähte, für die hier nichts gemessen ist.
 
 ---
 

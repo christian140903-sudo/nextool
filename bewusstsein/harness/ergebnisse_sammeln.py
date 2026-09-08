@@ -3,8 +3,21 @@ import sys, os, json
 sys.path.insert(0,'/home/user/nextool/bewusstsein/harness')
 import analyse, experiment, statistik, experiment_arch
 
-R = {}
+# Bestehende Endzahlen bleiben erhalten: ein Block wird nur neu geschrieben, wenn seine
+# Rohdaten vorliegen. Sonst wuerde ein Lauf ohne entpackte Belege die alten Zahlen leeren.
+_ENDZAHLEN = "bewusstsein/ergebnisse/ENDZAHLEN.json"
+try:
+    R = json.load(open(_ENDZAHLEN, encoding="utf-8"))
+except (OSError, ValueError):
+    R = {}
+
+
+def _hat_rohdaten(outdir):
+    return os.path.isdir(os.path.join(outdir, "raw"))
+
+
 def block(name, outdir, suite, arme, runs, limit, basis):
+    if not _hat_rohdaten(outdir): return
     try: tasks = experiment.lade_suite(suite)[:limit]
     except Exception: return
     d = analyse.sammle(outdir, suite, tasks, arme, runs)
@@ -37,6 +50,7 @@ def block(name, outdir, suite, arme, runs, limit, basis):
 def arch_block(name, outdir, suite, archs, runs, limit, basis):
     """Mehrfachaufruf-Architekturen: andere Artefaktform als die Einzelarme,
     deshalb ueber experiment_arch.sammle statt analyse.sammle."""
+    if not _hat_rohdaten(outdir): return
     try: tasks = experiment.lade_suite(suite)[:limit]
     except Exception: return
     d = experiment_arch.sammle(outdir, suite, tasks, archs, runs)
@@ -82,6 +96,7 @@ block("denken_kette60", f"{O}/denken_regime","kette60",
       ["N","P","V1_FAKTOREN","V5_NUR_ZUTEILUNG","V5_MONITOR"],3,25,"N")
 def ident_block(name, outdir, arme, runs):
     """Identitaets-Batterie: eigene Artefaktform (drei Phasen je Aufgabe)."""
+    if not _hat_rohdaten(outdir): return
     import experiment_ident, suiten_identitaet
     tasks = suiten_identitaet.bauen()
     e = experiment_ident.auswerten(outdir, arme, tasks, runs)
@@ -95,7 +110,9 @@ def lauf_bilanz(name, wurzel):
     Ein Artefakt mit ok=false ist kein Messwert -- es faellt aus der Auswertung und
     muss deshalb sichtbar bleiben, sonst sieht der Lauf sauberer aus als er war."""
     import glob
-    ges = {"aufrufe": 0, "artefakte": 0, "abgebrochen": 0, "je_lauf": {}}
+    alt_bilanz = R.get(name, {})
+    ges = {"aufrufe": 0, "artefakte": 0, "abgebrochen": 0,
+           "je_lauf": dict(alt_bilanz.get("je_lauf", {}))}
     for d in sorted(glob.glob(os.path.join(wurzel, "*", "raw"))):
         lauf = d.split(os.sep)[-2]
         a = n = f = 0
@@ -105,7 +122,8 @@ def lauf_bilanz(name, wurzel):
             n += 1; a += r.get("aufrufe", 1)
             if not r.get("ok"): f += 1
         ges["je_lauf"][lauf] = {"aufrufe": a, "artefakte": n, "abgebrochen": f}
-        ges["aufrufe"] += a; ges["artefakte"] += n; ges["abgebrochen"] += f
+    for z in ges["je_lauf"].values():
+        ges["aufrufe"] += z["aufrufe"]; ges["artefakte"] += z["artefakte"]; ges["abgebrochen"] += z["abgebrochen"]
     R[name] = ges
 
 
@@ -228,6 +246,9 @@ ged_block("m3_hauptbuch", f"{O}/m3_hauptbuch", ["GIFT", "GIFT_NUR_METADATEN", "G
 json.dump(R, open("bewusstsein/ergebnisse/ENDZAHLEN.json","w"), ensure_ascii=False, indent=1)
 print("Bloecke:", list(R.keys()))
 for k,v in R.items():
+    if "arme" not in v and "aufrufe" not in v:
+        print(f"\n== {k} ==\n  " + json.dumps(v, ensure_ascii=False))
+        continue
     if "arme" not in v:
         print(f"\n== {k} ==")
         print(f"  {v['aufrufe']} Modellaufrufe in {v['artefakte']} Artefakten, "

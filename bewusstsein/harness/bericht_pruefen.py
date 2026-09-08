@@ -12,13 +12,15 @@ import json, sys, os, re
 
 WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ZAHLEN = os.path.join(WURZEL, "ergebnisse", "ENDZAHLEN.json")
-BERICHT = os.path.join(WURZEL, "berichte", "01-BEFUNDE.md")
+BERICHTE = [os.path.join(WURZEL, "berichte", "01-BEFUNDE.md"),
+            os.path.join(WURZEL, "berichte", "03-RUNDE4-BAU.md")]
 
 # Bloecke, deren Arme im Bericht als Tabelle stehen -> dort wird geprueft.
 # Bloecke ohne Eintrag sind Hilfsrechnungen und werden nicht erwartet.
 ERWARTET = {
     "sofort_kette20", "stoerung", "sonnet_kette20", "denken_kette60",
     "arch_kette20", "arch_stoerung",
+    "m1_arch_kette20", "m2_zerlegung", "m3_hauptbuch",
 }
 
 
@@ -28,7 +30,7 @@ def de(x):
 
 def main():
     R = json.load(open(ZAHLEN, encoding="utf-8"))
-    text = open(BERICHT, encoding="utf-8").read()
+    text = "\n".join(open(b, encoding="utf-8").read() for b in BERICHTE if os.path.exists(b))
     fehlend = []
     geprueft = 0
     for block, inhalt in R.items():
