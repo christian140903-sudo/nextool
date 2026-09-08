@@ -1,15 +1,20 @@
 """Zerlegung: Nahtprüfung im Code, Nahtprotokoll je Ausschnitt, Zusammenführung mechanisch.
 
 Befund: sauber teilbar gewinnt Zerlegung 100 % gegen 89 % (ein Agent); mit Randabhängigkeit
-bricht sie auf 28 % ein, und die Ursache ist die mehrdeutige Anweisung an der Naht, nicht der
-fehlende Randwert (ohne Randwert 20 %); lässt das Modell zusammenfügen, 33 %
-(bewusstsein/uebergabe/01-BEFUNDE.md B5). Der Verlust meldet sich nicht: das Ergebnis sieht
-plausibel aus und ist falsch.
+bricht sie auf 28 % ein, Ursache ist die mehrdeutige Anweisung an der Naht, nicht der fehlende
+Randwert (ohne Randwert 20 %); lässt das Modell zusammenfügen, 33 %
+(bewusstsein/uebergabe/01-BEFUNDE.md B5). M2 (2026-09-08, ZERLEGT_NAHT in
+bewusstsein/harness/zerlegung.py): das Nahtprotokoll hebt die randabhängige Bedingung auf 72 %
+gegen 43 % ohne Protokoll — ein einzelner Agent liegt aber bei 94 %; sauber teilbar 100 % gegen
+83–89 %. Der Verlust einer unsauberen Naht meldet sich nicht: das Ergebnis sieht plausibel aus
+und ist falsch.
 Erz → Gold: 06-AUFTRAG §6.4 wollte eine Zerlegungsfunktion, die Nahtstellen eindeutig macht;
-bewusstsein/harness/zerlegung.py::_teil_frage_naht ist der gemessene Wortlaut (M2). Hier steht
-derselbe Text als Produktbaustein — plus die Prüfung DAVOR (Kumulationsbezug → Verweigerung,
-Nachbar-/Positionsbezug → Protokoll, sonst ohne Protokoll) und die Zusammenführung DANACH im
-Code, nie im Modell. Jede Entscheidung schreibt eine Bus-Zeile.
+zerlegung._teil_frage_naht ist der gemessene Wortlaut. Hier steht derselbe Text als
+Produktbaustein — plus die Regel DAVOR, die aus M2 folgt: Kumulationsbezug → Verweigerung,
+Nachbar-/Positionsbezug → ein Agent (Zerlegung mit Nahtprotokoll nur per force=True, wenn die
+Aufgabe in keinen Kontext passt: dann sind 72 % besser als 43 %), sonst zerlegen ohne Protokoll.
+Die Zusammenführung DANACH geschieht im Code, nie im Modell. Jede Entscheidung schreibt eine
+Bus-Zeile.
 """
 from __future__ import annotations
 
@@ -21,22 +26,29 @@ from . import model as _model  # Alias: der Parameter `model` (Modellname) über
 
 
 class DecomposeError(ValueError):
-    """Die Aufgabe ist so nicht zerlegbar (Kumulationsbezug) oder der Plan ist unbrauchbar."""
+    """Die Aufgabe wird so nicht zerlegt: Kumulationsbezug, Randbezug ohne force, oder unbrauchbarer Plan."""
 
 
 PROTOCOLS = ("none", "naht")
+RECOMMENDATIONS = ("zerlegen", "einzeln", "nicht_zerlegbar")
 MERGE_OPS = ("sum", "max", "min")
 
 # Systemprompt der Arbeiter — byte-gleich zu zerlegung._arbeiter_parallel (gemessen in M2).
 WORKER_SYSTEM = "Du bearbeitest einen Teilauftrag. Antworte nur mit der Zahl."
 
-# --- Klassen des Randbezugs (de/en) ---------------------------------------------------
+# --- Klassen des Randbezugs (de/en) ---------------------------------------------------------
+# Die Fehlkosten sind asymmetrisch: eine übersehene Randabhängigkeit liefert leise die falsche
+# Zahl (28 %), eine zu Unrecht erkannte kostet nur die Parallelität (ein Agent: 94 %). Die
+# Muster greifen deshalb lieber einmal zu viel als einmal zu wenig.
+#
 # Nachbar: die Bedingung schaut auf die Zahl unmittelbar vor oder nach einer Zahl.
 NEIGHBOR_RE = re.compile(
-    r"\b(?:davor|danach|vorherig\w*|vorige\w*|vorangehend\w*|vorhergehend\w*|nachfolgend\w*"
-    r"|folgende[nrs]?\s+(?:zahl|element|eintrag|wert)|unmittelbar|vorg(?:ä|ae)nger\w*"
-    r"|nachfolger\w*|nachbar\w*|benachbart\w*|aufeinanderfolgend\w*"
-    r"|previous|preceding|next|following|adjacent|consecutive|neighbou?r\w*|predecessor|successor)\b",
+    r"\b(?:davor|danach|zuvor|vorherig\w*|vorige\w*|vorangehend\w*|vorhergehend\w*|nachfolgend\w*"
+    r"|n(?:ä|ae)chste[nrs]?|folgende[nrs]?\s+(?:zahl|element|eintrag|wert)|unmittelbar"
+    r"|direkt\s+(?:vor|nach)|vorg(?:ä|ae)nger\w*|nachfolger\w*|nachbar\w*|benachbart\w*"
+    r"|aufeinanderfolgend\w*"
+    r"|previous|preceding|next|following|adjacent|consecutive|neighbou?r\w*|predecessor|successor"
+    r"|immediately\s+(?:before|after))\b",
     re.IGNORECASE,
 )
 # Position: die Bedingung nennt eine Stelle der Gesamtliste (erste, letzte, gerade Position ...).
@@ -51,7 +63,8 @@ POSITION_RE = re.compile(
 CUMULATIVE_RE = re.compile(
     r"\b(?:bisher\w*|bislang|kumul\w*|laufend\w*|summe\s+(?:aller|bis|der\s+bisherigen|der\s+vorherigen)"
     r"|gesamtsumme|so\s+far|running|cumulative|prefix\s+sum|zwischensumme\w*|median\w*"
-    r"|sortier\w*|sorted|sort\s+order|rang\w*|rank\w*|durchschnitt\w*|mittelwert\w*|average"
+    r"|sortier\w*|sorted|sort\s+order|rang|r(?:ä|ae)nge|rang(?:folge|liste|platz|ordnung)\w*"
+    r"|rank(?:s|ed|ing)?|durchschnitt\w*|mittelwert\w*|average"
     r"|mean\s+of|h(?:ä|ae)ufigste\w*|most\s+(?:common|frequent)|einzig\w*|unique|nur\s+einmal"
     r"|exactly\s+once|duplikat\w*|duplicate\w*|mehrfach\s+vorkomm\w*"
     r"|appears?\s+(?:more\s+than\s+once|twice|multiple)|maximum|minimum"
@@ -62,13 +75,18 @@ CUMULATIVE_RE = re.compile(
 _CLASSES = (("neighbor", NEIGHBOR_RE), ("position", POSITION_RE), ("cumulative", CUMULATIVE_RE))
 
 
-# --- Nahtprüfung ---------------------------------------------------------------------------
+# --- Nahtprüfung ----------------------------------------------------------------------------
 def seam_check(condition: str) -> dict:
-    """Prüft, ob eine Bedingung über die Schnittkante greift.
+    """Prüft, ob eine Bedingung über die Schnittkante greift, und empfiehlt das Verfahren.
 
-    Rückgabe {"classes", "hits", "decomposable", "protocol", "reason"}:
-    cumulative → decomposable False (kein Protokoll heilt eine Kumulation);
-    neighbor/position → protocol "naht"; sonst protocol "none".
+    Rückgabe {"classes", "hits", "decomposable", "protocol", "reason", "empfehlung"}:
+    cumulative        → decomposable False, protocol "none", empfehlung "nicht_zerlegbar"
+                        (kein Protokoll heilt eine Kumulation; ein Agent bearbeitet die Gesamtliste);
+    neighbor/position → decomposable True, protocol "naht", empfehlung "einzeln"
+                        (M2: ein Agent 94 % gegen 72 % mit Protokoll — zerlegen nur, wenn die
+                        Aufgabe in keinen Kontext passt, dann per force=True);
+    sonst             → decomposable True, protocol "none", empfehlung "zerlegen"
+                        (100 % gegen 83–89 %).
     """
     text = (condition or "").strip()
     classes, hits = [], {}
@@ -78,26 +96,27 @@ def seam_check(condition: str) -> dict:
             classes.append(name)
             hits[name] = sorted(set(f.lower() for f in found))
     if "cumulative" in classes:
-        decomposable, protocol = False, "none"
+        decomposable, protocol, empfehlung = False, "none", "nicht_zerlegbar"
         reason = (f"Kumulationsbezug erkannt ({', '.join(hits['cumulative'])}): jeder Teil bräuchte "
                   f"Wissen über andere Teile der Liste; nicht zerlegbar, ein Agent bearbeitet die "
                   f"Gesamtliste.")
     elif classes:
-        decomposable, protocol = True, "naht"
+        decomposable, protocol, empfehlung = True, "naht", "einzeln"
         woerter = ", ".join(w for k in classes for w in hits[k])
-        reason = (f"Nachbar-/Positionsbezug erkannt ({woerter}): zerlegbar nur mit Nahtprotokoll "
-                  f"(Position, Randwerte beidseitig, Lesart Gesamtliste).")
+        reason = (f"Nachbar-/Positionsbezug erkannt ({woerter}): ein Agent ist genauer (M2: 94 % "
+                  f"gegen 72 % mit Nahtprotokoll); zerlegen nur mit Nahtprotokoll und nur per "
+                  f"force=True, wenn die Aufgabe in keinen Kontext passt (72 % gegen 43 % ohne).")
     else:
-        decomposable, protocol = True, "none"
-        reason = "kein Randbezug erkannt: zerlegbar ohne Protokoll."
+        decomposable, protocol, empfehlung = True, "none", "zerlegen"
+        reason = "kein Randbezug erkannt: zerlegbar ohne Protokoll (100 % gegen 83–89 %)."
     result = {"classes": classes, "hits": hits, "decomposable": decomposable,
-              "protocol": protocol, "reason": reason}
+              "protocol": protocol, "reason": reason, "empfehlung": empfehlung}
     bus.emit("decompose.seam_check", classes=classes, decomposable=decomposable,
-             protocol=protocol, condition_chars=len(text))
+             protocol=protocol, empfehlung=empfehlung, condition_chars=len(text))
     return result
 
 
-# --- Anweisungen je Ausschnitt -----------------------------------------------------------
+# --- Anweisungen je Ausschnitt ---------------------------------------------------------------
 def chunk_instruction(items: list, condition: str, offset: int, n_total: int, before, after) -> str:
     """Das Nahtprotokoll — Wortlaut byte-gleich zu zerlegung._teil_frage_naht (M2 misst genau ihn).
 
@@ -151,11 +170,14 @@ def plain_instruction(items: list, condition: str) -> str:
             f"Antworte NUR mit der Anzahl als Zahl.")
 
 
-# --- Plan ------------------------------------------------------------------------------------
-def plan(items: list, condition: str, *, parts: int) -> dict:
-    """Zerlegt mechanisch in höchstens `parts` Ausschnitte; DecomposeError, wenn nicht zerlegbar.
+# --- Plan ---------------------------------------------------------------------------------------
+def plan(items: list, condition: str, *, parts: int, force: bool = False) -> dict:
+    """Zerlegt mechanisch in höchstens `parts` Ausschnitte oder verweigert per DecomposeError.
 
-    Rückgabe {"protocol", "classes", "n_total", "parts", "merge": "sum",
+    Verweigert immer bei Kumulationsbezug. Verweigert bei Nachbar-/Positionsbezug (Protokoll
+    "naht"), solange force=False — die Regel aus M2: randabhängig → ein Agent (94 %), solange die
+    Aufgabe in einen Kontext passt; force=True nur, wenn sie das nicht tut (72 % gegen 43 %).
+    Rückgabe {"protocol", "empfehlung", "forced", "classes", "n_total", "parts", "merge": "sum",
               "chunks": [{"index", "offset", "items", "before", "after", "instruction"}]}.
     Randwerte werden in jedem Chunk mitgeführt, auch ohne Protokoll (kostet nichts, hilft dem Log).
     """
@@ -166,7 +188,12 @@ def plan(items: list, condition: str, *, parts: int) -> dict:
         raise DecomposeError(f"parts muss >= 1 sein, war {parts}")
     check = seam_check(condition)
     if not check["decomposable"]:
-        bus.emit("decompose.refused", classes=check["classes"], reason=check["reason"])
+        bus.emit("decompose.refused", classes=check["classes"], empfehlung=check["empfehlung"],
+                 forced=False, reason=check["reason"])
+        raise DecomposeError(check["reason"])
+    if check["protocol"] == "naht" and not force:
+        bus.emit("decompose.refused", classes=check["classes"], empfehlung=check["empfehlung"],
+                 forced=False, reason=check["reason"])
         raise DecomposeError(check["reason"])
     n = len(items)
     size = (n + parts - 1) // parts
@@ -181,14 +208,16 @@ def plan(items: list, condition: str, *, parts: int) -> dict:
             instruction = plain_instruction(teil, condition)
         chunks.append({"index": index, "offset": offset, "items": teil, "before": before,
                        "after": after, "instruction": instruction})
-    result = {"protocol": check["protocol"], "classes": check["classes"], "n_total": n,
-              "parts": len(chunks), "merge": "sum", "chunks": chunks}
-    bus.emit("decompose.plan", protocol=check["protocol"], parts=len(chunks), n_total=n,
-             chunk_size=size)
+    forced = check["protocol"] == "naht"
+    result = {"protocol": check["protocol"], "empfehlung": check["empfehlung"], "forced": forced,
+              "classes": check["classes"], "n_total": n, "parts": len(chunks), "merge": "sum",
+              "chunks": chunks}
+    bus.emit("decompose.plan", protocol=check["protocol"], empfehlung=check["empfehlung"],
+             forced=forced, parts=len(chunks), n_total=n, chunk_size=size)
     return result
 
 
-# --- Zusammenführung -----------------------------------------------------------------------
+# --- Zusammenführung --------------------------------------------------------------------------
 def merge(values: list, op: str = "sum") -> tuple:
     """Mechanische Zusammenführung: (wert, fehlend). None zählt als fehlend.
 
@@ -216,15 +245,15 @@ def _parse_count(text: str):
     return int(value) if float(value).is_integer() else value
 
 
-# --- Durchlauf -----------------------------------------------------------------------------
+# --- Durchlauf ---------------------------------------------------------------------------------
 def run(items: list, condition: str, *, parts: int, model: str | None = None, thinking: int = 0,
-        workers: int = 5) -> dict:
+        workers: int = 5, force: bool = False) -> dict:
     """plan → ein Modellaufruf je Ausschnitt (parallel) → merge im Code.
 
-    Rückgabe {"value", "calls", "missing", "protocol", "chunks", "values"}.
-    DecomposeError propagiert, wenn die Bedingung nicht zerlegbar ist.
+    Rückgabe {"value", "calls", "missing", "protocol", "empfehlung", "chunks", "values"}.
+    DecomposeError propagiert, wenn plan() verweigert (Kumulation; Randbezug ohne force).
     """
-    p = plan(items, condition, parts=parts)
+    p = plan(items, condition, parts=parts, force=force)
     chunks = p["chunks"]
 
     def _worker(chunk: dict) -> dict:
@@ -234,7 +263,8 @@ def run(items: list, condition: str, *, parts: int, model: str | None = None, th
         results = list(ex.map(_worker, chunks))
     values = [_parse_count(r.get("text", "")) if r.get("ok") else None for r in results]
     value, missing = merge(values, p["merge"])
-    bus.emit("decompose.run", protocol=p["protocol"], calls=len(results), missing=missing,
-             chunks=len(chunks), value=value)
+    bus.emit("decompose.run", protocol=p["protocol"], empfehlung=p["empfehlung"], forced=p["forced"],
+             calls=len(results), missing=missing, chunks=len(chunks), value=value)
     return {"value": value, "calls": len(results), "missing": missing,
-            "protocol": p["protocol"], "chunks": len(chunks), "values": values}
+            "protocol": p["protocol"], "empfehlung": p["empfehlung"], "chunks": len(chunks),
+            "values": values}

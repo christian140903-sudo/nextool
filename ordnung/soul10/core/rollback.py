@@ -33,8 +33,9 @@ KINDS = ("install", "file", "config", "git", "command", "other")
 STATUS = ("open", "undone", "undo_failed")
 UNDO_TIMEOUT = 120
 
-# Befehlsketten: jedes Glied wird einzeln auf einen Rückweg geprüft (`cd x && pip install y`).
-_SEGMENT_SPLIT = re.compile(r"\s*(?:&&|\|\||;)\s*")
+# Befehlsketten: jedes Glied wird einzeln auf einen Rückweg geprüft (`cd x && pip install y`,
+# `pip install y | tee log`); `||` steht vor `|`, damit die Alternation es zuerst greift.
+_SEGMENT_SPLIT = re.compile(r"\s*(?:&&|\|\||;|\|)\s*")
 _ENV_ASSIGN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 _PIP_SPEC_END = re.compile(r"[=<>!~\[;@]")
 _APT_SPEC_END = re.compile(r"[=/]")
