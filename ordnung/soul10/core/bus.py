@@ -16,9 +16,12 @@ from pathlib import Path
 from . import paths
 
 # Oeffentlich, damit ledger/inventory dasselbe Muster pruefen statt es zu kopieren.
+# Formate: AWS-Zugangsschlüssel, OpenAI/Anthropic sk-, GitHub (ghp/gho/ghu/ghs/ghr, feinkörnige
+# PATs), Slack (xox*, xapp), Google AIza, JWT, PEM-Privatschlüssel.
 SECRET_PATTERN = _SECRET_MASK = re.compile(
-    r"(AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9_\-]{20,}|ghp_[A-Za-z0-9]{20,}"
-    r"|xox[bpars]-[A-Za-z0-9\-]+|eyJ[A-Za-z0-9_\-]{20,})"
+    r"(AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9_\-]{20,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}"
+    r"|xox[bpars]-[A-Za-z0-9\-]+|xapp-[A-Za-z0-9\-]+|AIza[0-9A-Za-z_\-]{35}|eyJ[A-Za-z0-9_\-]{20,}"
+    r"|-----BEGIN [A-Z ]*PRIVATE KEY-----)"
 )
 _ROTATE_BYTES = 5 * 1024 * 1024
 

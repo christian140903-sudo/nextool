@@ -421,17 +421,27 @@ Tests (≥ 12, davon ein Datensatz ≥ 40 Prompts de/en mit Soll-Stufe, Trefferq
 KINDS = ("install","file","config","git","command","other")
 register(kind: str, description: str, *, undo: str|None, evidence: dict|None = None, contract_id: str|None = None) -> dict
     # {"id","at","kind","description","undo","needs_confirmation": undo is None, "status":"open","contract_id"}; rollback.jsonl; bus
-snapshot_file(path: str) -> dict         # kopiert nach rollback/<id>/<basename>; register(kind="file", undo=<python3 -c shutil.copy …>)
-                                         # (python-basierter Undo-Befehl, damit er auf jeder Plattform läuft); Datei existiert nicht → undo = Löschbefehl (python3 -c os.remove)
+snapshot_file(path: str) -> dict         # kopiert nach rollback/<id>/<basename>; register(kind="file", undo=<PY -c shutil.copy …>)
+                                         # (Python-Einzeiler unter sys.executable, damit er auf jeder Plattform läuft);
+                                         # Datei existiert nicht → undo = Löschbefehl (PY -c os.remove)
 infer_from_bash(command: str) -> dict|None
-    # pip/pip3/pipx/uv install X → uninstall; npm/pnpm/yarn install|add X → uninstall/remove; apt-get install → remove;
-    # brew install → uninstall; cargo install → uninstall; git commit → git revert --no-edit HEAD; mkdir P → rmdir P;
-    # cp A B → rm B; mv A B → mv B A; sonst None. Rückgabe {"kind","description","undo"}
-undo(id: str, *, dry_run: bool = False) -> dict    # führt undo aus (subprocess, timeout 120), status undone|undo_failed; bus
+    # Glieder quote-bewusst getrennt (split_segments). pip/pip3/pipx/uv install X → uninstall; npm/pnpm/yarn install|add X →
+    # uninstall/remove; apt-get install → remove; brew install → uninstall; cargo install → uninstall (nur wohlgeformte
+    # Paketnamen, sonst None); git commit → git revert --no-edit HEAD; mkdir [-p] P → Python-Einzeiler, der genau die neu
+    # angelegten Ebenen entfernt (nichts Neues → None); cp A B → Python-Einzeiler, der B entfernt; mv A B → der B nach A
+    # zurückschiebt; existiert ein Ziel schon → {"kind","description","undo": None, "overwrites": [ziele]} statt eines
+    # erfundenen Rückwegs; sonst None. Rückgabe {"kind","description","undo"}
+register_from_bash(command: str, *, evidence=None, contract_id=None) -> dict|None
+    # der Weg des pre-tool-Hooks: infer_from_bash + register; überschriebene Datei → snapshot_file (byte-genauer
+    # Rückweg), überschriebenes Verzeichnis → Posten ohne Rückweg (needs_confirmation)
+argv_chain(cmd: str) -> list[list[str]]  # undo ist eine Argumentliste in Shell-Schreibweise (shlex); && und ; trennen Glieder
+undo(id: str, *, dry_run: bool = False) -> dict    # führt die Glieder OHNE Shell aus (shell=False, timeout 120 je Glied),
+                                         # Pipes/Umleitungen/$VAR sind Literale; status undone|undo_failed; bus
 list_open() -> list[dict]
 quota() -> dict                          # {"registered","with_undo","without_undo","undone_ok","undone_failed","quote": with_undo/registered}
 ```
-Tests (≥ 8): infer je Befehlsklasse, Snapshot + Undo stellt Inhalt wieder her, ohne Undo → needs_confirmation, Quote.
+Tests (≥ 8): infer je Befehlsklasse, Snapshot + Undo stellt Inhalt wieder her, ohne Undo → needs_confirmation, Quote;
+Metazeichen in Paketnamen/Pfaden führen nichts aus; cp/mv über bestehendes Ziel sichert statt zu löschen.
 
 ### 5.7 `inventory.py`
 Übernimmt `bewusstsein/werkzeuge/bestandsaufnahme.py` (Funktionen `geraet, grafik, werkzeuge,
@@ -454,6 +464,13 @@ Aus `/home/user/soul/core/guard.py` übernehmen (Kategorien, Regexe, `classify`,
 `.claude/settings.json`, `.claude/hooks/`) und `paths.mandate_file()`; `OWN_REMOTES` aus
 `inventory.load_profile().get("own_remotes", ["origin"])` (lazy); keine Mac-Pfade. Tests (≥ 8) aus
 `/home/user/soul/tests/test_guard.py` übernehmen, soweit übertragbar.
+Nach der adversarialen Prüfung: `push_targets(cmd)` liest je `git push` das Ziel aus den Argumenten (Wert von
+`--repo`, sonst erstes Nicht-Options-Argument; ohne Ziel = Upstream = eigen) und vergleicht EXAKT mit den eigenen
+Remotes; ein eigener Push befreit kein anderes Publish-Kommando in derselben Zeile. Der Stolperdraht für
+Shell-Schreibzugriffe auf die Wache (`bash_path_candidates`) löst jedes Token als Pfad gegen das mitgeführte
+`cd`-Verzeichnis auf (exakt, kein Substring), auch Pfadstücke in Inline-Code (`python -c`, `perl -e`, Heredoc);
+Schreibverben: `> >> sed -i tee mv cp rm chmod truncate ln`. Eine Schlüssel-Variable (`$…KEY|TOKEN|SECRET|
+PASSWORD|CREDENTIAL…`) in der Ziel-URL eines Netz-Werkzeugs ist `secrets-exfiltration`; im Header nicht.
 
 ### 5.9 `events.py`, `.claude/settings.json`, `.claude/hooks/hook.py`
 Vorlage: `/home/user/soul/core/events.py` (Fail-open/-closed, Maskierung, Zusammenfassung). Modi:
@@ -462,7 +479,7 @@ Vorlage: `/home/user/soul/core/events.py` (Fail-open/-closed, Maskierung, Zusamm
 |---|---|---|---|
 | `session-start` | `{session_id, source}` | `bus.emit`; `recall.briefing(extra_sections=[offene Verträge (contract.list_open), offene Rückbau-Posten (rollback.list_open)])` | Briefing als Text |
 | `user-prompt` | `{session_id, prompt}` | `switch.decide(prompt)`; Routing-Log | bei stage `aufwand`: JSON `{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext": AUFWANDSREGEL}}`; sonst nichts |
-| `pre-tool` | `{session_id, tool_name, tool_input}` | `guard.classify` → deny-JSON wie SOUL bei Treffer ohne Mandat; sonst: Bash → `rollback.infer_from_bash` → `register`; Write/Edit auf bestehende Datei → `rollback.snapshot_file`; `bus.emit("pre", …)` | deny-JSON oder nichts |
+| `pre-tool` | `{session_id, tool_name, tool_input}` | `guard.classify` → deny-JSON wie SOUL bei Treffer ohne Mandat; sonst: Bash → `rollback.register_from_bash` (überschriebene Datei → Sicherungskopie); Write/Edit auf bestehende Datei → `rollback.snapshot_file`; `bus.emit("pre", …)` | deny-JSON oder nichts |
 | `post-tool` | `{session_id, tool_name, tool_input, tool_response}` | `consolidate.inbox_write(session_id, {at, tool, args_hash, outcome, summary})`; bus | nichts |
 | `stop` | `{session_id, stop_hook_active}` | **Prüfgate:** Verträge mit status `delivered` und ohne Quittung → JSON `{"decision":"block","reason":"Vertrag <id> ist geliefert, aber nicht geprüft. `soul verify <id>` ausführen oder `soul contract block <id> <grund>`."}` — außer `stop_hook_active` ist true (keine Schleife). Sonst `consolidate.takt_a(session_id)`, dann `consolidate.takt_b()` wenn `takt_b_faellig()` (höchstens alle 6 h, fail-open); bus | block-JSON oder nichts |
 | `pre-compact` | `{session_id}` | `snapshot.json` = {offene Verträge, offene Rückbau-Posten, at}; bus | nichts |

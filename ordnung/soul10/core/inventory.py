@@ -11,7 +11,9 @@ der die Arbeit weiterläuft.
 
 Sicherheitsregel, die im Code steht und nicht im Vorsatz:
   Geheimnisse werden NUR als vorhanden/nicht vorhanden gemeldet, nie im Wert.
-  Kein Schlüssel, kein Token, kein Passwort verlässt diese Funktionen.
+  Schlüssel, Token und Passwörter werden nur als vorhanden/nicht vorhanden gespeichert (bool);
+  Freitextfelder (Versionen, Gerätenamen, Modellnamen) laufen durch bus.mask, die die gängigen
+  Schlüsselformate kennt (bus.SECRET_PATTERN) — kein Absolutversprechen für jedes Format.
 """
 from __future__ import annotations
 

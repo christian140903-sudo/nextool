@@ -1,6 +1,8 @@
 """Rückbau-Konto: Rückweg je Befehlsklasse, Sicherungskopie + Undo stellt Bytes wieder her,
 ohne Rückweg → Bestätigung, Quote als Zahl, das Konto löscht nie."""
 import json
+import os
+import shlex
 import sys
 from pathlib import Path
 
@@ -37,10 +39,6 @@ def _zeilen():
     ("brew install --cask iterm2", "install", "brew uninstall --cask iterm2"),
     ("cargo install ripgrep", "install", "cargo uninstall ripgrep"),
     ("git commit -m 'x'", "git", "git revert --no-edit HEAD"),
-    ("mkdir -p build/out", "file", "rmdir build/out"),
-    ("cp a.txt b.txt", "file", "rm b.txt"),
-    ("cp -r src dst_copy", "file", "rm -r dst_copy"),
-    ("mv alt.txt neu.txt", "file", "mv neu.txt alt.txt"),
 ])
 def test_infer_je_befehlsklasse(befehl, kind, undo):
     r = rollback.infer_from_bash(befehl)
@@ -103,7 +101,7 @@ def test_snapshot_und_undo_stellt_inhalt_wieder_her(tmp_path):
     datei.write_text(original, encoding="utf-8")
     p = rollback.snapshot_file(str(datei))
     assert p["kind"] == "file" and p["needs_confirmation"] is False
-    assert p["undo"].startswith("python3 -c") and "shutil" in p["undo"]
+    assert p["undo"].startswith(shlex.quote(rollback.PY) + " -c") and "shutil" in p["undo"]
     snap = Path(p["evidence"]["snapshot"])
     assert snap.exists() and snap.name == "config.toml" and snap.parent.parent == paths.rollback_dir()
     assert p["evidence"]["existed"] is True and p["evidence"]["sha256"] == paths.sha256_text(original)
@@ -181,3 +179,105 @@ def test_konto_loescht_nie_und_zustand_entsteht_beim_lesen():
     assert rollback.list_open() == []
     q = rollback.quota()
     assert q["registered"] == 1 and q["undone_ok"] == 1 and q["quote"] == 1.0
+
+
+# --- Dateisystem-Rückwege: Python-Einzeiler, plattformneutral, nie erfunden -------------------------
+def _argv(undo):
+    return rollback.argv_chain(undo)
+
+
+def test_infer_dateisystem_rueckwege_sind_python_und_treffen_nur_neues(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    r = rollback.infer_from_bash("cp a.txt b.txt")
+    assert r["kind"] == "file" and r["description"] == "cp a.txt b.txt" and set(r) == {"kind", "description", "undo"}
+    assert _argv(r["undo"])[0][:2] == [rollback.PY, "-c"] and "b.txt" in r["undo"] and "os.remove" in r["undo"]
+    r = rollback.infer_from_bash("cp -r src dst_copy")
+    assert "rmtree" in r["undo"] and "dst_copy" in r["undo"]
+    r = rollback.infer_from_bash("mv alt.txt neu.txt")
+    assert "shutil.move" in r["undo"] and r["undo"].index("neu.txt") < r["undo"].index("alt.txt")
+    # mkdir -p: genau die neuen Ebenen, tiefste zuerst; ein vorhandenes Verzeichnis ergibt nichts.
+    r = rollback.infer_from_bash("mkdir -p build/out")
+    assert "os.rmdir" in r["undo"] and r["undo"].index("build/out") < r["undo"].index("'build'")
+    (tmp_path / "da").mkdir()
+    assert rollback.infer_from_bash("mkdir da") is None and rollback.infer_from_bash("mkdir -p da") is None
+    r = rollback.infer_from_bash("mkdir -p da/neu")
+    assert r["undo"].count("os.rmdir") == 1 and "da/neu" in r["undo"]
+    # Der Rückweg läuft und räumt genau das weg, was der Befehl anlegte.
+    (tmp_path / "build" / "out").mkdir(parents=True)
+    p = rollback.register("file", "mkdir -p build/out", undo=rollback.infer_from_bash("mkdir -p build/out") and "x" or None)
+    assert p["needs_confirmation"] is True  # der Baum existiert jetzt: kein neuer Rückweg mehr ableitbar
+    undo = rollback._rmdir_command([str(tmp_path / "build" / "out"), str(tmp_path / "build")])
+    q = rollback.register("file", "mkdir -p build/out", undo=undo)
+    assert rollback.undo(q["id"])["status"] == "undone" and not (tmp_path / "build").exists()
+
+
+def test_cp_und_mv_ueber_bestehendes_ziel_erfinden_keinen_rueckweg(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "a.txt").write_text("neu", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("alter Inhalt von b", encoding="utf-8")
+    r = rollback.infer_from_bash("cp a.txt b.txt")
+    assert r["undo"] is None and r["overwrites"] == ["b.txt"]
+    # register_from_bash sichert b.txt byte-genau; nach dem cp stellt undo den Vorzustand her.
+    p = rollback.register_from_bash("cp a.txt b.txt", evidence={"tool": "Bash"})
+    assert p["kind"] == "file" and p["needs_confirmation"] is False and p["evidence"]["existed"] is True
+    (tmp_path / "b.txt").write_text("neu", encoding="utf-8")  # das tut cp
+    assert rollback.undo(p["id"])["status"] == "undone"
+    assert (tmp_path / "b.txt").read_text(encoding="utf-8") == "alter Inhalt von b"
+    # mv über ein bestehendes Ziel: ebenso Sicherung statt „mv zurück" (das verlöre das alte Ziel).
+    (tmp_path / "c.txt").write_text("c alt", encoding="utf-8")
+    p = rollback.register_from_bash("mv a.txt c.txt")
+    assert p["evidence"]["existed"] is True and "c.txt" in p["evidence"]["path"]
+    # In ein Verzeichnis, in dem der Name schon liegt: Ziel ist dir/a.txt.
+    (tmp_path / "dir").mkdir()
+    (tmp_path / "dir" / "a.txt").write_text("im dir", encoding="utf-8")
+    r = rollback.infer_from_bash("cp a.txt dir/")
+    assert r["overwrites"] == ["dir/a.txt"]
+    # cp -r in ein bestehendes Verzeichnis legt ziel/src an: echter Rückweg (ziel/src entfernen).
+    (tmp_path / "src").mkdir()
+    (tmp_path / "ziel").mkdir()
+    r = rollback.infer_from_bash("cp -r src ziel")
+    assert r["undo"] and "ziel/src" in r["undo"] and "rmtree" in r["undo"]
+    # Liegt dort schon ein Verzeichnis dieses Namens, gibt es keine Sicherung → Bestätigungspflicht.
+    (tmp_path / "ziel" / "src").mkdir()
+    r = rollback.infer_from_bash("cp -r src ziel")
+    assert r["undo"] is None and r["overwrites"] == ["ziel/src"]
+    ohne = rollback.register_from_bash("cp -r src ziel")
+    assert ohne["needs_confirmation"] is True and "überschreibt" in ohne["description"]
+
+
+def test_rueckweg_ist_argumentliste_keine_shell(tmp_path, monkeypatch):
+    """Prüfbefund hoch: Metazeichen in Paketnamen und Pfaden wanderten in einen Shell-String."""
+    monkeypatch.chdir(tmp_path)
+    marker = tmp_path / "pwned"
+    # Ein Paketname mit Kommando-Substitution bekommt gar keinen Rückweg.
+    for befehl in ("npm install 'lodash$(touch pwned)'", "pip install 'requests$(touch pwned)'",
+                   "brew install 'rg`touch pwned`'", "apt-get install -y 'jq$(touch pwned)'"):
+        assert rollback.infer_from_bash(befehl) is None, befehl
+    # pip-Marker (`;`) werden abgeschnitten wie eine Versionsangabe; der Rest ist ein sauberer Name.
+    assert rollback.infer_from_bash("pip install 'requests;touch pwned'")["undo"] == "pip uninstall -y requests"
+    # Ein Pfad mit Semikolon ist ein Pfad: der Rückweg nimmt ihn wörtlich, die Shell sieht ihn nie.
+    r = rollback.infer_from_bash("cp a.txt 'b;touch pwned'")
+    assert r["undo"] and "touch pwned" in r["undo"]
+    p = rollback.register("file", "cp", undo=r["undo"])
+    res = rollback.undo(p["id"])
+    assert res["status"] == "undone" and not marker.exists()
+    # Auch ein von Hand registrierter Rückweg läuft ohne Shell: $(…), > und | sind Literale.
+    q = rollback.register("command", "x", undo=f"{shlex.quote(PY)} -c 'print(1)' '$(touch pwned)' '>' out.txt '|' cat")
+    res = rollback.undo(q["id"])
+    assert res["status"] == "undone" and not marker.exists() and not (tmp_path / "out.txt").exists()
+    assert rollback.undo(q["id"], dry_run=True)["argv"][0][:2] == [PY, "-c"]
+    # Glieder mit && laufen nacheinander, das erste Scheitern beendet die Kette.
+    k = rollback.register("command", "x", undo=f"{shlex.quote(PY)} -c 'raise SystemExit(2)' && {shlex.quote(PY)} -c \"open('danach','w').close()\"")
+    res = rollback.undo(k["id"])
+    assert res["status"] == "undo_failed" and res["undo_exit"] == 2 and not (tmp_path / "danach").exists()
+    # Ein unlesbarer Rückweg (offene Quotes) wird gar nicht erst eingetragen.
+    with pytest.raises(rollback.RollbackError, match="nicht lesbar"):
+        rollback.register("command", "x", undo="echo 'offen")
+
+
+def test_segmente_werden_quote_bewusst_getrennt():
+    assert rollback.split_segments("echo 'a;b' && pip install x | tee log") == ["echo 'a;b'", "pip install x", "tee log"]
+    assert rollback.split_segments('cp "x|y" z; ls') == ['cp "x|y" z', "ls"]
+    r = rollback.infer_from_bash("echo 'hallo; welt' && pip install requests")
+    assert r and r["undo"] == "pip uninstall -y requests"
+    assert rollback.infer_from_bash("echo 'offen && pip install x") is None

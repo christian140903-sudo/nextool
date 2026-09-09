@@ -12,7 +12,15 @@ blockiert.
 
 Jede Kategorie prüft Ziel-Wirkung, nicht Werkzeug-Namen, so gut das mit Mustern geht. Ehrlich:
 das ist eine Schwelle plus Stolperdraht, kein Käfig. Jeder Treffer wird geloggt, auch wenn ein
-Mandat ihn durchlässt.
+Mandat ihn durchlässt. Nach der adversarialen Prüfung (ABNAHME §6): das Ziel von `git push` wird
+aus den Argumenten gelesen und exakt mit den eigenen Remotes verglichen (kein Substring — „origin"
+als Branchname oder Teil eines fremden Remote-Namens gibt nichts frei); ein eigener Push befreit
+kein anderes Publish-Kommando in derselben Zeile; der Stolperdraht für Shell-Schreibzugriffe auf
+die Wache löst jedes Token als Pfad gegen das mitgeführte cd-Verzeichnis auf (exakt, kein
+Substring), auch Pfade in Inline-Code (python -c, perl -e, Heredoc) — was er nicht fängt: Pfade aus Variablen, Globs oder
+zur Laufzeit gebaute Strings; und eine Schlüssel-Variable ($…KEY, $…TOKEN, $…SECRET) in der
+Ziel-URL eines Netz-Werkzeugs zählt als Exfiltration, im Header nicht (das ist der normale
+API-Aufruf).
 
 Mandat: state/mandate.json {"category": ..., "until_epoch": ...} erlaubt EINE Kategorie befristet
 (grant_mandate). Damit sperrt sich das System nicht selbst aus, wenn es bewusst publizieren soll.
@@ -21,6 +29,7 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import time
 from pathlib import Path
 
@@ -47,6 +56,10 @@ _SECRET_SRC = re.compile(
     re.IGNORECASE,
 )
 _EXFIL_VERB = re.compile(r"\b(curl|wget|nc|ncat|scp|rsync|sftp)\b")
+# Eine Variable, deren Name nach Schlüssel klingt, in einer URL: $GITHUB_TOKEN, ${AWS_SECRET_ACCESS_KEY}.
+_ENV_SECRET_REF = re.compile(
+    r"\$\{?[A-Za-z0-9_]*(KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIALS?)[A-Za-z0-9_]*\}?", re.IGNORECASE)
+_URL = re.compile(r"[a-z][a-z0-9+.\-]*://[^\s'\"]+", re.IGNORECASE)
 
 _PUBLISH = re.compile(
     r"(\bnpm\s+publish\b|\bpnpm\s+publish\b|\byarn\s+publish\b"
@@ -55,8 +68,10 @@ _PUBLISH = re.compile(
     r"|\bgh\s+pr\s+create\b.*--repo\s+"
     r"|\bcargo\s+publish\b)",
 )
-# `git push <ziel …>`: ob das Ziel eigen ist, entscheidet _is_own_push über das Profil.
-_PUSH_WITH_TARGET = re.compile(r"\bgit\s+push\b\s+\S+")
+# `git push …`: das Ziel liest push_targets aus den Argumenten; ob es eigen ist, entscheidet das Profil.
+_PUSH_SEGMENT = re.compile(r"\bgit\s+push\b([^|;&\n]*)")
+# Optionen von git push, die ein eigenes Argument tragen (das Argument ist kein Remote).
+_PUSH_VALUE_OPTS = ("-o", "--push-option", "--receive-pack", "--exec")
 _HTTP_WRITE = re.compile(
     r"\b(curl|wget)\b[^|;&]*\s(-d\b|--data\b|-F\b|--form\b|-T\b|--upload-file\b"
     r"|-X\s*(POST|PUT|PATCH)\b)",
@@ -97,10 +112,11 @@ _PROD = re.compile(
 )
 
 # Stolperdraht für Shell-Schreibzugriffe auf die Wache selbst.
-_SHELL_WRITE_VERB = re.compile(r"(>|>>|\bsed\s+-i|\btee\b|\bmv\b|\bcp\b|\brm\b|\bchmod\b)")
-_SHELL_GUARD_FILES = re.compile(
-    r"(core/guard\.py|core/events\.py|\.claude/hooks/|\.claude/settings\.json|state/mandate\.json)"
-)
+_SHELL_WRITE_VERB = re.compile(r"(>|>>|\bsed\s+-i|\btee\b|\bmv\b|\bcp\b|\brm\b|\bchmod\b|\btruncate\b|\bln\b)")
+# Inline-Code oder Heredoc: ein Interpreter kann schreiben, ohne eines der Verben zu nennen.
+_INLINE_CODE = re.compile(r"\b(python[0-9.]*|perl|ruby|node|php)\b[^|;&]*\s-[ce]\b|<<-?\s*['\"]?\w")
+_PATHLIKE = re.compile(r"[A-Za-z0-9_.~/-]+")
+_SHELL_OPERATORS = ("&&", "||", ";", "|", "&", ">", ">>", "<", "(", ")")
 
 
 # --- Selbstschutz: die Dateien, die die Wache selbst tragen ------------------------------------
@@ -160,8 +176,81 @@ def _is_local_target(cmd: str) -> bool:
     return bool(hit) and hit.group(1) in LOCAL_HOSTS
 
 
+def push_targets(cmd: str) -> list[str | None]:
+    """Je `git push` im Befehl das Ziel: der Wert von --repo, sonst das erste Argument, das keine
+    Option ist; None heißt Standard-Upstream. Branch- und Refspec-Namen kommen nie in Frage."""
+    out: list[str | None] = []
+    for m in _PUSH_SEGMENT.finditer(cmd):
+        rest = m.group(1)
+        try:
+            toks = shlex.split(rest)
+        except ValueError:
+            toks = rest.split()
+        remote: str | None = None
+        it = iter(toks)
+        for t in it:
+            if t.startswith("--repo="):
+                remote = t.split("=", 1)[1]
+                break
+            if t == "--repo":
+                remote = next(it, None)
+                break
+            if t in _PUSH_VALUE_OPTS:
+                next(it, None)
+                continue
+            if t.startswith("-"):
+                continue
+            remote = t
+            break
+        out.append(remote)
+    return out
+
+
 def _is_own_push(cmd: str) -> bool:
-    return bool(re.search(r"\bgit\s+push\b", cmd)) and any(r in cmd for r in own_remotes())
+    """True, wenn jeder git push im Befehl exakt auf ein eigenes Remote (oder den Upstream) zeigt."""
+    targets = push_targets(cmd)
+    own = set(own_remotes())
+    return bool(targets) and all(t is None or t in own for t in targets)
+
+
+def bash_path_candidates(cmd: str) -> list[str]:
+    """Alle Token eines Bash-Befehls, die ein Pfad sein könnten (mit / oder .), gegen das
+    mitgeführte cd-Verzeichnis aufgelöst — auch Pfadstücke in Inline-Code."""
+    try:
+        lex = shlex.shlex(cmd, posix=True, punctuation_chars=True)
+        lex.whitespace_split = True
+        tokens = list(lex)
+    except ValueError:
+        tokens = cmd.split()
+    cwd = Path.cwd()
+    out: list[str] = []
+    expect_cd = False
+    for t in tokens:
+        if t in _SHELL_OPERATORS:
+            expect_cd = False
+            continue
+        if expect_cd:
+            cwd = cwd / Path(t).expanduser()
+            expect_cd = False
+            continue
+        if t == "cd":
+            expect_cd = True
+            continue
+        for cand in _PATHLIKE.findall(t):
+            if "/" in cand or "." in cand:
+                out.append(str(cwd / Path(cand).expanduser()))
+    return out
+
+
+def _shell_writes_guard(cmd: str) -> bool:
+    if not (_SHELL_WRITE_VERB.search(cmd) or _INLINE_CODE.search(cmd)):
+        return False
+    # Exakt aufgelöste Pfade, kein Substring: /tmp/core/guard.py ist frei, core/guard.py nach cd nicht.
+    return _mentions_mandate_file(cmd) or any(_is_protected_path(p) for p in bash_path_candidates(cmd))
+
+
+def _secret_ref_in_url(cmd: str) -> bool:
+    return any(_ENV_SECRET_REF.search(u) for u in _URL.findall(cmd))
 
 
 def _mentions_mandate_file(cmd: str) -> bool:
@@ -189,23 +278,24 @@ def classify(tool_name: str, tool_input: dict) -> tuple[str, str] | None:
     else:
         return None
 
-    if tool_name == "Bash":
-        if _SHELL_WRITE_VERB.search(cmd) and (_SHELL_GUARD_FILES.search(cmd) or _mentions_mandate_file(cmd)):
-            return ("soul-integritaet", "Shell-Schreibzugriff auf die Wache selbst")
+    if tool_name == "Bash" and _shell_writes_guard(cmd):
+        return ("soul-integritaet", "Shell-Schreibzugriff auf die Wache selbst")
 
     if _SECRET_SRC.search(cmd) and _EXFIL_VERB.search(cmd):
         # Ziel absichtlich egal — auch localhost zählt (Drill-Erkenntnis aus SOUL).
         return ("secrets-exfiltration", "Secret-Quelle kombiniert mit Netz-Werkzeug")
+    if _EXFIL_VERB.search(cmd) and _secret_ref_in_url(cmd):
+        return ("secrets-exfiltration", "Schluessel-Variable in der Ziel-URL eines Netz-Werkzeugs")
 
-    if not _is_own_push(cmd):
-        if _PUBLISH.search(cmd):
-            return ("extern-publizieren", "Publish-Kommando auf externes Ziel")
-        if _PUSH_WITH_TARGET.search(cmd):
-            return ("extern-publizieren", "git push auf fremdes Remote")
-        if _WEBHOOK_HOSTS.search(cmd):
-            return ("extern-publizieren", "bekannter Webhook-Host")
-        if _HTTP_WRITE.search(cmd) and not _is_local_target(cmd):
-            return ("extern-publizieren", "HTTP-Schreibzugriff auf Nicht-lokal-Ziel")
+    # Ein eigener Push befreit nur den Push selbst, nie ein anderes Publish-Kommando daneben.
+    if _PUBLISH.search(cmd):
+        return ("extern-publizieren", "Publish-Kommando auf externes Ziel")
+    if _PUSH_SEGMENT.search(cmd) and not _is_own_push(cmd):
+        return ("extern-publizieren", "git push auf fremdes Remote")
+    if _WEBHOOK_HOSTS.search(cmd):
+        return ("extern-publizieren", "bekannter Webhook-Host")
+    if _HTTP_WRITE.search(cmd) and not _is_local_target(cmd):
+        return ("extern-publizieren", "HTTP-Schreibzugriff auf Nicht-lokal-Ziel")
 
     if _PAYMENT.search(cmd):
         return ("zahlungen", "Zahlungs-API oder -CLI")

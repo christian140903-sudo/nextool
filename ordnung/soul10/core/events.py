@@ -262,11 +262,10 @@ def register_undo(tool: str, tool_input: dict, session_id: str) -> dict | None:
     try:
         from . import rollback
         if tool == "Bash":
-            hit = rollback.infer_from_bash(str(tool_input.get("command") or ""))
-            if not hit:
-                return None
-            return rollback.register(hit["kind"], hit["description"], undo=hit["undo"],
-                                     evidence={"tool": "Bash", "session_id": session_id})
+            # register_from_bash sichert ein bestehendes Ziel (cp/mv) als Sicherungskopie, statt
+            # einen Rückweg zu erfinden, der den Vorzustand löschte.
+            return rollback.register_from_bash(str(tool_input.get("command") or ""),
+                                               evidence={"tool": "Bash", "session_id": session_id})
         if tool in WRITE_TOOLS:
             path = str(tool_input.get("file_path") or tool_input.get("notebook_path") or "")
             if path and Path(path).expanduser().is_file():

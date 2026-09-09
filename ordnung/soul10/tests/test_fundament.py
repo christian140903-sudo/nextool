@@ -73,3 +73,11 @@ def test_pruefer_wortlaut_aus_der_pruefstrecke():
     p = model.pruefer_prompt("A", "B")
     assert p.startswith("AUFGABE:\nA\n\nVORGESCHLAGENE ANTWORT:\nB\n\n")
     assert "von den gegebenen Groessen her neu aufbaust" in p and "exakt im verlangten Format" in p
+
+
+def test_secret_muster_kennt_die_gaengigen_formate():
+    for probe in ("AIza" + "a" * 35, "github_pat_" + "A" * 30, "gho_" + "b" * 24, "xapp-1-A1-abc",
+                  "-----BEGIN RSA PRIVATE KEY-----", "-----BEGIN PRIVATE KEY-----"):
+        assert bus.SECRET_PATTERN.search(probe), probe
+        assert "[MASKIERT]" in bus.mask("x " + probe + " y")
+    assert not bus.SECRET_PATTERN.search("AIza zu kurz") and not bus.SECRET_PATTERN.search("github_patch")
