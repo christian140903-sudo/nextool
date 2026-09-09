@@ -1,11 +1,12 @@
-"""Zerlegung: Klassifikation de/en, Kumulation verweigert, Randbezug nur mit force, Chunk-Grenzen, Nahtprotokoll byte-gleich zu M2, merge zählt Fehlende."""
+"""Zerlegung: Klassifikation de/en, Kumulation und listenweiter Bezug verweigert, Alltagsformulierungen fallen nie auf „zerlegen",
+Randbezug nur mit force, Chunk-Grenzen, Nahtprotokoll byte-gleich zu M2, merge zählt Fehlende, unplausible Arbeiterzahlen fehlen."""
 import json
 import re
 import sys
 
 import pytest
 
-from core import bus, decompose, model, paths
+from core import bus, decompose, dirigent, model, paths
 
 
 def _bus_events():
@@ -20,7 +21,7 @@ def _bus_events():
     "unmittelbar nach einer geraden Zahl",
     "kleiner als die naechste Zahl",
     "greater than the previous number",
-    "two consecutive even numbers",
+    "immediately after an even number",
     "equal to the next value",
     "adjacent to a multiple of 5",
 ])
@@ -258,3 +259,200 @@ def test_run_zaehlt_fehlgeschlagene_aufrufe_als_fehlend(monkeypatch):
     monkeypatch.setattr(model, "FAKE", _fake)
     r = decompose.run(list(range(1, 11)), "gerade", parts=2)
     assert r["value"] is None and r["missing"] == 2 and r["calls"] == 2
+
+
+# --- Gegenprobe: Alltagsformulierungen außerhalb der Wortliste (a1/a2, 2026-09-08) --------------
+# (Bedingung, was sie wirklich ist). 56 von 58 gingen früher als „zerlegen" durch; mit exakt
+# rechnendem Arbeiter lieferte run() 5 statt 1 — ohne Meldung. Keine davon darf „zerlegen"
+# werden: übersehen heißt leise falsche Zahl, zu Unrecht erkannt kostet nur Parallelität.
+# Listenweite Bezüge (Superlative, Anteile, Aggregate, Häufigkeit, Quantor + Nachbarwort,
+# Reichweite über die Naht, Musterpositionen, lose Nachbarwörter) sind nicht zerlegbar — auch
+# nicht per force: die Naht trägt nur einen Randwert je Seite.
+ALLTAG = [
+    ("groesser als alle anderen Zahlen der Liste", "cumulative"),
+    ("greater than all other numbers in the list", "cumulative"),
+    ("groesser als jede andere Zahl", "cumulative"),
+    ("greater than every other number", "cumulative"),
+    ("die zweitgroesste Zahl", "cumulative"),
+    ("die drittkleinste Zahl", "cumulative"),
+    ("the biggest number", "cumulative"),
+    ("the greatest value", "cumulative"),
+    ("in the top three", "cumulative"),
+    ("in der oberen Haelfte", "cumulative"),
+    ("in the upper half of all values", "cumulative"),
+    ("above the mean", "cumulative"),
+    ("ueber dem Schnitt", "cumulative"),
+    ("groesser als die Summe der Liste geteilt durch 100", "cumulative"),
+    ("greater than 1% of the total", "cumulative"),
+    ("kleiner als das Produkt aller anderen", "cumulative"),
+    ("kommt genau zweimal vor", "cumulative"),
+    ("kommt doppelt vor", "cumulative"),
+    ("kommt mehrfach vor", "cumulative"),
+    ("occurs twice", "cumulative"),
+    ("occurs only once", "cumulative"),
+    ("erscheint genau einmal", "cumulative"),
+    ("already appeared earlier in the list", "cumulative"),
+    ("kam schon frueher vor", "cumulative"),
+    ("gleich der Anzahl der geraden Zahlen", "cumulative"),
+    ("equal to the count of even numbers", "cumulative"),
+    ("groesser als alle Zahlen davor", "cumulative"),
+    ("greater than all preceding numbers", "cumulative"),
+    ("greater than the sum of all previous numbers", "cumulative"),
+    ("groesser als alle folgenden Zahlen", "cumulative"),
+    ("groesser als die Summe der beiden vorangehenden Zahlen", "cumulative"),
+    ("greater than the number two positions before", "cumulative"),
+    ("zwei gleiche Zahlen hintereinander", "cumulative"),
+    ("zwei gleiche Zahlen nebeneinander", "cumulative"),
+    ("two equal numbers in a row", "cumulative"),
+    ("groesser als die uebernaechste Zahl", "cumulative"),
+    ("in der zweiten Haelfte der Liste", "cumulative"),
+    ("in the second half of the list", "cumulative"),
+    ("jede zweite Zahl", "cumulative"),
+    ("every third number", "cumulative"),
+    ("every other number", "cumulative"),
+    ("am Ende der Liste", "cumulative"),
+    ("at the beginning of the list", "cumulative"),
+    ("in der Mitte der Liste", "cumulative"),
+    ("odd-indexed", "cumulative"),
+    ("even-indexed", "cumulative"),
+    ("greater than the number before it", "randbezug"),
+    ("smaller than the number after it", "randbezug"),
+    ("groesser als die Zahl vorher", "randbezug"),
+    ("groesser als die Zahl dahinter", "randbezug"),
+    ("groesser als die Zahl links davon", "randbezug"),
+    ("the same as the prior number", "randbezug"),
+    ("the same as the subsequent number", "randbezug"),
+    ("differs from the number before by 1", "randbezug"),
+    ("gleich der Zahl, die ihr folgt", "randbezug"),
+    ("gleich der Zahl, die ihr vorausgeht", "randbezug"),
+    ("die dritte Zahl der Liste", "randbezug"),
+    ("the third number of the list", "randbezug"),
+]
+
+
+@pytest.mark.parametrize("bedingung,art", ALLTAG, ids=lambda x: x[:40])
+def test_alltagsformulierung_faellt_nie_auf_zerlegen(bedingung, art):
+    r = decompose.seam_check(bedingung)
+    assert r["classes"] and r["empfehlung"] != "zerlegen", (r["classes"], r["empfehlung"])
+    assert r["empfehlung"] in ("einzeln", "nicht_zerlegbar")
+    with pytest.raises(decompose.DecomposeError):
+        decompose.plan(list(range(1, 21)), bedingung, parts=4)
+    if art == "cumulative":
+        assert r["decomposable"] is False and r["empfehlung"] == "nicht_zerlegbar"
+        assert "cumulative" in r["classes"] or "global" in r["classes"]
+        with pytest.raises(decompose.DecomposeError):
+            decompose.plan(list(range(1, 21)), bedingung, parts=4, force=True)
+
+
+def test_listenweiter_bezug_traegt_klasse_global_und_grund():
+    r = decompose.seam_check("the biggest number")
+    assert r["classes"] == ["global"] and r["hits"]["global"] == ["biggest"]
+    assert r["decomposable"] is False and r["protocol"] == "none" and r["empfehlung"] == "nicht_zerlegbar"
+    assert "listenweiter Bezug" in r["reason"] and "nicht zerlegbar" in r["reason"]
+    letzte = [json.loads(z) for z in paths.bus_file().read_text().splitlines()]
+    pruef = [z for z in letzte if z["event"] == "decompose.seam_check"]
+    assert pruef[-1]["classes"] == ["global"] and pruef[-1]["empfehlung"] == "nicht_zerlegbar"
+    # Quantor + Nachbarwort ist Kumulation, nicht bloß Nachbar
+    r = decompose.seam_check("groesser als alle Zahlen davor")
+    assert "global" in r["classes"] and r["decomposable"] is False
+
+
+@pytest.mark.parametrize("bedingung", [
+    "gerade", "ungerade", "durch 3 teilbar", "groesser als 50", "kleiner als 10", "even", "odd", "divisible by 3",
+    "prime", "Primzahl", "eine Quadratzahl", "a perfect square", "hat eine gerade Quersumme",
+    "digit sum divisible by 3", "endet auf 7", "ends with 7", "hat drei Ziffern", "has at least 3 digits",
+    "liegt zwischen 10 und 20", "in the range 10 to 20", "negativ", "positive", "durch 2 oder 3 teilbar",
+    "ungerade und groesser als 10", "ein Vielfaches von 5", "a multiple of 5", "enthaelt die Ziffer 3",
+    "contains the digit 3", "is a power of two", "eine Zweierpotenz", "gleich 7", "equals 7", "ungleich 7",
+])
+def test_elementlokales_praedikat_bleibt_zerlegbar(bedingung):
+    """Die konservative Klasse darf die sauber teilbaren Bedingungen (100 % gegen 83–89 %) nicht fressen."""
+    r = decompose.seam_check(bedingung)
+    assert r["classes"] == [] and r["empfehlung"] == "zerlegen" and r["protocol"] == "none"
+
+
+def test_uebersehene_kumulation_liefert_keine_stille_falsche_zahl(monkeypatch):
+    """a2: exakt rechnender Arbeiter je Ausschnitt, Liste 1..50, wahr 1 — run() lieferte 5, missing 0,
+    dirigent.plan form=zerlegt. Jetzt: Verweigerung vor dem ersten Aufruf, Dirigent wählt einen Agenten."""
+    aufrufe = []
+
+    def fake_max(system, user, **kw):
+        aufrufe.append(user)
+        zahlen = [int(z) for z in _LISTE.search(user).group(1).split(", ")]
+        return {"ok": True, "text": str(sum(1 for z in zahlen if all(z > o for o in zahlen if o is not z)))}
+    monkeypatch.setattr(model, "FAKE", fake_max)
+    cond = "groesser als alle anderen Zahlen der Liste"
+    with pytest.raises(decompose.DecomposeError) as exc:
+        decompose.run(list(range(1, 51)), cond, parts=5)
+    assert "nicht zerlegbar" in str(exc.value) and aufrufe == []
+    assert "decompose.run" not in _bus_events() and "decompose.refused" in _bus_events()
+    p = dirigent.plan(list(range(1, 51)), cond, parts=5)
+    assert p["form"] == "einzeln" and p["empfehlung"] == "nicht_zerlegbar" and p["forced"] is False
+    # Quantor + Nachbarwort auf einer Liste > 4000 Zeichen: früher force=True mit Naht → 4 statt 2
+    cond2 = "greater than the sum of all previous numbers"
+    items2 = list(range(1, 1500))
+    p2 = dirigent.plan(items2, cond2, parts=5)
+    assert p2["chars"] > dirigent.EINZELN_MAX_ZEICHEN
+    assert p2["form"] == "einzeln" and p2["forced"] is False and "global" in p2["classes"]
+    with pytest.raises(decompose.DecomposeError):
+        decompose.run(items2, cond2, parts=5, force=True)
+    assert aufrufe == []
+
+
+# --- Plausibilität der Arbeiterzahl (a3) -------------------------------------------------------
+@pytest.mark.parametrize("antwort", ["12", "-3", "2.5", "Von den 3 Zahlen sind es 2, naemlich 8 und 9"])
+def test_unplausible_arbeiterzahl_zaehlt_als_fehlend(monkeypatch, antwort):
+    """a3: 2 Ausschnitte à 3 Zahlen, wahr 3 — „12" ergab 24, „-3" ergab −6, „2.5" ergab 5.0, „… 8 und 9"
+    ergab 18, jeweils missing 0 und damit für den Dirigenten ein Erfolg."""
+    monkeypatch.setattr(model, "FAKE", lambda s, u, **kw: {"ok": True, "text": antwort})
+    r = decompose.run([1, 2, 3, 4, 5, 6], "gerade", parts=2)
+    assert r["value"] is None and r["missing"] == 2 and r["values"] == [None, None] and r["calls"] == 2
+    letzte = [json.loads(z) for z in paths.bus_file().read_text().splitlines()]
+    impl = [z for z in letzte if z["event"] == "decompose.implausible"]
+    assert [z["index"] for z in impl] == [0, 1] and all(z["items"] == 3 for z in impl)
+    assert impl[-1]["value"] == model.extract_last_number(antwort)
+    lauf = [z for z in letzte if z["event"] == "decompose.run"]
+    assert lauf[-1]["missing"] == 2 and lauf[-1]["value"] is None
+
+
+def test_plausible_anzahl_bleibt_anzahl(monkeypatch):
+    monkeypatch.setattr(model, "FAKE", lambda s, u, **kw: {"ok": True, "text": "Position 7 bis 9: alle 3"})
+    r = decompose.run([1, 2, 3, 4, 5, 6], "gerade", parts=2)
+    assert r["value"] == 6 and r["missing"] == 0
+    monkeypatch.setattr(model, "FAKE", lambda s, u, **kw: {"ok": True, "text": "0"})
+    r = decompose.run([1, 2, 3, 4, 5, 6], "gerade", parts=2)
+    assert r["value"] == 0 and r["missing"] == 0
+    assert "decompose.implausible" not in _bus_events()
+
+
+def test_parse_count_grenzen():
+    assert decompose._parse_count("3", 3) == 3 and decompose._parse_count("0", 3) == 0
+    assert decompose._parse_count("2,0", 3) == 2
+    for text in ("4", "-1", "1,5", "2.5", "keine Zahl", ""):
+        assert decompose._parse_count(text, 3) is None, text
+    assert decompose._parse_count("7") == 7 and decompose._parse_count("-7") is None
+
+
+def test_merge_bool_und_leer():
+    """a3: merge([True, 2]) ergab (3, 0) — bool ist keine Anzahl."""
+    assert decompose.merge([True, 2]) == (2, 1)
+    assert decompose.merge([]) == (None, 0)
+    assert decompose.merge([1.0, 2]) == (3.0, 0)
+
+
+# --- plan: Eingaben, die früher TypeError oder einen falschen Nahttext gaben (a3) ----------------
+def test_plan_lehnt_none_in_liste_leere_bedingung_und_parts_bruch_ab():
+    with pytest.raises(decompose.DecomposeError) as exc:
+        decompose.plan([None, 4, None, 8, 9, None], "nicht die letzte Zahl", parts=3, force=True)
+    assert "Position(en) 1, 3, 6" in str(exc.value)
+    with pytest.raises(decompose.DecomposeError):
+        decompose.plan([1, "2", 3], "gerade", parts=1)
+    for cond in (None, "", "   "):
+        with pytest.raises(decompose.DecomposeError):
+            decompose.plan([1, 2, 3], cond, parts=1)
+    for parts in (1.5, "2", True, None, -1, 0):
+        with pytest.raises(decompose.DecomposeError):
+            decompose.plan([1, 2, 3, 4], "gerade", parts=parts)
+    assert decompose.plan([1, 2, 3, 4], "gerade", parts=2.0)["parts"] == 2
+    assert decompose.plan([1.5, 2.5, 3.0], "gerade", parts=1)["parts"] == 1
+    assert "decompose.plan" in _bus_events()

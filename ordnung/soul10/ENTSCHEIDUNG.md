@@ -202,6 +202,15 @@ gebauten `ledger.py`, 12 Fragen × 3 Läufe).
 - Der Frame 4.1 bleibt byte-gleich in `structure/implant/` als Vergleichsarm; Punkt 6 ist als schädlich gemessen und wird nirgends geladen.
 - Kein Bauteil heißt nach dem, was es verspricht, sondern nach dem, was es tut (`switch.py`, nicht `consciousness.py`).
 
+Nach der adversarialen Prüfung (ABNAHME §6), gegenüber der ersten Fassung von ARCHITEKTUR.md:
+- Takt B hat einen Aufrufer im Betrieb (Stop-Hook und Sitzungsende, höchstens alle sechs Stunden), nicht nur die CLI.
+- Der Sieger eines Widerspruchs ist der stärkste **aktive** Eintrag in Herkunftsordnung (Quelle vor Vertrauen); ein Kandidat gewinnt nie, und `self`-Züge werden nicht durch Widerspruch gestürzt. Vertrauen hat eine Obergrenze je Quelle; Ablösung (`supersedes`) nur in Herkunftsordnung.
+- Kandidaten fremder Quellen werden nach einem Tag ohne Widerspruch aktiv — Quarantäne ist Zeit und Widerspruchsfreiheit, nicht ein Vertrauen, das ein Dokument nicht hat.
+- Die Hash-Kette hat einen Kopfanker (Abschneiden fällt auf), jede Zeile einen Zustandshash (ein direktes UPDATE fällt auf, `soul status` zeigt `state_ok`), und eine Dateisperre.
+- Die Quittung ist an Proben und Vertragszustand gebunden (`probes_hash`, `contract_sha256`), jede Quittung gilt einmal; Proben und Ziel sind nach dem Anlegen unveränderlich; `file`/`forbid`-Proben bleiben im Startverzeichnis.
+- Der Rückweg im Rückbau-Konto ist eine Argumentliste ohne Shell; ein bestehendes Ziel von `cp`/`mv` wird gesichert statt „zurückgebaut".
+- Die Wache liest das Push-Ziel exakt aus den Argumenten und löst Pfade gegen das `cd`-Verzeichnis auf; kein Substring gibt etwas frei.
+
 ---
 
 ## 7. Abnahme dieser Sitzung
