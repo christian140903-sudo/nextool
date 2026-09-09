@@ -32,6 +32,9 @@ KINDS = ("episode", "fact", "procedure", "self", "user", "rejected", "prediction
 STATUS = ("candidate", "active", "superseded", "disputed", "quarantined", "retracted", "archived")
 SOURCES = {"nutzer": 0.8, "werkzeug": 0.9, "dokument": 0.7, "eigener_schluss": 0.4,
            "import": 0.3, "extern": 0.3}
+# conditional: expires_when trägt die Bedingung als Prosa für den Leser („bis der Umzug abgeschlossen
+# ist"); kein Code wertet sie aus — eine Bedingung in Worten ist kein Kommando. Takt B behandelt
+# conditional wie durable; wer die Bedingung erfüllt sieht, archiviert von Hand oder per Vertrag.
 TTL = ("durable", "seasonal", "short", "conditional")
 VISIBILITY = ("public", "private", "never")
 TRANSITIONS = {
@@ -75,9 +78,17 @@ SOURCE_RANK = {"nutzer": 3, "werkzeug": 3, "dokument": 2, "eigener_schluss": 1, 
 # Ein Etikett im Text würde eine zweite, gefälschte Herkunft in die Zeile schmuggeln.
 LABEL_RE = re.compile(r"\[(Quelle|Vertrauen):\s")
 IMPERATIVE_RE = re.compile(
-    r"\b(ignoriere|vergiss|du musst|ab jetzt|override|ignore (all|previous)|disregard)\b",
+    r"\b(ignoriere|vergiss|du musst|du sollst|ab jetzt|ab sofort|from now on|override|disregard"
+    r"|ignore (all|any|the|prior|previous|above|earlier)|forget (everything|all|prior|previous|the)"
+    r"|neue anweisung(en)?|new instructions?|system[ -]?prompt)\b",
     re.IGNORECASE,
 )
+
+
+def _imperativ(*texte) -> bool:
+    """Anweisung an das System in einem der Texte — Leerraum wird zusammengezogen, damit
+    'Ignore  prior instructions' nicht am doppelten Leerzeichen vorbeikommt."""
+    return any(IMPERATIVE_RE.search(re.sub(r"\s+", " ", t or "")) for t in texte)
 # Quellen, deren Text Anweisungen an das System tragen könnte, ohne dass der Nutzer sie sagte.
 _FOREIGN_SOURCES = ("extern", "dokument", "werkzeug")
 # Quellen, die vor der Aktivierung durch die Konsolidierung müssen (Quarantäne vor Aktivierung).
@@ -463,6 +474,10 @@ def remember(title: str, body: str, *, source: str | None = None, kind: str = "f
         raise LedgerError(f"Unbekannte Gedächtnisart {kind!r}; erlaubt: {KINDS}")
     if status not in STATUS:
         raise LedgerError(f"Unbekannter Status {status!r}; erlaubt: {STATUS}")
+    if status not in ("active", "candidate"):
+        # Regel 4: jeder andere Zustand ist ein Übergang mit Kettenzeile, retired_at und Grund —
+        # niemand wird als superseded oder retracted geboren.
+        raise LedgerError(f"Geburtsstatus {status!r} abgelehnt; nur active oder candidate, der Rest über transition()")
     if ttl_class not in TTL:
         raise LedgerError(f"Unbekannte Haltbarkeitsklasse {ttl_class!r}; erlaubt: {TTL}")
     if visibility not in VISIBILITY:
@@ -475,7 +490,7 @@ def remember(title: str, body: str, *, source: str | None = None, kind: str = "f
     if LABEL_RE.search(title) or LABEL_RE.search(body):
         raise LedgerError("Etikett im Text abgelehnt — Herkunft steht nur im gerenderten Kopf der Zeile")
     # 5. Anweisung an das System selbst aus fremder Quelle.
-    if source in _FOREIGN_SOURCES and (IMPERATIVE_RE.search(title) or IMPERATIVE_RE.search(body)):
+    if source in _FOREIGN_SOURCES and _imperativ(title, body):
         raise LedgerError("Anweisung an mich selbst aus fremder Quelle abgelehnt")
     if not title:
         raise LedgerError("Eintrag ohne Titel abgelehnt")
@@ -576,8 +591,7 @@ def transition(id: str, new_status: str, *, reason: str = "", by: str = "system"
     if new_status == "active" and old_status != "active":
         # Die Guards laufen bei der Aktivierung erneut: ein Kandidat aus fremder Quelle mit
         # Anweisung an das System wird nie aktiv, auch nicht über die Konsolidierung.
-        if entry["source"] in _FOREIGN_SOURCES and (
-                IMPERATIVE_RE.search(entry["title"] or "") or IMPERATIVE_RE.search(entry["body"] or "")):
+        if entry["source"] in _FOREIGN_SOURCES and _imperativ(entry["title"], entry["body"]):
             raise LedgerError("Aktivierung abgelehnt: Anweisung an mich selbst aus fremder Quelle")
         check_secrets(entry["title"], entry["body"], entry["source_ref"])
         # Ein Kind eines zurückgezogenen oder quarantinierten Eintrags trägt dessen Gift: es kommt
@@ -609,11 +623,17 @@ def dispute(id_a: str, id_b: str, *, reason: str) -> None:
     if id_a == id_b:
         raise LedgerError("Ein Eintrag kann sich nicht selbst widersprechen")
     check_secrets(reason)
-    for own, other in ((id_a, id_b), (id_b, id_a)):
+    # Erst beide Übergänge prüfen, dann beide ausführen: keiner bleibt ohne Partner in disputed zurück.
+    eintraege = {}
+    for own in (id_a, id_b):
         entry = get(own)
         if entry is None:
             raise LedgerError(f"Kein Eintrag mit id {own!r}")
         if entry["status"] != "disputed":
+            _check_transition(entry["status"], "disputed")
+        eintraege[own] = entry
+    for own in (id_a, id_b):
+        if eintraege[own]["status"] != "disputed":
             transition(own, "disputed", reason=reason, by="system")
     with closing(connect()) as con, con:
         con.execute("UPDATE memories SET disputes = ? WHERE id = ?", (id_b, id_a))

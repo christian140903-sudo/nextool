@@ -146,7 +146,7 @@ Konstanten:
 KINDS   = ("episode","fact","procedure","self","user","rejected","prediction","retraction","contract","harvest")
 STATUS  = ("candidate","active","superseded","disputed","quarantined","retracted","archived")
 SOURCES = {"nutzer": 0.8, "werkzeug": 0.9, "dokument": 0.7, "eigener_schluss": 0.4, "import": 0.3, "extern": 0.3}
-TTL     = ("durable","seasonal","short","conditional")
+TTL     = ("durable","seasonal","short","conditional")   # conditional: expires_when ist Prosa für den Leser, kein Code wertet sie aus
 VISIBILITY = ("public","private","never")
 TRANSITIONS = {  # (von, nach) — alles andere ist LedgerError
   ("candidate","active"), ("candidate","archived"), ("candidate","quarantined"), ("candidate","retracted"),

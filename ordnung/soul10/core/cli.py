@@ -279,12 +279,15 @@ def cmd_self(args, out) -> int:
 def cmd_status(args, out) -> int:
     """Die Lage: Hauptbuch, offene Verträge, Rückbauquote, Kalibrierung, Mandat, letzte Ereignisse."""
     from core import bus, contract, guard, paths, rollback
-    from core.memory import ledger, predict
+    from core.memory import ledger, predict, retract
     offene = contract.list_open()
     emit_json({
         "home": str(paths.home()),
         "memory": ledger.stats(),
         "chain_ok": ledger.verify_chain(),
+        "state_ok": ledger.verify_state()["ok"],
+        "contamination_share": retract.contamination_share(),
+        "predictions_due": len(predict.due()),
         "contracts": {"open": len(offene), "list": [contract_summary(c) for c in offene]},
         "rollback": rollback.quota(),
         "calibration": predict.calibration(),

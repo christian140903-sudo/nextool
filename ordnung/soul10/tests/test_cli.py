@@ -69,6 +69,8 @@ def test_subprozess_status_laeuft():
     assert data["memory"]["gesamt"] == 0 and data["contracts"]["open"] == 0
     assert data["rollback"]["registered"] == 0 and data["calibration"]["n"] == 0
     assert data["mandate"] is None and isinstance(data["last_events"], list)
+    # Messgrößen, die sonst keinen Aufrufer im Produkt hätten: G5 und fällige Vorhersagen.
+    assert data["state_ok"] is True and data["contamination_share"] == 1.0 and data["predictions_due"] == 0
 
 
 def test_subprozess_switch_trivial_direkt_und_ohne_regeltext():
