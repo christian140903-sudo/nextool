@@ -358,10 +358,25 @@ def run_takt_a(session_id: str, mode: str) -> dict:
         return {"episoden": None, "error": str(exc)[:200]}
 
 
+def run_takt_b(mode: str) -> dict | None:
+    """Takt B der Konsolidierung (Dubletten, Widerspruch, Ablauf, Retention, Aktivierung, Selbst),
+    höchstens einmal je consolidate.TAKT_B_INTERVALL_STUNDEN; fail-open. None heißt: nicht fällig.
+    Ohne diesen Aufrufer liefe Takt B nur aus der CLI (Prüfbefund: toter Mechanismus)."""
+    try:
+        from .memory import consolidate
+        if not consolidate.takt_b_faellig():
+            return None
+        return consolidate.takt_b()
+    except Exception as exc:  # noqa: BLE001
+        bus.emit("hook-fehler", mode=mode, stage="takt_b", error=str(exc)[:200])
+        return {"error": str(exc)[:200]}
+
+
 def stop(payload: dict) -> str:
     """Prüfgate: ein gelieferter Vertrag ohne Quittung blockiert „fertig" — außer stop_hook_active
-    ist gesetzt (keine Schleife). Sonst Takt A. Ein nicht lesbares Prüfgate blockiert ebenfalls
-    (fail-closed wie der Guard: ein Gate, das man nicht prüfen kann, ist kein Gate)."""
+    ist gesetzt (keine Schleife). Sonst Takt A, dann Takt B, wenn fällig. Ein nicht lesbares
+    Prüfgate blockiert ebenfalls (fail-closed wie der Guard: ein Gate, das man nicht prüfen kann,
+    ist kein Gate)."""
     session_id = _session_id(payload)
     active = bool(payload.get("stop_hook_active"))
     delivered, error = delivered_without_receipt()
@@ -371,9 +386,10 @@ def stop(payload: dict) -> str:
                  contracts=[c.get("id") for c in delivered], error=error)
         return json.dumps(block_json(reason), ensure_ascii=True)
     result = run_takt_a(session_id, "stop")
+    takt_b = run_takt_b("stop")
     bus.emit("stop", mode="stop", session_id=session_id, stop_hook_active=active,
              delivered_unverified=len(delivered), gate_error=error,
-             episoden=result.get("episoden"))
+             episoden=result.get("episoden"), takt_b=takt_b is not None and "error" not in takt_b)
     return ""
 
 
@@ -415,11 +431,12 @@ def subagent_stop(payload: dict) -> str:
 
 # --- Modus 8: session-end ---------------------------------------------------------------------------
 def session_end(payload: dict) -> str:
-    """Sitzungsende: Takt A, damit keine Inbox-Zeile liegen bleibt."""
+    """Sitzungsende: Takt A, damit keine Inbox-Zeile liegen bleibt; Takt B, wenn fällig."""
     session_id = _session_id(payload)
     result = run_takt_a(session_id, "session-end")
+    takt_b = run_takt_b("session-end")
     bus.emit("session-end", mode="session-end", session_id=session_id, reason=payload.get("reason"),
-             episoden=result.get("episoden"))
+             episoden=result.get("episoden"), takt_b=takt_b is not None and "error" not in takt_b)
     return ""
 
 

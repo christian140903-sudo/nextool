@@ -1,27 +1,41 @@
-"""Vertrag: ohne Probe kein Auftrag; Lebenszyklus in einer Funktion; Urteil nur per gültiger Quittung."""
+"""Vertrag: ohne Probe kein Auftrag; Lebenszyklus in einer Funktion; Urteil nur per gültiger Quittung,
+die an die Proben und den Zustand des Vertrags gebunden ist (kein Erfinden, kein Replay, kein Tausch)."""
 import json
 import re
+import sys
 
 import pytest
 
-from core import bus, contract, paths
+from core import bus, contract, paths, verifier
 
+PY = sys.executable
 PROBE = {"type": "answer", "expected": 42}
 SCHWEIGEKLAUSEL = re.compile(r"\bstill\b|unsichtbar|nur das Ergebnis|keine Zwischenschritte|erscheint nie im Text|\bsilent|invisibl", re.I)
+_DUMMY_BINDING = {"probes_hash": "0" * 64, "contract_sha256": "0" * 64}
 
 
 def _vertrag(**kw):
     return contract.new("Was ist 6*7? Antworte nur mit der Zahl.", [PROBE], **kw)
 
 
-def _quittung(cid, *, passed=True, verdict=None, runs=None):
+def _lauf(typ="answer", passed=True):
+    return {"type": typ, "passed": passed, "detail": "x", "stdout_head": "", "exit": None, "at": paths.now_iso()}
+
+
+def _quittung(cid, *, passed=True, verdict=None, runs=None, binding=None):
+    """Eine Quittung, wie verify sie schreiben würde: gebunden an die Proben und den Zustand des Vertrags."""
+    if binding is None:
+        try:
+            binding = contract.receipt_binding(contract.load(cid))
+        except contract.ContractError:
+            binding = dict(_DUMMY_BINDING)
     q = {
         "contract_id": cid,
-        "probe_runs": runs if runs is not None else [
-            {"type": "answer", "passed": passed, "detail": "x", "stdout_head": "", "exit": None, "at": paths.now_iso()}],
+        "probe_runs": runs if runs is not None else [_lauf(passed=passed)],
         "verdict": verdict or ("pass" if passed else "fail"),
         "verifier": {"kind": "deterministic", "model": None},
         "at": paths.now_iso(),
+        **binding,
     }
     q["hash"] = contract.receipt_hash(q)
     return q
@@ -42,6 +56,11 @@ def test_ungueltige_probe_wird_abgelehnt():
         contract.new("Ziel", [PROBE, {"type": "answer", "expected": "x", "extract": "last_number"}])
     with pytest.raises(contract.ContractError, match="ohne Ziel"):
         contract.new("   ", [PROBE])
+    # Befund a1/1e, a7/7a: unendliche Toleranz und leere Erwartung sind keine Prüfschärfe
+    with pytest.raises(contract.ContractError, match="endliche Zahl"):
+        contract.new("Ziel", [json.loads('{"type":"answer","expected":1,"tolerance":Infinity}')])
+    with pytest.raises(contract.ContractError, match="leer"):
+        contract.new("Ziel", [{"type": "answer", "expected": ""}])
     assert list(paths.contracts_dir().glob("*.json")) == []
 
 
@@ -58,6 +77,16 @@ def test_new_schreibt_datei_mit_defaults_und_bus():
         _vertrag(budget={"unsinn": 1})
     with pytest.raises(contract.ContractError):
         _vertrag(parent="gibt-es-nicht")
+
+
+def test_non_goals_als_einzelner_text_wird_nicht_zerlegt():
+    """Befund a6/6a: non_goals='kein Code' wurde zu ['k','e','i','n', …]."""
+    c = _vertrag(non_goals="kein Code", inputs="ARCHITEKTUR.md")
+    assert c["non_goals"] == ["kein Code"] and c["inputs"] == ["ARCHITEKTUR.md"]
+    text = contract.render_handover(c["id"])
+    assert "Nicht-Ziele: kein Code" in text and "Eingaben: ARCHITEKTUR.md" in text
+    with pytest.raises(contract.ContractError):
+        _vertrag(non_goals={"a": 1})
 
 
 def test_load_unbekannt():
@@ -176,12 +205,175 @@ def test_gueltige_quittung_setzt_urteil():
     datei = paths.receipts_dir() / c["receipt"]["file"]
     assert datei.exists() and json.loads(datei.read_text())["hash"] == q["hash"]
     assert c["receipt"]["file"].startswith(cid + "-")
+    assert c["log"][-1]["event"] == "verdict" and c["log"][-1]["receipt_hash"] == q["hash"]
     assert bus.tail(1)[0]["event"] == "contract.verdict"
     assert contract.load(cid) == c
     # Zweite Prüfung darf das Urteil ehrlich kippen
     c2 = contract.set_verdict(cid, _quittung(cid, passed=False))
     assert c2["status"] == "failed" and c2["verdict"] == "fail"
     assert len(list(paths.receipts_dir().glob(f"{cid}-*.json"))) == 2
+
+
+# --- Bindung der Quittung an die Proben des Vertrags (Befund a1/1a) --------------------------------
+def test_erfundene_quittung_ohne_gelaufene_proben_wird_abgelehnt():
+    """Angriff 1a: Vertrag mit zwei Proben (eine scheitert zwingend), Quittung mit einem erfundenen
+    Lauf und selbst gerechnetem Hash — durfte nie ein Urteil setzen."""
+    c = contract.new("Ziel", [{"type": "shell", "cmd": PY + ' -c "import sys; sys.exit(1)"'},
+                              {"type": "answer", "expected": 42}])
+    cid = c["id"]
+    vorher = len(bus.tail(100, "probe."))
+    # ein Lauf für zwei Proben
+    with pytest.raises(contract.ContractError, match="1 Probenlauf.*2 Proben"):
+        contract.set_verdict(cid, _quittung(cid, runs=[_lauf("shell")]))
+    # zwei Läufe, aber falsche Typen / Reihenfolge
+    with pytest.raises(contract.ContractError, match="Typ"):
+        contract.set_verdict(cid, _quittung(cid, runs=[_lauf("answer"), _lauf("shell")]))
+    # zwei passende Läufe, aber der Proben-Hash gehört zu anderen Proben
+    binding = contract.receipt_binding(contract.load(cid))
+    binding["probes_hash"] = contract.probes_hash([{"type": "shell", "cmd": "true"}, {"type": "answer", "expected": 42}])
+    with pytest.raises(contract.ContractError, match="probes_hash"):
+        contract.set_verdict(cid, _quittung(cid, runs=[_lauf("shell"), _lauf("answer")], binding=binding))
+    # Bindungsfelder fehlen ganz
+    q = _quittung(cid, runs=[_lauf("shell"), _lauf("answer")])
+    del q["probes_hash"]
+    q["hash"] = contract.receipt_hash(q)
+    with pytest.raises(contract.ContractError, match="unvollständig"):
+        contract.set_verdict(cid, q)
+    assert contract.load(cid)["verdict"] == "not-evaluated" and contract.load(cid)["status"] == "open"
+    assert len(bus.tail(100, "probe.")) == vorher  # keine Probe lief — und keine Quittung zählt
+    assert list(paths.receipts_dir().glob("*.json")) == []
+    # Nur wer die Proben laufen lässt, bekommt ein Urteil — hier fail, weil exit 1 scheitert.
+    v = verifier.verify(cid, proposal_text="42")
+    assert v["verdict"] == "fail" and contract.load(cid)["status"] == "failed"
+    assert len(bus.tail(100, "probe.")) == vorher + 2
+
+
+def test_replay_einer_alten_quittung_wird_abgelehnt():
+    """Angriff 1b: nach ehrlicher fail-Prüfung die alte pass-Quittung erneut einreichen."""
+    cid = _vertrag()["id"]
+    alt = _quittung(cid, passed=True)
+    assert contract.set_verdict(cid, alt)["status"] == "verified"
+    assert verifier.verify(cid, proposal_text="43")["verdict"] == "fail"
+    assert contract.load(cid)["status"] == "failed"
+    with pytest.raises(contract.ContractError, match="bereits angewendet"):
+        contract.set_verdict(cid, alt)
+    # Auch mit frischem Hash, aber altem Zustand-Fingerabdruck: veraltet
+    alt2 = dict(alt)
+    alt2["at"] = paths.now_iso() + "x"
+    alt2["hash"] = contract.receipt_hash(alt2)
+    with pytest.raises(contract.ContractError, match="veraltet"):
+        contract.set_verdict(cid, alt2)
+    # Und über save(): Verweis auf die ältere pass-Quittung, obwohl eine jüngere fail-Quittung liegt
+    # (hier in derselben Sekunde ausgestellt — dann entscheidet das Log, nicht der Zeitstempel)
+    c = contract.load(cid)
+    assert c["status"] == "failed" and c["verdict"] == "fail"
+    c["verdict"], c["status"] = "pass", "verified"
+    c["receipt"] = {"file": contract.receipt_file_name(alt), "hash": alt["hash"], "at": alt["at"]}
+    with pytest.raises(contract.ContractError, match="ältere Quittung|zuletzt angewendete Quittung"):
+        contract.save(c)
+    geladen = contract.load(cid)
+    assert geladen["status"] == "failed" and geladen["verdict"] == "fail"
+
+
+def test_replay_mit_altem_zeitstempel_wird_abgelehnt():
+    """Angriff 1b wörtlich: Quittung mit at=2020 war gültig, nach ehrlicher fail-Prüfung erneut eingereicht."""
+    cid = _vertrag()["id"]
+    alt = _quittung(cid, passed=True)
+    alt["at"] = "2020-01-01T00:00:00Z"
+    alt["hash"] = contract.receipt_hash(alt)
+    assert contract.set_verdict(cid, alt)["receipt"]["at"] == "2020-01-01T00:00:00Z"
+    assert verifier.verify(cid, proposal_text="43")["verdict"] == "fail"
+    with pytest.raises(contract.ContractError, match="bereits angewendet"):
+        contract.set_verdict(cid, alt)
+    c = contract.load(cid)
+    c["verdict"], c["status"] = "pass", "verified"
+    c["receipt"] = {"file": contract.receipt_file_name(alt), "hash": alt["hash"], "at": alt["at"]}
+    c["log"] = [e for e in c["log"] if e.get("receipt_hash") != contract.load(cid)["receipt"]["hash"]]  # Log frisiert
+    with pytest.raises(contract.ContractError, match="ältere Quittung"):
+        contract.save(c)
+    assert contract.load(cid)["status"] == "failed"
+
+
+def test_quittung_gilt_nur_fuer_den_zustand_bei_pruefbeginn():
+    """Eine Quittung, die vor einer Zustandsänderung (Lieferung) ausgestellt wurde, ist danach veraltet."""
+    cid = _vertrag()["id"]
+    q = _quittung(cid)
+    contract.deliver(cid, report="42")
+    with pytest.raises(contract.ContractError, match="veraltet"):
+        contract.set_verdict(cid, q)
+    assert contract.load(cid)["verdict"] == "not-evaluated"
+    assert contract.set_verdict(cid, _quittung(cid))["status"] == "verified"
+
+
+# --- save() hält die Probenpflicht (Befund a1/1c, 1d; a6/6g) ---------------------------------------
+def test_save_laesst_proben_und_ziel_nicht_aendern():
+    """Angriff 1c/1d: Proben per save() auf 'true' tauschen oder leeren."""
+    c = contract.new("Baue Modul", [{"type": "shell", "cmd": PY + ' -m pytest tests/test_gibt_es_nicht.py -q'}])
+    cid = c["id"]
+    c["probes"] = [{"type": "shell", "cmd": "true"}]
+    with pytest.raises(contract.ContractError, match="unveränderlich"):
+        contract.save(c)
+    c = contract.load(cid)
+    c["probes"] = []
+    with pytest.raises(contract.ContractError, match="ohne Abnahmeprobe"):
+        contract.save(c)
+    c = contract.load(cid)
+    c["goal"] = "MANIPULIERT"
+    with pytest.raises(contract.ContractError, match="unveränderlich"):
+        contract.save(c)
+    auf_platte = contract.load(cid)
+    assert auf_platte["goal"] == "Baue Modul" and "test_gibt_es_nicht" in auf_platte["probes"][0]["cmd"]
+    assert [x["id"] for x in contract.list_open()] == [cid]
+    # Andere Felder bleiben schreibbar (der Dirigent setzt mission_id nach new)
+    c = contract.load(cid)
+    c["mission_id"] = cid
+    contract.save(c)
+    assert contract.load(cid)["mission_id"] == cid
+    # Ein neuer Vertrag direkt über save(): Proben werden validiert
+    with pytest.raises(contract.ContractError, match="Probe 1 ungültig"):
+        contract.save({"id": "neu-1", "goal": "x", "probes": [{"type": "shell"}], "status": "open",
+                       "verdict": "not-evaluated", "log": []})
+
+
+def test_vertrag_mit_urteil_kann_nicht_offen_sein():
+    """Angriff 6g: verifizierter Vertrag per save() auf status open zurück — mit Urteil pass."""
+    cid = _vertrag()["id"]
+    contract.set_verdict(cid, _quittung(cid))
+    c = contract.load(cid)
+    c["status"] = "open"
+    with pytest.raises(contract.ContractError, match="nicht mehr offen"):
+        contract.save(c)
+    assert contract.load(cid)["status"] == "verified"
+    # Nacharbeit nach fail bleibt erlaubt: failed → running → delivered → blocked, Urteil bleibt stehen
+    cid2 = _vertrag()["id"]
+    contract.set_verdict(cid2, _quittung(cid2, passed=False))
+    contract.start(cid2)
+    contract.deliver(cid2, report="nachgebessert")
+    assert contract.block(cid2, "wartet")["verdict"] == "fail"
+
+
+# --- Randfälle der Quittung (Befund a6/6b, a2) ------------------------------------------------------
+def test_nicht_kanonisierbare_quittung_ist_contract_error():
+    """Angriff 6b: Nicht-String-Schlüssel lösten TypeError statt ContractError aus."""
+    cid = _vertrag()["id"]
+    q = {"contract_id": cid, "probe_runs": [{"passed": True, 1: "x"}], "verdict": "pass",
+         "verifier": {"kind": "deterministic", "model": None}, "at": paths.now_iso(), "hash": "x",
+         **_DUMMY_BINDING}
+    with pytest.raises(contract.ContractError, match="kanonisierbar"):
+        contract.set_verdict(cid, q)
+    with pytest.raises(contract.ContractError, match="kanonisierbar"):
+        contract.receipt_hash({1: "x", "a": 1})  # gemischte Schlüsseltypen sind nicht sortierbar
+    assert contract.load(cid)["verdict"] == "not-evaluated"
+
+
+def test_quittung_mit_unmaskiertem_secret_wird_abgelehnt():
+    cid = _vertrag()["id"]
+    lauf = _lauf()
+    lauf["stdout_head"] = "aws_access_key_id = AKIAIOSFODNN7EXAMPLE"
+    with pytest.raises(contract.ContractError, match="Secret"):
+        contract.set_verdict(cid, _quittung(cid, runs=[lauf]))
+    lauf["stdout_head"] = bus.mask(lauf["stdout_head"])
+    assert contract.set_verdict(cid, _quittung(cid, runs=[lauf]))["status"] == "verified"
 
 
 def test_list_open_laesst_abgeschlossene_weg():

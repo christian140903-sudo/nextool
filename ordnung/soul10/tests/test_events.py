@@ -47,6 +47,7 @@ def _quittung(cid, passed=True):
         "verdict": "pass" if passed else "fail",
         "verifier": {"kind": "deterministic", "model": None},
         "at": paths.now_iso(),
+        **contract.receipt_binding(contract.load(cid)),  # an Proben und Zustand des Vertrags gebunden
     }
     q["hash"] = contract.receipt_hash(q)
     return q
@@ -509,3 +510,34 @@ def test_hook_py_ohne_kern_sperrt_pre_tool_und_bleibt_exit_0(tmp_path):
     r = subprocess.run([PY, str(kopie), "stop"], input="{}", capture_output=True, text=True,
                        env=env, cwd=str(tmp_path), timeout=60)
     assert r.returncode == 0 and r.stdout == "" and "Kern nicht ladbar" in r.stderr
+
+
+def test_stop_und_session_end_laufen_takt_b_gedrosselt():
+    from core.memory import consolidate, ledger
+    ledger.remember("Datenbank", "PostgreSQL.", source="nutzer", source_ref="Zitat")
+    ledger.remember("Datenbank", "MySQL.", source="eigener_schluss")
+    assert consolidate.takt_b_faellig()
+    rc, out = _run("stop", {"session_id": "s1", "stop_hook_active": False})
+    assert (rc, out) == (0, "")
+    assert _events("stop")[-1]["takt_b"] is True
+    assert len(_events("memory.takt_b")) == 1
+    assert ledger.stats()["status"].get("superseded") == 1  # eigener_schluss wich der Nutzeraussage
+    # Innerhalb des Intervalls läuft Takt B nicht noch einmal — weder beim Stop noch am Sitzungsende.
+    _run("stop", {"session_id": "s1", "stop_hook_active": False})
+    _run("session-end", {"session_id": "s1", "reason": "exit"})
+    assert _events("stop")[-1]["takt_b"] is False and _events("session-end")[-1]["takt_b"] is False
+    assert len(_events("memory.takt_b")) == 1
+    assert not consolidate.takt_b_faellig()
+
+
+def test_takt_b_fehler_haelt_stop_nicht_an(monkeypatch):
+    from core.memory import consolidate
+
+    def kaputt(now=None):
+        raise OSError("memory.db nicht schreibbar")
+
+    monkeypatch.setattr(consolidate, "takt_b", kaputt)
+    rc, out = _run("stop", {"session_id": "s1"})
+    assert rc == 0 and out == ""
+    assert any(e["stage"] == "takt_b" for e in _events("hook-fehler"))
+    assert _events("stop")[-1]["takt_b"] is False

@@ -7,6 +7,17 @@ Default `not-evaluated`, aber jeder Aufrufer konnte close(verdict="pass") schrei
 beliebig viele Verträge als Dateien, typisierte Proben als Pflicht (ohne Probe kein Auftrag),
 ein kurzer Übergabetext, und `verdict` wandert nur über eine Quittung mit Hash und gelaufenen
 Proben — auch save() nimmt kein Urteil ohne belegte Quittung an (R14 Ä1/N2/N5).
+
+Bindung der Quittung an den Vertrag (Angriffe a1 der adversarialen Prüfung):
+- probes_hash: sha256 des kanonischen JSON der Vertragsproben; dazu müssen Anzahl und Typen
+  der probe_runs den Proben in Reihenfolge entsprechen — eine erfundene Quittung mit einem
+  Lauf für zwei Proben ist keine.
+- contract_sha256: Fingerabdruck (fingerprint) des Vertrags zu Beginn der Prüfung; set_verdict
+  nimmt eine Quittung nur an, wenn der Vertrag seither unverändert ist, und jede Quittung nur
+  einmal (ihr Hash steht danach im Log). Damit ist ein Replay einer alten Quittung unmöglich.
+- save() hält die Probenpflicht: Proben und Ziel sind nach new() unveränderlich, nie leer;
+  ein Urteil verweist auf die jüngste Quittung des Vertrags auf Platte.
+- Eine Quittung mit unmaskiertem Secret-Muster (bus.SECRET_PATTERN) wird abgelehnt.
 """
 from __future__ import annotations
 
@@ -28,7 +39,8 @@ STATUS = ("open", "running", "blocked", "delivered", "verified", "failed")
 VERDICTS = ("not-evaluated", "pass", "fail")
 FINAL_STATUS = ("verified", "failed")
 DEFAULT_BUDGET = {"turns": 30, "tokens": 20000, "minutes": 30, "thinking": 4000}
-RECEIPT_KEYS = ("contract_id", "probe_runs", "verdict", "verifier", "at", "hash")
+RECEIPT_KEYS = ("contract_id", "probes_hash", "contract_sha256", "probe_runs", "verdict", "verifier",
+                "at", "hash")
 VERIFIER_KINDS = ("deterministic", "model", "deterministic+model")
 
 # Erlaubte Übergänge je Aktion: (Status vorher → Status nachher). Alles andere ist ContractError.
@@ -52,14 +64,42 @@ def _write_json(path: Path, data: dict) -> None:
     os.replace(tmp, path)
 
 
+def _read_json(path: Path) -> dict | None:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
 def canonical_json(obj) -> str:
-    return json.dumps(obj, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str)
+    try:
+        return json.dumps(obj, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str)
+    except (TypeError, ValueError) as exc:
+        raise ContractError(f"nicht kanonisierbar (nur JSON mit Textschlüsseln): {exc}") from exc
 
 
 def receipt_hash(receipt: dict) -> str:
     """sha256 des kanonischen JSON der Quittung ohne den Schlüssel "hash"."""
+    if not isinstance(receipt, dict):
+        raise ContractError("Quittung muss ein Objekt sein")
     body = {k: v for k, v in receipt.items() if k != "hash"}
     return paths.sha256_text(canonical_json(body))
+
+
+def probes_hash(probes: list[dict]) -> str:
+    """sha256 des kanonischen JSON der Proben — bindet eine Quittung an genau diese Proben."""
+    return paths.sha256_text(canonical_json(list(probes or [])))
+
+
+def fingerprint(c: dict) -> str:
+    """sha256 des kanonischen JSON des ganzen Vertrags (so, wie er auf Platte liegt)."""
+    return paths.sha256_text(canonical_json(c))
+
+
+def receipt_binding(c: dict) -> dict:
+    """Die Bindungsfelder einer Quittung an diesen Vertrag in diesem Zustand."""
+    return {"probes_hash": probes_hash(c.get("probes") or []), "contract_sha256": fingerprint(c)}
 
 
 def _status_for(verdict: str) -> str:
@@ -77,6 +117,28 @@ def _merge_budget(budget: dict | None) -> dict:
     return out
 
 
+def _str_list(value, name: str) -> list[str]:
+    """Ein einzelner Text wird zur Ein-Element-Liste, nicht zu seinen Zeichen."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, (bytes, dict)):
+        raise ContractError(f"{name} muss eine Liste von Texten sein")
+    return [str(x) for x in value]
+
+
+def _validate_probes(probes) -> list[dict]:
+    if not isinstance(probes, list) or not probes:
+        raise ContractError("Auftrag ohne Abnahmeprobe abgelehnt")
+    for i, p in enumerate(probes, 1):
+        try:
+            _probes.validate(p)
+        except _probes.ProbeError as exc:
+            raise ContractError(f"Probe {i} ungültig: {exc}") from exc
+    return probes
+
+
 # --- Anlegen, Laden, Speichern -----------------------------------------------------------
 def new(goal: str, probes: list[dict], *, non_goals: Iterable[str] = (), inputs: Iterable[str] = (),
         budget: dict | None = None, level: int = 1, parent: str | None = None, assignee: str = "",
@@ -85,14 +147,7 @@ def new(goal: str, probes: list[dict], *, non_goals: Iterable[str] = (), inputs:
     goal = (goal or "").strip()
     if not goal:
         raise ContractError("Auftrag ohne Ziel abgelehnt")
-    probes = list(probes or [])
-    if not probes:
-        raise ContractError("Auftrag ohne Abnahmeprobe abgelehnt")
-    for i, p in enumerate(probes, 1):
-        try:
-            _probes.validate(p)
-        except _probes.ProbeError as exc:
-            raise ContractError(f"Probe {i} ungültig: {exc}") from exc
+    probes = _validate_probes(list(probes or []))
     if isinstance(level, bool) or not isinstance(level, int) or level < 1:
         raise ContractError("level muss eine ganze Zahl ≥ 1 sein")
     if parent is not None and not _contract_file(parent).exists():
@@ -102,8 +157,8 @@ def new(goal: str, probes: list[dict], *, non_goals: Iterable[str] = (), inputs:
     c = {
         "id": paths.new_id(),
         "goal": goal,
-        "non_goals": [str(x) for x in non_goals],
-        "inputs": [str(x) for x in inputs],
+        "non_goals": _str_list(non_goals, "non_goals"),
+        "inputs": _str_list(inputs, "inputs"),
         "probes": probes,
         "budget": budget,
         "level": level,
@@ -134,7 +189,8 @@ def load(id: str) -> dict:
 
 
 def save(c: dict) -> None:
-    """Schreibt den Vertrag atomar. Ein Urteil wird nur mit belegter Quittung angenommen."""
+    """Schreibt den Vertrag atomar. Ein Urteil wird nur mit belegter Quittung angenommen;
+    Proben und Ziel sind nach dem Anlegen unveränderlich."""
     _check_before_save(c)
     c["updated_at"] = paths.now_iso()
     _write_json(_contract_file(c["id"]), c)
@@ -148,10 +204,24 @@ def _check_before_save(c: dict) -> None:
     verdict = c.get("verdict", "not-evaluated")
     if verdict not in VERDICTS:
         raise ContractError(f"Unbekanntes Urteil {verdict!r}")
+    # Probenpflicht gilt bei jedem Schreiben, nicht nur beim Anlegen.
+    probes = c.get("probes")
+    if not isinstance(probes, list) or not probes or not all(isinstance(p, dict) for p in probes):
+        raise ContractError("Vertrag ohne Abnahmeprobe wird nicht gespeichert")
+    disk = _read_json(_contract_file(c["id"]))
+    if disk is not None:
+        if probes != disk.get("probes"):
+            raise ContractError("Proben sind nach dem Anlegen unveränderlich")
+        if c.get("goal") != disk.get("goal"):
+            raise ContractError("Ziel ist nach dem Anlegen unveränderlich")
+    else:
+        _validate_probes(probes)
     if verdict == "not-evaluated":
         if c["status"] in FINAL_STATUS:
             raise ContractError("Status verified/failed nur mit Urteil aus einer Quittung")
         return
+    if c["status"] == "open":
+        raise ContractError("Ein Vertrag mit Urteil ist nicht mehr offen")
     ref = c.get("receipt")
     if not isinstance(ref, dict) or not ref.get("file"):
         raise ContractError("Urteil ohne Quittung abgelehnt")
@@ -160,23 +230,37 @@ def _check_before_save(c: dict) -> None:
         receipt = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
         raise ContractError("Urteil ohne lesbare Quittung abgelehnt") from exc
-    validate_receipt(receipt, c["id"])
+    validate_receipt(receipt, c)
     if receipt["hash"] != ref.get("hash") or receipt["verdict"] != verdict:
         raise ContractError("Urteil widerspricht der abgelegten Quittung")
     # Nacharbeit nach fail (running/delivered) lässt das letzte Urteil stehen; ein Endstatus muss passen.
     if c["status"] in FINAL_STATUS and c["status"] != _status_for(verdict):
         raise ContractError("Status passt nicht zum Urteil der Quittung")
+    juengste = _newest_receipt_at(c["id"])
+    if juengste is not None and str(receipt["at"]) < juengste:
+        raise ContractError("Urteil verweist auf eine ältere Quittung; eine jüngere liegt vor")
+    # Gleiche Sekunde entscheidet nichts: die zuletzt angewendete Quittung steht im Log.
+    urteile = [e for e in c.get("log") or [] if isinstance(e, dict) and e.get("event") == "verdict"]
+    if urteile and urteile[-1].get("receipt_hash") and urteile[-1]["receipt_hash"] != receipt["hash"]:
+        raise ContractError("Urteil verweist nicht auf die zuletzt angewendete Quittung")
+
+
+def _newest_receipt_at(id: str) -> str | None:
+    """Der jüngste Zeitstempel unter den Quittungen dieses Vertrags auf Platte."""
+    stamps = []
+    for path in paths.receipts_dir().glob(f"{Path(str(id)).name}-*.json"):
+        data = _read_json(path)
+        if data and data.get("contract_id") == id and isinstance(data.get("at"), str):
+            stamps.append(data["at"])
+    return max(stamps) if stamps else None
 
 
 def list_open() -> list[dict]:
     """Alle Verträge, deren Status nicht verified/failed ist, zeitlich sortiert."""
     out = []
     for path in sorted(paths.contracts_dir().glob("*.json")):
-        try:
-            c = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        if isinstance(c, dict) and c.get("status") not in FINAL_STATUS:
+        c = _read_json(path)
+        if c is not None and c.get("status") not in FINAL_STATUS:
             out.append(c)
     return out
 
@@ -218,13 +302,16 @@ def deliver(id: str, *, artefacts: Iterable[str] = (), report: str = "") -> dict
 
 
 # --- Quittung und Urteil -----------------------------------------------------------------
-def validate_receipt(receipt: dict, contract_id: str) -> None:
-    """Prüft Vollständigkeit, Zugehörigkeit, Probenläufe, Hash und innere Widerspruchsfreiheit."""
+def validate_receipt(receipt: dict, contract: dict | str) -> None:
+    """Prüft Vollständigkeit, Zugehörigkeit, Probenläufe, Hash, Bindung an die Vertragsproben
+    (probes_hash, Anzahl und Typen der Läufe), Maskierung und innere Widerspruchsfreiheit.
+    `contract` ist der Vertrag oder seine id (dann wird er geladen)."""
     if not isinstance(receipt, dict):
         raise ContractError("Quittung muss ein Objekt sein")
     fehlend = [k for k in RECEIPT_KEYS if k not in receipt]
     if fehlend:
         raise ContractError(f"Quittung unvollständig, es fehlt: {fehlend}")
+    contract_id = contract["id"] if isinstance(contract, dict) else contract
     if receipt["contract_id"] != contract_id:
         raise ContractError("Quittung gehört zu einem anderen Vertrag")
     runs = receipt["probe_runs"]
@@ -244,6 +331,18 @@ def validate_receipt(receipt: dict, contract_id: str) -> None:
         raise ContractError("Quittung ohne Zeitstempel")
     if receipt["hash"] != receipt_hash(receipt):
         raise ContractError("Quittung: Hash stimmt nicht mit dem Inhalt überein")
+    c = contract if isinstance(contract, dict) else load(contract)
+    probes = c.get("probes") or []
+    if receipt["probes_hash"] != probes_hash(probes):
+        raise ContractError("Quittung gehört zu anderen Proben als denen des Vertrags (probes_hash)")
+    if len(runs) != len(probes):
+        raise ContractError(f"Quittung nennt {len(runs)} Probenlauf/-läufe, der Vertrag hat {len(probes)} Proben")
+    for i, (r, p) in enumerate(zip(runs, probes), 1):
+        if r.get("type") != (p.get("type") if isinstance(p, dict) else None):
+            raise ContractError(f"Probenlauf {i} hat Typ {r.get('type')!r}, Probe {i} des Vertrags ist "
+                                f"{p.get('type') if isinstance(p, dict) else None!r}")
+    if bus.SECRET_PATTERN.search(canonical_json(receipt)):
+        raise ContractError("Quittung enthält ein unmaskiertes Secret-Muster")
     if receipt["verdict"] == "pass" and not all(r["passed"] for r in runs):
         raise ContractError("Quittung widerspricht ihren Probenläufen: pass trotz gescheiterter Probe")
 
@@ -255,13 +354,10 @@ def receipt_file_name(receipt: dict) -> str:
 
 def write_receipt(receipt: dict) -> Path:
     """Legt die Quittung unter state/receipts ab (gleicher Hash → gleiche Datei) und gibt den Pfad zurück."""
-    validate_receipt(receipt, receipt.get("contract_id"))
+    validate_receipt(receipt, receipt.get("contract_id") if isinstance(receipt, dict) else None)
     path = paths.receipts_dir() / receipt_file_name(receipt)
     if path.exists():
-        try:
-            alt = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            alt = {}
+        alt = _read_json(path) or {}
         if alt.get("hash") != receipt["hash"]:
             path = path.with_name(f"{path.stem}-{receipt['hash'][:8]}.json")
     if not path.exists():
@@ -270,9 +366,14 @@ def write_receipt(receipt: dict) -> Path:
 
 
 def set_verdict(id: str, receipt: dict) -> dict:
-    """DER eine Weg, ein Urteil zu setzen: nur mit gültiger Quittung (Hash, Probenläufe)."""
+    """DER eine Weg, ein Urteil zu setzen: nur mit gültiger Quittung (Hash, Probenläufe, Bindung),
+    nur einmal je Quittung und nur, wenn der Vertrag seit Beginn der Prüfung unverändert ist."""
     c = load(id)
-    validate_receipt(receipt, id)
+    validate_receipt(receipt, c)
+    if any(e.get("event") == "verdict" and e.get("receipt_hash") == receipt["hash"] for e in c.get("log", [])):
+        raise ContractError("Quittung wurde bereits angewendet (Replay abgelehnt)")
+    if receipt["contract_sha256"] != fingerprint(c):
+        raise ContractError("Quittung veraltet: der Vertrag hat sich seit Beginn der Prüfung verändert")
     path = write_receipt(receipt)
     verdict = receipt["verdict"]
     vorher = c["status"]
@@ -282,8 +383,9 @@ def set_verdict(id: str, receipt: dict) -> dict:
                     "verifier": receipt["verifier"]}
     gescheitert = sum(1 for r in receipt["probe_runs"] if not r["passed"])
     c["log"].append({"at": paths.now_iso(), "event": "verdict", "from": vorher, "to": c["status"],
-                     "verdict": verdict, "receipt": path.name, "probes": len(receipt["probe_runs"]),
-                     "probes_failed": gescheitert})
+                     "verdict": verdict, "receipt": path.name, "receipt_hash": receipt["hash"],
+                     "probes": len(receipt["probe_runs"]), "probes_failed": gescheitert,
+                     "contract_changed": bool(receipt.get("contract_changed", False))})
     save(c)
     bus.emit("contract.verdict", id=id, verdict=verdict, verifier=receipt["verifier"].get("kind"),
              receipt=path.name, probes=len(receipt["probe_runs"]), probes_failed=gescheitert)

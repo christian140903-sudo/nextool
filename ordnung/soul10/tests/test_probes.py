@@ -1,11 +1,17 @@
-"""Proben: Validierung lehnt Unbrauchbares ab; vier Typen laufen deterministisch; jeder Lauf schreibt auf den Bus."""
+"""Proben: Validierung lehnt Unbrauchbares ab; vier Typen laufen deterministisch; jeder Lauf schreibt auf den Bus;
+cwd ist die Schranke für file/forbid; Ausgaben sind maskiert; Zahlen lesen sich wie model.extract_last_number."""
+import json
+import os
 import sys
+import time
 
 import pytest
 
-from core import bus, probes
+from core import bus, model, probes
 
 PY = sys.executable
+AKIA = "AKIAIOSFODNN7EXAMPLE"
+POSIX = os.name == "posix"
 
 
 def test_validate_lehnt_unbrauchbares_ab():
@@ -33,6 +39,47 @@ def test_validate_lehnt_unbrauchbares_ab():
     probes.validate({"type": "forbid", "path": "x", "regex": "TODO"})
 
 
+def test_validate_lehnt_unendliche_toleranz_leere_erwartung_und_nan_ab():
+    """Befund a1/1e, a4/4c: tolerance=Infinity macht jede Antwort bestanden; NaN und '' sind keine Erwartung."""
+    for p in [json.loads('{"type":"answer","expected":1,"tolerance":Infinity}'),
+              json.loads('{"type":"answer","expected":1,"tolerance":NaN}'),
+              json.loads('{"type":"answer","expected":Infinity}'),
+              {"type": "answer", "expected": ""}, {"type": "answer", "expected": "   "}]:
+        with pytest.raises(probes.ProbeError):
+            probes.validate(p)
+
+
+def test_validate_lehnt_verschachtelte_quantoren_ab():
+    """Befund a5: ^(a+)+$ hält die Prüfung bei 28 Zeichen zehn Sekunden — exponentiell wachsend."""
+    for rx in ["^(a+)+$", "(a*)*b", "(x+){2,}", "^(\\d+)*$"]:
+        with pytest.raises(probes.ProbeError, match="Quantoren"):
+            probes.validate({"type": "shell", "cmd": "true", "expect_regex": rx})
+        with pytest.raises(probes.ProbeError, match="Quantoren"):
+            probes.validate({"type": "file", "path": "x", "contains_regex": rx})
+        with pytest.raises(probes.ProbeError, match="Quantoren"):
+            probes.validate({"type": "forbid", "path": "x", "regex": rx})
+    # Gewöhnliche Muster bleiben erlaubt, auch mit Gruppen und Escapes
+    for rx in [r"(\d+\.)+\d+", r"passed|failed", r"^\d+ passed$", r"(a\+)+", r"(ab)+"]:
+        probes.validate({"type": "shell", "cmd": "true", "expect_regex": rx})
+
+
+def test_as_number_liest_wie_extract_last_number():
+    """Befund a4: '1.000' war 1.0 (Probe) gegen 1000 (Abgriff); '1.000,5' war None."""
+    for text in ["1.000", "10.000", "1.000,5", "12,5", "12.5", "3.14159", "-3", "42", " 7 "]:
+        assert probes.as_number(text) == model.extract_last_number(text), text
+    assert probes.as_number("1.000") == 1000.0 and probes.as_number("1.000,5") == 1000.5
+    assert probes.as_number(42) == 42.0 and probes.as_number(1.5) == 1.5
+    for kein in ["1 2", "abc", "", "1e5", "1,000.5", True, False, None, [1], float("inf"), float("nan")]:
+        assert probes.as_number(kein) is None, repr(kein)
+    for exp in ["1.000", "10.000", "1.000,5"]:
+        p = {"type": "answer", "expected": exp}
+        assert probes.default_extract(exp) == "last_number"
+        assert probes.run(p, answer_text=f"Ergebnis: {exp}")["passed"], exp
+    assert "letzte Zahl == 10000" in probes.describe({"type": "answer", "expected": "10.000"})
+    assert "letzte Zahl == 12.5" in probes.describe({"type": "answer", "expected": "12,5"})
+    assert "gesamte Antwort == 1 2" in probes.describe({"type": "answer", "expected": "1 2"})
+
+
 def test_shell_probe_exit_und_muster():
     ok = probes.run({"type": "shell", "cmd": PY + ' -c "print(6*7)"', "expect_regex": r"^42$"})
     assert ok["passed"] and ok["exit"] == 0 and ok["stdout_head"].strip() == "42"
@@ -52,18 +99,114 @@ def test_shell_probe_zeitueberschreitung_ist_nicht_bestanden():
     assert not r["passed"] and r["exit"] is None and "Zeitüberschreitung" in r["detail"]
 
 
+def test_shell_ausgabe_ueber_der_laengenschranke_ist_nicht_pruefbar(monkeypatch):
+    """Die Musterprüfung sieht höchstens MAX_TEXT Zeichen; mehr ist nicht geprüft, also nicht bestanden."""
+    monkeypatch.setattr(probes, "MAX_TEXT", 1000)
+    lang = PY + ' -c "print(\'x\' * 2000); print(42)"'
+    r = probes.run({"type": "shell", "cmd": lang, "expect_regex": r"^42$"})
+    assert not r["passed"] and "zu groß" in r["detail"]
+    r = probes.run({"type": "shell", "cmd": lang, "forbid_regex": r"^42$"})
+    assert not r["passed"] and "zu groß" in r["detail"]
+    assert probes.run({"type": "shell", "cmd": lang})["passed"]  # ohne Muster zählt nur der Exit
+
+
 def test_file_probe(tmp_path):
     f = tmp_path / "bericht.md"
     f.write_text("# Bericht\nErgebnis: 42\n", encoding="utf-8")
-    assert probes.run({"type": "file", "path": "bericht.md", "contains_regex": r"Ergebnis: \d+"},
-                      cwd=str(tmp_path))["passed"]
-    assert not probes.run({"type": "file", "path": str(f), "forbids_regex": "Ergebnis"})["passed"]
-    assert not probes.run({"type": "file", "path": str(f), "contains_regex": "Fazit"})["passed"]
-    fehlt = probes.run({"type": "file", "path": str(tmp_path / "nix.md")})
+    cwd = str(tmp_path)
+    assert probes.run({"type": "file", "path": "bericht.md", "contains_regex": r"Ergebnis: \d+"}, cwd=cwd)["passed"]
+    assert not probes.run({"type": "file", "path": str(f), "forbids_regex": "Ergebnis"}, cwd=cwd)["passed"]
+    assert not probes.run({"type": "file", "path": str(f), "contains_regex": "Fazit"}, cwd=cwd)["passed"]
+    fehlt = probes.run({"type": "file", "path": "nix.md"}, cwd=cwd)
     assert not fehlt["passed"] and "fehlt" in fehlt["detail"]
-    assert probes.run({"type": "file", "path": str(tmp_path / "nix.md"), "must_exist": False})["passed"]
-    assert not probes.run({"type": "file", "path": str(f), "must_exist": False})["passed"]
-    assert not probes.run({"type": "file", "path": str(tmp_path)})["passed"]  # Verzeichnis ist keine Datei
+    assert probes.run({"type": "file", "path": "nix.md", "must_exist": False}, cwd=cwd)["passed"]
+    assert not probes.run({"type": "file", "path": "bericht.md", "must_exist": False}, cwd=cwd)["passed"]
+    assert not probes.run({"type": "file", "path": "."}, cwd=cwd)["passed"]  # Verzeichnis ist keine Datei
+
+
+def test_file_und_forbid_bleiben_in_cwd(tmp_path, monkeypatch):
+    """Befund a2/2c, 2e: '..' und '~' führten aus cwd hinaus; Dateiinhalte von außen landeten im stdout_head."""
+    work, aussen = tmp_path / "work", tmp_path / "aussen"
+    work.mkdir(), aussen.mkdir()
+    (aussen / "credentials").write_text(f"aws_access_key_id = {AKIA}\n", encoding="utf-8")
+    (work / "ok.txt").write_text("drin\n", encoding="utf-8")
+    monkeypatch.setenv("HOME", str(aussen))
+    cwd = str(work)
+    for pfad in ["../aussen/credentials", str(aussen / "credentials"), "~/credentials", "ok.txt/../../aussen/credentials"]:
+        r = probes.run({"type": "file", "path": pfad, "contains_regex": "aws"}, cwd=cwd)
+        assert not r["passed"], pfad
+        assert AKIA not in json.dumps(r) and r["stdout_head"] == "", pfad
+        assert "außerhalb" in r["detail"] or "fehlt" in r["detail"], (pfad, r["detail"])
+        r = probes.run({"type": "forbid", "path": pfad, "regex": "aws"}, cwd=cwd)
+        assert not r["passed"] and AKIA not in json.dumps(r), pfad
+    # must_exist=false außerhalb ist ebenso nicht prüfbar
+    assert not probes.run({"type": "file", "path": "../aussen/nix", "must_exist": False}, cwd=cwd)["passed"]
+    # Symlink nach außen bleibt ungelesen (Datei- wie Verzeichnisprobe)
+    if POSIX:
+        (work / "link").symlink_to(aussen / "credentials")
+        r = probes.run({"type": "file", "path": "link", "contains_regex": "aws"}, cwd=cwd)
+        assert not r["passed"] and AKIA not in json.dumps(r)
+        r = probes.run({"type": "forbid", "path": ".", "regex": "aws"}, cwd=cwd)
+        assert r["passed"] and "1 Datei" in r["detail"]
+    # Innerhalb funktioniert es weiter, auch mit '..' innerhalb
+    assert probes.run({"type": "file", "path": "ok.txt", "contains_regex": "drin"}, cwd=cwd)["passed"]
+    (work / "sub").mkdir()
+    assert probes.run({"type": "file", "path": "sub/../ok.txt", "contains_regex": "drin"}, cwd=cwd)["passed"]
+    # Ohne cwd gilt das Arbeitsverzeichnis des Prozesses
+    monkeypatch.chdir(work)
+    assert probes.run({"type": "file", "path": "ok.txt"})["passed"]
+    assert not probes.run({"type": "file", "path": str(aussen / "credentials")})["passed"]
+
+
+@pytest.mark.skipif(not POSIX, reason="mkfifo nur unter POSIX")
+def test_fifo_blockiert_weder_file_noch_forbid_probe(tmp_path):
+    """Befund a5: eine FIFO als file-Pfad blockierte read_text ohne Zeitschranke — verify hing endlos."""
+    d = tmp_path / "d"  # eigenes Verzeichnis: tmp_path trägt auch SOUL10_HOME
+    d.mkdir()
+    os.mkfifo(d / "pipe")
+    t = time.time()
+    r = probes.run({"type": "file", "path": "pipe", "contains_regex": "x"}, cwd=str(d))
+    assert time.time() - t < 5
+    assert not r["passed"] and "reguläre Datei" in r["detail"]
+    r = probes.run({"type": "file", "path": "pipe"}, cwd=str(d))
+    assert not r["passed"]
+    t = time.time()
+    r = probes.run({"type": "forbid", "path": ".", "regex": "TODO"}, cwd=str(d))
+    assert time.time() - t < 5 and r["passed"] and "0 Datei" in r["detail"]
+    r = probes.run({"type": "forbid", "path": "pipe", "regex": "TODO"}, cwd=str(d))
+    assert not r["passed"] and "reguläre Datei" in r["detail"]
+
+
+def test_dateigroesse_ist_begrenzt(tmp_path, monkeypatch):
+    monkeypatch.setattr(probes, "MAX_TEXT", 100)
+    d = tmp_path / "d"
+    d.mkdir()
+    (d / "gross.txt").write_text("x" * 200 + "\nTODO\n", encoding="utf-8")
+    (d / "klein.py").write_text("pass  # TODO\n", encoding="utf-8")
+    cwd = str(d)
+    r = probes.run({"type": "file", "path": "gross.txt", "contains_regex": "TODO"}, cwd=cwd)
+    assert not r["passed"] and "zu groß" in r["detail"] and r["stdout_head"] == ""
+    assert probes.run({"type": "file", "path": "gross.txt"}, cwd=cwd)["passed"]  # Existenz allein zählt
+    r = probes.run({"type": "forbid", "path": ".", "regex": "TODO"}, cwd=cwd)
+    assert not r["passed"] and "klein.py:1" in r["detail"] and "nur bis 100 Bytes" in r["detail"]
+    (d / "klein.py").unlink()
+    r = probes.run({"type": "forbid", "path": ".", "regex": "TODO"}, cwd=cwd)
+    assert r["passed"] and "nur bis 100 Bytes geprüft: gross.txt" in r["detail"]
+
+
+def test_ausgaben_sind_maskiert(tmp_path):
+    """Befund a2/2d, a7/7b: stdout_head, Dateiinhalt und Antworttext trugen Schlüssel klar in die Quittung."""
+    cred = tmp_path / "cred"
+    cred.write_text(f"token ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ123456\nkey {AKIA}\n", encoding="utf-8")
+    r = probes.run({"type": "shell", "cmd": PY + f' -c "print(open({str(cred)!r}).read())"'}, cwd=str(tmp_path))
+    assert r["passed"] and "[MASKIERT]" in r["stdout_head"]
+    assert "ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ123456" not in json.dumps(r) and AKIA not in json.dumps(r)
+    r = probes.run({"type": "file", "path": "cred", "contains_regex": "token"}, cwd=str(tmp_path))
+    assert r["passed"] and "[MASKIERT]" in r["stdout_head"] and AKIA not in json.dumps(r)
+    r = probes.run({"type": "answer", "expected": "x"}, answer_text=f"key {AKIA}")
+    assert not r["passed"] and AKIA not in json.dumps(r)
+    r = probes.run({"type": "shell", "cmd": PY + f' -c "import sys; sys.exit(2)"', "expect_regex": AKIA})
+    assert AKIA not in r["detail"]  # auch das Muster selbst wandert maskiert
 
 
 def test_answer_probe_abgriffe():
@@ -85,14 +228,18 @@ def test_answer_probe_abgriffe():
 
 
 def test_forbid_probe_findet_stubs(tmp_path):
-    (tmp_path / "a.py").write_text("def f():\n    pass  # TODO später\n", encoding="utf-8")
-    (tmp_path / "b.py").write_text("def g():\n    return 1\n", encoding="utf-8")
-    treffer = probes.run({"type": "forbid", "path": "a.py", "regex": r"TODO|NotImplemented"}, cwd=str(tmp_path))
+    d = tmp_path / "d"
+    d.mkdir()
+    (d / "a.py").write_text("def f():\n    pass  # TODO später\n", encoding="utf-8")
+    (d / "b.py").write_text("def g():\n    return 1\n", encoding="utf-8")
+    (d / "bin.dat").write_bytes(b"\0\0TODO\0")  # binär: wird übersprungen
+    cwd = str(d)
+    treffer = probes.run({"type": "forbid", "path": "a.py", "regex": r"TODO|NotImplemented"}, cwd=cwd)
     assert not treffer["passed"] and "a.py:2" in treffer["detail"]
-    assert probes.run({"type": "forbid", "path": str(tmp_path / "b.py"), "regex": "TODO"})["passed"]
-    verzeichnis = probes.run({"type": "forbid", "path": str(tmp_path), "regex": "TODO"})
-    assert not verzeichnis["passed"] and "a.py" in verzeichnis["detail"]
-    fehlt = probes.run({"type": "forbid", "path": str(tmp_path / "nix.py"), "regex": "TODO"})
+    assert probes.run({"type": "forbid", "path": str(d / "b.py"), "regex": "TODO"}, cwd=cwd)["passed"]
+    verzeichnis = probes.run({"type": "forbid", "path": ".", "regex": "TODO"}, cwd=cwd)
+    assert not verzeichnis["passed"] and "a.py" in verzeichnis["detail"] and "bin.dat" not in verzeichnis["detail"]
+    fehlt = probes.run({"type": "forbid", "path": "nix.py", "regex": "TODO"}, cwd=cwd)
     assert not fehlt["passed"]  # nichts Prüfbares ist nicht bestanden
 
 
