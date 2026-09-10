@@ -1,13 +1,13 @@
 # Abnahme der Bauphase — nach ENTSCHEIDUNG.md §7
 
-*Stand 2026-09-08. Jede Zeile trägt den Befehl und seine Ausgabe. Was nach der adversarialen
-Prüfung noch geändert wird, aktualisiert diese Datei; die Prüfung selbst steht in §6.*
+*Stand 2026-09-09. Jede Zeile trägt den Befehl und seine Ausgabe. §1 bis §5 sind der Stand nach
+der adversarialen Prüfung (§6); die Zahlen vom 2026-09-08 vor der Prüfung stehen in Klammern.*
 
 ## 1. Testsuite
 
 ```
 cd ordnung/soul10 && python3 -m pytest tests -q
-411 passed in 7.29s
+791 passed in 14.83s          (vor der Prüfung: 411 passed in 7.29s)
 ```
 
 Kein Test ruft ein Modell (`core.model.FAKE`), kein Test braucht Netz; jeder Test läuft in
@@ -86,8 +86,54 @@ der Audit prüft nur HTML, JS und Sitemap, die diese Bauphase nicht berührt.
 
 ## 6. Adversariale Prüfung
 
-*Läuft (fünf Prüfer je Modulgruppe, zweiter Prüfer für kritische Befunde, Fix-Agenten).
-Ergebnis wird hier nachgetragen: Befunde gesamt, bestätigt, behoben, verworfen mit Grund.*
+Fünf Prüfer, je einer je Modulgruppe, mit dem Auftrag zu brechen, nicht zu loben: eigene
+Angriffsskripte im Scratch-Verzeichnis, jeder Befund mit ausgeführtem Beleg; ohne Beleg zählt ein
+Befund als „niedrig". Danach ein Fix-Pass je Gruppe (Hauptbuch, Rückbau/Wache und Gruppe 5 vom
+Orchestrator selbst, Vertrag und Zerlegung/Schalter von Fix-Agenten), jeder behobene Befund mit
+einem Regressionstest, der den Angriff aus dem Beleg nachstellt. Die Befundliste liegt im
+Sitzungs-Scratch (`befunde.json`), die Belege in den Angriffsskripten der Prüfer; das Repo trägt
+das Ergebnis als Tests.
+
+| Gruppe | Befunde | blockierend / hoch / mittel / niedrig | behoben | anders gelöst | verworfen |
+|---|---|---|---|---|---|
+| Hauptbuch (`core/memory/*`) | 26 | 1 / 5 / 12 / 8 | 26 | – | – |
+| Vertrag, Proben, Prüfer | 17 | 0 / 2 / 9 / 6 | 17 | – | – |
+| Zerlegung, Schalter | 14 | 0 / 2 / 6 / 6 | 12 | 2 | – |
+| Rückbau, Inventar, Wache | 9 | 0 / 3 / 3 / 3 | 9 | – | – |
+| Hooks, Dirigent, CLI | 4 | 0 / 0 / 3 / 1 | 4 | – | – |
+| **gesamt** | **70** | **1 / 12 / 33 / 24** | **68** | **2** | **0** |
+
+(Ein Eintrag der Zerlegungsprüfung war ausdrücklich „kein Befund" — Chunk-Grenzen über 429
+Kombinationen korrekt, kein Prompttext im Log — und ist oben nicht gezählt.)
+
+**Anders gelöst (2):** der gemessene M2-Wortlaut „Antworte NUR mit der Anzahl als Zahl" ist
+funktional eine Ausgabe-Unterdrückung — er bleibt byte-gleich, weil er die Messgrundlage ist;
+stattdessen kennt der Linter (`tests/test_texte.py`) das Muster jetzt und lässt es nur an den
+gemessenen Stellen zu. Die Schalter-Stufe „pruefer" hat im Hook keinen Aufrufer — das ist als
+Opt-in dokumentiert (`soul switch --probe`, `soul run --probe-switch`); der Hook blendet die
+Aufwandsregel jetzt nach der Entscheidung (`inject`) ein, nicht nach dem Stufennamen.
+
+**Die schwersten Befunde und ihre Mechanismen:**
+- *blockierend* — `supersedes` prüfte weder Herkunft noch Vertrauen: ein neuerer `eigener_schluss`
+  löste eine Nutzeraussage ab. Jetzt: Ablösung nur in Herkunftsordnung (Quelle, dann Vertrauen),
+  nur durch einen Eintrag, der aktiv wird; Vertrauensobergrenze je Quelle.
+- *hoch* — Takt B hatte keinen Aufrufer außerhalb der CLI; der Sieger eines Widerspruchs konnte ein
+  Kandidat sein; `self` in der Widerspruchsregel stürzte belegte Züge; Secrets nur in Titel und
+  Text geprüft. Jetzt: Takt B im Stop-Hook (alle 6 h), stärkster *aktiver* Eintrag gewinnt, `self`
+  ausgenommen, Secret-Guard auf allen Feldern und Gründen.
+- *hoch* — eine Quittung ohne gelaufene Proben setzte ein Urteil; Werkzeugausgaben in der Quittung
+  unmaskiert. Jetzt: Quittung an Proben und Vertragszustand gebunden, einmal anwendbar; Maskierung.
+- *hoch* — die Nahtprüfung erkannte listenweite Bezüge nur über eine Wortliste (56 von 58
+  Alltagsformulierungen wurden „zerlegen"); ein Formatzwang überstimmte jede Einsatzhöhe. Jetzt:
+  Klasse GLOBAL, im Zweifel nicht zerlegen (0 von 58); Formatzwang nur ohne Einsatzhöhe.
+- *hoch* — Kommando-Injektion im automatisch gebauten Rückweg (Paketname mit `$(…)` lief bei
+  `soul rollback undo`); `cp`/`mv` über ein bestehendes Ziel bekam einen zerstörerischen „Rückweg";
+  die Push-Freigabe prüfte „origin" als Substring. Jetzt: Rückweg als Argumentliste ohne Shell,
+  Sicherungskopie statt erfundenem Rückweg, Push-Ziel exakt aus den Argumenten.
+
+Die Regel bleibt: nichts kommt hinein ohne Zahl oder laufenden Test. Jeder Fix hat seinen Test;
+die Spezifikation (`ARCHITEKTUR.md`) ist nachgezogen, die Abweichungen stehen in
+`ENTSCHEIDUNG.md` §6.
 
 ## 7. Was ausdrücklich nicht abgenommen ist
 

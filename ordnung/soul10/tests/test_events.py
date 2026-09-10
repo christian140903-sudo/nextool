@@ -126,8 +126,9 @@ def test_user_prompt_nur_bei_stufe_aufwand(monkeypatch):
     """Die Entscheidung des Schalters ist die einzige Quelle: Stufe direkt → nichts, aufwand → Regel."""
     from core import switch
     stufen = iter(["direkt", "aufwand"])
-    monkeypatch.setattr(switch, "decide", lambda prompt, **kw: {
-        "stage": next(stufen), "reason": "fake", "inject": "", "sha": "x", "len": len(prompt)})
+    monkeypatch.setattr(switch, "decide", lambda prompt, **kw: (lambda s: {
+        "stage": s, "reason": "fake", "inject": model.AUFWANDSREGEL if s == "aufwand" else "",
+        "sha": "x", "len": len(prompt)})(next(stufen)))
     assert _run("user-prompt", {"session_id": "s", "prompt": "a"})[1] == ""
     out = _run("user-prompt", {"session_id": "s", "prompt": "a"})[1]
     assert json.loads(out)["hookSpecificOutput"]["additionalContext"] == model.AUFWANDSREGEL
@@ -541,3 +542,32 @@ def test_takt_b_fehler_haelt_stop_nicht_an(monkeypatch):
     assert rc == 0 and out == ""
     assert any(e["stage"] == "takt_b" for e in _events("hook-fehler"))
     assert _events("stop")[-1]["takt_b"] is False
+
+
+def test_maskierung_vor_dem_abschneiden_und_sensible_befehle_ohne_anfang():
+    """Prüfbefund Gruppe 5: ein Token an der Schnittgrenze verlor seinen Schwanz und entging der Maske."""
+    token = "ghp_" + "Q" * 36
+    lang = "x" * (events.RESPONSE_HEAD_CHARS - 10) + " " + token + " Rest"
+    head = events.response_head({"stdout": lang})
+    assert "ghp_" not in head and "[MASKIERT" in head and len(head) <= events.RESPONSE_HEAD_CHARS
+    cmd = "echo " + "y" * 210 + " " + token
+    summary = events.summarize("Bash", {"command": cmd})
+    assert "ghp_" not in summary and "[MAS" in summary and len(summary) <= 220
+    # Befehle, die erkennbar Zugangsdaten lesen, hinterlassen keinen Antwortanfang in der Inbox.
+    for befehl in ("cat .env", "printenv", "env", "cat ~/.ssh/id_rsa", "aws configure get aws_secret_access_key"):
+        assert events.response_head({"stdout": "DB_PASSWORD=geheim123"}, tool="Bash",
+                                    tool_input={"command": befehl}) == "", befehl
+    assert events.response_head({"stdout": "ok"}, tool="Bash", tool_input={"command": "ls -la"}) == "ok"
+    _run("post-tool", {"session_id": "s8", "tool_name": "Bash", "tool_input": {"command": "cat .env"},
+                       "tool_response": {"stdout": "DB_PASSWORD=geheim123"}})
+    zeile = json.loads(_inbox("s8").read_text(encoding="utf-8").splitlines()[0])
+    assert "geheim123" not in zeile["summary"]
+
+
+def test_aufwandsregel_folgt_der_entscheidung_nicht_dem_stufennamen(monkeypatch):
+    from core import switch
+    monkeypatch.setattr(switch, "decide", lambda prompt, **kw: {"stage": "pruefer", "inject": "regel", "reason": "t"})
+    rc, out = _run("user-prompt", {"session_id": "s1", "prompt": "x"})
+    assert rc == 0 and "Passe deinen Aufwand" in out
+    monkeypatch.setattr(switch, "decide", lambda prompt, **kw: {"stage": "direkt", "inject": "", "reason": "t"})
+    assert _run("user-prompt", {"session_id": "s1", "prompt": "x"}) == (0, "")

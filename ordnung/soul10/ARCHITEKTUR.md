@@ -374,23 +374,32 @@ Tests (≥ 6, mit Fake-Modell): Probe scheitert → fail ohne Modellaufruf; Prü
 Vorlage: `bewusstsein/harness/zerlegung.py::_teil_frage_naht` (M2 misst genau diesen Text).
 ```python
 class DecomposeError(ValueError)
-NEIGHBOR_RE, POSITION_RE, CUMULATIVE_RE   # de/en; Nachbar (davor/danach/vorherig/unmittelbar/previous/next/adjacent/consecutive),
+NEIGHBOR_RE, POSITION_RE, CUMULATIVE_RE, GLOBAL_RE
+                                          # de/en; Nachbar (davor/danach/vorherig/unmittelbar/previous/next/adjacent/consecutive),
                                           # Position (erste/letzte/allererste/position/stelle/first/last/index),
-                                          # Kumulation (bisher/kumuliert/laufend/summe bis/so far/running/cumulative/zwischensumme/median/sortier)
-seam_check(condition: str) -> dict        # {"classes": [...], "decomposable": bool, "protocol": "none"|"naht", "reason": str, "empfehlung": "zerlegen"|"einzeln"|"nicht_zerlegbar"}
-                                          # cumulative → decomposable False, empfehlung nicht_zerlegbar; neighbor/position → "naht", empfehlung "einzeln"
-                                          # (ein Agent ist genauer, M2); sonst "none", empfehlung "zerlegen"
+                                          # Kumulation (bisher/kumuliert/laufend/summe bis/so far/running/cumulative/zwischensumme/median/sortier),
+                                          # GLOBAL (nach der adversarialen Prüfung): Superlative und Ränge (größte, zweitkleinste, biggest, top),
+                                          # Anteile und Mittel (Hälfte, Durchschnitt, above the mean), Aggregate über die Liste, Häufigkeit
+                                          # (doppelt, occurs twice), Quantor + Nachbarwort (alle anderen, every other), Reichweite über die Naht,
+                                          # Musterpositionen (jede zweite, odd-indexed, am Ende) — listenweiter Bezug, nicht zerlegbar
+seam_check(condition: str) -> dict        # {"classes": [...], "hits": [...], "decomposable": bool, "protocol": "none"|"naht", "reason": str, "empfehlung": "zerlegen"|"einzeln"|"nicht_zerlegbar"}
+                                          # cumulative/global → decomposable False, empfehlung nicht_zerlegbar (auch nicht per force);
+                                          # neighbor/position → "naht", empfehlung "einzeln" (ein Agent ist genauer, M2); sonst "none", empfehlung "zerlegen".
+                                          # Die Fehlkosten sind asymmetrisch (übersehene Abhängigkeit = stille falsche Zahl): im Zweifel nicht zerlegen.
 chunk_instruction(items: list, condition: str, offset: int, n_total: int, before, after) -> str
                                           # das Nahtprotokoll (Wortlaut wie in zerlegung._teil_frage_naht, Test vergleicht die drei Lesart-Zeilen)
 plan(items: list, condition: str, *, parts: int, force: bool = False) -> dict
-                                          # DecomposeError wenn nicht zerlegbar (Kumulation); bei Protokoll "naht" ebenfalls DecomposeError,
+                                          # DecomposeError bei None/Nicht-Zahl in der Liste, leerer Bedingung, parts keine ganze Zahl ≥ 1;
+                                          # DecomposeError wenn nicht zerlegbar (Kumulation, global); bei Protokoll "naht" ebenfalls DecomposeError,
                                           # solange force=False — GEMESSEN (M2, 2026-09-08): mit Nahtprotokoll 72 % gegen 43 % ohne, aber ein
                                           # einzelner Agent liegt bei 94 %. Regel: randabhängig → ein Agent, solange die Aufgabe in einen Kontext
                                           # passt; force=True nur, wenn sie das nicht tut (dann ist 72 % besser als 43 %). Sauber teilbar: 100 %
                                           # gegen 83–89 % → zerlegen. Rückgabe sonst {"protocol", "chunks":[{"index","offset","items","before","after","instruction"}], "merge":"sum", "empfehlung"}
-merge(values: list, op: str = "sum") -> tuple   # (wert, fehlend) — mechanisch; None zählt als fehlend
+merge(values: list, op: str = "sum") -> tuple   # (wert, fehlend) — mechanisch; None und bool zählen als fehlend
 run(items: list, condition: str, *, parts: int, model: str|None = None, thinking: int = 0, workers: int = 5, force: bool = False) -> dict
                                           # plan → parallele model.call je Chunk → merge; bus.emit("decompose.run", protocol=…, calls=…, missing=…)
+                                          # Arbeiterwert nur plausibel, wenn ganzzahlig und 0 ≤ v ≤ len(chunk.items); sonst fehlend mit
+                                          # bus.emit("decompose.implausible", index, items, value) — nie eine stille falsche Zahl in der Summe
                                           # {"value", "calls", "missing", "protocol", "chunks": n}
 ```
 Tests (≥ 8): Klassifikation je Klasse (de/en), Kumulation verweigert, Chunk-Grenzen (offset/before/after) korrekt, erster/letzter Chunk markiert, merge zählt Fehlende, run mit Fake-Modell summiert.
@@ -399,19 +408,26 @@ Tests (≥ 8): Klassifikation je Klasse (de/en), Kumulation verweigert, Chunk-Gr
 **Befund:** Aufwandsregel +12,4 pp auf schwer, −16,7 pp Formattreue auf trivial als Dauerschicht; Prüfer 0 % formattreu auf trivial; A_SELEKTIV hält sich zurück (2,08 Aufrufe).
 **Erz → Gold:** `signals.ts` (Proto-Router ohne Test, Falsch-Positive `oder`/`besser`/`live`/`user`) → deterministischer Vorfilter mit Test und Log; die Stufe ist binär, weil nur zwei Stufen gemessen sind.
 ```python
-SIGNALS: dict[str, re.Pattern]   # Port von signals.ts ohne die Falsch-Positiv-Wörter (R10 §2.2.4); plus "format_locked"
-prefilter(prompt: str) -> dict   # {"len", "signals": [...], "trivial": bool, "format_locked": bool}
-    # trivial: ≤ 200 Zeichen UND kein Signal UND höchstens ein Satz/eine Frage
-    # format_locked: r"\b(NUR|nur|only|exakt|genau)\b.*\b(Zahl|Wort|Zeile|JSON|aus)\b|\bJSON\b|\bGib .* aus\b|\bkein weiterer Text\b|\bnichts sonst\b"
+SIGNALS: dict[str, re.Pattern]   # Port von signals.ts ohne die Falsch-Positiv-Wörter (R10 §2.2.4); plus "format_locked";
+                                 # Allerweltswörter (team, public, patient, buy, ship, launch, api, delete, add, …) nur mit Kontext
+STAKES_SIGNALS = ("irreversible", "durable", "architecture", "affects_others", "commitment", "recommendation")
+FORMAT_SIGNAL = "format_locked"; SIGNAL_SCAN_HEAD = 3000; SIGNAL_SCAN_TAIL = 1500   # D017: < 50 ms auch bei 120 000 Zeichen
+prefilter(prompt: str) -> dict   # {"len", "signals": [...], "trivial": bool, "format_locked": bool, "sentences": int}
+    # trivial: ≤ 200 Zeichen UND kein Signal UND höchstens ein Satz/eine Frage (Satzende an [.!?;] + Leerraum, auch vor
+    # Kleinbuchstaben; Ordinale, Abkürzungen, Datum/Version/IP/Uhrzeit/Tausendergruppen sind EINE Größe)
+    # format_locked nur als Ausgabe-Direktive: „als/as JSON", „nur/only/valid JSON", „Antworte mit ja oder nein", „single number",
+    # „number only", „nur die Antwort", „in einem Wort", „keine Erklärung", „Format: CSV" … — „JSON" als Thema ist keiner;
+    # eine negierte Erklärung („erklär nichts", „do not explain") ist kein reasoning-Signal
 entropy_probe(task: str, *, model: str|None = None, thinking: int = 0, n: int = 2) -> dict
     # n billige Aufrufe (model.call ohne Systemprompt); Vergleich der extract_last_number bzw. letzten Zeile
     # {"agree": bool, "values": [...], "calls": n}
 decide(prompt: str, *, probe: bool = False, model: str|None = None) -> dict
-    # stage "direkt"  wenn trivial oder format_locked (nichts einblenden, kein Prüfer)
-    # stage "aufwand" sonst (AUFWANDSREGEL einblenden)
+    # stage "direkt"  wenn trivial, oder wenn format_locked OHNE Einsatzhöhe (kein STAKES_SIGNAL) — nichts einblenden, kein Prüfer
+    # stage "aufwand" sonst (AUFWANDSREGEL einblenden; mit Formatzwang und Einsatzhöhe ebenfalls: die Regel endet im verlangten Format)
     # stage "pruefer" wenn probe=True und entropy_probe uneinig (zusätzlich Prüfer rufen)
-    # Log: routing.jsonl {"ts","sha","len","signals","trivial","format_locked","stage","reason"} — NIE der Prompttext
-    # Rückgabe {"stage", "reason", "inject": AUFWANDSREGEL oder "", "signals", ...}
+    # Log: routing.jsonl {"ts","sha","len","signals","trivial","format_locked","stage","reason"} — NIE der Prompttext; rotiert ab 5 MB wie der Bus
+    # Rückgabe {"stage", "reason", "inject": AUFWANDSREGEL oder "", "signals", "sentences", ...}; der Hook blendet nach `inject` ein
+    # Die Stufe "pruefer" ist Opt-in (`soul switch --probe`, `soul run --probe-switch`); der Hook ruft ohne Sonde.
 ```
 Tests (≥ 12, davon ein Datensatz ≥ 40 Prompts de/en mit Soll-Stufe, Trefferquote ≥ 90 %): trivial erkannt, Formatzwang erkannt, Signale ohne Falsch-Positive auf `oder`/`besser`, Log ohne Prompttext, Uneinigkeit → pruefer.
 
@@ -520,6 +536,9 @@ Tests (≥ 6, Fake-Modell): ohne Probe → ContractError; answer-Probe pass → 
 `inventory [--write]` · `ring2` · `decompose --check CONDITION` · `switch PROMPT` · `consolidate [a|b]` ·
 `self` · `status` (stats + offene Verträge + Rückbauquote + Kalibrierung) · `monitor [-n]` (bus.tail) ·
 `run GOAL --probe JSON [...]`. `bin/soul`: `#!/bin/sh` → `exec python3 "$(dirname "$0")/../core/cli.py" "$@"`.
+Exit-Codes: 0 ok · 1 ein Modul hat abgelehnt (Meldung auf stderr) · 2 Aufruf falsch · 3 Urteil nicht „pass" · 4 innerer Fehler
+(Datenbank gesperrt, Datei kaputt: Meldung statt Traceback, Bus-Zeile trotzdem) · 64 kein Befehl. `soul status` zeigt zusätzlich
+`state_ok`, `contamination_share` (G5) und `predictions_due`.
 Tests (≥ 4, über `subprocess` mit `SOUL10_HOME`): `soul contract new` ohne Probe → Exit ≠ 0 mit Meldung; `soul status` läuft; `soul switch "Berechne 2+2, nur die Zahl"` → direkt.
 
 ### 5.12 `CLAUDE.md` (Betriebsanweisung, ≤ 40 Zeilen, ≤ 15 Direktiven, deutsch)

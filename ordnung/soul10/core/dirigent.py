@@ -182,6 +182,23 @@ def ausfuehren(c: dict, s: dict, p: dict, *, items: list | None, condition: str 
             "system_injected": system is not None}
 
 
+def panne(contract_id: str, exc: BaseException) -> str | None:
+    """Eine Panne auf dem Weg (Adapter, Arbeiter, Hauptbuch) darf keinen Vertrag verwaist in
+    `running` lassen — den sähe kein Prüfgate mehr. Läuft er noch, wird er blockiert (kein Urteil);
+    ist er schon geliefert, fängt ihn das Prüfgate. Rückgabe: der Status danach."""
+    grund = f"Panne im Dirigenten: {type(exc).__name__}: {bus.mask(str(exc)[:160])}"
+    try:
+        status = contract.load(contract_id)["status"]
+        if status in ("open", "running"):
+            contract.block(contract_id, grund)
+            status = "blocked"
+    except Exception as inner:  # noqa: BLE001 — auch das Blockieren kann scheitern (Platte voll)
+        status = None
+        grund += f" | Blockade fehlgeschlagen: {type(inner).__name__}"
+    bus.emit("dirigent.panne", contract_id=contract_id, status=status, error=grund[:300])
+    return status
+
+
 # --- Schritt 5: prüfen -------------------------------------------------------------------------
 def pruefen(c: dict, s: dict, ausfuehrung: dict, *, use_model_verifier: bool, model: str | None,
             thinking: int, cwd: str | None, counter_voice_cmd: str | None) -> dict | None:
@@ -252,12 +269,16 @@ def run(goal: str, probes: list[dict], *, items: list | None = None, condition: 
     pruefe_liste(items, condition)  # kaputte Eingabe: nichts wird geschrieben, auch kein Profil
     profile, profile_written = situieren()
     c = vertrag(goal, probes, session_id=session_id)
-    s = schalter(goal, probe=probe_switch, model=model, contract_id=c["id"])
-    p = plan(items, condition, parts=parts, contract_id=c["id"])
-    a = ausfuehren(c, s, p, items=items, condition=condition, model=model, thinking=thinking)
-    v = pruefen(c, s, a, use_model_verifier=use_model_verifier, model=model, thinking=thinking,
-                cwd=cwd, counter_voice_cmd=counter_voice_cmd)
-    memory_id = erinnern(c, s, p, a, v, session_id=session_id, model_id=model or _model.DEFAULT_MODEL)
+    try:
+        s = schalter(goal, probe=probe_switch, model=model, contract_id=c["id"])
+        p = plan(items, condition, parts=parts, contract_id=c["id"])
+        a = ausfuehren(c, s, p, items=items, condition=condition, model=model, thinking=thinking)
+        v = pruefen(c, s, a, use_model_verifier=use_model_verifier, model=model, thinking=thinking,
+                    cwd=cwd, counter_voice_cmd=counter_voice_cmd)
+        memory_id = erinnern(c, s, p, a, v, session_id=session_id, model_id=model or _model.DEFAULT_MODEL)
+    except Exception as exc:  # noqa: BLE001 — Panne: der Vertrag bleibt nie unsichtbar in running
+        panne(c["id"], exc)
+        raise
 
     calls = (s["probe"]["calls"] if s.get("probe") else 0) + a["calls"] + (v["calls"] if v else 0)
     status = contract.load(c["id"])["status"]

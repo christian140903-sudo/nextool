@@ -12,8 +12,17 @@ from core.memory import ledger
 
 # ARCHITEKTUR.md Abschnitt 6 (a): gemessen −66,7 pp allein, −97,3 pp auf Sonnet.
 SCHWEIGEKLAUSEL = re.compile(
-    r"\bstill\b|unsichtbar|nur das Ergebnis|keine Zwischenschritte|erscheint nie im Text|\bsilent|invisibl",
+    r"\bstill\b|unsichtbar|nur das Ergebnis|keine Zwischenschritte|erscheint nie im Text|\bsilent|invisibl"
+    r"|\bnur mit (der|dem|einer) (Zahl|Anzahl|Wort|Ergebnis)\b",
     re.IGNORECASE)
+# Die eine erlaubte Form der Ausgabe-Unterdrückung ist der gemessene M2-Wortlaut („Antworte nur mit
+# der Zahl" / „Antworte NUR mit der Anzahl als Zahl", 100 % sauber teilbar, 72 % Naht, 94 % ein
+# Agent). Er darf nur dort stehen, wo er gemessen wurde: im Arbeiter-Systemprompt und in den drei
+# Fragetexten (decompose) und im Einzelaufruf des Dirigenten (GANZ-Arm). Jede weitere Kopie fällt auf.
+GEMESSENE_UNTERDRUECKUNG = {
+    "core/decompose.py": ("Antworte nur mit der Zahl.", "Antworte NUR mit der Anzahl als Zahl."),
+    "core/dirigent.py": ("Antworte NUR mit der Anzahl als Zahl.",),
+}
 HARNESS = paths.repo_root() / "bewusstsein" / "harness"
 CLAUDE_MD = paths.soul10_root() / "CLAUDE.md"
 DIREKTIVE = re.compile(r"^\s*\d+\.\s")
@@ -40,8 +49,17 @@ def _string_literals(path):
             yield node.lineno, node.value
 
 
+def _erlaubt(path, text):
+    try:
+        rel = str(path.relative_to(paths.soul10_root()))
+    except ValueError:  # Datei außerhalb des Pakets (Scanner-Selbsttest): keine Ausnahme
+        return False
+    return any(text.strip().endswith(t) or text.strip() == t for t in GEMESSENE_UNTERDRUECKUNG.get(rel, ()))
+
+
 def _treffer(path):
-    return [(ln, m.group(0)) for ln, text in _string_literals(path) for m in [SCHWEIGEKLAUSEL.search(text)] if m]
+    return [(ln, m.group(0)) for ln, text in _string_literals(path)
+            for m in [SCHWEIGEKLAUSEL.search(text)] if m and not _erlaubt(path, text)]
 
 
 def _harness_module(name):

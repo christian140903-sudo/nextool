@@ -81,3 +81,14 @@ def test_secret_muster_kennt_die_gaengigen_formate():
         assert bus.SECRET_PATTERN.search(probe), probe
         assert "[MASKIERT]" in bus.mask("x " + probe + " y")
     assert not bus.SECRET_PATTERN.search("AIza zu kurz") and not bus.SECRET_PATTERN.search("github_patch")
+
+
+def test_bus_rotation_ueberschreibt_sich_nicht_in_derselben_sekunde(monkeypatch):
+    monkeypatch.setattr(bus, "_ROTATE_BYTES", 50)
+    for i in range(12):
+        bus.emit("rotation", i=i, fuellung="x" * 40)
+    dateien = sorted(paths.bus_file().parent.glob("events-*.jsonl"))
+    assert len(dateien) >= 2
+    zeilen = sum(len(d.read_text(encoding="utf-8").splitlines()) for d in dateien)
+    zeilen += len(paths.bus_file().read_text(encoding="utf-8").splitlines())
+    assert zeilen == 12  # keine Zeile verloren

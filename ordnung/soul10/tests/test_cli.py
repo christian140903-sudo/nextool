@@ -293,3 +293,21 @@ def test_jeder_aufruf_schreibt_eine_bus_zeile_ohne_argumenttexte():
     assert zeilen[-2]["sub"] is None and zeilen[-2]["rc"] == 0 and "ms" in zeilen[-2]
     text = paths.bus_file().read_text(encoding="utf-8")
     assert "Zebrastreifen" not in text and "Geheimziel" not in text
+
+
+def test_innerer_fehler_wird_verweigerung_mit_meldung_nicht_traceback(monkeypatch):
+    """Prüfbefund Gruppe 5: ein sqlite3-Fehler propagierte als Traceback ohne JSON und ohne Bus-Zeile."""
+    import io
+    import sqlite3
+    from core import bus
+    from core.memory import ledger
+
+    def gesperrt():
+        raise sqlite3.OperationalError("database is locked")
+
+    monkeypatch.setattr(ledger, "connect", gesperrt)
+    out, err = io.StringIO(), io.StringIO()
+    rc = cli.main(["status"], stdout=out, stderr=err)
+    assert rc == cli.EXIT_ERROR and out.getvalue() == ""
+    assert "innerer Fehler OperationalError: database is locked" in err.getvalue()
+    assert bus.tail(1, "cli")[0]["rc"] == cli.EXIT_ERROR

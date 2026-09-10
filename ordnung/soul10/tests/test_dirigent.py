@@ -255,3 +255,22 @@ def test_bus_zeilen_je_schritt_in_reihenfolge(fake_model):
     assert lauf["verdict"] == "pass" and lauf["status"] == "verified" and lauf["calls"] == 2
     assert lauf["memory_id"] == r["memory_id"] and lauf["stage"] == "direkt"
     assert events[5]["verifier"] == "deterministic+model" and events[5]["use_model"] is True
+
+
+def test_panne_laesst_keinen_vertrag_in_running_zurueck(monkeypatch):
+    """Prüfbefund Gruppe 5: eine Nicht-DecomposeError aus dem Arbeiter ließ den Vertrag in running
+    verwaisen — unsichtbar für das Prüfgate, das nur delivered kennt."""
+    from core import bus, contract, dirigent
+
+    def kaputt(*a, **kw):
+        raise RuntimeError("Adapter weg")
+
+    monkeypatch.setattr(model, "FAKE", kaputt)
+    with pytest.raises(RuntimeError, match="Adapter weg"):
+        dirigent.run("Wie viele geraden Zahlen?", [PROBE_42], items=[1, 2, 3, 4], condition=GERADE, parts=2)
+    offen = contract.list_open()
+    assert len(offen) == 1 and offen[0]["status"] == "blocked"
+    assert "Panne im Dirigenten: RuntimeError" in offen[0]["log"][-1]["reason"]
+    ev = bus.tail(3, "dirigent.panne")[-1]
+    assert ev["status"] == "blocked" and "RuntimeError" in ev["error"]
+    assert not any(c["status"] == "running" for c in contract.list_open())

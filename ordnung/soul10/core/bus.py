@@ -40,14 +40,25 @@ def _maskiere(obj):
     return obj
 
 
+def _rotation_name(target: Path) -> Path:
+    """events-<Sekundenstempel>[-n].jsonl — zwei Rotationen in derselben Sekunde überschreiben
+    einander nicht (derselbe Fehler steckte im Routing-Log des Schalters)."""
+    stamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
+    kandidat = target.with_name(f"events-{stamp}.jsonl")
+    n = 1
+    while kandidat.exists():
+        kandidat = target.with_name(f"events-{stamp}-{n}.jsonl")
+        n += 1
+    return kandidat
+
+
 def emit(event: str, **fields) -> None:
     """Eine Zeile auf den Bus. Nie eine Exception nach außen."""
     try:
         target: Path = paths.bus_file()
         try:
             if target.stat().st_size > _ROTATE_BYTES:
-                target.rename(target.with_name(
-                    f"events-{time.strftime('%Y%m%d-%H%M%S', time.gmtime())}.jsonl"))
+                target.rename(_rotation_name(target))
         except FileNotFoundError:
             pass
         record = {"ts": paths.now_iso(), "event": event}

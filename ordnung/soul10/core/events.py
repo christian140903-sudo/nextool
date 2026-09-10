@@ -49,22 +49,24 @@ _NET = re.compile(r"\b(curl|wget|git\s+(clone|fetch|pull|push)|ssh|scp|rsync)\b"
 
 # --- Bausteine: Kurzform, Flaggen, Hash, Ausgang --------------------------------------------------
 def summarize(tool: str, tool_input: dict) -> str:
-    """Kurzform eines Werkzeugaufrufs für Bus und Inbox: maskiert, höchstens 220 Zeichen."""
+    """Kurzform eines Werkzeugaufrufs für Bus und Inbox: erst maskiert, dann gekürzt (höchstens
+    220 Zeichen) — ein Secret, das die Schnittgrenze kreuzt, verlöre sonst seinen Schwanz und
+    entginge dem Muster."""
     tool_input = tool_input or {}
     if tool == "Bash":
-        text = str(tool_input.get("command", "")).strip().replace("\n", " ⏎ ")[:220]
+        text, limit = str(tool_input.get("command", "")).strip().replace("\n", " ⏎ "), 220
     elif tool in WRITE_TOOLS:
-        text = str(tool_input.get("file_path") or tool_input.get("notebook_path") or "")[:220]
+        text, limit = str(tool_input.get("file_path") or tool_input.get("notebook_path") or ""), 220
     elif tool in ("Read", "Glob", "Grep"):
-        text = str(tool_input.get("file_path") or tool_input.get("pattern")
-                   or tool_input.get("query") or "")[:160]
+        text, limit = str(tool_input.get("file_path") or tool_input.get("pattern")
+                          or tool_input.get("query") or ""), 160
     elif tool in ("WebFetch", "WebSearch"):
-        text = str(tool_input.get("url") or tool_input.get("query") or "")[:200]
+        text, limit = str(tool_input.get("url") or tool_input.get("query") or ""), 200
     elif tool in AGENT_TOOLS:
-        text = str(tool_input.get("description", ""))[:160]
+        text, limit = str(tool_input.get("description", "")), 160
     else:
-        text = json.dumps(tool_input, ensure_ascii=False, default=str)[:160]
-    return bus.mask(text)
+        text, limit = json.dumps(tool_input, ensure_ascii=False, default=str), 160
+    return bus.mask(text)[:limit]
 
 
 def flags(tool: str, tool_input: dict) -> list[str]:
@@ -104,8 +106,20 @@ def outcome(tool_response) -> str:
     return "ok"
 
 
-def response_head(tool_response, limit: int = RESPONSE_HEAD_CHARS) -> str:
-    """Der Anfang der Werkzeugantwort, auf eine Zeile gezogen und maskiert."""
+# Werkzeugaufrufe, deren Ausgabe erkennbar Zugangsdaten trägt: davon wandert kein Anfang in die
+# Inbox. Grenze, ehrlich benannt: die Maske kennt Muster (bus.SECRET_PATTERN), keine Bedeutung —
+# ein Passwort ohne Muster in einer beliebigen Ausgabe bleibt in den 200 Zeichen des Anfangs.
+_SENSITIVE_CMD = re.compile(
+    r"(^|[;&|]\s*)(env|printenv|set)\s*($|[;&|])|\.env\b|id_rsa|id_ed25519|credentials|\.pem\b|\.netrc\b"
+    r"|secret|passw|token|api[_-]?key", re.IGNORECASE)
+
+
+def response_head(tool_response, limit: int = RESPONSE_HEAD_CHARS, *, tool: str = "",
+                  tool_input: dict | None = None) -> str:
+    """Der Anfang der Werkzeugantwort, auf eine Zeile gezogen, erst maskiert, dann gekürzt.
+    Ein Bash-Befehl, der erkennbar Zugangsdaten liest, hinterlässt keinen Anfang."""
+    if tool == "Bash" and _SENSITIVE_CMD.search(str((tool_input or {}).get("command", ""))):
+        return ""
     if isinstance(tool_response, dict):
         text = (tool_response.get("stdout") or tool_response.get("content")
                 or tool_response.get("result") or tool_response.get("error") or "")
@@ -113,7 +127,7 @@ def response_head(tool_response, limit: int = RESPONSE_HEAD_CHARS) -> str:
             text = json.dumps(text, ensure_ascii=False, default=str)
     else:
         text = str(tool_response or "")
-    return bus.mask(" ".join(text.split())[:limit])
+    return bus.mask(" ".join(text.split()))[:limit]
 
 
 def _session_id(payload: dict) -> str:
@@ -217,13 +231,14 @@ def session_start(payload: dict) -> str:
 
 # --- Modus 2: user-prompt ---------------------------------------------------------------------------
 def user_prompt(payload: dict) -> str:
-    """Schalter je Prompt; die Aufwandsregel wird NUR bei Stufe „aufwand" eingeblendet."""
+    """Schalter je Prompt; die Aufwandsregel wird eingeblendet, wenn die Entscheidung sie liefert
+    (`inject`: Stufe aufwand, und pruefer, falls die Sonde je im Hook läuft) — nie bei direkt."""
     session_id = _session_id(payload)
     prompt = str(payload.get("prompt") or "")
     from . import switch
     from . import model as _model
     decision = switch.decide(prompt)
-    inject = decision.get("stage") == "aufwand"
+    inject = bool(decision.get("inject")) and decision.get("stage") != "direkt"
     bus.emit("user-prompt", mode="user-prompt", session_id=session_id, stage=decision.get("stage"),
              reason=decision.get("reason"), sha=decision.get("sha"), len=decision.get("len"),
              inject=inject)
@@ -308,7 +323,7 @@ def post_tool(payload: dict) -> str:
     response = payload.get("tool_response")
     summary = summarize(tool, tool_input)
     result = outcome(response)
-    head = response_head(response)
+    head = response_head(response, tool=tool, tool_input=tool_input)
     record = {
         "at": paths.now_iso(),
         "tool": tool,
