@@ -74,6 +74,15 @@ globaler Arbeitsraum, Adapter für andere Hosts, MCP-Server, Miguel-Generator, W
 Wissensorgan. Jedes mit Zahl und Bedingung in `ENTSCHEIDUNG.md` §3. Bewusstseins-Vokabular
 kommt im Produkt nicht vor: es trägt messbar nichts bei.
 
+## Wie es geprüft ist
+
+Zwei adversariale Runden, jede mit eigenen Prüfern, deren Auftrag Brechen war, nicht Loben: 70
+Befunde gegen den Bau, 41 gegen die Fixes der ersten Runde. Die zweite Runde war die ergiebigere —
+der Fix-Pass hatte rund 2000 Zeilen ungeprüften Code hinterlassen, und dort lagen die schwersten
+Löcher: eine Prompt-Injektion ins Briefing, ein Urteil ohne gelaufene Probe, ein Rückbau, der
+fremde Dateien löscht. Alle behoben, jeder Fix mit einem Test, der zurückgenommen rot wird.
+Vollständig in `ABNAHME.md` §6.
+
 ## Grenzen
 
 Alle Zahlen stammen von Aufgaben mit berechenbarer Wahrheit auf Haiku 4.5 (Bestätigung

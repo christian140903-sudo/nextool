@@ -202,14 +202,28 @@ gebauten `ledger.py`, 12 Fragen × 3 Läufe).
 - Der Frame 4.1 bleibt byte-gleich in `structure/implant/` als Vergleichsarm; Punkt 6 ist als schädlich gemessen und wird nirgends geladen.
 - Kein Bauteil heißt nach dem, was es verspricht, sondern nach dem, was es tut (`switch.py`, nicht `consciousness.py`).
 
-Nach der adversarialen Prüfung (ABNAHME §6), gegenüber der ersten Fassung von ARCHITEKTUR.md:
-- Takt B hat einen Aufrufer im Betrieb (Stop-Hook und Sitzungsende, höchstens alle sechs Stunden), nicht nur die CLI.
+Nach der ERSTEN adversarialen Prüfung (ABNAHME §6), gegenüber der ersten Fassung von ARCHITEKTUR.md:
+- Takt B hat einen Aufrufer im Betrieb (zunächst Stop-Hook und Sitzungsende, höchstens alle sechs Stunden), nicht nur die CLI.
 - Der Sieger eines Widerspruchs ist der stärkste **aktive** Eintrag in Herkunftsordnung (Quelle vor Vertrauen); ein Kandidat gewinnt nie, und `self`-Züge werden nicht durch Widerspruch gestürzt. Vertrauen hat eine Obergrenze je Quelle; Ablösung (`supersedes`) nur in Herkunftsordnung.
 - Kandidaten fremder Quellen werden nach einem Tag ohne Widerspruch aktiv — Quarantäne ist Zeit und Widerspruchsfreiheit, nicht ein Vertrauen, das ein Dokument nicht hat.
 - Die Hash-Kette hat einen Kopfanker (Abschneiden fällt auf), jede Zeile einen Zustandshash (ein direktes UPDATE fällt auf, `soul status` zeigt `state_ok`), und eine Dateisperre.
 - Die Quittung ist an Proben und Vertragszustand gebunden (`probes_hash`, `contract_sha256`), jede Quittung gilt einmal; Proben und Ziel sind nach dem Anlegen unveränderlich; `file`/`forbid`-Proben bleiben im Startverzeichnis.
 - Der Rückweg im Rückbau-Konto ist eine Argumentliste ohne Shell; ein bestehendes Ziel von `cp`/`mv` wird gesichert statt „zurückgebaut".
 - Die Wache liest das Push-Ziel exakt aus den Argumenten und löst Pfade gegen das `cd`-Verzeichnis auf; kein Substring gibt etwas frei.
+
+Nach der ZWEITEN Prüfung, die sich gegen die Fixes der ersten richtete (ABNAHME §6) — dort lagen
+die schwersten Befunde des ganzen Baus, weil dieser Code nie geprüft worden war:
+- „Fremde Quelle" ist keine Aufzählung mehr, sondern eine Ableitung: alles außer `nutzer` und `eigener_schluss`. Die Aufzählung hatte `import` vergessen, und die neue Kandidaten-Aktivierung machte daraus einen Weg für eine Anweisung ins Briefing.
+- Ein Urteil braucht ein Lauf-Token je Probenlauf (HMAC mit einem Schlüssel unter `SOUL10_HOME`), nicht nur eine formgerechte Quittung. Die Form einer Quittung beweist nichts; nur ein gelaufener Probelauf tut es.
+- Proben und Ziel hängen an einem Anker aus `new()`, nicht am aktuellen Plattenstand; ein Vertrag, der davon abweicht, ist beschädigt und ohne menschlichen Eingriff nicht mehr verifizierbar.
+- Der Widerspruchs- und Belegtheits-Schlüssel in Takt B ist der Titel allein: die Art ist ein freies Feld des Aufrufers und darf nicht entscheiden, ob eine Aussage besetzt ist.
+- `verify_state` hält die Tabelle gegen die Kette (eine frei eingefügte Zeile fiel vorher niemandem auf); die Abrufzähler stehen bewusst nicht im Zustandshash, sondern werden über `strength == 7·importance + access_count` geprüft — die Grenze steht im Docstring statt im Verschweigen.
+- Die Nahtklasse ist in 27 benannte Alternativen zerlegt, jede mit einem Beispiel, das nur sie trifft; ohne dieses Beispiel gehört eine Alternative gelöscht. Vorher lehnte sie 23 von 40 sauber teilbaren Alltagsbedingungen ab.
+- Der Schalter liest auch die Mitte langer Prompts (Umgebungen billiger Stichwörter), sonst wäre die Stufe durch bloße Platzierung von Text steuerbar. Die Zeitschranke von 50 ms bleibt (gemessen 36 ms bei 122 000 Zeichen).
+- Abgeleitete Rückwege sind bei der Ableitung verankert und fassen nur an, was im Zeitfenster des Befehls entstand; der `pre-tool`-Hook reicht das Arbeitsverzeichnis der Sitzung durch.
+- Eingestuft wird Glied für Glied, für Publizieren wie für Fernlöschung; `profile.json` ist geschützt, weil es der Anker der Push-Prüfung ist.
+- Takt B läuft am Sitzungsende, nicht beim Stop: gemessen 6,3 s bei 800 und 28,5 s bei 2500 Einträgen, und der Stop ist der Weg zu „fertig".
+- Ob ein Aufruf Zugangsdaten liest, entscheidet sein Ziel, nicht ein Wort im Befehl — für Bash wie für `Read`, `Grep`, `Glob`.
 
 ---
 
