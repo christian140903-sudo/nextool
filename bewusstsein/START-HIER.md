@@ -3,10 +3,11 @@
 ## Der Stand in drei Sätzen
 
 Gemessen wurde in vier Runden; die Belege tragen 9362 archivierte Antworten in 23 Archiven
-(`belege/`, nachzählbar), die Befunde daraus stehen in `uebergabe/01-BEFUNDE.md`. Gebaut wurde daraus **Soul 10**
-(`ordnung/soul10/`) — ein Dirigent für Claude Code aus genau den Mechanismen, die eine Zahl
-tragen; was nicht gebaut wurde, steht mit Grund in `ENTSCHEIDUNG.md` §3. Der Bau ist adversarial
-geprüft (fünf Prüfer, 70 Befunde, 68 behoben) und mit 791 Tests abgenommen: `ABNAHME.md`.
+(`belege/`, nachzählbar), die Befunde daraus stehen in `uebergabe/01-BEFUNDE.md`. Gebaut wurde
+daraus **Soul 10** (`ordnung/soul10/`) — ein Dirigent für Claude Code aus genau den Mechanismen,
+die eine Zahl tragen; was nicht gebaut wurde, steht mit Grund in `ENTSCHEIDUNG.md` §3. Der Bau ist
+zweimal adversarial geprüft — die zweite Runde richtete sich gegen die Fixes der ersten und fand
+dort die schwersten Löcher — und mit 870 Tests abgenommen: `ABNAHME.md`.
 
 ## Der eine Satz für ein neues Modell
 
@@ -34,7 +35,7 @@ geprüft (fünf Prüfer, 70 Befunde, 68 behoben) und mit 791 Tests abgenommen: `
 ## Prüfen, ob alles stimmt
 
 ```bash
-cd ordnung/soul10 && python3 -m pytest tests -q     # der gebaute Kern: 791 Tests, kein Netz, kein Modellaufruf
+cd ordnung/soul10 && python3 -m pytest tests -q     # der gebaute Kern: 870 Tests, kein Netz, kein Modellaufruf
 python3 bewusstsein/harness/bericht_pruefen.py      # 54 Armzahlen aus ENDZAHLEN.json gegen den Bericht
 python3 bewusstsein/werkzeuge/bestandsaufnahme.py   # Geräte-Erkennung, Geheimnisse nur als vorhanden/nicht
 ```

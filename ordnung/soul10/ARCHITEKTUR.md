@@ -187,14 +187,19 @@ Guards in `remember` (Reihenfolge, jede mit eigener Fehlermeldung):
 2. `source in ("nutzer","werkzeug")` und `source_ref` leer → LedgerError (Zitat- bzw. Werkzeugpflicht).
 3. `kind`/`status`/`ttl_class`/`visibility` ungültig → LedgerError.
 4. `body` > 16 KB → LedgerError. Secret-Muster (Regex aus SOUL) in title/body → LedgerError.
-5. Imperativ an das System selbst aus `extern`/`dokument`/`werkzeug` (Regex, mind.:
+5. Imperativ an das System selbst aus fremder Quelle — jede Quelle außer `nutzer` und
+   `eigener_schluss`, also `werkzeug`/`dokument`/`import`/`extern` (Regex, mind.:
    `\b(ignoriere|vergiss|du musst|ab jetzt|override|ignore (all|previous)|disregard)\b`, case-insensitive)
    → LedgerError("Anweisung an mich selbst aus fremder Quelle abgelehnt").
 6. `source in ("extern","dokument","import")` → `status` wird auf `"candidate"` gezwungen (Quarantäne vor Aktivierung).
 7. `kind == "self"` → `status` wird auf `"candidate"` gezwungen (das Selbst wird nie direkt aktiv).
-8. `trust` None → Startwert aus SOURCES; sonst auf [0.05, 0.95] begrenzt.
+8. `trust` None → Startwert aus SOURCES; sonst auf [0.05, 0.95] begrenzt und zusätzlich auf
+   `TRUST_MAX[source]` — ein `eigener_schluss` mit 0,95 wird abgelehnt, nicht stillschweigend gekappt.
 9. `supersedes` gesetzt → der alte Eintrag wird per `transition(alt, "superseded")` abgelöst,
-   `retired_at` und `valid_to` = jetzt; der neue trägt `supersedes = alt`.
+   `retired_at` und `valid_to` = jetzt; der neue trägt `supersedes = alt`. Abgelöst wird nur in
+   Herkunftsordnung: der neue Eintrag muss aktiv werden, `SOURCE_RANK` darf nicht darunter liegen
+   und das Vertrauen nicht geringer sein — sonst LedgerError. Geburtsstatus nur `active` oder
+   `candidate`; jeder andere Zustand entsteht über `transition`.
 10. Schreibt Zeile in `ledger.jsonl` und `bus.emit("memory.remember", id=…, kind=…, source=…)`.
 
 ```python
@@ -211,7 +216,15 @@ render_many(entries: list[dict]) -> str            # eine Zeile je Eintrag
 touch(id: str, *, session_id: str = "", via: str = "search") -> None
     # last_accessed, access_count += 1, strength += 1.0, access_log-Zeile
 stats() -> dict                                    # gesamt, je status, je kind, je source
-verify_chain() -> bool                             # Hash-Kette von ledger.jsonl intakt
+verify_chain() -> bool                             # Hash-Kette von ledger.jsonl intakt; ein fehlender
+                                                   # Kopfanker (state/ledger.head) gilt nur bei leerer Kette als heil
+verify_state() -> dict                             # {"ok", "geprueft", "abweichend": [ids], "unbelegt": [ids]}
+                                                   # Zustandshash je Eintrag gegen die Kette UND Gegenzähler: jede
+                                                   # Zeile in memories braucht eine Kettenzeile mit row_hash.
+                                                   # Abrufzähler (last_accessed, access_count, strength) stehen nicht
+                                                   # im Zustandshash (touch schreibt keine Kettenzeile), sondern
+                                                   # werden über strength == 7*importance + access_count geprüft
+check_secrets(*texte) -> None                      # Secret-Muster in irgendeinem Feld → LedgerError
 ```
 
 Tests (≥ 15): jeder Guard (je ein Test), Rendering byte-genau gegen die Vorlage aus
@@ -268,17 +281,21 @@ Tests (≥ 4).
 
 ### 4.5 `consolidate.py`
 ```python
-inbox_write(session_id: str, record: dict) -> None       # inbox/<session_id>.jsonl (Hooks schreiben hier)
+inbox_write(session_id: str, record: dict) -> None       # inbox/<session_id>.jsonl (Hooks schreiben hier);
+    # setzt `at` (Schreibzeit) und `line_id` (paths.new_id()), falls sie fehlen — die Zeilen-ID trägt die Idempotenz
 takt_a(session_id: str) -> dict
     # Inbox → Einträge kind="episode", source="werkzeug", source_ref=f"{tool}:{args_hash}", status active,
     # ttl_class "short", expires_at +14 Tage; danach Inbox-Datei nach inbox/verarbeitet/ verschieben.
     # Kein Modellaufruf. Jede Zeile einzeln: Guard → "abgelehnt", anderer Fehler → "fehler" (Bus-Zeile),
-    # schon verbucht (Sitzung, Verweis, Ereigniszeit, Inhalt) → "uebersprungen"; die Datei wandert immer.
+    # schon verbucht (Zeilen-ID `line_id` der Inbox, am Eintrag als Tag `inbox:<id>`; Zeilen ohne ID: Sitzung,
+    # Verweis, Ereigniszeit, Inhalt) → "uebersprungen"; die Datei wandert immer. Ein Werkzeugverweis im
+    # Namensraum der Steuerung (`consolidate:takt_b:`) wird als "abgelehnt" zurückgewiesen.
     # Rückgabe {"episoden", "abgelehnt", "unlesbar", "uebersprungen", "fehler", "ids"}
 takt_b(now: str|None = None) -> dict
     # (1) Dubletten: candidate mit identischem normalisiertem Titel+Body wie ein active → candidate archived (Grund "dublette")
-    # (2) Widerspruch: gleicher normalisierter Titel, anderer Body, Arten fact/procedure/user/rejected (nie self,
-    #     nie episode). Sieger = stärkster AKTIVER Eintrag in Herkunftsordnung (SOURCE_RANK, dann Vertrauen).
+    # (2) Widerspruch: gleicher normalisierter Titel, anderer Body, über die Aussage-Arten hinweg gruppiert
+    #     (die Art gehört nicht in den Schlüssel — sie ist ein freies Feld des Aufrufers): Arten
+    #     fact/procedure/user/rejected (nie self, nie episode). Sieger = stärkster AKTIVER Eintrag in Herkunftsordnung (SOURCE_RANK, dann Vertrauen).
     #     Aktiv und schwächer → superseded; aktiv und gleich stark → dispute(); Kandidat schwächer → archived;
     #     Kandidat gleich stark oder stärker → bleibt Kandidat, Bus "memory.takt_b.kandidat_widerspricht".
     #     Nur Kandidaten: nichts. (Standfestigkeitsregel: ein Kandidat gewinnt nie, eigener_schluss löst nutzer
@@ -286,12 +303,14 @@ takt_b(now: str|None = None) -> dict
     # (3) expires_at überschritten → archived (Grund "abgelaufen")
     # (4) Retention < 0.1 und keine aktiven derived_from-Kinder → archived
     # (4b) Aktivierung: Kandidaten der Aussage-Arten, ≥ KANDIDAT_FRIST_TAGE (1) alt, ohne aktiven Eintrag
-    #     gleicher Art und gleichen Titels, untereinander einig → active (Guards laufen in transition erneut)
+    #     gleichen Titels (über die Arten hinweg; die Art entscheidet nicht, ob eine Aussage besetzt ist),
+    #     untereinander einig → active (Guards laufen in transition erneut)
     # (5) Selbst-Kandidaten prüfen → selfmodel.promote_eligible()
     # Rückgabe: Zähler je Schritt; schreibt einen episode-Eintrag "Konsolidierung" mit den Zahlen
     # (visibility never: in Kette und Zählung, nicht im Briefing)
-takt_b_faellig(now=None, *, intervall_stunden=6.0) -> bool   # Drossel für den Stop-Hook; liest das letzte Protokoll
-letzter_takt_b() -> str|None
+takt_b_faellig(now=None, *, intervall_stunden=6.0) -> bool   # Drossel für das Sitzungsende; liest das letzte Protokoll
+letzter_takt_b() -> str|None     # jüngste Episode mit source_ref-Präfix `consolidate:takt_b:`, Titel
+                                 # "Konsolidierung" und agent `consolidate` — Takt A kommt in diesen Namensraum nicht
 ```
 Tests (≥ 6): Inbox → Episoden; Dublette; niedrigeres Vertrauen weicht; gleiches Vertrauen → disputed; Ablauf; Retention.
 
@@ -300,7 +319,9 @@ Tests (≥ 6): Inbox → Episoden; Dublette; niedrigeres Vertrauen weicht; gleic
 Rückgrat 7–14 % → keine Persona-Deklaration. **Erz → Gold:** SOUL.md deklarierte; hier wächst
 das Selbst aus Episoden mit Zähler.
 ```python
-evidence(entry: dict) -> dict            # {"episodes": n, "sessions": k} über derived_from
+evidence(entry: dict, *, vergeben: set[str] = frozenset()) -> dict   # {"episodes": n, "sessions": k} über derived_from;
+    # Episoden aus `vergeben` zählen nicht — eine Episode belegt höchstens einen Zug, und diese Vergabe
+    # rechnen promote_eligible UND render
 promote_eligible(*, min_episodes: int = 2, min_sessions: int = 2) -> list[str]   # self-Kandidaten → active
 render(*, name: str|None = None, max_lines: int = 15) -> str
     # "# Selbstmodell: <name oder 'namensoffen'>"; aktive self-Einträge mit ledger.render;
@@ -321,8 +342,14 @@ validate(probe: dict) -> None
     # file:   {"type":"file","path":str, "must_exist":bool=True, "contains_regex":str?, "forbids_regex":str?}
     # answer: {"type":"answer","expected":str|number, "extract":"last_number"|"last_line"|"exact", "tolerance":float=0}
     # forbid: {"type":"forbid","path":str, "regex":str}      # Stub-Muster, z. B. TODO|NotImplemented|pass  # noqa
-run(probe: dict, *, cwd: str|None = None, answer_text: str|None = None) -> dict
-    # {"type", "passed": bool, "detail": str, "stdout_head": str, "exit": int|None, "at": str}
+run(probe: dict, *, cwd: str|None = None, answer_text: str|None = None, contract_id: str|None = None) -> dict
+    # {"type", "passed": bool, "detail": str, "stdout_head": str, "exit": int|None, "at": str, "token": str}
+    # token = "l1:<nonce>:<HMAC-SHA256>" über Probe, Vertrag und Lauf; Schlüssel state/lauf.key unter
+    # SOUL10_HOME (0600, nie im Repo). NUR run() vergibt Token; es steht auch in der probe.run-Bus-Zeile.
+    # Jede Musterprüfung läuft mit harter Frist (REGEX_TIMEOUT = 5 s) in einem Kindprozess; Frist-
+    # überschreitung = nicht bestanden. Dateien mit st_nlink > 1 (Hardlink) sind nicht prüfbar.
+check_run_token(run: dict, probe: dict, contract_id: str|None) -> str|None   # None = gültiges Token
+run_token_used(run: dict) -> bool;  spend_run_tokens(runs: list[dict]) -> None   # jedes Token nur einmal
 ```
 Tests (≥ 6).
 
@@ -340,12 +367,22 @@ new(goal: str, probes: list[dict], *, non_goals: Iterable[str] = (), inputs: Ite
     # budget-Default {"turns":30,"tokens":20000,"minutes":30,"thinking":4000}; status open; verdict "not-evaluated";
     # Datei state/contracts/<id>.json; bus.emit("contract.new", …)
 load(id) -> dict;  save(c: dict) -> None;  list_open() -> list[dict]   # status not in (verified, failed)
+    # new() schreibt die Anker probes_sha256 und goal_sha256 (einmal, nie danach); save() vergleicht Proben
+    # und Ziel gegen DIESE Anker statt gegen die Platte, verlangt für jeden Statuswechsel den deckenden
+    # Log-Eintrag (start/block/deliver/set_verdict) und schreibt bus.emit("contract.save", from/to).
+    # Ein Vertrag, dessen Proben oder Ziel vom Anker abweichen, ist beschädigt: nur noch als fail/failed
+    # schreibbar, ohne menschlichen Eingriff nicht mehr verifizierbar.
+damaged(c: dict) -> str    # "" wenn Proben und Ziel zum Anker passen, sonst der Schaden als Text
+snapshot() -> dict;  restore(vorher: dict) -> list[str]   # Abbild aller Verträge / Rücknahme, je Bus-Zeile
 start(id) -> dict;  block(id, reason: str) -> dict
 deliver(id, *, artefacts: Iterable[str] = (), report: str = "") -> dict   # status delivered; report ist Behauptung
 set_verdict(id, receipt: dict) -> dict
-    # akzeptiert NUR Quittungen mit Schlüsseln {contract_id, probe_runs (nicht leer), verdict in (pass, fail),
-    # verifier {kind, model}, at, hash}; hash muss sha256 des kanonischen JSON ohne "hash" sein;
-    # sonst ContractError. pass → verified, fail → failed. Kein anderer Weg setzt verdict.
+    # akzeptiert NUR Quittungen mit Schlüsseln {contract_id, probes_hash, contract_sha256, probe_runs
+    # (nicht leer), verdict in (pass, fail), verifier {kind, model}, at, hash}; hash muss sha256 des
+    # kanonischen JSON ohne "hash" sein; JEDER probe_run mit passed=True braucht ein gültiges, noch nicht
+    # verbrauchtes Lauf-Token aus probes.run (fail-closed) — die Form einer Quittung beweist nichts, nur
+    # ein gelaufener Probelauf tut es; sonst ContractError. pass → verified, fail → failed.
+    # Kein anderer Weg setzt verdict; save() lehnt jede Änderung an verdict/receipt ab.
 render_handover(id) -> str
     # kurzer Übergabetext für eine untere Ebene: Ziel; Nicht-Ziele; Eingaben; "Du siehst nicht: …";
     # die Proben als Kommandos/Erwartungen wörtlich; Budget; "Bei Blockade: melden, nicht improvisieren.
@@ -361,8 +398,14 @@ verify(contract_id: str, *, use_model: bool = False, model: str|None = None, thi
     # Sprosse 1: alle Proben laufen (probes.run; answer-Proben mit proposal_text). Eine fehlgeschlagen → "fail".
     # Sprosse 2 (nur wenn use_model und proposal_text): check_answer(); weicht der Prüfer ab → "fail" + "korrektur".
     # counter_voice_cmd: Shell-Vorlage mit {prompt}; letzte Zeile = Zweitmeinung; wird protokolliert, entscheidet nicht allein.
-    # Quittung: {"contract_id","probe_runs","verdict","verifier":{"kind":"deterministic"|"model"|"deterministic+model","model"},
-    #            "korrektur": str|None, "at", "hash"}; Datei state/receipts/<contract_id>-<ts>.json; contract.set_verdict; bus
+    # Quittung: {"contract_id","probes_hash","contract_sha256","probe_runs","verdict",
+    #            "verifier":{"kind":"deterministic"|"model"|"deterministic+model","model"}, "korrektur": str|None,
+    #            "pruefer", "counter_voice", "contract_changed", "changed_contracts", "contract_damaged",
+    #            "at", "hash"}; Datei state/receipts/<contract_id>-<ts>.json; contract.set_verdict; bus
+    # Vor den Proben contract.snapshot(), danach contract.restore(): was eine Probe an Verträgen ändert
+    # oder löscht — am geprüften wie an einem fremden —, wird zurückgenommen, steht als changed_contracts
+    # in Quittung und Bus-Zeile und macht das Urteil fail.
+    # counter_voice.cmd, pruefer.error und pruefer.model gehen maskiert (bus.mask) in die Quittung.
 check_answer(task: str, proposal: str, *, model: str|None = None, thinking: int = 0) -> dict
     # genau der gemessene Mechanismus: model.call(PRUEFER_SYSTEM, pruefer_prompt(task, proposal));
     # {"final_text", "final_value": extract_last_number, "proposal_value", "changed": bool, "calls": 1}
@@ -378,10 +421,17 @@ NEIGHBOR_RE, POSITION_RE, CUMULATIVE_RE, GLOBAL_RE
                                           # de/en; Nachbar (davor/danach/vorherig/unmittelbar/previous/next/adjacent/consecutive),
                                           # Position (erste/letzte/allererste/position/stelle/first/last/index),
                                           # Kumulation (bisher/kumuliert/laufend/summe bis/so far/running/cumulative/zwischensumme/median/sortier),
-                                          # GLOBAL (nach der adversarialen Prüfung): Superlative und Ränge (größte, zweitkleinste, biggest, top),
-                                          # Anteile und Mittel (Hälfte, Durchschnitt, above the mean), Aggregate über die Liste, Häufigkeit
-                                          # (doppelt, occurs twice), Quantor + Nachbarwort (alle anderen, every other), Reichweite über die Naht,
-                                          # Musterpositionen (jede zweite, odd-indexed, am Ende) — listenweiter Bezug, nicht zerlegbar
+                                          # GLOBAL (nach der Schlussprüfung in benannte Alternativen zerlegt: decompose._GLOBAL_PARTS,
+                                          # 27 Stück): Superlative und Ränge (größte, zweitkleinste, biggest, top), Anteile AN DER LISTE
+                                          # (obere Hälfte, second half of the list, above the mean), Aggregate ÜBER DIE LISTE (Summe der
+                                          # Liste, count of even numbers), Häufigkeit (kommt doppelt vor, occurs twice), Quantor +
+                                          # Nachbarwort (alle anderen, every other), Reichweite über die Naht, Musterpositionen (jede
+                                          # zweite, odd-indexed, am Ende DER LISTE) — listenweiter Bezug, nicht zerlegbar.
+                                          # Wörter OHNE Bezug auf andere Listenelemente gehören NICHT dazu („Anzahl von Ziffern",
+                                          # „doppelt so groß wie 20", „eine 0 am Ende", „die Hälfte von 50", „alle Zahlen in der Liste"
+                                          # als bloße Anrede): gemessen 0 Fehlalarme auf 40 ausformulierten sauber teilbaren Bedingungen
+                                          # bei 58 von 58 erkannten listenweiten. Jede Alternative braucht ein Beispiel, das NUR sie
+                                          # trifft (Test), sonst gehört sie gelöscht.
 seam_check(condition: str) -> dict        # {"classes": [...], "hits": [...], "decomposable": bool, "protocol": "none"|"naht", "reason": str, "empfehlung": "zerlegen"|"einzeln"|"nicht_zerlegbar"}
                                           # cumulative/global → decomposable False, empfehlung nicht_zerlegbar (auch nicht per force);
                                           # neighbor/position → "naht", empfehlung "einzeln" (ein Agent ist genauer, M2); sonst "none", empfehlung "zerlegen".
@@ -398,7 +448,9 @@ plan(items: list, condition: str, *, parts: int, force: bool = False) -> dict
 merge(values: list, op: str = "sum") -> tuple   # (wert, fehlend) — mechanisch; None und bool zählen als fehlend
 run(items: list, condition: str, *, parts: int, model: str|None = None, thinking: int = 0, workers: int = 5, force: bool = False) -> dict
                                           # plan → parallele model.call je Chunk → merge; bus.emit("decompose.run", protocol=…, calls=…, missing=…)
-                                          # Arbeiterwert nur plausibel, wenn ganzzahlig und 0 ≤ v ≤ len(chunk.items); sonst fehlend mit
+                                          # Arbeiterwert nur plausibel, wenn ganzzahlig und 0 ≤ v ≤ len(chunk.items); endet die Antwort
+                                          # auf „X von N" (auch „X of N", „X out of N", „X/N"), ist N der Nenner: dann zählt X, und nur
+                                          # wenn N = len(chunk.items) ist — sonst fehlend mit
                                           # bus.emit("decompose.implausible", index, items, value) — nie eine stille falsche Zahl in der Summe
                                           # {"value", "calls", "missing", "protocol", "chunks": n}
 ```
@@ -411,10 +463,16 @@ Tests (≥ 8): Klassifikation je Klasse (de/en), Kumulation verweigert, Chunk-Gr
 SIGNALS: dict[str, re.Pattern]   # Port von signals.ts ohne die Falsch-Positiv-Wörter (R10 §2.2.4); plus "format_locked";
                                  # Allerweltswörter (team, public, patient, buy, ship, launch, api, delete, add, …) nur mit Kontext
 STAKES_SIGNALS = ("irreversible", "durable", "architecture", "affects_others", "commitment", "recommendation")
-FORMAT_SIGNAL = "format_locked"; SIGNAL_SCAN_HEAD = 3000; SIGNAL_SCAN_TAIL = 1500   # D017: < 50 ms auch bei 120 000 Zeichen
+FORMAT_SIGNAL = "format_locked"; SIGNAL_SCAN_HEAD = 3000; SIGNAL_SCAN_TAIL = 1500; SIGNAL_SCAN_MIDDLE = 1000
+    # D017: < 50 ms auch bei 120 000 Zeichen (kalt gemessen 36 ms). Aus der MITTE kommen die Umgebungen billiger
+    # Stichwörter dazu (_SCAN_KEYS: Einsatzhöhe und Formatzwang) — sonst wäre die Stufe durch bloße Platzierung von
+    # Text steuerbar. Die Regexe über den vollen Text sind gemessen zu teuer (sechs Einsatzhöhe-Regexe 206 ms,
+    # format_locked allein 89 ms).
 prefilter(prompt: str) -> dict   # {"len", "signals": [...], "trivial": bool, "format_locked": bool, "sentences": int}
-    # trivial: ≤ 200 Zeichen UND kein Signal UND höchstens ein Satz/eine Frage (Satzende an [.!?;] + Leerraum, auch vor
-    # Kleinbuchstaben; Ordinale, Abkürzungen, Datum/Version/IP/Uhrzeit/Tausendergruppen sind EINE Größe)
+    # trivial: ≤ 200 Zeichen UND kein Signal UND höchstens ein Satz/eine Frage (Satzende an [.!?] + Leerraum, auch
+    # vor Kleinbuchstaben; ein Semikolon zählt nur außerhalb von Code, Klammer, Zitat und Aufzählung und nur mit zwei
+    # Wörtern je Seite; Ordinale, Abkürzungen, Datum/Version/IP/Uhrzeit/Tausendergruppen sind EINE Größe; die
+    # Ordinal-Ausnahme greift nicht vor einem Satzanfang — „um 9. Wie lange dauert er?" sind zwei Sätze)
     # format_locked nur als Ausgabe-Direktive: „als/as JSON", „nur/only/valid JSON", „Antworte mit ja oder nein", „single number",
     # „number only", „nur die Antwort", „in einem Wort", „keine Erklärung", „Format: CSV" … — „JSON" als Thema ist keiner;
     # eine negierte Erklärung („erklär nichts", „do not explain") ist kein reasoning-Signal
@@ -440,15 +498,20 @@ register(kind: str, description: str, *, undo: str|None, evidence: dict|None = N
 snapshot_file(path: str) -> dict         # kopiert nach rollback/<id>/<basename>; register(kind="file", undo=<PY -c shutil.copy …>)
                                          # (Python-Einzeiler unter sys.executable, damit er auf jeder Plattform läuft);
                                          # Datei existiert nicht → undo = Löschbefehl (PY -c os.remove)
-infer_from_bash(command: str) -> dict|None
+infer_from_bash(command: str, *, cwd: str|None = None) -> dict|None
+    # Pfade werden BEI DER ABLEITUNG absolut gegen `cwd` verankert (Verzeichnis, in dem der Befehl läuft; `cd` in
+    # der Kette wird mitgeführt). Ein cd-Ziel aus Variable oder Glob lässt sich nicht verankern → Posten ohne
+    # Rückweg (Bestätigungspflicht) statt eines Befehls, der im falschen Verzeichnis löscht. Der erzeugte Einzeiler
+    # fasst nur an, was im Zeitfenster des Befehls entstand (st_ctime zwischen Registrierung − 2 s und + 15 min).
     # Glieder quote-bewusst getrennt (split_segments). pip/pip3/pipx/uv install X → uninstall; npm/pnpm/yarn install|add X →
     # uninstall/remove; apt-get install → remove; brew install → uninstall; cargo install → uninstall (nur wohlgeformte
     # Paketnamen, sonst None); git commit → git revert --no-edit HEAD; mkdir [-p] P → Python-Einzeiler, der genau die neu
     # angelegten Ebenen entfernt (nichts Neues → None); cp A B → Python-Einzeiler, der B entfernt; mv A B → der B nach A
     # zurückschiebt; existiert ein Ziel schon → {"kind","description","undo": None, "overwrites": [ziele]} statt eines
     # erfundenen Rückwegs; sonst None. Rückgabe {"kind","description","undo"}
-register_from_bash(command: str, *, evidence=None, contract_id=None) -> dict|None
-    # der Weg des pre-tool-Hooks: infer_from_bash + register; überschriebene Datei → snapshot_file (byte-genauer
+register_from_bash(command: str, *, evidence=None, contract_id=None, cwd: str|None = None) -> dict|None
+    # der Weg des pre-tool-Hooks: infer_from_bash + register; das Verzeichnis der Ableitung steht als
+    # evidence["cwd"] im Posten; überschriebene Datei → snapshot_file (byte-genauer
     # Rückweg), überschriebenes Verzeichnis → Posten ohne Rückweg (needs_confirmation)
 argv_chain(cmd: str) -> list[list[str]]  # undo ist eine Argumentliste in Shell-Schreibweise (shlex); && und ; trennen Glieder
 undo(id: str, *, dry_run: bool = False) -> dict    # führt die Glieder OHNE Shell aus (shell=False, timeout 120 je Glied),
@@ -456,7 +519,9 @@ undo(id: str, *, dry_run: bool = False) -> dict    # führt die Glieder OHNE She
 list_open() -> list[dict]
 quota() -> dict                          # {"registered","with_undo","without_undo","undone_ok","undone_failed","quote": with_undo/registered}
 ```
-Tests (≥ 8): infer je Befehlsklasse, Snapshot + Undo stellt Inhalt wieder her, ohne Undo → needs_confirmation, Quote;
+Tests (≥ 8, der abgeleitete Rückweg wird AUSGEFÜHRT geprüft — Ableitung in Verzeichnis A, Rückbau aus Verzeichnis B:
+in B verschwindet nichts; eine Substring-Zusicherung auf dem erzeugten Befehlsstring gilt nicht als Regressionstest):
+infer je Befehlsklasse, Snapshot + Undo stellt Inhalt wieder her, ohne Undo → needs_confirmation, Quote;
 Metazeichen in Paketnamen/Pfaden führen nichts aus; cp/mv über bestehendes Ziel sichert statt zu löschen.
 
 ### 5.7 `inventory.py`
@@ -477,15 +542,24 @@ Tests (≥ 4): Profil wird geschrieben und gelesen; keine Secret-Werte im Profil
 ### 5.8 `guard.py`
 Aus `/home/user/soul/core/guard.py` übernehmen (Kategorien, Regexe, `classify`, Mandate). Änderungen:
 `ROOT`-Pfade → `paths.soul10_root()` für geschützte Dateien (`core/guard.py`, `core/events.py`,
-`.claude/settings.json`, `.claude/hooks/`) und `paths.mandate_file()`; `OWN_REMOTES` aus
+`.claude/settings.json`, `.claude/hooks/`), `paths.mandate_file()` und `paths.profile_file()` (own_remotes ist
+der Anker der exakten Push-Prüfung: wer das Profil schreibt, macht jedes Remote zum eigenen; eine vom Standard
+abweichende Liste schreibt die Bus-Zeile `guard.own_remotes`); `OWN_REMOTES` aus
 `inventory.load_profile().get("own_remotes", ["origin"])` (lazy); keine Mac-Pfade. Tests (≥ 8) aus
 `/home/user/soul/tests/test_guard.py` übernehmen, soweit übertragbar.
 Nach der adversarialen Prüfung: `push_targets(cmd)` liest je `git push` das Ziel aus den Argumenten (Wert von
 `--repo`, sonst erstes Nicht-Options-Argument; ohne Ziel = Upstream = eigen) und vergleicht EXAKT mit den eigenen
-Remotes; ein eigener Push befreit kein anderes Publish-Kommando in derselben Zeile. Der Stolperdraht für
-Shell-Schreibzugriffe auf die Wache (`bash_path_candidates`) löst jedes Token als Pfad gegen das mitgeführte
-`cd`-Verzeichnis auf (exakt, kein Substring), auch Pfadstücke in Inline-Code (`python -c`, `perl -e`, Heredoc);
-Schreibverben: `> >> sed -i tee mv cp rm chmod truncate ln`. Eine Schlüssel-Variable (`$…KEY|TOKEN|SECRET|
+Remotes; ein eigener Push befreit kein anderes Kommando in derselben Zeile — eingestuft wird Glied für Glied
+(`rollback.split_segments`), für `extern-publizieren` UND `remote-loeschung`; läuft ein Muster über eine
+Trennstelle, bleibt es ein Treffer. Der Stolperdraht für Shell-Schreibzugriffe auf die Wache
+(`bash_path_candidates`) löst jedes Token als Pfad gegen das mitgeführte `cd`-Verzeichnis auf (Optionen nach `cd`
+werden übersprungen; exakt, kein Substring) und misst jeden RELATIVEN Pfad zusätzlich an seinen Pfadgliedern, weil
+der Hook-Prozess nicht dort stehen muss wie die Shell; ein cd-Ziel aus Variable, Glob oder ein nicht vorhandenes
+Ziel zieht die Prüfung enger, nicht weiter (fail-closed, §2 Regel 5). `classify(tool_name, tool_input, *, cwd=None)`
+und `decide(tool_name, tool_input, *, cwd=None)` nehmen das Arbeitsverzeichnis aus der Hook-Nutzlast.
+Schreibverben: `> >> sed -i tee mv cp rm chmod truncate ln`; Inline-Code sperrt nur mit Schreibhinweis im Code
+selbst (`open(...,"w/a/x")`, `.write`, unlink/remove/rename/rmtree/copy/move/chmod, system/popen/subprocess/shutil)
+— reines Lesen der Wache bleibt frei und steht als `guard.lesezugriff` am Bus. Eine Schlüssel-Variable (`$…KEY|TOKEN|SECRET|
 PASSWORD|CREDENTIAL…`) in der Ziel-URL eines Netz-Werkzeugs ist `secrets-exfiltration`; im Header nicht.
 
 ### 5.9 `events.py`, `.claude/settings.json`, `.claude/hooks/hook.py`
@@ -495,7 +569,10 @@ Vorlage: `/home/user/soul/core/events.py` (Fail-open/-closed, Maskierung, Zusamm
 |---|---|---|---|
 | `session-start` | `{session_id, source}` | `bus.emit`; `recall.briefing(extra_sections=[offene Verträge (contract.list_open), offene Rückbau-Posten (rollback.list_open)])` | Briefing als Text |
 | `user-prompt` | `{session_id, prompt}` | `switch.decide(prompt)`; Routing-Log | bei stage `aufwand`: JSON `{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext": AUFWANDSREGEL}}`; sonst nichts |
-| `pre-tool` | `{session_id, tool_name, tool_input}` | `guard.classify` → deny-JSON wie SOUL bei Treffer ohne Mandat; sonst: Bash → `rollback.register_from_bash` (überschriebene Datei → Sicherungskopie); Write/Edit auf bestehende Datei → `rollback.snapshot_file`; `bus.emit("pre", …)` | deny-JSON oder nichts |
+| `pre-tool` | `{session_id, tool_name, tool_input, cwd}` | `guard.decide(tool, tool_input, cwd=payload["cwd"])` → deny-JSON wie SOUL bei Treffer ohne Mandat; sonst: Bash → `rollback.register_from_bash(cmd, cwd=payload["cwd"])` (überschriebene Datei → Sicherungskopie); Write/Edit auf bestehende Datei → `rollback.snapshot_file`; `bus.emit("pre", …)` | deny-JSON oder nichts |
+Claude Code liefert `cwd` im PreToolUse-Payload. Der Hook-Prozess steht nicht zwingend dort, wo die Bash-Sitzung
+steht; ohne diese Durchreichung greifen die Namensprüfung der Wache und die Verankerung des Rückwegs weiter, aber
+ungenauer.
 | `post-tool` | `{session_id, tool_name, tool_input, tool_response}` | `consolidate.inbox_write(session_id, {at, tool, args_hash, outcome, summary})`; bus | nichts |
 | `stop` | `{session_id, stop_hook_active}` | **Prüfgate:** Verträge mit status `delivered` und ohne Quittung → JSON `{"decision":"block","reason":"Vertrag <id> ist geliefert, aber nicht geprüft. `soul verify <id>` ausführen oder `soul contract block <id> <grund>`."}` — außer `stop_hook_active` ist true (keine Schleife). Sonst `consolidate.takt_a(session_id)`, dann `consolidate.takt_b()` wenn `takt_b_faellig()` (höchstens alle 6 h, fail-open); bus | block-JSON oder nichts |
 | `pre-compact` | `{session_id}` | `snapshot.json` = {offene Verträge, offene Rückbau-Posten, at}; bus | nichts |

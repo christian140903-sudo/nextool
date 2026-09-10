@@ -620,3 +620,30 @@ def test_settings_json_setzt_je_hook_ein_zeitlimit():
     def limit(ereignis):
         return daten["hooks"][ereignis][0]["hooks"][0]["timeout"]
     assert limit("Stop") <= limit("SessionEnd")
+
+
+def test_pre_tool_reicht_das_arbeitsverzeichnis_durch(tmp_path, monkeypatch):
+    """Der Hook-Prozess steht nicht dort, wo die Bash-Sitzung steht: ein relativer Pfad im Befehl
+    meint DEREN Verzeichnis. Wache und Rückweg bekommen es aus der Nutzlast (Schlussprüfung)."""
+    from core import guard, rollback
+    gesehen = {}
+
+    def wache(tool, ti, *, cwd=None):
+        gesehen["guard"] = cwd
+        return {"blocked": False, "category": None, "reason": "", "mandate": None}
+
+    def rueckweg(cmd, **kw):
+        gesehen["rollback"] = kw.get("cwd")
+        return None
+
+    monkeypatch.setattr(guard, "decide", wache)
+    monkeypatch.setattr(rollback, "register_from_bash", rueckweg)
+    _run("pre-tool", {"session_id": "s1", "tool_name": "Bash",
+                      "tool_input": {"command": "cp a.txt b.txt"}, "cwd": str(tmp_path)})
+    assert gesehen["guard"] == str(tmp_path) and gesehen["rollback"] == str(tmp_path)
+    # Ohne cwd in der Nutzlast läuft alles weiter, nur ungenauer — der Hook hält nichts an.
+    gesehen.clear()
+    rc, out = _run("pre-tool", {"session_id": "s1", "tool_name": "Bash",
+                                "tool_input": {"command": "cp a.txt b.txt"}})
+    assert (rc, out) == (0, "") and gesehen["rollback"] is None
+

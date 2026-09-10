@@ -296,13 +296,16 @@ def user_prompt(payload: dict) -> str:
 
 
 # --- Modus 3: pre-tool ------------------------------------------------------------------------------
-def guard_decision(tool: str, tool_input: dict) -> dict:
-    """Die Entscheidung der Ausnahmeliste; fail-closed: nicht prüfbar heißt gesperrt."""
+def guard_decision(tool: str, tool_input: dict, cwd: str | None = None) -> dict:
+    """Die Entscheidung der Ausnahmeliste; fail-closed: nicht prüfbar heißt gesperrt.
+
+    `cwd` kommt aus der Hook-Nutzlast: der Hook-Prozess steht nicht dort, wo die Bash-Sitzung steht,
+    und ein relativer Pfad im Befehl meint deren Verzeichnis, nicht unseres."""
     try:
         from . import guard
         decide = getattr(guard, "decide", None)
         if decide is not None:
-            verdict = decide(tool, tool_input)
+            verdict = decide(tool, tool_input, cwd=cwd) if cwd else decide(tool, tool_input)
             if not isinstance(verdict, dict) or "blocked" not in verdict:
                 raise ValueError("Guard ohne Entscheidung")
             return verdict
@@ -319,7 +322,7 @@ def guard_decision(tool: str, tool_input: dict) -> dict:
                 "reason": f"Wache nicht pruefbar: {str(exc)[:160]}", "mandate": None}
 
 
-def register_undo(tool: str, tool_input: dict, session_id: str) -> dict | None:
+def register_undo(tool: str, tool_input: dict, session_id: str, cwd: str | None = None) -> dict | None:
     """Rückweg vor der Handlung: Bash → aus dem Befehl abgeleitet; Write/Edit auf eine bestehende
     Datei → Sicherungskopie. Fail-open: ein Fehler kostet den Posten, nie den Werkzeugaufruf."""
     try:
@@ -328,7 +331,8 @@ def register_undo(tool: str, tool_input: dict, session_id: str) -> dict | None:
             # register_from_bash sichert ein bestehendes Ziel (cp/mv) als Sicherungskopie, statt
             # einen Rückweg zu erfinden, der den Vorzustand löschte.
             return rollback.register_from_bash(str(tool_input.get("command") or ""),
-                                               evidence={"tool": "Bash", "session_id": session_id})
+                                               evidence={"tool": "Bash", "session_id": session_id},
+                                               cwd=cwd)
         if tool in WRITE_TOOLS:
             path = str(tool_input.get("file_path") or tool_input.get("notebook_path") or "")
             if path and Path(path).expanduser().is_file():
@@ -344,7 +348,8 @@ def pre_tool(payload: dict) -> str:
     session_id = _session_id(payload)
     tool = str(payload.get("tool_name") or "")
     tool_input = _tool_input(payload)
-    verdict = guard_decision(tool, tool_input)
+    cwd = str(payload.get("cwd") or "") or None
+    verdict = guard_decision(tool, tool_input, cwd)
     summary = summarize(tool, tool_input)
     marks = flags(tool, tool_input)
     if verdict["blocked"]:
@@ -354,7 +359,7 @@ def pre_tool(payload: dict) -> str:
         return json.dumps(deny_json(str(verdict["category"]), str(verdict["reason"])), ensure_ascii=True)
     if verdict.get("category"):
         marks.append(f"mandat:{verdict['category']}")
-    posten = register_undo(tool, tool_input, session_id)
+    posten = register_undo(tool, tool_input, session_id, cwd)
     if posten:
         marks.append("rueckweg" if posten.get("undo") else "ohne-rueckweg")
     bus.emit("pre", mode="pre-tool", session_id=session_id, tool=tool, summary=summary, flags=marks,
