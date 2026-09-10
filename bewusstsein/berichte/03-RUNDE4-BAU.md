@@ -196,5 +196,8 @@ Modell. Gedächtnis über Zeit bleibt ungemessen.
 | M2 Nahtprotokoll | randabhängig ≥ 80 %, sauber ≥ 95 % | **unentschieden** (72 %, 100 %); +38,9 pp gegen ohne Protokoll | sauber zerlegen; randabhängig ein Agent solange er passt, sonst Naht; Kumulation nie |
 | M3 gebautes Hauptbuch | ≥ 90 % richtig, 0 % falsch | **bestätigt** (94,4 %, 0,0 %) | Hauptbuch abgenommen |
 
-Drei Messungen, drei verschiedene Ausgänge, keine nachverhandelte Schwelle. 705 zusätzliche
-Modellaufrufe (225 + 108 + 10 Fehlversuche + 2 × 108), alle als Rohbelege archiviert.
+Drei Messungen, drei verschiedene Ausgänge, keine nachverhandelte Schwelle. 1566 zusätzliche
+Modellaufrufe (M1 594, M2 756, M3 108 + 108 — `ENDZAHLEN.json`, `lauf_bilanz.je_lauf`), daraus
+549 archivierte Artefakte (225 + 108 + 108 + 108); zehn abgebrochene Läufe der M2-Wiederholung
+liegen getrennt unter `fehlversuche/`. Ein Artefakt hält je nach Arm mehrere Aufrufe fest — bei
+M2 sieben, weil ein zerlegter Lauf seine Arbeiter mitschreibt.

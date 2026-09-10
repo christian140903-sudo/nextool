@@ -3,7 +3,7 @@
 Befund: Der Prüfer als eigene Instanz gewinnt +20,0 pp (84,0 % gegen 64,0 % SC@3, 01-BEFUNDE C1);
 die Aufwandsregel gewinnt +12,4 pp auf schweren Aufgaben und kostet −16,7 pp Formattreue als
 Dauerschicht (01-BEFUNDE §4); Auflagen als Text −15,3 bis −34,4 pp (B2/B3); Zusammenführung im
-Modell 33 % gegen 94 % im Code, Nahtprotokoll 72 % gegen 43 % ohne (M2, 2026-09-08). Der Dirigent
+Modell 33 % gegen 94 % im Code, Nahtprotokoll 72,2 % gegen 33,3 % ohne (M2, 2026-09-08). Der Dirigent
 ist die Summe dieser Zeilen (ENTSCHEIDUNG §2).
 Erz → Gold: R14 §2.3 beschreibt die Dirigenten-Schleife als modellgerichteten Text (≈ 720 Wörter,
 acht Schritte, Stoppregeln als Ermahnung); SOUL CLAUDE.md sagte „Vorhaben zuerst" und „Beleg ≠
@@ -25,7 +25,7 @@ from . import model as _model  # Alias: der Parameter `model` (Modellname) über
 from .memory import ledger
 
 # Randabhängige Bedingung: ein Agent ist genauer (94 %), solange die Liste in einen Kontext passt.
-# Darüber ist das Nahtprotokoll (72 %) besser als Zerlegung ohne Protokoll (43 %) — M2.
+# Darüber ist das Nahtprotokoll (72,2 %) besser als Zerlegung ohne Protokoll (33,3 %) — M2.
 EINZELN_MAX_ZEICHEN = 4000
 # Das erinnerte Ergebnis ist ein Eintrag, kein Dokument (ledger: 16 KB Grenze; Episoden kurz).
 ERGEBNIS_MAX_ZEICHEN = 2000

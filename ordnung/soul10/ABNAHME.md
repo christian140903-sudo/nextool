@@ -19,6 +19,7 @@ existiert; jedes Modul trägt Befund- und Erz-Zeile.
 ## 2. Berichtsprüfer
 
 ```
+cd ../..                                        # der Prüfer liest aus der Repo-Wurzel
 python3 bewusstsein/harness/bericht_pruefen.py
 54 Armzahlen aus ENDZAHLEN.json gegen den Bericht geprueft.
 Alle im Bericht wiedergefunden.
@@ -34,7 +35,8 @@ Alle im Bericht wiedergefunden.
 
 Bericht: `bewusstsein/berichte/03-RUNDE4-BAU.md`. Endzahlen: `ergebnisse/ENDZAHLEN.json`
 (Blöcke `m1_arch_kette20`, `m1_ueberraschung_zweige`, `m2_zerlegung`, `m3_hauptbuch`,
-`m3_hauptbuch_denken0`). 705 zusätzliche Modellaufrufe, alle archiviert.
+`m3_hauptbuch_denken0`). 1566 zusätzliche Modellaufrufe (M1 594, M2 756, M3 zweimal 108, aus
+`lauf_bilanz.je_lauf`), daraus 549 archivierte Artefakte.
 
 ## 4. Rauchtest gegen einen frischen Zustandsbaum
 

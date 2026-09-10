@@ -7,9 +7,9 @@ gebaut ist: `ENTSCHEIDUNG.md`. Wie: `ARCHITEKTUR.md`. Was gemessen ist:
 ## Was es ist
 
 Ein Dirigent für Claude Code, der ein Projektziel entgegennimmt und den Rest übernimmt —
-gebaut aus genau den Mechanismen, die in rund 10 500 kontrollierten Modellaufrufen
-(Runden 1–3, `bewusstsein/`) und drei weiteren Messungen dieser Bauphase (Runde 4) eine
-Zahl bekommen haben. Alles andere aus dem Entwurf (`ordnung/docs/`) ist verschoben oder
+gebaut aus genau den Mechanismen, die in vier Runden kontrollierter Modellaufrufe eine Zahl
+bekommen haben: 9362 archivierte Antworten in 23 Belegarchiven unter `bewusstsein/belege/`,
+davon 549 aus den drei Messungen dieser Bauphase (Runde 4). Alles andere aus dem Entwurf (`ordnung/docs/`) ist verschoben oder
 gestrichen, mit Grund (`ENTSCHEIDUNG.md` §3).
 
 Die Regel, die alles verbindet: **Algorithmus schlägt Willensakt.** Herkunft steht in den
@@ -42,6 +42,7 @@ Code (`core/events.py`) und die Kommandozeile `bin/soul`.
 
 Vollständig: `bewusstsein/berichte/03-RUNDE4-BAU.md`; Endzahlen in
 `bewusstsein/ergebnisse/ENDZAHLEN.json`; Rohbelege in `bewusstsein/belege/m*.tgz`.
+Alle Pfade dieses Abschnitts liegen relativ zur Repo-Wurzel, nicht zu `ordnung/soul10`.
 
 ## Starten
 

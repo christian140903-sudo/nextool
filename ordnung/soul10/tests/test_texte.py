@@ -26,8 +26,8 @@ GEMESSENE_UNTERDRUECKUNG = {
 HARNESS = paths.repo_root() / "bewusstsein" / "harness"
 CLAUDE_MD = paths.soul10_root() / "CLAUDE.md"
 DIREKTIVE = re.compile(r"^\s*\d+\.\s")
-# Module ohne Befund-Zeile: nur die Paketdateien (paths.py trägt seit dem Fundament-Update beide Zeilen).
-OHNE_BEFUND = {"__init__.py"}
+# Jede Datei unter core/ trägt Befund- und Erz-Zeile — seit der Schlussprüfung auch die Paketdateien.
+OHNE_BEFUND: set[str] = set()
 # Verweise, die die Betriebsanweisung mindestens tragen muss (ARCHITEKTUR 5.12).
 PFLICHTVERWEISE = ("soul contract new", "soul verify", "soul decompose --check", "soul remember",
                    "soul recall", "soul contract handover", "soul ring2", "soul rollback",

@@ -2,8 +2,8 @@
 
 ## Der Stand in drei Sätzen
 
-Gemessen wurden rund 10 500 Modellaufrufe in vier Runden; was eine Zahl bekommen hat, steht in
-`uebergabe/01-BEFUNDE.md`, alles Rohe in `belege/`. Gebaut wurde daraus **Soul 10**
+Gemessen wurde in vier Runden; die Belege tragen 9362 archivierte Antworten in 23 Archiven
+(`belege/`, nachzählbar), die Befunde daraus stehen in `uebergabe/01-BEFUNDE.md`. Gebaut wurde daraus **Soul 10**
 (`ordnung/soul10/`) — ein Dirigent für Claude Code aus genau den Mechanismen, die eine Zahl
 tragen; was nicht gebaut wurde, steht mit Grund in `ENTSCHEIDUNG.md` §3. Der Bau ist adversarial
 geprüft (fünf Prüfer, 70 Befunde, 68 behoben) und mit 791 Tests abgenommen: `ABNAHME.md`.

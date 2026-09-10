@@ -391,9 +391,9 @@ chunk_instruction(items: list, condition: str, offset: int, n_total: int, before
 plan(items: list, condition: str, *, parts: int, force: bool = False) -> dict
                                           # DecomposeError bei None/Nicht-Zahl in der Liste, leerer Bedingung, parts keine ganze Zahl ≥ 1;
                                           # DecomposeError wenn nicht zerlegbar (Kumulation, global); bei Protokoll "naht" ebenfalls DecomposeError,
-                                          # solange force=False — GEMESSEN (M2, 2026-09-08): mit Nahtprotokoll 72 % gegen 43 % ohne, aber ein
+                                          # solange force=False — GEMESSEN (M2, 2026-09-08): mit Nahtprotokoll 72,2 % gegen 33,3 % ohne, aber ein
                                           # einzelner Agent liegt bei 94 %. Regel: randabhängig → ein Agent, solange die Aufgabe in einen Kontext
-                                          # passt; force=True nur, wenn sie das nicht tut (dann ist 72 % besser als 43 %). Sauber teilbar: 100 %
+                                          # passt; force=True nur, wenn sie das nicht tut (dann ist 72,2 % besser als 33,3 %). Sauber teilbar: 100 %
                                           # gegen 83–89 % → zerlegen. Rückgabe sonst {"protocol", "chunks":[{"index","offset","items","before","after","instruction"}], "merge":"sum", "empfehlung"}
 merge(values: list, op: str = "sum") -> tuple   # (wert, fehlend) — mechanisch; None und bool zählen als fehlend
 run(items: list, condition: str, *, parts: int, model: str|None = None, thinking: int = 0, workers: int = 5, force: bool = False) -> dict
