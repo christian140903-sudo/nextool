@@ -311,3 +311,20 @@ def test_innerer_fehler_wird_verweigerung_mit_meldung_nicht_traceback(monkeypatc
     assert rc == cli.EXIT_ERROR and out.getvalue() == ""
     assert "innerer Fehler OperationalError: database is locked" in err.getvalue()
     assert bus.tail(1, "cli")[0]["rc"] == cli.EXIT_ERROR
+
+
+def test_auch_der_abgebrochene_aufruf_hinterlaesst_eine_bus_zeile(monkeypatch):
+    """Regel des Hauses: jeder Mechanismus schreibt eine Bus-Zeile — auch der, den Strg-C beendet."""
+    import io
+    from core import bus
+
+    def abbruch(args, out):
+        raise KeyboardInterrupt()
+
+    monkeypatch.setitem(cli.HANDLERS, "status", abbruch)
+    vorher = len(bus.tail(500, "cli"))
+    with pytest.raises(KeyboardInterrupt):
+        cli.main(["status"], stdout=io.StringIO(), stderr=io.StringIO())
+    zeilen = bus.tail(500, "cli")
+    assert len(zeilen) == vorher + 1
+    assert zeilen[-1]["command"] == "status" and zeilen[-1]["rc"] == cli.EXIT_INTERRUPTED

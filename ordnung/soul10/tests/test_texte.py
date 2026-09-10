@@ -49,17 +49,27 @@ def _string_literals(path):
             yield node.lineno, node.value
 
 
-def _erlaubt(path, text):
+def _erlaubt(path, text, treffer):
+    """Ein Literal ist nur frei, wenn JEDER Treffer INNERHALB eines der gemessenen Sätze liegt.
+    `endswith` genügte nicht: damit wäre jede Schweigeklausel erlaubt gewesen, solange das Literal
+    auf den freigegebenen Satz endet — in genau den zwei Dateien, in denen Arbeiter-Prompts entstehen."""
     try:
         rel = str(path.relative_to(paths.soul10_root()))
     except ValueError:  # Datei außerhalb des Pakets (Scanner-Selbsttest): keine Ausnahme
         return False
-    return any(text.strip().endswith(t) or text.strip() == t for t in GEMESSENE_UNTERDRUECKUNG.get(rel, ()))
+    spannen = [(text.index(t), text.index(t) + len(t))
+               for t in GEMESSENE_UNTERDRUECKUNG.get(rel, ()) if t in text]
+    return bool(spannen) and all(
+        any(a <= m.start() and m.end() <= b for a, b in spannen) for m in treffer)
 
 
 def _treffer(path):
-    return [(ln, m.group(0)) for ln, text in _string_literals(path)
-            for m in [SCHWEIGEKLAUSEL.search(text)] if m and not _erlaubt(path, text)]
+    out = []
+    for ln, text in _string_literals(path):
+        treffer = list(SCHWEIGEKLAUSEL.finditer(text))
+        if treffer and not _erlaubt(path, text, treffer):
+            out.append((ln, treffer[0].group(0)))
+    return out
 
 
 def _harness_module(name):

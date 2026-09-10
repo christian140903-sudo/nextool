@@ -274,3 +274,23 @@ def test_panne_laesst_keinen_vertrag_in_running_zurueck(monkeypatch):
     ev = bus.tail(3, "dirigent.panne")[-1]
     assert ev["status"] == "blocked" and "RuntimeError" in ev["error"]
     assert not any(c["status"] == "running" for c in contract.list_open())
+
+
+def test_auch_strg_c_laesst_keinen_vertrag_in_running(monkeypatch):
+    """Schlussprüfung: `except Exception` ließ genau den häufigsten Abbruch durch — Strg-C während
+    eines langen Modellaufrufs. KeyboardInterrupt und SystemExit sind BaseException."""
+    from core import contract, dirigent
+
+    for fehler in (KeyboardInterrupt, SystemExit):
+        def abbruch(*a, **kw):
+            raise fehler()
+
+        monkeypatch.setattr(model, "FAKE", abbruch)
+        with pytest.raises(fehler):
+            dirigent.run(ZIEL, [PROBE_42])
+    stati = [c["status"] for c in contract.list_open()]
+    assert stati == ["blocked", "blocked"], stati
+    assert not any(s == "running" for s in stati)
+    from core import events
+    delivered, error = events.delivered_without_receipt()
+    assert delivered == [] and error is None  # blockiert, also nichts, was das Gate halten müsste

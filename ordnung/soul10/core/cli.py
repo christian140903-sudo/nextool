@@ -29,6 +29,7 @@ EXIT_REFUSED = 1        # ein Modul hat abgelehnt (ContractError, LedgerError, �
 EXIT_USAGE = 2          # argparse: unbekannter Befehl, fehlendes Argument
 EXIT_NOT_PASSED = 3     # verify/run: das Urteil ist nicht "pass" (fail, blockiert, nicht geprüft)
 EXIT_ERROR = 4          # innerer Fehler (Datenbank gesperrt, Datei kaputt): kein Ergebnis, Meldung auf stderr
+EXIT_INTERRUPTED = 130  # Strg-C (Schale: 128 + SIGINT); die Bus-Zeile steht trotzdem
 EXIT_NO_COMMAND = 64    # `soul` ohne Befehl: Hilfe
 
 SOURCES_HINT = "nutzer|werkzeug|dokument|eigener_schluss|import|extern"
@@ -561,6 +562,7 @@ def main(argv: list[str] | None = None, stdout=None, stderr=None) -> int:
     from core import bus
     started = time.time()
     sub = getattr(args, f"{args.command}_cmd", None)
+    rc = EXIT_ERROR
     try:
         rc = handler(args, out)
     except CliError as exc:
@@ -569,13 +571,19 @@ def main(argv: list[str] | None = None, stdout=None, stderr=None) -> int:
     except ValueError as exc:  # ContractError, LedgerError, ProbeError, DecomposeError, … erben davon
         err.write(f"soul {args.command}: {type(exc).__name__}: {exc}\n")
         rc = EXIT_REFUSED
+    except KeyboardInterrupt:
+        err.write(f"soul {args.command}: abgebrochen\n")
+        rc = EXIT_INTERRUPTED
+        raise
     except Exception as exc:  # noqa: BLE001 — sqlite3 gesperrt/korrupt, OSError: Verweigerung statt Traceback
         err.write(f"soul {args.command}: innerer Fehler {type(exc).__name__}: {bus.mask(str(exc)[:300])}\n")
         rc = EXIT_ERROR
-    # Bus-Zeile je Aufruf — nur Befehl, Unterbefehl, Argumentzahl, Exit, Dauer; nie Argumenttexte
-    # (der Prompt eines `soul switch` gehört so wenig ins Log wie ein Zitat aus `soul remember`).
-    bus.emit("cli", command=args.command, sub=sub, argc=len(argv), rc=rc,
-             ms=int((time.time() - started) * 1000))
+    finally:
+        # Bus-Zeile je Aufruf — auch bei Strg-C und SystemExit, sonst hinterließe der Abbruch keine
+        # Spur. Nur Befehl, Unterbefehl, Argumentzahl, Exit, Dauer; nie Argumenttexte (der Prompt
+        # eines `soul switch` gehört so wenig ins Log wie ein Zitat aus `soul remember`).
+        bus.emit("cli", command=args.command, sub=sub, argc=len(argv), rc=rc,
+                 ms=int((time.time() - started) * 1000))
     return rc
 
 

@@ -328,18 +328,24 @@ def test_stop_nach_nacharbeit_zaehlt_status_nicht_alte_quittung():
 
 
 def test_stop_pruefgate_nicht_lesbar_blockiert_fail_closed(monkeypatch):
+    """Eine unlesbare Vertragsdatei darf einen gelieferten Vertrag nicht aus dem Gate verschwinden
+    lassen (Schlussprüfung): contract.list_open überspringt sie kommentarlos, das Gate zählt sie."""
+    c = _vertrag()
     from core import contract
-
-    def kaputt():
-        raise PermissionError("state/contracts nicht lesbar")
-
-    monkeypatch.setattr(contract, "list_open", kaputt)
+    contract.deliver(c["id"], report="42")
+    (paths.contracts_dir() / f"{c['id']}.json").write_text("{ kaputt", encoding="utf-8")
+    delivered, fehler = events.delivered_without_receipt()
+    assert delivered == [] and fehler and "nicht lesbar" in fehler
     rc, out = _run("stop", {"session_id": "s1", "stop_hook_active": False})
     data = json.loads(out)
-    assert data["decision"] == "block" and "Prüfgate" in data["reason"] and "PermissionError" in data["reason"]
+    assert data["decision"] == "block" and "Prüfgate" in data["reason"] and "nicht lesbar" in data["reason"]
     # Mit stop_hook_active bleibt es bei einer Runde: kein zweiter Block.
     rc, out = _run("stop", {"session_id": "s1", "stop_hook_active": True})
-    assert out == "" and _events("stop")[-1]["gate_error"].startswith("PermissionError")
+    assert out == "" and "nicht lesbar" in _events("stop")[-1]["gate_error"]
+    # Auch ein Fehler beim Lesen des Verzeichnisses selbst blockiert.
+    monkeypatch.setattr(paths, "contracts_dir", lambda: (_ for _ in ()).throw(PermissionError("weg")))
+    rc, out = _run("stop", {"session_id": "s1", "stop_hook_active": False})
+    assert json.loads(out)["decision"] == "block" and "PermissionError" in json.loads(out)["reason"]
 
 
 # --- pre-compact ------------------------------------------------------------------------------------
@@ -513,35 +519,38 @@ def test_hook_py_ohne_kern_sperrt_pre_tool_und_bleibt_exit_0(tmp_path):
     assert r.returncode == 0 and r.stdout == "" and "Kern nicht ladbar" in r.stderr
 
 
-def test_stop_und_session_end_laufen_takt_b_gedrosselt():
+def test_takt_b_laeuft_am_sitzungsende_nicht_beim_stop():
+    """Gemessen (Schlussprüfung): Takt B kostet 6,3 s bei 800 und 28,5 s bei 2500 Einträgen. Der
+    Stop ist der Weg zu „fertig" und bleibt frei davon; das Sitzungsende trägt die Arbeit."""
     from core.memory import consolidate, ledger
     ledger.remember("Datenbank", "PostgreSQL.", source="nutzer", source_ref="Zitat")
     ledger.remember("Datenbank", "MySQL.", source="eigener_schluss")
     assert consolidate.takt_b_faellig()
     rc, out = _run("stop", {"session_id": "s1", "stop_hook_active": False})
     assert (rc, out) == (0, "")
-    assert _events("stop")[-1]["takt_b"] is True
-    assert len(_events("memory.takt_b")) == 1
+    assert "takt_b" not in _events("stop")[-1] and _events("memory.takt_b") == []
+    assert consolidate.takt_b_faellig()  # der Stop hat ihn nicht verbraucht
+    rc, out = _run("session-end", {"session_id": "s1", "reason": "exit"})
+    assert (rc, out) == (0, "")
+    assert _events("session-end")[-1]["takt_b"] is True and len(_events("memory.takt_b")) == 1
     assert ledger.stats()["status"].get("superseded") == 1  # eigener_schluss wich der Nutzeraussage
-    # Innerhalb des Intervalls läuft Takt B nicht noch einmal — weder beim Stop noch am Sitzungsende.
-    _run("stop", {"session_id": "s1", "stop_hook_active": False})
+    # Innerhalb des Intervalls läuft er nicht noch einmal.
     _run("session-end", {"session_id": "s1", "reason": "exit"})
-    assert _events("stop")[-1]["takt_b"] is False and _events("session-end")[-1]["takt_b"] is False
-    assert len(_events("memory.takt_b")) == 1
+    assert _events("session-end")[-1]["takt_b"] is False and len(_events("memory.takt_b")) == 1
     assert not consolidate.takt_b_faellig()
 
 
-def test_takt_b_fehler_haelt_stop_nicht_an(monkeypatch):
+def test_takt_b_fehler_haelt_das_sitzungsende_nicht_an(monkeypatch):
     from core.memory import consolidate
 
     def kaputt(now=None):
         raise OSError("memory.db nicht schreibbar")
 
     monkeypatch.setattr(consolidate, "takt_b", kaputt)
-    rc, out = _run("stop", {"session_id": "s1"})
+    rc, out = _run("session-end", {"session_id": "s1"})
     assert rc == 0 and out == ""
     assert any(e["stage"] == "takt_b" for e in _events("hook-fehler"))
-    assert _events("stop")[-1]["takt_b"] is False
+    assert _events("session-end")[-1]["takt_b"] is False
 
 
 def test_maskierung_vor_dem_abschneiden_und_sensible_befehle_ohne_anfang():
@@ -553,21 +562,58 @@ def test_maskierung_vor_dem_abschneiden_und_sensible_befehle_ohne_anfang():
     cmd = "echo " + "y" * 210 + " " + token
     summary = events.summarize("Bash", {"command": cmd})
     assert "ghp_" not in summary and "[MAS" in summary and len(summary) <= 220
-    # Befehle, die erkennbar Zugangsdaten lesen, hinterlassen keinen Antwortanfang in der Inbox.
-    for befehl in ("cat .env", "printenv", "env", "cat ~/.ssh/id_rsa", "aws configure get aws_secret_access_key"):
+    # Aufrufe, die erkennbar Zugangsdaten lesen, hinterlassen keinen Antwortanfang in der Inbox —
+    # erkannt am ZIEL, nicht am Wort im Befehl (Schlussprüfung: `.envrc` fiel durch, `Read` ganz).
+    for befehl in ("cat .env", "cat .envrc", "cat .env.production", "printenv", "env",
+                   "cat ~/.ssh/id_rsa", "cat ~/.npmrc", "cat ~/.pgpass", "cat ~/.docker/config.json",
+                   "cat /etc/shadow", "cat certs/server.pem", "cat ~/.aws/credentials",
+                   "aws configure get aws_secret_access_key", "gh auth token", "vault read secret/db"):
         assert events.response_head({"stdout": "DB_PASSWORD=geheim123"}, tool="Bash",
                                     tool_input={"command": befehl}) == "", befehl
-    assert events.response_head({"stdout": "ok"}, tool="Bash", tool_input={"command": "ls -la"}) == "ok"
+    for tool, eingabe in (("Read", {"file_path": "/projekt/.env"}),
+                          ("Read", {"file_path": "/home/x/.ssh/id_ed25519"}),
+                          ("Grep", {"path": "/projekt/.envrc", "pattern": "KEY"}),
+                          ("Glob", {"pattern": "**/.aws/credentials"})):
+        assert events.response_head({"content": "DB_PASSWORD=geheim123"}, tool=tool,
+                                    tool_input=eingabe) == "", (tool, eingabe)
+    # Harmlose Befehle behalten ihren Anfang: das Log ist fail-open, nicht fail-closed.
+    for befehl in ("ls -la", "pytest tests/test_tokenizer.py -q", "grep -rn 'csrf_token' app/views.py",
+                   "git log --oneline --grep=token | head -20", "wc -l src/tokenizer.rs",
+                   "cat docs/passwort-richtlinie.md", "ls -la src/secrets/", "make test-credentials-parser"):
+        assert events.response_head({"stdout": "ok"}, tool="Bash", tool_input={"command": befehl}) == "ok", befehl
+    assert events.response_head({"content": "ok"}, tool="Read", tool_input={"file_path": "/projekt/app.py"}) == "ok"
     _run("post-tool", {"session_id": "s8", "tool_name": "Bash", "tool_input": {"command": "cat .env"},
                        "tool_response": {"stdout": "DB_PASSWORD=geheim123"}})
     zeile = json.loads(_inbox("s8").read_text(encoding="utf-8").splitlines()[0])
     assert "geheim123" not in zeile["summary"]
+    _run("post-tool", {"session_id": "s8", "tool_name": "Read", "tool_input": {"file_path": "/projekt/.env"},
+                       "tool_response": {"content": "AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI"}})
+    zeilen = _inbox("s8").read_text(encoding="utf-8")
+    assert "wJalrXUtnFEMI" not in zeilen
 
 
 def test_aufwandsregel_folgt_der_entscheidung_nicht_dem_stufennamen(monkeypatch):
+    """Eingeblendet wird der Text AUS der Entscheidung — sonst blendete der Hook still etwas
+    anderes ein, als der Schalter beschlossen hat (Schlussprüfung: der alte Test sah das nicht)."""
     from core import switch
-    monkeypatch.setattr(switch, "decide", lambda prompt, **kw: {"stage": "pruefer", "inject": "regel", "reason": "t"})
+    monkeypatch.setattr(switch, "decide", lambda prompt, **kw: {"stage": "pruefer", "inject": "REGELTEXT", "reason": "t"})
     rc, out = _run("user-prompt", {"session_id": "s1", "prompt": "x"})
-    assert rc == 0 and "Passe deinen Aufwand" in out
+    assert rc == 0 and json.loads(out)["hookSpecificOutput"]["additionalContext"] == "REGELTEXT"
     monkeypatch.setattr(switch, "decide", lambda prompt, **kw: {"stage": "direkt", "inject": "", "reason": "t"})
     assert _run("user-prompt", {"session_id": "s1", "prompt": "x"}) == (0, "")
+    # Stufe direkt blendet auch dann nichts ein, wenn eine Entscheidung Text mitliefert.
+    monkeypatch.setattr(switch, "decide", lambda prompt, **kw: {"stage": "direkt", "inject": "REGELTEXT", "reason": "t"})
+    assert _run("user-prompt", {"session_id": "s1", "prompt": "x"}) == (0, "")
+
+
+def test_settings_json_setzt_je_hook_ein_zeitlimit():
+    """Ohne Zeitlimit gilt die Vorgabe des Harness — und ein Hook, der Arbeit trägt, hängt still."""
+    daten = json.loads((paths.soul10_root() / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    for ereignis, gruppen in daten["hooks"].items():
+        for g in gruppen:
+            for h in g["hooks"]:
+                assert isinstance(h.get("timeout"), int) and h["timeout"] > 0, ereignis
+    # Der Stop ist der Weg zu „fertig": sein Limit ist knapp, das Sitzungsende darf dauern.
+    def limit(ereignis):
+        return daten["hooks"][ereignis][0]["hooks"][0]["timeout"]
+    assert limit("Stop") <= limit("SessionEnd")

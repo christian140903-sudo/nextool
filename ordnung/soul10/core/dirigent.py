@@ -184,7 +184,7 @@ def ausfuehren(c: dict, s: dict, p: dict, *, items: list | None, condition: str 
 
 def panne(contract_id: str, exc: BaseException) -> str | None:
     """Eine Panne auf dem Weg (Adapter, Arbeiter, Hauptbuch) darf keinen Vertrag verwaist in
-    `running` lassen — den sähe kein Prüfgate mehr. Läuft er noch, wird er blockiert (kein Urteil);
+    `running` lassen — den sähe kein Prüfgate mehr, das nur `delivered` kennt. Läuft er noch, wird er blockiert (kein Urteil);
     ist er schon geliefert, fängt ihn das Prüfgate. Rückgabe: der Status danach."""
     grund = f"Panne im Dirigenten: {type(exc).__name__}: {bus.mask(str(exc)[:160])}"
     try:
@@ -260,6 +260,9 @@ def run(goal: str, probes: list[dict], *, items: list | None = None, condition: 
         counter_voice_cmd: str | None = None) -> dict:
     """Ein Lauf: situieren → Vertrag → Schalter → Plan → ausführen → prüfen → erinnern.
 
+    Jeder Abbruch nach dem Vertrag — Ausnahme, Strg-C, SystemExit — führt über panne(): der Vertrag
+    wird blockiert, statt in `running` zu bleiben, wo ihn kein Prüfgate mehr sieht.
+
     Stoppregeln: ohne Probe kein Vertrag (ContractError propagiert, nichts wird geschrieben);
     Modell ohne Ergebnis oder Zerlegung mit Lücke → Vertrag blockiert, kein Urteil; das Urteil
     setzt allein die Quittung des Prüfers. Rückgabe {"contract_id", "status", "stage", "protocol",
@@ -276,7 +279,7 @@ def run(goal: str, probes: list[dict], *, items: list | None = None, condition: 
         v = pruefen(c, s, a, use_model_verifier=use_model_verifier, model=model, thinking=thinking,
                     cwd=cwd, counter_voice_cmd=counter_voice_cmd)
         memory_id = erinnern(c, s, p, a, v, session_id=session_id, model_id=model or _model.DEFAULT_MODEL)
-    except Exception as exc:  # noqa: BLE001 — Panne: der Vertrag bleibt nie unsichtbar in running
+    except BaseException as exc:  # auch Strg-C und SystemExit: kein Vertrag bleibt in running zurück
         panne(c["id"], exc)
         raise
 

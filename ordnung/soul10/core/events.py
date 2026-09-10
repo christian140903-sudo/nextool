@@ -3,8 +3,8 @@
 Befund: Gedächtnis +68,3 pp (28,3 % → 96,7 %), aber nur, wenn es gelesen und gefüttert wird —
 93 Einträge in 47 Tagen, 5 vom Nutzer (01-BEFUNDE A1, D031); Herkunftsetikett in der Zeile 95,0 %
 gegen Regel im Prompt 1,7 % (01-BEFUNDE A4) — darum trägt das Briefing beim Start Etiketten;
-Aufwandsregel als Dauerschicht −16,7 pp Formattreue (01-BEFUNDE §4) — darum wird sie nur bei
-Stufe „aufwand" eingeblendet; „der Prüfer fällt zuerst weg" (R14 §2.4, Ausfallverhalten) — darum
+Aufwandsregel als Dauerschicht −16,7 pp Formattreue (01-BEFUNDE §4) — darum wird sie nur
+eingeblendet, wenn die Entscheidung des Schalters sie liefert (`inject`), nie bei Stufe „direkt"; „der Prüfer fällt zuerst weg" (R14 §2.4, Ausfallverhalten) — darum
 blockiert der Stop-Hook einen gelieferten Vertrag ohne Quittung; null Hook-Zeilen nach einer
 Sitzung sind ein Defekt (ENTSCHEIDUNG §5 Nr. 3, G2) — darum schreibt jeder Modus eine Bus-Zeile.
 Erz → Gold: /home/user/soul/core/events.py kannte fünf Modi, schrieb ein eigenes Log unter watch/
@@ -19,12 +19,18 @@ Bezeichner englisch (main, handle, eine Funktion je Modus nach ARCHITEKTUR 5.9),
 deutsch. Nachbarmodule werden lazy im Funktionskörper importiert: der Hook läuft als eigener
 Prozess je Ereignis, und ein fehlendes Modul darf nur den Mechanismus kosten, der es braucht —
 mit einer Ausnahme: ein nicht prüfbarer Guard sperrt (Regel 5).
+Nach der Schlussprüfung (ABNAHME §6): das Prüfgate liest die Vertragsdateien selbst und zählt jede
+unlesbare als Fehler (fail-closed); ob ein Aufruf Zugangsdaten liest, entscheidet sein ZIEL (Pfad,
+nicht ein Wort im Befehl) und gilt für Bash wie für Read/Grep/Glob; Takt B läuft am Sitzungsende
+statt beim Stop — gemessen 6,3 s bei 800 und 28,5 s bei 2500 Einträgen, und der Stop ist der Weg
+zu „fertig".
 """
 from __future__ import annotations
 
 import json
 import os
 import re
+import shlex
 import sys
 from pathlib import Path
 
@@ -107,18 +113,57 @@ def outcome(tool_response) -> str:
 
 
 # Werkzeugaufrufe, deren Ausgabe erkennbar Zugangsdaten trägt: davon wandert kein Anfang in die
-# Inbox. Grenze, ehrlich benannt: die Maske kennt Muster (bus.SECRET_PATTERN), keine Bedeutung —
-# ein Passwort ohne Muster in einer beliebigen Ausgabe bleibt in den 200 Zeichen des Anfangs.
+# Inbox. Erkannt wird das ZIEL, nicht ein Wort irgendwo im Befehl (die erste Fassung ließ jedes
+# `pytest tests/test_tokenizer.py` seinen Anfang verlieren und jedes `cat .envrc` durch — sie hing
+# am Werkzeugnamen und an unverankerten Wörtern).
+# Grenze, ehrlich benannt: erkannt werden bekannte Pfade und die Umgebungs-Ausgabe; die Maske kennt
+# Muster (bus.SECRET_PATTERN), keine Bedeutung — ein Passwort ohne Muster in einer beliebigen
+# anderen Ausgabe bleibt in den 200 Zeichen des Anfangs.
 _SENSITIVE_CMD = re.compile(
-    r"(^|[;&|]\s*)(env|printenv|set)\s*($|[;&|])|\.env\b|id_rsa|id_ed25519|credentials|\.pem\b|\.netrc\b"
-    r"|secret|passw|token|api[_-]?key", re.IGNORECASE)
+    r"(^|[;&|]\s*)(env|printenv|set)\s*($|[;&|])"
+    r"|aws\s+configure\s+get|gcloud\s+auth\s+print|gh\s+auth\s+token|\bkeyring\s+get\b"
+    r"|security\s+find-(generic|internet)-password|\bpass\s+show\b|\bop\s+read\b"
+    r"|vault\s+(read|kv\s+get)|kubectl\s+get\s+secret|heroku\s+config\b|docker\s+login",
+    re.IGNORECASE)
+_SENSITIVE_PFAD = re.compile(
+    r"(^|/)(\.env[^/]*|\.npmrc|\.pgpass|\.netrc|\.pypirc|\.git-credentials|\.htpasswd"
+    r"|id_[a-z0-9_]+|credentials(\.\w+)?|authorized_keys|shadow)$"
+    r"|(^|/)\.(ssh|aws|gnupg|kube|docker|azure)(/|$)"
+    r"|(^|/)\.config/(gcloud|gh)(/|$)"
+    r"|\.(pem|p12|pfx|jks|keystore|kdbx)$",
+    re.IGNORECASE)
+# Werkzeuge, die eine Datei lesen: ihr Pfad entscheidet, nicht der Werkzeugname.
+_LESE_TOOLS = ("Read", "NotebookRead", "Grep", "Glob")
+
+
+def _pfade(tool: str, tool_input: dict) -> list[str]:
+    """Die Pfadangaben eines Werkzeugaufrufs — bei Bash jedes Token des Befehls."""
+    tool_input = tool_input or {}
+    if tool == "Bash":
+        cmd = str(tool_input.get("command", ""))
+        try:
+            return shlex.split(cmd, posix=True)
+        except ValueError:
+            return cmd.split()
+    return [str(tool_input.get(k) or "") for k in ("file_path", "notebook_path", "path", "pattern")]
+
+
+def liest_zugangsdaten(tool: str, tool_input: dict) -> bool:
+    """Liest dieser Aufruf erkennbar Zugangsdaten? Dann hinterlässt seine Antwort keinen Anfang
+    in der Inbox — und was einmal im Hauptbuch steht, wird nie gelöscht."""
+    if tool == "Bash" and _SENSITIVE_CMD.search(str((tool_input or {}).get("command", ""))):
+        return True
+    if tool != "Bash" and tool not in _LESE_TOOLS:
+        return False
+    return any(_SENSITIVE_PFAD.search(p) for p in _pfade(tool, tool_input) if p)
 
 
 def response_head(tool_response, limit: int = RESPONSE_HEAD_CHARS, *, tool: str = "",
                   tool_input: dict | None = None) -> str:
     """Der Anfang der Werkzeugantwort, auf eine Zeile gezogen, erst maskiert, dann gekürzt.
-    Ein Bash-Befehl, der erkennbar Zugangsdaten liest, hinterlässt keinen Anfang."""
-    if tool == "Bash" and _SENSITIVE_CMD.search(str((tool_input or {}).get("command", ""))):
+    Ein Aufruf, der erkennbar Zugangsdaten liest, hinterlässt keinen Anfang — gleich mit welchem
+    Werkzeug (Bash, Read, Grep, Glob)."""
+    if liest_zugangsdaten(tool, tool_input or {}):
         return ""
     if isinstance(tool_response, dict):
         text = (tool_response.get("stdout") or tool_response.get("content")
@@ -231,19 +276,22 @@ def session_start(payload: dict) -> str:
 
 # --- Modus 2: user-prompt ---------------------------------------------------------------------------
 def user_prompt(payload: dict) -> str:
-    """Schalter je Prompt; die Aufwandsregel wird eingeblendet, wenn die Entscheidung sie liefert
-    (`inject`: Stufe aufwand, und pruefer, falls die Sonde je im Hook läuft) — nie bei direkt."""
+    """Schalter je Prompt; eingeblendet wird der Text, den die Entscheidung liefert (`inject`:
+    Stufe aufwand, und pruefer, falls die Sonde je im Hook läuft) — nie bei direkt."""
     session_id = _session_id(payload)
     prompt = str(payload.get("prompt") or "")
     from . import switch
     from . import model as _model
     decision = switch.decide(prompt)
-    inject = bool(decision.get("inject")) and decision.get("stage") != "direkt"
+    regeltext = str(decision.get("inject") or "")
+    inject = bool(regeltext) and decision.get("stage") != "direkt"
     bus.emit("user-prompt", mode="user-prompt", session_id=session_id, stage=decision.get("stage"),
              reason=decision.get("reason"), sha=decision.get("sha"), len=decision.get("len"),
              inject=inject)
     if inject:
-        return json.dumps(context_json(_model.AUFWANDSREGEL), ensure_ascii=True)
+        # Der Text kommt aus der Entscheidung, nicht aus der Modulkonstante — sonst blendete der
+        # Hook still etwas anderes ein, als der Schalter beschlossen hat (wie dirigent.ausfuehren).
+        return json.dumps(context_json(regeltext), ensure_ascii=True)
     return ""
 
 
@@ -342,10 +390,28 @@ def post_tool(payload: dict) -> str:
 def delivered_without_receipt() -> tuple[list[dict], str | None]:
     """Verträge im Status „delivered": geliefert, aber ohne geprüfte Quittung. Der Status zählt,
     nicht `receipt is None` — nach Nacharbeit bleibt die alte Quittung am Vertrag.
-    Rückgabe (verträge, fehler): ein Fehler beim Lesen wird gemeldet, nicht verschluckt."""
+
+    Das Gate liest die Vertragsdateien SELBST, statt contract.list_open zu fragen: list_open
+    überspringt eine unlesbare Datei kommentarlos (für eine Übersicht ist das richtig), und genau
+    dann verschwände ein gelieferter Vertrag aus dem Gate. Hier zählt jede unlesbare Datei als Fehler —
+    ein Gate, das man nicht prüfen kann, ist kein Gate (ARCHITEKTUR §2 Regel 5).
+    Rückgabe (verträge, fehler)."""
     try:
-        from . import contract
-        return [c for c in contract.list_open() if c.get("status") == "delivered"], None
+        delivered: list[dict] = []
+        unlesbar = 0
+        for pfad in sorted(paths.contracts_dir().glob("*.json")):
+            try:
+                c = json.loads(pfad.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                unlesbar += 1
+                continue
+            if not isinstance(c, dict):
+                unlesbar += 1
+            elif c.get("status") == "delivered":
+                delivered.append(c)
+        fehler = (f"{unlesbar} Vertragsdatei(en) unter {paths.contracts_dir()} nicht lesbar"
+                  if unlesbar else None)
+        return delivered, fehler
     except Exception as exc:  # noqa: BLE001
         return [], f"{type(exc).__name__}: {str(exc)[:160]}"
 
@@ -375,7 +441,12 @@ def run_takt_a(session_id: str, mode: str) -> dict:
 def run_takt_b(mode: str) -> dict | None:
     """Takt B der Konsolidierung (Dubletten, Widerspruch, Ablauf, Retention, Aktivierung, Selbst),
     höchstens einmal je consolidate.TAKT_B_INTERVALL_STUNDEN; fail-open. None heißt: nicht fällig.
-    Ohne diesen Aufrufer liefe Takt B nur aus der CLI (Prüfbefund: toter Mechanismus)."""
+    Ohne einen Aufrufer liefe Takt B nur aus der CLI (Prüfbefund: toter Mechanismus).
+
+    Gerufen wird er am SITZUNGSENDE, nicht beim Stop. Gemessen (Schlussprüfung, ABNAHME §6): bei
+    800 Einträgen 6,3 s, bei 2500 Einträgen 28,5 s — die Arbeit steckt in den Übergängen, die er
+    schreibt, ist also echt und nicht wegzuoptimieren. Der Stop ist der Weg zu „fertig" und muss
+    schnell bleiben; das Sitzungsende darf dauern."""
     try:
         from .memory import consolidate
         if not consolidate.takt_b_faellig():
@@ -388,9 +459,10 @@ def run_takt_b(mode: str) -> dict | None:
 
 def stop(payload: dict) -> str:
     """Prüfgate: ein gelieferter Vertrag ohne Quittung blockiert „fertig" — außer stop_hook_active
-    ist gesetzt (keine Schleife). Sonst Takt A, dann Takt B, wenn fällig. Ein nicht lesbares
-    Prüfgate blockiert ebenfalls (fail-closed wie der Guard: ein Gate, das man nicht prüfen kann,
-    ist kein Gate)."""
+    ist gesetzt (keine Schleife). Sonst Takt A — reine Buchführung, Millisekunden. Takt B läuft am
+    Sitzungsende, nicht hier: er kostet bei Bestand Sekunden bis Minuten und darf den Weg zu
+    „fertig" nicht verstellen. Ein nicht lesbares Prüfgate blockiert ebenfalls (fail-closed wie der
+    Guard: ein Gate, das man nicht prüfen kann, ist kein Gate)."""
     session_id = _session_id(payload)
     active = bool(payload.get("stop_hook_active"))
     delivered, error = delivered_without_receipt()
@@ -400,10 +472,9 @@ def stop(payload: dict) -> str:
                  contracts=[c.get("id") for c in delivered], error=error)
         return json.dumps(block_json(reason), ensure_ascii=True)
     result = run_takt_a(session_id, "stop")
-    takt_b = run_takt_b("stop")
     bus.emit("stop", mode="stop", session_id=session_id, stop_hook_active=active,
              delivered_unverified=len(delivered), gate_error=error,
-             episoden=result.get("episoden"), takt_b=takt_b is not None and "error" not in takt_b)
+             episoden=result.get("episoden"))
     return ""
 
 
