@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from core import bus, contract, paths, verifier
+from core import bus, contract, paths, probes, verifier
 
 PY = sys.executable
 PROBE = {"type": "answer", "expected": 42}
@@ -19,11 +19,18 @@ def _vertrag(**kw):
 
 
 def _lauf(typ="answer", passed=True):
+    """Ein ERFUNDENER Lauf: richtige Form, aber ohne Lauf-Token — keine Probe ist gelaufen."""
     return {"type": typ, "passed": passed, "detail": "x", "stdout_head": "", "exit": None, "at": paths.now_iso()}
 
 
+def _lauf_echt(cid, probe=None, *, passed=True):
+    """Ein Lauf, den probes.run wirklich ausgeführt hat — nur er trägt ein gültiges Lauf-Token."""
+    return probes.run(probe or PROBE, answer_text="42" if passed else "43", contract_id=cid)
+
+
 def _quittung(cid, *, passed=True, verdict=None, runs=None, binding=None):
-    """Eine Quittung, wie verify sie schreiben würde: gebunden an die Proben und den Zustand des Vertrags."""
+    """Eine Quittung, wie verify sie schreiben würde: gebunden an die Proben, den Zustand des
+    Vertrags und über das Lauf-Token an die tatsächlich gelaufenen Proben."""
     if binding is None:
         try:
             binding = contract.receipt_binding(contract.load(cid))
@@ -31,7 +38,7 @@ def _quittung(cid, *, passed=True, verdict=None, runs=None, binding=None):
             binding = dict(_DUMMY_BINDING)
     q = {
         "contract_id": cid,
-        "probe_runs": runs if runs is not None else [_lauf(passed=passed)],
+        "probe_runs": runs if runs is not None else [_lauf_echt(cid, passed=passed)],
         "verdict": verdict or ("pass" if passed else "fail"),
         "verifier": {"kind": "deterministic", "model": None},
         "at": paths.now_iso(),
@@ -114,6 +121,9 @@ def test_lebenszyklus_und_illegale_uebergaenge():
     with pytest.raises(contract.ContractError):
         contract.start(cid)  # delivered → running nicht erlaubt
     assert bus.tail(1)[0]["event"] == "contract.transition"
+    # Regel 9: jeder Schreibvorgang hinterlässt zusätzlich eine contract.save-Zeile mit from/to
+    speichern = [e for e in bus.tail(20, "contract.save") if e["id"] == cid]
+    assert speichern and speichern[-1]["from"] == "running" and speichern[-1]["to"] == "delivered"
 
 
 def test_verdict_ohne_quittung_unmoeglich():
@@ -368,12 +378,11 @@ def test_nicht_kanonisierbare_quittung_ist_contract_error():
 
 def test_quittung_mit_unmaskiertem_secret_wird_abgelehnt():
     cid = _vertrag()["id"]
-    lauf = _lauf()
+    lauf = _lauf_echt(cid)
     lauf["stdout_head"] = "aws_access_key_id = AKIAIOSFODNN7EXAMPLE"
     with pytest.raises(contract.ContractError, match="Secret"):
         contract.set_verdict(cid, _quittung(cid, runs=[lauf]))
-    lauf["stdout_head"] = bus.mask(lauf["stdout_head"])
-    assert contract.set_verdict(cid, _quittung(cid, runs=[lauf]))["status"] == "verified"
+    assert contract.set_verdict(cid, _quittung(cid))["status"] == "verified"
 
 
 def test_list_open_laesst_abgeschlossene_weg():
@@ -405,3 +414,117 @@ def test_handover_enthaelt_probenkommando_und_bleibt_kurz():
     assert len(zeilen) <= 14, "Auflagen als Text schaden — der Übergabetext bleibt kurz"
     assert not SCHWEIGEKLAUSEL.search(text)
     assert bus.tail(1)[0]["event"] == "contract.handover"
+
+
+# --- Schlussprüfung: die Form allein ist keine Quittung (Befund contract.py:320) --------------------
+def test_formgerechte_faelschung_ohne_gelaufene_probe_setzt_kein_urteil():
+    """Der Angriff, den der Fix-Pass offen ließ: eine Quittung, die ALLES richtig macht — passende
+    Anzahl und Typen der Läufe, probes_hash und contract_sha256 aus contract.receipt_binding, Hash
+    aus contract.receipt_hash — nur ist keine Probe gelaufen. Beide Proben scheitern in Wahrheit."""
+    c = contract.new("Ziel", [{"type": "shell", "cmd": PY + ' -c "import sys; sys.exit(1)"'},
+                              {"type": "forbid", "path": ".", "regex": "def "}])
+    cid = c["id"]
+    contract.deliver(cid, report="fertig")
+    vorher = len(bus.tail(200, "probe."))
+    faelschung = _quittung(cid, runs=[_lauf("shell"), _lauf("forbid")])
+    assert faelschung["probes_hash"] == contract.probes_hash(contract.load(cid)["probes"])
+    assert faelschung["hash"] == contract.receipt_hash(faelschung)   # formgerecht bis in den Hash
+    with pytest.raises(contract.ContractError, match="bestanden, ist aber ohne Lauf-Token"):
+        contract.set_verdict(cid, faelschung)
+    with pytest.raises(contract.ContractError, match="Lauf-Token"):
+        contract.write_receipt(faelschung)
+    geladen = contract.load(cid)
+    assert geladen["status"] == "delivered" and geladen["verdict"] == "not-evaluated"
+    assert [x["id"] for x in contract.list_open()] == [cid]          # bleibt im Prüfgate
+    assert list(paths.receipts_dir().glob("*.json")) == []
+    assert len(bus.tail(200, "probe.")) == vorher                    # keine Probe lief
+    # Nur die ehrliche Prüfung urteilt — und sie urteilt fail, weil beide Proben scheitern.
+    assert verifier.verify(cid, proposal_text="42")["verdict"] == "fail"
+    assert contract.load(cid)["status"] == "failed"
+
+
+def test_lauf_token_gilt_nur_fuer_seine_probe_seinen_vertrag_und_genau_einmal():
+    """Ein echtes Token lässt sich nicht ausleihen: nicht für einen anderen Vertrag, nicht für eine
+    andere Probe, nicht nach einer Änderung am Lauf und nicht ein zweites Mal."""
+    a, b = _vertrag()["id"], _vertrag()["id"]
+    fremd = _lauf_echt(b)                                   # echter Lauf, aber für Vertrag b
+    with pytest.raises(contract.ContractError, match="Lauf-Token passt nicht"):
+        contract.set_verdict(a, _quittung(a, runs=[fremd]))
+    gedreht = _lauf_echt(a, passed=False)                   # gescheitert → nachträglich auf pass gedreht
+    gedreht["passed"] = True
+    with pytest.raises(contract.ContractError, match="Lauf-Token passt nicht"):
+        contract.set_verdict(a, _quittung(a, runs=[gedreht]))
+    echt = _lauf_echt(a)
+    ohne = {k: v for k, v in echt.items() if k != "token"}
+    with pytest.raises(contract.ContractError, match="ohne Lauf-Token"):
+        contract.set_verdict(a, _quittung(a, runs=[ohne]))
+    assert contract.set_verdict(a, _quittung(a, runs=[echt]))["status"] == "verified"
+    # Derselbe Lauf ein zweites Mal, in einer frischen Quittung auf den neuen Zustand gebunden:
+    # Hash und Fingerabdruck stimmen, aber das Lauf-Token ist verbraucht.
+    zweite = _quittung(a, runs=[echt])
+    assert zweite["contract_sha256"] == contract.fingerprint(contract.load(a))
+    with pytest.raises(contract.ContractError, match="verbraucht"):
+        contract.set_verdict(a, zweite)
+    assert contract.load(a)["verdict"] == "pass"
+
+
+# --- Schlussprüfung: Anker statt Plattenstand (Befund contract.py:211) -----------------------------
+def test_untergeschobene_proben_machen_den_vertrag_beschaedigt_statt_leicht():
+    """Wer die Vertragsdatei umschreibt, tauscht die Abnahmeproben nicht aus: der Anker aus new()
+    entscheidet. Ein so umgeschriebener Vertrag scheitert mit Quittung und ist danach eingefroren."""
+    c = contract.new("Baue Modul", [{"type": "shell", "cmd": PY + ' -c "import sys; sys.exit(1)"'}])
+    cid = c["id"]
+    contract.deliver(cid, report="fertig")
+    datei = paths.contracts_dir() / f"{cid}.json"
+    roh = json.loads(datei.read_text(encoding="utf-8"))
+    roh["probes"] = [{"type": "shell", "cmd": "true"}]      # Trivialprobe untergeschoben
+    datei.write_text(json.dumps(roh), encoding="utf-8")
+    assert contract.damaged(contract.load(cid))
+    # Die untergeschobene Probe besteht — das Urteil lautet trotzdem fail, und es gibt eine Quittung.
+    r = verifier.verify(cid)
+    assert r["verdict"] == "fail" and r["probes_failed"] == 0 and r["contract_damaged"]
+    assert contract.load(cid)["status"] == "failed"
+    assert (paths.receipts_dir() / contract.load(cid)["receipt"]["file"]).exists()
+    # Danach führt kein Weg mehr zu einem Bestehen: der Vertrag ist ohne Menschen nicht reparierbar.
+    with pytest.raises(contract.ContractError, match="beschädigt"):
+        contract.start(cid)                       # keine Nacharbeit, kein neuer Anlauf
+    assert verifier.verify(cid)["verdict"] == "fail"   # und jede weitere Prüfung endet wieder fail
+    assert contract.load(cid)["status"] == "failed" and contract.load(cid)["verdict"] == "fail"
+
+
+# --- Schlussprüfung: save() ist kein Urteilsweg und kein Sprungbrett (Befund contract.py:191) ------
+def test_save_setzt_kein_urteil_und_keinen_statussprung():
+    """Angriff a2/a9: mit einer gültigen Quittung per save() auf verified springen (ohne Log-Eintrag,
+    ohne contract.verdict-Zeile, ohne verbrauchtes Token) und einen Vertrag aus dem Prüfgate heben."""
+    cid = _vertrag()["id"]
+    contract.deliver(cid, report="42")
+    q = _quittung(cid)                                   # echte, belegte Quittung
+    pfad = contract.write_receipt(q)
+    c = contract.load(cid)
+    c["verdict"], c["status"] = "pass", "verified"
+    c["receipt"] = {"file": pfad.name, "hash": q["hash"], "at": q["at"], "verifier": q["verifier"]}
+    with pytest.raises(contract.ContractError, match="ohne deckenden Log-Eintrag"):
+        contract.save(c)
+    c["log"].append({"at": paths.now_iso(), "event": "verdict", "from": "delivered", "to": "verified",
+                     "verdict": "pass", "receipt_hash": q["hash"]})   # Log selbst gebaut
+    with pytest.raises(contract.ContractError, match="ohne deckenden Log-Eintrag"):
+        contract.save(c)                          # ein 'verdict'-Eintrag deckt nur set_verdict selbst
+    assert contract.load(cid)["status"] == "delivered" and not bus.tail(50, "contract.verdict")
+    # Statussprung delivered → blocked ohne Log-Eintrag: der Vertrag verschwände aus dem Prüfgate
+    d = contract.load(cid)
+    d["status"] = "blocked"
+    with pytest.raises(contract.ContractError, match="ohne deckenden Log-Eintrag"):
+        contract.save(d)
+    assert [x["status"] for x in contract.list_open()] == ["delivered"]
+    # Auch ohne Statuswechsel wandert kein Urteil an set_verdict vorbei in den Vertrag
+    e = contract.load(cid)
+    e["verdict"] = "pass"
+    e["receipt"] = {"file": pfad.name, "hash": q["hash"], "at": q["at"], "verifier": q["verifier"]}
+    with pytest.raises(contract.ContractError, match="nur über set_verdict"):
+        contract.save(e)
+    # Der ehrliche Weg bleibt offen und hinterlässt beide Spuren: Log-Eintrag und Bus-Zeile
+    contract.block(cid, "wartet")
+    zeile = [e for e in bus.tail(20, "contract.save") if e["id"] == cid][-1]
+    assert zeile["from"] == "delivered" and zeile["to"] == "blocked"
+    assert contract.set_verdict(cid, _quittung(cid))["status"] == "verified"
+    assert bus.tail(1)[0]["event"] == "contract.verdict"

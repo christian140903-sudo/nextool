@@ -5,18 +5,27 @@ als Text −15,3 bis −34,4 pp, obwohl 97,8 % davon im Arbeitsauftrag ankommen 
 Erz → Gold: SOUL mission.py — ein Vorhaben gleichzeitig, Prosa-Kriterien, `verdict` per
 Default `not-evaluated`, aber jeder Aufrufer konnte close(verdict="pass") schreiben. Hier:
 beliebig viele Verträge als Dateien, typisierte Proben als Pflicht (ohne Probe kein Auftrag),
-ein kurzer Übergabetext, und `verdict` wandert nur über eine Quittung mit Hash und gelaufenen
-Proben — auch save() nimmt kein Urteil ohne belegte Quittung an (R14 Ä1/N2/N5).
+ein kurzer Übergabetext, und `verdict` wandert nur über eine Quittung mit Hash und wirklich
+gelaufenen Proben — save() setzt gar kein Urteil mehr, nur set_verdict tut das (R14 Ä1/N2/N5).
 
-Bindung der Quittung an den Vertrag (Angriffe a1 der adversarialen Prüfung):
+Bindung der Quittung an den Vertrag (Angriffe a1 der adversarialen Prüfung und der Schlussprüfung):
+- Lauf-Token: jeder probe_run mit passed=True muss ein gültiges Token aus probes.run tragen
+  (HMAC über Probe, Vertrag und Lauf; Schlüssel unter SOUL10_HOME). Eine formgerechte, frei
+  erfundene Quittung setzt damit KEIN Urteil mehr — die Form allein reicht nicht, die Probe
+  muss gelaufen sein. Fail-closed: fehlt das Token, wird die Quittung abgelehnt.
 - probes_hash: sha256 des kanonischen JSON der Vertragsproben; dazu müssen Anzahl und Typen
   der probe_runs den Proben in Reihenfolge entsprechen — eine erfundene Quittung mit einem
   Lauf für zwei Proben ist keine.
 - contract_sha256: Fingerabdruck (fingerprint) des Vertrags zu Beginn der Prüfung; set_verdict
-  nimmt eine Quittung nur an, wenn der Vertrag seither unverändert ist, und jede Quittung nur
-  einmal (ihr Hash steht danach im Log). Damit ist ein Replay einer alten Quittung unmöglich.
-- save() hält die Probenpflicht: Proben und Ziel sind nach new() unveränderlich, nie leer;
-  ein Urteil verweist auf die jüngste Quittung des Vertrags auf Platte.
+  nimmt eine Quittung nur an, wenn der Vertrag seither unverändert ist, jede Quittung nur
+  einmal (ihr Hash steht danach im Log) und jedes Lauf-Token nur einmal (Replay abgelehnt).
+- save() hält die Probenpflicht gegen den ANKER aus new() (probes_sha256, goal_sha256), nicht
+  gegen den Plattenstand: wer die Vertragsdatei umschreibt, tauscht die Abnahmeproben nicht
+  aus — ein Vertrag, dessen Proben oder Ziel vom Anker abweichen, ist beschädigt und nur noch
+  als 'fail' schreibbar, also ohne menschlichen Eingriff nie wieder verifizierbar.
+- save() ändert Urteil und Status nicht selbst: ein Urteil wandert nur durch set_verdict, ein
+  Statuswechsel nur mit dem deckenden Log-Eintrag aus start/block/deliver/set_verdict. Jeder
+  erfolgreiche Schreibvorgang hinterlässt eine Bus-Zeile (contract.save mit from/to).
 - Eine Quittung mit unmaskiertem Secret-Muster (bus.SECRET_PATTERN) wird abgelehnt.
 """
 from __future__ import annotations
@@ -160,6 +169,10 @@ def new(goal: str, probes: list[dict], *, non_goals: Iterable[str] = (), inputs:
         "non_goals": _str_list(non_goals, "non_goals"),
         "inputs": _str_list(inputs, "inputs"),
         "probes": probes,
+        # Anker: einmal in new() gesetzt, nie danach. _check_before_save vergleicht dagegen,
+        # nicht gegen die Platte — eine Shell-Probe schreibt die Platte, den Anker nicht.
+        "probes_sha256": probes_hash(probes),
+        "goal_sha256": paths.sha256_text(goal),
         "budget": budget,
         "level": level,
         "parent": parent,
@@ -189,14 +202,28 @@ def load(id: str) -> dict:
 
 
 def save(c: dict) -> None:
-    """Schreibt den Vertrag atomar. Ein Urteil wird nur mit belegter Quittung angenommen;
-    Proben und Ziel sind nach dem Anlegen unveränderlich."""
-    _check_before_save(c)
+    """Schreibt den Vertrag atomar und hinterlässt eine Bus-Zeile. Ein Urteil wird nur mit
+    belegter Quittung und nur durch set_verdict angenommen; ein Statuswechsel nur mit dem
+    Log-Eintrag, der ihn deckt; Proben und Ziel sind gegen den Anker aus new() unveränderlich."""
+    disk = _read_json(_contract_file(c["id"])) if isinstance(c, dict) and c.get("id") else None
+    _check_before_save(c, disk)
     c["updated_at"] = paths.now_iso()
     _write_json(_contract_file(c["id"]), c)
+    bus.emit("contract.save", id=c["id"], **{"from": (disk or {}).get("status")}, to=c["status"],
+             verdict=c.get("verdict"), aktion=(c.get("log") or [{}])[-1].get("event"))
 
 
-def _check_before_save(c: dict) -> None:
+# Solange set_verdict eine Quittung anwendet, steht hier ihr Hash: nur dieser eine Schreibvorgang
+# darf Urteil und Quittungsverweis ändern. Alles andere ist ein Urteil an der Prüfung vorbei.
+_VERDICT_GATE: str | None = None
+
+
+def _receipt_hash_of(c: dict | None) -> str | None:
+    ref = (c or {}).get("receipt")
+    return ref.get("hash") if isinstance(ref, dict) else None
+
+
+def _check_before_save(c: dict, disk: dict | None = None) -> None:
     if not isinstance(c, dict) or not c.get("id"):
         raise ContractError("Vertrag ohne id")
     if c.get("status") not in STATUS:
@@ -208,17 +235,18 @@ def _check_before_save(c: dict) -> None:
     probes = c.get("probes")
     if not isinstance(probes, list) or not probes or not all(isinstance(p, dict) for p in probes):
         raise ContractError("Vertrag ohne Abnahmeprobe wird nicht gespeichert")
-    disk = _read_json(_contract_file(c["id"]))
-    if disk is not None:
-        if probes != disk.get("probes"):
-            raise ContractError("Proben sind nach dem Anlegen unveränderlich")
-        if c.get("goal") != disk.get("goal"):
-            raise ContractError("Ziel ist nach dem Anlegen unveränderlich")
-    else:
-        _validate_probes(probes)
+    if disk is None:
+        disk = _read_json(_contract_file(c["id"]))
+    beschaedigt = _anker_pruefen(c, disk)
+    # Ein beschädigter Vertrag darf nur noch sein Scheitern festhalten, nie wieder bestehen.
+    if beschaedigt and not (verdict == "fail" and c["status"] == "failed"):
+        raise ContractError(f"{beschaedigt} — Proben und Ziel sind nach dem Anlegen unveränderlich; "
+                            f"dieser Vertrag ist beschädigt und nur noch als 'fail' schreibbar")
     if verdict == "not-evaluated":
         if c["status"] in FINAL_STATUS:
             raise ContractError("Status verified/failed nur mit Urteil aus einer Quittung")
+        _statuswechsel_pruefen(c, disk)
+        _urteil_gate(c, disk, verdict)
         return
     if c["status"] == "open":
         raise ContractError("Ein Vertrag mit Urteil ist nicht mehr offen")
@@ -243,6 +271,63 @@ def _check_before_save(c: dict) -> None:
     urteile = [e for e in c.get("log") or [] if isinstance(e, dict) and e.get("event") == "verdict"]
     if urteile and urteile[-1].get("receipt_hash") and urteile[-1]["receipt_hash"] != receipt["hash"]:
         raise ContractError("Urteil verweist nicht auf die zuletzt angewendete Quittung")
+    _statuswechsel_pruefen(c, disk)
+    _urteil_gate(c, disk, verdict)
+
+
+def _urteil_gate(c: dict, disk: dict | None, verdict: str) -> None:
+    """Urteil und Quittungsverweis ändert nur set_verdict — sonst setzt ein save() ein Urteil an
+    der Prüfung vorbei, ohne Replay-Sperre und ohne verbrauchte Lauf-Token (Schlussbefund 191)."""
+    if _VERDICT_GATE is not None and _receipt_hash_of(c) == _VERDICT_GATE:
+        return
+    if verdict != (disk or {}).get("verdict", "not-evaluated") or _receipt_hash_of(c) != _receipt_hash_of(disk):
+        raise ContractError("Ein Urteil wandert nur über set_verdict in den Vertrag")
+
+
+def damaged(c: dict) -> str:
+    """Leerer Text, wenn Proben und Ziel zum Anker aus new() passen; sonst der Schaden als Text.
+    Ein beschädigter Vertrag ist nur noch als 'fail' schreibbar — wer die Vertragsdatei umschreibt,
+    tauscht die Abnahmeproben nicht aus, er zerstört den Vertrag (Schlussbefund contract.py:211)."""
+    anker_p, anker_z = (c or {}).get("probes_sha256"), (c or {}).get("goal_sha256")
+    if anker_p and probes_hash((c or {}).get("probes") or []) != anker_p:
+        return "Die Proben weichen vom Anker aus new() ab"
+    if anker_z and paths.sha256_text(str((c or {}).get("goal") or "")) != anker_z:
+        return "Das Ziel weicht vom Anker aus new() ab"
+    return ""
+
+
+def _anker_pruefen(c: dict, disk: dict | None) -> str:
+    """Vergleicht Proben und Ziel gegen den Anker aus new(); gibt den Schaden als Text zurück
+    (leer, wenn alles stimmt). Ohne Anker (Verträge von Hand) bleibt der Plattenvergleich."""
+    if disk is None:
+        _validate_probes(c["probes"])
+    else:
+        for k in ("probes_sha256", "goal_sha256"):
+            if c.get(k) != disk.get(k):
+                raise ContractError("Der Anker aus new() (probes_sha256/goal_sha256) ist unveränderlich")
+    if not c.get("probes_sha256") and not c.get("goal_sha256"):
+        if disk is not None and c["probes"] != disk.get("probes"):
+            raise ContractError("Proben sind nach dem Anlegen unveränderlich")
+        if disk is not None and c.get("goal") != disk.get("goal"):
+            raise ContractError("Ziel ist nach dem Anlegen unveränderlich")
+        return ""
+    return damaged(c)
+
+
+def _statuswechsel_pruefen(c: dict, disk: dict | None) -> None:
+    """Ein Statuswechsel braucht den Log-Eintrag, der ihn deckt — sonst verschwindet ein Vertrag
+    per save() spurlos aus dem Prüfgate (Schlussbefund contract.py:191)."""
+    if disk is None or c["status"] == disk.get("status"):
+        return
+    log = c.get("log") or []
+    letzte = log[-1] if log and isinstance(log[-1], dict) else {}
+    frisch = len(log) > len(disk.get("log") or [])
+    passt = letzte.get("from") == disk.get("status") and letzte.get("to") == c["status"]
+    gedeckt = (_TRANSITIONS.get(str(letzte.get("event")), {}).get(disk.get("status")) == c["status"]
+               or (letzte.get("event") == "verdict" and _VERDICT_GATE is not None))
+    if not (frisch and passt and gedeckt):
+        raise ContractError(f"Statuswechsel {disk.get('status')!r} → {c['status']!r} ohne deckenden "
+                            f"Log-Eintrag; erlaubt sind start, block, deliver und set_verdict")
 
 
 def _newest_receipt_at(id: str) -> str | None:
@@ -253,6 +338,43 @@ def _newest_receipt_at(id: str) -> str | None:
         if data and data.get("contract_id") == id and isinstance(data.get("at"), str):
             stamps.append(data["at"])
     return max(stamps) if stamps else None
+
+
+def snapshot() -> dict:
+    """Alle Vertragsdateien so, wie sie jetzt auf Platte liegen (id → Rohtext). Grundlage dafür,
+    dass eine Shell-Probe keinen Vertrag umschreibt — auch keinen fremden."""
+    out = {}
+    for pfad in sorted(paths.contracts_dir().glob("*.json")):
+        try:
+            out[pfad.stem] = pfad.read_text(encoding="utf-8")
+        except OSError:
+            continue
+    return out
+
+
+def restore(vorher: dict) -> list[str]:
+    """Nimmt jede Änderung an den Verträgen aus `vorher` zurück (auch gelöschte); Verträge, die
+    seither neu entstanden sind, bleiben stehen. Gibt die betroffenen ids zurück, je eine Bus-Zeile.
+    Was eine Probe an Verträgen anrichtet, hält damit nicht — und zählt als contract_changed."""
+    geaendert = []
+    for id, roh in (vorher or {}).items():
+        pfad = _contract_file(id)
+        try:
+            jetzt = pfad.read_text(encoding="utf-8")
+        except OSError:
+            jetzt = None
+        if jetzt == roh:
+            continue
+        geaendert.append(id)
+        try:
+            tmp = pfad.with_name(pfad.name + ".tmp")
+            tmp.write_text(roh, encoding="utf-8")
+            os.replace(tmp, pfad)
+            zurueck = True
+        except OSError:
+            zurueck = False
+        bus.emit("contract.restore", id=id, weg=jetzt is None, wiederhergestellt=zurueck)
+    return sorted(geaendert)
 
 
 def list_open() -> list[dict]:
@@ -266,13 +388,14 @@ def list_open() -> list[dict]:
 
 
 # --- Lebenszyklus ------------------------------------------------------------------------
-def _transition(id: str, action: str, **extra) -> dict:
+def _transition(id: str, action: str, *, felder: dict | None = None, **extra) -> dict:
     c = load(id)
     ziel = _TRANSITIONS[action].get(c["status"])
     if ziel is None:
         raise ContractError(f"Übergang '{action}' aus Status '{c['status']}' nicht erlaubt")
     vorher = c["status"]
     c["status"] = ziel
+    c.update(felder or {})          # Nutzlast des Übergangs (Artefakte, Bericht): EIN Schreibvorgang
     c["log"].append({"at": paths.now_iso(), "event": action, "from": vorher, "to": ziel, **extra})
     save(c)
     bus.emit("contract.transition", id=id, action=action, **{"from": vorher, "to": ziel}, **extra)
@@ -293,18 +416,16 @@ def block(id: str, reason: str) -> dict:
 def deliver(id: str, *, artefacts: Iterable[str] = (), report: str = "") -> dict:
     """Lieferung: Status delivered. Der Bericht ist eine Behauptung, kein Urteil."""
     artefacts = [str(a) for a in artefacts]
-    c = _transition(id, "deliver", artefacts=len(artefacts), report_chars=len(report or ""))
-    c["artefacts"] = artefacts
-    c["report"] = report or ""
-    c["log"][-1]["note"] = "Bericht ist Behauptung; Urteil erst durch Quittung"
-    save(c)
-    return c
+    return _transition(id, "deliver", felder={"artefacts": artefacts, "report": report or ""},
+                       artefacts=len(artefacts), report_chars=len(report or ""),
+                       note="Bericht ist Behauptung; Urteil erst durch Quittung")
 
 
 # --- Quittung und Urteil -----------------------------------------------------------------
 def validate_receipt(receipt: dict, contract: dict | str) -> None:
     """Prüft Vollständigkeit, Zugehörigkeit, Probenläufe, Hash, Bindung an die Vertragsproben
-    (probes_hash, Anzahl und Typen der Läufe), Maskierung und innere Widerspruchsfreiheit.
+    (probes_hash, Anzahl und Typen der Läufe), das Lauf-Token jedes bestandenen Laufs,
+    Maskierung und innere Widerspruchsfreiheit.
     `contract` ist der Vertrag oder seine id (dann wird er geladen)."""
     if not isinstance(receipt, dict):
         raise ContractError("Quittung muss ein Objekt sein")
@@ -331,6 +452,8 @@ def validate_receipt(receipt: dict, contract: dict | str) -> None:
         raise ContractError("Quittung ohne Zeitstempel")
     if receipt["hash"] != receipt_hash(receipt):
         raise ContractError("Quittung: Hash stimmt nicht mit dem Inhalt überein")
+    if bus.SECRET_PATTERN.search(canonical_json(receipt)):
+        raise ContractError("Quittung enthält ein unmaskiertes Secret-Muster")
     c = contract if isinstance(contract, dict) else load(contract)
     probes = c.get("probes") or []
     if receipt["probes_hash"] != probes_hash(probes):
@@ -341,8 +464,12 @@ def validate_receipt(receipt: dict, contract: dict | str) -> None:
         if r.get("type") != (p.get("type") if isinstance(p, dict) else None):
             raise ContractError(f"Probenlauf {i} hat Typ {r.get('type')!r}, Probe {i} des Vertrags ist "
                                 f"{p.get('type') if isinstance(p, dict) else None!r}")
-    if bus.SECRET_PATTERN.search(canonical_json(receipt)):
-        raise ContractError("Quittung enthält ein unmaskiertes Secret-Muster")
+        # Der Kern: ein bestandener Lauf zählt nur, wenn probes.run ihn wirklich hat laufen lassen.
+        # Ein gescheiterter Lauf braucht kein Token — aus ihm wird nie ein „fertig".
+        if r.get("passed") is True:
+            grund = _probes.check_run_token(r, p, contract_id)
+            if grund:
+                raise ContractError(f"Probenlauf {i} gilt als bestanden, ist aber {grund}")
     if receipt["verdict"] == "pass" and not all(r["passed"] for r in runs):
         raise ContractError("Quittung widerspricht ihren Probenläufen: pass trotz gescheiterter Probe")
 
@@ -374,6 +501,11 @@ def set_verdict(id: str, receipt: dict) -> dict:
         raise ContractError("Quittung wurde bereits angewendet (Replay abgelehnt)")
     if receipt["contract_sha256"] != fingerprint(c):
         raise ContractError("Quittung veraltet: der Vertrag hat sich seit Beginn der Prüfung verändert")
+    verbraucht = [i for i, r in enumerate(receipt["probe_runs"], 1)
+                  if r.get("passed") is True and _probes.run_token_used(r)]
+    if verbraucht:
+        raise ContractError(f"Lauf-Token der Probenläufe {verbraucht} sind schon verbraucht "
+                            f"(dieselben Läufe setzen kein zweites Urteil)")
     path = write_receipt(receipt)
     verdict = receipt["verdict"]
     vorher = c["status"]
@@ -386,7 +518,13 @@ def set_verdict(id: str, receipt: dict) -> dict:
                      "verdict": verdict, "receipt": path.name, "receipt_hash": receipt["hash"],
                      "probes": len(receipt["probe_runs"]), "probes_failed": gescheitert,
                      "contract_changed": bool(receipt.get("contract_changed", False))})
-    save(c)
+    global _VERDICT_GATE
+    _VERDICT_GATE = receipt["hash"]
+    try:
+        save(c)
+    finally:
+        _VERDICT_GATE = None
+    _probes.spend_run_tokens(receipt["probe_runs"])
     bus.emit("contract.verdict", id=id, verdict=verdict, verifier=receipt["verifier"].get("kind"),
              receipt=path.name, probes=len(receipt["probe_runs"]), probes_failed=gescheitert)
     return c

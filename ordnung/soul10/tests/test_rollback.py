@@ -4,6 +4,7 @@ import json
 import os
 import shlex
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -186,29 +187,108 @@ def _argv(undo):
     return rollback.argv_chain(undo)
 
 
-def test_infer_dateisystem_rueckwege_sind_python_und_treffen_nur_neues(tmp_path, monkeypatch):
+def test_infer_dateisystem_rueckwege_sind_python_einzeiler(tmp_path, monkeypatch):
+    """Form des Rückwegs (Argumentliste unter PY -c); WAS er trifft, prüfen die Tests darunter
+    durch Ausführen — ein Substring auf dem erzeugten String prüft die Implementierung gegen
+    sich selbst und wäre grün geblieben, während der Rückweg im falschen Verzeichnis löscht."""
     monkeypatch.chdir(tmp_path)
     r = rollback.infer_from_bash("cp a.txt b.txt")
     assert r["kind"] == "file" and r["description"] == "cp a.txt b.txt" and set(r) == {"kind", "description", "undo"}
-    assert _argv(r["undo"])[0][:2] == [rollback.PY, "-c"] and "b.txt" in r["undo"] and "os.remove" in r["undo"]
-    r = rollback.infer_from_bash("cp -r src dst_copy")
-    assert "rmtree" in r["undo"] and "dst_copy" in r["undo"]
-    r = rollback.infer_from_bash("mv alt.txt neu.txt")
-    assert "shutil.move" in r["undo"] and r["undo"].index("neu.txt") < r["undo"].index("alt.txt")
-    # mkdir -p: genau die neuen Ebenen, tiefste zuerst; ein vorhandenes Verzeichnis ergibt nichts.
-    r = rollback.infer_from_bash("mkdir -p build/out")
-    assert "os.rmdir" in r["undo"] and r["undo"].index("build/out") < r["undo"].index("'build'")
+    assert _argv(r["undo"])[0][:2] == [rollback.PY, "-c"] and "os.remove" in r["undo"]
+    assert "rmtree" in rollback.infer_from_bash("cp -r src dst_copy")["undo"]
+    assert "shutil.move" in rollback.infer_from_bash("mv alt.txt neu.txt")["undo"]
+    assert "os.rmdir" in rollback.infer_from_bash("mkdir -p build/out")["undo"]
     (tmp_path / "da").mkdir()
     assert rollback.infer_from_bash("mkdir da") is None and rollback.infer_from_bash("mkdir -p da") is None
-    r = rollback.infer_from_bash("mkdir -p da/neu")
-    assert r["undo"].count("os.rmdir") == 1 and "da/neu" in r["undo"]
-    # Der Rückweg läuft und räumt genau das weg, was der Befehl anlegte.
-    (tmp_path / "build" / "out").mkdir(parents=True)
-    p = rollback.register("file", "mkdir -p build/out", undo=rollback.infer_from_bash("mkdir -p build/out") and "x" or None)
-    assert p["needs_confirmation"] is True  # der Baum existiert jetzt: kein neuer Rückweg mehr ableitbar
-    undo = rollback._rmdir_command([str(tmp_path / "build" / "out"), str(tmp_path / "build")])
-    q = rollback.register("file", "mkdir -p build/out", undo=undo)
-    assert rollback.undo(q["id"])["status"] == "undone" and not (tmp_path / "build").exists()
+    assert rollback.infer_from_bash("mkdir -p da/neu")["undo"].count("os.rmdir") == 1
+
+
+def test_mkdir_rueckweg_entfernt_nur_die_neuen_ebenen_tiefste_zuerst(tmp_path, monkeypatch):
+    """Ausgeführt, nicht gelesen: die falsche Reihenfolge scheiterte an ENOTEMPTY, ein zu weiter
+    Rückweg nähme das vorhandene Verzeichnis mit."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "da").mkdir()
+    (tmp_path / "da" / "fremd.txt").write_text("gehoert jemand anderem", encoding="utf-8")
+    p = rollback.register("file", "mkdir -p da/neu/tief", undo=rollback.infer_from_bash("mkdir -p da/neu/tief")["undo"])
+    (tmp_path / "da" / "neu" / "tief").mkdir(parents=True)   # das tut der Befehl
+    assert rollback.undo(p["id"])["status"] == "undone"
+    assert not (tmp_path / "da" / "neu").exists()            # beide neuen Ebenen weg
+    assert (tmp_path / "da" / "fremd.txt").exists()          # das Vorhandene bleibt
+
+
+def test_abgeleiteter_rueckweg_ist_im_ableitungsverzeichnis_verankert(tmp_path, monkeypatch):
+    """Prüfbefund hoch (Schlussprüfung): der Rückweg trug die Pfade relativ. Abgeleitet wird im
+    Hook-Prozess, ausgeführt wird später in einem anderen Verzeichnis — dort traf os.remove /
+    shutil.rmtree / os.rmdir den gleichnamigen fremden Pfad, und der Posten meldete 'undone'."""
+    a, b = tmp_path / "projektA", tmp_path / "projektB"
+    a.mkdir(), b.mkdir()
+    (a / "quelle.txt").write_text("neu", encoding="utf-8")
+    (a / "src").mkdir()
+    monkeypatch.chdir(a)
+    kopie = rollback.register_from_bash("cp quelle.txt bericht.txt")
+    baum = rollback.register_from_bash("cp -r src sicherung")
+    ebene = rollback.register_from_bash("mkdir -p ablage/unter")
+    # das tut der Befehl in A
+    (a / "bericht.txt").write_text("das hat cp angelegt", encoding="utf-8")
+    (a / "sicherung").mkdir()
+    (a / "ablage" / "unter").mkdir(parents=True)
+    assert Path(kopie["evidence"]["cwd"]).resolve() == a.resolve()   # das Verzeichnis steht im Posten
+
+    # Der Rückbau läuft später anderswo — und dort sind dieselben Namen vergeben.
+    monkeypatch.chdir(b)
+    (b / "bericht.txt").write_text("fremde Datei in Projekt B", encoding="utf-8")
+    (b / "sicherung" / "tief").mkdir(parents=True)
+    (b / "sicherung" / "tief" / "wichtig.txt").write_text("fremde Daten", encoding="utf-8")
+    (b / "ablage" / "unter").mkdir(parents=True)
+    for posten in (kopie, baum, ebene):
+        assert rollback.undo(posten["id"])["status"] == "undone", posten["description"]
+    assert (b / "bericht.txt").read_text(encoding="utf-8") == "fremde Datei in Projekt B"
+    assert (b / "sicherung" / "tief" / "wichtig.txt").exists()
+    assert (b / "ablage" / "unter").exists()
+    # und in A ist genau das weg, was die Befehle anlegten
+    assert not (a / "bericht.txt").exists() and not (a / "sicherung").exists()
+    assert not (a / "ablage").exists() and (a / "quelle.txt").exists()
+
+
+def test_verankerung_folgt_dem_cd_und_gibt_ohne_verzeichnis_keinen_rueckweg(tmp_path, monkeypatch):
+    """`cd` in der Kette gehört zum Verzeichnis des Befehls; ein cd-Ziel aus einer Variablen
+    lässt sich nicht verankern → Posten mit Bestätigungspflicht statt eines Rückwegs, der
+    irgendwo löscht."""
+    unter = tmp_path / "unterbau"
+    unter.mkdir()
+    monkeypatch.chdir(tmp_path)
+    r = rollback.infer_from_bash("cd unterbau && cp a.txt b.txt")
+    p = rollback.register("file", "cp", undo=r["undo"])
+    (tmp_path / "b.txt").write_text("nicht anfassen", encoding="utf-8")
+    (unter / "b.txt").write_text("das hat cp angelegt", encoding="utf-8")
+    assert rollback.undo(p["id"])["status"] == "undone"
+    assert not (unter / "b.txt").exists() and (tmp_path / "b.txt").exists()
+    # Ziel aus einer Variablen: kein abgeleiteter Rückweg mehr, sondern Bestätigungspflicht.
+    ohne = rollback.register_from_bash("cd $ZIEL && cp a.txt b.txt")
+    assert ohne["undo"] is None and ohne["needs_confirmation"] is True
+
+
+def test_abgeleiteter_rueckweg_loescht_keine_fremde_arbeit(tmp_path, monkeypatch):
+    """Prüfbefund hoch (a7): der Posten entsteht VOR der Handlung. Scheitert der Befehl und
+    entsteht der gleiche Name später von Hand, löschte der Rückweg fremde Arbeit und meldete
+    'undone'. Jetzt zählt das Zeitfenster des Befehls: davor und lange danach → undo_failed."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(rollback, "_jetzt", lambda: time.time() - 3 * 3600)  # Posten von vor drei Stunden
+    p = rollback.register_from_bash("cp fehlt.txt bericht.txt")
+    # der Befehl scheitert (Quelle fehlt); drei Stunden später legt jemand die Datei von Hand an
+    (tmp_path / "bericht.txt").write_text("Arbeit von Hand, drei Stunden", encoding="utf-8")
+    r = rollback.undo(p["id"])
+    assert r["status"] == "undo_failed" and "fremde Arbeit" in (r["undo_error"] or "")
+    assert (tmp_path / "bericht.txt").read_text(encoding="utf-8") == "Arbeit von Hand, drei Stunden"
+    # Und was schon vor dem Posten dalag, wird ebenso wenig gelöscht.
+    alt = tmp_path / "alt.txt"
+    alt.write_text("aelter als der Posten", encoding="utf-8")
+    q = rollback.register("file", "cp x alt.txt",
+                          undo=rollback._remove_command([str(alt)], recursive=False,
+                                                        not_before=time.time() + 60))
+    r2 = rollback.undo(q["id"])
+    assert r2["status"] == "undo_failed" and "aelter als der Posten" in (r2["undo_error"] or "")
+    assert alt.exists()
 
 
 def test_cp_und_mv_ueber_bestehendes_ziel_erfinden_keinen_rueckweg(tmp_path, monkeypatch):
@@ -216,7 +296,7 @@ def test_cp_und_mv_ueber_bestehendes_ziel_erfinden_keinen_rueckweg(tmp_path, mon
     (tmp_path / "a.txt").write_text("neu", encoding="utf-8")
     (tmp_path / "b.txt").write_text("alter Inhalt von b", encoding="utf-8")
     r = rollback.infer_from_bash("cp a.txt b.txt")
-    assert r["undo"] is None and r["overwrites"] == ["b.txt"]
+    assert r["undo"] is None and r["overwrites"] == [str(tmp_path / "b.txt")]
     # register_from_bash sichert b.txt byte-genau; nach dem cp stellt undo den Vorzustand her.
     p = rollback.register_from_bash("cp a.txt b.txt", evidence={"tool": "Bash"})
     assert p["kind"] == "file" and p["needs_confirmation"] is False and p["evidence"]["existed"] is True
@@ -231,16 +311,16 @@ def test_cp_und_mv_ueber_bestehendes_ziel_erfinden_keinen_rueckweg(tmp_path, mon
     (tmp_path / "dir").mkdir()
     (tmp_path / "dir" / "a.txt").write_text("im dir", encoding="utf-8")
     r = rollback.infer_from_bash("cp a.txt dir/")
-    assert r["overwrites"] == ["dir/a.txt"]
+    assert r["overwrites"] == [str(tmp_path / "dir" / "a.txt")]
     # cp -r in ein bestehendes Verzeichnis legt ziel/src an: echter Rückweg (ziel/src entfernen).
     (tmp_path / "src").mkdir()
     (tmp_path / "ziel").mkdir()
     r = rollback.infer_from_bash("cp -r src ziel")
-    assert r["undo"] and "ziel/src" in r["undo"] and "rmtree" in r["undo"]
+    assert r["undo"] and str(tmp_path / "ziel" / "src") in r["undo"] and "rmtree" in r["undo"]
     # Liegt dort schon ein Verzeichnis dieses Namens, gibt es keine Sicherung → Bestätigungspflicht.
     (tmp_path / "ziel" / "src").mkdir()
     r = rollback.infer_from_bash("cp -r src ziel")
-    assert r["undo"] is None and r["overwrites"] == ["ziel/src"]
+    assert r["undo"] is None and r["overwrites"] == [str(tmp_path / "ziel" / "src")]
     ohne = rollback.register_from_bash("cp -r src ziel")
     assert ohne["needs_confirmation"] is True and "überschreibt" in ohne["description"]
 

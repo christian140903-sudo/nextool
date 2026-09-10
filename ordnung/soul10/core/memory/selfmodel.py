@@ -7,7 +7,9 @@ Erz → Gold: SOUL.md und der ANIMA-Kernel deklarierten eine Persona, fertig am 
 D049). Hier gibt es keinen Persona-Text: ein `self`-Eintrag entsteht als Kandidat, zählt seine
 Belege über derived_from (Episoden, Sitzungen) und wird erst mit ≥ 2 Episoden aus ≥ 2 Sitzungen
 aktiv; alles darunter steht sichtbar als „Hypothese über mich". Der Name kommt von außen — der
-Kern bleibt namensoffen (R05 §3.6 Nr. 6).
+Kern bleibt namensoffen (R05 §3.6 Nr. 6). Eine Episode belegt höchstens einen Zug — seit der
+Schlussprüfung (2026-09-10) rechnet auch render() diese Vergabe, sonst führten beliebig viele
+Kandidaten dieselben zwei, schon vergebenen Belege als „2/2" im Briefing.
 
 Bezeichner englisch (evidence, promote_eligible, render nach ARCHITEKTUR 4.6), Kommentare deutsch.
 """
@@ -78,7 +80,8 @@ def _belegt(ev: dict, *, min_episodes: int, min_sessions: int) -> bool:
 
 def promote_eligible(*, min_episodes: int = MIN_EPISODES, min_sessions: int = MIN_SESSIONS) -> list[str]:
     """Selbst-Kandidaten mit Belegschwelle → active. Der einzige Weg, auf dem ein Zug aktiv wird
-    (außer Hand-Übergang im Hauptbuch, den render() dann trotzdem nur als Hypothese zeigt)."""
+    (außer Hand-Übergang im Hauptbuch; render() zeigt einen Zug ohne freie Belege dann als
+    Hypothese — dieselbe Vergabe rechnet render() seit der Schlussprüfung 2026-09-10 selbst)."""
     promoted: list[str] = []
     vergeben = _vergebene_belege()
     for cand in _self_entries("candidate"):
@@ -106,20 +109,28 @@ def render(*, name: str | None = None, max_lines: int = 15) -> str:
     Deklariert nichts: ein aktiver self-Eintrag, dessen Belege unter der Schwelle liegen, wird
     als Hypothese gezeigt, nicht als Zug. Ohne Einträge steht eine Zeile „noch keine belegten Züge".
     Nie mehr als max_lines Zeilen; gekürzt werden zuerst die Hypothesen, dann die Züge, nie der Kopf.
+
+    Eine Episode belegt auch hier höchstens einen Zug (Prüfbefund C2): die Vergabe läuft in der
+    Reihenfolge der Einträge, jeder belegte Zug nimmt seine Episoden aus dem Vorrat. Ohne diese
+    Rechnung führten drei Kandidaten dieselben zwei, schon vergebenen Episoden je als „Belege 2/2"
+    im Briefing, und vier von Hand aktivierte Züge standen als voll belegt da
+    (Schlussprüfung 2026-09-10).
     """
     header = f"# Selbstmodell: {(name or '').strip() or NAMELESS}"
     traits: list[tuple[float, int, str]] = []
     hypotheses: list[tuple[int, int, str]] = []
     unbelegt_aktiv = 0
+    vergeben: set[str] = set()
     for entry in _self_entries("active"):
-        ev = evidence(entry)
+        ev = evidence(entry, vergeben=vergeben)
         if _belegt(ev, min_episodes=MIN_EPISODES, min_sessions=MIN_SESSIONS):
             traits.append((-float(entry["trust"]), -ev["episodes"], ledger.render(entry)))
+            vergeben.update(str(r) for r in entry.get("derived_from") or [])
         else:
             unbelegt_aktiv += 1
             hypotheses.append((-ev["episodes"], -ev["sessions"], _hypothesis_line(entry, ev)))
     for entry in _self_entries("candidate"):
-        ev = evidence(entry)
+        ev = evidence(entry, vergeben=vergeben)
         hypotheses.append((-ev["episodes"], -ev["sessions"], _hypothesis_line(entry, ev)))
     traits.sort()
     hypotheses.sort()

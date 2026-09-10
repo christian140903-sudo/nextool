@@ -92,3 +92,22 @@ def test_bus_rotation_ueberschreibt_sich_nicht_in_derselben_sekunde(monkeypatch)
     zeilen = sum(len(d.read_text(encoding="utf-8").splitlines()) for d in dateien)
     zeilen += len(paths.bus_file().read_text(encoding="utf-8").splitlines())
     assert zeilen == 12  # keine Zeile verloren
+
+
+def test_rotationsname_wird_belegt_nicht_geraten():
+    """Prüfbefund niedrig (Schlussprüfung): _rotation_name prüfte mit exists() und emit() benannte
+    danach um — zwei Schritte. Zwei Prozesse in derselben Sekunde wählten denselben Namen, und
+    das zweite rename überschrieb die schon rotierte Datei des ersten. Der Name wird jetzt mit
+    O_CREAT|O_EXCL belegt, also kann ihn kein zweiter mehr bekommen."""
+    ziel = paths.bus_file()
+    ziel.write_text("".join(f'{{"n": {i}}}\n' for i in range(5)), encoding="utf-8")
+    name_a = bus._rotation_name(ziel)          # Prozess A wählt den Namen …
+    name_b = bus._rotation_name(ziel)          # … Prozess B in derselben Sekunde
+    assert name_a != name_b
+    # Erzwungene Verschränkung mit echten Funktionen: B rotiert vollständig, dann rennt A.
+    ziel.rename(name_b)
+    assert len(name_b.read_text(encoding="utf-8").splitlines()) == 5
+    ziel.write_text('{"n": "neu nach B"}\n', encoding="utf-8")
+    ziel.rename(name_a)
+    assert len(name_b.read_text(encoding="utf-8").splitlines()) == 5   # B's Zeilen sind noch da
+    assert name_a.read_text(encoding="utf-8").strip() == '{"n": "neu nach B"}'

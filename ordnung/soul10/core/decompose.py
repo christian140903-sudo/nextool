@@ -5,22 +5,32 @@ bricht sie auf 28 % ein, Ursache ist die mehrdeutige Anweisung an der Naht, nich
 Randwert (ohne Randwert 20 %); lässt das Modell zusammenfügen, 33 %
 (bewusstsein/uebergabe/01-BEFUNDE.md B5). M2 (2026-09-08, ZERLEGT_NAHT in
 bewusstsein/harness/zerlegung.py): das Nahtprotokoll hebt die randabhängige Bedingung auf 72 %
-gegen 43 % ohne Protokoll — ein einzelner Agent liegt aber bei 94 %; sauber teilbar 100 % gegen
+gegen 33,3 % ohne Protokoll — ein einzelner Agent liegt aber bei 94 %; sauber teilbar 100 % gegen
 83–89 %. Der Verlust einer unsauberen Naht meldet sich nicht: das Ergebnis sieht plausibel aus
 und ist falsch. Adversariale Prüfung (2026-09-08, a1/a2/a3): 56 von 58 Alltagsformulierungen
 außerhalb der Wortliste gingen als „zerlegen" durch und lieferten mit exakt rechnendem Arbeiter
 5 statt 1 bzw. 4 statt 2 — ohne Meldung; ein Arbeiterwert 12 auf einem Ausschnitt von 3 floss
-ungeprüft in die Summe.
+ungeprüft in die Summe. Schlussprüfung (2026-09-10, a1/a5): die Gegenmaßnahme schoss über —
+23 von 40 sauber teilbaren Alltagsbedingungen (57 %) wurden als listenweit abgelehnt, darunter
+„Zaehle alle Zahlen in der Liste, die durch 3 teilbar sind"; jeder solche Fehlalarm kostet die
+Zerlegung (100 %) und gibt die Aufgabe an einen Agenten (94 %, über EINZELN_MAX_ZEICHEN 83–89 %).
+Und die Plausibilitätsprüfung winkte „Es sind 2 von 3." als 3 durch (die letzte Zahl ist dort der
+Nenner): Liste 1..6, „gerade" → 6 statt 3, missing 0, keine Meldung. Beides ist geschlossen; die
+listenweiten Muster stehen jetzt einzeln benannt und an ein Listenwort gebunden (0 von 40
+Fehlalarmen, 58 von 58 Alltagsformulierungen weiter erkannt).
 Erz → Gold: 06-AUFTRAG §6.4 wollte eine Zerlegungsfunktion, die Nahtstellen eindeutig macht;
 zerlegung._teil_frage_naht ist der gemessene Wortlaut. Hier steht derselbe Text als
 Produktbaustein — plus die Regel DAVOR, die aus M2 folgt: Kumulations- oder listenweiter Bezug →
 Verweigerung, Nachbar-/Positionsbezug → ein Agent (Zerlegung mit Nahtprotokoll nur per
-force=True, wenn die Aufgabe in keinen Kontext passt: dann sind 72 % besser als 43 %), sonst
+force=True, wenn die Aufgabe in keinen Kontext passt: dann sind 72,2 % besser als 33,3 %), sonst
 zerlegen ohne Protokoll. Die Fehlkosten sind asymmetrisch (übersehene Abhängigkeit = leise
 falsche Zahl; zu Unrecht erkannte = nur verlorene Parallelität), darum greift die Prüfung im
-Zweifel zu und nicht daneben. Die Zusammenführung DANACH geschieht im Code, nie im Modell, und
-nimmt nur plausible Anzahlen (ganzzahlig, 0 ≤ Anzahl ≤ Ausschnittlänge). Jede Entscheidung
-schreibt eine Bus-Zeile.
+Zweifel zu und nicht daneben — aber nur dort, wo überhaupt ein Bezug auf ANDERE Listenelemente
+steht. Ein Wort ohne solchen Bezug („am Ende", „doppelt", „Anzahl von", „alle Zahlen in der
+Liste") ist kein Zweifelsfall, sondern ein Fehlalarm, und er kostet 100 % gegen 94 %. Die
+Zusammenführung DANACH geschieht im Code, nie im Modell, und nimmt nur plausible Anzahlen
+(ganzzahlig, 0 ≤ Anzahl ≤ Ausschnittlänge; „2 von 3" ist der Bruch 2, nicht die Anzahl 3).
+Jede Entscheidung schreibt eine Bus-Zeile.
 """
 from __future__ import annotations
 
@@ -81,65 +91,124 @@ CUMULATIVE_RE = re.compile(
     r"|gr(?:ö|oe)(?:ß|ss)te[nrs]?|kleinste[nrs]?|largest|smallest|highest|lowest)\b",
     re.IGNORECASE,
 )
-# Listenweit (a1, 2026-09-08): alles, was die Naht nicht trägt, weil es die ganze Liste oder
-# mehr als den einen Randwert braucht — Superlative und Ränge („zweitgrößte", „the biggest",
-# „top three"), Anteile („obere Hälfte", „second half", „above the mean"), Aggregate („Summe der
-# Liste", „count of", „total"), Häufigkeit („kommt doppelt vor", „occurs twice", „already
-# appeared"), Quantor plus Bezug („alle anderen", „every other", „alle Zahlen davor", „sum of all
-# previous"), Reichweite über die Naht („hintereinander", „in a row", „consecutive", „übernächste"),
-# Musterpositionen („jede zweite", „odd-indexed", „am Ende", „in the middle") und lose
-# Nachbarwörter („vorher", „dahinter", „before it", „prior", „folgt"). Im Zweifel nicht zerlegen.
+# Listenweit (a1, 2026-09-08; nachgeschärft nach der Schlussprüfung 2026-09-10): alles, was die
+# Naht nicht trägt, weil es die ganze Liste oder mehr als den einen Randwert braucht — Superlative
+# und Ränge („zweitgrößte", „the biggest", „top three"), Anteile („obere Hälfte", „second half of
+# the list"), Aggregate ÜBER DIE LISTE („Summe der Liste", „count of even numbers"), Häufigkeit
+# („kommt doppelt vor", „occurs twice", „already appeared"), Quantor plus Bezug („alle anderen",
+# „every other"), Reichweite über die Naht („hintereinander", „in a row", „übernächste"),
+# Musterpositionen („jede zweite", „odd-indexed", „am Ende DER LISTE") und lose Nachbarwörter
+# („vorher", „dahinter", „before it", „prior", „folgt").
+#
+# Was hier NICHT hingehört (Schlussprüfung, Befund 1: 23 von 40 sauber teilbaren Alltagsbedingungen
+# wurden abgelehnt, 57 % Fehlalarm): Wörter, die eine Zahl-Eigenschaft benennen und keinen Bezug auf
+# andere Listenelemente tragen — „eine gerade Anzahl von Ziffern", „doppelt so groß wie 20", „eine 0
+# am Ende", „die Hälfte von 50", „das Produkt von zwei Primzahlen", „mindestens einmal die Ziffer 5",
+# „in der Mitte eine 0", „insgesamt drei Ziffern" — und die bloße Anrede der Gesamtliste („alle Zahlen
+# in der Liste", „in der gesamten Liste"), die nur sagt, worüber gezählt wird, nicht wovon der
+# einzelne Treffer abhängt. Ein Fehlalarm ist nicht gratis: er kostet die Zerlegung (100 %) und
+# schickt die Aufgabe an einen Agenten (94 %, über EINZELN_MAX_ZEICHEN 83–89 %). Darum sind diese
+# Wörter an ein Listenwort gebunden („am Ende DER LISTE", „Anzahl DER ZAHLEN", „sum of ALL previous")
+# statt kontextlos gelistet.
 _QUANTOR = r"(?:alle[rnms]?|jede[rsnm]?|s(?:ä|ae)mtliche[rnms]?|all|every|any|each)"
 _BEZUG = (r"(?:andere[nrsm]?|other|others|(?:ü|ue)brige[nrsm]?|restliche[nrsm]?|remaining"
           r"|preceding|previous|prior|following|subsequent|earlier|later|before|after"
           r"|davor|danach|zuvor|vorher|nachher|dahinter|vorangehende[nrsm]?|vorherige[nrsm]?"
-          r"|vorhergehende[nrsm]?|folgende[nrsm]?|nachfolgende[nrsm]?|elemente|elements"
-          r"|zahlen\s+(?:der|in\s+der|dieser|aus\s+der)\s+liste|numbers\s+(?:in|of)\s+the\s+list"
-          r"|werte\s+(?:der|in\s+der)\s+liste|values\s+(?:in|of)\s+the\s+list)")
-GLOBAL_RE = re.compile(
-    # Superlative, Ränge, Extremwerte
-    r"\b(?:(?:zweit|dritt|viert|f(?:ü|ue)nft|second|third|fourth|fifth)[- ]?"
-    r"(?:gr(?:ö|oe)(?:ß|ss)te|kleinste|h(?:ö|oe)chste|niedrigste|largest|smallest|biggest|greatest"
-    r"|highest|lowest)\w*"
-    r"|biggest|greatest|highest|lowest|largest|smallest|maximal\w*|minimal\w*|\bmax\b|\bmin\b"
-    r"|h(?:ö|oe)chste[nrs]?|niedrigste[nrs]?|top\s+(?:\d+|three|five|ten|drei|f(?:ü|ue)nf|zehn|n)"
-    r"|in\s+the\s+top|unter\s+den\s+(?:top|obersten|ersten|besten)"
-    # Anteile und Mittel
-    r"|h(?:ä|ae)lfte\w*|\bhalf\b|drittel|viertel|quarter|third\s+of|prozent\s+(?:der|aller)"
-    r"|percent(?:ile)?\s+of|\d+\s*%\s+(?:der|aller|of)|(?:ü|ue)ber\s+dem\s+(?:schnitt|mittel)"
-    r"|unter\s+dem\s+(?:schnitt|mittel)|schnitt\b|mittel\b|\bmean\b|median\w*|quantil\w*"
-    # Aggregate über die Liste
-    r"|summe\s+(?:der|aller|von|des|dieser)|sum\s+of|produkt\s+(?:der|aller|von)|product\s+of"
-    r"|anzahl\s+(?:der|aller|von)|count\s+of|number\s+of|\btotal\b|gesamt\w*|insgesamt"
-    # Häufigkeit und Vorkommen
-    r"|doppelt\w*|zweimal|dreimal|mehrmals|mehrfach|\beinmal\b|twice|thrice|\bonce\b|occur\w*"
-    r"|appear\w*|erschein\w*|vorkomm\w*|komm\w*\s+(?:\w+\s+){0,2}?vor\b|\bschon\b|\bbereits\b"
-    r"|already|fr(?:ü|ue)her|sp(?:ä|ae)ter|earlier|\blater\b|h(?:ä|ae)ufig\w*|frequen\w*"
-    r"|(?:ü|ue)berhaupt|elsewhere|anderswo|woanders"
-    # Quantor plus Bezug; Rest/Übrige
-    + r"|" + _QUANTOR + r"\s+(?:\w+\s+)?" + _BEZUG +
-    r"|the\s+(?:rest|others|remaining)|die\s+(?:anderen|(?:ü|ue)brigen|restlichen)|der\s+rest"
-    r"|(?:ü|ue)brigen|other\s+numbers|anderen\s+zahlen"
-    # Reichweite über die Naht hinaus
-    r"|hintereinander|nebeneinander|nacheinander|in\s+a\s+row|in\s+folge|consecutive\w*"
-    r"|aufeinanderfolgend\w*|successi\w*|run\s+of|streak|(?:ü|ue)bern(?:ä|ae)chste[nrs]?|vorvorige\w*"
-    r"|vorletzte\w*|(?:zwei|drei|two|three)\s+(?:positionen|stellen|pl(?:ä|ae)tze|positions|places|steps)"
-    r"\s+(?:davor|danach|vorher|nachher|weiter|vor|nach|zur(?:ü|ue)ck|before|after|back|ahead|earlier|later|prior)"
-    r"|beiden\s+(?:vorangehenden|vorherigen|folgenden|nachfolgenden|n(?:ä|ae)chsten)"
-    r"|the\s+(?:two|three)\s+(?:preceding|previous|prior|following|next)"
-    # Musterpositionen
-    r"|jede[rsn]?\s+(?:zweite|dritte|vierte|f(?:ü|ue)nfte|n-?te|\d+\.)"
-    r"|every\s+(?:second|third|fourth|fifth|nth|\d+(?:st|nd|rd|th))"
-    r"|(?:odd|even|ungerade|gerade)[- ]?(?:indexed|indizierte?[nrs]?|numbered|positioned)"
-    r"|am\s+(?:ende|anfang|schluss)|at\s+the\s+(?:end|beginning|start|middle)|in\s+der\s+mitte"
-    r"|in\s+the\s+middle|mittlere[nrs]?|\bmiddle\b|zentrum|center|centre"
-    # lose Nachbarwörter, die die Wortliste nicht kannte
-    r"|\bvorher\b|\bnachher\b|\bdahinter\b|\blinks\b|\brechts\b|before\s+(?:it|that|them|this)"
-    r"|after\s+(?:it|that|them|this)|the\s+(?:number|value|element|one)\s+(?:before|after)"
-    r"|\bprior\b|\bsubsequent\b|\bfolgt\b|vorausgeh\w*|\bvoraus\b|nachsteh\w*|vorsteh\w*"
-    r")\b",
-    re.IGNORECASE,
+          r"|vorhergehende[nrsm]?|folgende[nrsm]?|nachfolgende[nrsm]?|elemente|elements)")
+# Wörter, die eine Liste benennen — sie binden die Aggregat- und Randmuster an einen echten
+# Listenbezug, statt sie auf jede Zahl-Eigenschaft feuern zu lassen.
+_LISTE_DE = r"(?:liste|reihe|folge|menge|zahlenreihe|datenreihe|eingabe|gesamtliste)"
+_LISTE_EN = r"(?:list|sequence|series|array|row|set|data|input)"
+_DINGE_DE = r"(?:zahlen|werte|elemente|eintr(?:ä|ae)ge|posten|daten)"
+_DINGE_EN = r"(?:numbers|values|elements|entries|items|records)"
+
+# Jede Alternative steht einzeln, mit Namen: der Test prüft, dass jede von ihnen mindestens ein
+# eigenes Beispiel trägt, das keine andere trifft — eine Alternative ohne solches Beispiel ist
+# entweder tot oder ein reiner Fehlalarmgeber und gehört gelöscht (Schlussprüfung, Befund 7:
+# 90 von 119 Alternativen ließen sich löschen, ohne dass ein Test rot wurde).
+_GLOBAL_PARTS = (
+    # --- Superlative, Ränge, Extremwerte ---
+    ("ordnungssuperlativ",
+     r"(?:zweit|dritt|viert|f(?:ü|ue)nft|second|third|fourth|fifth)[- ]?"
+     r"(?:gr(?:ö|oe)(?:ß|ss)te|kleinste|h(?:ö|oe)chste|niedrigste|largest|smallest|biggest|greatest"
+     r"|highest|lowest)\w*"),
+    ("superlativ_en", r"biggest|greatest|highest|lowest|largest|smallest"),
+    ("extremwert", r"maximal\w*|minimal\w*|\bmax\b|\bmin\b|h(?:ö|oe)chste[nrs]?|niedrigste[nrs]?"),
+    ("top_n", r"top\s+(?:\d+|three|five|ten|drei|f(?:ü|ue)nf|zehn|n)|in\s+the\s+top"
+              r"|unter\s+den\s+(?:top|obersten|ersten|besten)"),
+    # --- Anteile und Mittel (an die Liste gebunden: „obere Hälfte", nicht „die Hälfte von 50") ---
+    ("anteil_de",
+     r"(?:obere|untere|erste|zweite|dritte|letzte|besse?re|schlechtere)[nrs]?\s+"
+     r"(?:h(?:ä|ae)lfte|drittel|viertel)"
+     r"|(?:h(?:ä|ae)lfte|drittel|viertel)\s+(?:der|aller|des|dieser)\s+(?:\w+\s+){0,2}?"
+     + _LISTE_DE + r"|(?:h(?:ä|ae)lfte|drittel|viertel)\s+aller\s+" + _DINGE_DE),
+    ("anteil_en",
+     r"(?:upper|lower|first|second|third|last|top|bottom|better|worse)\s+(?:half|third|quarter)"
+     r"|(?:half|third|quarter)\s+of\s+(?:all|the\s+(?:\w+\s+){0,2}?(?:" + _LISTE_EN + r"|" + _DINGE_EN + r"))"),
+    ("mittelwert",
+     r"(?:ü|ue)ber\s+dem\s+(?:schnitt|mittel)|unter\s+dem\s+(?:schnitt|mittel)|schnitt\b|mittel\b"
+     r"|\bmean\b|median\w*|quantil\w*"),
+    ("prozent", r"prozent\s+(?:der|aller)|percent(?:ile)?\s+of|\d+\s*%\s+(?:der|aller|of)"),
+    # --- Aggregate ÜBER DIE LISTE (nicht über zwei genannte Zahlen) ---
+    ("summe_liste",
+     r"summe\s+(?:der|aller|des|dieser)|sum\s+of\s+(?:all|every|the\s+(?:\w+\s+){0,2}?"
+     r"(?:" + _LISTE_EN + r"|" + _DINGE_EN + r"|previous|preceding|prior|others?|rest))"),
+    ("produkt_liste",
+     r"produkt\s+(?:der|aller)|product\s+of\s+(?:all|the\s+(?:\w+\s+){0,2}?"
+     r"(?:" + _LISTE_EN + r"|" + _DINGE_EN + r"|others?|rest))"),
+    ("anzahl_liste",
+     r"anzahl\s+(?:der|aller)\s+(?:\w+\s+){0,2}?(?:" + _DINGE_DE + r"|" + _LISTE_DE + r")"
+     r"|(?:count|number)\s+of\s+(?:\w+\s+){0,2}?(?:" + _DINGE_EN + r"|" + _LISTE_EN + r")"),
+    # --- Häufigkeit und Vorkommen (wie oft etwas in der Liste steht) ---
+    # „vorkommen" allein ist elementlokal („in denen die Ziffer 7 vorkommt"); erst mit einer
+    # Häufigkeit davor oder dahinter ist es ein Listenbezug („zweimal in der Liste vorkommen").
+    ("vorkommen",
+     r"occur\w*|appear\w*|erschein\w*|komm\w*\s+(?:\w+\s+){0,2}?vor\b"
+     r"|(?:doppelt|zweimal|dreimal|mehrfach|mehrmals|(?:ö|oe)fter|h(?:ä|ae)ufiger)"
+     r"\s+(?:\w+\s+){0,3}?vorkomm\w*"
+     r"|vorkomm\w*\s+(?:\w+\s+){0,2}?(?:doppelt|zweimal|dreimal|mehrfach|mehrmals)"
+     r"|h(?:ä|ae)ufig\w*|frequen\w*|wie\s+oft|how\s+often"),
+    ("schon_dagewesen", r"\bschon\b|\bbereits\b|already"),
+    ("zeitbezug", r"fr(?:ü|ue)her|sp(?:ä|ae)ter|earlier|\blater\b"),
+    ("anderswo", r"(?:ü|ue)berhaupt|elsewhere|anderswo|woanders"),
+    # --- Quantor plus Bezug; Rest/Übrige ---
+    ("quantor_bezug", _QUANTOR + r"\s+(?:\w+\s+)?" + _BEZUG),
+    ("rest", r"the\s+(?:rest|others|remaining)|die\s+(?:anderen|(?:ü|ue)brigen|restlichen)|der\s+rest"
+             r"|(?:ü|ue)brigen|other\s+numbers|anderen\s+zahlen"),
+    # --- Reichweite über die Naht hinaus ---
+    ("reihenfolge_lauf",
+     r"hintereinander|nebeneinander|nacheinander|in\s+a\s+row|in\s+folge|consecutive\w*"
+     r"|aufeinanderfolgend\w*|successi\w*|run\s+of|streak"),
+    ("uebernaechste", r"(?:ü|ue)bern(?:ä|ae)chste[nrs]?|vorvorige\w*|vorletzte\w*"),
+    ("n_positionen_weiter",
+     r"(?:zwei|drei|two|three)\s+(?:positionen|stellen|pl(?:ä|ae)tze|positions|places|steps)"
+     r"\s+(?:davor|danach|vorher|nachher|weiter|vor|nach|zur(?:ü|ue)ck|before|after|back|ahead"
+     r"|earlier|later|prior)"),
+    ("beide_nachbarn",
+     r"beiden\s+(?:vorangehenden|vorherigen|folgenden|nachfolgenden|n(?:ä|ae)chsten)"
+     r"|the\s+(?:two|three)\s+(?:preceding|previous|prior|following|next)"),
+    # --- Musterpositionen ---
+    ("jede_nte",
+     r"jede[rsn]?\s+(?:zweite|dritte|vierte|f(?:ü|ue)nfte|n-?te|\d+\.)"
+     r"|every\s+(?:second|third|fourth|fifth|nth|\d+(?:st|nd|rd|th))"),
+    ("indexparitaet", r"(?:odd|even|ungerade|gerade)[- ]?(?:indexed|indizierte?[nrs]?|numbered|positioned)"),
+    # Rand und Mitte DER LISTE — „eine 0 am Ende" ist eine Ziffernstelle, kein Listenbezug.
+    ("rand_der_liste",
+     r"am\s+(?:ende|anfang|schluss|beginn)\s+(?:der|dieser|von)\s+(?:\w+\s+){0,2}?" + _LISTE_DE +
+     r"|at\s+the\s+(?:end|beginning|start)\s+of\s+(?:the\s+)?(?:\w+\s+){0,2}?" + _LISTE_EN),
+    ("mitte_der_liste",
+     r"in\s+der\s+mitte\s+(?:der|dieser|von)\s+(?:\w+\s+){0,2}?" + _LISTE_DE +
+     r"|in\s+the\s+middle\s+of\s+(?:the\s+)?(?:\w+\s+){0,2}?" + _LISTE_EN +
+     r"|mittlere[nrs]?\s+(?:zahl|wert|element|eintrag|position)\s+(?:der|in\s+der|dieser)\s+" + _LISTE_DE +
+     r"|middle\s+(?:number|value|element|entry)\s+(?:of|in)\s+the\s+" + _LISTE_EN),
+    # --- lose Nachbarwörter, die die Wortliste nicht kannte ---
+    ("nachbarwort_de", r"\bvorher\b|\bnachher\b|\bdahinter\b|\blinks\b|\brechts\b"
+                       r"|vorausgeh\w*|\bvoraus\b|nachsteh\w*|vorsteh\w*|\bfolgt\b"),
+    ("nachbarwort_en", r"before\s+(?:it|that|them|this)|after\s+(?:it|that|them|this)"
+                       r"|the\s+(?:number|value|element|one)\s+(?:before|after)|\bprior\b|\bsubsequent\b"),
 )
+GLOBAL_RE = re.compile(r"\b(?:" + r"|".join(muster for _, muster in _GLOBAL_PARTS) + r")\b",
+                       re.IGNORECASE)
 
 _CLASSES = (("neighbor", NEIGHBOR_RE), ("position", POSITION_RE), ("cumulative", CUMULATIVE_RE),
             ("global", GLOBAL_RE))
@@ -184,7 +253,7 @@ def seam_check(condition: str) -> dict:
         woerter = ", ".join(w for k in classes for w in hits[k])
         reason = (f"Nachbar-/Positionsbezug erkannt ({woerter}): ein Agent ist genauer (M2: 94 % "
                   f"gegen 72 % mit Nahtprotokoll); zerlegen nur mit Nahtprotokoll und nur per "
-                  f"force=True, wenn die Aufgabe in keinen Kontext passt (72 % gegen 43 % ohne).")
+                  f"force=True, wenn die Aufgabe in keinen Kontext passt (72,2 % gegen 33,3 % ohne).")
     else:
         decomposable, protocol, empfehlung = True, "none", "zerlegen"
         reason = "kein Randbezug erkannt: zerlegbar ohne Protokoll (100 % gegen 83–89 %)."
@@ -274,7 +343,7 @@ def plan(items: list, condition: str, *, parts: int, force: bool = False) -> dic
     Verweigert immer bei Kumulations- oder listenweitem Bezug. Verweigert bei Nachbar-/Positions-
     bezug (Protokoll "naht"), solange force=False — die Regel aus M2: randabhängig → ein Agent
     (94 %), solange die Aufgabe in einen Kontext passt; force=True nur, wenn sie das nicht tut
-    (72 % gegen 43 %). Verweigert ebenso bei leerer Bedingung, bei Nicht-Zahlen in der Liste (None
+    (72,2 % gegen 33,3 %). Verweigert ebenso bei leerer Bedingung, bei Nicht-Zahlen in der Liste (None
     als Element würde im Nahtprotokoll als ANFANG/ENDE gelesen) und bei parts, das keine ganze
     Zahl ≥ 1 ist.
     Rückgabe {"protocol", "empfehlung", "forced", "classes", "n_total", "parts", "merge": "sum",
@@ -344,17 +413,43 @@ def merge(values: list, op: str = "sum") -> tuple:
     return min(present), missing
 
 
+# „2 von 3", „2 of 3", „2 out of 3", „2 (von 3)", „2/3" — die häufigste ausführliche Arbeiter-
+# antwort. Die LETZTE Zahl ist dort der Nenner (die Ausschnittlänge) und liegt deshalb per
+# Konstruktion immer innerhalb der Schranke 0 ≤ Anzahl ≤ Ausschnittlänge: die Plausibilitätsprüfung
+# winkte sie durch und merge summierte die Ausschnittlängen statt der Treffer (Schlussprüfung,
+# Befund 3: Liste 1..6, Bedingung „gerade", wahr 3 → run() lieferte 6, missing 0, keine Meldung).
+_ANTEIL_RE = re.compile(
+    r"(\d+)\s*(?:\(\s*)?(?:\b(?:von|of|out\s+of|aus)\b\s*|/\s*)"
+    r"(?:insgesamt\s+|davon\s+|den\s+|der\s+|die\s+|the\s+|total\s+)?(\d+)",
+    re.IGNORECASE,
+)
+_ZIFFER = re.compile(r"\d")
+
+
 def _parse_count(text: str, n_items: int | None = None):
     """Letzte Zahl der Arbeiterantwort als Anzahl — oder None.
 
     Plausibel ist nur eine ganze Zahl mit 0 ≤ Anzahl ≤ n_items (a3, 2026-09-08: „12" auf einem
     Ausschnitt von 3, „-3", „2.5" und „… naemlich 8 und 9" flossen sonst als Anzahl in die
     Summe). Ohne n_items gilt nur: ganzzahlig und ≥ 0.
+    Endet die Antwort auf „X von N" (auch „X of N", „X/N"), ist N der Nenner und nicht die
+    Anzahl: dann zählt X — aber nur, wenn N die Ausschnittlänge ist. Nennt der Arbeiter einen
+    anderen Nenner, hat er über etwas anderes als diesen Ausschnitt gezählt; das ist keine
+    Anzahl für diesen Ausschnitt und zählt als fehlend (Schlussprüfung, Befund 3).
     """
     value = _model.extract_last_number(text)
     if value is None:
         return None
     value = float(value)
+    treffer = list(_ANTEIL_RE.finditer(text or ""))
+    # Nur wenn der Nenner die LETZTE Zahl der Antwort ist, ist die letzte Zahl keine Anzahl —
+    # „Ausschnitt 1 von 2: 3" endet auf die Anzahl 3 und bleibt unangetastet.
+    if treffer and not _ZIFFER.search(text[treffer[-1].end():]):
+        zaehler, nenner = treffer[-1].group(1), treffer[-1].group(2)
+        if float(nenner) == value:
+            if n_items is not None and int(nenner) != n_items:
+                return None
+            value = float(zaehler)
     if not value.is_integer() or value < 0:
         return None
     if n_items is not None and value > n_items:

@@ -9,6 +9,7 @@ Fail-open: ein kaputtes Log darf die Arbeit nie anhalten.
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from pathlib import Path
@@ -42,14 +43,24 @@ def _maskiere(obj):
 
 def _rotation_name(target: Path) -> Path:
     """events-<Sekundenstempel>[-n].jsonl — zwei Rotationen in derselben Sekunde überschreiben
-    einander nicht (derselbe Fehler steckte im Routing-Log des Schalters)."""
+    einander nicht (derselbe Fehler steckte im Routing-Log des Schalters). Der Name wird nicht
+    geraten, sondern belegt: O_CREAT|O_EXCL legt die leere Datei an, und erst darauf benennt
+    emit() um. Prüfen und Handeln waren vorher zwei Schritte — wählten zwei Prozesse in derselben
+    Sekunde denselben Namen, überschrieb das zweite rename die schon rotierte Datei des ersten."""
     stamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
-    kandidat = target.with_name(f"events-{stamp}.jsonl")
-    n = 1
-    while kandidat.exists():
-        kandidat = target.with_name(f"events-{stamp}-{n}.jsonl")
+    n = 0
+    while n < 10000:
+        kandidat = target.with_name(f"events-{stamp}.jsonl" if n == 0 else f"events-{stamp}-{n}.jsonl")
         n += 1
-    return kandidat
+        try:
+            fd = os.open(kandidat, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        except FileExistsError:
+            continue
+        except OSError:
+            return kandidat  # kein Beleg möglich (Rechte, Dateisystem): der Name gilt trotzdem
+        os.close(fd)
+        return kandidat
+    return target.with_name(f"events-{stamp}-{os.getpid()}.jsonl")
 
 
 def emit(event: str, **fields) -> None:

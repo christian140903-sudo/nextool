@@ -184,7 +184,7 @@ class TestSoulIntegritaet:
 
     def test_write_anderswo_frei(self):
         assert guard.classify("Write", {"file_path": str(paths.soul10_root() / "eval" / "neu.md")}) is None
-        assert guard.classify("Write", {"file_path": str(paths.home() / "profile.json")}) is None
+        assert guard.classify("Write", {"file_path": str(paths.home() / "notizen.md")}) is None
 
     def test_kein_substring_falsch_positiv(self):
         # Die Substring-Falle: ähnlicher Name außerhalb ist FREI.
@@ -234,6 +234,28 @@ class TestProfilRemotes:
         from core import inventory
         monkeypatch.setattr(inventory, "load_profile", lambda: {"own_remotes": ["  ", None]})
         assert guard.own_remotes() == ["origin"]
+
+    def test_mehrzeiliger_eigener_push_bleibt_frei(self):
+        """Prüfbefund mittel (Regression): bei einer Zeilenfortsetzung blieb vom Ausschnitt nur
+        der Backslash übrig; er galt als fremdes Remote und sperrte den eigenen Push."""
+        assert guard.push_targets("git push \\\n  origin main") == ["origin"]
+        assert bash("git push \\\n  origin main") is None
+        assert bash("git push -u \\\n  origin HEAD") is None
+        # und das Ziel wird weiter exakt gelesen, auch mehrzeilig
+        assert bash("git push \\\n  fremd main")[0] == "extern-publizieren"
+
+    def test_profil_ist_geschuetzt_wie_die_mandatsdatei(self):
+        """Prüfbefund mittel: own_remotes ist der Anker der exakten Push-Prüfung. Eine einzige
+        Shell-Zeile auf profile.json machte jedes Remote zum eigenen — dauerhaft, ohne Frist,
+        ohne Bus-Zeile — und entwaffnete extern-publizieren und remote-loeschung."""
+        assert guard.classify("Write", {"file_path": str(paths.profile_file())})[0] == "soul-integritaet"
+        assert bash(f"echo '{{\"own_remotes\":[\"fremd\"]}}' > {paths.profile_file()}")[0] == "soul-integritaet"
+        assert bash(f"cp /tmp/x {paths.profile_file()}")[0] == "soul-integritaet"
+        assert str(paths.profile_file().resolve()) in guard.protected_files()
+        # Eine abweichende Liste ist keine Sperre, aber sie steht am Bus.
+        _profil_mit_remotes(["origin", "meinfork"])
+        assert guard.own_remotes() == ["origin", "meinfork"]
+        assert bus.tail(1, "guard.own_remotes")[0]["remotes"] == ["origin", "meinfork"]
 
     def test_kein_nutzername_im_code(self):
         src = (paths.soul10_root() / "core" / "guard.py").read_text(encoding="utf-8")
@@ -299,6 +321,26 @@ class TestPushZielExakt:
         assert bash("git push origin main && git push fremd main")[0] == "extern-publizieren"
         assert bash("git push origin main && curl -X POST https://hooks.slack.com/services/T/B/x")[0] == "extern-publizieren"
 
+    def test_eigener_push_befreit_keine_remote_loeschung_daneben(self):
+        """Prüfbefund hoch (Schlussprüfung): ein eigener Push in derselben Zeile entlastete die
+        ganze Kategorie — `gh repo delete` lief ohne Sperre und ohne guard.hit-Zeile durch."""
+        for cmd in ("git push origin main && gh repo delete someorg/somerepo --yes",
+                    "gh repo delete someorg/somerepo --yes && git push origin main",
+                    "git push origin main; aws s3 rm s3://bucket/x --recursive",
+                    "git push origin main && npm unpublish paket --force",
+                    "git push origin main && gcloud sql instances delete prod-db",
+                    "git push origin main | tee log && rclone purge remote:ordner"):
+            assert bash(cmd) == ("remote-loeschung", "irreversibles Loeschen auf entferntem Ziel"), cmd
+            d = guard.decide("Bash", {"command": cmd})
+            assert d["blocked"] is True and bus.tail(1, "guard.hit")[0]["category"] == "remote-loeschung"
+        # Der eigene Push selbst bleibt frei, auch mit --force/--delete auf das eigene Remote.
+        assert bash("git push --force origin main") is None
+        assert bash("git push --delete origin alter-zweig") is None
+        assert bash("git push --force origin main && git status") is None
+        # Ein Muster, das über die Trennstelle läuft, bleibt ein Treffer (fail-closed).
+        assert bash("psql -c 'DELETE FROM kunden;'")[0] == "remote-loeschung"
+        assert bash("DELETE FROM kunden;")[0] == "remote-loeschung"
+
 
 class TestStolperdrahtMitPfadaufloesung:
     def test_pfad_nach_cd_und_in_inline_code(self, monkeypatch):
@@ -316,6 +358,48 @@ class TestStolperdrahtMitPfadaufloesung:
         monkeypatch.chdir(paths.soul10_root())
         k = guard.bash_path_candidates("cd core && python3 -c \"open('guard.py')\"")
         assert str(paths.soul10_root() / "core" / "guard.py") in k
+
+    def test_cd_mit_option_faellt_nicht_aus(self, monkeypatch):
+        """Prüfbefund hoch (Regression): das erste Token nach `cd` galt als Verzeichnis, also
+        zeigte cwd nach `cd -P .` auf <root>/-P und jeder folgende Pfad löste ins Leere auf."""
+        monkeypatch.chdir(paths.soul10_root())
+        for cmd in ("cd -P . && sed -i 's/x/y/' core/guard.py",
+                    "cd -- . && sed -i 's/x/y/' core/guard.py",
+                    "cd -L core && sed -i 's/x/y/' guard.py"):
+            assert bash(cmd) == ("soul-integritaet", "Shell-Schreibzugriff auf die Wache selbst"), cmd
+        assert str(paths.soul10_root() / "core" / "guard.py") in guard.bash_path_candidates("cd -P core && rm guard.py")
+        assert not any("-P" in k for k in guard.bash_path_candidates("cd -P core && rm guard.py"))
+
+    def test_stolperdraht_haelt_auch_wenn_der_hook_woanders_steht(self, monkeypatch, tmp_path):
+        """Prüfbefund hoch (Regression): die Bash-Sitzung behält ihr Verzeichnis über Aufrufe
+        hinweg, der Hook rechnete mit dem seines eigenen Prozesses — `sed -i` traf die echte
+        core/guard.py und die Wache sah nichts. Der relative Pfad wird deshalb zusätzlich an
+        seinen Pfadgliedern gemessen (fail-closed, ARCHITEKTUR §2 Regel 5)."""
+        monkeypatch.chdir(tmp_path)                     # Hook-Prozess steht woanders als die Shell
+        assert bash("sed -i 's/x/y/' core/guard.py")[0] == "soul-integritaet"
+        assert bash("cd $PROJEKT && sed -i 's/x/y/' guard.py")[0] == "soul-integritaet"  # cd unbekannt
+        assert bash("cd unbekanntes_verzeichnis && cat > hooks/hook.py <<'EOF'\nx\nEOF")[0] == "soul-integritaet"
+        # Was nicht die Wache ist, bleibt frei — verglichen werden ganze Pfadglieder, kein Substring.
+        assert bash("sed -i 's/x/y/' core/guard_notes.py") is None
+        assert bash("sed -i 's/x/y/' /tmp/core/guard.py") is None
+        assert bash("sed -i 's/x/y/' notizen/events.py.md") is None
+        # Mit cwd aus der Hook-Nutzlast löst der Stolperdraht exakt auf.
+        assert guard.classify("Bash", {"command": "cd core && sed -i 's/x/y/' guard.py"},
+                              cwd=str(paths.soul10_root()))[0] == "soul-integritaet"
+        assert str(paths.soul10_root() / "core" / "guard.py") in guard.bash_path_candidates(
+            "cd core && rm guard.py", cwd=str(paths.soul10_root()))
+
+    def test_lesendes_inline_code_bleibt_frei_und_steht_am_bus(self, monkeypatch):
+        """Prüfbefund niedrig (Regression): `python -c` löste den Stolperdraht schon durch seine
+        Anwesenheit aus, also war reines Lesen der Wache gesperrt."""
+        monkeypatch.chdir(paths.soul10_root())
+        assert bash("python3 -c \"print(open('core/guard.py').read())\"") is None
+        assert bash("ruby -e 'puts File.read(\"core/events.py\")'") is None
+        assert bus.tail(1, "guard.lesezugriff")[0]["ziel"] == "wache"
+        # Schreibender Inline-Code bleibt gesperrt.
+        assert bash("python3 -c \"open('core/guard.py','a').write('x')\"")[0] == "soul-integritaet"
+        assert bash("python3 -c \"import shutil; shutil.copy('/tmp/e','core/guard.py')\"")[0] == "soul-integritaet"
+        assert bash("python3 -c \"import os; os.remove('core/events.py')\"")[0] == "soul-integritaet"
 
 
 class TestExfiltrationUeberUrl:

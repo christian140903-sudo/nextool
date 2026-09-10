@@ -7,7 +7,7 @@ import time
 
 import pytest
 
-from core import bus, model, probes
+from core import bus, model, paths, probes
 
 PY = sys.executable
 AKIA = "AKIAIOSFODNN7EXAMPLE"
@@ -259,3 +259,68 @@ def test_describe_nennt_kommando_woertlich():
     assert "±0.5" in probes.describe({"type": "answer", "expected": 42, "tolerance": 0.5})
     assert "darf nicht existieren" in probes.describe({"type": "file", "path": "x", "must_exist": False})
     assert "/TODO/" in probes.describe({"type": "forbid", "path": "src", "regex": "TODO"})
+
+
+# --- Schlussprüfung: Zeit statt Musterfilter (Befund tests/test_probes.py:52) -----------------------
+def test_musterpruefung_bricht_nach_der_frist_ab_statt_die_pruefung_anzuhalten(tmp_path, monkeypatch):
+    """Die Heuristik _NESTED_QUANTIFIER lässt '^((a+))+$' und '^(a|a)+$' durch — beide laufen auf
+    40 Zeichen exponentiell (gemessen: 0,93 s bei 24 Zeichen, Faktor 4 je zwei Zeichen). Geprüft wird
+    hier nicht das Muster, sondern die ZEIT: die Probe muss innerhalb der Frist als nicht bestanden
+    zurückkommen. Ohne die Frist läuft dieser Test Stunden."""
+    monkeypatch.setattr(probes, "REGEX_TIMEOUT", 0.5)
+    (tmp_path / "x.txt").write_text("a" * 40 + "!", encoding="utf-8")
+    cwd = str(tmp_path)
+    for rx in ["^((a+))+$", "^(a|a)+$"]:
+        probes.validate({"type": "file", "path": "x.txt", "contains_regex": rx})   # validate lässt es zu
+        for probe in ({"type": "file", "path": "x.txt", "contains_regex": rx},
+                      {"type": "forbid", "path": ".", "regex": rx},
+                      {"type": "shell", "cmd": "printf '%s' " + "a" * 40 + "!", "expect_regex": rx}):
+            start = time.monotonic()
+            r = probes.run(probe, cwd=cwd)
+            dauer = time.monotonic() - start
+            assert dauer < 10, (probe["type"], rx, dauer)      # die Frist greift, nicht das Backtracking
+            assert not r["passed"] and "Frist" in r["detail"], (probe["type"], rx, r["detail"])
+
+
+def test_hardlink_nach_aussen_ist_nicht_pruefbar(tmp_path):
+    """Befund a2/2d in seiner Restform: die cwd-Schranke arbeitet über Pfade, ein harter Verweis
+    innerhalb von cwd zeigt inhaltlich nach außen. st_nlink > 1 heißt: nicht prüfbar."""
+    work, aussen = tmp_path / "work", tmp_path / "aussen"
+    work.mkdir(), aussen.mkdir()
+    (aussen / "credentials").write_text("PRIVAT-INHALT-XYZ\n", encoding="utf-8")
+    os.link(aussen / "credentials", work / "hart")
+    cwd = str(work)
+    r = probes.run({"type": "file", "path": "hart", "contains_regex": "PRIVAT"}, cwd=cwd)
+    assert not r["passed"] and "harte Verweise" in r["detail"]
+    assert "PRIVAT-INHALT-XYZ" not in r["stdout_head"] and "PRIVAT-INHALT-XYZ" not in r["detail"]
+    r = probes.run({"type": "file", "path": "hart"}, cwd=cwd)          # auch die reine Existenz liest
+    assert not r["passed"] and "PRIVAT-INHALT-XYZ" not in r["stdout_head"]
+    r = probes.run({"type": "forbid", "path": ".", "regex": "PRIVAT-INHALT-XYZ"}, cwd=cwd)
+    assert not r["passed"] and "harten Verweisen" in r["detail"]
+    assert "PRIVAT-INHALT-XYZ" not in paths.bus_file().read_text(encoding="utf-8")
+    # Eine gewöhnliche Datei in cwd bleibt prüfbar
+    (work / "ok.txt").write_text("drin\n", encoding="utf-8")
+    assert probes.run({"type": "file", "path": "ok.txt", "contains_regex": "drin"}, cwd=cwd)["passed"]
+
+
+def test_lauf_traegt_ein_token_das_an_probe_und_vertrag_gebunden_ist():
+    """Nur ein gelaufener Lauf trägt ein Token; es gilt für genau diese Probe, diesen Vertrag und
+    diesen Lauf. Ohne das Token nimmt contract.set_verdict keinen bestandenen Lauf an."""
+    probe = {"type": "answer", "expected": 42}
+    r = probes.run(probe, answer_text="42", contract_id="v1")
+    assert r["passed"] and probes.check_run_token(r, probe, "v1") is None
+    assert probes.check_run_token(r, probe, "v2") == "Lauf-Token passt nicht zu Probe, Vertrag oder Lauf"
+    assert probes.check_run_token(r, {"type": "answer", "expected": 43}, "v1").startswith("Lauf-Token passt nicht")
+    gedreht = dict(r, detail="bestanden (angeblich)")
+    assert probes.check_run_token(gedreht, probe, "v1").startswith("Lauf-Token passt nicht")
+    assert probes.check_run_token({k: v for k, v in r.items() if k != "token"}, probe, "v1") \
+        == "ohne Lauf-Token (keine Probe gelaufen)"
+    # Das Token steht auch auf dem Bus, und der Schlüssel liegt unter SOUL10_HOME, nie im Repo
+    rec = bus.tail(1)[0]
+    assert rec["event"] == "probe.run" and rec["token"] == r["token"] and rec["contract_id"] == "v1"
+    schluessel = paths.home() / "state" / "lauf.key"
+    assert schluessel.exists() and (schluessel.stat().st_mode & 0o077) == 0
+    # Verbrauch ist einmalig
+    assert not probes.run_token_used(r)
+    probes.spend_run_tokens([r])
+    assert probes.run_token_used(r)

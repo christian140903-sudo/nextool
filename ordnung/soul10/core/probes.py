@@ -7,26 +7,51 @@ konnte. Hier ist eine Probe ein Datensatz (shell, file, answer, forbid), wird vo
 validiert und deterministisch ausgeführt; das Ergebnis ist ein Probenlauf mit passed/detail,
 nie ein Urteil. Das Urteil zieht contract.set_verdict aus der Quittung des Prüfers.
 
+Lauf-Token (Schlussbefund contract.py:320): jeder Lauf, den run() zurückgibt, trägt ein
+`token` — HMAC-SHA256 über Probe, Vertrag und den ganzen Lauf, mit einem Schlüssel, der unter
+SOUL10_HOME liegt (state/lauf.key, 0600, nie im Repo). Nur run() vergibt Token;
+contract.validate_receipt nimmt einen Lauf mit passed=True nur mit gültigem Token an und
+contract.set_verdict jedes Token nur einmal. Eine frei erfundene Quittung setzt damit kein
+Urteil mehr — „fertig" sagt nur, wer die Proben wirklich hat laufen lassen.
+
 Grenzen (bewusst gesetzt, tests/test_probes.py prüft sie):
 - file/forbid: der Pfad wird gegen cwd aufgelöst (Startverzeichnis der Prüfung, sonst das
   Arbeitsverzeichnis des Prozesses) und muss darin liegen — kein '~', kein Ausbruch per '..',
   absolutem Pfad oder Symlink. Was außerhalb liegt, ist nicht prüfbar, also nicht bestanden.
   Gelesen werden nur reguläre Dateien (kein Verzeichnis, FIFO, Gerät), höchstens MAX_TEXT Bytes.
+  Eine Datei mit mehreren harten Verweisen (st_nlink > 1) ist nicht prüfbar: pfadlich liegt sie
+  in cwd, ihr Inhalt kann von außerhalb stammen (Schlussbefund probes.py:121).
 - shell: läuft mit shell=True und den Rechten des Nutzers; cwd ist nur das Startverzeichnis,
-  keine Schranke. Was eine Shell-Probe am Vertragszustand ändert, erkennt verifier.verify am
-  Fingerabdruck des Vertrags (contract.fingerprint) und urteilt fail.
+  keine Schranke. Was eine Shell-Probe an Verträgen ändert — am geprüften wie an jedem
+  fremden —, nimmt verifier.verify aus dem Abbild vor den Proben zurück und urteilt fail.
 - Regex: geprüft werden höchstens MAX_TEXT Zeichen (Ausgabe oder Dateiinhalt); längere Texte
   gelten als nicht prüfbar (forbid-Verzeichnisse: Kopf geprüft, Rest als „teilweise geprüft"
   ausgewiesen). Offensichtlich verschachtelte Quantoren wie (a+)+ oder (a*)* lehnt validate ab;
-  eine harte Zeitschranke für re.search selbst gibt es nicht.
+  weil diese Heuristik ^((a+))+$ und ^(a|a)+$ durchlässt, läuft JEDE Musterprüfung zusätzlich in
+  einem Kindprozess mit harter Frist (REGEX_TIMEOUT): eine Fristüberschreitung ist kein
+  Aufhänger, sondern ein nicht bestandener Lauf. Ohne fork (kein POSIX) fehlt diese Frist.
+- answer: geprüft wird der Text, den der Aufrufer übergibt (bei verifier.verify der Vorschlag).
+  Wer run() selbst mit der richtigen Antwort aufruft, bekommt einen bestandenen Lauf — die Probe
+  ist per Bauart erfüllbar, wer `expected` liest. Was geprüft wurde, steht als stdout_head im Lauf
+  und ist vom Lauf-Token mitgedeckt.
 - Ausgaben (stdout_head, detail) verlassen das Modul nur durch bus.mask maskiert.
 - Zahlen in answer-Proben lesen sich wie model.extract_last_number (1.000 = tausend, 12,5 = 12.5).
+- Der Schlüssel liegt unter SOUL10_HOME und schützt gegen die dokumentierte Schnittstelle, nicht
+  gegen einen Prozess mit denselben Rechten: wer den Schlüssel liest, kann Token bauen.
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import math
+import os
 import re
+import secrets
+import select
+import signal
 import subprocess
+import time
 from pathlib import Path
 
 from . import bus, model, paths
@@ -54,6 +79,153 @@ _KEYS = {
 # Quantifizierte Gruppe, deren Rumpf selbst mit einem Quantor endet: (a+)+, (a*)*, (a+){2,}.
 # Heuristik für den häufigsten katastrophalen Fall; nicht vollständig (siehe Modul-Docstring).
 _NESTED_QUANTIFIER = re.compile(r"(?<!\\)[+*]\)[+*{]")
+
+REGEX_TIMEOUT = 5           # Sekunden, die eine einzelne Musterprüfung höchstens laufen darf
+_TOKEN_VERSION = "l1"       # Form des Lauf-Tokens: "l1:<nonce>:<hmac>"
+
+
+# --- Harte Frist für Musterprüfungen ----------------------------------------------------
+class _Frist(Exception):
+    """Eine Musterprüfung hat ihre Frist überschritten — der Lauf gilt als nicht bestanden."""
+
+
+def _mit_frist(arbeit, frist: float | None = None):
+    """Führt `arbeit` (JSON-fähige Rückgabe) in einem Kindprozess mit harter Frist aus.
+
+    Grund (Schlussbefund test_probes.py:52): die Heuristik _NESTED_QUANTIFIER lässt ^((a+))+$
+    und ^(a|a)+$ durch, und re.search lässt sich im eigenen Prozess nicht abbrechen. Nach der
+    Frist wird das Kind getötet; die Prüfung läuft weiter und wertet den Lauf als gescheitert
+    (fail-closed). Ohne fork gibt es keine Frist — das steht als Grenze im Modul-Docstring.
+    """
+    frist = REGEX_TIMEOUT if frist is None else frist
+    if not hasattr(os, "fork"):
+        return arbeit()
+    lese, schreibe = os.pipe()
+    pid = os.fork()
+    if pid == 0:                                    # Kind: nur rechnen, dann hart beenden
+        code = 1
+        try:
+            os.close(lese)
+            with os.fdopen(schreibe, "wb") as fh:
+                fh.write(json.dumps(arbeit()).encode("utf-8"))
+            code = 0
+        except BaseException:                       # noqa: BLE001 — kein Ergebnis heißt Frist/Fehler
+            code = 1
+        finally:
+            os._exit(code)
+    os.close(schreibe)
+    ende = time.monotonic() + frist
+    teile: list[bytes] = []
+    zu_spaet = f"Musterprüfung überschritt die Frist von {frist:g}s"
+    try:
+        with os.fdopen(lese, "rb") as fh:
+            while True:
+                rest = ende - time.monotonic()
+                if rest <= 0 or not select.select([fh], [], [], rest)[0]:
+                    raise _Frist(zu_spaet)
+                brocken = fh.read1(65536)
+                if not brocken:
+                    break
+                teile.append(brocken)
+    finally:
+        for schritt in (lambda: os.kill(pid, signal.SIGKILL), lambda: os.waitpid(pid, 0)):
+            try:
+                schritt()
+            except OSError:
+                pass
+    if not teile:
+        raise _Frist("Musterprüfung ohne Ergebnis (Kindprozess abgebrochen)")
+    return json.loads(b"".join(teile).decode("utf-8"))
+
+
+def _suche(regex: str, text: str) -> bool:
+    return bool(re.search(regex, text, re.M))
+
+
+def _mehrfach_verlinkt(path: Path) -> bool:
+    """Ein Hardlink innerhalb von cwd zeigt pfadlich nach innen, inhaltlich nach außen
+    (Schlussbefund probes.py:121). st_nlink > 1 heißt: nicht prüfbar. Kein Blick → nicht prüfbar."""
+    try:
+        return path.stat().st_nlink > 1
+    except OSError:
+        return True
+
+
+# --- Lauf-Token: nur ein gelaufener Lauf zählt ------------------------------------------
+def _key() -> bytes:
+    """Schlüssel der Lauf-Token unter SOUL10_HOME (state/lauf.key, 0600) — nie im Repo.
+    Er wird beim ersten Lauf angelegt und danach nur gelesen."""
+    pfad = paths.home() / "state" / "lauf.key"
+    try:
+        roh = pfad.read_bytes()
+        if len(roh) >= 32:
+            return roh
+    except OSError:
+        pass
+    try:
+        fd = os.open(pfad, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    except FileExistsError:                          # ein anderer Lauf war schneller
+        return pfad.read_bytes()
+    with os.fdopen(fd, "wb") as fh:
+        fh.write(secrets.token_bytes(32))
+    return pfad.read_bytes()
+
+
+def _mac(nonce: str, run: dict, probe: dict, contract_id: str | None) -> str:
+    koerper = {"v": _TOKEN_VERSION, "nonce": nonce, "contract_id": contract_id or "", "probe": probe,
+               "type": run.get("type"), "passed": run.get("passed"), "detail": run.get("detail"),
+               "stdout_head": run.get("stdout_head"), "exit": run.get("exit"), "at": run.get("at")}
+    text = json.dumps(koerper, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str)
+    return hmac.new(_key(), text.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def _sign(run: dict, probe: dict, contract_id: str | None) -> str:
+    nonce = secrets.token_hex(12)
+    return f"{_TOKEN_VERSION}:{nonce}:{_mac(nonce, run, probe, contract_id)}"
+
+
+def _nonce(run) -> str | None:
+    token = run.get("token") if isinstance(run, dict) else None
+    return token.split(":")[1] if isinstance(token, str) and token.count(":") == 2 else None
+
+
+def check_run_token(run: dict, probe: dict, contract_id: str | None) -> str | None:
+    """None, wenn der Lauf ein gültiges Token für genau diese Probe und diesen Vertrag trägt;
+    sonst der Grund als Text. Nur run() vergibt Token — ein erfundener Lauf hat keins."""
+    token = run.get("token") if isinstance(run, dict) else None
+    if not isinstance(token, str) or token.count(":") != 2:
+        return "ohne Lauf-Token (keine Probe gelaufen)"
+    version, nonce, mac = token.split(":")
+    if version != _TOKEN_VERSION or not nonce or not mac:
+        return "Lauf-Token in unbekannter Form"
+    ohne = {k: v for k, v in run.items() if k != "token"}
+    if not hmac.compare_digest(mac, _mac(nonce, ohne, probe, contract_id)):
+        return "Lauf-Token passt nicht zu Probe, Vertrag oder Lauf"
+    return None
+
+
+def _verbraucht_datei() -> Path:
+    return paths.home() / "state" / "laeufe-verbraucht.txt"
+
+
+def run_token_used(run: dict) -> bool:
+    """True, wenn dieses Token schon einmal ein Urteil gesetzt hat (Replay)."""
+    nonce = _nonce(run)
+    if not nonce:
+        return False
+    try:
+        return nonce in _verbraucht_datei().read_text(encoding="utf-8").split()
+    except OSError:
+        return False
+
+
+def spend_run_tokens(runs) -> None:
+    """Verbraucht die Token dieser Läufe: dieselben Läufe setzen kein zweites Urteil."""
+    neue = [n for n in (_nonce(r) for r in runs or []) if n]
+    if not neue:
+        return
+    with _verbraucht_datei().open("a", encoding="utf-8") as fh:
+        fh.write("".join(n + "\n" for n in neue))
 
 
 # --- Hilfen ----------------------------------------------------------------------------
@@ -198,12 +370,15 @@ def validate(probe: dict) -> None:
 
 
 # --- Ausführung ------------------------------------------------------------------------
-def run(probe: dict, *, cwd: str | None = None, answer_text: str | None = None) -> dict:
-    """Führt eine Probe aus. Rückgabe {"type","passed","detail","stdout_head","exit","at"}.
+def run(probe: dict, *, cwd: str | None = None, answer_text: str | None = None,
+        contract_id: str | None = None) -> dict:
+    """Führt eine Probe aus. Rückgabe {"type","passed","detail","stdout_head","exit","at","token"}.
 
     Eine Probe, die nicht laufen kann (fehlende Datei, Pfad außerhalb cwd, Zeitüberschreitung,
-    Lesefehler), gilt als nicht bestanden — nie als bestanden. detail und stdout_head sind
-    maskiert (bus.mask), bevor sie zurückgehen. Jeder Lauf schreibt eine Bus-Zeile.
+    Lesefehler, Fristüberschreitung der Musterprüfung), gilt als nicht bestanden — nie als
+    bestanden. detail und stdout_head sind maskiert (bus.mask), bevor sie zurückgehen.
+    `token` bindet den Lauf an Probe und Vertrag (HMAC, Schlüssel unter SOUL10_HOME): nur damit
+    nimmt contract.set_verdict einen bestandenen Lauf an. Jeder Lauf schreibt eine Bus-Zeile.
     """
     validate(probe)
     typ = probe["type"]
@@ -223,7 +398,9 @@ def run(probe: dict, *, cwd: str | None = None, answer_text: str | None = None) 
     out = {"type": typ, **result, "at": at}
     out["detail"] = bus.mask(str(out.get("detail") or ""))
     out["stdout_head"] = bus.mask(str(out.get("stdout_head") or ""))
-    bus.emit("probe.run", type=typ, passed=out["passed"], detail=out["detail"][:200])
+    out["token"] = _sign(out, probe, contract_id)
+    bus.emit("probe.run", type=typ, passed=out["passed"], detail=out["detail"][:200],
+             contract_id=contract_id, token=out["token"])
     return out
 
 
@@ -246,16 +423,22 @@ def _run_shell(probe: dict, cwd: str | None) -> dict:
     zu_lang = _too_long(output, "Ausgabe") if (rx or fx) else None
     if zu_lang:
         gruende.append(zu_lang)
-    else:
-        if rx and not re.search(rx, output, re.M):
-            gruende.append(f"Ausgabe passt nicht auf /{rx}/")
-        if fx and re.search(fx, output, re.M):
-            gruende.append(f"Ausgabe enthält verbotenes Muster /{fx}/")
+    elif rx or fx:
+        try:   # harte Frist: ein katastrophales Muster hält die Prüfung nicht an
+            treffer = _mit_frist(lambda: [bool(rx) and _suche(rx, output), bool(fx) and _suche(fx, output)])
+        except _Frist as exc:
+            gruende.append(str(exc))
+        else:
+            if rx and not treffer[0]:
+                gruende.append(f"Ausgabe passt nicht auf /{rx}/")
+            if fx and treffer[1]:
+                gruende.append(f"Ausgabe enthält verbotenes Muster /{fx}/")
     return {"passed": not gruende, "detail": "bestanden" if not gruende else "; ".join(gruende),
             "stdout_head": stdout[:STDOUT_HEAD], "exit": proc.returncode}
 
 
 def _run_file(probe: dict, cwd: str | None) -> dict:
+    base = _base(cwd)
     path = _resolve(probe["path"], cwd)
     exists = path.exists()
     if not probe.get("must_exist", True):
@@ -267,6 +450,10 @@ def _run_file(probe: dict, cwd: str | None) -> dict:
     if not path.is_file():
         return {"passed": False, "detail": f"Pfad ist keine reguläre Datei (Verzeichnis, FIFO oder Gerät): {path}",
                 "stdout_head": "", "exit": None}
+    if _mehrfach_verlinkt(path):
+        return {"passed": False, "stdout_head": "", "exit": None,
+                "detail": f"Datei hat mehrere harte Verweise, ihr Inhalt kann von außerhalb "
+                          f"{base} stammen — nicht prüfbar: {path}"}
     rx, fx = probe.get("contains_regex"), probe.get("forbids_regex")
     text = _read_capped(path)
     if text is None:
@@ -276,10 +463,16 @@ def _run_file(probe: dict, cwd: str | None) -> dict:
         return {"passed": True, "detail": f"Datei existiert (Inhalt > {MAX_TEXT} Bytes, nicht gelesen)",
                 "stdout_head": "", "exit": None}
     gruende = []
-    if rx and not re.search(rx, text, re.M):
-        gruende.append(f"Inhalt passt nicht auf /{rx}/")
-    if fx and re.search(fx, text, re.M):
-        gruende.append(f"Inhalt enthält verbotenes Muster /{fx}/")
+    if rx or fx:
+        try:
+            treffer = _mit_frist(lambda: [bool(rx) and _suche(rx, text), bool(fx) and _suche(fx, text)])
+        except _Frist as exc:
+            gruende.append(str(exc))
+        else:
+            if rx and not treffer[0]:
+                gruende.append(f"Inhalt passt nicht auf /{rx}/")
+            if fx and treffer[1]:
+                gruende.append(f"Inhalt enthält verbotenes Muster /{fx}/")
     return {"passed": not gruende, "detail": "bestanden" if not gruende else "; ".join(gruende),
             "stdout_head": text[:STDOUT_HEAD], "exit": None}
 
@@ -329,11 +522,40 @@ def _run_forbid(probe: dict, cwd: str | None) -> dict:
     else:
         return {"passed": False, "detail": f"Pfad ist keine reguläre Datei (FIFO oder Gerät): {path}",
                 "stdout_head": "", "exit": None}
-    rx = re.compile(probe["regex"], re.M)
+    try:   # harte Frist über den ganzen Durchlauf: ein katastrophales Muster hält nichts an
+        ergebnis = _mit_frist(lambda: _forbid_scan([str(f) for f in files], probe["regex"]))
+    except _Frist as exc:
+        return {"passed": False, "detail": f"{exc} — /{probe['regex']}/ in {probe['path']} nicht prüfbar",
+                "stdout_head": "", "exit": None}
+    treffer, teilweise = ergebnis["treffer"], ergebnis["teilweise"]
+    hart, geprueft = ergebnis["hart"], ergebnis["geprueft"]
+    hinweis = (f"; {len(teilweise)} Datei(en) nur bis {MAX_TEXT} Bytes geprüft: {', '.join(teilweise[:3])}"
+               if teilweise else "")
+    if hart:   # Hardlink: pfadlich innen, inhaltlich vielleicht außen — nicht prüfbar
+        return {"passed": False, "stdout_head": "", "exit": None,
+                "detail": f"{len(hart)} Datei(en) mit mehreren harten Verweisen, nicht prüfbar: "
+                          f"{', '.join(hart[:3])}{hinweis}"}
+    if not treffer:
+        return {"passed": True, "detail": f"kein Treffer für /{probe['regex']}/ in {geprueft} Datei(en){hinweis}",
+                "stdout_head": "", "exit": None}
+    rest = f" (+{len(treffer) - 5} weitere)" if len(treffer) > 5 else ""
+    return {"passed": False,
+            "detail": f"verbotenes Muster /{probe['regex']}/ in {', '.join(treffer[:5])}{rest}{hinweis}",
+            "stdout_head": "", "exit": None}
+
+
+def _forbid_scan(pfade: list[str], regex: str) -> dict:
+    """Der Durchlauf selbst — läuft unter _mit_frist, gibt nur JSON-Fähiges zurück."""
+    rx = re.compile(regex, re.M)
     treffer: list[str] = []
     teilweise: list[str] = []
+    hart: list[str] = []
     geprueft = 0
-    for f in files:
+    for pfad in pfade:
+        f = Path(pfad)
+        if _mehrfach_verlinkt(f):
+            hart.append(f.name)
+            continue
         try:
             if _is_binary(f):
                 continue
@@ -352,15 +574,7 @@ def _run_forbid(probe: dict, cwd: str | None) -> dict:
                 break
         if len(treffer) >= _MAX_HITS:
             break
-    hinweis = (f"; {len(teilweise)} Datei(en) nur bis {MAX_TEXT} Bytes geprüft: {', '.join(teilweise[:3])}"
-               if teilweise else "")
-    if not treffer:
-        return {"passed": True, "detail": f"kein Treffer für /{probe['regex']}/ in {geprueft} Datei(en){hinweis}",
-                "stdout_head": "", "exit": None}
-    rest = f" (+{len(treffer) - 5} weitere)" if len(treffer) > 5 else ""
-    return {"passed": False,
-            "detail": f"verbotenes Muster /{probe['regex']}/ in {', '.join(treffer[:5])}{rest}{hinweis}",
-            "stdout_head": "", "exit": None}
+    return {"treffer": treffer, "teilweise": teilweise, "hart": hart, "geprueft": geprueft}
 
 
 # --- Beschreibung für den Übergabetext -------------------------------------------------

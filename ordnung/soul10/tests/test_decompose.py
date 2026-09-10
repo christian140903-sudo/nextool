@@ -371,6 +371,115 @@ def test_elementlokales_praedikat_bleibt_zerlegbar(bedingung):
     assert r["classes"] == [] and r["empfehlung"] == "zerlegen" and r["protocol"] == "none"
 
 
+# --- Gegenprobe zur Gegenprobe: sauber teilbar in ganzen Sätzen (Schlussprüfung a1, 2026-09-10) --
+# Die Stichwortliste oben konnte Überblockung nicht entdecken — sie enthält keinen Satzbau. Diese
+# 40 Bedingungen sind ausformuliert und JEDE ist ohne Wissen über andere Listenelemente
+# entscheidbar. Vor dem Fix fielen 23 davon (57 %) auf „nicht_zerlegbar", darunter die kanonischste
+# Form der gemessenen Aufgabe selbst. Ein Fehlalarm ist keine harmlose Vorsicht: er kostet die
+# Zerlegung (100 %) und schickt die Aufgabe an einen Agenten (94 %; über EINZELN_MAX_ZEICHEN
+# bekommt der die Gesamtliste, 83–89 %). Die Quote ist auf 0 festgenagelt.
+SAUBER_SATZ = [
+    "Zaehle alle Zahlen in der Liste, die durch 3 teilbar sind",
+    "count all numbers in the list that are odd",
+    "alle Zahlen der Liste, die groesser als 100 sind",
+    "Zahlen mit einer geraden Anzahl von Ziffern",
+    "numbers with an even number of digits",
+    "Zahlen, die doppelt so gross wie 20 sind",
+    "Zahlen, die dreimal so gross wie 7 sind",
+    "Zahlen mit einer 0 am Ende",
+    "numbers with a zero at the end",
+    "Zahlen, in denen die Ziffer 7 vorkommt",
+    "Zahlen, die mindestens einmal die Ziffer 5 enthalten",
+    "numbers that contain the digit 3 at least once",
+    "Zahlen, die das Produkt von zwei Primzahlen sind",
+    "numbers that are the sum of two squares",
+    "Zaehle in der gesamten Liste die geraden Zahlen",
+    "Zahlen mit insgesamt drei Ziffern",
+    "numbers with a total of three digits",
+    "Zahlen, deren mittlere Ziffer eine 5 ist",
+    "Zahlen, die in der Mitte eine 0 haben",
+    "Zahlen, die genau die Haelfte von 50 sind",
+    "numbers greater than half of 200",
+    "Zahlen, die ein Viertel von 100 sind",
+    "Zahlen, deren Ziffern sich mehrfach wiederholen",
+    "Zahlen, deren Quersumme kleiner als 10 ist",
+    "Zahlen zwischen 10 und 99",
+    "Zahlen, die keine Primzahl sind",
+    "Zahlen, die durch 3 und durch 5 teilbar sind",
+    "Zahlen, die negativ sind",
+    "Zahlen, die auf eine 0 enden",
+    "numbers ending in zero",
+    "numbers that are a multiple of 5",
+    "numbers divisible by 3",
+    "count every number that is even",
+    "numbers between 10 and 20",
+    "numbers whose digits are strictly increasing",
+    "numbers that are prime",
+    "numbers larger than 50",
+    "Zahlen mit genau zwei verschiedenen Ziffern",
+    "Zahlen, die eine Quadratzahl sind",
+    "Zahlen, die als roemische Ziffer schreibbar sind",
+]
+
+
+def test_sauber_teilbare_saetze_werden_nicht_ueberblockt():
+    """Fehlalarmquote auf dem 40er-Satz: 0 (vor dem Fix 23 = 57 %)."""
+    assert len(SAUBER_SATZ) == 40
+    falsch = [(b, decompose.seam_check(b)) for b in SAUBER_SATZ]
+    fehlalarm = [(b, r["empfehlung"], r["hits"]) for b, r in falsch if r["empfehlung"] != "zerlegen"]
+    assert fehlalarm == [], f"{len(fehlalarm)}/40 Fehlalarm: {fehlalarm}"
+    # und die Zerlegung läuft wirklich an (kein DecomposeError vor dem ersten Aufruf)
+    p = decompose.plan(list(range(1, 61)), SAUBER_SATZ[0], parts=5)
+    assert p["empfehlung"] == "zerlegen" and p["protocol"] == "none" and p["parts"] == 5
+    d = dirigent.plan(list(range(1, 61)), SAUBER_SATZ[0], parts=5)
+    assert d["form"] == "zerlegt" and d["empfehlung"] == "zerlegen"
+
+
+# Je Alternative der GLOBAL_RE ein Beispiel, das NUR sie trifft. Löscht jemand eine Alternative,
+# fällt ihr Beispiel durch alle Muster und dieser Test wird rot (Schlussprüfung, Befund 7: von den
+# 119 Alternativen der alten GLOBAL_RE ließen sich 90 löschen, ohne dass ein Test rot wurde).
+GLOBAL_BEISPIEL = {
+    "ordnungssuperlativ": "die zweitgroesste Zahl",
+    "superlativ_en": "the biggest number",
+    "extremwert": "gleich dem maximalen Wert",
+    "top_n": "in the top three",
+    "anteil_de": "in der oberen Haelfte",
+    "anteil_en": "in the upper half of all values",
+    "mittelwert": "above the mean",
+    "prozent": "greater than 1% of the total",
+    "summe_liste": "groesser als die Summe der Liste geteilt durch 100",
+    "produkt_liste": "kleiner als das Produkt aller Werte",
+    "anzahl_liste": "gleich der Anzahl der geraden Zahlen",
+    "vorkommen": "kommt doppelt vor",
+    "schon_dagewesen": "steht schon in der Liste",
+    "zeitbezug": "gleich dem Wert von frueher",
+    "anderswo": "taucht anderswo auf",
+    "quantor_bezug": "groesser als jede andere Zahl",
+    "rest": "groesser als der Rest",
+    "reihenfolge_lauf": "zwei gleiche Zahlen hintereinander",
+    "uebernaechste": "groesser als die uebernaechste Zahl",
+    "n_positionen_weiter": "greater than the number two positions before",
+    "beide_nachbarn": "groesser als die beiden vorangehenden Zahlen",
+    "jede_nte": "jede zweite Zahl",
+    "indexparitaet": "odd-indexed",
+    "rand_der_liste": "am Ende der Liste",
+    "mitte_der_liste": "in der Mitte der Liste",
+    "nachbarwort_de": "groesser als die Zahl dahinter",
+    "nachbarwort_en": "greater than the number before it",
+}
+
+
+def test_jede_globale_alternative_traegt_ein_eigenes_beispiel():
+    namen = [n for n, _ in decompose._GLOBAL_PARTS]
+    assert sorted(namen) == sorted(GLOBAL_BEISPIEL), "Alternative ohne Beispiel oder Beispiel ohne Alternative"
+    einzeln = {n: re.compile(r"\b(?:" + m + r")\b", re.IGNORECASE) for n, m in decompose._GLOBAL_PARTS}
+    for name, beispiel in GLOBAL_BEISPIEL.items():
+        treffer = [n for n, rx in einzeln.items() if rx.search(beispiel)]
+        assert treffer == [name], f"{name}: {beispiel!r} trifft {treffer}"
+        assert decompose.GLOBAL_RE.search(beispiel), f"{name}: {beispiel!r} faellt durch GLOBAL_RE"
+        assert decompose.seam_check(beispiel)["empfehlung"] == "nicht_zerlegbar"
+
+
 def test_uebersehene_kumulation_liefert_keine_stille_falsche_zahl(monkeypatch):
     """a2: exakt rechnender Arbeiter je Ausschnitt, Liste 1..50, wahr 1 — run() lieferte 5, missing 0,
     dirigent.plan form=zerlegt. Jetzt: Verweigerung vor dem ersten Aufruf, Dirigent wählt einen Agenten."""
@@ -431,6 +540,36 @@ def test_parse_count_grenzen():
     for text in ("4", "-1", "1,5", "2.5", "keine Zahl", ""):
         assert decompose._parse_count(text, 3) is None, text
     assert decompose._parse_count("7") == 7 and decompose._parse_count("-7") is None
+
+
+def test_x_von_n_ist_der_bruch_nicht_die_anzahl():
+    """Schlussprüfung a5: „Es sind 2 von 3." endete auf die Ausschnittlänge und lag damit per
+    Konstruktion IMMER in der Schranke — merge summierte die Nenner. Liste 1..6, „gerade", wahr 3:
+    run() lieferte 6 mit missing 0 und ohne Meldung."""
+    assert decompose._parse_count("Es sind 2 von 3.", 3) == 2
+    assert decompose._parse_count("2 von 3 Zahlen erfuellen die Bedingung.", 3) == 2
+    assert decompose._parse_count("Antwort: 2 (von 3)", 3) == 2
+    assert decompose._parse_count("2/3", 3) == 2
+    assert decompose._parse_count("2 out of 3", 3) == 2
+    assert decompose._parse_count("0 von 3", 3) == 0
+    # Gegenprobe: ist der Nenner nicht die letzte Zahl, bleibt die letzte Zahl die Anzahl
+    assert decompose._parse_count("Ausschnitt 1 von 2: 3", 3) == 3
+    # fremder Nenner: der Arbeiter hat über etwas anderes gezählt als über diesen Ausschnitt
+    assert decompose._parse_count("2 von 10.", 3) is None
+    assert decompose._parse_count("Es sind 5 von 3.", 3) is None
+
+
+def test_run_summiert_nicht_die_ausschnittlaengen(monkeypatch):
+    """Derselbe Angriff im vollen Lauf: exakt rechnender Arbeiter, ausführliche Antwort."""
+    def fake(system, user, **kw):
+        zahlen = [int(z) for z in _LISTE.search(user).group(1).split(", ")]
+        return {"ok": True, "text": f"Es sind {sum(1 for z in zahlen if z % 2 == 0)} von {len(zahlen)}."}
+    monkeypatch.setattr(model, "FAKE", fake)
+    r = decompose.run([1, 2, 3, 4, 5, 6], "gerade", parts=2)
+    assert r["value"] == 3 and r["missing"] == 0 and r["values"] == [1, 2]
+    assert "decompose.implausible" not in _bus_events()
+    lauf = [z for z in bus.tail(50) if z["event"] == "decompose.run"]
+    assert lauf[-1]["value"] == 3
 
 
 def test_merge_bool_und_leer():

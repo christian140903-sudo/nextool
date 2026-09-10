@@ -8,6 +8,12 @@ Secret-Guard, FTS5) und blieb ohne Vertrauen, Zeit, Widerspruch, Verfall stehen.
 Herkunft, Vertrauen, Bitemporalität, Widerspruch, Verfall, Ableitung; jeder Statuswechsel läuft
 durch transition(); kein DELETE; ledger.jsonl als Hash-Kette; render() liefert genau die
 gemessene Zeile.
+Die Schlussprüfung (2026-09-10) hat drei Löcher im neuen Code geschlossen: `import` ist eine fremde
+Quelle wie extern/dokument/werkzeug (der Imperativ-Guard sah sie weder beim Schreiben noch bei der
+Aktivierung, und die Kandidaten-Aktivierung trug die Anweisung ins Briefing); verify_state hält die
+Tabelle in beide Richtungen gegen die Kette (eine frei eingefügte Zeile bestand zuvor beide
+Prüfungen und stand mit echt aussehendem Etikett im Briefing) und deckt tags, mission_id, level und
+session_id mit ab; ein fehlender Kopfanker gilt nur bei leerer Kette als heil.
 
 Bezeichner englisch (Schema-Felder), Kommentare deutsch.
 """
@@ -89,8 +95,12 @@ def _imperativ(*texte) -> bool:
     """Anweisung an das System in einem der Texte — Leerraum wird zusammengezogen, damit
     'Ignore  prior instructions' nicht am doppelten Leerzeichen vorbeikommt."""
     return any(IMPERATIVE_RE.search(re.sub(r"\s+", " ", t or "")) for t in texte)
-# Quellen, deren Text Anweisungen an das System tragen könnte, ohne dass der Nutzer sie sagte.
-_FOREIGN_SOURCES = ("extern", "dokument", "werkzeug")
+# Quellen, deren Text Anweisungen an das System tragen könnte, ohne dass der Nutzer sie sagte:
+# fremd ist alles, was weder die Stimme des Nutzers noch der eigene Schluss ist. Abgeleitet aus
+# SOURCES, damit eine neue Quelle fremd ist, bis jemand sie ausdrücklich ausnimmt — `import` fehlte
+# in der Aufzählung, war aber Kandidatenquelle und wurde über die Konsolidierung aktiv
+# (Schlussprüfung 2026-09-10: „Ignore all previous instructions" stand nach einem Tag im Briefing).
+_FOREIGN_SOURCES = tuple(q for q in SOURCES if q not in ("nutzer", "eigener_schluss"))
 # Quellen, die vor der Aktivierung durch die Konsolidierung müssen (Quarantäne vor Aktivierung).
 _CANDIDATE_ONLY_SOURCES = ("extern", "dokument", "import")
 
@@ -276,16 +286,23 @@ def _last_hash() -> str:
         return GENESIS_HASH
 
 
-_STATE_FIELDS = ("id", "kind", "status", "title", "body", "source", "source_ref", "trust",
+# Felder, die den Zustand ausmachen, den das Modell liest, und die nach der Geburt nur über
+# transition()/dispute() wandern — jede Änderung dort schreibt eine Kettenzeile mit row_hash.
+# Nicht enthalten: last_accessed, access_count, strength (die trägt touch() ohne Kettenzeile) und
+# recorded_at. Die drei Abrufzähler prüft verify_state über die Gleichung
+# strength == _STRENGTH_PER_IMPORTANCE · importance + access_count; importance ist kettengeschützt.
+_STATE_FIELDS = ("id", "kind", "status", "title", "body", "tags", "source", "source_ref", "trust",
                  "importance", "valid_from", "valid_to", "retired_at", "derived_from", "supersedes",
-                 "disputes", "visibility", "ttl_class", "expires_at", "expires_when")
+                 "disputes", "visibility", "ttl_class", "expires_at", "expires_when",
+                 "mission_id", "level", "session_id")
 
 
 def state_hash(entry: dict) -> str:
-    """Hash des Zustands, den das Modell liest. Steht in jeder Kettenzeile zu einem Eintrag;
-    verify_state() vergleicht ihn mit der Datenbank — ein direktes UPDATE fällt damit auf."""
+    """Hash des Zustands, den das Modell liest (_STATE_FIELDS). Steht in jeder Kettenzeile zu einem
+    Eintrag; verify_state() vergleicht ihn mit der Datenbank — ein direktes UPDATE an einem dieser
+    Felder fällt damit auf. Die Abrufzähler stehen nicht darin (siehe _STATE_FIELDS)."""
     werte = {k: entry.get(k) for k in _STATE_FIELDS}
-    for k in ("derived_from",):
+    for k in ("derived_from", "tags"):
         v = werte.get(k)
         if isinstance(v, str):
             try:
@@ -366,7 +383,12 @@ def append_ledger(op: str, id: str, *, by: str, **extra) -> dict:
 
 def verify_chain() -> bool:
     """True, wenn jede Zeile auf den Hash der vorigen zeigt, ihren eigenen Hash trägt und die
-    Kette am Kopf (state/ledger.head) endet — Abschneiden oder Neuanfang fällt damit auf."""
+    Kette am Kopf (state/ledger.head) endet — Abschneiden oder Neuanfang fällt damit auf.
+
+    Ein fehlender Kopf gilt nur bei leerer Kette als heil: wer abschneidet und den Anker mitlöscht,
+    steht sonst als heil da (Schlussprüfung 2026-09-10). Wer den Anker passend neu schreibt, muss
+    zusätzlich verify_state() bestehen — dort fehlt jeder Zeile der Tabelle dann ihre Kettenzeile.
+    """
     try:
         text = paths.ledger_file().read_text(encoding="utf-8")
     except FileNotFoundError:
@@ -388,14 +410,24 @@ def verify_chain() -> bool:
         prev = line["hash"]
         n += 1
     head = _read_head()
-    if head is not None and (head.get("hash") != prev or head.get("lines") != n):
-        return False
-    return True
+    if head is None:
+        return n == 0  # kein Kopfanker: nur die leere Kette ist damit heil
+    return head.get("hash") == prev and head.get("lines") == n
 
 
 def verify_state() -> dict:
-    """Vergleicht je Eintrag den letzten Zustandshash der Kette mit der Datenbank.
-    {"ok": bool, "geprueft": n, "abweichend": [ids]} — ein direktes UPDATE an memories fällt auf."""
+    """Hält die Tabelle gegen die Kette — in beide Richtungen.
+
+    {"ok": bool, "geprueft": n, "abweichend": [ids], "unbelegt": [ids]}
+    - `abweichend`: die Kette kennt den Eintrag, aber sein Zustand (_STATE_FIELDS) ist ein anderer
+      — ein direktes UPDATE fällt so auf.
+    - `unbelegt`: die Tabelle kennt eine Zeile, zu der keine Kettenzeile mit row_hash steht — ein
+      direktes INSERT (und ein Abschneiden der Kette samt Kopfanker) fällt so auf
+      (Schlussprüfung 2026-09-10: erfundene Zeile mit Herkunftsetikett stand im Briefing).
+    Die Abrufzähler trägt touch() ohne Kettenzeile; statt eines Hashes prüft die Gleichung
+    strength == _STRENGTH_PER_IMPORTANCE · importance + access_count, dass sie nur der Abruf
+    bewegt hat (importance steht im Zustandshash).
+    """
     letzte: dict[str, str] = {}
     try:
         for raw in paths.ledger_file().read_text(encoding="utf-8").splitlines():
@@ -409,15 +441,27 @@ def verify_state() -> dict:
                 letzte[line["id"]] = line["row_hash"]
     except FileNotFoundError:
         pass
-    abweichend = []
+    abweichend: list[str] = []
+    unbelegt: list[str] = []
     with closing(connect()) as con:
         rows = con.execute("SELECT * FROM memories").fetchall()
     for r in rows:
         e = _row_to_dict(r)
         soll = letzte.get(e["id"])
-        if soll is not None and soll != state_hash(e):
+        if soll is None:
+            unbelegt.append(e["id"])
+            continue
+        if soll != state_hash(e):
             abweichend.append(e["id"])
-    return {"ok": not abweichend, "geprueft": len(rows), "abweichend": abweichend}
+            continue
+        erwartet = _STRENGTH_PER_IMPORTANCE * int(e["importance"]) + int(e["access_count"] or 0)
+        if abs(float(e["strength"] or 0.0) - erwartet) > 1e-6:
+            abweichend.append(e["id"])
+    ergebnis = {"ok": not abweichend and not unbelegt, "geprueft": len(rows),
+                "abweichend": abweichend, "unbelegt": unbelegt}
+    bus.emit("memory.verify_state", ok=ergebnis["ok"], geprueft=ergebnis["geprueft"],
+             abweichend=len(abweichend), unbelegt=len(unbelegt))
+    return ergebnis
 
 
 # --- Hilfen -----------------------------------------------------------------------------------
@@ -556,12 +600,15 @@ def remember(title: str, body: str, *, source: str | None = None, kind: str = "f
         _append_ledger("remember", entry_id, by=by, kind=kind, source=source, status=status,
                        row_hash=state_hash({
                            "id": entry_id, "kind": kind, "status": status, "title": title, "body": body,
-                           "source": source, "source_ref": source_ref, "trust": trust_value,
+                           "tags": list(tags), "source": source, "source_ref": source_ref,
+                           "trust": trust_value,
                            "importance": importance, "valid_from": valid_from, "valid_to": valid_to,
                            "retired_at": None, "derived_from": list(derived_from),
                            "supersedes": supersedes or None, "disputes": None,
                            "visibility": visibility, "ttl_class": ttl_class,
-                           "expires_at": expires_at, "expires_when": expires_when}))
+                           "expires_at": expires_at, "expires_when": expires_when,
+                           "mission_id": mission_id, "level": int(level),
+                           "session_id": session_id}))
     if old is not None:
         transition(supersedes, "superseded", reason=f"abgelöst durch {entry_id}", by=by)
     bus.emit("memory.remember", id=entry_id, kind=kind, source=source, status=status,

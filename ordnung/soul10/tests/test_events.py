@@ -39,11 +39,13 @@ def _vertrag(goal="Was ist 6*7? Antworte nur mit der Zahl."):
 
 
 def _quittung(cid, passed=True):
-    from core import contract
+    """Eine Quittung mit einem Lauf, den probes.run wirklich ausgeführt hat — seit der
+    Schlussprüfung trägt nur ein echter Lauf ein gültiges Token, und ohne Token gibt es kein Urteil."""
+    from core import contract, probes
+    lauf = probes.run(PROBE, answer_text="42" if passed else "43", contract_id=cid)
     q = {
         "contract_id": cid,
-        "probe_runs": [{"type": "answer", "passed": passed, "detail": "x", "stdout_head": "",
-                        "exit": None, "at": paths.now_iso()}],
+        "probe_runs": [lauf],
         "verdict": "pass" if passed else "fail",
         "verifier": {"kind": "deterministic", "model": None},
         "at": paths.now_iso(),
@@ -579,7 +581,8 @@ def test_maskierung_vor_dem_abschneiden_und_sensible_befehle_ohne_anfang():
     # Harmlose Befehle behalten ihren Anfang: das Log ist fail-open, nicht fail-closed.
     for befehl in ("ls -la", "pytest tests/test_tokenizer.py -q", "grep -rn 'csrf_token' app/views.py",
                    "git log --oneline --grep=token | head -20", "wc -l src/tokenizer.rs",
-                   "cat docs/passwort-richtlinie.md", "ls -la src/secrets/", "make test-credentials-parser"):
+                   "cat docs/passwort-richtlinie.md", "ls -la src/secrets/", "make test-credentials-parser",
+                   "cat .envoy.yaml", "cat .environment", "cat env.example", "cat environment.yml"):
         assert events.response_head({"stdout": "ok"}, tool="Bash", tool_input={"command": befehl}) == "ok", befehl
     assert events.response_head({"content": "ok"}, tool="Read", tool_input={"file_path": "/projekt/app.py"}) == "ok"
     _run("post-tool", {"session_id": "s8", "tool_name": "Bash", "tool_input": {"command": "cat .env"},

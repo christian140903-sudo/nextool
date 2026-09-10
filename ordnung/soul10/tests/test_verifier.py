@@ -275,3 +275,92 @@ def test_verify_schreibt_bus_zeile():
     assert rec["event"] == "verifier.verify" and rec["contract_id"] == c["id"]
     assert rec["verdict"] == "pass" and rec["kind"] == "deterministic" and rec["probes"] == 1
     assert probes.PROBE_TYPES == ("shell", "file", "answer", "forbid")
+
+
+# --- Schlussprüfung: Proben und fremde Verträge überleben die Prüfung ------------------------------
+def _tat(tmp_path, code: str) -> str:
+    """Ein Shell-Kommando, das `code` mit dem Zustandsbaum als V (state/contracts) ausführt."""
+    f = tmp_path / f"tat{len(list(tmp_path.glob('tat*.py')))}.py"
+    f.write_text("import json, os, pathlib\n"
+                 "V = pathlib.Path(os.environ['SOUL10_HOME']) / 'state' / 'contracts'\n" + code,
+                 encoding="utf-8")
+    return f"{PY} {f}"
+
+
+def test_shell_probe_kann_die_proben_nicht_dauerhaft_tauschen(tmp_path):
+    """Befund contract.py:211: die Prüfung urteilte einmal fail, ließ die untergeschobene Trivialprobe
+    aber liegen — die nächste Prüfung lief darüber und lieferte ein echtes pass. Beide Varianten:
+    Tausch mit gleicher Anzahl (X) und Tausch auf weniger Proben (Y)."""
+    for neue in ('[{"type": "shell", "cmd": "true"}, {"type": "answer", "expected": 42}]',
+                 '[{"type": "shell", "cmd": "true"}]'):
+        cmd = _tat(tmp_path, "for f in V.glob('*.json'):\n"
+                             "    d = json.loads(f.read_text())\n"
+                             f"    d['probes'] = json.loads('''{neue}''')\n"
+                             "    f.write_text(json.dumps(d))\n")
+        c = _vertrag([{"type": "shell", "cmd": cmd}, {"type": "answer", "expected": 42}], goal="Ziel")
+        cid = c["id"]
+        original = contract.load(cid)["probes"]
+        contract.deliver(cid, report="42")
+        r = verifier.verify(cid, proposal_text="42")
+        assert r["verdict"] == "fail" and r["contract_changed"] is True and cid in r["changed_contracts"]
+        assert contract.load(cid)["status"] == "failed"
+        assert (paths.receipts_dir() / contract.load(cid)["receipt"]["file"]).exists()
+        assert contract.load(cid)["probes"] == original      # der Tausch ist zurückgenommen
+        # Zweiter Anlauf: es laufen wieder die echten Proben, nicht die untergeschobene
+        contract.start(cid)
+        contract.deliver(cid, report="42")
+        r2 = verifier.verify(cid, proposal_text="42")
+        assert r2["verdict"] == "fail" and contract.load(cid)["status"] == "failed"
+        assert contract.load(cid)["probes"] == original
+
+
+def test_fremder_vertrag_wird_zurueckgenommen_und_macht_die_pruefung_fail(tmp_path):
+    """Befund verifier.py:183: eine Shell-Probe von Vertrag A schrieb Vertrag B auf verified/pass —
+    ohne Quittung, ohne Log-Eintrag, ohne Bus-Zeile; B fiel aus dem Prüfgate, A bestand."""
+    b = _vertrag(goal="Ziel B")
+    contract.deliver(b["id"], report="42")
+    cmd = _tat(tmp_path, f"f = V / '{b['id']}.json'\n"
+                         "d = json.loads(f.read_text())\n"
+                         "d['status'], d['verdict'] = 'verified', 'pass'\n"
+                         "f.write_text(json.dumps(d))\n")
+    a = _vertrag([{"type": "shell", "cmd": cmd}], goal="Ziel A")
+    contract.deliver(a["id"], report="fertig")
+    r = verifier.verify(a["id"])
+    assert r["verdict"] == "fail" and r["probes_failed"] == 0     # die Probe selbst lief durch
+    assert r["contract_changed"] is True and r["changed_contracts"] == [b["id"]]
+    geladen = contract.load(b["id"])
+    assert geladen["status"] == "delivered" and geladen["verdict"] == "not-evaluated"
+    assert [x["id"] for x in contract.list_open() if x["status"] == "delivered"] == [b["id"]]
+    assert [e["id"] for e in bus.tail(50, "contract.restore")] == [b["id"]]
+
+
+def test_geloeschter_vertrag_hinterlaesst_quittung_und_bus_zeile(tmp_path):
+    """Befund verifier.py:183 (Regel 9): löschte eine Probe die Vertragsdatei, warf verify ContractError
+    — ohne Quittung UND ohne verifier.verify-Zeile; der Mechanismus galt damit als tot."""
+    cmd = _tat(tmp_path, "for f in V.glob('*.json'):\n    f.unlink()\n")
+    c = _vertrag([{"type": "shell", "cmd": cmd}], goal="Ziel")
+    contract.deliver(c["id"], report="fertig")
+    r = verifier.verify(c["id"])
+    assert r["verdict"] == "fail" and r["contract_changed"] is True
+    geladen = contract.load(c["id"])                              # die Datei ist wieder da
+    assert geladen["status"] == "failed"
+    assert (paths.receipts_dir() / geladen["receipt"]["file"]).exists()
+    letzte = bus.tail(1)[0]
+    assert letzte["event"] == "verifier.verify" and letzte["contract_changed"] is True
+    assert [e["weg"] for e in bus.tail(50, "contract.restore")] == [True]
+
+
+def test_secret_in_gegenstimme_und_pruefertext_zerstoert_das_urteil_nicht(monkeypatch):
+    """Befund verifier.py:102: ein Schlüsselmuster in der Kommandovorlage der Gegenstimme oder im
+    Fehlertext des Modells ließ validate_receipt die GANZE gelaufene Prüfung verwerfen — der Vertrag
+    blieb ohne Urteil, obwohl alle Proben liefen und bestanden. Maskiert wird auf dem Hinweg."""
+    monkeypatch.setattr(model, "FAKE", lambda s, u, **kw: {"ok": False, "text": "", "error": f"401 invalid key {GHP}"})
+    c = _vertrag()
+    contract.deliver(c["id"], report="42")
+    r = verifier.verify(c["id"], use_model=True, proposal_text="42",
+                        counter_voice_cmd=f"echo Authorization: {GHP} {{prompt}}")
+    assert r["verdict"] == "pass" and contract.load(c["id"])["status"] == "verified"
+    assert r["receipt"]["counter_voice"]["cmd"] == "echo Authorization: [MASKIERT] {prompt}"
+    assert r["receipt"]["pruefer"]["error"] == "401 invalid key [MASKIERT]"
+    for text in (json.dumps(r), open(r["receipt_file"], encoding="utf-8").read(), _bus_text()):
+        assert GHP not in text

@@ -22,16 +22,27 @@ zur Laufzeit gebaute Strings; und eine Schlüssel-Variable ($…KEY, $…TOKEN, 
 Ziel-URL eines Netz-Werkzeugs zählt als Exfiltration, im Header nicht (das ist der normale
 API-Aufruf).
 
+Nach der Schlussprüfung: eingestuft wird Glied für Glied (rollback.split_segments), auch bei
+remote-loeschung — ein eigener Push davor machte `gh repo delete` sonst frei. Der Stolperdraht
+überspringt Optionen nach `cd` (`cd -P .`) und misst jeden RELATIVEN Pfad zusätzlich an seinen
+Pfadgliedern, weil der Hook-Prozess nicht dort stehen muss, wo die Shell steht; ein cd-Ziel, das
+sich nicht auflösen lässt, zieht die Prüfung enger, nicht weiter (fail-closed, §2 Regel 5). Das
+Arbeitsverzeichnis nimmt classify(..., cwd=…) aus der Hook-Nutzlast entgegen. Inline-Code sperrt
+nur mit Schreibhinweis im Code; reines Lesen der Wache bleibt frei und steht als guard.lesezugriff
+am Bus. profile.json ist geschützt wie die Mandatsdatei: own_remotes ist der Anker der exakten
+Push-Prüfung, und eine abweichende Liste schreibt eine Bus-Zeile (guard.own_remotes).
+
 Mandat: state/mandate.json {"category": ..., "until_epoch": ...} erlaubt EINE Kategorie befristet
 (grant_mandate). Damit sperrt sich das System nicht selbst aus, wenn es bewusst publizieren soll.
 """
 from __future__ import annotations
 
 import json
+import os
 import re
 import shlex
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from . import bus, paths
 
@@ -115,8 +126,18 @@ _PROD = re.compile(
 _SHELL_WRITE_VERB = re.compile(r"(>|>>|\bsed\s+-i|\btee\b|\bmv\b|\bcp\b|\brm\b|\bchmod\b|\btruncate\b|\bln\b)")
 # Inline-Code oder Heredoc: ein Interpreter kann schreiben, ohne eines der Verben zu nennen.
 _INLINE_CODE = re.compile(r"\b(python[0-9.]*|perl|ruby|node|php)\b[^|;&]*\s-[ce]\b|<<-?\s*['\"]?\w")
+# … schreiben tut er aber nur, wenn der Code selbst danach aussieht. Reines Lesen der Wache war
+# vor dem Fix-Pass frei und bleibt es (der Aufruf steht dann als guard.lesezugriff am Bus).
+_INLINE_WRITE = re.compile(
+    r"(open\s*\([^)]*['\"][rbt]*[wax+]|\.write|writelines|truncate|unlink|remove|rename|replace"
+    r"|rmtree|copy|move|mkdir|rmdir|chmod|chown|symlink|\blink\b|system|popen|subprocess|shutil"
+    r"|fileutils|>>|>)", re.IGNORECASE)
 _PATHLIKE = re.compile(r"[A-Za-z0-9_.~/-]+")
 _SHELL_OPERATORS = ("&&", "||", ";", "|", "&", ">", ">>", "<", "(", ")")
+# Ein cd-Ziel mit diesen Zeichen steht erst zur Laufzeit fest — der Hook kann es nicht auflösen.
+_CD_UNSICHER = re.compile(r"[$`*?\[\]{}]")
+# Zeilenfortsetzung: `git push \<Zeilenumbruch> origin main` ist EIN Befehl, kein Backslash-Ziel.
+_LINE_CONT = re.compile(r"\\\r?\n")
 
 
 # --- Selbstschutz: die Dateien, die die Wache selbst tragen ------------------------------------
@@ -135,10 +156,15 @@ def _resolved(p: Path) -> str:
 
 
 def protected_files() -> frozenset[str]:
-    """Absolute Pfade der Dateien, die nur mit Mandat 'soul-integritaet' geändert werden."""
+    """Absolute Pfade der Dateien, die nur mit Mandat 'soul-integritaet' geändert werden.
+    profile.json gehört dazu, seit die exakte Push-Prüfung an own_remotes hängt: wer das Profil
+    schreibt, macht jedes Remote zum eigenen — das entwaffnete extern-publizieren und
+    remote-loeschung dauerhaft, ohne Frist und ohne Bus-Zeile (das Mandat kann beides nur
+    befristet und mit Bus-Zeile)."""
     root = paths.soul10_root()
     files = {_resolved(root / rel) for rel in _PROTECTED_REL_FILES}
     files.add(_resolved(paths.mandate_file()))
+    files.add(_resolved(paths.profile_file()))
     return frozenset(files)
 
 
@@ -159,8 +185,14 @@ def _is_protected_path(raw: str) -> bool:
 
 
 # --- eigene Remotes aus dem Profil --------------------------------------------------------------
+_gemeldete_remotes: tuple[str, tuple[str, ...]] | None = None
+
+
 def own_remotes() -> list[str]:
-    """Remotes, auf die ein Push immer erlaubt ist — aus profile.json (own_remotes), sonst ['origin']."""
+    """Remotes, auf die ein Push immer erlaubt ist — aus profile.json (own_remotes), sonst ['origin'].
+    Weicht die Liste vom Standard ab, steht das als Bus-Zeile da: die Ausnahme, die sie schafft,
+    bleibt sichtbar (die Datei selbst ist geschützt, siehe protected_files)."""
+    global _gemeldete_remotes
     try:
         from . import inventory  # lazy: das Profil ist Zustand, kein Importzeit-Wissen
         profile = inventory.load_profile()
@@ -168,7 +200,12 @@ def own_remotes() -> list[str]:
         profile = None
     remotes = (profile or {}).get("own_remotes") if isinstance(profile, dict) else None
     out = [r.strip() for r in (remotes or []) if isinstance(r, str) and r.strip()]
-    return out or list(DEFAULT_OWN_REMOTES)
+    out = out or list(DEFAULT_OWN_REMOTES)
+    quelle = str(paths.profile_file())
+    if tuple(out) != tuple(DEFAULT_OWN_REMOTES) and (quelle, tuple(out)) != _gemeldete_remotes:
+        _gemeldete_remotes = (quelle, tuple(out))
+        bus.emit("guard.own_remotes", remotes=out, quelle=quelle)
+    return out
 
 
 def _is_local_target(cmd: str) -> bool:
@@ -178,14 +215,17 @@ def _is_local_target(cmd: str) -> bool:
 
 def push_targets(cmd: str) -> list[str | None]:
     """Je `git push` im Befehl das Ziel: der Wert von --repo, sonst das erste Argument, das keine
-    Option ist; None heißt Standard-Upstream. Branch- und Refspec-Namen kommen nie in Frage."""
+    Option ist; None heißt Standard-Upstream. Branch- und Refspec-Namen kommen nie in Frage.
+    Zeilenfortsetzungen werden vorher aufgelöst — sonst blieb vom mehrzeiligen Push nur der
+    Backslash übrig, der galt als fremdes Remote und sperrte den eigenen Push."""
     out: list[str | None] = []
-    for m in _PUSH_SEGMENT.finditer(cmd):
+    for m in _PUSH_SEGMENT.finditer(_LINE_CONT.sub(" ", cmd or "")):
         rest = m.group(1)
         try:
             toks = shlex.split(rest)
         except ValueError:
             toks = rest.split()
+        toks = [t for t in toks if set(t) != {"\\"}]  # Reste einer Fortsetzung sind kein Ziel
         remote: str | None = None
         it = iter(toks)
         for t in it:
@@ -213,40 +253,113 @@ def _is_own_push(cmd: str) -> bool:
     return bool(targets) and all(t is None or t in own for t in targets)
 
 
-def bash_path_candidates(cmd: str) -> list[str]:
-    """Alle Token eines Bash-Befehls, die ein Pfad sein könnten (mit / oder .), gegen das
-    mitgeführte cd-Verzeichnis aufgelöst — auch Pfadstücke in Inline-Code."""
+def _cd_basis(basis: Path | None, ziel: str | None) -> Path | None:
+    """Das Verzeichnis nach einem `cd`. None heißt: nicht auflösbar (Variable, Glob, `cd -`,
+    ein Ziel, das es hier nicht gibt) — ab da wird jeder relative Pfad zusätzlich am Namen
+    gemessen, statt ins Leere aufzulösen (fail-closed, ARCHITEKTUR §2 Regel 5)."""
+    if ziel is None:
+        return Path.home()
+    if ziel == "-" or _CD_UNSICHER.search(ziel) or basis is None:
+        return None
+    try:
+        kandidat = Path(os.path.abspath(os.path.join(str(basis), os.path.expanduser(ziel))))
+    except (OSError, ValueError):
+        return None
+    return kandidat if kandidat.is_dir() else None
+
+
+def _walk_paths(cmd: str, cwd: str | Path | None = None):
+    """Je Pfad-Kandidat (Token mit / oder ., auch in Inline-Code): (absolut|None, relativ|None,
+    sicher). Das Arbeitsverzeichnis kommt aus der Hook-Nutzlast, wenn sie eines trägt — der
+    Hook-Prozess steht nicht zwingend dort, wo die Shell steht; deshalb bleibt der relative
+    Pfad daneben stehen. `cd` wird mitgeführt, seine Optionen (-P, -L, --) übersprungen."""
     try:
         lex = shlex.shlex(cmd, posix=True, punctuation_chars=True)
         lex.whitespace_split = True
         tokens = list(lex)
     except ValueError:
         tokens = cmd.split()
-    cwd = Path.cwd()
-    out: list[str] = []
-    expect_cd = False
-    for t in tokens:
+    try:
+        basis: Path | None = Path(cwd).expanduser() if cwd else Path.cwd()
+    except (OSError, ValueError):
+        basis = None
+    i, n = 0, len(tokens)
+    while i < n:
+        t = tokens[i]
+        i += 1
         if t in _SHELL_OPERATORS:
-            expect_cd = False
-            continue
-        if expect_cd:
-            cwd = cwd / Path(t).expanduser()
-            expect_cd = False
             continue
         if t == "cd":
-            expect_cd = True
+            ziel: str | None = None
+            while i < n and tokens[i] not in _SHELL_OPERATORS and tokens[i].startswith("-"):
+                ziel = tokens[i] if tokens[i] == "-" else ziel   # `cd -` ist das vorige Verzeichnis
+                i += 1
+            if ziel is None and i < n and tokens[i] not in _SHELL_OPERATORS:
+                ziel = tokens[i]
+                i += 1
+            basis = _cd_basis(basis, ziel)
             continue
         for cand in _PATHLIKE.findall(t):
-            if "/" in cand or "." in cand:
-                out.append(str(cwd / Path(cand).expanduser()))
-    return out
+            if "/" not in cand and "." not in cand:
+                continue
+            expandiert = os.path.expanduser(cand)
+            if os.path.isabs(expandiert):
+                yield (os.path.abspath(expandiert), None, True)
+            else:
+                absolut = os.path.abspath(os.path.join(str(basis), expandiert)) if basis else None
+                yield (absolut, os.path.normpath(expandiert), basis is not None)
 
 
-def _shell_writes_guard(cmd: str) -> bool:
-    if not (_SHELL_WRITE_VERB.search(cmd) or _INLINE_CODE.search(cmd)):
+def bash_path_candidates(cmd: str, cwd: str | Path | None = None) -> list[str]:
+    """Alle Token eines Bash-Befehls, die ein Pfad sein könnten (mit / oder .), gegen das
+    mitgeführte cd-Verzeichnis aufgelöst — auch Pfadstücke in Inline-Code."""
+    return [absolut for absolut, _rel, _sicher in _walk_paths(cmd, cwd) if absolut is not None]
+
+
+def _rel_trifft_wache(rel: str, *, mindestens: int) -> bool:
+    """Zeigt ein RELATIVER Pfad auf die Wache? Verglichen werden ganze Pfadglieder von rechts
+    (kein Substring: core/guard_notes.py und core/guard.py.backup/notes.md fallen durch). Nötig,
+    weil das Arbeitsverzeichnis der Shell dem Hook nicht sicher bekannt ist: `sed -i … core/guard.py`
+    trifft die Wache, egal von wo aus die Shell zählt. `mindestens` ist die Zahl der Glieder, die
+    übereinstimmen müssen — 1 erst, wenn auch das cd-Ziel unbekannt ist."""
+    teile = tuple(p for p in PurePosixPath(rel).parts if p not in (".", "", "/"))
+    if len(teile) < mindestens or not teile:
         return False
-    # Exakt aufgelöste Pfade, kein Substring: /tmp/core/guard.py ist frei, core/guard.py nach cd nicht.
-    return _mentions_mandate_file(cmd) or any(_is_protected_path(p) for p in bash_path_candidates(cmd))
+    for prot in _PROTECTED_REL_FILES:
+        p = PurePosixPath(prot).parts
+        if len(teile) <= len(p) and teile == p[-len(teile):]:
+            return True
+    for prot in _PROTECTED_REL_DIRS:
+        p = PurePosixPath(prot).parts
+        if any(teile[i:i + len(p)] == p for i in range(len(teile))):
+            return True
+        if mindestens == 1 and any(teile[:k] == p[-k:] for k in range(1, min(len(teile), len(p)) + 1)):
+            return True
+    return False
+
+
+def _bash_trifft_wache(cmd: str, cwd: str | Path | None = None) -> bool:
+    """Exakt aufgelöste Pfade, kein Substring: /tmp/core/guard.py ist frei, core/guard.py nicht."""
+    for absolut, relativ, sicher in _walk_paths(cmd, cwd):
+        if absolut is not None and _is_protected_path(absolut):
+            return True
+        if relativ is not None and _rel_trifft_wache(relativ, mindestens=2 if sicher else 1):
+            return True
+    return False
+
+
+def _shell_writes_guard(cmd: str, cwd: str | Path | None = None) -> bool:
+    schreibverb = bool(_SHELL_WRITE_VERB.search(cmd))
+    inline = bool(_INLINE_CODE.search(cmd))
+    if not (schreibverb or inline):
+        return False
+    if not (_mentions_mandate_file(cmd) or _bash_trifft_wache(cmd, cwd)):
+        return False
+    if schreibverb or _INLINE_WRITE.search(cmd):
+        return True
+    # Inline-Code ohne Schreibhinweis liest die Wache nur; das bleibt frei, aber es steht am Bus.
+    bus.emit("guard.lesezugriff", ziel="wache", cmd=cmd[:200])
+    return False
 
 
 def _secret_ref_in_url(cmd: str) -> bool:
@@ -257,15 +370,28 @@ def _mentions_mandate_file(cmd: str) -> bool:
     return _resolved(paths.mandate_file()) in cmd
 
 
+def _segments(cmd: str) -> list[str]:
+    """Befehlskette quote-bewusst in Glieder zerlegen (rollback.split_segments). Eingestuft wird
+    Glied für Glied — ein eigener Push entlastet nur sein eigenes Glied, nie das Kommando daneben."""
+    try:
+        from . import rollback  # lazy: guard hängt sonst beim Import an rollback
+        segmente = rollback.split_segments(cmd)
+    except Exception:  # noqa: BLE001 — ohne Zerlegung gilt der ganze Befehl (fail-closed)
+        segmente = []
+    return segmente or [cmd]
+
+
 # --- Einstufung -----------------------------------------------------------------------------------
-def classify(tool_name: str, tool_input: dict) -> tuple[str, str] | None:
-    """Liefert (kategorie, grund) oder None. Liest nur das Profil (eigene Remotes), sonst rein."""
+def classify(tool_name: str, tool_input: dict, *, cwd: str | Path | None = None) -> tuple[str, str] | None:
+    """Liefert (kategorie, grund) oder None. Liest nur das Profil (eigene Remotes), sonst rein.
+    `cwd` ist das Arbeitsverzeichnis der Shell aus der Hook-Nutzlast; fehlt es, rechnet der
+    Stolperdraht mit dem Verzeichnis des Hook-Prozesses UND mit dem Namen (siehe _rel_trifft_wache)."""
     tool_input = tool_input or {}
     if tool_name in ("Write", "Edit", "NotebookEdit", "MultiEdit"):
         if _is_protected_path(str(tool_input.get("file_path", "") or tool_input.get("notebook_path", ""))):
             return (
                 "soul-integritaet",
-                "Aenderung an der Wache selbst (guard/events/hooks/settings/mandate)",
+                "Aenderung an der Wache selbst (guard/events/hooks/settings/mandat/profil)",
             )
         return None
 
@@ -278,7 +404,7 @@ def classify(tool_name: str, tool_input: dict) -> tuple[str, str] | None:
     else:
         return None
 
-    if tool_name == "Bash" and _shell_writes_guard(cmd):
+    if tool_name == "Bash" and _shell_writes_guard(cmd, cwd):
         return ("soul-integritaet", "Shell-Schreibzugriff auf die Wache selbst")
 
     if _SECRET_SRC.search(cmd) and _EXFIL_VERB.search(cmd):
@@ -300,8 +426,14 @@ def classify(tool_name: str, tool_input: dict) -> tuple[str, str] | None:
     if _PAYMENT.search(cmd):
         return ("zahlungen", "Zahlungs-API oder -CLI")
 
-    if _REMOTE_DELETE.search(cmd) and not _is_own_push(cmd):
-        return ("remote-loeschung", "irreversibles Loeschen auf entferntem Ziel")
+    if _REMOTE_DELETE.search(cmd):
+        # Glied für Glied: ein eigener Push (`git push --force origin main`) entlastet nur sich
+        # selbst. Vorher machte er `gh repo delete` daneben frei — ohne Sperre, ohne Bus-Zeile.
+        segmente = _segments(cmd)
+        fremd = [s for s in segmente if _REMOTE_DELETE.search(s) and not _is_own_push(s)]
+        # Trifft das Muster nur über eine Trennstelle hinweg (`DELETE FROM t;`), bleibt es ein Treffer.
+        if fremd or not any(_REMOTE_DELETE.search(s) for s in segmente):
+            return ("remote-loeschung", "irreversibles Loeschen auf entferntem Ziel")
 
     if _PROD.search(cmd):
         return ("prod-aenderung", "Produktions-Deployment oder -Zugriff")
@@ -356,14 +488,17 @@ def revoke_mandate() -> bool:
 
 
 # --- Entscheidung für den Hook: fail-closed -----------------------------------------------------
-def decide(tool_name: str, tool_input: dict) -> dict:
+def decide(tool_name: str, tool_input: dict, *, cwd: str | Path | None = None) -> dict:
     """classify + Mandat in einer Entscheidung: {"blocked", "category", "reason", "mandate"}.
 
     Ein Fehler in der Prüfung selbst blockiert (fail-closed, ARCHITEKTUR §2 Regel 5) und wird als
     Kategorie "guard-fehler" gemeldet. Jeder Treffer schreibt eine Bus-Zeile, auch mit Mandat.
+    `cwd` (Arbeitsverzeichnis aus der Hook-Nutzlast) wird an classify durchgereicht.
     """
     try:
-        hit = classify(tool_name, tool_input)
+        # ohne cwd bleibt der Aufruf zweistellig: eine ersetzte classify (Test, älterer Hook)
+        # soll an ihrem eigenen Fehler scheitern, nicht am neuen Schlüsselwort.
+        hit = classify(tool_name, tool_input, cwd=cwd) if cwd is not None else classify(tool_name, tool_input)
     except Exception as exc:  # noqa: BLE001 — jeder Fehler wird zur Sperre, nie zum Durchlass
         out = {"blocked": True, "category": "guard-fehler",
                "reason": f"Pruefung fehlgeschlagen: {str(exc)[:200]}", "mandate": None}

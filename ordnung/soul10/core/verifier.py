@@ -9,6 +9,13 @@ Prüfung zuerst, R16 S4); der Endwert wird per model.extract_last_number abgegri
 Rohtext durchgereicht; jede Prüfung hinterlässt eine Quittung mit Hash, aus der
 contract.set_verdict das Urteil zieht. Ein Fremdkommando kann als Gegenstimme mitlaufen.
 
+Nach der Schlussprüfung: jeder Probenlauf trägt sein Lauf-Token aus probes.run, sonst nimmt
+contract.set_verdict ihn nicht als bestanden an. Vor den Proben nimmt verify ein Abbild ALLER
+Verträge; was eine Probe daran ändert oder löscht — am geprüften wie an einem fremden —, wird
+zurückgenommen (contract.restore) und macht das Urteil fail. Was in die Quittung geht, ist auf
+dem HINWEG maskiert (Kommandovorlage der Gegenstimme, Fehlertext und Modellname des Prüfers):
+ein Schlüsselmuster macht ein Geheimnis unkenntlich, es wirft keine gelaufene Prüfung weg.
+
 Grenzen des Abgriffs (gemessen, nicht wegzudefinieren): der Prüfer ist zu 0 % formattreu; sein
 Endwert ist die LETZTE Zahl seines Textes. Nennt er nach der richtigen Zahl noch eine Nebenzahl
 („42 ist richtig, vgl. Schritt 2"), gilt 2 als Korrektur und das Urteil kippt auf fail — das ist
@@ -99,7 +106,10 @@ def _counter_voice(cmd_template: str, prompt: str, *, cwd: str | None, vorschlag
     über Ziel- oder Vorschlagstext ist damit ausgeschlossen, tests/test_verifier.py prüft es).
     cmd.exe kennt diese Quotierung nicht: außerhalb von POSIX läuft die Gegenstimme nicht, sondern
     meldet das als error."""
-    out = {"cmd": cmd_template, "exit": None, "last_line": "", "value": None, "agrees": None, "error": None}
+    # Maskiert auf dem HINWEG: sonst wirft validate_receipt die ganze gelaufene Prüfung weg,
+    # nur weil die Kommandovorlage ein Schlüsselmuster enthält (Schlussbefund verifier.py:102).
+    out = {"cmd": bus.mask(cmd_template), "exit": None, "last_line": "", "value": None,
+           "agrees": None, "error": None}
     if not _POSIX:
         out["error"] = "Gegenstimme nur unter POSIX (cmd.exe kennt die Quotierung des Prompts nicht)"
         bus.emit("verifier.counter_voice", exit=None, value=None, agrees=None, error=out["error"])
@@ -123,11 +133,12 @@ def _counter_voice(cmd_template: str, prompt: str, *, cwd: str | None, vorschlag
 
 
 # --- Sprosse 1 -------------------------------------------------------------------------
-def _run_probe(p: dict, *, cwd: str | None, answer_text: str | None) -> dict:
+def _run_probe(p: dict, *, cwd: str | None, answer_text: str | None, contract_id: str) -> dict:
     """Eine Probe laufen lassen; eine auf Platte unbrauchbare Probe ist ein gescheiterter Lauf
-    mit Spur (Bus-Zeile), kein Abbruch ohne Quittung."""
+    mit Spur (Bus-Zeile), kein Abbruch ohne Quittung. Ein gescheiterter Lauf braucht kein
+    Lauf-Token: aus ihm wird nie ein „bestanden"."""
     try:
-        return probes.run(p, cwd=cwd, answer_text=answer_text)
+        return probes.run(p, cwd=cwd, answer_text=answer_text, contract_id=contract_id)
     except probes.ProbeError as exc:
         typ = p.get("type") if isinstance(p, dict) else None
         run = {"type": typ, "passed": False, "detail": bus.mask(f"Probe ungültig: {exc}")[:400],
@@ -143,14 +154,20 @@ def verify(contract_id: str, *, use_model: bool = False, model: str | None = Non
     """Sprosse 1 immer (alle Proben); Sprosse 2 nur mit use_model und proposal_text und nur,
     wenn Sprosse 1 bestanden ist. Schreibt die Quittung und setzt das Urteil über contract.set_verdict.
 
-    Die Quittung ist an die Proben (probes_hash, Anzahl und Typen der Läufe) und an den Zustand des
-    Vertrags (contract_sha256) gebunden. Ändert sich der Vertrag während der Prüfung — etwa durch
-    eine Shell-Probe, die ihn umschreibt —, lautet das Urteil fail (contract_changed).
+    Die Quittung ist an die Proben (probes_hash, Anzahl und Typen der Läufe), an den Zustand des
+    Vertrags (contract_sha256) und über das Lauf-Token jedes Laufs an die wirklich gelaufenen
+    Proben gebunden. Vor den Proben wird ein Abbild aller Verträge genommen; was eine Probe daran
+    ändert oder löscht — am geprüften wie an einem fremden —, nimmt contract.restore zurück, steht
+    als changed_contracts in Quittung und Bus-Zeile und macht das Urteil fail (contract_changed).
     """
     c = contract.load(contract_id)
+    # Abbild ALLER Verträge vor den Proben: eine Shell-Probe darf weder den geprüften noch einen
+    # fremden Vertrag umschreiben (Schlussbefunde contract.py:211, verifier.py:183).
+    vor_den_proben = contract.snapshot()
 
     # Sprosse 1: deterministisch, immer zuerst, immer vollständig.
-    probe_runs = [_run_probe(p, cwd=cwd, answer_text=proposal_text) for p in c["probes"]]
+    probe_runs = [_run_probe(p, cwd=cwd, answer_text=proposal_text, contract_id=contract_id)
+                  for p in c["probes"]]
     failed = [r for r in probe_runs if not r["passed"]]
     verdict = "fail" if failed else "pass"
     kind, used_model, korrektur, pruefer, calls = "deterministic", None, None, None, 0
@@ -161,7 +178,7 @@ def verify(contract_id: str, *, use_model: bool = False, model: str | None = Non
         check = check_answer(c["goal"], proposal_text, model=model, thinking=thinking)
         calls += check["calls"]
         if check["ok"]:
-            kind, used_model = "deterministic+model", check["model"]
+            kind, used_model = "deterministic+model", bus.mask(str(check["model"] or "")) or None
             if check["changed"]:
                 verdict = "fail"
                 # Zahl gegen Zahl: der abgegriffene Wert; Textvorschlag: kurzer Textabgriff oder nichts.
@@ -172,6 +189,9 @@ def verify(contract_id: str, *, use_model: bool = False, model: str | None = Non
         # Rohtext bleibt draußen: nur Hash und abgegriffene Werte wandern in die Quittung.
         pruefer = {k: check[k] for k in ("proposal_value", "final_value", "changed", "value_missing",
                                          "ok", "error", "model", "calls", "output_tokens")}
+        for k in ("error", "model"):   # Fehlertext und Modellname kommen aus model.call (stderr, api_error)
+            if isinstance(pruefer[k], str):
+                pruefer[k] = bus.mask(pruefer[k])
         pruefer["final_text_sha256"] = paths.sha256_text(check["final_text"])
 
     counter = None
@@ -179,15 +199,20 @@ def verify(contract_id: str, *, use_model: bool = False, model: str | None = Non
         counter = _counter_voice(counter_voice_cmd, _model.pruefer_prompt(c["goal"], proposal_text),
                                  cwd=cwd, vorschlag=proposal_value(proposal_text))
 
-    # Der Vertrag muss der sein, der geprüft wurde: eine Probe darf ihn nicht umschreiben.
-    c_jetzt = contract.load(contract_id)
-    contract_changed = contract.fingerprint(c_jetzt) != contract.fingerprint(c)
-    if contract_changed:
+    # Der Vertrag muss der sein, der geprüft wurde: was eine Probe an Verträgen geändert oder
+    # gelöscht hat, wird zurückgenommen — sonst läuft die nächste Prüfung über untergeschobene
+    # Proben, und ein fremder Vertrag steht ohne Quittung als verifiziert da.
+    geaenderte_vertraege = contract.restore(vor_den_proben)
+    contract_changed = bool(geaenderte_vertraege)
+    # War der Vertrag schon vor der Prüfung umgeschrieben, gibt es nichts zurückzunehmen: dann
+    # ist er beschädigt und kann nur noch scheitern — mit Quittung, nicht als Abbruch ohne Spur.
+    schaden = contract.damaged(c)
+    if contract_changed or schaden:
         verdict = "fail"
 
     receipt = {
         "contract_id": contract_id,
-        **contract.receipt_binding(c_jetzt),
+        **contract.receipt_binding(c),
         "probe_runs": probe_runs,
         "verdict": verdict,
         "verifier": {"kind": kind, "model": used_model},
@@ -195,6 +220,8 @@ def verify(contract_id: str, *, use_model: bool = False, model: str | None = Non
         "pruefer": pruefer,
         "counter_voice": counter,
         "contract_changed": contract_changed,
+        "changed_contracts": geaenderte_vertraege,
+        "contract_damaged": schaden,
         "at": paths.now_iso(),
     }
     receipt["hash"] = contract.receipt_hash(receipt)
@@ -203,13 +230,17 @@ def verify(contract_id: str, *, use_model: bool = False, model: str | None = Non
     except contract.ContractError as exc:
         bus.emit("verifier.verify", contract_id=contract_id, verdict=None, kind=kind,
                  probes=len(probe_runs), probes_failed=len(failed), calls=calls,
-                 contract_changed=contract_changed, error=str(exc)[:200])
+                 contract_changed=contract_changed, changed_contracts=geaenderte_vertraege,
+                 error=str(exc)[:200])
         raise
     receipt_path = paths.receipts_dir() / c_final["receipt"]["file"]
     bus.emit("verifier.verify", contract_id=contract_id, verdict=verdict, kind=kind,
              probes=len(probe_runs), probes_failed=len(failed), calls=calls,
-             korrektur=korrektur, contract_changed=contract_changed, receipt=receipt_path.name)
+             korrektur=korrektur, contract_changed=contract_changed,
+             changed_contracts=geaenderte_vertraege, contract_damaged=schaden,
+             receipt=receipt_path.name)
     return {"contract_id": contract_id, "verdict": verdict, "verifier": kind, "korrektur": korrektur,
             "final_value": final_value, "calls": calls, "probes": len(probe_runs),
             "probes_failed": len(failed), "contract_changed": contract_changed,
+            "changed_contracts": geaenderte_vertraege, "contract_damaged": schaden,
             "receipt": receipt, "receipt_file": str(receipt_path)}

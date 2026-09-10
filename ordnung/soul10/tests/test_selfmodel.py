@@ -71,10 +71,37 @@ def test_render_zeigt_zuege_mit_etikett_und_unbelegtes_als_hypothese():
     zeilen = text.split("\n")
     assert zeilen[0] == "# Selbstmodell: Miguel"
     assert zeilen[1] == "[2026-08-20] [Quelle: eigener_schluss] [Vertrauen: 0,4] Ich prüfe Ergebnisse zweimal, bevor ich sie melde."
-    assert zeilen[2].startswith("Hypothese über mich (Belege 1/1): [")
+    # e1 trägt schon den befördernden Zug; für die Hypothese ist daraus kein Beleg mehr frei.
+    assert zeilen[2].startswith("Hypothese über mich (Belege 0/0): [")
     assert zeilen[2].endswith("[Quelle: eigener_schluss] [Vertrauen: 0,4] Ich mag knappe Antworten.")
     assert "noch keine belegten Züge" not in text
     assert ledger.get(zug)["status"] == "active" and ledger.get(hypothese)["status"] == "candidate"
+    # Eine eigene, freie Episode zählt weiterhin.
+    _selbst("Ich frage nach, wenn etwas fehlt.", derived_from=[_episode("s3")])
+    assert any(z.startswith("Hypothese über mich (Belege 1/1): ") and "Ich frage nach" in z
+               for z in selfmodel.render().split("\n"))
+
+
+def test_render_vergibt_belege_wie_die_befoerderung():
+    """Schlussprüfung 2026-09-10: render() rechnete ohne Vergabe. Dieselben zwei, an den
+    befördernden Zug schon vergebenen Episoden erschienen bei jedem weiteren Kandidaten als
+    „Belege 2/2", und nach einem Hand-Übergang standen alle als voll belegte Züge im Briefing —
+    zwei Episoden beglaubigten weiterhin beliebig viele Selbstbehauptungen, nur in der Anzeige."""
+    e1, e2 = _episode("s1"), _episode("s2")
+    ids = [_selbst(f"Ich bin Weltklasse Nr. {i}.", derived_from=[e1, e2]) for i in range(4)]
+    assert selfmodel.promote_eligible() == [ids[0]]
+    zeilen = selfmodel.render().split("\n")
+    assert sum(1 for z in zeilen if z.startswith("[")) == 1
+    assert sum(1 for z in zeilen if z.startswith("Hypothese über mich (Belege 0/0): ")) == 3
+    # Hand-Übergang im Hauptbuch macht aus einem unbelegten Zug keinen belegten (Zusage in
+    # promote_eligible): ohne freie Belege bleibt er eine Hypothese.
+    for i in ids[1:]:
+        ledger.transition(i, "active", reason="hand")
+    zeilen = selfmodel.render().split("\n")
+    assert sum(1 for z in zeilen if z.startswith("[")) == 1
+    assert sum(1 for z in zeilen if z.startswith("Hypothese über mich (Belege 0/0): ")) == 3
+    rec = _events("memory.selfmodel.render")[-1]
+    assert rec["traits"] == 1 and rec["hypotheses"] == 3 and rec["unbelegt_aktiv"] == 3
 
 
 def test_render_deklariert_nichts_aktiv_ohne_belege_bleibt_hypothese():

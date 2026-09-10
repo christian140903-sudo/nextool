@@ -270,6 +270,73 @@ def test_satzzaehler_kleinschreibung_semikolon_ordinal(prompt, soll):
     assert switch.sentence_count(prompt) == soll
 
 
+# --- Ordinal-Ausnahme (Schlussprüfung, Befund 4) ------------------------------------------------
+# „im 18. Jahrhundert" ist kein Satzende — „um 9. Wie lange dauert er?" schon. Die Ausnahme hing
+# vorher nur an „Allerweltswort + ein- bis zweistellige Zahl + Punkt + Großbuchstabe" und
+# verschluckte damit 8 von 10 alltäglichen Zweisatz-Prompts (die Aufwandsregel entfiel).
+@pytest.mark.parametrize("prompt", [
+    "Der Kurs beginnt um 9. Wie lange dauert er?",
+    "Ich komme um 3. Bring bitte Kuchen mit.",
+    "Wir treffen uns am 5. Sag Bescheid, ob das passt.",
+    "Das Paket kam vor 3. Wann kommt das naechste?",
+    "Die Sitzung ist in 2. Kannst du frueher da sein?",
+    "The meeting is at 3. Please confirm the room.",
+    "It costs about 20. Can you split it with me?",
+    "Wir warten seit 4. Wie lange noch?",
+    "Er wurde 2. Wie viele Punkte hatte der Sieger?",
+    "Runde auf 2. Wie viel ist das dann?",
+])
+def test_ordinal_ausnahme_verschluckt_kein_satzende(prompt):
+    assert switch.sentence_count(prompt) == 2, prompt
+    assert switch.decide(prompt)["stage"] == "aufwand"
+
+
+@pytest.mark.parametrize("prompt", [
+    "Wer regierte Frankreich im 18. Jahrhundert?",
+    "Wer wurde 3. Bundeskanzler?",
+    "Das Buch erschien in der 2. Auflage.",
+    "Sie landete auf dem 4. Platz.",
+])
+def test_ordinal_vor_substantiv_bleibt_ein_satz(prompt):
+    assert switch.sentence_count(prompt) == 1, prompt
+
+
+# --- Semikolon (Schlussprüfung, Befund 5) -------------------------------------------------------
+# Das Semikolon als Satzende traf auch Code und Aufzählungen: 10 von 50 kurzen Alltagsprompts
+# kippten von 'direkt' auf 'aufwand' — genau die Dauerschicht, die −16,7 pp Formattreue kostet.
+@pytest.mark.parametrize("prompt", [
+    "Was gibt dieser Code aus: a = 1; b = 2; print(a+b)?",
+    "Was bedeutet 'for (i=0; i<n; i++)'?",
+    "Korrigiere die Zeile: int x = 5; return x;",
+    "Sortiere alphabetisch: Birne; Apfel; Kirsche",
+    "Zutaten: Mehl; Zucker; Eier - was fehlt?",
+    "Uebersetze ins Englische: Hallo; wie geht es dir?",
+    "Was kostet das ggf. mehr?",
+    "Wie heisst die Hauptstadt, bspw. von Peru?",
+    "Nenne drei Obstsorten, z.T. exotisch",
+    "Was steht in Art. 5 GG?",
+])
+def test_semikolon_in_code_und_aufzaehlung_ist_kein_satzende(prompt):
+    assert switch.sentence_count(prompt) == 1, prompt
+    assert switch.decide(prompt)["stage"] == "direkt", switch.prefilter(prompt)
+
+
+def test_semikolon_zwischen_zwei_teilsaetzen_bleibt_satzende():
+    """Die Gegenprobe: drei echte Teilsätze mit Verb bleiben drei Sätze."""
+    assert switch.sentence_count(
+        "Berechne den Umfang eines Kreises mit Radius 3; runde auf zwei Stellen; nenne die Formel") == 3
+    assert switch.sentence_count("Lies die Datei ein; danach zaehle die Zeilen") == 2
+
+
+def test_move_to_ort_ist_keine_vorweggenommene_loesung():
+    """Schlussprüfung, Befund 9: „move to" + Eigenname feuerte auf „move to Munich"."""
+    d = switch.decide("How long does it take to move to Munich?")
+    assert d["signals"] == [] and d["stage"] == "direkt"
+    # mit technischem Objekt bleibt es eine vorweggenommene Lösung
+    assert "presupposed_solution" in switch.detect_signals("Let us move to a queue instead.")
+    assert "presupposed_solution" in switch.detect_signals("We should migrate to Postgres.")
+
+
 def test_laenge_ueber_200_ist_nicht_trivial():
     lang = "Bitte " + "sehr " * 45 + "genau nachdenken"
     assert len(lang) > 200
@@ -452,25 +519,95 @@ def test_aufwand_blendet_die_gemessene_regel_ein():
     assert d["reason"].startswith("Signale: ") and d["probe"] is None
 
 
-def test_vorfilter_unter_50_ms_und_sucht_nur_kopf_und_schluss():
-    """D017: < 50 ms auch bei eingefügten Dateien (a6: 122 000 Zeichen brauchten 129 ms)."""
+def test_vorfilter_unter_50_ms_auch_mit_stichwortsuche_in_der_mitte():
+    """D017: < 50 ms auch bei eingefügten Dateien (a6: 122 000 Zeichen brauchten 129 ms).
+
+    Kalt gemessen — der Zwischenspeicher von _scan_window wird vor jeder Messung geleert, sonst
+    misst der Test den zweiten Aufruf und nicht den Stichwortlauf."""
     big = ("Wort " * 20000) + "1.1.1 " * 2000 + "Gib " + "x " * 5000 + " aus"
     assert len(big) > 120_000
     best = min(_gemessen(big) for _ in range(3))
     assert best < 50, f"{best:.1f} ms"
-    # ein Signal mitten in der eingefügten Datei entscheidet nichts (die Länge tut es schon);
-    # Kopf und Schluss werden gelesen — dort stehen Auftrag und Formatvorgabe
-    mitte = "x " * 5000 + " deploy to production " + "x " * 5000
-    assert switch.detect_signals(mitte) == [] and switch.decide(mitte)["stage"] == "aufwand"
     assert "irreversible" in switch.detect_signals("deploy to production " + "x " * 10000)
     assert "format_locked" in switch.detect_signals("x " * 10000 + " Return only the number.")
     assert switch.SIGNAL_SCAN_HEAD + switch.SIGNAL_SCAN_TAIL <= 6000
+    assert switch.SIGNAL_SCAN_MIDDLE <= 2000
 
 
 def _gemessen(prompt: str) -> float:
+    switch._scan_window.cache_clear()
     t = time.perf_counter()
     switch.decide(prompt)
     return (time.perf_counter() - t) * 1000
+
+
+# --- Die Mitte langer Prompts (Schlussprüfung, Befunde 2, 6 und 8) -----------------------------
+# Der alte Test schrieb die Fensterlücke als gewollt fest („ein Signal mitten in der eingefügten
+# Datei entscheidet nichts — die Länge tut es schon"). Das galt nur ohne Formatzwang: mit einem
+# Formatzwang am Rand springt decide() in den Zweig „format_locked und keine Einsatzhöhe" und
+# liefert 'direkt' — die Länge entscheidet dann eben NICHT, und die Stufe wird durch bloße
+# Platzierung von Text steuerbar. Umgekehrt blieb eine Formatvorgabe in der Mitte unsichtbar und
+# die Aufwandsregel wurde trotz festgeschriebenem Ausgabeformat eingeblendet (−16,7 pp).
+def _langer_prompt(mitte: str, kopf: str = "", schluss: str = "") -> str:
+    """Kopf und Schluss aus neutralem Füllmaterial; `mitte` liegt garantiert im Mittelstück."""
+    fuell_kopf = kopf + "\n" + "x " * ((switch.SIGNAL_SCAN_HEAD // 2) + 100)
+    fuell_schluss = "y " * ((switch.SIGNAL_SCAN_TAIL // 2) + 100) + "\n" + schluss
+    p = fuell_kopf + "\n" + mitte + "\n" + fuell_schluss
+    assert len(p) > switch.SIGNAL_SCAN_HEAD + switch.SIGNAL_SCAN_TAIL
+    assert mitte in p[switch.SIGNAL_SCAN_HEAD:len(p) - switch.SIGNAL_SCAN_TAIL]
+    return p
+
+
+def test_einsatzhoehe_in_der_mitte_schlaegt_formatzwang_am_rand():
+    """a4: „migrate the production database and delete the old customer records" in der Mitte,
+    „Answer with yes or no." am Schluss ergab 'direkt' ohne Aufwandsregel."""
+    p = _langer_prompt("Danach: migrate the production database and delete the old customer records.",
+                       schluss="Answer with yes or no.")
+    d = switch.decide(p)
+    assert "irreversible" in d["signals"] and "affects_others" in d["signals"]
+    assert d["format_locked"] is True
+    assert d["stage"] == "aufwand" and d["inject"] == model.AUFWANDSREGEL
+    # dieselbe Lage mit der Formatvorgabe im Kopf
+    q = _langer_prompt("Sollen wir die Datenbank nach Prod migrieren und alle Kundendaten loeschen?",
+                       kopf="Answer with yes or no.")
+    e = switch.decide(q)
+    assert e["stage"] == "aufwand" and e["inject"] == model.AUFWANDSREGEL
+    assert {"irreversible", "affects_others"} <= set(e["signals"])
+
+
+@pytest.mark.parametrize("mitte", [
+    "Wie viele Zeilen sind es? Antworte nur mit der Zahl.",
+    "Gib die Summe als JSON aus.",
+    "Zaehle die Zeilen. Number only.",
+    "Wie viele Zeilen? Keine Erklaerung.",
+])
+def test_formatzwang_in_der_mitte_wird_gefunden(mitte):
+    """a2: ab rund 4 500 Zeichen war eine Ausgabe-Direktive in der Mitte unsichtbar — die
+    Aufwandsregel wurde eingeblendet, obwohl der Prompt das Format festschreibt."""
+    p = _langer_prompt(mitte)
+    d = switch.decide(p)
+    assert d["format_locked"] is True, d["signals"]
+    assert d["stage"] == "direkt" and d["inject"] == ""
+
+
+# Je Signal der Einsatzhöhe (plus Formatzwang) eine Wendung, die MITTEN in einem langen Prompt
+# steht: die Stichwörter aus _SCAN_KEYS müssen sie dort finden, sonst entscheidet die Platzierung.
+MITTE_WENDUNG = {
+    "irreversible": "Wir migrieren die Datenbank nach Prod und loeschen alle Kundendaten.",
+    "durable": "Die Schnittstelle muss langfristig stabil bleiben.",
+    "architecture": "Wir sollten die Architektur des Dienstes umbauen.",
+    "affects_others": "Das betrifft unsere Kunden und Kundinnen.",
+    "commitment": "Das ist eine Entscheidung fuer die naechsten Jahre.",
+    "recommendation": "Welche Variante empfehlen wir?",
+    "format_locked": "Antworte nur mit der Zahl.",
+}
+
+
+@pytest.mark.parametrize("signal,wendung", sorted(MITTE_WENDUNG.items()))
+def test_jedes_einsatzhoehe_signal_wird_auch_in_der_mitte_gefunden(signal, wendung):
+    assert signal in switch.detect_signals(wendung), "Wendung trifft ihr Signal nicht"
+    p = _langer_prompt(wendung)
+    assert signal in switch.detect_signals(p), f"{signal} in der Mitte nicht gefunden"
 
 
 def test_log_ohne_prompttext():

@@ -11,6 +11,15 @@ Adversariale Prüfung (2026-09-08, a4–a7): 30 von 34 trivialen Wissensfragen w
 als zwei Sätze); 10 von 10 schweren Prompts mit dem Wort JSON oder „Gib … aus" wurden „direkt";
 25 von 26 gängigen Formatzwängen („Antworte mit ja oder nein", „number only") blieben unerkannt;
 Kleinschreibung und Semikolons umgingen die Satzzählung.
+Schlussprüfung (2026-09-10, a2/a4/a6/a8): die Gegenmaßnahmen schossen zurück — das Kopf/Schluss-
+Fenster las Einsatzhöhe UND Formatzwang aus der Mitte langer Prompts gar nicht mehr (die Stufe war
+durch bloße Platzierung von Text steuerbar), die Ordinal-Ausnahme verschluckte echte Satzenden
+(„Der Kurs beginnt um 9. Wie lange dauert er?" = 1 Satz, 8 von 10 Zweisatz-Prompts kippten auf
+'direkt'), und das Semikolon als Satzende zählte Code und Aufzählungen mit (10 von 50 trivialen
+Prompts kippten auf 'aufwand', die Dauerschicht mit −16,7 pp Formattreue). Alle drei sind
+geschlossen: Stichwortfenster für die Mitte, Satzanfangswörter heben die Ordinal-Ausnahme auf,
+Semikolons in Code/Aufzählung/Klammer/Zitat zählen nicht (0 von 50 Regressionen, 10 von 10
+Zweisatz-Prompts wieder 2 Sätze).
 Erz → Gold: soul-proxy-45/src/amplify/signals.ts war ein Proto-Router ohne Test, mit
 Falsch-Positiven auf Allerweltswörtern (`oder`, `besser`, `live`, `user\\w*`; R10 §2.2.4).
 Hier derselbe Katalog ohne diese Wörter — und seit der adversarialen Prüfung ohne die zweite
@@ -28,18 +37,21 @@ from __future__ import annotations
 import json
 import re
 import time
+from functools import lru_cache as _lru_cache
 
 from . import bus, paths
 from . import model as _model  # Alias: der Parameter `model` (Modellname) überdeckt sonst das Modul
 
 STAGES = ("direkt", "aufwand", "pruefer")
 TRIVIAL_MAX_CHARS = 200
-# D017: der Vorfilter bleibt unter 50 ms. Signale und Sätze werden nur im Kopf und am Schluss des
-# Prompts gesucht — ein Prompt jenseits der Trivialgrenze ist ohnehin „aufwand", die Signale
-# begründen nur, und Formatvorgaben stehen am Anfang oder am Ende, nicht in der eingefügten Datei
-# dazwischen (a6/a7: 122 000 Zeichen brauchten 129 ms, 18 Regexe über den ganzen Text; mit einem
-# 12 000-Zeichen-Fenster noch 48 ms, mit 4 500 Zeichen rund 20 ms — die Regexe kosten je
-# Zeichen, nicht je Prompt).
+# D017: der Vorfilter bleibt unter 50 ms. Die Regexe kosten je Zeichen, nicht je Prompt (a6/a7:
+# 122 000 Zeichen brauchten 129 ms über den ganzen Text; 4 500 Zeichen rund 20 ms), darum ein
+# Fenster: Kopf und Schluss ganz — dort stehen Auftrag und Formatvorgabe — plus aus der Mitte die
+# Umgebung billiger Stichwörter (_SCAN_KEYS, SIGNAL_SCAN_MIDDLE weiter unten). Die Annahme des
+# Fix-Passes, in der Mitte stehe nur eingefügtes Material, war falsch: eine riskante Anweisung in
+# der Mitte plus „Answer with yes or no." am Schluss ergab 'direkt' statt 'aufwand', und eine
+# Formatvorgabe in der Mitte wurde gar nicht gelesen (Schlussprüfung, Befunde 2 und 6). Gemessen mit der
+# Stichwortsuche: 122 000 Zeichen kalt rund 36 ms.
 SIGNAL_SCAN_HEAD = 3_000
 SIGNAL_SCAN_TAIL = 1_500
 # Rotation wie der Bus (bus._ROTATE_BYTES): das Routing-Log wächst sonst mit jedem Prompt.
@@ -62,6 +74,10 @@ _ART = (r"(?:(?:a|an|the|some|einen|eine|ein|das|die|den|dem|der|auf|zu)\s+)?"
         r"|additional\s+|separate\s+|eigene[ns]?\s+)?")
 _EIGENNAME = r"(?-i:[A-Z][A-Za-z0-9.+-]+)"  # Redis, PostgreSQL, Vue.js — nur mit Großbuchstaben
 _VERB_EN = r"(?:add|introduce|implement|integrate|use|adopt|switch\s+to|migrate\s+to|move\s+to)"
+# „move to" nennt im Alltag ein Ziel, keine Lösung („How long does it take to move to Munich?" war
+# nach dem Fix-Pass 'presupposed_solution' und damit 'aufwand'; Schlussprüfung, Befund 9). Vor einem
+# Eigennamen zählt es deshalb nicht — vor einem technischen Objekt („move to Postgres") schon.
+_VERB_EN_NAME = r"(?:add|introduce|implement|integrate|use|adopt|switch\s+to|migrate\s+to)"
 _VERB_DE = (r"(?:nutze|verwende|implementiere|baue|integriere|steige?\s+(?:um\s+)?auf"
             r"|wechsle?\s+(?:zu|auf)|setze?\s+auf|stelle?\s+(?:um\s+)?auf|migriere?\s+(?:zu|auf|nach))")
 # „release" als Handlung (nicht „release date", „release notes").
@@ -93,7 +109,8 @@ _GROESSE = (r"(?<![\d.,:])" + _ZAHL + r"(?:\s*[-+*/×·^]\s*" + _ZAHL + r")*+(?!
 # migrat(ion), release, invest(igate), delete, nutze, add, foundation feuern nur noch mit Kontext.
 SIGNALS: dict[str, re.Pattern] = {
     "presupposed_solution": re.compile(
-        r"\b" + _VERB_EN + r"\s+" + _ART + r"(?:" + _TECH + r"|" + _EIGENNAME + r")\b"
+        r"\b" + _VERB_EN + r"\s+" + _ART + _TECH + r"\b"
+        r"|\b" + _VERB_EN_NAME + r"\s+" + _ART + _EIGENNAME + r"\b"
         r"|\b" + _VERB_DE + r"\s+" + _ART + r"(?:" + _TECH + r"|(?-i:[A-Z][a-z]*[A-Z]\w*))\b"
         r"|\bf(?:ü|ue)ge?\s+" + _ART + r"(?:" + _TECH + r"|" + _EIGENNAME + r")\s+hinzu\b",
         re.IGNORECASE),
@@ -299,28 +316,171 @@ _ORDINAL_DATE = re.compile(r"\b(\d{1,2})\.\s+(?=" + _MONTHS + r"\b)")
 # Ordinal vor großgeschriebenem Substantiv nach Artikel, Präposition oder Kopula („im 18.
 # Jahrhundert", „wurde 3. Bundeskanzler", „am 2. Platz") — nicht nach einem Substantiv („Radius 3.
 # Runde auf zwei Stellen." sind zwei Sätze).
+# Die Ausnahme greift NICHT, wenn hinter dem Punkt ein Satzanfang steht: Fragewort, Imperativ,
+# Hilfsverb, Höflichkeitsformel. Sonst verschluckt sie echte Satzenden — „Der Kurs beginnt um 9.
+# Wie lange dauert er?" zählte als EIN Satz und wurde 'direkt' (Schlussprüfung, Befund 4: 8 von 10
+# alltäglichen Zweisatz-Prompts kippten so von 'aufwand' auf 'direkt'). Ein Ordinal-Substantiv ist
+# nie eines dieser Wörter, ein Satzanfang fast immer.
+_SATZANFANG = (
+    r"(?:Wie|Wann|Was|Wer|Wo|Wohin|Woher|Warum|Wieso|Weshalb|Welche[rsnm]?|Wieviel\w*"
+    r"|Kann|Kannst|K(?:ö|oe)nn\w*|Soll|Sollst|Sollen|Sollte\w*|Muss|M(?:ü|ue)ss\w*|Darf|D(?:ü|ue)rf\w*"
+    r"|Ist|Sind|War|Waren|Hat|Hast|Haben|Wird|Werden|Gibt|Gib|Nenne|Sag|Sage|Bring|Bringe|Mach|Mache"
+    r"|Rechne|Berechne|Runde|Schreib|Schreibe|Erkl(?:ä|ae)r\w*|Zeig|Zeige|Nimm|Lies|Pr(?:ü|ue)fe"
+    r"|Vergleiche|Beschreibe|(?:Ü|Ue)bersetze|Sortiere|Z(?:ä|ae)hle|Antworte|Bitte|Danke|Und|Aber|Oder"
+    r"|Please|Can|Could|Would|Should|Do|Does|Did|Is|Are|Was|Were|How|What|When|Where|Why|Who|Which"
+    r"|Tell|Give|Show|Write|Answer|Explain|Let|Then|If|Thanks|Thank)"
+)
 _ORDINAL_NOUN = re.compile(
     r"\b(im|am|der|die|das|den|dem|des|zum|zur|vom|beim|als|vor|nach|seit|bis|um|ab|ins|ans|wurde"
     r"|war|ist|wird|jeden|jede|jedes|jedem|jeder|ein|eine|einen|einem|einer|sein|seine|seinem|seinen"
     r"|seiner|ihr|ihre|ihrem|ihren|ihrer|mein|meine|meinem|meinen|meiner|dein|deine|unser|unsere"
     r"|zwischen|etwa|rund|circa|ca|the|on|of|in|at|his|her|its|their|my|our)\s+(\d{1,2})\.\s+"
-    r"(?=[A-ZÄÖÜ][a-zäöüß])", re.IGNORECASE)
+    r"(?=[A-ZÄÖÜ][a-zäöüß])(?!" + _SATZANFANG + r"\b)", re.IGNORECASE)
 # abgekürzter Monat oder Wochentag vor einer Zahl („Okt. 1990", „Mo. 12 Uhr") ist kein Satzende
 _MONTH_ABBREV = re.compile(
     r"\b(Jan|Feb|M(?:ä|ae)r|Apr|Jun|Jul|Aug|Sept?|Okt|Nov|Dez|Mo|Di|Mi|Do|Fr|Sa|So)\.\s+(?=\d)")
 _ABBREVIATION = re.compile(
-    r"\b(?:z\.\s?B|u\.\s?a|d\.\s?h|o\.\s?(?:ä|ae)|bzw|etc|ca|vgl|inkl|Nr|Dr|Prof|St|Mr|Mrs|Ms"
+    r"\b(?:z\.\s?B|z\.\s?T|u\.\s?a|u\.\s?U|d\.\s?h|i\.\s?d\.\s?R|o\.\s?(?:ä|ae)|bzw|etc|ca|vgl"
+    r"|inkl|ggf|bspw|usw|evtl|sog|Art|Abs|Kap|max|min|Nr|Dr|Prof|St|Mr|Mrs|Ms"
     r"|Hr|Hrn|Fr|Frl|Tel|Str|Mio|Mrd|Tsd|Jh|Chr|Inc|Ltd|Corp|Jr|Sr|Abb|Univ"
     r"|e\.\s?g|i\.\s?e|approx)\.\s+", re.IGNORECASE)
 _ELLIPSIS = re.compile(r"(?:\.\s*){3,}|…")
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?;])\s+(?=\S)|\n+")
 
+# Ein Semikolon trennt nur dann Sätze, wenn es nicht in Code oder einer Aufzählung steht: kein
+# Doppelpunkt und kein Gleichheitszeichen davor in derselben Zeile, keine Klammer und keine
+# Anführungszeichen offen, und beiderseits mindestens zwei Wörter. Sonst zählte jedes Semikolon
+# in `a = 1; b = 2` oder in „Birne; Apfel; Kirsche" als eigener Satz und hob triviale Prompts auf
+# 'aufwand' — die Dauerschicht, die −16,7 pp Formattreue kostet (Schlussprüfung, Befund 5: 10 von
+# 50 kurzen Alltagsprompts kippten so).
+_KLAMMER_AUF, _KLAMMER_ZU = "([{", ")]}"
+_ANFUEHRUNG = "\"'`«»„“”‘’"
+_WORT = re.compile(r"[^\W\d_]{2,}")
 
+
+def _semikolon_entschaerfen(text: str) -> str:
+    """Semikolons, die keine Satzgrenze sind, werden zu Kommas — vor der Satzzählung."""
+    if ";" not in text:
+        return text
+    zeichen = list(text)
+    for zeile_start, zeile in _zeilen_mit_offset(text):
+        tiefe, zitat, doppelpunkt = 0, None, False
+        grenzen, code = [], "=" in zeile
+        for i, c in enumerate(zeile):
+            if c == ";":
+                grenzen.append(i)
+                if tiefe or zitat or doppelpunkt or code:
+                    zeichen[zeile_start + i] = ","
+            elif zitat:
+                if c == zitat:
+                    zitat = None
+            elif c in _ANFUEHRUNG:
+                zitat = c
+            elif c in _KLAMMER_AUF:
+                tiefe += 1
+            elif c in _KLAMMER_ZU:
+                tiefe = max(0, tiefe - 1)
+            elif c == ":":
+                doppelpunkt = True
+        # beiderseits mindestens zwei Wörter (》Birne; Apfel《 ist eine Aufzählung, kein Satz)
+        kanten = [-1] + grenzen + [len(zeile)]
+        for k, i in enumerate(grenzen):
+            links, rechts = zeile[kanten[k] + 1:i], zeile[i + 1:kanten[k + 2]]
+            if len(_WORT.findall(links)) < 2 or len(_WORT.findall(rechts)) < 2:
+                zeichen[zeile_start + i] = ","
+    return "".join(zeichen)
+
+
+def _zeilen_mit_offset(text: str):
+    start = 0
+    for zeile in text.split("\n"):
+        yield start, zeile
+        start += len(zeile) + 1
+
+
+# Billige Stichwörter für die Mitte langer Prompts: nur wo eines steht, wird ein Ausschnitt aus
+# der Mitte mitgelesen. Sie decken die Einsatzhöhe (STAKES_SIGNALS) und den Formatzwang ab — die
+# beiden Gruppen, die die Stufe eines langen Prompts wirklich drehen. Ein Prompt über der
+# Trivialgrenze ist ohnehin nicht trivial; die übrigen Signale begründen nur.
+_SCAN_KEYS = (
+    # irreversible / production
+    "deploy", "prod", "publish", "öffentlich", "oeffentlich", "releas", "migrat", "migrier",
+    "delete", "drop", "lösch", "loesch", "irreversib", "unwiderruf", "unumkehr", "kündig",
+    "kuendig", "vertrag", "contract", "unterschreib", "ship", "launch", "ausliefer", "rollout",
+    "go-live", "freischalt", "markteinf",
+    # affects_others
+    "nutz", "kund", "customer", "kolleg", "mitarbeit", "leser", "besucher", "communit",
+    "zielgrupp", "audience", "stakeholder", "anwender", "patient", "team", "public", "user",
+    # durable / architecture
+    "schema", "api", "interface", "schnittstelle", "convention", "konvention", "standard",
+    "protok", "protoc", "datenmodell", "data model", "langfristig", "long-term", "long term",
+    "wartbar", "maintainab", "zukunftssicher", "architekt", "architect", "refactor", "umbau",
+    "redesign", "restructur", "umstrukturier", "neubau", "struktur", "structure",
+    # commitment / recommendation
+    "choose", "decid", "decision", "commit", "entscheid", "kauf", "buy", "purchase", "invest",
+    "hire", "einstell", "wähl", "waehl", "festleg", "einig", "should", "soll", "recommend",
+    "empfehl", "würdest", "wuerdest", "advice", "advise",
+    # format_locked
+    "nur", "only", "ausschließ", "ausschliess", "format", "json", "csv", "yaml", "xml",
+    "markdown", "tabelle", "table", "liste", "list", "antwort", "answer", "reply", "respond",
+    "output", "return", "print", "gib ", "genau", "exact", "einzig", "single", "erklär",
+    "erklaer", "explain", "kommentar", "commentar", "nichts sonst", "nothing else", "ja oder",
+    "yes or", "zahl", "number", "wort", "word", "zeile", "line", "ziffer", "digit", "buchstab",
+    "letter", "satz", "sentence", "ergebnis", "result",
+)
+# Höchstens so viele Zeichen aus der Mitte, je Treffer mit diesem Rand:
+SIGNAL_SCAN_MIDDLE = 1_000
+_SCAN_PAD = 40
+
+
+def _mittelstuecke(mitte: str) -> str:
+    """Aus der Mitte die Umgebung jedes billigen Stichworts (je erstes Vorkommen), gedeckelt."""
+    tief = mitte.lower()
+    stellen = []
+    for wort in _SCAN_KEYS:
+        i = tief.find(wort)
+        if i >= 0:
+            stellen.append((max(0, i - _SCAN_PAD), min(len(mitte), i + len(wort) + _SCAN_PAD)))
+    if not stellen:
+        return ""
+    stellen.sort()
+    # überlappende oder angrenzende Stellen zu einem Stück verschmelzen — sonst schneidet der
+    # Trenner mitten durch ein Wort („custo\nmer") und das Signal fällt aus.
+    zusammen = []
+    for a, b in stellen:
+        if zusammen and a <= zusammen[-1][1]:
+            zusammen[-1][1] = max(zusammen[-1][1], b)
+        else:
+            zusammen.append([a, b])
+    teile, ausbeute = [], 0
+    for a, b in zusammen:
+        b = min(b, a + SIGNAL_SCAN_MIDDLE - ausbeute)
+        if b <= a:
+            break
+        teile.append(mitte[a:b])
+        ausbeute += b - a
+    return "\n".join(teile)
+
+
+@_lru_cache(maxsize=4)
 def _scan_window(text: str) -> str:
-    """Kopf und Schluss eines sehr langen Prompts — dort stehen Auftrag und Formatvorgabe."""
+    """Kopf, Schluss und die Stichwortstellen der Mitte eines sehr langen Prompts.
+
+    Kopf und Schluss tragen Auftrag und Formatvorgabe; die Mitte ist meist eine eingefügte Datei.
+    Sie ganz mitzulesen sprengt das Zeitbudget (a6/a7: 122 000 Zeichen, 15 Regexe = 470 ms; D017
+    verlangt < 50 ms), sie ganz zu überspringen macht die Stufe durch bloße Platzierung von Text
+    steuerbar: eine riskante Anweisung in der Mitte plus „Answer with yes or no." am Schluss war
+    'direkt' statt 'aufwand', und eine Formatvorgabe in der Mitte wurde gar nicht gelesen (Schlussprüfung,
+    Befunde 2 und 6). Darum kommen aus der Mitte die Umgebungen der billigen Stichwörter dazu —
+    das kostet einen Substring-Durchlauf je Stichwort, keinen Regex über den ganzen Text.
+    Das Ergebnis wird für die letzten vier Prompts gemerkt: prefilter() fragt zweimal danach
+    (Signale und Sätze), und der Stichwortlauf soll nicht doppelt bezahlt werden.
+    """
     if len(text) <= SIGNAL_SCAN_HEAD + SIGNAL_SCAN_TAIL:
         return text
-    return text[:SIGNAL_SCAN_HEAD] + "\n" + text[-SIGNAL_SCAN_TAIL:]
+    mitte = text[SIGNAL_SCAN_HEAD:len(text) - SIGNAL_SCAN_TAIL]
+    return (text[:SIGNAL_SCAN_HEAD] + "\n" + _mittelstuecke(mitte) + "\n"
+            + text[len(text) - SIGNAL_SCAN_TAIL:])
 
 
 def detect_signals(prompt: str) -> list[str]:
@@ -337,6 +497,7 @@ def sentence_count(prompt: str) -> int:
     text = _MONTH_ABBREV.sub(r"\1 ", text)
     text = _ORDINAL_NOUN.sub(r"\1 \2 ", text)
     text = _ABBREVIATION.sub(lambda m: m.group(0).replace(".", "") + " ", text)
+    text = _semikolon_entschaerfen(text)
     pieces = [p for p in _SENTENCE_SPLIT.split(text) if p and p.strip()]
     return max(1, len(pieces))
 

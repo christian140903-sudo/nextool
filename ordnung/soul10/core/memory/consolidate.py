@@ -13,6 +13,12 @@ Sieger eines Widerspruchs ist der stärkste AKTIVE Eintrag in Herkunftsordnung (
 Vertrauen) — ein Kandidat gewinnt nie, eigener_schluss löst nutzer nie ab; Selbst-Züge werden nicht
 durch bloßen Widerspruch gestürzt (kein `self` in AUSSAGE_KINDS); und Takt B hat einen Aufrufer
 außerhalb der CLI (Stop-Hook, gedrosselt über takt_b_faellig).
+Die Schlussprüfung (2026-09-10) hat drei Löcher im neuen Code gezeigt, die hier geschlossen sind:
+Widerspruch und Belegtheit rechnen über die Aussage-Arten hinweg (eine andere `kind` stellte eine
+Dokumentregel neben die widersprechende Nutzeraussage); Takt A schreibt nie in den Namensraum der
+Steuerung (eine Inbox-Zeile setzte sonst die Marke der Drossel und sperrte Takt B aus); und die
+Idempotenz von Takt A hängt an der Zeilen-ID der Inbox, nicht am Inhalt (zwei echte Aufrufe
+derselben Sekunde ergaben nur eine Episode).
 
 Bezeichner deutsch (takt_a, takt_b, inbox_write nach ARCHITEKTUR 4.5), Kommentare deutsch.
 """
@@ -45,11 +51,13 @@ VERARBEITET = "verarbeitet"
 # Widerspruch (ENTSCHEIDUNG §1); Belegschwelle und Beförderung gehören selfmodel.
 AUSSAGE_KINDS = ("fact", "procedure", "user", "rejected")
 # Kandidaten fremder Quellen (Quarantäne vor Aktivierung, ARCHITEKTUR 4.1 Nr. 6) werden nach dieser
-# Frist aktiv, wenn kein aktiver Eintrag gleicher Art und gleichen Titels etwas anderes sagt.
+# Frist aktiv, wenn kein aktiver Eintrag gleichen Titels etwas anderes sagt (die Art zählt nicht).
 KANDIDAT_FRIST_TAGE = 1.0
 # Aus dem Stop-Hook läuft Takt B höchstens einmal je Intervall; die Drossel liest das letzte Protokoll.
 TAKT_B_INTERVALL_STUNDEN = 6.0
 PROTOKOLL_REF = "consolidate:takt_b:"
+# Marke der Inbox-Zeile am Episoden-Eintrag: daran hängt die Idempotenz von Takt A.
+INBOX_TAG = "inbox:"
 # Wer die Übergänge der Konsolidierung verantwortet (Feld `by` in ledger.jsonl).
 BY = "consolidate"
 
@@ -89,6 +97,9 @@ def inbox_write(session_id: str, record: dict) -> None:
     try:
         zeile = dict(record or {})
         zeile.setdefault("at", paths.now_iso())
+        # Zeilen-ID: die Idempotenz von Takt A hängt an der Zeile, nicht an ihrem Inhalt — zwei
+        # echte Aufrufe derselben Sekunde bleiben zwei Episoden (Schlussprüfung 2026-09-10).
+        zeile.setdefault("line_id", paths.new_id())
         zeile["session_id"] = session_id
         with _inbox_datei(session_id).open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(zeile, ensure_ascii=False, default=str) + "\n")
@@ -104,8 +115,19 @@ def _ganzzahl(wert, fallback: int) -> int:
         return fallback
 
 
+def _zeilen_id(record: dict) -> str:
+    """Die Zeilen-ID der Inbox, auf harmlose Zeichen gestutzt (sie kommt aus einer Datei, in die
+    jeder Prozess schreiben darf) — leer, wenn die Zeile keine trägt (Datei vor dieser Fassung)."""
+    return re.sub(r"[^A-Za-z0-9-]", "", str(record.get("line_id") or ""))[:64]
+
+
 def _episode_felder(record: dict, session_id: str, now: str) -> dict:
-    """Ein Inbox-Record → die Felder eines Episoden-Eintrags (noch nichts geschrieben)."""
+    """Ein Inbox-Record → die Felder eines Episoden-Eintrags (noch nichts geschrieben).
+
+    Der gebaute source_ref darf nie in den Namensraum der Steuerung fallen: PROTOKOLL_REF gehört
+    Takt B allein. Sonst setzt eine einzige Inbox-Zeile die Marke der Drossel und sperrt Takt B
+    dauerhaft aus (Schlussprüfung 2026-09-10); die Zeile wird abgelehnt, nicht stillschweigend
+    umbenannt."""
     tool = str(record.get("tool") or "unbekannt").strip() or "unbekannt"
     outcome = str(record.get("outcome") or "").strip()
     summary = str(record.get("summary") or "")
@@ -121,9 +143,16 @@ def _episode_felder(record: dict, session_id: str, now: str) -> dict:
         body = (body[:MAX_BODY_ZEICHEN]
                 + f" … [gekürzt, sha256 {paths.sha256_text(summary)[:12]}]")
     tags = [t for t in (tool, outcome) if t]
+    zeilen_id = _zeilen_id(record)
+    if zeilen_id:
+        tags.append(INBOX_TAG + zeilen_id)
+    source_ref = f"{tool}:{args_hash}"
+    if source_ref.startswith(PROTOKOLL_REF):
+        raise ledger.LedgerError(
+            f"Werkzeugverweis im Namensraum der Konsolidierung ({PROTOKOLL_REF}) abgelehnt")
     return dict(
         title=f"{tool}: {outcome}" if outcome else tool, body=body,
-        kind="episode", source="werkzeug", source_ref=f"{tool}:{args_hash}",
+        kind="episode", source="werkzeug", source_ref=source_ref,
         importance=2, tags=tags, valid_from=at, ttl_class="short",
         expires_at=expires, status="active",
         mission_id=str(record.get("mission_id") or ""),
@@ -132,13 +161,26 @@ def _episode_felder(record: dict, session_id: str, now: str) -> dict:
     )
 
 
-def _schon_verbucht(session_id: str, source_ref: str, valid_from: str, body: str) -> bool:
-    """Idempotenz von Takt A: dieselbe Episode (Sitzung, Werkzeugverweis, Ereigniszeit, Inhalt) nur
-    einmal — ein abgebrochener Lauf darf beim Wiederholen keine Dubletten erzeugen."""
+def _schon_verbucht(session_id: str, felder: dict) -> bool:
+    """Idempotenz von Takt A: die ZEILE der Inbox, nicht ihr Inhalt.
+
+    Jede Zeile trägt seit inbox_write eine Zeilen-ID; sie steht als Tag `inbox:<id>` am Eintrag.
+    Ein wiederholter Lauf derselben Datei (abgebrochener Lauf) bleibt dublettenfrei, zwei echte
+    Werkzeugaufrufe derselben Sekunde bleiben zwei Episoden — der frühere Schlüssel aus Sitzung,
+    Verweis, Ereigniszeit und Inhalt hat den zweiten verschluckt (Schlussprüfung 2026-09-10).
+    Zeilen ohne ID (Datei aus einer älteren Fassung) fallen auf den früheren Schlüssel zurück.
+    """
+    marke = next((t for t in felder.get("tags") or [] if t.startswith(INBOX_TAG)), "")
     with closing(ledger.connect()) as con:
-        row = con.execute(
-            "SELECT 1 FROM memories WHERE kind = 'episode' AND session_id = ? AND source_ref = ?"
-            " AND valid_from = ? AND body = ? LIMIT 1", (session_id, source_ref, valid_from, body)).fetchone()
+        if marke:
+            row = con.execute(
+                "SELECT 1 FROM memories WHERE kind = 'episode' AND session_id = ? AND tags LIKE ?"
+                " LIMIT 1", (session_id, f'%"{marke}"%')).fetchone()
+        else:
+            row = con.execute(
+                "SELECT 1 FROM memories WHERE kind = 'episode' AND session_id = ? AND source_ref = ?"
+                " AND valid_from = ? AND body = ? LIMIT 1",
+                (session_id, felder["source_ref"], felder["valid_from"], felder["body"])).fetchone()
     return row is not None
 
 
@@ -177,7 +219,7 @@ def takt_a(session_id: str) -> dict:
             continue
         try:
             felder = _episode_felder(record, session_id, now)
-            if _schon_verbucht(session_id, felder["source_ref"], felder["valid_from"], felder["body"]):
+            if _schon_verbucht(session_id, felder):
                 ergebnis["uebersprungen"] += 1
                 bus.emit("memory.takt_a.uebersprungen", session_id=session_id, tool=record.get("tool"))
                 continue
@@ -246,7 +288,11 @@ def _weicht(verlierer: dict, sieger: dict) -> None:
 
 
 def _widersprueche() -> dict:
-    """(2) Gleiche Art, gleicher normalisierter Titel, anderer Body, active/candidate.
+    """(2) Gleicher normalisierter Titel, anderer Body, active/candidate — über die Aussage-Arten
+    hinweg (ARCHITEKTUR 4.5 Nr. 2). Die Art entscheidet nicht, ob zwei Sätze dieselbe Sache sagen:
+    `kind` ist ein freies Feld des Aufrufers, und mit einer anderen Art stand eine Dokumentregel
+    ungestört neben der widersprechenden Nutzeraussage im Briefing (Schlussprüfung 2026-09-10).
+    Episoden und Selbst-Züge geraten nie in die Gruppierung (AUSSAGE_KINDS).
 
     Standfestigkeitsregel in Herkunftsordnung: der Sieger ist der stärkste AKTIVE Eintrag
     (_staerke: SOURCE_RANK, dann Vertrauen). Ein schwächerer aktiver Eintrag → superseded, ein
@@ -255,9 +301,9 @@ def _widersprueche() -> dict:
     sichtbar für den Nutzer, der entscheidet. Nur Kandidaten untereinander: nichts geschieht,
     keiner ist Wissen. Das Datum spielt keine Rolle — neuer heißt nicht wahrer (A3).
     """
-    gruppen: dict[tuple[str, str], list[dict]] = {}
+    gruppen: dict[str, list[dict]] = {}
     for e in _eintraege(("active", "candidate"), kinds=AUSSAGE_KINDS):
-        gruppen.setdefault((e["kind"], _normalisiert(e["title"])), []).append(e)
+        gruppen.setdefault(_normalisiert(e["title"]), []).append(e)
     abgeloest = umstritten = kandidaten = 0
     for mitglieder in gruppen.values():
         if len({_normalisiert(e["body"]) for e in mitglieder}) < 2:
@@ -292,22 +338,27 @@ def _widersprueche() -> dict:
 
 
 def _aktivieren(now: str) -> dict:
-    """(4b) Kandidaten der Aussage-Arten werden nach KANDIDAT_FRIST_TAGE aktiv, wenn zu Art und
-    Titel kein aktiver Eintrag existiert und die Kandidaten untereinander einig sind. Quarantäne
-    vor Aktivierung heißt: Zeit und Widerspruchsfreiheit — nicht Vertrauen, das ein Dokument nicht
-    hat. Die Guards laufen in ledger.transition erneut; ein Verstoß dort zählt als abgelehnt."""
-    belegt = {(e["kind"], _normalisiert(e["title"]))
-              for e in _eintraege(("active",), kinds=AUSSAGE_KINDS)}
-    gruppen: dict[tuple[str, str], list[dict]] = {}
+    """(4b) Kandidaten der Aussage-Arten werden nach KANDIDAT_FRIST_TAGE aktiv, wenn zum Titel kein
+    aktiver Eintrag existiert und die Kandidaten untereinander einig sind. Quarantäne vor
+    Aktivierung heißt: Zeit und Widerspruchsfreiheit — nicht Vertrauen, das ein Dokument nicht hat.
+
+    Belegt ist ein Titel, nicht ein Paar aus Art und Titel: die Art entscheidet nicht, ob eine
+    Aussage schon besetzt ist, und sie steht dem Aufrufer frei (`soul remember --kind`). Mit dem
+    Paar genügte eine andere Art, um eine Dokumentregel neben die widersprechende Nutzeraussage ins
+    Briefing zu stellen (Schlussprüfung 2026-09-10). Episoden und Selbst-Züge sind hier nie dabei
+    (AUSSAGE_KINDS). Die Guards laufen in ledger.transition erneut; ein Verstoß zählt als abgelehnt.
+    """
+    belegt = {_normalisiert(e["title"]) for e in _eintraege(("active",), kinds=AUSSAGE_KINDS)}
+    gruppen: dict[str, list[dict]] = {}
     for k in _eintraege(("candidate",), kinds=AUSSAGE_KINDS):
-        gruppen.setdefault((k["kind"], _normalisiert(k["title"])), []).append(k)
+        gruppen.setdefault(_normalisiert(k["title"]), []).append(k)
     aktiviert = abgelehnt = 0
     for schluessel, kandidaten in gruppen.items():
         if schluessel in belegt:
             continue
         if len({_normalisiert(k["body"]) for k in kandidaten}) > 1:
-            bus.emit("memory.takt_b.kandidaten_uneins", kind=schluessel[0], titel=kandidaten[0]["title"][:80],
-                     n=len(kandidaten))
+            bus.emit("memory.takt_b.kandidaten_uneins", kind=kandidaten[0]["kind"],
+                     titel=kandidaten[0]["title"][:80], n=len(kandidaten))
             continue
         for k in kandidaten:
             try:
@@ -372,11 +423,19 @@ def _selbst_befoerdern() -> int:
 
 
 def letzter_takt_b() -> str | None:
-    """Schreibzeit des letzten Takt-B-Protokolls aus dem Hauptbuch; None, wenn nie gelaufen."""
+    """Schreibzeit des letzten Takt-B-Protokolls aus dem Hauptbuch; None, wenn nie gelaufen.
+
+    Drei Merkmale müssen zusammenkommen — Verweis im Namensraum PROTOKOLL_REF, Titel
+    „Konsolidierung", agent BY. Takt A kommt in diesen Namensraum nicht hinein (_episode_felder
+    lehnt solche Verweise ab), also kann keine Inbox-Zeile die Marke setzen und Takt B aussperren
+    (Schlussprüfung 2026-09-10: eine gefälschte Zeile sperrte Widerspruchsauflösung, Ablauf,
+    Dublettenräumung und Selbst-Beförderung dauerhaft aus).
+    """
     with closing(ledger.connect()) as con:
         row = con.execute(
             "SELECT recorded_at FROM memories WHERE kind = 'episode' AND source_ref LIKE ?"
-            " ORDER BY recorded_at DESC, id DESC LIMIT 1", (PROTOKOLL_REF + "%",)).fetchone()
+            " AND title = ? AND agent = ? ORDER BY recorded_at DESC, id DESC LIMIT 1",
+            (PROTOKOLL_REF + "%", "Konsolidierung", BY)).fetchone()
     return row["recorded_at"] if row else None
 
 

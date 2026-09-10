@@ -126,7 +126,7 @@ _SENSITIVE_CMD = re.compile(
     r"|vault\s+(read|kv\s+get)|kubectl\s+get\s+secret|heroku\s+config\b|docker\s+login",
     re.IGNORECASE)
 _SENSITIVE_PFAD = re.compile(
-    r"(^|/)(\.env[^/]*|\.npmrc|\.pgpass|\.netrc|\.pypirc|\.git-credentials|\.htpasswd"
+    r"(^|/)(\.env(\.[^/]*)?|\.envrc|\.npmrc|\.pgpass|\.netrc|\.pypirc|\.git-credentials|\.htpasswd"
     r"|id_[a-z0-9_]+|credentials(\.\w+)?|authorized_keys|shadow)$"
     r"|(^|/)\.(ssh|aws|gnupg|kube|docker|azure)(/|$)"
     r"|(^|/)\.config/(gcloud|gh)(/|$)"
