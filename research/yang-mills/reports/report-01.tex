@@ -1,0 +1,270 @@
+% Research Report 1 — Locating the obstruction
+% Build: (cd ../lab && python analyze.py) && latexmk report-01.tex
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{common}
+\input{data/constants.tex}
+
+\fancyhf{}
+\fancyhead[L]{\small\sffamily Yang--Mills programme \textperiodcentered{} Research Report 1}
+\fancyhead[R]{\small\sffamily 2026-09-24}
+\fancyfoot[C]{\small\sffamily\thepage}
+% Ledger identifiers refer to spec.pdf; they are not links in this document.
+\newcommand{\idref}[1]{\textsf{#1}}
+\newtheorem{proposal}[definition]{Proposal}
+\theoremstyle{plain}
+\newtheorem{proposition}[definition]{Proposition}
+
+\hypersetup{pdftitle={Research Report 1: Locating the obstruction},pdfauthor={Christian Bucher}}
+
+\pgfplotsset{
+  every axis/.append style={font=\small, width=0.92\linewidth, height=6.2cm, grid=major,
+    grid style={black!10}, legend cell align=left, legend style={font=\scriptsize, draw=black!30}},
+}
+
+\begin{document}
+
+\begin{center}
+{\sffamily\small YANG--MILLS EXISTENCE AND MASS GAP \textperiodcentered{} RESEARCH PROGRAMME}\\[8pt]
+{\LARGE\bfseries Research Report 1}\\[4pt]
+{\Large Locating the obstruction: the coupling window\\and the question of a finite reduction}\\[10pt]
+{\large Christian Bucher}\footnote{Research and drafting assistance: Claude Code (Anthropic). Numerical results are evidence class E4 and literature statements were checked against the primary sources; see Section~\ref{sec:repro}. The AI tool is not an author~\cite{COPE23}.}\\[4pt]
+{\small 2026-09-24 \textperiodcentered{} companion to \emph{Formal Acceptance and Research Specification} v1.1 (\texttt{spec.pdf})}
+\end{center}
+
+\begin{keybox}[title=Result in brief]
+\textbf{This report does not solve the problem, and it contains no proof of the mass gap.} It answers two narrower questions.
+\begin{enumerate}[leftmargin=1.4em]
+\item \textbf{Where exactly is the wall?} For $SU(2)$ in four dimensions with the Wilson action, rigorous mass-gap results exist only at strong coupling; the most explicit threshold we know is $\beta<\BetaRigorous$~\cite{SZZ23} (earlier cluster-expansion results~\cite{OSe78} also require small $\beta$). The continuum limit lives at $\beta\to\infty$, and the scaling regime begins near $\beta\approx2.2$ (own simulation, \NumRuns{} couplings, and~\cite{AT21}). Between the two lies a factor of about 26 in $\beta$, which no rigorous method currently crosses.
+\item \textbf{Could a computer close it?} Only through a \emph{finite reduction}: a theorem that turns the infinitely many cases into finitely many certifiable inequalities. We formulate the only reduction we can identify (Proposal~\ref{prop:reduction}). It needs three new theorems, and its certification step runs into a dimensional barrier. More computing power does not remove either obstacle. A new mathematical criterion is required.
+\item \textbf{A proved limit.} The pointwise curvature (Bakry--Émery) method behind the strong-coupling result cannot, in any refinement, go beyond $\beta=1/8$ for $SU(2)$ in $d=4$ (Proposition~\ref{prop:nogo}, with complete proof). Local curvature arguments alone therefore provably cannot cross the window.
+\end{enumerate}
+\textbf{Status.} The specification's closure count is unchanged (1 of 9 transitions). Seven new ledger entries, \idref{A-034}--\idref{A-040}, record the findings.
+\end{keybox}
+
+\tableofcontents
+
+% ======================================================================
+\section{Questions}\label{sec:questions}
+
+The specification (\texttt{spec.pdf}) identifies the volume-uniform mass gap in physical units, ledger entry \idref{A-031}, as the core open problem. Jaffe and Witten call it the place where \enquote{new ideas are needed}~\cite[\S6.5]{JW}. This report asks two questions about it:
+\begin{description}[font=\normalfont\bfseries,leftmargin=1cm,labelwidth=0.8cm,align=left]
+\item[Q1] Where, quantitatively, do rigorous methods end, and where does the physics of the continuum limit begin?
+\item[Q2] Can \idref{A-031} be reduced to a finite computation that a computer could certify? This is the only way in which computing power could decide the problem.
+\end{description}
+
+% ======================================================================
+\section{Numerical laboratory (evidence class E4)}\label{sec:lab}
+
+\subsection{Set-up and validation}
+We simulate $SU(2)$ lattice gauge theory on a periodic $\LatticeL^4$ lattice with the Wilson action
+\[
+S(U)=\beta\sum_p\Bigl(1-\tfrac12\Tr U_p\Bigr),\qquad \beta=\frac{4}{g_0^2},
+\]
+using the Kennedy--Pendleton heat bath~\cite{KP85} and two over-relaxation steps per sweep. Each coupling has 150 thermalization sweeps, 600 update sweeps and \NumMeas{} measurements; errors are jackknife errors from 20 bins. The observables are the plaquette, planar Wilson loops $W(R,T)$ with $R,T\le4$, the Creutz ratios $\chi(R)=-\ln\frac{W(R,R)\,W(R-1,R-1)}{W(R,R-1)\,W(R-1,R)}$~\cite{Cre80}, and a zero-momentum $0^{++}$ glueball correlator built from APE-smeared spatial plaquettes. Its effective mass $am_{\mathrm{eff}}(t)=\ln\bigl(C(t)/C(t+1)\bigr)$ at $t=1$ is our estimate of the lattice mass gap. The code is \texttt{lab/su2\_lattice.py}.
+
+\textbf{Validation.} A built-in self-test checks the quaternion algebra against $2\times2$ matrices, the heat-bath distribution against the exact first moment, gauge invariance and exact action conservation under over-relaxation. The full simulation reproduces the strong-coupling series $\langle\tfrac12\Tr U_p\rangle=u+4u^5+\dots$, $u=I_2(\beta)/I_1(\beta)$, within errors at $\beta=0.5$ and $\beta=1.0$ (Table~\ref{tab:lab}), and approaches the weak-coupling form $1-3/(4\beta)$ at large $\beta$ (Figure~\ref{fig:plaq}). \input{data/repro.tex}
+
+\subsection{Results}
+Table~\ref{tab:lab} lists the measured values. Figure~\ref{fig:plaq} places the plaquette against the strong- and weak-coupling expansions and marks the regime in which a mass gap is proved. Figure~\ref{fig:gap} compares the lattice mass gap with the reference data of~\cite{AT21}, first in lattice units and then in physical units.
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+$\beta$ & $\langle\frac12\Tr U_p\rangle$ & $u+4u^5$ & $\chi(2)$ & $\chi(3)$ & $am_{\mathrm{eff}}(1)$ & $m_{\mathrm{eff}}/\sqrt{\chi(3)}$\\
+\midrule
+\input{data/table.tex}
+\end{tabular}
+\caption{Own simulation, $SU(2)$, Wilson action, $\LatticeL^4$. A dash marks a value whose statistical error exceeds the value itself. At strong coupling the glueball correlator and the larger Wilson loops fall below the noise, as expected for heavy states and a large string tension. $\chi(3)$ still contains perimeter and Coulomb contributions; it is used only as a rough physical scale.}\label{tab:lab}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[xlabel={$\beta$}, ylabel={$\langle\frac12\Tr U_p\rangle$}, xmin=0, xmax=2.85, ymin=0, ymax=0.85, legend pos=south east]
+\fill[stHEURISTIC] (axis cs:\BetaRigorous,0) rectangle (axis cs:2.2,0.85);
+\fill[stCLOSED] (axis cs:0,0) rectangle (axis cs:\BetaRigorous,0.85);
+\addplot[black!60, dashed, thick] table[x=beta, y=strong] {data/curves.dat};
+\addplot[black!60, dotted, very thick, unbounded coords=discard] table[x=beta, y=weak] {data/curves.dat};
+\addplot[only marks, mark=*, mark size=1.6pt, blue!70!black, error bars/.cd, y dir=both, y explicit] table[x=beta, y=P, y error=dP] {data/plaquette.dat};
+\addplot[only marks, mark=square*, mark size=1.6pt, orange!85!black] table[x=beta, y=P] {data/at21.dat};
+\legend{strong coupling $u+4u^5$, weak coupling $1-\frac{3}{4\beta}$, this work ($\LatticeL^4$), Athenodorou--Teper~\cite{AT21}}
+\node[font=\scriptsize, anchor=north west, align=left] at (axis cs:0.35,0.8) {coupling window:\\no rigorous method};
+\draw[-{Stealth[length=1.6mm]}, black!70] (axis cs:0.45,0.47) node[font=\scriptsize, anchor=west, align=left] {rigorous gap\\$\beta<\BetaRigorous$~\cite{SZZ23}} -- (axis cs:0.06,0.40);
+\end{axis}
+\end{tikzpicture}
+\caption{Plaquette against $\beta$. Green: the regime $\beta<\BetaRigorous$ in which a mass gap is proved~\cite{SZZ23}. Grey: the coupling window up to the onset of scaling. The continuum limit is $\beta\to\infty$ to the right.}\label{fig:plaq}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[name=left, width=0.49\linewidth, height=5.6cm, xlabel={$\beta$}, ylabel={lattice mass gap $am_G$}, xmin=1.9, xmax=2.75, ymin=0, ymax=2.2, legend pos=north east]
+\addplot[only marks, mark=*, mark size=1.6pt, blue!70!black, error bars/.cd, y dir=both, y explicit] table[x=beta, y=m1, y error=dm1] {data/glueball.dat};
+\addplot[only marks, mark=square*, mark size=1.6pt, orange!85!black, error bars/.cd, y dir=both, y explicit] table[x=beta, y=amG, y error=damG] {data/at21.dat};
+\legend{this work, \cite{AT21}}
+\end{axis}
+\begin{axis}[at={(left.east)}, anchor=west, xshift=1.1cm, width=0.49\linewidth, height=5.6cm, xlabel={$\beta$}, ylabel={gap in physical units}, xmin=1.9, xmax=2.75, ymin=0, ymax=6, legend pos=south east]
+\addplot[only marks, mark=*, mark size=1.6pt, blue!70!black, error bars/.cd, y dir=both, y explicit] table[x=beta, y=ratio, y error=dratio] {data/glueball.dat};
+\addplot[only marks, mark=square*, mark size=1.6pt, orange!85!black, error bars/.cd, y dir=both, y explicit] table[x=beta, y=ratio, y error=dratio] {data/at21.dat};
+\legend{$m_{\mathrm{eff}}/\sqrt{\chi(3)}$ (this work), $m_G/\sqrt\sigma$~\cite{AT21}}
+\end{axis}
+\end{tikzpicture}
+\caption{Left: the mass gap in lattice units falls towards zero as $\beta$ grows (it must, since $a\to0$). Right: in physical units it stays roughly constant. This is the numerical picture of \idref{A-031} and of rule \idref{Q-3}; it is evidence, not proof.}\label{fig:gap}
+\end{figure}
+
+\subsection{What the numbers say, and what they do not}
+\begin{enumerate}
+\item \textbf{The rigorous region is tiny.} In our normalisation the Bakry--Émery / log-Sobolev argument of~\cite{SZZ23} proves a gap for $\beta<\BetaRigorous$. Conversion: their action $S=N\beta_{\mathrm{SZZ}}\operatorname{Re}\sum_p\Tr Q_p$ with the condition $|\beta_{\mathrm{SZZ}}|<1/(16(d-1))$, compared with our $\tfrac{\beta}{2}\operatorname{Re}\Tr U_p$ for $N=2$, gives $\beta=4\beta_{\mathrm{SZZ}}$. The strong-coupling series itself describes the data numerically well beyond that point (Table~\ref{tab:lab}), but this is not proved.
+\item \textbf{Scaling begins near $\beta\approx2.2$.} In the literature data, $m_G/\sqrt\sigma$ changes by less than 15\,\% between $\beta=2.30$ and $\beta=2.70$, while $am_G$ falls by a factor of 3.4 (\cite{AT21}, Table~1; Figure~\ref{fig:gap}).
+\item \textbf{The window.} What is missing, in numbers, is a rigorous argument valid from $\beta\approx\BetaRigorous$ up to the scaling regime and then along the renormalization-group trajectory to $\beta=\infty$. The coupling window alone spans a factor of about 26 in $\beta$.
+\item \textbf{Limits of this evidence.} There are finitely many couplings, one volume and statistical errors. By rule \idref{Q-2}, no such data can establish a bound for \emph{all} $a$ and $L$ (\idref{A-012}).
+\end{enumerate}
+
+% ======================================================================
+\section{The reduction question}\label{sec:reduction}
+
+\subsection{Why simulation cannot prove the theorem}
+\idref{A-031} asserts a lower bound $\Delta_{a,L}\ge c\Lambda$ for \emph{all} sufficiently small $a$ and large $L$: infinitely many cases. A simulation evaluates finitely many, with statistical errors. Even exact values for any finite list of $(a,L)$ are compatible with $\Delta_{a,L}\to0$ along the remaining ones. The shortcut is recorded as false in the ledger (\idref{A-012}).
+
+\subsection{How computer-assisted proofs actually work}
+Computers have settled famous problems: the four-colour theorem~\cite{AH89}, the Feigenbaum conjectures~\cite{Lan82}, the Lorenz attractor~\cite{Tuc02} and the Kepler conjecture~\cite{Hal05}. All four have the same structure:
+\begin{enumerate}[label=(\arabic*)]
+\item \textbf{A human theorem reduces the infinite problem to finitely many statements}: finitely many configurations, a contraction estimate on a function space, or finitely many inequalities.
+\item \textbf{The computer certifies those statements} with rigorous error control, for example interval arithmetic. Statistical sampling is not a certificate.
+\end{enumerate}
+For Yang--Mills, step (1) is missing. Finding it is a mathematical problem, not a computational one.
+
+\subsection{A candidate reduction}
+Renormalization-group (RG) block-spin transformations in the spirit of Ba{\l}aban's programme~\cite{Bal87,Bal88,Bal89a,Bal89b,Dim13a,Dim13b} map the lattice theory at spacing $a$ to effective theories at spacings $2a,4a,\dots$. By asymptotic freedom the effective coupling grows along the way. Stop at the first step $n_*$ at which it reaches a fixed threshold $g_*$. To two-loop accuracy, $\ell\Lambda=F(g(\ell))$ with $F(g)=(b_0g^2)^{-b_1/(2b_0^2)}e^{-1/(2b_0g^2)}$. The stopping scale $\ell_*=2^{n_*}a$ therefore satisfies
+\[
+\ell_*\,\Lambda\;\approx\;F(g_*),\qquad\text{independently of }a.
+\]
+This is the structural reason why uniformity in $a$ could come \emph{for free}: all $a$-dependence goes into the number of RG steps, and what remains is a single unit-lattice problem at fixed coupling.
+
+\begin{proposal}[Reduction; recorded as \idref{A-039}, \statusbadge{OPEN}]\label{prop:reduction}
+Suppose there are $g_*>0$ and $\varepsilon>0$ with:
+\begin{description}[font=\normalfont\sffamily,leftmargin=1.5cm,labelwidth=1.3cm,align=left]
+\item[(R1) \idref{A-034}] \emph{RG step.} Uniformly in $a$ and in the volume, the theory at spacing $a$ is mapped to an effective unit-lattice gauge theory at spacing $\ell_*$ whose action lies in a class $\mathcal A(g_*,\varepsilon)$, with control of gauge-invariant observables.
+\item[(R2) \idref{A-035}] \emph{Finite-volume criterion.} For effective gauge actions, a mixing condition verified on one finite box implies exponential clustering, at a rate $c>0$, of gauge-invariant local observables in infinite volume.
+\item[(R3) \idref{A-036}] \emph{Certification.} The condition of (R2) holds, with margin, for every action in $\mathcal A(g_*,\varepsilon)$.
+\end{description}
+Then \idref{A-031} holds with $\Delta_{a,L}\ge c'\Lambda$, $c'\approx c/F(g_*)$, via clustering $\Rightarrow$ gap (\idref{A-016}).
+\end{proposal}
+
+\textbf{Status.} The implication itself is \emph{not proved}. It is a proof sketch whose gaps include the transfer of clustering from effective to original observables. Each of (R1)--(R3) is an open theorem. The value of the proposal is that it names the missing pieces precisely.
+
+\subsection{Obstruction 1: the coupling window}
+(R1) is a perturbative, weak-coupling argument: it needs $g_*$ \emph{small}. Every currently checkable criterion for (R2)--(R3) is a strong-coupling argument: it needs $g_*$ \emph{large}. Examples are Dobrushin-type uniqueness conditions and the pointwise curvature condition of~\cite{SZZ23}. The reduction closes only if the two ranges overlap. For $SU(2)$ with the Wilson action, the known strong-coupling range ends at $\beta=\BetaRigorous$, while weak-coupling behaviour sets in near $\beta\approx2.2$ (Section~\ref{sec:lab}). Ba{\l}aban's constants are not explicit, so the RG side has no number yet (\idref{A-034}). The window is the precise quantitative content of \enquote{new ideas are needed}. There are only two ways to close it: push the RG through the crossover, or push a certifiable criterion up to it.
+
+For the pointwise curvature method, the second option can be ruled out.
+
+\begin{proposition}[Limit of pointwise curvature methods; \idref{A-040}]\label{prop:nogo}
+Let $G=SU(N)$ with $N$ even, $d\ge2$, and let $\Lambda_L=(\mathbb Z/L\mathbb Z)^d$ with $L$ even. Give $G^{E}$ the product of the bi-invariant metrics $\langle X,Y\rangle=-\Tr(XY)$, and let $S(Q)=N\beta\operatorname{Re}\sum_{p}\Tr Q_p$, the sum running over plaquettes counted once. If $\beta\ge 1/(8d)$, then no $K>0$ satisfies $\mathrm{Ric}-\mathrm{Hess}\,S\ge K$ on all of $G^{E}$.
+\end{proposition}
+
+\begin{proof}
+(i) For a bi-invariant metric, $\mathrm{Ric}=-\frac14B$ with the Killing form $B(X,Y)=2N\Tr(XY)$ on $\mathfrak{su}(N)$. Hence $\mathrm{Ric}=\frac N2\langle\cdot,\cdot\rangle$ on each factor, and on the product.
+
+(ii) Since $N$ is even, $-1\in SU(N)$. Put $Q_{x,\mu}=\eta_\mu(x)\,\mathbb 1$ with $\eta_\mu(x)=(-1)^{x_1+\dots+x_{\mu-1}}$, which is periodic because $L$ is even. For $\mu<\nu$ we have $\eta_\nu(x+\hat\mu)=-\eta_\nu(x)$ and $\eta_\mu(x+\hat\nu)=\eta_\mu(x)$. Hence $Q_p=Q_{x,\mu}Q_{x+\hat\mu,\nu}Q_{x+\hat\nu,\mu}^{-1}Q_{x,\nu}^{-1}=-\mathbb 1$ for every plaquette.
+
+(iii) Right translates of one-parameter subgroups are geodesics of a bi-invariant metric. So for $X=(X_e)\in\bigoplus_e\mathfrak{su}(N)$ the curve $Q_e(t)=\exp(tX_e)Q_e$ is a geodesic with initial velocity $X$ and $|X|^2=\sum_e|X_e|^2$, and $\mathrm{Hess}\,S(X,X)=\frac{d^2}{dt^2}S(Q(t))|_{t=0}$. All $Q_e$ are central, so
+\[
+Q_p(t)=Q_p\,e^{tX_1}e^{tX_2}e^{-tX_3}e^{-tX_4}=-\exp\bigl(tY_p+t^2C_p+O(t^3)\bigr),\qquad Y_p=X_1+X_2-X_3-X_4,
+\]
+where $X_1,\dots,X_4$ belong to the four links of $p$ and $C_p$ is a sum of commutators, hence traceless. Using $\Tr Y_p=\Tr C_p=0$, we get $\operatorname{Re}\Tr Q_p(t)=-N+\frac{t^2}{2}|Y_p|^2+O(t^3)$ and therefore $\mathrm{Hess}\,S(X,X)=N\beta\sum_p|Y_p|^2$.
+
+(iv) Choose $c\in\mathbb R^d\setminus\{0\}$ with $\sum_\mu c_\mu=0$ and a unit vector $T\in\mathfrak{su}(N)$, and set $X_{x,\mu}=c_\mu s(x)T$ with $s(x)=(-1)^{x_1+\dots+x_d}$. Since $s(x+\hat\mu)=-s(x)$, the plaquette in the plane $(\mu,\nu)$ at $x$ has $Y_p=2s(x)(c_\mu-c_\nu)T$. Hence
+\[
+\sum_p|Y_p|^2=4L^d\sum_{\mu<\nu}(c_\mu-c_\nu)^2=4L^d\Bigl(d\sum_\mu c_\mu^2-\bigl(\textstyle\sum_\mu c_\mu\bigr)^2\Bigr)=4d\,|X|^2 .
+\]
+
+(v) Consequently $(\mathrm{Ric}-\mathrm{Hess}\,S)(X,X)=\bigl(\frac N2-4dN\beta\bigr)|X|^2\le0$ whenever $\beta\ge1/(8d)$.
+\end{proof}
+
+\begin{remark}
+Shen--Zhu--Zhu prove that $\mathrm{Ric}-\mathrm{Hess}\,S$ is uniformly positive for $|\beta|<1/(16(d-1))$~\cite{SZZ23}. The optimal threshold of the uniform curvature method therefore lies in $[1/(16(d-1)),\,1/(8d)]$. For $d=2$ both ends equal $1/16$, so their condition is sharp there. For $d=4$ the interval is $[1/48,1/32]$; in Wilson normalisation for $SU(2)$ it is $\beta\in[1/12,1/8]$. That is at most $0.125$, against a scaling regime that begins near $2.2$. The value $\mathrm{Hess}\,S(X,X)/(\beta|X|^2)=N\cdot4d=32$ was also checked by finite differences (\texttt{lab/curvature\_bound.py}: $31.99996$ at step $10^{-3}$).
+
+\emph{Scope.} The proposition limits uniform pointwise curvature arguments only. It says nothing against log-Sobolev inequalities or mass gaps at larger $\beta$, and nothing about other methods (perturbation arguments, block-spin variables, Dobrushin-type criteria). The observation is elementary and may be known; we are not aware of it being stated explicitly.
+\end{remark}
+
+\subsection{Obstruction 2: the dimensional barrier}
+For spin systems, finite-volume criteria are classical: Dobrushin--Shlosman complete analyticity~\cite{DS87}, and the equivalence of finite-box mixing, log-Sobolev inequalities and spectral gaps~\cite{SZ92,MO94}. They can in principle reach well beyond single-site conditions, because they are checked on a whole box. The cost is that checking them means evaluating conditional measures on that box.
+
+For lattice gauge theory a box of side $s$ in $d=4$ carries about $4s^4$ link variables, each in the three-dimensional manifold $SU(2)$. That is 192 real dimensions for $s=2$ and 3072 for $s=4$. A deterministic certified integration has a cost that grows exponentially with the dimension, and Monte Carlo gives only statistical, not rigorous, bounds (\idref{YM-20}). Only criteria whose verification is \emph{low-dimensional} can be certified: single-site or single-block influences, or pointwise curvature bounds. Precisely these are the criteria known to hold only at strong coupling.
+
+\textbf{Consequence.} Neither obstruction is lifted by more computing power, not even by many orders of magnitude. Both require a new mathematical statement. One option is a criterion that is low-dimensional to check \emph{and} valid at intermediate coupling. The other is an RG analysis that reaches the crossover with explicit constants.
+
+\subsection{Research questions that follow}
+\begin{description}[font=\normalfont\bfseries,leftmargin=1.2cm,labelwidth=1cm,align=left]
+\item[RQ1] Is there a gauge-covariant finite-volume criterion (\idref{A-035}) for lattice gauge theories? Even at strong coupling this would be a new theorem; for spin systems the analogues are classical~\cite{DS87,MO94,SZ92}.
+\item[RQ2] How far can the strong-coupling threshold $\beta<\BetaRigorous$ be pushed for $SU(2)$, $d=4$, with sharper curvature or block estimates? This is a well-posed and computable sub-question. It cannot close the window alone, but it measures how far local methods can reach.
+\item[RQ3] How small must $g$ be for Ba{\l}aban's RG estimates to hold? Making the constants explicit~\cite{Dim13a,Dim13b} would give the window its second boundary.
+\end{description}
+
+% ======================================================================
+\section{Ledger updates}\label{sec:ledger}
+The following entries are added to the assumption ledger of the specification (v1.1). No transition changes status. \idref{A-040} is our own proved statement; it carries the status \statusbadge{PREPRINT} until independent review.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}p{1.2cm}Xp{1.9cm}@{}}
+\toprule
+ID & Statement & Status\\
+\midrule
+\idref{A-034} & (R1) RG reduction to the crossover scale, uniform in $a$ and volume, with gauge-invariant observables & \statusbadge{OPEN}\\
+\idref{A-035} & (R2) Gauge-covariant finite-volume criterion implying infinite-volume clustering & \statusbadge{OPEN}\\
+\idref{A-036} & (R3) Certified verification of the criterion on the whole class $\mathcal A(g_*,\varepsilon)$ & \statusbadge{OPEN}\\
+\idref{A-037} & Coupling window for $SU(2)$, $d=4$, Wilson action: rigorous gap only at strong coupling (explicitly $\beta<\BetaRigorous$); scaling from $\beta\approx2.2$; $am_G$ falls while $m_G/\sqrt\sigma$ stays roughly constant & \statusbadge{NUMERICAL}\\
+\idref{A-038} & Strong-coupling mass gap in infinite volume for $|\beta_{\mathrm{SZZ}}|<1/(16(d-1))$, $SU(N)$~\cite{SZZ23} & \statusbadge{VERIFIED}\\
+\idref{A-039} & Proposal~\ref{prop:reduction}: (R1)$\wedge$(R2)$\wedge$(R3)$\Rightarrow$\idref{A-031} & \statusbadge{OPEN}\\
+\idref{A-040} & Proposition~\ref{prop:nogo}: the uniform Bakry--Émery condition fails for $\beta_{\mathrm{SZZ}}\ge1/(8d)$ ($SU(N)$, $N$ even) & \statusbadge{PREPRINT}\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ======================================================================
+\section{Conclusion}
+The mass-gap problem, reduced to its computational core, is a bridge across a coupling window: from $\beta\approx\BetaRigorous$, where local methods work, to the weak-coupling regime near $\beta\approx2.2$, where RG methods can take over, for a whole class of effective actions and with certified bounds. Computers could take part only after a new theorem reduces this bridge to finitely many low-dimensional certified inequalities. No such theorem is known today. For the class of uniform pointwise curvature methods we prove that the bridge cannot be built: they stop at $\beta\le1/8$ (Proposition~\ref{prop:nogo}). This report locates the obstruction; it does not remove it.
+
+% ======================================================================
+\appendix
+\section{Deutsche Zusammenfassung}
+Dieser Bericht löst das Problem nicht. Er bestimmt aber genau, wo es festhängt. Für $SU(2)$ in vier Dimensionen ist ein Mass Gap bisher nur bei sehr starker Kopplung bewiesen; der explizite bekannte Schwellenwert ist $\beta<\BetaRigorous$. Die Physik des Kontinuums beginnt erst bei $\beta\approx2.2$. Dazwischen liegt ein Faktor von etwa 26, den keine bekannte rigorose Methode überbrückt. Eigene Simulationen und Literaturdaten zeigen: Der Gap in Gittereinheiten geht gegen null, in physikalischen Einheiten bleibt er ungefähr konstant. Das ist genau die Aussage, die bewiesen werden müsste, hier aber nur numerisch belegt ist. Ein Computerbeweis wäre nur über eine endliche Reduktion möglich, also einen neuen Satz, der die unendlich vielen Fälle auf endlich viele prüfbare Ungleichungen zurückführt. Der einzige erkennbare Weg dorthin braucht drei neue Sätze und scheitert derzeit an zwei Hindernissen: dem Kopplungsfenster und der Dimension der zu prüfenden Integrale. Beide lassen sich nicht mit mehr Rechenleistung beseitigen, sondern nur mit neuer Mathematik. Neu bewiesen (Proposition~\ref{prop:nogo}): Die Krümmungsmethode, auf der der bekannte Beweis bei starker Kopplung beruht, kommt grundsätzlich nicht über $\beta=1/8$ hinaus. Das Fenster lässt sich mit ihr also nachweislich nicht überbrücken.
+
+\section{Reproducibility}\label{sec:repro}
+\begin{verbatim}
+cd lab
+python su2_lattice.py --selftest
+python su2_lattice.py --beta 2.3 --L 12 --therm 150 --meas 600 \
+       --every 3 --seed 11 --out runs/beta_2.3.json    # one run per beta
+python analyze.py                                     # writes reports/data/*
+cd ../reports && latexmk report-01.tex
+\end{verbatim}
+Raw results are in \texttt{lab/runs/*.json}. The reference values of~\cite{AT21} are copied verbatim into \texttt{lab/analyze.py}.
+
+\begin{thebibliography}{DHMN26}
+\small
+\bibitem[JW]{JW} A.~Jaffe, E.~Witten, \emph{Quantum Yang--Mills theory}, official problem description, Clay Mathematics Institute (2000).
+\bibitem[AT21]{AT21} A.~Athenodorou, M.~Teper, SU(N) gauge theories in 3+1 dimensions: glueball spectrum, string tensions and topology, \emph{JHEP} 12 (2021) 082. doi:10.1007/JHEP12(2021)082, arXiv:2106.00364.
+\bibitem[SZZ23]{SZZ23} H.~Shen, R.~Zhu, X.~Zhu, A stochastic analysis approach to lattice Yang--Mills at strong coupling, \emph{Commun. Math. Phys.} 400 (2023) 805--851. doi:10.1007/s00220-022-04609-1, arXiv:2204.12737.
+\bibitem[OSe78]{OSe78} K.~Osterwalder, E.~Seiler, Gauge field theories on a lattice, \emph{Ann. Phys.} 110 (1978) 440--471. doi:10.1016/0003-4916(78)90039-8
+\bibitem[KP85]{KP85} A.~D.~Kennedy, B.~J.~Pendleton, Improved heatbath method for Monte Carlo calculations in lattice gauge theories, \emph{Phys. Lett. B} 156 (1985) 393--399. doi:10.1016/0370-2693(85)91632-6
+\bibitem[Cre80]{Cre80} M.~Creutz, Monte Carlo study of quantized SU(2) gauge theory, \emph{Phys. Rev. D} 21 (1980) 2308--2315. doi:10.1103/PhysRevD.21.2308
+\bibitem[Bal87]{Bal87} T.~Ba{\l}aban, Renormalization group approach to lattice gauge field theories I, \emph{Commun. Math. Phys.} 109 (1987) 249--301.
+\bibitem[Bal88]{Bal88} T.~Ba{\l}aban, Renormalization group approach to lattice gauge field theories II, \emph{Commun. Math. Phys.} 116 (1988) 1--22. doi:10.1007/BF01239022
+\bibitem[Bal89a]{Bal89a} T.~Ba{\l}aban, Large field renormalization I, \emph{Commun. Math. Phys.} 122 (1989) 175--202. doi:10.1007/BF01257412
+\bibitem[Bal89b]{Bal89b} T.~Ba{\l}aban, Large field renormalization II, \emph{Commun. Math. Phys.} 122 (1989) 355--392. doi:10.1007/BF01238433
+\bibitem[Dim13a]{Dim13a} J.~Dimock, The renormalization group according to Balaban I: small fields, \emph{Rev. Math. Phys.} 25 (2013) 1330010. doi:10.1142/S0129055X13300100
+\bibitem[Dim13b]{Dim13b} J.~Dimock, The renormalization group according to Balaban II: large fields, \emph{J. Math. Phys.} 54 (2013) 092301. doi:10.1063/1.4821275
+\bibitem[DS87]{DS87} R.~L.~Dobrushin, S.~B.~Shlosman, Completely analytical interactions: constructive description, \emph{J. Stat. Phys.} 46 (1987) 983--1014. doi:10.1007/BF01011153
+\bibitem[SZ92]{SZ92} D.~W.~Stroock, B.~Zegarlinski, The logarithmic Sobolev inequality for discrete spin systems on a lattice, \emph{Commun. Math. Phys.} 149 (1992) 175--193. doi:10.1007/BF02096629
+\bibitem[MO94]{MO94} F.~Martinelli, E.~Olivieri, Approach to equilibrium of Glauber dynamics in the one phase region I, II, \emph{Commun. Math. Phys.} 161 (1994) 447--486, 487--514. doi:10.1007/BF02101929
+\bibitem[AH89]{AH89} K.~Appel, W.~Haken, \emph{Every Planar Map is Four Colorable}, Contemporary Mathematics 98, AMS (1989). doi:10.1090/conm/098
+\bibitem[Lan82]{Lan82} O.~E.~Lanford III, A computer-assisted proof of the Feigenbaum conjectures, \emph{Bull. Amer. Math. Soc.} 6 (1982) 427--434. doi:10.1090/S0273-0979-1982-15008-X
+\bibitem[Tuc02]{Tuc02} W.~Tucker, A rigorous ODE solver and Smale's 14th problem, \emph{Found. Comput. Math.} 2 (2002) 53--117. doi:10.1007/s002080010018
+\bibitem[Hal05]{Hal05} T.~C.~Hales, A proof of the Kepler conjecture, \emph{Ann. of Math.} 162 (2005) 1065--1185. doi:10.4007/annals.2005.162.1065
+\bibitem[COPE23]{COPE23} Committee on Publication Ethics, \emph{Authorship and AI tools}, COPE position statement (2023).
+\end{thebibliography}
+
+\end{document}

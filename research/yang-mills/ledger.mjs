@@ -10,7 +10,7 @@
 const r = String.raw;
 
 export const revision = {
-  version: '1.0',
+  version: '1.1',
   date: '2026-09-24',
 };
 
@@ -232,13 +232,35 @@ export const assumptions = [
     scope: r`Not independently reviewed here. Candidate infrastructure only.` },
   { id: 'A-031', type: 'HYP', status: 'OPEN', source: r`S1 \S5, \S6.5`,
     text: r`Uniform gap: $\exists\,c>0,\ a_0>0,\ L_0<\infty$ such that $\Delta_{a,L}\ge c\,\Lambda$ for all $0<a<a_0$, $L>L_0$ (physical units, $\Lambda$ a renormalized scale).`,
-    scope: r`S1: \enquote{New ideas are needed}. The core open problem.` },
+    scope: r`S1: \enquote{New ideas are needed}. The core open problem. Candidate decomposition: \ref{A-039} (Research Report 1).` },
   { id: 'A-032', type: 'HYP', status: 'OPEN', source: '—',
     text: r`Non-triviality certificate of \ref{I-1}: a connected $n\ge3$ function of gauge-invariant fields matches its non-zero leading perturbative coefficient.`,
     scope: r`Needed for YM-04.` },
   { id: 'A-033', type: 'HYP', status: 'OPEN', source: '—',
     text: r`The construction is uniform in method across all compact simple $\mathfrak g$ (or is carried out algebra by algebra).`,
     scope: r`Needed for YM-02. Constants may depend on $\mathfrak g$.` },
+  // Research Report 1 (2026-09-24): coupling window and reduction question.
+  { id: 'A-034', type: 'HYP', status: 'OPEN', source: '[Bal87], [Dim13a]; Report 1',
+    text: r`(R1) RG reduction: uniformly in $a$ and in the volume, block-spin RG maps the lattice theory to an effective unit-lattice theory at spacing $\ell_*$ with $\ell_*\Lambda\approx F(g_*)$ and action in a class $\mathcal A(g_*,\varepsilon)$, with control of gauge-invariant observables.`,
+    scope: r`Extends \ref{A-005} to infinite volume and to the crossover scale. Ba{\l}aban's constants are not explicit.` },
+  { id: 'A-035', type: 'HYP', status: 'OPEN', source: '[DS87], [SZ92], [MO94]; Report 1',
+    text: r`(R2) Gauge-covariant finite-volume criterion: a mixing condition on one finite box for an effective gauge action implies exponential clustering of gauge-invariant local observables in infinite volume.`,
+    scope: r`Classical for spin systems; not known for gauge theories.` },
+  { id: 'A-036', type: 'HYP', status: 'OPEN', source: 'Report 1',
+    text: r`(R3) The criterion of \ref{A-035} holds, with margin and certified (non-statistical) bounds, for every action in $\mathcal A(g_*,\varepsilon)$.`,
+    scope: r`Dimensional barrier: about $4s^4$ links per box of side $s$, i.e.\ 3072 real dimensions for $s=4$ and $SU(2)$.` },
+  { id: 'A-037', type: 'NUM', status: 'NUMERICAL', source: '[AT21]; Report 1',
+    text: r`Coupling window for $SU(2)$, $d=4$, Wilson action: rigorous gap only at strong coupling, most explicit threshold $\beta<1/12$ (\ref{A-038}); scaling from $\beta\approx2.2$; between $\beta=2.30$ and $2.70$, $am_G$ falls by a factor 3.4 while $m_G/\sqrt\sigma$ stays within 3.3--3.8.`,
+    scope: r`Evidence for \ref{A-031}, never proof.` },
+  { id: 'A-038', type: 'THM', status: 'VERIFIED', source: '[SZZ23]',
+    text: r`For $SU(N)$ and $|\beta_{\mathrm{SZZ}}|<1/(16(d-1))$, with action $N\beta_{\mathrm{SZZ}}\operatorname{Re}\sum_p\Tr Q_p$, the infinite-volume lattice measure is unique and has a strictly positive mass gap.`,
+    scope: r`For $SU(2)$, $d=4$, Wilson normalisation: $\beta<1/12$ (conversion in Report 1). Strong coupling only; refines \ref{A-004}.` },
+  { id: 'A-039', type: 'HYP', status: 'OPEN', source: 'Report 1',
+    text: r`Reduction (Report 1, Proposal 3.1): \ref{A-034} $\wedge$ \ref{A-035} $\wedge$ \ref{A-036} $\Rightarrow$ \ref{A-031}.`,
+    scope: r`The implication itself is unproved; open point: transfer of clustering from effective to original observables.` },
+  { id: 'A-040', type: 'THM', status: 'PREPRINT', source: 'Report 1, Prop. 3.2',
+    text: r`Limit of pointwise curvature methods: for $SU(N)$, $N$ even, the uniform Bakry--Émery condition $\mathrm{Ric}-\mathrm{Hess}\,S\ge K>0$ fails for $\beta_{\mathrm{SZZ}}\ge1/(8d)$ (pi-flux configuration). With \ref{A-038}, the optimal threshold of the method lies in $[1/(16(d-1)),1/(8d)]$; for $SU(2)$, $d=4$, Wilson normalisation: $\beta\in[1/12,1/8]$.`,
+    scope: r`Own result with complete proof and numerical check; not refereed. Limits only uniform pointwise curvature arguments.` },
 ];
 
 // A transition is a separate theorem on the path from the regularized model

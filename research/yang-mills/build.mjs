@@ -130,7 +130,7 @@ const interpretationsTex = header + interpretations.map((i) => [
 ].join('\n')).join('\n\n') + '\n';
 
 const assumptionsTex = header + [
-  '\\begin{longtable}{@{}p{1.2cm}p{8.9cm}p{0.95cm}p{1.75cm}P{2.3cm}@{}}',
+  '\\begin{longtable}{@{}p{1.2cm}p{8.8cm}p{0.95cm}p{1.85cm}P{2.3cm}@{}}',
   '\\toprule ID & Statement \\textit{and scope} & Type & Status & Source\\\\ \\midrule \\endhead',
   '\\bottomrule \\endfoot',
   ...assumptions.map((a) => `${anchor(a.id)} & ${tex(a.text)}\\newline{\\footnotesize\\itshape ${tex(a.scope)}} & \\footnotesize\\textsf{${a.type}} & \\statusbadge{${a.status}} & \\footnotesize ${tex(a.source)}\\\\[2pt]`),

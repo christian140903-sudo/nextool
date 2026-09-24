@@ -1,6 +1,6 @@
 # Yang–Mills Existence and Mass Gap: Formal Acceptance and Research Specification
 
-**[Read the specification (PDF, 24 pages)](spec.pdf)** · Version 1.0 · 2026-09-24 · Draft for author review
+**[Read the specification (PDF)](spec.pdf)** · **[Research Report 1 (PDF)](reports/report-01.pdf)** · Version 1.1 · 2026-09-24 · Draft for author review
 
 This package fixes, in a form anyone can check, what a resolution of the Clay
 Millennium Problem *Yang–Mills Existence and Mass Gap* must establish. It also
@@ -19,11 +19,30 @@ foundational audit that allows for a rigorous counterexample.
 | Acceptance contract | 25 atomic requirements `YM-01`…`YM-25`, each anchored in the normative text |
 | Interpretation register | 6 points where the official text is not formally specific (`I-1`…`I-6`) |
 | Quantifier ledger | 8 rules separating insufficient from required quantifier forms (`Q-1`…`Q-8`) |
-| Assumption ledger | 33 classified premises (`A-001`…`A-033`); 5 tempting shortcuts recorded as FALSE |
+| Assumption ledger | 40 classified premises (`A-001`…`A-040`); 5 tempting shortcuts recorded as FALSE |
 | Transition map | 9 separate theorems from the lattice to the Clay statement, with machine-computed closure |
 | Two tracks | Track P (construction) and Track N (the exact logical form of an admissible counterexample) |
 | Review of the working draft | 16 findings: 3 corrected, 6 sharpened, 7 confirmed against the primary sources |
-| References | 53 entries, checked against Crossref, arXiv, the issuing organisations or the bibliography of S1 |
+| References | 57 entries, checked against Crossref, arXiv, the issuing organisations or the bibliography of S1 |
+
+## Research Report 1: locating the obstruction
+
+[`reports/report-01.pdf`](reports/report-01.pdf) answers two narrower questions. It
+does **not** solve the problem.
+
+1. **Where is the wall?** For SU(2) in d = 4 (Wilson action), mass-gap proofs
+   exist only at strong coupling; the most explicit threshold is β < 1/12. The scaling regime of the continuum limit begins
+   near β ≈ 2.2. This is based on our own lattice simulation plus reference
+   data (Athenodorou–Teper 2021): the gap falls in lattice units and stays
+   roughly constant in physical units, which is evidence, not proof.
+2. **Could a computer close it?** Only through a finite reduction theorem. The
+   only such reduction we can identify needs three new theorems. It faces two
+   obstructions, the coupling window and the dimension of the integrals to
+   certify, and neither goes away with more computing power.
+3. **A proved limit (new, not refereed).** The pointwise curvature
+   (Bakry–Émery) method behind the strong-coupling proof cannot reach beyond
+   β = 1/8. The proof uses a π-flux configuration and is checked numerically
+   (32 exactly vs. 31.99996).
 
 ## Files
 
@@ -35,6 +54,11 @@ foundational audit that allows for a rigorous counterexample.
 | `ledger.json` | Machine-readable copy of the ledger with computed closure status |
 | `spec.tex` | The specification (LaTeX) |
 | `spec.pdf` | The typeset specification |
+| `common.sty` | Shared layout of the specification and the reports |
+| `reports/report-01.tex`, `.pdf` | Research Report 1 and its generated data (`reports/data/`) |
+| `lab/su2_lattice.py` | SU(2) lattice gauge theory in 4D (heat bath, over-relaxation, observables, self-test) |
+| `lab/analyze.py` | Turns `lab/runs/*.json` into the report's tables and plot data |
+| `lab/curvature_bound.py` | Numerical check of the curvature no-go (Report 1, Proposition 3.2) |
 
 ## Build
 
@@ -42,6 +66,12 @@ foundational audit that allows for a rigorous counterexample.
 node build.mjs            # validate ledger.mjs; write generated/*.tex and ledger.json
 node build.mjs --check    # fail if the generated files are stale
 latexmk -pdf spec.tex     # typeset (TeX Live: latex-extra, science, fonts-recommended)
+
+cd lab                    # numerical lab (Python ≥ 3.10, numpy, scipy)
+python su2_lattice.py --selftest
+python analyze.py         # regenerate reports/data from lab/runs
+python curvature_bound.py
+cd ../reports && latexmk report-01.tex
 ```
 
 The validator refuses to build if:
@@ -93,3 +123,8 @@ Die wichtigsten Ergebnisse der Prüfung des Arbeitsentwurfs:
 5. **OS-Axiome nur in der korrigierten Form von OS II.** OS I war ohne die
    lineare Wachstumsbedingung falsch. Das ist ein echter Präzedenzfall für die
    These, dass eine Grundlage fehlerhaft sein kann.
+
+**Forschungsbericht 1** zeigt, wo das Problem festhängt, löst es aber nicht.
+Ein Mass Gap ist nur bei starker Kopplung bewiesen (expliziter Schwellenwert
+β < 1/12), die Kontinuumsphysik beginnt bei β ≈ 2.2. Neu bewiesen ist, dass die Krümmungsmethode hinter dem bekannten
+Beweis grundsätzlich nicht über β = 1/8 hinauskommt.
