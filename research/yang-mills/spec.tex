@@ -1,0 +1,657 @@
+% Yang–Mills Existence and Mass Gap — Formal Acceptance and Research Specification
+% Build: node build.mjs && latexmk -pdf spec.tex
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage[a4paper,margin=2.25cm,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{array,booktabs,longtable,tabularx}
+\usepackage[dvipsnames,table]{xcolor}
+\usepackage{enumitem}
+\usepackage{csquotes}
+\usepackage{seqsplit}
+\usepackage{fancyhdr}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+\input{generated/summary.tex}
+
+% ------------------------------------------------------------------ layout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\setlist{itemsep=2pt,topsep=3pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily Yang--Mills: Acceptance \& Research Specification}
+\fancyhead[R]{\small\sffamily v\LedgerVersion\ · \LedgerDate}
+\fancyfoot[C]{\small\sffamily\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+% ------------------------------------------------------------------ badges
+\definecolor{stVERIFIED}{HTML}{D6EFDD}
+\definecolor{stSTANDARD}{HTML}{DCE8F7}
+\definecolor{stPARTIAL}{HTML}{FBEBC8}
+\definecolor{stOPEN}{HTML}{F9D9C4}
+\definecolor{stFALSE}{HTML}{F4C7C7}
+\definecolor{stHEURISTIC}{HTML}{E6E6E6}
+\definecolor{stNUMERICAL}{HTML}{E8DDF3}
+\definecolor{stPREPRINT}{HTML}{EDEDED}
+\definecolor{stCLOSED}{HTML}{C9EBD3}
+\definecolor{clNORMATIVE}{HTML}{DCE8F7}
+\definecolor{clDERIVED}{HTML}{E8DDF3}
+\definecolor{clPROCEDURAL}{HTML}{FBEBC8}
+\definecolor{clGOVERNANCE}{HTML}{E6E6E6}
+\newcommand{\badge}[2]{{\setlength{\fboxsep}{1.5pt}\colorbox{#1}{\strut\scriptsize\sffamily #2}}}
+\newcommand{\statusbadge}[1]{\badge{st#1}{#1}}
+\newcommand{\classbadge}[1]{\badge{cl#1}{#1}}
+\newcommand{\idref}[1]{\hyperref[#1]{\textsf{#1}}}
+
+\newtcolorbox{keybox}[1][]{breakable,enhanced,colback=black!3,colframe=black!55,
+  boxrule=0.5pt,arc=1.5pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\sffamily\bfseries,#1}
+\newenvironment{interpretation}[2]{%
+  \begin{tcolorbox}[breakable,enhanced,colback=white,colframe=black!35,boxrule=0.4pt,arc=1.5pt,
+    left=5pt,right=5pt,top=3pt,bottom=3pt]%
+  \phantomsection\label{#1}\textbf{\textsf{#1}\quad #2}%
+  \begin{description}[font=\normalfont\small\itshape,leftmargin=2.75cm,labelwidth=2.55cm,labelsep=0.2cm,align=left,itemsep=1pt,topsep=2pt]}%
+  {\end{description}\end{tcolorbox}}
+
+% ------------------------------------------------------------------ maths
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{statement}[definition]{Statement}
+\theoremstyle{plain}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{importedtheorem}[definition]{Imported theorem}
+\theoremstyle{remark}
+\newtheorem{remark}[definition]{Remark}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\C}{\mathbb C}
+\newcommand{\cT}{\mathcal T}
+\newcommand{\cH}{\mathcal H}
+\newcommand{\cO}{\mathcal O}
+\newcommand{\g}{\mathfrak g}
+\DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\Lie}{Lie}
+
+\hypersetup{pdftitle={Yang-Mills Existence and Mass Gap: Formal Acceptance and Research Specification},
+  pdfauthor={Christian Bucher},pdfsubject={Clay Millennium Problem: Yang-Mills Existence and Mass Gap}}
+
+\begin{document}
+
+% ================================================================== title
+\begin{center}
+{\sffamily\small CLAY MILLENNIUM PROBLEM \textperiodcentered{} RESEARCH PROGRAMME DOCUMENT}\\[10pt]
+{\LARGE\bfseries Yang--Mills Existence and Mass Gap}\\[5pt]
+{\Large Formal Acceptance and Research Specification}\\[12pt]
+{\large Christian Bucher}\footnote{Drafting assistance: Claude Code, an AI system by Anthropic. Every source statement was checked against the primary documents listed in Section~\ref{sec:sources} and in the references. In line with the COPE position on authorship and AI tools~\cite{COPE23}, the AI tool is not an author. Responsibility for the content lies with the author.}\\[4pt]
+{\small Version \LedgerVersion\ \textperiodcentered{} \LedgerDate\ \textperiodcentered{} Status: draft for author review}\\[2pt]
+{\small\url{https://github.com/christian140903-sudo/nextool/tree/main/research/yang-mills}}
+\end{center}
+
+\begin{abstract}
+\noindent This document fixes, in verifiable form, what a resolution of the Clay Millennium Problem \enquote{Yang--Mills Existence and Mass Gap} must establish. It also sets out a two-track research programme to pursue one: a constructive track (existence and mass gap) and a foundational-audit track (a rigorous counterexample or a proof of ill-posedness). The official problem description~\cite{JW} and the Millennium Prize rules~\cite{CMIrules} are frozen by SHA-256 fingerprint. From them we derive an acceptance contract of \NumRequirements{} requirements, an interpretation register of \NumInterpretations{} points where the official text is not formally specific, an assumption ledger of \NumAssumptions{} classified premises and a map of \NumTransitions{} separate transition theorems. A build script validates all of this and computes the closure status of every transition. \textbf{This document does not contain a solution.} In the present revision \NumClosedTransitions{} of \NumTransitions{} transitions is closed; this matches the literature, and the problem remains open.
+\end{abstract}
+
+\begin{keybox}[title=Status at a glance]
+\begin{itemize}[leftmargin=1.2em]
+\item \textbf{Problem status.} Clay Mathematics Institute lists the problem as \emph{Unsolved} (checked 2026-09-24). No proposed solution satisfies the prize conditions of~\cite[\S4]{CMIrules}.
+\item \textbf{What this document is.} The fixed yardstick against which every later computation, lemma and manuscript of the programme is measured.
+\item \textbf{What it is not.} A proof, a partial proof or a claim of progress on the mathematics itself.
+\item \textbf{Machine-checked closure.} \NumClosedTransitions/\NumTransitions{} transitions closed. \NumOpenAssumptions{} ledger entries are \statusbadge{OPEN}, and \NumFalseAssumptions{} tempting shortcuts are recorded as \statusbadge{FALSE} (Section~\ref{sec:ledger}).
+\end{itemize}
+\end{keybox}
+
+\tableofcontents
+
+% ================================================================== 1
+\section{Purpose, scope and conventions}\label{sec:purpose}
+
+A Millennium Problem is not solved by a convincing argument, a numerical result or a new theory. It is solved only when the global mathematics community accepts a complete proof, published in a refereed venue, that answers the specific questions of the official description~\cite[\S\S4--5, 7]{CMIrules}. Most failed attempts do not fail on the central idea. They fail on a mismatch between what was proved and what was asked: a wrong quantifier, a limit that loses a property, a regulator that is never removed, or a theorem used outside its hypotheses.
+
+This specification exists to make that mismatch impossible to overlook. It serves three purposes:
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{Target freeze.} It records the normative texts, verbatim and fingerprinted (Section~\ref{sec:sources}).
+\item \textbf{Acceptance contract.} It turns these texts into atomic, individually checkable requirements (Sections~\ref{sec:formal}--\ref{sec:quantifiers}).
+\item \textbf{Research control.} It classifies every premise the programme may use and tracks which transition theorems are closed (Sections~\ref{sec:ledger}--\ref{sec:transitions}). It also defines the two tracks and the standards of evidence and review (Sections~\ref{sec:positive}--\ref{sec:publication}).
+\end{enumerate}
+
+\paragraph{Normative language.} The key words MUST, MUST NOT, SHOULD and MAY are used in the sense of BCP~14~\cite{RFC2119,RFC8174}. They bind the research programme. They say nothing about mathematical truth.
+
+\paragraph{Identifiers.} \texttt{S}$n$ normative sources; \texttt{YM-}$nn$ requirements; \texttt{I-}$n$ interpretations; \texttt{A-}$nnn$ ledger entries; \texttt{T}$n$ transitions; \texttt{Q-}$n$ quantifier rules; \texttt{E}$n$ findings on the working draft. All identifiers are hyperlinks.
+
+\paragraph{Single source of truth.} Tables in Sections~\ref{sec:contract}, \ref{sec:interpretations}, \ref{sec:ledger} and~\ref{sec:transitions} are generated from \texttt{ledger.mjs}. \texttt{node build.mjs} refuses to build if an identifier is duplicated or dangling, if a mathematical requirement is not covered by a transition, or if a transition rests on a premise whose status is \statusbadge{FALSE}, \statusbadge{HEURISTIC}, \statusbadge{NUMERICAL} or \statusbadge{PREPRINT}. A machine-readable copy is written to \texttt{ledger.json} (Appendix~\ref{app:build}).
+
+% ================================================================== 2
+\section{Normative sources and target freeze}\label{sec:sources}
+
+\input{generated/sources.tex}
+
+\paragraph{Hierarchy.} S2 governs procedure: eligibility, publication and evaluation. S1 governs mathematical content. S3 and S4 fix the minimum axiomatic strength that S1 requires. When a later document (including this one) deviates from S1 or S2, S1 and S2 prevail.
+
+\paragraph{Freeze rule.} If the SHA-256 fingerprint of S1 or S2 at its official URL changes, this specification MUST be re-reviewed in a new revision before any further claim is measured against it.
+
+\paragraph{The problem, verbatim.} From S1, \S4:
+\begin{quote}\itshape
+To establish existence of four-dimensional quantum gauge theory with gauge group $G$, one should define a quantum field theory (in the above sense) with local quantum field operators in correspondence with the gauge-invariant local polynomials in the curvature $F$ and its covariant derivatives, such as $\Tr F_{ij}F_{kl}(x)$. Correlation functions of the quantum field operators should agree at short distances with the predictions of asymptotic freedom and perturbative renormalization theory, as described in textbooks. Those predictions include among other things the existence of a stress tensor and an operator product expansion, having prescribed local singularities predicted by asymptotic freedom.
+
+[\dots] A quantum field theory has a mass gap $\Delta$ if $H$ has no spectrum in the interval $(0,\Delta)$ for some $\Delta>0$. The supremum of such $\Delta$ is the mass $m$, and we require $m<\infty$.
+
+\textbf{Yang--Mills Existence and Mass Gap.} Prove that for any compact simple gauge group $G$, a non-trivial quantum Yang--Mills theory exists on $\R^4$ and has a mass gap $\Delta>0$. Existence includes establishing axiomatic properties at least as strong as those cited in [45, 35].
+\end{quote}
+S1, footnote~2: \emph{\enquote{We specifically exclude weak-existence (compactness) as the solution to the existence part of the Millennium problem, unless one also uses other techniques to establish properties of the limit (such as the existence of a mass gap and the axioms).}}
+
+\paragraph{Counterexamples, verbatim.} From S2, \S5(b)--(c): \emph{\enquote{In the case of the P versus NP Problem and the Navier-Stokes Problem, a resolution in either direction will be evaluated by the standard evaluation procedure [\dots]. In the case of the other Problems, if a counterexample is proposed, such counterexample shall be evaluated using the same evaluation procedure as if it were a Proposed Solution. (i)~If, in the opinion of CMI, the counterexample effectively resolves the Problem, then CMI may recommend the award of a Prize. (ii)~If, alternatively, the counterexample shows that the original Problem survives after reformulation or elimination of some special case, then CMI may recommend that a small prize [\dots] be awarded to the author. The money for this prize will not be taken from the Problem fund, but from other CMI funds.}}
+
+% ================================================================== 3
+\section{Formal restatement}\label{sec:formal}
+
+\subsection{Conventions}
+Minkowski space $\R^{1,3}$ has metric signature $(+,-,-,-)$. $\overline V_+=\{p\in\R^{1,3}:p^0\ge|\vec p|\}$ is the closed forward cone. $\mathcal P_+^\uparrow$ is the restricted Poincar\'e group. $\mathcal S(\R^{4n})$ is the Schwartz space. Euclidean space-time is $\R^4$ with Euclidean group $E(4)$ and time reflection $\Theta:(x^0,\vec x)\mapsto(-x^0,\vec x)$. $\g$ denotes a compact simple Lie algebra and $G$ a compact connected Lie group with $\Lie(G)=\g$ (see~\idref{I-2}).
+
+\subsection{Wightman theory of local gauge-invariant fields}
+
+\begin{definition}[Target structure]\label{def:wightman}
+A \emph{Wightman theory of local gauge-invariant fields} is a tuple $\cT=(\cH,U,\Omega,\mathcal D,\{\cO_i\}_{i\in I})$ such that
+\begin{enumerate}[label=\textup{(W\arabic*)},leftmargin=3.2em]
+\item $\cH$ is a separable Hilbert space and $U$ a strongly continuous unitary representation of $\mathcal P_+^\uparrow$ (or its covering group) on $\cH$. \hfill\idref{YM-05}
+\item The joint spectrum of the generators $(H,\vec P)$ of translations lies in $\overline V_+$. \hfill\idref{YM-06}
+\item There is a vector $\Omega$ with $U(g)\Omega=\Omega$ for all $g$, unique up to a phase. \hfill\idref{YM-07}
+\item Each $\cO_i$ is an operator-valued tempered distribution. The operators $\cO_i(f)$, $f\in\mathcal S(\R^4)$, are defined on a common dense domain $\mathcal D\ni\Omega$ with $U(g)\mathcal D\subseteq\mathcal D$ and $\cO_i(f)\mathcal D\subseteq\mathcal D$. The fields transform covariantly under $U$, and $\Omega$ is cyclic for the polynomial algebra of the $\cO_i(f)$. \hfill\idref{YM-08}
+\item If $\supp f$ and $\supp g$ are space-like separated, then $[\cO_i(f),\cO_j(g)]=0$ on $\mathcal D$. \hfill\idref{YM-09}
+\end{enumerate}
+\end{definition}
+
+The gauge-invariant local fields of pure Yang--Mills theory are bosonic, so (W5) uses commutators only.
+
+\subsection{Euclidean route: Osterwalder--Schrader}
+
+\begin{definition}[OS axioms, in the corrected form of~\cite{OS75}]\label{def:os}
+A family of Schwinger functions $\{S_n\}$ of the local fields satisfies
+\begin{enumerate}[label=\textup{(OS\arabic*)},start=0,leftmargin=3.2em]
+\item \emph{Regularity with linear growth} (OS0$'$). The $S_n$ are distributions on test functions vanishing at coinciding points. Their order grows at most linearly in $n$ and their constants at most factorially (schematically $|S_n(f)|\le\alpha(n!)^\beta|f|_{sn}$; the exact form is in~\cite{OS75}).
+\item \emph{Euclidean covariance} under $E(4)$.
+\item \emph{Reflection positivity}: $\sum_{n,m}S_{n+m}(\Theta\bar f_n\otimes f_m)\ge0$ for all finite families $f_n$ supported at positive times.
+\item \emph{Symmetry} under permutations of the arguments.
+\item \emph{Cluster property}.
+\end{enumerate}
+\end{definition}
+
+\begin{importedtheorem}[OS reconstruction; \idref{A-001}]\label{thm:os}
+Schwinger functions satisfying OS0$'$ and OS1--OS3 are the analytic continuations of the Wightman functions of a theory satisfying (W1)--(W5), except possibly the uniqueness in (W3). The cluster property OS4 is equivalent to uniqueness of the vacuum.
+\end{importedtheorem}
+
+\begin{remark}[A precedent for the foundational audit]
+OS~I~\cite{OS73} claimed reconstruction without the linear growth condition. The proof contained an error (its Lemma~8.8), and OS~II~\cite{OS75} repaired the theorem by adding OS0$'$ (\idref{A-002}). The requirement of S1, \enquote{at least as strong as those cited in [45, 35]}, therefore points to the \emph{corrected} theory. A construction that verifies only OS0 is incomplete.
+\end{remark}
+
+\subsection{Mass gap and mass}\label{sec:gap}
+
+\begin{definition}[S1 \S4]\label{def:gap}
+$\cT$ has a \emph{mass gap} $\Delta>0$ if $\sigma(H)\cap(0,\Delta)=\varnothing$. The \emph{mass} is $m:=\sup\{\Delta>0:\sigma(H)\cap(0,\Delta)=\varnothing\}\in(0,\infty]$, and S1 requires $m<\infty$.
+\end{definition}
+
+\begin{lemma}\label{lem:finite-mass}
+Under (W1)--(W3), $m<\infty\iff H\ne0$. If moreover every translation-invariant vector is a multiple of $\Omega$ \textup{(\idref{A-027})}, then $m<\infty\iff\cH\ne\C\Omega$.
+\end{lemma}
+\begin{proof}
+$H\ge0$ by (W2). If $H\ne0$, some $E>0$ lies in $\sigma(H)$, and every admissible $\Delta$ satisfies $\Delta\le E$, so $m\le E<\infty$. If $H=0$, then $\sigma(H)=\{0\}$ and every $\Delta>0$ is admissible, so $m=\infty$. For the second claim: if $H=0$, then (W2) forces $\vec P=0$. Every vector is then translation-invariant, hence a multiple of $\Omega$.
+\end{proof}
+
+\begin{remark}[Equivalent forms and a consistency check]
+Under (W1)--(W5) with a unique vacuum, a gap of $H$ is equivalent to a gap of the mass operator $M=\sqrt{H^2-\vec P^2}$ on $\Omega^\perp$. It is also equivalent to uniform exponential decay in Euclidean time of truncated two-point functions of a vacuum-cyclic family of fields (\idref{A-016}). S1 \S5 records the consequence (\idref{A-017}): for every $C<\Delta$ and every local $\cO$ with $\langle\Omega,\cO\Omega\rangle=0$,
+\[
+|\langle\Omega,\cO(\vec x)\cO(\vec y)\Omega\rangle|\le e^{-C|\vec x-\vec y|}\qquad\text{for }|\vec x-\vec y|\text{ sufficiently large.}
+\]
+The hypothesis $\langle\Omega,\cO\Omega\rangle=0$ is essential: without it the left side tends to $|\langle\Omega,\cO\Omega\rangle|^2\neq0$.
+\end{remark}
+
+\subsection{What makes the theory \enquote{Yang--Mills}}\label{sec:ym-identity}
+
+Classically, a connection $A$ on a principal $G$-bundle has curvature $F=dA+A\wedge A$, and the action is $\frac{1}{4g^2}\int\Tr F\wedge{*F}$ (S1, eq.~(1)). The classical equations describe \emph{massless} waves. The gap is a purely quantum phenomenon. What distinguishes the quantum theory from an arbitrary massive theory is its short-distance behaviour (\idref{YM-11}, \idref{YM-12}), which is governed by the renormalization group:
+\[
+\mu\frac{d g}{d\mu}=\beta(g)=-b_0g^3-b_1g^5+O(g^7),\qquad
+b_0=\frac{11}{3}\frac{C_A}{16\pi^2},\qquad b_1=\frac{34}{3}\frac{C_A^2}{(16\pi^2)^2},
+\]
+with $C_A=h^\vee(\g)$ the dual Coxeter number~\cite{GW73,Pol73,Cas74,Jon74}. To leading order the running coupling is $\bar g^2(\mu)=1/\bigl(b_0\ln(\mu^2/\Lambda^2)\bigr)$. Here $\Lambda$ is the renormalization-group-invariant scale: the classical scale invariance is broken, and every mass of the quantum theory is expected to be a pure number times $\Lambda$, i.e.\ $m=c_\g\Lambda$ (an expectation, \statusbadge{HEURISTIC}).
+
+\begin{center}
+\small
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+$\g$ & $A_n$ & $B_n$ & $C_n$ & $D_n$ & $E_6$ & $E_7$ & $E_8$ & $F_4$ & $G_2$\\
+\midrule
+range & $n\ge1$ & $n\ge2$ & $n\ge3$ & $n\ge4$ & & & & &\\
+$h^\vee(\g)$ & $n+1$ & $2n-1$ & $n+1$ & $2n-2$ & 12 & 18 & 30 & 9 & 4\\
+\bottomrule
+\end{tabular}
+
+\smallskip
+Table 1: The compact simple Lie algebras and their dual Coxeter numbers (\idref{A-028}). Since $h^\vee>0$ in every case, $b_0>0$: pure Yang--Mills is asymptotically free for every $\g$ in the scope of \idref{YM-02}.
+\end{center}
+
+\subsection{The main statement, fully quantified}
+
+\begin{statement}[MAIN]\label{st:main}
+\[
+\forall\,\g\ \ \exists\,\cT\ :\ \underbrace{\mathrm{Ax}(\cT)}_{\text{YM-05--09, 15}}\wedge\underbrace{\mathrm{Fields}_\g(\cT)}_{\text{YM-10}}\wedge\underbrace{\mathrm{UV}_\g(\cT)}_{\text{YM-11, 12}}\wedge\underbrace{\mathrm{NT}(\cT)}_{\text{YM-04}}\wedge\underbrace{\exists\,\Delta>0:\sigma(H)\cap(0,\Delta)=\varnothing}_{\text{YM-13}}\wedge\underbrace{m(\cT)<\infty}_{\text{YM-14}}
+\]
+with $\cT$ on $\R^4$ (\idref{YM-03}) and existence not by compactness alone (\idref{YM-16}).
+\end{statement}
+
+\begin{statement}[Negation]\label{st:negation}
+\[
+\neg\,\mathrm{MAIN}\iff\exists\,\g\ \ \forall\,\cT:\ \bigl(\mathrm{Ax}\wedge\mathrm{Fields}_\g\wedge\mathrm{UV}_\g\wedge\mathrm{NT}\bigr)(\cT)\ \Longrightarrow\ \neg\bigl(\text{gap}\wedge m<\infty\bigr)(\cT).
+\]
+\end{statement}
+
+The asymmetry between the two statements shapes the whole programme. The positive track must build \emph{one} theory for \emph{each} $\g$. The negative track must defeat \emph{every} candidate theory for \emph{one} $\g$, including theories built by methods not yet invented (Section~\ref{sec:negative}).
+
+% ================================================================== 4
+\section{Acceptance contract}\label{sec:contract}
+
+Each requirement is atomic, carries its anchor in the normative text and has a class. \classbadge{NORMATIVE} items restate the mathematical content of S1. \classbadge{DERIVED} items follow logically from normative ones and are listed separately because they are where attempts typically fail. \classbadge{PROCEDURAL} items restate S2. \classbadge{GOVERNANCE} items are recommendations. A candidate resolution is complete only if every NORMATIVE and DERIVED item is discharged by a theorem in the published work (\idref{YM-20}--\idref{YM-22}).
+
+{\small\input{generated/requirements.tex}}
+
+% ================================================================== 5
+\section{Interpretation register}\label{sec:interpretations}
+
+At these points S1 is not formally specific. Each entry records the issue, the working reading of this programme and its consequences for both tracks. Working readings are \emph{hypotheses about CMI's intent}. S2 states that CMI gives no guidance, so they MUST be confirmed through the literature and independent experts (WP-2 in Section~\ref{sec:roadmap}). An unresolved ambiguity is a candidate for S2 \S5(c)(ii) (reformulation), not for the Prize.
+
+\input{generated/interpretations.tex}
+
+% ================================================================== 6
+\section{Quantifier ledger}\label{sec:quantifiers}
+
+Quantifier order is where many apparently complete arguments break. Every estimate in the programme MUST be stored in fully quantified form, and every uniformity it provides MUST be named where it is used.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}p{0.8cm}p{2.6cm}XX@{}}
+\toprule
+ID & Topic & Insufficient form & Required form\\
+\midrule
+\leavevmode\phantomsection\label{Q-1}\textsf{Q-1} & Gauge algebra & $\exists\,\g$ (e.g.\ only $SU(3)$) & $\forall\,\g\ \exists\,\cT_\g$. Constants may depend on $\g$; uniformity in $\g$ is \emph{not} required.\\
+\leavevmode\phantomsection\label{Q-2}\textsf{Q-2} & Gap along the approximation & $\forall\,(a,L)\ \exists\,c_{a,L}>0:\ \Delta_{a,L}\ge c_{a,L}$ & $\exists\,c>0,a_0,L_0\ \forall\,a<a_0,L>L_0:\ \Delta_{a,L}\ge c\,\Lambda$\\
+\leavevmode\phantomsection\label{Q-3}\textsf{Q-3} & Units & bound in lattice units, $a\,\Delta_{a,L}\ge c$: false as $a\to0$ at fixed physical mass & bound in physical units, relative to a renormalized scale $\Lambda$ fixed by a stated renormalization condition\\
+\leavevmode\phantomsection\label{Q-4}\textsf{Q-4} & Existence of limits & $\exists$ subsequence $a_k\to0$ (compactness; excluded by S1 fn.~2) & full limit, or subsequential limit plus uniqueness, \emph{and} the axioms and gap proved for the limit\\
+\leavevmode\phantomsection\label{Q-5}\textsf{Q-5} & Estimates & $\forall\,a\ \exists\,C(a)$ & $\exists\,C\ \forall\,a\in(0,a_0)$, with the dependence on $L$ and $\g$ stated\\
+\leavevmode\phantomsection\label{Q-6}\textsf{Q-6} & Order of limits & tacit interchange of $a\to0$ and $L\to\infty$ & the order (or joint limit) stated, and every interchange proved\\
+\leavevmode\phantomsection\label{Q-7}\textsf{Q-7} & Counterexample & one construction fails, or one gapless theory exists & $\exists\,\g\ \forall\,\cT$ as in Statement~\ref{st:negation}\\
+\leavevmode\phantomsection\label{Q-8}\textsf{Q-8} & Clustering & decay for one correlation function & decay for a vacuum-cyclic family, truncated, uniformly (\idref{A-016})\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ================================================================== 7
+\section{Assumption ledger}\label{sec:ledger}
+
+Every definition, imported theorem, perturbative statement, heuristic, numerical fact and working hypothesis the programme touches is recorded here with its type, status, source and scope. Three rules apply:
+\begin{enumerate}[label=\textbf{R\arabic*}]
+\item No proof step may rest on an entry whose status is \statusbadge{FALSE}, \statusbadge{HEURISTIC}, \statusbadge{NUMERICAL} or \statusbadge{PREPRINT}. \texttt{build.mjs} enforces this for all transitions.
+\item Every \statusbadge{STANDARD} entry MUST be pinned to an exact theorem and page locator before it appears in a manuscript.
+\item Every entry used in a limit MUST state its uniformity in $a$, $L$ and $\g$ (\idref{Q-5}).
+\end{enumerate}
+Types: \textsf{DEF} definition; \textsf{THM} theorem or its negation; \textsf{PERT} perturbative statement; \textsf{HEUR} physics heuristic; \textsf{NUM} numerical evidence; \textsf{HYP} working hypothesis (a target theorem); \textsf{TOOL} infrastructure.
+Entries marked \statusbadge{FALSE} are shortcuts that are known to fail. They are recorded so that nobody uses them by accident.
+
+{\small\input{generated/assumptions.tex}}
+
+% ================================================================== 8
+\section{Transition map and closure status}\label{sec:transitions}
+
+The route from a regularized model to Statement~\ref{st:main} consists of separate theorems. Each is listed with the requirements it discharges and the ledger entries it may rest on. The status is \emph{computed}: a transition is \statusbadge{CLOSED} only if all its premises are \statusbadge{VERIFIED} or \statusbadge{STANDARD}. A superscript~! marks a blocking premise.
+
+\begin{center}
+\begin{tikzpicture}[node distance=5mm and 6mm,
+  box/.style={draw,rounded corners=2pt,font=\small\sffamily,minimum height=7mm,inner sep=3pt,align=center},
+  closed/.style={box,fill=stCLOSED},open/.style={box,fill=stOPEN},goal/.style={box,fill=black!8,thick},
+  >={Stealth[length=2mm]}]
+\node[closed] (t1) {T1\\regularized};
+\node[open,right=of t1] (t2) {T2\\$a\to0$};
+\node[open,right=of t2] (t4) {T4\\$E(4)$};
+\node[open,right=of t4] (t3) {T3\\$L\to\infty$};
+\node[open,right=of t3] (t5) {T5\\OS $\to$ W};
+\node[open,below=9mm of t2] (t6) {T6\\UV identity};
+\node[open,right=of t6] (t7) {T7\\non-trivial};
+\node[open,right=of t7] (t8) {T8\\mass gap};
+\node[open,right=of t8] (t9) {T9\\all $\g$};
+\node[goal,right=of t9] (main) {MAIN};
+\draw[->] (t1)--(t2); \draw[->] (t2)--(t4); \draw[->] (t4)--(t3); \draw[->] (t3)--(t5);
+\draw[->] (t5.south) |- ++(0,-3mm) -| (t6.north);
+\draw[->] (t6)--(t7); \draw[->] (t7)--(t8); \draw[->] (t8)--(t9); \draw[->] (t9)--(main);
+\end{tikzpicture}
+
+\smallskip
+{\small Figure 1: Transition map (one admissible order; T6--T8 may be established in the course of T2--T5).}
+\end{center}
+
+{\small\input{generated/transitions.tex}}
+
+\paragraph{Failure modes by transition.}
+\begin{description}[font=\normalfont\sffamily,leftmargin=1.1cm,labelwidth=0.9cm,align=left]
+\item[T1] None known. The Wilson measure~\cite{Wil74} on a finite lattice is a finite-dimensional integral over copies of the compact group $G$, it is gauge invariant, and it is reflection positive (\idref{A-003}). This is why the lattice is the default regularization.
+\item[T2] Controlling the effective actions (\idref{A-005}) does not by itself control expectations of gauge-invariant observables. Composite fields such as $\Tr F^2$ need additive and multiplicative renormalization and may mix with lower-dimensional fields (\idref{A-019}). Gauge fixing is only local or patchwise (\idref{A-007}).
+\item[T3] The gap on a finite torus may close as $L\to\infty$ (\idref{A-012}). A volume-uniform bound (\idref{A-031}) is, per S1 \S6.5, where \enquote{new ideas are needed}.
+\item[T4] The lattice has only hypercubic symmetry. Rotation invariance of the limit is a theorem to prove, not a convention (\idref{A-018}).
+\item[T5] Reflection positivity passes to limits (\idref{A-020}), but the linear growth condition OS0$'$ must hold uniformly (\idref{A-021}). Without it, reconstruction fails (\idref{A-002}).
+\item[T6] Agreement with perturbation theory is asymptotic, not convergent (\idref{A-010}), so the statement proved must be an asymptotic one of explicitly stated order (\idref{I-4}).
+\item[T7] 4D limits can be Gaussian: $\phi^4_4$ is the standard warning (\idref{A-014}). Non-triviality needs a positive certificate (\idref{I-1}).
+\item[T8] A gap in lattice units is meaningless as $a\to0$ (\idref{Q-3}). The bound must be in physical units and survive both limits.
+\item[T9] A method that uses special properties of $SU(2)$ or $SU(3)$ may not extend to $E_8$ (\idref{I-2}).
+\end{description}
+
+% ================================================================== 9
+\section{State of the art (verified references)}\label{sec:sota}
+
+All entries below were checked against publisher metadata (Crossref) or the primary text. \enquote{Missing} names the requirement or transition the result does not reach.
+
+\begin{center}\small
+\begin{longtable}{@{}P{3.2cm}P{6.6cm}P{5.8cm}@{}}
+\toprule
+Setting & Result & Missing for MAIN\\
+\midrule\endhead
+\bottomrule\endfoot
+2D Yang--Mills & Constructed and exactly solvable on compact surfaces~\cite{GKS89,Dri89,Wit91,Lev03} & No propagating gluons; not 4D (\idref{A-023})\\
+2D abelian Higgs & OS axioms~\cite{BFS79}; mass gap~\cite{BBIJ84} & Abelian, 2D. Per S1 the only complete interacting gauge example\\
+3D lattice YM & Ultraviolet stability, uniform in the lattice spacing~\cite{Bal85} & Observables, continuum limit, $\R^3$\\
+4D lattice YM on $T^4$ & RG approach with small- and large-field analysis~\cite{Bal87,Bal88,Bal89a,Bal89b}; exposition~\cite{Dim13a,Dim13b} & T2 incomplete (gauge-invariant expectations); T3--T9 (\idref{A-005})\\
+YM$_4$, continuum reg. & Construction with an infrared cut-off~\cite{MRS93} & IR cut-off remains; reflection positivity not automatic (\idref{A-006})\\
+Lattice, strong coupling & Reflection positivity; exponential clustering and area law at small $\beta$~\cite{OSe78,Sei82}; stochastic-analysis methods~\cite{SZZ23} & Regime opposite to the continuum limit (\idref{A-004})\\
+Stochastic quantisation & Langevin dynamics for the 2D YM measure~\cite{CCHS22}; 3D Yang--Mills--Higgs~\cite{CCHS24}; state space for 3D YM~\cite{CC24} & Dimension below 4; reflection positivity and infinite volume not addressed\\
+Lattice, probabilistic & Wilson loops in $\mathbb Z_2$ lattice gauge theory~\cite{Cha20}; conditional confinement mechanism~\cite{Cha21}; correlation decay for finite gauge groups at weak coupling~\cite{AC25} & Finite or discrete structure groups, or conditional; no continuum limit\\
+Negative results (scalar) & $\phi^4_d$ trivial for $d\ge5$~\cite{Aiz82,Fro82}; marginal triviality in $d=4$~\cite{ADC21,ADC24} & Calibration only; not asymptotically free (\idref{A-014}, \idref{A-015})\\
+Numerics & Glueball spectrum of $SU(3)$~\cite{MP99,Chen06} & Evidence, not proof (\idref{A-011})\\
+Formal verification & 4D free field satisfying OS-type axioms in Lean~4~\cite{DHMN26}; OS reconstruction in Lean~4 (third party)~\cite{OSR26} & Preprint or unreviewed; free theory only\\
+Reviews & Status reports~\cite{Dou04,Dou26} & ---\\
+\end{longtable}
+\end{center}
+
+\paragraph{Claims since 2025.} Several preprints and repository deposits claim complete solutions. One example is~\cite{Jac25}, which addresses the case $G=SU(3)$. As of 2026-09-24, CMI lists the problem as unsolved, and no claim has met the conditions of S2 \S4. The example also shows why \idref{YM-02} matters: even a correct proof for one gauge group would settle only one instance of the universal quantifier (\idref{I-2}, \idref{Q-1}).
+
+% ================================================================== 10
+\section{Track P: construction and mass gap}\label{sec:positive}
+
+\subsection{Choice of representation}
+The representation is chosen by which requirements it makes \emph{structurally} safe, and which it leaves to be proved.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}p{3.8cm}ccccX@{}}
+\toprule
+Representation & gauge inv. & RP & $E(4)$ & AF control & Main risk\\
+\midrule
+R1 Wilson lattice + RG & exact & yes & restore & Balaban & T2 observables, T3, T4\\
+R2 Continuum regularization & gauge-fixed & no & yes & MRS & recovering RP (S1 \S6.5)\\
+R3 Stochastic quantisation & covariant & no & yes & partial & RP, infinite volume, $d=4$\\
+R4 Hamiltonian lattice & exact & manifest & restore & weak & Lorentz invariance, UV\\
+R5 New variables / duality & --- & --- & --- & --- & the equivalence itself must be proved (\idref{A-025})\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Recommendation.} R1 is the backbone: it is the only representation in which gauge invariance is exact and reflection positivity holds at every cut-off (\idref{A-003}), which is the bridge to the Hilbert space (S1 \S6.5). R2--R5 are auxiliary tools; any result obtained in them MUST be transferred to R1 or the equivalence proved.
+
+\subsection{Milestones}
+\begin{description}[font=\normalfont\sffamily,leftmargin=1.1cm,labelwidth=0.9cm,align=left]
+\item[P1] Precise, fully quantified statements of T2--T9 as target theorems. \emph{Exit:} each statement reviewed against the requirements it covers.
+\item[P2] Dependency map of~\cite{Bal85}--\cite{Bal89b} and~\cite{Dim13a,Dim13b}: what is proved, in which norms, uniformly in what. \emph{Exit:} \idref{A-005} split into pinned sub-entries.
+\item[P3] Gauge-invariant observables and renormalized composite fields on $T^4$ (T2, \idref{A-019}).
+\item[P4] Rotation invariance of the limit (T4, \idref{A-018}).
+\item[P5] Volume-uniform gap or cluster estimate (T3, \idref{A-031}). This is the core open problem.
+\item[P6] OS0$'$ uniformly and reconstruction (T5, \idref{A-021}).
+\item[P7] Short-distance identity and non-triviality certificate (T6, T7).
+\item[P8] Extension to every $\g$ (T9) and the Clay corollary (Section~\ref{sec:manuscript}).
+\end{description}
+
+% ================================================================== 11
+\section{Track N: foundational audit and counterexample}\label{sec:negative}
+
+\subsection{What the \enquote{questionable foundation} hypothesis must become}
+The hypothesis that a widely accepted \emph{premise}, rather than a missing technique, is the obstacle is scientifically legitimate. It has precedents, and it is testable. It becomes testable only in the form of Statement~\ref{st:negation}. For every transition $T_k$ with premises $A_1,\dots,A_n$, the audit asks two separate questions: whether $A_1\wedge\dots\wedge A_n\Rightarrow T_k$ holds, and whether each $A_j$ is true in the generality in which it is used. Both a proof and a counter-model are attempted, and the outcome is recorded in the ledger.
+
+\subsection{Admissible outcomes}
+\begin{description}[font=\normalfont\sffamily,leftmargin=1.1cm,labelwidth=0.9cm,align=left]
+\item[N1] \emph{Non-existence.} For some $\g$, no $\cT$ satisfies $\mathrm{Ax}\wedge\mathrm{Fields}_\g\wedge\mathrm{UV}_\g\wedge\mathrm{NT}$. This is an inconsistency among the normative requirements themselves.
+\item[N2] \emph{Gaplessness.} For some $\g$, every such $\cT$ is gapless. Exhibiting \emph{one} gapless theory refutes nothing, because MAIN is existential in $\cT$. N2 therefore requires control over all candidates, in practice a uniqueness or classification theorem.
+\item[N3] \emph{Ill-posedness.} A requirement is shown to be ambiguous or inconsistent in a way that CMI resolves by reformulation. This is the S2 \S5(c)(ii) case (a small prize from other CMI funds, not the Prize). The interpretation register (Section~\ref{sec:interpretations}) is the natural starting point.
+\end{description}
+
+\subsection{What is not a counterexample}
+None of the following is a counterexample: failure of a gauge-fixing method (\idref{A-007}); divergence of perturbation theory (\idref{A-010}); failure of one regularization or one construction; lattice artefacts; numerical anomalies; the opinion that the axioms are too restrictive (S2 \S5(d) excludes papers that address \enquote{closely related scientific questions} instead of the specified ones); or a new theory in which the axioms do not hold.
+
+\subsection{Precedents: how foundations were actually corrected}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}P{3.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Case & What was corrected & Lesson for Track N\\
+\midrule
+OS~I $\to$ OS~II~\cite{OS73,OS75} & A reconstruction theorem needed an extra hypothesis (linear growth) & Correction by a precise counterexample to one lemma, published and accepted\\
+Gribov, Singer~\cite{Gri78,Sin78} & Global continuous gauge fixing is impossible & Refutes a \emph{method}, not Yang--Mills theory\\
+Triviality of $\phi^4$~\cite{Aiz82,Fro82,ADC21} & Natural lattice approximations give Gaussian limits & Rigorous negative results concern a specified class of approximations\\
+Corrigendum~\cite{ADC24} & A published Annals proof needed correction & Even landmark proofs are audited after publication\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Prior assessment}
+The numerical glueball spectrum (\idref{A-011}), asymptotic freedom for every $\g$ (Table~1) and the consistency of the physical picture make outcomes N1 and N2 very unlikely. This is an assessment, not a theorem. The realistic yield of Track~N is different: it exposes hidden premises in Track~P, and it sharpens or resolves the interpretation register (N3). Track~N is pursued because it makes Track~P honest, not because a counterexample is expected.
+
+% ================================================================== 12
+\section{Evidence standard and verification}\label{sec:verification}
+
+\subsection{Evidence classes}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}p{1.0cm}P{3.6cm}X@{}}
+\toprule
+Class & Name & May MAIN depend on it?\\
+\midrule
+E1 & Proved in the manuscript & Yes\\
+E2 & Imported theorem & Yes, if the exact locator is given and every hypothesis is verified in the instance\\
+E3 & Machine-checked & Yes, as a complement; the mathematical argument MUST still be in the published text (\idref{YM-22})\\
+E4 & Numerical evidence & No. Used for discovery and falsification only\\
+E5 & Heuristic & No. Used for guidance only\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Adversarial review}
+Every claimed lemma is given to reviewers with the brief \enquote{find the first false statement}, organized by category: quantifier order; limits and their interchange; operator domains and unbounded operators; distributions and test-function classes; analytic continuation; gauge invariance and gauge fixing; composite-operator renormalization; reflection positivity; linear growth OS0$'$; restoration of $E(4)$; UV bounds; IR and volume-uniform bounds; $\g$-dependence of constants; spectral limits; non-triviality; circularity.
+
+\subsection{Mandatory sanity tests}
+A proof mechanism MUST fail where the conclusion is false:
+\begin{enumerate}[label=(\alph*)]
+\item \textbf{Abelian control.} For $G=U(1)$ (free Maxwell theory, gapless) the argument must not yield a gap. If it does, it does not use the non-abelian structure and is wrong.
+\item \textbf{Free control.} At $g=0$ the argument must not yield a gap.
+\item \textbf{Scalar control.} Applied to $\phi^4_4$, the argument must not produce a non-trivial limit in the cases where the limit is proved to be Gaussian~\cite{ADC21}.
+\item \textbf{Numerical control.} Any rigorous bound $m\ge c\,\Lambda$ must be consistent with lattice values (\idref{A-011}) in a matched scheme. A violation is a red flag.
+\item \textbf{Clustering control.} The gap and the decay of correlations (\idref{A-017}) must agree.
+\end{enumerate}
+
+\subsection{Formal verification}
+Formalization in Lean~4 with Mathlib is planned for the parts where hidden hypotheses are most dangerous, in this order: (1)~the logical skeleton, i.e.\ Statement~\ref{st:main}, Statement~\ref{st:negation} and the Clay corollary as an implication between abstract structures; (2)~inequality chains of the core estimates; (3)~combinatorial bounds of cluster and polymer expansions; (4)~Lie-algebraic identities (Table~1). Precedents exist~\cite{DHMN26,OSR26}. A formal proof shows that every hypothesis is explicit. It does not replace the published argument.
+
+% ================================================================== 13
+\section{Manuscript architecture and traceability}\label{sec:manuscript}
+
+\subsection{Architecture}
+The main theorem appears on pages 1--3. The chapter structure follows the transitions: framework and conventions; imported results (E2, each with its locator); regularized theory (T1); gauge structure; UV control and continuum limit (T2, T4); infinite volume (T3); reconstruction (T5); UV identity (T6); non-triviality (T7); mass gap (T8); all $\g$ (T9); adversarial checks (the sanity tests above); and the \emph{Clay corollary}: a few lines deriving Statement~\ref{st:main} from the preceding theorems.
+
+\subsection{Writing rules}
+\begin{itemize}
+\item Every theorem is fully quantified. After each estimate, one sentence states which uniformity is used downstream and where (for example: \enquote{Independence of $L$ is essential for Proposition~9.2}).
+\item At critical steps, \enquote{clearly}, \enquote{obviously} and \enquote{one easily sees} are not permitted. This applies in particular to interchanging limits, integrals and sums, domains of unbounded operators, analytic continuation and spectral limits.
+\item Numerical results appear only in visibly separate \enquote{Numerical evidence} boxes.
+\end{itemize}
+
+\subsection{Traceability matrix (template)}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}p{2.2cm}p{3.2cm}p{1.4cm}X@{}}
+\toprule
+Requirement & Result in the paper & Evidence & Independent check / reviewer\\
+\midrule
+\idref{YM-02} & Theorem \dots & E1 & \dots\\
+\idref{YM-03} & Theorems \dots & E1/E2 & \dots\\
+\idref{YM-13} & Theorem \dots & E1 & clustering check (\idref{A-017})\\
+\dots & \dots & \dots & \dots\\
+\bottomrule
+\end{tabularx}
+\end{center}
+Every NORMATIVE and DERIVED requirement MUST have a row. A requirement without a row is an open gap.
+
+% ================================================================== 14
+\section{Publication, priority and integrity}\label{sec:publication}
+
+\paragraph{Path set by S2.} There is no direct submission to CMI (S2 \S5(e)), and CMI gives no advice on venues and keeps no list of them (S2 \S6(b)--(c)). The path is: publication in a Qualifying Outlet (\idref{YM-23}); at least two years of rigorous examination and general acceptance by the global mathematics community (\idref{YM-24}); then CMI's decision on detailed consideration by a special advisory committee of at least three members, at least two of them experts in the field (S2 \S7(a)(ii)). CMI decisions are final and come without explanation (S2 \S3(c)--(d)).
+
+\paragraph{Priority record.} From the first working note onward: version control with commit hashes for every manuscript state; an ORCID iD; arXiv versions; and a contribution ledger recording who contributed which idea. The ledger also serves S2 \S8(b), under which CMI pays special attention to dependence on prior published insights and may recognize prior work or divide the Prize.
+
+\paragraph{AI assistance.} AI tools are not authors. Their use is disclosed, naming the tool, its version and its purpose~\cite{COPE23}. Every AI-produced mathematical statement is treated as E5 until a human has proved or verified it at E1--E3.
+
+% ================================================================== 15
+\section{Review of the working draft}\label{sec:errata}
+
+The working draft of this programme (German, 2026-09-24, sections numbered 1--33) was checked against S1 and S2. Identifiers in the second column use the draft's own numbering, not this document's. Findings are marked \badge{stVERIFIED}{CONFIRMED}, \badge{stSTANDARD}{SHARPENED} or \badge{stOPEN}{CORRECTED}.
+
+\begin{center}\small
+\begin{longtable}{@{}p{0.7cm}P{2.3cm}p{1.9cm}p{10.3cm}@{}}
+\toprule
+ID & Draft item & Finding & Detail and source\\
+\midrule\endhead
+\bottomrule\endfoot
+E1 & Intro: Clay counterexample rule & \badge{stVERIFIED}{CONFIRMED} & Verbatim S2 \S5(b)--(c). Addendum: the small prize is paid \enquote{from other CMI funds}, at CMI's sole discretion.\\
+E2 & \S1, YM-07: axiom level & \badge{stSTANDARD}{SHARPENED} & S1 says \enquote{at least as strong as those cited in [45, 35]}; [35] includes OS~II. On the Euclidean route the linear growth condition OS0$'$ is mandatory. The draft's \S9 list (\enquote{Regularität, euklidische Kovarianz, \dots}) should name it explicitly (\idref{A-002}).\\
+E3 & \S2, YM-02; \S21 ch.~13 & \badge{stOPEN}{CORRECTED} & \enquote{Uniformity in $G$} is not required. S1 requires $\forall G\ \exists\cT_G$, and constants may depend on $G$ (\idref{Q-1}). Requiring uniformity would make the task strictly harder than the problem.\\
+E4 & \S5 table: \enquote{compact simple gauge group} & \badge{stOPEN}{CORRECTED} & The draft treats the term as unambiguous. It is not: abstract simplicity vs.\ simple Lie algebra, global forms, and $\theta$ (\idref{I-2}, \idref{I-3}).\\
+E5 & \S7: two limits & \badge{stSTANDARD}{SHARPENED} & Missing item: restoration of full $E(4)$ invariance from the hypercubic lattice symmetry (T4, \idref{A-018}).\\
+E6 & \S8: uniform gap & \badge{stSTANDARD}{SHARPENED} & The bound must be in physical units relative to a renormalized scale. In lattice units $a\Delta_{a,L}\to0$ is expected (\idref{Q-3}).\\
+E7 & \S14: clustering & \badge{stOPEN}{CORRECTED} & S1 \S5 states the bound for local $\cO$ with $\langle\Omega,\cO\Omega\rangle=0$, at spatial separation. Without this hypothesis the bound is false (Section~\ref{sec:gap}).\\
+E8 & \S15: not required & \badge{stVERIFIED}{CONFIRMED} & Confinement, chiral symmetry breaking and QCD with quarks are extensions (S1 \S1, \S5).\\
+E9 & YM-17: finite mass & \badge{stSTANDARD}{SHARPENED} & $m<\infty\iff H\neq0$, which excludes exactly $\cH=\C\Omega$ (Lemma~\ref{lem:finite-mass}).\\
+E10 & \S19, \S28: counterexample & \badge{stSTANDARD}{SHARPENED} & The logical form is $\exists\g\ \forall\cT$. One gapless theory refutes nothing without a uniqueness theorem (N2, \idref{Q-7}).\\
+E11 & \S10: RP of the Wilson lattice & \badge{stVERIFIED}{CONFIRMED} & S1 \S6.5, citing~\cite{OSe78}.\\
+E12 & \S12, YM-06: operator correspondence & \badge{stVERIFIED}{CONFIRMED} & S1 fn.~1: not 1--1; the classical differential polynomials of dimension $\le d$ are expected to correspond to the local quantum operators of dimension $\le d$.\\
+E13 & \S29: path to CMI & \badge{stVERIFIED}{CONFIRMED} & S2 \S4, \S5(e), \S7. Addendum: the special advisory committee has at least three members, at least two of them experts (S2 \S7(a)(ii)(3)).\\
+E14 & \S30: supplements & \badge{stVERIFIED}{CONFIRMED} & Verbatim S2 \S6(d).\\
+E15 & \S31: division of the Prize & \badge{stVERIFIED}{CONFIRMED} & S2 \S8(a)(iii), \S8(b).\\
+E16 & Closing: refinement of axioms & \badge{stSTANDARD}{SHARPENED} & S1 \S3 hopes for refinements that \emph{add} properties (OPE, stress tensor). This does not license weakening the required axioms, which must be \enquote{at least as strong}.\\
+\end{longtable}
+\end{center}
+
+% ================================================================== 16
+\section{Roadmap}\label{sec:roadmap}
+
+This is a research programme of open-ended duration. No timeline is promised. Each work package has an exit criterion.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}p{1.2cm}P{4.6cm}X@{}}
+\toprule
+WP & Content & Exit criterion\\
+\midrule
+WP-0 & Target freeze, contract, ledgers (this document) & Done in v\LedgerVersion; build passes\\
+WP-1 & Pin every \statusbadge{STANDARD} entry & No STANDARD entry without theorem and page locator\\
+WP-2 & Confirm or revise \idref{I-1}--\idref{I-6} & Written opinions of at least two independent experts in constructive QFT\\
+WP-3 & Deep reading of the core literature: Ba{\l}aban's series and Dimock's exposition, \cite{MRS93}, \cite{OS75}, \cite{Sei82} & \idref{A-005}, \idref{A-006} split into pinned sub-entries\\
+WP-4 & Lean skeleton of MAIN, its negation and the Clay corollary & Compiles; the logical skeleton contains no \texttt{sorry}\\
+WP-5 & Numerical falsification lab (small $SU(2)$ lattices) & Reproduces known gap estimates; all results tagged E4\\
+WP-6 & Target theorems T2--T9, fully quantified (P1) & Reviewed against \idref{Q-1}--\idref{Q-8}\\
+WP-7 & Track N audit of each transition & Every premise either proved, refuted or classified\\
+WP-8 & First adversarial review round & Review report per category of Section~\ref{sec:verification}\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ================================================================== appendices
+\appendix
+
+\section{Deutsche Zusammenfassung}\label{app:de}
+
+Dieses Dokument legt überprüfbar fest, was eine Lösung des Millennium-Problems \enquote{Yang--Mills Existence and Mass Gap} leisten muss. \textbf{Es enthält keine Lösung.} Das Problem ist laut Clay Mathematics Institute ungelöst (Stand 2026-09-24).
+
+\begin{itemize}
+\item \textbf{Zielfixierung:} Die offizielle Problembeschreibung (Jaffe--Witten) und die Preisregeln von 2018 sind wörtlich zitiert und per SHA-256 eingefroren.
+\item \textbf{Abnahmevertrag:} \NumRequirements{} atomare Anforderungen (YM-01 bis YM-25), jede mit Fundstelle im Originaltext.
+\item \textbf{Interpretationsregister:} \NumInterpretations{} Stellen, an denen der offizielle Text nicht formal eindeutig ist, etwa \enquote{nicht-trivial}, \enquote{kompakte einfache Gruppe}, der $\theta$-Parameter und das Kurzdistanzverhalten.
+\item \textbf{Annahmen-Ledger:} \NumAssumptions{} klassifizierte Prämissen. \NumFalseAssumptions{} verbreitete Abkürzungen sind ausdrücklich als FALSCH markiert.
+\item \textbf{Übergangskarte:} \NumTransitions{} getrennte Teilsätze vom Gitter bis zur Clay-Aussage, derzeit \NumClosedTransitions{} von \NumTransitions{} geschlossen. Das prüft ein Build-Skript maschinell.
+\item \textbf{Zwei Pfade:} Konstruktion mit Mass Gap, sowie ein Grundlagen-Audit mit der exakten logischen Form eines zulässigen Gegenbeispiels ($\exists\g\ \forall\cT$).
+\item \textbf{Prüfung des Arbeitsentwurfs:} 16 Befunde: 3 Korrekturen, 6 Präzisierungen, 7 Bestätigungen. Die wichtigsten: Gleichmäßigkeit in $G$ wird \emph{nicht} verlangt. Die Clustering-Abschätzung gilt nur für Operatoren mit $\langle\Omega,\cO\Omega\rangle=0$. \enquote{Kompakte einfache Eichgruppe} ist mehrdeutig.
+\end{itemize}
+
+\section{Build and reproducibility}\label{app:build}
+\begin{verbatim}
+node build.mjs            # validate; write generated/*.tex, ledger.json
+node build.mjs --check    # fail if generated files are stale
+latexmk -pdf spec.tex     # typeset this document
+\end{verbatim}
+The validator rejects duplicate or dangling identifiers and uncovered mathematical requirements. It also rejects transitions resting on inadmissible premises, and it computes the closure status shown in Section~\ref{sec:transitions}. Source fingerprints can be re-checked with \texttt{sha256sum} against Section~\ref{sec:sources}.
+
+% ================================================================== references
+\begin{thebibliography}{DHMN26}
+\small
+\bibitem[JW]{JW} A.~Jaffe, E.~Witten, \emph{Quantum Yang--Mills theory}, official problem description, Clay Mathematics Institute (2000); reprinted in J.~Carlson, A.~Jaffe, A.~Wiles (eds.), \emph{The Millennium Prize Problems}, CMI/AMS (2006). \url{https://www.claymath.org/wp-content/uploads/2022/06/yangmills.pdf}
+\bibitem[CMI18]{CMIrules} Clay Mathematics Institute, \emph{Millennium Prize Description and Rules}, adopted 26 September 2018. \url{https://www.claymath.org/wp-content/uploads/2022/03/millennium_prize_rules_0.pdf}
+\bibitem[SW64]{SW64} R.~F.~Streater, A.~S.~Wightman, \emph{PCT, Spin and Statistics, and All That}, Benjamin, New York (1964).
+\bibitem[OS73]{OS73} K.~Osterwalder, R.~Schrader, Axioms for Euclidean Green's functions, \emph{Commun. Math. Phys.} 31 (1973) 83--112. doi:10.1007/BF01645738
+\bibitem[OS75]{OS75} K.~Osterwalder, R.~Schrader, Axioms for Euclidean Green's functions II, \emph{Commun. Math. Phys.} 42 (1975) 281--305. doi:10.1007/BF01608978
+\bibitem[GJ87]{GJ87} J.~Glimm, A.~Jaffe, \emph{Quantum Physics: A Functional Integral Point of View}, 2nd ed., Springer (1987).
+\bibitem[Haag92]{Haag92} R.~Haag, \emph{Local Quantum Physics}, Springer (1992).
+\bibitem[OSe78]{OSe78} K.~Osterwalder, E.~Seiler, Gauge field theories on a lattice, \emph{Ann. Phys.} 110 (1978) 440--471. doi:10.1016/0003-4916(78)90039-8
+\bibitem[Sei82]{Sei82} E.~Seiler, \emph{Gauge Theories as a Problem of Constructive Quantum Field Theory and Statistical Mechanics}, Lecture Notes in Physics 159, Springer (1982). doi:10.1007/3-540-11559-5
+\bibitem[Wil74]{Wil74} K.~G.~Wilson, Confinement of quarks, \emph{Phys. Rev. D} 10 (1974) 2445--2459. doi:10.1103/PhysRevD.10.2445
+\bibitem[GW73]{GW73} D.~J.~Gross, F.~Wilczek, Ultraviolet behavior of non-abelian gauge theories, \emph{Phys. Rev. Lett.} 30 (1973) 1343--1346. doi:10.1103/PhysRevLett.30.1343
+\bibitem[Pol73]{Pol73} H.~D.~Politzer, Reliable perturbative results for strong interactions?, \emph{Phys. Rev. Lett.} 30 (1973) 1346--1349. doi:10.1103/PhysRevLett.30.1346
+\bibitem[Cas74]{Cas74} W.~E.~Caswell, Asymptotic behavior of non-abelian gauge theories to two-loop order, \emph{Phys. Rev. Lett.} 33 (1974) 244--246. doi:10.1103/PhysRevLett.33.244
+\bibitem[Jon74]{Jon74} D.~R.~T.~Jones, Two-loop diagrams in Yang--Mills theory, \emph{Nucl. Phys. B} 75 (1974) 531--538. doi:10.1016/0550-3213(74)90093-5
+\bibitem[tH74]{tH74} G.~'t~Hooft, A planar diagram theory for strong interactions, \emph{Nucl. Phys. B} 72 (1974) 461--473.
+\bibitem[Gri78]{Gri78} V.~N.~Gribov, Quantization of non-abelian gauge theories, \emph{Nucl. Phys. B} 139 (1978) 1--19. doi:10.1016/0550-3213(78)90175-X
+\bibitem[Sin78]{Sin78} I.~M.~Singer, Some remarks on the Gribov ambiguity, \emph{Commun. Math. Phys.} 60 (1978) 7--12. doi:10.1007/BF01609471
+\bibitem[Bal85]{Bal85} T.~Ba{\l}aban, Ultraviolet stability of three-dimensional lattice pure gauge field theories, \emph{Commun. Math. Phys.} 102 (1985) 255--275.
+\bibitem[Bal87]{Bal87} T.~Ba{\l}aban, Renormalization group approach to lattice gauge field theories I, \emph{Commun. Math. Phys.} 109 (1987) 249--301.
+\bibitem[Bal88]{Bal88} T.~Ba{\l}aban, Renormalization group approach to lattice gauge field theories II: cluster expansions, \emph{Commun. Math. Phys.} 116 (1988) 1--22. doi:10.1007/BF01239022
+\bibitem[Bal89a]{Bal89a} T.~Ba{\l}aban, Large field renormalization I: the basic step of the R operation, \emph{Commun. Math. Phys.} 122 (1989) 175--202. doi:10.1007/BF01257412
+\bibitem[Bal89b]{Bal89b} T.~Ba{\l}aban, Large field renormalization II: localization, exponentiation, and bounds for the R operation, \emph{Commun. Math. Phys.} 122 (1989) 355--392. doi:10.1007/BF01238433
+\bibitem[Dim13a]{Dim13a} J.~Dimock, The renormalization group according to Balaban I: small fields, \emph{Rev. Math. Phys.} 25 (2013) 1330010. doi:10.1142/S0129055X13300100
+\bibitem[Dim13b]{Dim13b} J.~Dimock, The renormalization group according to Balaban II: large fields, \emph{J. Math. Phys.} 54 (2013) 092301. doi:10.1063/1.4821275
+\bibitem[MRS93]{MRS93} J.~Magnen, V.~Rivasseau, R.~S\'en\'eor, Construction of YM$_4$ with an infrared cutoff, \emph{Commun. Math. Phys.} 155 (1993) 325--383.
+\bibitem[BFS79]{BFS79} D.~Brydges, J.~Fr\"ohlich, E.~Seiler, On the construction of quantized gauge fields I--III, \emph{Ann. Phys.} 121 (1979) 227--284; \emph{Commun. Math. Phys.} 71 (1980) 159--205; 79 (1981) 353--399.
+\bibitem[BBIJ84]{BBIJ84} T.~Ba{\l}aban, D.~Brydges, J.~Imbrie, A.~Jaffe, The mass gap for Higgs models on a unit lattice, \emph{Ann. Phys.} 158 (1984) 281--319. doi:10.1016/0003-4916(84)90121-0
+\bibitem[GKS89]{GKS89} L.~Gross, C.~King, A.~Sengupta, Two dimensional Yang--Mills theory via stochastic differential equations, \emph{Ann. Phys.} 194 (1989) 65--112. doi:10.1016/0003-4916(89)90032-8
+\bibitem[Dri89]{Dri89} B.~K.~Driver, YM$_2$: continuum expectations, lattice convergence, and lassos, \emph{Commun. Math. Phys.} 123 (1989) 575--616. doi:10.1007/BF01218586
+\bibitem[Wit91]{Wit91} E.~Witten, On quantum gauge theories in two dimensions, \emph{Commun. Math. Phys.} 141 (1991) 153--209. doi:10.1007/BF02100009
+\bibitem[Lev03]{Lev03} T.~L\'evy, Yang--Mills measure on compact surfaces, \emph{Mem. Amer. Math. Soc.} 166 (2003), no.~790. doi:10.1090/memo/0790
+\bibitem[Aiz82]{Aiz82} M.~Aizenman, Geometric analysis of $\phi^4$ fields and Ising models, \emph{Commun. Math. Phys.} 86 (1982) 1--48.
+\bibitem[Fr\"o82]{Fro82} J.~Fr\"ohlich, On the triviality of $\lambda\phi^4_d$ theories and the approach to the critical point in $d\ge4$ dimensions, \emph{Nucl. Phys. B} 200 (1982) 281--296.
+\bibitem[ADC21]{ADC21} M.~Aizenman, H.~Duminil-Copin, Marginal triviality of the scaling limits of critical 4D Ising and $\lambda\phi^4_4$ models, \emph{Ann. of Math.} 194 (2021) 163--235. doi:10.4007/annals.2021.194.1.3
+\bibitem[ADC24]{ADC24} M.~Aizenman, H.~Duminil-Copin, Corrigendum: Marginal triviality of the scaling limits of critical 4D Ising and $\phi^4_4$ models, \emph{Ann. of Math.} 199 (2024). doi:10.4007/annals.2024.199.1.7
+\bibitem[AST13]{AST13} O.~Aharony, N.~Seiberg, Y.~Tachikawa, Reading between the lines of four-dimensional gauge theories, \emph{JHEP} 08 (2013) 115. doi:10.1007/JHEP08(2013)115
+\bibitem[MP99]{MP99} C.~J.~Morningstar, M.~Peardon, Glueball spectrum from an anisotropic lattice study, \emph{Phys. Rev. D} 60 (1999) 034509. doi:10.1103/PhysRevD.60.034509
+\bibitem[Chen06]{Chen06} Y.~Chen et al., Glueball spectrum and matrix elements on anisotropic lattices, \emph{Phys. Rev. D} 73 (2006) 014516. doi:10.1103/PhysRevD.73.014516
+\bibitem[Cha20]{Cha20} S.~Chatterjee, Wilson loops in Ising lattice gauge theory, \emph{Commun. Math. Phys.} 377 (2020) 307--340. doi:10.1007/s00220-020-03738-9
+\bibitem[Cha21]{Cha21} S.~Chatterjee, A probabilistic mechanism for quark confinement, \emph{Commun. Math. Phys.} 385 (2021) 1007--1039. doi:10.1007/s00220-021-04086-y
+\bibitem[CC24]{CC24} S.~Cao, S.~Chatterjee, A state space for 3D Euclidean Yang--Mills theories, \emph{Commun. Math. Phys.} 405 (2024), art.~3. doi:10.1007/s00220-023-04870-y
+\bibitem[CCHS22]{CCHS22} A.~Chandra, I.~Chevyrev, M.~Hairer, H.~Shen, Langevin dynamic for the 2D Yang--Mills measure, \emph{Publ. Math. IHÉS} 136 (2022) 1--147. doi:10.1007/s10240-022-00132-0
+\bibitem[CCHS24]{CCHS24} A.~Chandra, I.~Chevyrev, M.~Hairer, H.~Shen, Stochastic quantisation of Yang--Mills--Higgs in 3D, \emph{Invent. Math.} 237 (2024) 541--696. doi:10.1007/s00222-024-01264-2
+\bibitem[SZZ23]{SZZ23} H.~Shen, R.~Zhu, X.~Zhu, A stochastic analysis approach to lattice Yang--Mills at strong coupling, \emph{Commun. Math. Phys.} 400 (2023) 805--851. doi:10.1007/s00220-022-04609-1
+\bibitem[AC25]{AC25} A.~Adhikari, S.~Cao, Correlation decay for finite lattice gauge theories at weak coupling, \emph{Ann. Probab.} 53 (2025). doi:10.1214/24-AOP1702
+\bibitem[Dou04]{Dou04} M.~R.~Douglas, Report on the status of the Yang--Mills Millennium Prize problem, Clay Mathematics Institute (2004). \url{https://www.claymath.org/library/annual_report/douglas_quantum_yang_mills.pdf}
+\bibitem[Dou26]{Dou26} M.~R.~Douglas, The Yang--Mills Millennium problem, \emph{Nat. Rev. Phys.} 8 (2026) 86--97. doi:10.1038/s42254-025-00909-2
+\bibitem[DHMN26]{DHMN26} M.~R.~Douglas, S.~Hoback, A.~Mei, R.~Nissim, Formalization of QFT, preprint (2026), arXiv:2603.15770.
+\bibitem[OSR26]{OSR26} OSReconstruction: Lean~4 formalization of the Osterwalder--Schrader reconstruction theorem, repository (accessed 2026-09-24). \url{https://github.com/xiyin137/OSreconstruction}
+\bibitem[Jac25]{Jac25} D.~C.~Jacobsen, A constructive proof of existence and mass gap for pure SU(3) Yang--Mills in four-dimensional space-time, preprint (2025), arXiv:2506.00284. Cited as an example of an unrefereed claim; not assessed here.
+\bibitem[COPE23]{COPE23} Committee on Publication Ethics, \emph{Authorship and AI tools}, COPE position statement (2023). \url{https://publicationethics.org/guidance/cope-position/authorship-and-ai-tools}
+\bibitem[RFC2119]{RFC2119} S.~Bradner, Key words for use in RFCs to indicate requirement levels, BCP~14, RFC~2119 (1997).
+\bibitem[RFC8174]{RFC8174} B.~Leiba, Ambiguity of uppercase vs lowercase in RFC 2119 key words, BCP~14, RFC~8174 (2017).
+\end{thebibliography}
+
+\end{document}
