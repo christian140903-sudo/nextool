@@ -1,0 +1,109 @@
+% Research Report 3 — How long is the bridge?
+% Build: (cd ../lab && python mcrg_analyze.py) && latexmk report-03.tex
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{common}
+\input{data/mcrg_constants.tex}
+
+\fancyhf{}
+\fancyhead[L]{\small\sffamily Yang--Mills programme \textperiodcentered{} Research Report 3}
+\fancyhead[R]{\small\sffamily 2026-09-25}
+\fancyfoot[C]{\small\sffamily\thepage}
+% Ledger identifiers refer to spec.pdf; they are not links in this document.
+\newcommand{\idref}[1]{\textsf{#1}}
+
+\hypersetup{pdftitle={Research Report 3: How long is the bridge?},pdfauthor={Christian Bucher}}
+
+\begin{document}
+
+\begin{center}
+{\sffamily\small YANG--MILLS EXISTENCE AND MASS GAP \textperiodcentered{} RESEARCH PROGRAMME}\\[8pt]
+{\LARGE\bfseries Research Report 3}\\[4pt]
+{\Large How long is the bridge?\\A Monte Carlo renormalization-group measurement}\\[10pt]
+{\large Christian Bucher}\footnote{Research and drafting assistance: Claude Code (Anthropic). Numerical results are evidence class E4. The AI tool is not an author~\cite{COPE23}.}\\[4pt]
+{\small 2026-09-25 \textperiodcentered{} companion to \texttt{spec.pdf} v1.3 and Research Reports 1--2}
+\end{center}
+
+\begin{keybox}[title=Result in brief]
+\textbf{This report does not solve the problem and contains no proof.} It measures one number that shapes every proof strategy of Reports~1 and~2: how many factor-2 renormalization-group (RG) steps lead from the scaling regime of the continuum limit into the region where a mass gap is proved.
+\begin{itemize}[leftmargin=1.2em]
+\item \textbf{Measured:} starting from $\beta=2.2$--$2.6$ ($SU(2)$, $d=4$, Wilson action), the Wilson-projected RG flow reaches the proved region $\beta<1/12$ after \BridgeStepsMin--\BridgeStepsMax{} blocking steps (Table~\ref{tab:flow}).
+\item \textbf{Why it matters:} as $a\to0$ the total number of RG steps grows like $\log_2(1/(a\Lambda))$, but all of them except these few take place at weak coupling, where Ba{\l}aban's perturbative RG applies. The non-perturbative core of the problem is therefore a \emph{bounded} number of RG steps at intermediate coupling, independent of $a$. This does not make it easy. It makes it a finite target (\idref{A-047}).
+\end{itemize}
+\textbf{Status.} Evidence (E4), subject to the projection onto the Wilson action and to finite-volume effects (Section~\ref{sec:limits}). The closure count is unchanged (1 of 9 transitions).
+\end{keybox}
+
+% ======================================================================
+\section{Why the length of the bridge matters}
+Report~1 located the obstruction in a coupling window: rigorous control exists for $\beta<1/12$~\cite{SZZ23}, while the continuum limit lives at $\beta\to\infty$ and its scaling regime begins near $\beta\approx2.2$. Report~2 showed that a proof has to carry the theory across this window by renormalization. A lattice of spacing $a$ needs about $\log_2\bigl(1/(a\Lambda)\bigr)$ factor-2 steps to reach the physical scale. That number diverges as $a\to0$. Most of these steps, however, are at weak coupling, where asymptotic freedom makes the RG perturbatively controllable~\cite{Bal87,Bal88,Bal89a,Bal89b}. The steps that need non-perturbative control are the ones through the window. \emph{If their number is small and independent of $a$, the infinite problem contains a finite non-perturbative core.} This report measures that number.
+
+% ======================================================================
+\section{Method}
+\textbf{Blocking.} A factor-2 blocking of $SU(2)$ links, of Swendsen type: the blocked link from $2x$ in direction $\mu$ is the projection onto $SU(2)$ of the double link $U_\mu(x)U_\mu(x+\hat\mu)$ plus $c=\McrgC$ times the sum of the six bent paths of length four around it. The blocking is gauge covariant, which the self-test in \texttt{lab/mcrg.py} checks.
+
+\textbf{Matching.} For each coupling $\beta$ we simulate a $16^4$ lattice (\McrgMeasBig{} measurements) and block it once and twice. We also simulate $8^4$ lattices on a grid of \McrgNumSmall{} couplings $\beta'$ (\McrgMeasSmall{} measurements each), blocked once. The RG step $\beta\mapsto\beta'$ is defined by equating an observable of the $n$-times blocked $16^4$ lattice at $\beta$ with the same observable of the $(n-1)$-times blocked $8^4$ lattice at $\beta'$. Both lattices then have the same final size, which cancels finite-volume effects to leading order. We match the plaquette $P$ and the $1\times2$ rectangle $R$ at levels $n=1$ ($8^4$) and $n=2$ ($4^4$). Agreement between the four estimates tests how well the blocked theory is described by a single Wilson coupling.
+
+% ======================================================================
+\section{Results}
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{@{}llllll@{}}
+\toprule
+$\beta$ & $\beta'(P,1)$ & $\beta'(R,1)$ & $\beta'(P,2)$ & $\beta'(R,2)$ & $\Delta\beta$\\
+\midrule
+\input{data/mcrg_table.tex}
+\end{tabular}
+\caption{Matched couplings after one factor-2 RG step; $(X,n)$ names the observable and the blocking level; errors in the last digits come from the statistical error of the target observable. $\Delta\beta=\beta-\beta'$ uses the most blocked plaquette estimate. For comparison, the two-loop asymptotic value for $SU(2)$ is $\Delta\beta=8b_0\ln2\approx0.26$, and the flow speeds up towards strong coupling. A dash means the target lies outside the simulated grid.}\label{tab:mcrg}
+\end{table}
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{@{}p{10.2cm}cc@{}}
+\toprule
+Trajectory $\beta_0\to\beta_1\to\dots$ & steps to $\beta<\tfrac18$ & steps to $\beta<\tfrac1{12}$\\
+\midrule
+\input{data/mcrg_flow.tex}
+\end{tabular}
+\caption{Iterated RG flow. Between measured couplings the step map is interpolated linearly. Below the smallest measured coupling it is continued linearly towards zero, which is conservative, since the strong-coupling flow is faster. $\tfrac18$ is the limit of pointwise curvature methods (Report~1, Proposition~3.2); $\tfrac1{12}$ is the proved threshold~\cite{SZZ23}.}\label{tab:flow}
+\end{table}
+
+% ======================================================================
+\section{What this means}
+
+\begin{proposal}[Finite core; recorded as \idref{A-047}, \statusbadge{OPEN}]
+Suppose there are a class $\mathcal A$ of lattice gauge actions and an integer $k$ with the following properties. (i)~Ba{\l}aban-type RG control carries the theory at every small spacing $a$ into $\mathcal A$ at a coupling in the scaling regime, uniformly in $a$ and the volume (\idref{A-034}). (ii)~$k$ factor-2 blocking steps map $\mathcal A$ into the region where a mass gap is proved, with gauge-invariant observables under control. Then the continuum mass gap, uniform in physical units, follows from the gap in that region, transported back through finitely many steps.
+\end{proposal}
+
+The measurement suggests $k\le\BridgeStepsMax$ for $SU(2)$ in the Wilson projection. Three points keep this honest:
+\begin{enumerate}
+\item The implication is itself only sketched, as for Proposal~3.1 of Report~1. Transporting a gap back through RG steps requires control of the fluctuation fields at every step.
+\item Step~(ii) is the same certification problem as (R3) in Report~1. It is finite and $a$-independent, but it lives at intermediate coupling, where no rigorous method currently works, and it faces the dimensional barrier of certified integration.
+\item $k$ is small, but each step acts on an infinite-dimensional class of effective actions, not on a single coupling.
+\end{enumerate}
+
+% ======================================================================
+\section{Limits of this evidence}\label{sec:limits}
+\begin{itemize}
+\item \textbf{Projection.} The blocked theory is not exactly a Wilson theory. Matching one coupling is a projection, and differences between the four estimates in Table~\ref{tab:mcrg} measure its quality.
+\item \textbf{Blocking choice.} The step map depends on the blocking (here $c=\McrgC$). The number of steps to reach a fixed region depends on it only mildly, but this was not varied here.
+\item \textbf{Volume.} The twice-blocked lattices are $4^4$. At the largest $\beta$ the physical box is small, and matching equal final sizes cancels finite-volume effects only to leading order.
+\item \textbf{Statistics.} Moderate statistics; the errors quoted are statistical only.
+\end{itemize}
+
+% ======================================================================
+\appendix
+\section{Deutsche Zusammenfassung}
+Dieser Bericht löst das Problem nicht. Er misst eine Zahl, die für jeden Beweisweg entscheidend ist: Wie viele Renormierungsschritte (Blockierung um den Faktor 2) führen vom Kontinuumsbereich in den Bereich, in dem ein Mass Gap bewiesen ist? Ergebnis der Monte-Carlo-Renormierungsgruppe für $SU(2)$: \BridgeStepsMin{} bis \BridgeStepsMax{} Schritte. Das ist wichtig, weil alle übrigen Schritte bei schwacher Kopplung stattfinden, wo Ba{\l}abans störungstheoretische Methoden greifen. Der nicht-störungstheoretische Kern des Problems ist damit eine \emph{feste, endliche} Zahl von Schritten bei mittlerer Kopplung, unabhängig vom Gitterabstand. Leicht wird er dadurch nicht, aber er ist ein endliches Ziel. Es bleibt ein numerischer Beleg (E4) mit den genannten Einschränkungen.
+
+\begin{thebibliography}{Bal89b}
+\small
+\bibitem[SZZ23]{SZZ23} H.~Shen, R.~Zhu, X.~Zhu, A stochastic analysis approach to lattice Yang--Mills at strong coupling, \emph{Commun. Math. Phys.} 400 (2023) 805--851. doi:10.1007/s00220-022-04609-1
+\bibitem[Bal87]{Bal87} T.~Ba{\l}aban, Renormalization group approach to lattice gauge field theories I, \emph{Commun. Math. Phys.} 109 (1987) 249--301.
+\bibitem[Bal88]{Bal88} T.~Ba{\l}aban, Renormalization group approach to lattice gauge field theories II, \emph{Commun. Math. Phys.} 116 (1988) 1--22. doi:10.1007/BF01239022
+\bibitem[Bal89a]{Bal89a} T.~Ba{\l}aban, Large field renormalization I, \emph{Commun. Math. Phys.} 122 (1989) 175--202. doi:10.1007/BF01257412
+\bibitem[Bal89b]{Bal89b} T.~Ba{\l}aban, Large field renormalization II, \emph{Commun. Math. Phys.} 122 (1989) 355--392. doi:10.1007/BF01238433
+\bibitem[COPE23]{COPE23} Committee on Publication Ethics, \emph{Authorship and AI tools}, COPE position statement (2023).
+\end{thebibliography}
+
+\end{document}
