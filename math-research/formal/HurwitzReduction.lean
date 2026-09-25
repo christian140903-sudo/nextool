@@ -221,6 +221,56 @@ theorem riemannHypothesis_of_approximation (f : ℕ → ℂ → ℂ)
   rw [hzim] at this
   linarith
 
+/-- **Verallgemeinerte Reduktion (M2′).** Es genügt, dass die Approximanten lokal gleichmäßig auf
+    S = {|Im z| < 1/2} gegen IRGENDEIN auf S holomorphes G ≢ 0 konvergieren, das an allen Nullstellen
+    von Ξ in S verschwindet (z. B. G = H·Ξ). Dann gilt die Riemannsche Vermutung. -/
+theorem riemannHypothesis_of_approximation_divisible (f : ℕ → ℂ → ℂ) (G : ℂ → ℂ)
+    (hf : ∀ n, DifferentiableOn ℂ (f n) {z : ℂ | |z.im| < 1 / 2})
+    (hreal : ∀ n, ∀ z, |z.im| < 1 / 2 → f n z = 0 → z.im = 0)
+    (hconv : TendstoLocallyUniformlyOn f G atTop {z : ℂ | |z.im| < 1 / 2})
+    (hG : DifferentiableOn ℂ G {z : ℂ | |z.im| < 1 / 2})
+    (hG0 : ∃ w, |w.im| < 1 / 2 ∧ G w ≠ 0)
+    (hdiv : ∀ z, |z.im| < 1 / 2 → RiemannXiUpper z = 0 → G z = 0) :
+    RiemannHypothesis := by
+  set S : Set ℂ := {z : ℂ | |z.im| < 1 / 2} with hSdef
+  have hS : IsOpen S := isOpen_lt (continuous_abs.comp continuous_im) continuous_const
+  have hSconv : Convex ℝ S := by
+    intro x hx y hy a b ha hb hab
+    simp only [hSdef, Set.mem_ofPred_eq] at hx hy ⊢
+    have : (a • x + b • y).im = a * x.im + b * y.im := by simp
+    rw [this]
+    calc |a * x.im + b * y.im| ≤ |a * x.im| + |b * y.im| := abs_add_le _ _
+      _ = a * |x.im| + b * |y.im| := by rw [abs_mul, abs_mul, abs_of_nonneg ha, abs_of_nonneg hb]
+      _ < a * (1 / 2) + b * (1 / 2) := by
+          rcases eq_or_lt_of_le ha with h | h
+          · subst h; simp at hab; subst hab; simp; linarith
+          · have := mul_lt_mul_of_pos_left hx h
+            nlinarith [abs_nonneg y.im]
+      _ = 1 / 2 := by rw [← add_mul, hab, one_mul]
+  have han : AnalyticOnNhd ℂ G S := fun z hz => hG.analyticAt (hS.mem_nhds hz)
+  have hiso : ∀ z ∈ S, G z = 0 → ∀ᶠ w in 𝓝[≠] z, G w ≠ 0 := by
+    intro z hz _
+    rcases (han z hz).eventually_eq_zero_or_eventually_ne_zero with h | h
+    · exfalso
+      obtain ⟨w, hwS, hw⟩ := hG0
+      exact hw (han.eqOn_zero_of_preconnected_of_eventuallyEq_zero hSconv.isPreconnected hz h hwS)
+    · exact h
+  have key := real_zeros_of_tendstoLocallyUniformlyOn hS hf (fun n z hz => hreal n z hz) hconv
+    hG.continuousOn hiso
+  intro s hz hnt _hs1
+  have hstrip : 0 < s.re ∧ s.re < 1 := mem_strip_of_zero hz hnt
+  set z : ℂ := (s - 1 / 2) / I with hzdef
+  have hsz : s = 1 / 2 + I * z := by rw [hzdef]; field_simp; ring
+  have hzim : z.im = -(s.re - 1 / 2) := by rw [hzdef]; simp [div_I]
+  have hzS : |z.im| < 1 / 2 := by
+    rw [hzim, abs_lt]; constructor <;> linarith [hstrip.1, hstrip.2]
+  have hXi : RiemannXiUpper z = 0 := by
+    unfold RiemannXiUpper; rw [← hsz]; exact riemannXi_eq_zero_of_zeta hstrip.1 hstrip.2 hz
+  have := key z hzS (hdiv z hzS hXi)
+  rw [hzim] at this
+  linarith
+
 end RHDossier
 
 #print axioms RHDossier.riemannHypothesis_of_approximation
+#print axioms RHDossier.riemannHypothesis_of_approximation_divisible
