@@ -27,9 +27,23 @@ Jede Route bekommt eine Zeile mit:
 |---|---|---|---|---|---|---|
 | E-4 | **Weil:** ∀g∈𝒲 mit ∫g dx/x = ∫g dx = 0: RHS der expliziten Formel für f=g∗g̃ ist ≤ 0 (Bombieris Vorzeichenkonvention) | ⇔ | ✓ Bombieri §V (Weil 1952) | Positivität für Träger in [−½log 2, ½log 2] (Yoshida 1992†; Connes–Consani 2021†); **zertifiziert** für Träger in [−0,8; 0,8] (Zhu, arXiv:2608.24827, Preprint ✓Abstract) | ∀L>0: W≥0 auf C_c^∞([−L,L]) | **ja** (Λ(n)) |
 | E-4a | **Fensterform:** ∀L>0: λ_min(L) := inf_{supp f⊂[−L,L]} Q(f)/‖f‖² ≥ 0 | ⇔ (jedes f mit kompaktem Träger liegt in einem Fenster) | ✓ Zhu (Abstract) | L ≤ 0,8 zertifiziert: 8,9·10⁻¹⁸ ≤ λ_min(0,8) ≤ 2,27·10⁻¹⁷ | uniformes Argument in L | ja; für festes L nur Primpotenzen ≤ e^{2L} |
-| E-5 | **Li:** ∀n≥1: λ_n ≥ 0, λ_n = Σ_ρ[1−(1−1/ρ)^n] | ⇔ | ✓ Li 1997 (JNT 65); Bombieri–Lagarias 1999 (JNT 77) | λ_1..λ_500 rigoros > 0 (**diese Sitzung**, `li_coefficients_500.json`); n=1000 läuft | ∀n; Asymptotik λ_n ~ (n/2)log n uniform | **nein** (Bombieri–Lagarias: gilt für beliebige Multimengen) |
+| E-5 | **Li:** ∀n≥1: λ_n ≥ 0, λ_n = Σ_ρ[1−(1−1/ρ)^n] | ⇔ | ✓ Li 1997 (JNT 65); Bombieri–Lagarias 1999 (JNT 77) | λ_1..λ_1000 rigoros > 0 (**diese Sitzung**, `li_coefficients_1000.json`) | ∀n; Asymptotik λ_n ~ (n/2)log n uniform | **nein** (Bombieri–Lagarias: gilt für beliebige Multimengen) |
 | E-6 | **Nyman–Beurling / Báez-Duarte:** 𝟙 ∈ closure_{L²(0,1)} span{φ(kx) : k ∈ ℕ}, φ(x) = {1/x} (gebrochener Anteil); Nyman–Beurling mit allen Dilatationen ρ_θ(x) = {θ/x} − θ{1/x}, 0<θ≤1 | ⇔ | Báez-Duarte, Atti Accad. Naz. Lincei 14 (2003) 5–11 (Formulierung aus Sekundärzusammenfassung, Original†); Beurling 1955† | Distanz d_N → 0 unbekannt; untere Schranken d_N² ≳ C/log N† | d_N → 0 | über 1/ζ (Möbius) implizit |
 | E-7 | **Jensen–Pólya:** ∀d≥1 ∀n≥0: J_γ^{d,n}(X) hat nur reelle Nullstellen | ⇔ | ✓ Griffin–Ono–Rolen–Zagier, PNAS 116 (2019) 11103 (Suchtreffer) | für jedes feste d: alle hinreichend großen n (GORZ); weitere Keile 2026 (arXiv:2608.08682†) | Uniformität in (d, n) gleichzeitig | nein (nur Taylorkoeffizienten von Ξ) |
+
+### Festgelegte Konvention für E-4/E-4a (K-W)
+
+Nach Alpöge–Furman, arXiv:2608.13637, Gl. (2.1) (Primärtext geprüft ✓; dort verwiesen auf
+Iwaniec–Kowalski §5.5†): Für gerades F ∈ C_c²(ℝ), F̂(τ) = ∫ F(x) e^{iτx} dx, γ_ρ = (ρ−½)/i gilt
+
+  Σ_ρ m_ρ F̂(γ_ρ) = F̂(i/2) + F̂(−i/2) + ∫_ℝ F̂(τ) μ(τ) dτ − 2 Σ_{n≥1} Λ(n) n^{−1/2} F(log n),
+  μ(τ) = (1/2π) Re (Γ′/Γ)(¼ + iτ/2) − (log π)/(2π).
+
+Weils Hermitesche Form ist W(f,g) = Σ_ρ m_ρ f̂(γ_ρ) conj(ĝ(γ_ρ)), ausgewertet über die rechte Seite mit
+F = f ∗ g̃. **K-W:** W(f,f) ≥ 0 für alle f ∈ C_c²([−L, L]) (Zhus Konvention: L misst den Träger von f; F = f ∗ f̃ hat Träger in [−2L, 2L], also gehen nur Primpotenzen n ≤ e^{2L} ein).
+Laut Alpöge–Furman ist Positivität auf ganz C_c²(ℝ) äquivalent zu RH [Weil 1952, Bombieri 2000].
+Der Knoten IMP-WEIL bleibt `hypotheses_checked = false`, bis die Äquivalenz in *dieser* Normierung am
+Original nachvollzogen ist (WP-D).
 
 ## C. Spektral / Deformation
 

@@ -15,7 +15,8 @@ Platzierung und tragen keine Beweislast.
 | C-4 | Davenport–Heilbronn-Funktion: je genau eine Nullstelle in 4 Boxen der Kantenlänge 2·10⁻³ um 0,808517+85,699348i, 0,650830+114,163343i, 0,574356+166,479306i, 0,724258+176,702461i; alle Boxen ⊂ {Re s > ½} | computerbewiesen | **Barriere B-EP** (RH-18) | `results/davenport_heilbronn.json` |
 | C-5 | Epstein-ζ zu x²+5y²: genau 13 Nullstellen (mit Vielfachheit) in [0,51; 3]×[1; 100], jede einfach in einer Box ≈ 1,2·10⁻³ × 1,5·10⁻³ lokalisiert (erste bei ≈ 0,9325 + 15,6689i) | computerbewiesen | **Barriere B-EP**, **False Shortcut X-02** (positive Koeffizienten + FE ⇏ RH) | `results/epstein_x2_5y2.json` |
 | C-6 | λ_n > 0 für 1 ≤ n ≤ 500 (Einschlüsse, z. B. λ_500 = 991,900092992… ± 2,5·10⁻¹⁰); Kontrolle λ_1 = 1 + γ/2 − ½ log 4π bestanden | computerbewiesen (endlich) | Evidenz; B-LI zeigt Detektionsschwelle n ≳ 10²⁷ | `results/li_coefficients_500.json` |
-| C-7 | dito für n ≤ 1000 (4200 Bit) | läuft | Evidenz | `results/li_coefficients_1000.json` |
+| C-7 | λ_n > 0 für 1 ≤ n ≤ 1000 (4200 Bit, 2111 s); λ_1000 = 2326,0531616864664574 ± 6,5·10⁻¹⁸ (RH-Asymptotik (n/2)(log n − 1 − log 2π + γ) ≈ 2323,6) | computerbewiesen (endlich) | Evidenz | `results/li_coefficients_1000.json` |
+| C-9 | **RH-19 Doppelzertifizierung** mit zweiter ζ-Implementierung `zeta_em.py` (Euler–Maclaurin, selbst hergeleitete Restgliedschranke \|R\| ≤ \|(s)_{2ν+1}\|·2ζ(3)/(2π)^{2ν+1}·(N+a)^{−σ−2ν}/(σ+2ν), **ohne** `acb.zeta`): Vorab-Kreuztest an 60 Zufallspunkten (σ∈[−0,5; 2,5], \|t\|≤200, 6 Parameter a) — alle Bälle überlappen mit Arb, Radien ≤ 1,5·10⁻³²; dann C-1, C-4, C-5 neu zertifiziert: DH 4/4, Epstein 13/13 Boxen + Gesamtwindung 13, RH bis T=1000,57: N = K = 649 — **vollständig konsistent** (362 s) | computerbewiesen (2. Implementierung) | RH-19 | `recertify.py`, `results/recertify_rh19.json` |
 | C-8 | FE-Kontrollen: Davenport–Heilbronn Λ(s)=Λ(1−s) mit Λ(s) = (5/π)^{(s+1)/2}Γ((s+1)/2) f(s), Residuum ≤ 10⁻⁴¹; Epstein (√20/2π)^sΓ(s)Z(s) symmetrisch, Residuum ≤ 10⁻⁴⁰; Epstein-Formel gegen direkte Gittersumme bei s = 3 geprüft (Abweichung 1,5·10⁻¹¹ ≈ Abbruchfehler) | Kontrolle | stützt die Identifikation der Gegenmodelle | `counter_models.py`, `epstein_probe.py` |
 
 ## Methodik C-1/C-2 (Beweislogik)
@@ -47,9 +48,11 @@ Restgliedschranke, ohne `acb.zeta`). Kontrollbox für ζ: [0,6; 1,2]×[80; 120] 
 | F-1 | 2026-09-25 | Die FE-Kontrolle für Davenport–Heilbronn benutzte sin(πs/2), die Form für ζ und gerade Charaktere. Der Charakter mod 5 mit χ(2)=i ist **ungerade**, richtig ist cos(πs/2). | Die Kontrolle schlug fehl (Residuum ≈ \|f\|) | korrigiert; Residuum jetzt ≤ 10⁻⁴¹ | keine auf die Nullstellenzertifikate (FE geht dort nicht ein) |
 | F-2 | 2026-09-25 | Konturpunkte wurden als a + (b−a)·(j/n) berechnet. Für j = n ist das in Gleitkomma nicht immer exakt b, die Kontur war also nicht exakt geschlossen. | Die Ganzzahligkeitsprüfung der Windungszahl schlug beim Epstein-Lauf fehl (13 + 2·10⁻¹⁷ ± 10⁻³¹) | `edge_points`/`contour_pieces` mit exakten Endpunkten und Assertion der Geschlossenheit; **alle** Läufe (C-1, C-2, C-4, C-5) wiederholt | Ergebnisse unverändert, jetzt aber logisch sauber |
 
+| F-5 | 2026-09-25 | Zweite Implementierung: EM-Summe im linken Halbraum schlecht konditioniert (Terme ~ n¹ bei Re s = −1), Laufzeitexplosion | Laufzeit > 30 min, Profil (py-spy) zeigte `hurwitz_em` in der ζ-Kontur | für Re s < ½ Funktionalgleichung ζ(s) = 2^s π^{s−1} sin(πs/2) Γ(1−s) ζ(1−s) | keine auf Korrektheit, nur Laufzeit |
+
 ## Offene Rechenaufgaben
 
-- RH-19: zweite unabhängige ζ-Auswertung (Euler–Maclaurin mit expliziter Restgliedschranke).
+- RH-19: umgesetzt (C-9). Gemeinsamer Kern beider Implementierungen bleibt Arbs Ball-Grundarithmetik und log Γ (nur für θ in Z(t)).
 - C-3 abschließen, danach optional T = 10⁶. Das hat nur Infrastrukturwert.
 - Epstein-Scan bis T = 1000 für Statistik: Anteil der Off-Line-Nullstellen gegenüber der
   Bombieri–Hejhal-Vorhersage (Dichte 0).

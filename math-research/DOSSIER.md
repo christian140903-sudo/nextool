@@ -77,7 +77,7 @@ Alternativroute: K-W ── IMP-WEIL (Konventionen ungeprüft)
 | Evidenzart | Einträge |
 |---|---|
 | Formal verifiziert (Lean 4 + Mathlib, nur Standardaxiome) | L-0 (`rhStrip_iff_riemannHypothesis`), RED-HUR (`riemannHypothesis_of_approximation`) |
-| Computerbewiesen (Ball-Arithmetik) | C-1, C-2 (RH bis 10⁴), C-4 (Davenport–Heilbronn), C-5 (Epstein), C-6 (λ₁…λ₅₀₀ > 0) |
+| Computerbewiesen (Ball-Arithmetik) | C-1, C-2 (RH bis 10⁴), C-4 (Davenport–Heilbronn), C-5 (Epstein), C-6/C-7 (λ₁…λ₁₀₀₀ > 0), C-9 (RH-19-Doppelzertifizierung) |
 | Importiert (begutachtet) | A-1 … A-4, A-7 |
 | Importiert (Preprint) | A-5, A-6 |
 | Heuristik | B-LI-Schwelle, Einordnung in 05 §1 |
@@ -88,6 +88,7 @@ Alternativroute: K-W ── IMP-WEIL (Konventionen ungeprüft)
 |---|---|---|---|---|---|
 | F-1 | 2026-09-25 | FE-Kontrolle Davenport–Heilbronn mit sin(πs/2) | Charakter mod 5 ist ungerade → cos(πs/2) | lokal | korrigiert; X-14 |
 | F-2 | 2026-09-25 | Konturen mit Gleitkomma-Endpunkten | Kontur nicht exakt geschlossen | lokal, aber rigorositätsrelevant | exakte Endpunkte + Assertion; alle Läufe wiederholt; X-13; Lint L-19 |
+| F-5 | 2026-09-25 | Zweite ζ-Implementierung: direkte Euler–Maclaurin-Summe auch für Re s = −1 | Mit Ball-Eingaben wachsen die Terme wie n^{−σ} = n, der Einschluss explodiert, die Kontur wird endlos unterteilt | lokal (Konditionierung) | für Re s < ½ Funktionalgleichung benutzt, Γ und sin aus Arb-Primitiven; Kreuztest an 30 Punkten ohne Abweichung |
 | F-3 | 2026-09-25 | (Strategie) Dichteverfahren als Hauptweg | bewiesene Decke „Anteil ≠ alle“ (B-DENS) | strukturell | S-5 verworfen |
 | F-4 | 2026-09-25 | (Strategie) Li-/dBN-/Jensen-Routen als Hauptweg | sehen das Eulerprodukt nicht (B-EP); Li-Detektion erst ab n ≳ 10²⁷ | strukturell | S-4 nur Diagnose |
 
@@ -96,4 +97,4 @@ Alternativroute: K-W ── IMP-WEIL (Konventionen ungeprüft)
 | ID | Datum | Ereignis | Betroffene Einträge |
 |---|---|---|---|
 | V-1 | 2026-09-25 | Grunddirektive aufgenommen; Aktenstruktur angelegt | — |
-| V-2 | 2026-09-25 | RH als Problem eingegangen. Target Freeze mit SHA-256; Audit der Eingangsangaben (A1–A13, u. a. Korrektur Q-HP, Präzisierung 10¹³ vs. Platt–Trudgian, CMI-Regel 5(c)); Atlas; Ledger; Lint-Katalog; Dependency-Graph + Checker; Lemma 0 und Hurwitz-Reduktion formal verifiziert; Zertifikate C-1…C-6; Gegenmodelle Davenport–Heilbronn und Epstein rigoros; Fehler F-1, F-2 gefunden und behoben | alle |
+| V-2 | 2026-09-25 | RH als Problem eingegangen. Target Freeze mit SHA-256; Audit der Eingangsangaben (A1–A13, u. a. Korrektur Q-HP, Präzisierung 10¹³ vs. Platt–Trudgian, CMI-Regel 5(c)); Atlas; Ledger; Lint-Katalog; Dependency-Graph + Checker; Lemma 0 und Hurwitz-Reduktion formal verifiziert; Zertifikate C-1…C-7; Gegenmodelle Davenport–Heilbronn und Epstein rigoros; Fehler F-1, F-2 gefunden und behoben | alle |
