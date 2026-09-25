@@ -51,6 +51,13 @@ def smoke_pysat():
         assert s.solve() is False
 
 
+def smoke_flint():
+    from flint import acb, arb, ctx
+    ctx.prec = 64
+    assert arb("100").zeta_nzeros() == 29
+    assert acb(2).zeta().overlaps(acb(arb.pi() ** 2 / 6))
+
+
 PYTHON = {
     "sympy": smoke_sympy,
     "mpmath": smoke_mpmath,
@@ -59,6 +66,7 @@ PYTHON = {
     "networkx": smoke_networkx,
     "z3": smoke_z3,
     "pysat": smoke_pysat,
+    "flint": smoke_flint,
 }
 
 BINARIES = ["gcc", "g++", "node", "lean", "lake", "coqc", "isabelle", "sage", "gp", "gap", "julia"]

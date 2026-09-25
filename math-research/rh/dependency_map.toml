@@ -1,0 +1,116 @@
+# Lemma Dependency Graph bis MAIN (maschinenprüfbar mit tools/depcheck.py).
+#
+# status ∈ { OPEN, CONJECTURE, CANDIDATE, PARTIAL, NUMERICAL, HEURISTIC,
+#            PROVED, PROVED_COMPUTER, FORMALLY_VERIFIED, IMPORTED, IMPORTED_PREPRINT, REFUTED }
+# Auf dem MAIN-Pfad zulässig: PROVED, PROVED_COMPUTER, FORMALLY_VERIFIED,
+#                             IMPORTED (nur mit refereed = true und hypotheses_checked = true).
+
+[node.MAIN]
+statement = "RH (Form S, äquivalent B, M): ∀ρ, ζ(ρ)=0 ∧ 0<Re ρ<1 ⇒ Re ρ=1/2"
+status = "OPEN"
+depends_on = ["LEM-0", "CCM-ROUTE"]
+alternative_routes = ["K-W"]
+note = "Aktuelle Arbeitsroute (S-1): MAIN ⇐ LEM-0 ∧ CCM-ROUTE. Graph-Semantik ist UND; Alternativen (ODER) stehen in alternative_routes und im Atlas."
+
+[node.LEM-0]
+statement = "S ⇔ M (Mathlib RiemannHypothesis); nichttriviale Nullstellen liegen im offenen Streifen"
+status = "FORMALLY_VERIFIED"
+depends_on = ["IMP-FE", "IMP-NV1", "IMP-Z0"]
+artifact = "formal/RHTarget.lean :: RHDossier.rhStrip_iff_riemannHypothesis"
+lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19"]
+lint_note = "L-14: Lemma 0 ist eine Umformulierung von MAIN, kein Beweisschritt zur Lage der Nullstellen. Die Eulerprodukt-Forderung betrifft K-W, nicht LEM-0."
+
+[node.IMP-FE]
+statement = "ζ(1−s) = 2(2π)^{−s} Γ(s) cos(πs/2) ζ(s) für s ∉ −ℕ, s ≠ 1"
+status = "IMPORTED"
+source = "Mathlib riemannZeta_one_sub (kernel-geprüft)"
+refereed = true
+hypotheses_checked = true
+
+[node.IMP-NV1]
+statement = "ζ(s) ≠ 0 für Re s ≥ 1"
+status = "IMPORTED"
+source = "Mathlib riemannZeta_ne_zero_of_one_le_re (kernel-geprüft); Hadamard/de la Vallée Poussin 1896"
+refereed = true
+hypotheses_checked = true
+
+[node.IMP-Z0]
+statement = "ζ(0) = −1/2"
+status = "IMPORTED"
+source = "Mathlib riemannZeta_zero (kernel-geprüft)"
+refereed = true
+hypotheses_checked = true
+
+[node.K-W]
+statement = "∀L>0: Weil-Form auf C_c^∞([−L,L]) positiv semidefinit (⇒ RH via Weil/Bombieri §V)"
+status = "OPEN"
+depends_on = ["IMP-WEIL"]
+note = "Alternativroute zu MAIN (nicht auf dem aktuellen MAIN-Pfad). M1 ist eine Aussage über dieselbe Form QW_λ."
+
+[node.IMP-WEIL]
+statement = "RH ⇔ Weil-Positivität (Bombieri 2000, §V)"
+status = "IMPORTED"
+source = "Weil 1952; Bombieri, Clay-Problembeschreibung §V (Primärtext geprüft); Originalbeweis Weil†"
+refereed = true
+hypotheses_checked = false
+note = "hypotheses_checked=false: Die exakte Testfunktionsklasse 𝒲 und die Vorzeichenkonvention müssen am Weil-Original bzw. an Bombieri 'Remarks on Weil's quadratic functional' abgeglichen werden."
+
+[node.CCM-ROUTE]
+statement = "(M1) ∧ (M2) ∧ CCM Thm. 5.10 liefern Approximanten f_λ (holomorph auf |Im z|<1/2, nur reelle Nullstellen dort, f_λ → Ξ lokal gleichmäßig) ⇒ RH via RED-HUR"
+status = "CONJECTURE"
+depends_on = ["M1", "M2", "RED-HUR", "IMP-CCM510"]
+
+[node.M1]
+statement = "∀λ>1: kleinster Eigenwert von QW_λ einfach, Eigenvektor gerade"
+status = "OPEN"
+source = "Connes–Consani–Moscovici, arXiv:2511.22755 §8"
+
+[node.M2]
+statement = "c_λ ξ̂_λ → Ξ gleichmäßig auf Kompakta von |Im z| < 1/2"
+status = "OPEN"
+source = "Connes–Consani–Moscovici, arXiv:2511.22755 §7–8"
+
+[node.RED-HUR]
+statement = "∀ f : ℕ → ℂ → ℂ, (∀n, f n holomorph auf S={|Im z|<1/2}) ∧ (∀n ∀z∈S, f n z = 0 → Im z = 0) ∧ (f → Ξ lokal gleichmäßig auf S) ⇒ RiemannHypothesis"
+status = "FORMALLY_VERIFIED"
+depends_on = ["LEM-0"]
+artifact = "formal/HurwitzReduction.lean :: RHDossier.riemannHypothesis_of_approximation (Hurwitz-Kern über Maximumprinzip; Mathlib hat keinen Hurwitz-Satz)"
+lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19"]
+lint_note = "Reine Reduktion; L-14 betrifft die Konstruktion der f_n (CCM-ROUTE), nicht RED-HUR."
+
+[node.IMP-CCM510]
+statement = "CCM Thm. 5.10 / Thm. 1.1: unter 'even-simple' sind D_log^{(λ,N)} selbstadjungiert, Nullstellen der Determinanten reell"
+status = "IMPORTED_PREPRINT"
+source = "arXiv:2511.22755 (Preprint, nicht begutachtet)"
+refereed = false
+hypotheses_checked = false
+
+# ---- Evidenz- und Barriereknoten (nicht auf dem MAIN-Pfad; dokumentieren Beweislast getrennt) ----
+
+[node.CERT-RH-1E4]
+statement = "Alle ρ mit 0<γ≤9999.457… sind einfach und auf der Geraden (N=10142)"
+status = "PROVED_COMPUTER"
+artifact = "computations/results/rh_range_1e4.json"
+note = "Reproduktion; ohne Belang für ∀. Kreuzvalidiert mit Arb zeta_nzeros."
+
+[node.CERT-DH]
+statement = "Davenport–Heilbronn hat Nullstellen mit Re s ∈ [0.5743, 0.8095] (4 Stück zertifiziert)"
+status = "PROVED_COMPUTER"
+artifact = "computations/results/davenport_heilbronn.json"
+
+[node.CERT-EPS]
+statement = "Epstein-ζ von x²+5y² hat 13 Nullstellen (mit Vielfachheit) in [0.51,3]×[1,100]"
+status = "PROVED_COMPUTER"
+artifact = "computations/epstein_probe.py (Windung), computations/results/epstein_x2_5y2.json (Lokalisierung)"
+
+[node.NUM-LI-500]
+statement = "λ_n > 0 für 1 ≤ n ≤ 500 (rigorose Einschlüsse)"
+status = "NUMERICAL"
+artifact = "computations/results/li_coefficients_500.json"
+note = "Als endliche Aussage computerbewiesen, als Evidenz für ∀n nur NUMERICAL."
+
+[node.PREPRINT-AF]
+statement = "≥ 2/3 der Nullstellen einfach und auf der Geraden (unbedingt)"
+status = "IMPORTED_PREPRINT"
+source = "Alpöge–Furman arXiv:2608.13637; Lamzouri arXiv:2609.02882"
+refereed = false
