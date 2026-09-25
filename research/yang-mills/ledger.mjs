@@ -10,7 +10,7 @@
 const r = String.raw;
 
 export const revision = {
-  version: '1.2',
+  version: '1.3',
   date: '2026-09-25',
 };
 
@@ -232,7 +232,7 @@ export const assumptions = [
     scope: r`Not independently reviewed here. Candidate infrastructure only.` },
   { id: 'A-031', type: 'HYP', status: 'OPEN', source: r`S1 \S5, \S6.5`,
     text: r`Uniform gap: $\exists\,c>0,\ a_0>0,\ L_0<\infty$ such that $\Delta_{a,L}\ge c\,\Lambda$ for all $0<a<a_0$, $L>L_0$ (physical units, $\Lambda$ a renormalized scale).`,
-    scope: r`S1: \enquote{New ideas are needed}. The core open problem. Candidate decompositions: \ref{A-039} (Research Report 1), \ref{A-045} (Research Report 2).` },
+    scope: r`S1: \enquote{New ideas are needed}. The core open problem. Candidate decompositions: \ref{A-039} (Research Report 1), \ref{A-045} (Research Report 2); finite core \ref{A-047} (Research Report 3).` },
   { id: 'A-032', type: 'HYP', status: 'OPEN', source: '—',
     text: r`Non-triviality certificate of \ref{I-1}: a connected $n\ge3$ function of gauge-invariant fields matches its non-zero leading perturbative coefficient.`,
     scope: r`Needed for YM-04.` },
@@ -277,6 +277,13 @@ export const assumptions = [
   { id: 'A-045', type: 'HYP', status: 'OPEN', source: 'Report 2',
     text: r`Multiscale route: \ref{A-042} $\wedge$ \ref{A-043} $\wedge$ \ref{A-044} $\Rightarrow$ \ref{A-031}.`,
     scope: r`The implication itself is only sketched.` },
+  // Research Report 3 (2026-09-25): length of the bridge (Monte Carlo RG).
+  { id: 'A-046', type: 'NUM', status: 'NUMERICAL', source: 'Report 3',
+    text: r`Length of the bridge ($SU(2)$, $d=4$, Wilson projection): from $\beta=2.2$--$2.6$ the factor-2 RG flow reaches $\beta<1/12$ in 4--6 blocking steps.`,
+    scope: r`Projection onto the Wilson action; blocking parameter $c=0.5$; final lattice $4^4$. Evidence only.` },
+  { id: 'A-047', type: 'HYP', status: 'OPEN', source: 'Report 3',
+    text: r`Finite core: a bounded number $k$ (independent of $a$) of RG steps at intermediate coupling, acting on a class $\mathcal A$ of effective actions, can be controlled with gauge-invariant observables and lands in the region of \ref{A-038}.`,
+    scope: r`Together with \ref{A-034} this would reduce \ref{A-031} to a finite non-perturbative problem; faces the dimensional barrier of \ref{A-036}.` },
 ];
 
 // A transition is a separate theorem on the path from the regularized model

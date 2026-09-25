@@ -1,6 +1,6 @@
 # Yang–Mills Existence and Mass Gap: Formal Acceptance and Research Specification
 
-**[Read the specification (PDF)](spec.pdf)** · **[Research Report 1](reports/report-01.pdf)** · **[Research Report 2](reports/report-02.pdf)** · Version 1.2 · 2026-09-25 · Draft for author review
+**[Read the specification (PDF)](spec.pdf)** · **[Research Report 1](reports/report-01.pdf)** · **[Research Report 2](reports/report-02.pdf)** · **[Research Report 3](reports/report-03.pdf)** · Version 1.3 · 2026-09-25 · Draft for author review
 
 This package fixes, in a form anyone can check, what a resolution of the Clay
 Millennium Problem *Yang–Mills Existence and Mass Gap* must establish. It also
@@ -19,7 +19,7 @@ foundational audit that allows for a rigorous counterexample.
 | Acceptance contract | 25 atomic requirements `YM-01`…`YM-25`, each anchored in the normative text |
 | Interpretation register | 6 points where the official text is not formally specific (`I-1`…`I-6`) |
 | Quantifier ledger | 8 rules separating insufficient from required quantifier forms (`Q-1`…`Q-8`) |
-| Assumption ledger | 45 classified premises (`A-001`…`A-045`); 5 tempting shortcuts recorded as FALSE |
+| Assumption ledger | 47 classified premises (`A-001`…`A-047`); 5 tempting shortcuts recorded as FALSE |
 | Transition map | 9 separate theorems from the lattice to the Clay statement, with machine-computed closure |
 | Two tracks | Track P (construction) and Track N (the exact logical form of an admissible counterexample) |
 | Review of the working draft | 16 findings: 3 corrected, 6 sharpened, 7 confirmed against the primary sources |
@@ -54,6 +54,15 @@ Dagallier), meets four obstacles for lattice Yang–Mills. The decisive one: it
 needs the renormalized potential to become uniformly convex on large scales,
 which is mass generation, i.e. the mass-gap problem, restated.
 
+## Research Report 3: how long is the bridge?
+
+[`reports/report-03.pdf`](reports/report-03.pdf) measures, with a Monte Carlo
+renormalization group, how many factor-2 blocking steps lead from the scaling
+regime (β = 2.2–2.6) into the proved region β < 1/12. The answer is 4–6 steps.
+All other steps lie at weak coupling, so the non-perturbative core of the
+problem is a bounded number of steps at intermediate coupling, independent of
+the lattice spacing. This is numerical evidence (E4), not a proof.
+
 ## Files
 
 | File | Role |
@@ -67,6 +76,8 @@ which is mass generation, i.e. the mass-gap problem, restated.
 | `common.sty` | Shared layout of the specification and the reports |
 | `reports/report-01.tex`, `.pdf` | Research Report 1 and its generated data (`reports/data/`) |
 | `reports/report-02.tex`, `.pdf` | Research Report 2 (direct attempt, multiscale Bakry–Émery route) |
+| `reports/report-03.tex`, `.pdf` | Research Report 3 (Monte Carlo RG: length of the bridge) |
+| `lab/mcrg.py`, `lab/mcrg_analyze.py` | Gauge-covariant blocking, matching, iterated RG flow |
 | `lab/su2_lattice.py` | SU(2) lattice gauge theory in 4D (heat bath, over-relaxation, observables, self-test) |
 | `lab/analyze.py` | Turns `lab/runs/*.json` into the report's tables and plot data |
 | `lab/curvature_bound.py` | Numerical check of the curvature no-go (Report 1, Proposition 3.2) |
@@ -144,3 +155,8 @@ Beweis grundsätzlich nicht über β = 1/8 hinauskommt.
 er nicht ergeben. Das stärkste heutige Werkzeug führt das Problem auf die
 Aussage zurück, dass das renormierte Potential auf großen Skalen konvex wird.
 Das ist die Massenerzeugung selbst, nur anders formuliert.
+
+**Forschungsbericht 3** misst, dass nur 4 bis 6 Renormierungsschritte den
+Kontinuumsbereich vom bewiesenen Bereich trennen. Der ungelöste Kern ist damit
+eine feste, endliche Zahl von Schritten, unabhängig vom Gitterabstand. Er
+bleibt offen.
