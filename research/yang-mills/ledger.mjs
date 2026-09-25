@@ -10,8 +10,8 @@
 const r = String.raw;
 
 export const revision = {
-  version: '1.1',
-  date: '2026-09-24',
+  version: '1.2',
+  date: '2026-09-25',
 };
 
 // S1/S2 are normative; S3/S4 fix the minimum axiomatic strength.
@@ -232,7 +232,7 @@ export const assumptions = [
     scope: r`Not independently reviewed here. Candidate infrastructure only.` },
   { id: 'A-031', type: 'HYP', status: 'OPEN', source: r`S1 \S5, \S6.5`,
     text: r`Uniform gap: $\exists\,c>0,\ a_0>0,\ L_0<\infty$ such that $\Delta_{a,L}\ge c\,\Lambda$ for all $0<a<a_0$, $L>L_0$ (physical units, $\Lambda$ a renormalized scale).`,
-    scope: r`S1: \enquote{New ideas are needed}. The core open problem. Candidate decomposition: \ref{A-039} (Research Report 1).` },
+    scope: r`S1: \enquote{New ideas are needed}. The core open problem. Candidate decompositions: \ref{A-039} (Research Report 1), \ref{A-045} (Research Report 2).` },
   { id: 'A-032', type: 'HYP', status: 'OPEN', source: '—',
     text: r`Non-triviality certificate of \ref{I-1}: a connected $n\ge3$ function of gauge-invariant fields matches its non-zero leading perturbative coefficient.`,
     scope: r`Needed for YM-04.` },
@@ -261,6 +261,22 @@ export const assumptions = [
   { id: 'A-040', type: 'THM', status: 'PREPRINT', source: 'Report 1, Prop. 3.2',
     text: r`Limit of pointwise curvature methods: for $SU(N)$, $N$ even, the uniform Bakry--Émery condition $\mathrm{Ric}-\mathrm{Hess}\,S\ge K>0$ fails for $\beta_{\mathrm{SZZ}}\ge1/(8d)$ (pi-flux configuration). With \ref{A-038}, the optimal threshold of the method lies in $[1/(16(d-1)),1/(8d)]$; for $SU(2)$, $d=4$, Wilson normalisation: $\beta\in[1/12,1/8]$.`,
     scope: r`Own result with complete proof and numerical check; not refereed. Limits only uniform pointwise curvature arguments.` },
+  // Research Report 2 (2026-09-25): direct attempt at the core via the multiscale Bakry–Émery route.
+  { id: 'A-041', type: 'THM', status: 'VERIFIED', source: '[BBD24], Thm. 3.6',
+    text: r`Multiscale Bakry--Émery criterion: for $\nu_0\propto e^{-V_0}P_C$ with $C=\int_0^\infty\dot C_t\,dt$, if $\dot C_t\,\mathrm{Hess}\,V_t\,\dot C_t-\frac12\ddot C_t\ge\dot\lambda_t\dot C_t$ for all $\varphi,t$ ($\dot\lambda_t$ may be negative), then a log-Sobolev inequality holds with $1/\gamma=\int_0^\infty e^{-2\lambda_t}dt$.`,
+    scope: r`Stated for measures on a vector space with a Gaussian reference. Proved to cross non-convex regimes for sine-Gordon, near-critical Ising and $\phi^4_{2,3}$.` },
+  { id: 'A-042', type: 'HYP', status: 'OPEN', source: 'Report 2',
+    text: r`A gauge-covariant Polchinski-type flow for lattice Yang--Mills with a reference that is both globally defined and local, uniformly in $a$ and the volume, with control of large fields.`,
+    scope: r`Gauge dilemma: maximal-tree gauges are global but their Gaussian variance grows with the volume; local covariant gauges are not global (\ref{A-007}).` },
+  { id: 'A-043', type: 'HYP', status: 'OPEN', source: 'Report 2',
+    text: r`Large-scale convexification: along such a flow the renormalized Yang--Mills potential satisfies the criterion of \ref{A-041} with a log-Sobolev constant of order $(a\Lambda)^{-2}$, uniformly in $a$ and the volume.`,
+    scope: r`The mass-gap problem restated in multiscale form (dynamical mass generation as convexity).` },
+  { id: 'A-044', type: 'HYP', status: 'OPEN', source: 'Report 2',
+    text: r`Conversion of a (preconditioned) log-Sobolev or Poincaré inequality into exponential decay of gauge-invariant correlations at rate $\gtrsim a\Lambda$ in lattice units.`,
+    scope: r`The generic finite-speed conversion gives a rate proportional to the dynamical gap and loses the square root (massive free field: gap $m^2$, decay rate $m$).` },
+  { id: 'A-045', type: 'HYP', status: 'OPEN', source: 'Report 2',
+    text: r`Multiscale route: \ref{A-042} $\wedge$ \ref{A-043} $\wedge$ \ref{A-044} $\Rightarrow$ \ref{A-031}.`,
+    scope: r`The implication itself is only sketched.` },
 ];
 
 // A transition is a separate theorem on the path from the regularized model

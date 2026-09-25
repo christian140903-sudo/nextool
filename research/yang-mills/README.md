@@ -1,6 +1,6 @@
 # Yang–Mills Existence and Mass Gap: Formal Acceptance and Research Specification
 
-**[Read the specification (PDF)](spec.pdf)** · **[Research Report 1 (PDF)](reports/report-01.pdf)** · Version 1.1 · 2026-09-24 · Draft for author review
+**[Read the specification (PDF)](spec.pdf)** · **[Research Report 1](reports/report-01.pdf)** · **[Research Report 2](reports/report-02.pdf)** · Version 1.2 · 2026-09-25 · Draft for author review
 
 This package fixes, in a form anyone can check, what a resolution of the Clay
 Millennium Problem *Yang–Mills Existence and Mass Gap* must establish. It also
@@ -19,11 +19,11 @@ foundational audit that allows for a rigorous counterexample.
 | Acceptance contract | 25 atomic requirements `YM-01`…`YM-25`, each anchored in the normative text |
 | Interpretation register | 6 points where the official text is not formally specific (`I-1`…`I-6`) |
 | Quantifier ledger | 8 rules separating insufficient from required quantifier forms (`Q-1`…`Q-8`) |
-| Assumption ledger | 40 classified premises (`A-001`…`A-040`); 5 tempting shortcuts recorded as FALSE |
+| Assumption ledger | 45 classified premises (`A-001`…`A-045`); 5 tempting shortcuts recorded as FALSE |
 | Transition map | 9 separate theorems from the lattice to the Clay statement, with machine-computed closure |
 | Two tracks | Track P (construction) and Track N (the exact logical form of an admissible counterexample) |
 | Review of the working draft | 16 findings: 3 corrected, 6 sharpened, 7 confirmed against the primary sources |
-| References | 57 entries, checked against Crossref, arXiv, the issuing organisations or the bibliography of S1 |
+| References | 58 entries in the specification, checked against Crossref, arXiv, the issuing organisations or the bibliography of S1 |
 
 ## Research Report 1: locating the obstruction
 
@@ -44,6 +44,16 @@ does **not** solve the problem.
    β = 1/8. The proof uses a π-flux configuration and is checked numerically
    (32 exactly vs. 31.99996).
 
+## Research Report 2: a direct attempt at the core
+
+[`reports/report-02.pdf`](reports/report-02.pdf) attacks the open core directly. It
+does **not** solve the problem. Nine candidate mechanisms go through the
+specification's sanity tests; none survives as a complete route. The strongest
+current tool, the multiscale Bakry–Émery criterion (Bauerschmidt–Bodineau–
+Dagallier), meets four obstacles for lattice Yang–Mills. The decisive one: it
+needs the renormalized potential to become uniformly convex on large scales,
+which is mass generation, i.e. the mass-gap problem, restated.
+
 ## Files
 
 | File | Role |
@@ -56,6 +66,7 @@ does **not** solve the problem.
 | `spec.pdf` | The typeset specification |
 | `common.sty` | Shared layout of the specification and the reports |
 | `reports/report-01.tex`, `.pdf` | Research Report 1 and its generated data (`reports/data/`) |
+| `reports/report-02.tex`, `.pdf` | Research Report 2 (direct attempt, multiscale Bakry–Émery route) |
 | `lab/su2_lattice.py` | SU(2) lattice gauge theory in 4D (heat bath, over-relaxation, observables, self-test) |
 | `lab/analyze.py` | Turns `lab/runs/*.json` into the report's tables and plot data |
 | `lab/curvature_bound.py` | Numerical check of the curvature no-go (Report 1, Proposition 3.2) |
@@ -128,3 +139,8 @@ Die wichtigsten Ergebnisse der Prüfung des Arbeitsentwurfs:
 Ein Mass Gap ist nur bei starker Kopplung bewiesen (expliziter Schwellenwert
 β < 1/12), die Kontinuumsphysik beginnt bei β ≈ 2.2. Neu bewiesen ist, dass die Krümmungsmethode hinter dem bekannten
 Beweis grundsätzlich nicht über β = 1/8 hinauskommt.
+
+**Forschungsbericht 2** ist ein direkter Angriff auf den Kern. Eine Lösung hat
+er nicht ergeben. Das stärkste heutige Werkzeug führt das Problem auf die
+Aussage zurück, dass das renormierte Potential auf großen Skalen konvex wird.
+Das ist die Massenerzeugung selbst, nur anders formuliert.
