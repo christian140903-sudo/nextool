@@ -66,11 +66,13 @@ ersetzen an keiner tragenden Stelle einen Beweis.
 | `rh/03-LEDGERS.md` | Quantifier-, Barrier-, False-Shortcut-Ledger |
 | `rh/04-COMPUTATIONS.md` | Evidence Ledger der Rechnungen, Methodik, Rechen-Failure-Log |
 | `rh/05-RESEARCH-PROGRAM.md` | Strukturfilter F-EP/F-UNI/F-ALL/F-INC, Arbeitspakete Phase 2 |
+| `rh/06-STRATEGY-PHASE2.md` | Strategie Phase 2 (Reduktionskette, Arbeitspakete, Erfolgsstufen) |
+| `rh/07-FINDINGS-PHASE2.md` | Befunde Phase 2: Weil-Labor, Radikalstruktur, Epstein-Kalibrierung, Barriere B-CCM2 |
 | `rh/dependency_map.toml` | Lemma-Dependency-Graph bis MAIN (maschinenlesbar) |
 | `rh/proof_lint.toml` | Proof-Lint-Katalog L-01 … L-19 |
 | `tools/depcheck.py` | Abnahmeprüfung: Ist MAIN geschlossen? |
 | `tools/check_env.py` | Smoke-Tests aller Werkzeuge |
-| `computations/` | Rigorose Zertifikate (Ball-Arithmetik) + `results/*.json` |
+| `computations/` | Rigorose Zertifikate (Ball-Arithmetik) + `results/*.json`; `computations/weil/`: Weil-Labor (ζ und Epstein) |
 | `formal/` | Lean 4 + Mathlib: `RHTarget.lean` (Lemma 0), `HurwitzReduction.lean`; `check.sh` |
 
 Jedes Rechenskript muss deterministisch reproduzierbar sein (Präzision, Versionen) und im Evidence

@@ -56,19 +56,34 @@ hypotheses_checked = false
 note = "hypotheses_checked=false: Die exakte Testfunktionsklasse 𝒲 und die Vorzeichenkonvention müssen am Weil-Original bzw. an Bombieri 'Remarks on Weil's quadratic functional' abgeglichen werden."
 
 [node.CCM-ROUTE]
-statement = "(M1) ∧ (M2) ∧ CCM Thm. 5.10 liefern Approximanten f_λ (holomorph auf |Im z|<1/2, nur reelle Nullstellen dort, f_λ → Ξ lokal gleichmäßig) ⇒ RH via RED-HUR"
+statement = "M1_N (even-simple für QW_λ^N) ∧ CCM Thm. 5.10 ⇒ ξ̂_λ nur reelle Nullstellen; H-Ξ ∧ NORMAL ⇒ ξ̂_λ → H·Ξ; RED-HUR-DIV ⇒ RH"
 status = "CONJECTURE"
-depends_on = ["M1", "M2", "RED-HUR", "IMP-CCM510"]
+depends_on = ["M1N", "H-XI", "NORMAL", "RED-HUR-DIV", "IMP-CCM510"]
+note = "Barriere B-CCM2 (Epstein-Kalibrierung, rh/07 §5): H-Ξ ist inhaltlich äquivalent zur Fensterpositivität (K-W); die Route umgeht die Weil-Positivität nicht."
+
+[node.M1N]
+statement = "∀λ>1 ∃N(λ) (mit N→∞): kleinster Eigenwert der abgeschnittenen Form QW_λ^N einfach, Eigenvektor gerade"
+status = "OPEN"
+note = "Pro (λ,N) endlich und zertifizierbar. Numerisch (NUMERICAL) für L ∈ [0.5, 1.28] erfüllt (Paritätsleiter)."
+
+[node.H-XI]
+statement = "dist(ξ_λ, span{h(−∂²)Φ|_[−L,L]}) · e^{L/2}√L → 0  (Grundzustand ist asymptotisch Ξ-teilbar)"
+status = "CONJECTURE"
+note = "NUMERICAL: Rest ≈ Φ(L)^1.7 für L ≤ 1.1. Epstein-Kalibrierung: bricht genau dort, wo die Fensterpositivität bricht (B-CCM2)."
+
+[node.NORMAL]
+statement = "Die Faktoren h_λ (ξ̂_λ ≈ h_λ(τ²)Ξ) bilden eine normale Familie auf |Im z|<1/2 ohne Grenzwert ≡ 0"
+status = "OPEN"
 
 [node.M1]
-statement = "∀λ>1: kleinster Eigenwert von QW_λ einfach, Eigenvektor gerade"
+statement = "(historisch) ∀λ>1: kleinster Eigenwert von QW_λ (voll) einfach, Eigenvektor gerade"
 status = "OPEN"
-source = "Connes–Consani–Moscovici, arXiv:2511.22755 §8"
+note = "Durch M1N ersetzt (Thm. 5.10 gilt für die abgeschnittene Form)."
 
 [node.M2]
-statement = "c_λ ξ̂_λ → Ξ gleichmäßig auf Kompakta von |Im z| < 1/2"
+statement = "(historisch) c_λ ξ̂_λ → Ξ gleichmäßig auf Kompakta von |Im z| < 1/2"
 status = "OPEN"
-source = "Connes–Consani–Moscovici, arXiv:2511.22755 §7–8"
+note = "Durch H-XI ∧ NORMAL ∧ RED-HUR-DIV ersetzt (M2′)."
 
 [node.RED-HUR]
 statement = "∀ f : ℕ → ℂ → ℂ, (∀n, f n holomorph auf S={|Im z|<1/2}) ∧ (∀n ∀z∈S, f n z = 0 → Im z = 0) ∧ (f → Ξ lokal gleichmäßig auf S) ⇒ RiemannHypothesis"
@@ -77,6 +92,14 @@ depends_on = ["LEM-0"]
 artifact = "formal/HurwitzReduction.lean :: RHDossier.riemannHypothesis_of_approximation (Hurwitz-Kern über Maximumprinzip; Mathlib hat keinen Hurwitz-Satz)"
 lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19"]
 lint_note = "Reine Reduktion; L-14 betrifft die Konstruktion der f_n (CCM-ROUTE), nicht RED-HUR."
+
+[node.RED-HUR-DIV]
+statement = "Approximanten mit reellen Nullstellen in S konvergieren lokal gleichmäßig gegen G ≢ 0 holomorph auf S, das an allen Nullstellen von Ξ verschwindet ⇒ RiemannHypothesis"
+status = "FORMALLY_VERIFIED"
+depends_on = ["RED-HUR", "LEM-0"]
+artifact = "formal/HurwitzReduction.lean :: RHDossier.riemannHypothesis_of_approximation_divisible"
+lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19"]
+lint_note = "Reine Reduktion (M2′)."
 
 [node.IMP-CCM510]
 statement = "CCM Thm. 5.10 / Thm. 1.1: unter 'even-simple' sind D_log^{(λ,N)} selbstadjungiert, Nullstellen der Determinanten reell"
@@ -114,3 +137,13 @@ statement = "≥ 2/3 der Nullstellen einfach und auf der Geraden (unbedingt)"
 status = "IMPORTED_PREPRINT"
 source = "Alpöge–Furman arXiv:2608.13637; Lamzouri arXiv:2609.02882"
 refereed = false
+
+[node.CERT-WEIL-LAB]
+statement = "Weil-Labor validiert: V1 (ζ, 1e−51), V2 (Zhu-Intervall), V3 (CCM, 7e−55), V4 (Epstein, 1e−34/1e−41)"
+status = "NUMERICAL"
+artifact = "computations/weil/*.py, computations/results/weil_v1.txt, weil_v3_ccm_N60.json, weil_v4_epstein.txt"
+
+[node.B-CCM2]
+statement = "Epstein-Kalibrierung: Radikalstruktur generisch; H-Ξ bricht genau bei Verlust der Fensterpositivität (L≈1.5)"
+status = "NUMERICAL"
+artifact = "computations/results/weil_e1_epstein_L*.json; rh/07-FINDINGS-PHASE2.md §5"

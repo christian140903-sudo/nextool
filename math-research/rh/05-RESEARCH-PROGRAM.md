@@ -1,5 +1,8 @@
 # 05 · Forschungsprogramm nach Phase 1
 
+> **Nachtrag V-3:** Phase 2 ist abgeschlossen, die Befunde stehen in [`07-FINDINGS-PHASE2.md`](07-FINDINGS-PHASE2.md). WP-A/WP-B/WP-C/WP-F sind
+> bearbeitet. Kernergebnis: Die CCM-Route umgeht die Weil-Positivität nicht (Barriere B-CCM2).
+
 **Status MAIN: `OPEN`.** Phase 1 hat keinen Beweis und kein Gegenbeispiel erbracht und behauptet
 beides nicht. Sie hat Folgendes geliefert: eine eingefrorene, formal verankerte Zielaussage; einen
 geprüften Atlas; rigorose Rechen- und Formalisierungsinfrastruktur; und eine auf **vier Knoten**

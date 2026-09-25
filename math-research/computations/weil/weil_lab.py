@@ -23,6 +23,8 @@ from __future__ import annotations
 
 import mpmath as mp
 
+from models import ZetaModel
+
 
 def von_mangoldt(M: int) -> dict[int, mp.mpf]:
     out = {}
@@ -36,14 +38,15 @@ def von_mangoldt(M: int) -> dict[int, mp.mpf]:
 
 
 class WeilWindow:
-    def __init__(self, L, N: int, dps: int = 60):
+    def __init__(self, L, N: int, dps: int = 60, model=None):
         mp.mp.dps = dps
+        self.model = model or ZetaModel()
         self.L = mp.mpf(L)
         self.N = N
         self.idx = list(range(-N, N + 1))
         self.om = {k: mp.pi * k / self.L for k in self.idx}
         self.X = int(mp.floor(mp.exp(2 * self.L)))
-        self.lam = von_mangoldt(self.X)
+        self.lam = self.model.coeffs(self.X)
         self._kcache = {}
         self._build()
 
@@ -55,27 +58,26 @@ class WeilWindow:
         return mp.quad(f, pts)
 
     def _kern(self, x):
-        """e^{−x/2}/(1−e^{−2x}), memoisiert (Quadraturknoten sind für alle ω dieselben)."""
+        """Archimedischer Kern des Modells, memoisiert (Quadraturknoten sind für alle ω dieselben)."""
         c = self._kcache.get(x)
         if c is None:
-            c = self._kcache[x] = mp.exp(-x / 2) / (-mp.expm1(-2 * x))
+            c = self._kcache[x] = self.model.kern(x)
         return c
 
     def _S(self, w):
         if w == 0:
             return mp.mpf(0)
-        return self._quad(lambda x: self._kern(x) * mp.sin(w * x) if x != 0 else w / 2)
+        return self._quad(lambda x: self._kern(x) * mp.sin(w * x) if x != 0 else self.model.lim_S * w)
 
     def _D(self, w):
         L = self.L
         return self._quad(lambda x: self._kern(x) * (2 * (2 * L - x) * mp.cos(w * x) - 4 * L)
-                          if x != 0 else mp.mpf(-1))   # Grenzwert x→0: −2x/(2x) = −1
+                          if x != 0 else mp.mpf(self.model.lim_D))
 
     def _build(self):
         L, N = self.L, self.N
-        q = mp.exp(-4 * L)
-        T2L = mp.nsum(lambda m: q ** (m + mp.mpf(1) / 4) / (m + mp.mpf(1) / 4), [0, mp.inf]) / 2
-        c0 = mp.digamma(mp.mpf(1) / 4) - mp.log(mp.pi)
+        T2L = self.model.tail(2 * L)
+        c0 = self.model.const()
         S = {k: self._S(self.om[k]) for k in range(0, N + 1)}
         for k in range(1, N + 1):
             S[-k] = -S[k]

@@ -1,11 +1,12 @@
 # Forschungsakte
 
 **Problem:** Riemannsche Hypothese (Clay Millennium Problem, Bombieri-Formulierung)
-**Projektstatus:** `OPEN` · Phase 1 (Bestandsaufnahme, Spezifikation, Infrastruktur) abgeschlossen
+**Projektstatus:** `OPEN` · Phase 1 (Infrastruktur) und Phase 2 (Weil-Labor, CCM-Route, Epstein-Kalibrierung) abgeschlossen — Befunde: [`rh/07-FINDINGS-PHASE2.md`](rh/07-FINDINGS-PHASE2.md)
 **Letzte Aktualisierung:** 2026-09-25
 
 **Maschinenprüfbarer Stand:** `python3 tools/depcheck.py` meldet *MAIN geschlossen: NEIN*. Der MAIN-Pfad
-ist durch 4 Knoten blockiert: M1, M2, IMP-CCM510, CCM-ROUTE.
+ist durch 5 Knoten blockiert: M1N, H-XI, NORMAL, IMP-CCM510, CCM-ROUTE. **Barriere B-CCM2:** H-XI ist inhaltlich
+äquivalent zur Weil-Fensterpositivität; der harte Kern bleibt K-W.
 
 Jeder Eintrag trägt eine ID. Einträge werden nicht gelöscht, sondern bekommen einen neuen Status.
 Detaildokumente liegen in [`rh/`](rh/).
@@ -43,8 +44,8 @@ selbstadjungierten Operators zu zeigen. Gleichheit ist nicht nötig; σ(A) ⊆ N
 
 | ID | Strategie | Beziehung zu T-0 | Fehlender Schritt | Track | Status |
 |---|---|---|---|---|---|
-| **S-1** | CCM-Route: selbstadjungierte Operatoren aus Eulerprodukt über p ≤ λ² → Hurwitz | ⇐ | (M1) ∀λ even-simple; (M2) Konvergenz auf \|Im z\|<½ | Struktur | **aktiv, Priorität 1** |
-| S-2 | Weil-Fensterpositivität K-W | ⇔ | uniform in L | Äquivalenz | aktiv (über M1 gekoppelt) |
+| S-1 | CCM-Route (präzisiert: M1N ∧ H-Ξ ∧ NORMAL ∧ Thm. 5.10 ⇒ RH via M2′, formal) | ⇐ | H-Ξ ∀L | Struktur | **Phase 2 abgeschlossen:** umgeht die Positivität nicht (B-CCM2) |
+| **S-2** | Weil-Fensterpositivität K-W | ⇔ | uniform in L; Positivität *unter* dem Radikal | Äquivalenz | **harter Kern nach Phase 2** |
 | S-3 | Indexsatz über Spec ℤ (P-1) | ⇐ (hypothetisch) | Objekt unbekannt | Struktur | Quelle für F-UNI-taugliche Mechanismen |
 | S-4 | Li / de Bruijn–Newman / Jensen | ⇔ | ∀n / Λ≤0 / ∀(d,n) | Falsifikation | nur Diagnose (B-EP, B-LI) |
 | S-5 | Dichteverfahren | — | — | — | verworfen als Hauptweg (B-DENS, belegt) |
@@ -63,20 +64,21 @@ X-01 … X-14. Maschinenlesbarer Lint-Katalog: [`rh/proof_lint.toml`](rh/proof_l
 ```
 MAIN ── LEM-0 ─────────────────────────────── [FORMALLY_VERIFIED]
    │         └── IMP-FE, IMP-NV1, IMP-Z0 ──── [IMPORTED, Mathlib]
-   └── CCM-ROUTE ───────────────────────────── [CONJECTURE]  ✗
-          ├── M1 ───────────────────────────── [OPEN]        ✗
-          ├── M2 ───────────────────────────── [OPEN]        ✗
-          ├── IMP-CCM510 ───────────────────── [PREPRINT]    ✗
-          └── RED-HUR ──────────────────────── [FORMALLY_VERIFIED]
-                 └── LEM-0
-Alternativroute: K-W ── IMP-WEIL (Konventionen ungeprüft)
+   └── CCM-ROUTE ───────────────────────────── [CONJECTURE]  ✗   (B-CCM2: ≙ K-W)
+          ├── M1N  (even-simple, endlich je λ) ── [OPEN]     ✗   numerisch ✓ für L ≤ 1.28
+          ├── H-XI (Grundzustand Ξ-teilbar) ───── [CONJECTURE] ✗ numerisch ✓ (Rest ≈ Φ(L)^1.7)
+          ├── NORMAL (h_λ normale Familie) ────── [OPEN]     ✗
+          ├── IMP-CCM510 ───────────────────────── [PREPRINT] ✗
+          └── RED-HUR-DIV (M2′) ────────────────── [FORMALLY_VERIFIED]
+                 └── RED-HUR ── LEM-0 ────────────── [FORMALLY_VERIFIED]
+Alternativroute / harter Kern: K-W ── IMP-WEIL (Konventionen festgelegt, Original noch zu prüfen)
 ```
 
 ## 8. Evidence Ledger → [`rh/04-COMPUTATIONS.md`](rh/04-COMPUTATIONS.md)
 
 | Evidenzart | Einträge |
 |---|---|
-| Formal verifiziert (Lean 4 + Mathlib, nur Standardaxiome) | L-0 (`rhStrip_iff_riemannHypothesis`), RED-HUR (`riemannHypothesis_of_approximation`) |
+| Formal verifiziert (Lean 4 + Mathlib, nur Standardaxiome) | L-0 (`rhStrip_iff_riemannHypothesis`), RED-HUR (`riemannHypothesis_of_approximation`), RED-HUR-DIV (`riemannHypothesis_of_approximation_divisible`) |
 | Computerbewiesen (Ball-Arithmetik) | C-1, C-2 (RH bis 10⁴), C-4 (Davenport–Heilbronn), C-5 (Epstein), C-6/C-7 (λ₁…λ₁₀₀₀ > 0), C-9 (RH-19-Doppelzertifizierung) |
 | Importiert (begutachtet) | A-1 … A-4, A-7 |
 | Importiert (Preprint) | A-5, A-6 |
@@ -89,6 +91,9 @@ Alternativroute: K-W ── IMP-WEIL (Konventionen ungeprüft)
 | F-1 | 2026-09-25 | FE-Kontrolle Davenport–Heilbronn mit sin(πs/2) | Charakter mod 5 ist ungerade → cos(πs/2) | lokal | korrigiert; X-14 |
 | F-2 | 2026-09-25 | Konturen mit Gleitkomma-Endpunkten | Kontur nicht exakt geschlossen | lokal, aber rigorositätsrelevant | exakte Endpunkte + Assertion; alle Läufe wiederholt; X-13; Lint L-19 |
 | F-5 | 2026-09-25 | Zweite ζ-Implementierung: direkte Euler–Maclaurin-Summe auch für Re s = −1 | Mit Ball-Eingaben wachsen die Terme wie n^{−σ} = n, der Einschluss explodiert, die Kontur wird endlos unterteilt | lokal (Konditionierung) | für Re s < ½ Funktionalgleichung benutzt, Γ und sin aus Arb-Primitiven; Kreuztest an 30 Punkten ohne Abweichung |
+| F-6 | 2026-09-25 | Kommutierender Sturm–Liouville-Operator mit glatten Koeffizienten (WP-2D) | Residuum 0,2–3,3 (Prolate-Kontrolle 10⁻⁵); Eigenfunktionen haben Knicke bei ±(L − log n) | strukturell (Arithmetik muss in den Operator) | verworfen |
+| F-7 | 2026-09-25 | K-Ξ naiv: Koerzitivität auf span{(−∂²)ʲΦ}^⊥ bei fast-nullem Radikalraum | τ_m = max Q auf D_m wird O(1) (Schwanzverstärkung durch Ableitungen); β_m/τ_m ≪ 1 | lokal (falsche Raumwahl) | verworfen |
+| F-8 | 2026-09-25 | (Strategie) CCM-Route als Umgehung der Positivität | Epstein-Kalibrierung: Radikalstruktur generisch, H-Ξ bricht exakt mit der Positivität | strukturell | B-CCM2; Kern = K-W |
 | F-3 | 2026-09-25 | (Strategie) Dichteverfahren als Hauptweg | bewiesene Decke „Anteil ≠ alle“ (B-DENS) | strukturell | S-5 verworfen |
 | F-4 | 2026-09-25 | (Strategie) Li-/dBN-/Jensen-Routen als Hauptweg | sehen das Eulerprodukt nicht (B-EP); Li-Detektion erst ab n ≳ 10²⁷ | strukturell | S-4 nur Diagnose |
 
@@ -97,4 +102,5 @@ Alternativroute: K-W ── IMP-WEIL (Konventionen ungeprüft)
 | ID | Datum | Ereignis | Betroffene Einträge |
 |---|---|---|---|
 | V-1 | 2026-09-25 | Grunddirektive aufgenommen; Aktenstruktur angelegt | — |
+| V-3 | 2026-09-25 | Phase 2: Weil-Labor (V1–V4 validiert), Paritätsleiter, Winkelgesetz, Radikalstruktur H-Ξ, M2′ formal verifiziert, F-6/F-7 widerlegt, Epstein-Kalibrierung ⇒ B-CCM2 | S-1, S-2, Graph |
 | V-2 | 2026-09-25 | RH als Problem eingegangen. Target Freeze mit SHA-256; Audit der Eingangsangaben (A1–A13, u. a. Korrektur Q-HP, Präzisierung 10¹³ vs. Platt–Trudgian, CMI-Regel 5(c)); Atlas; Ledger; Lint-Katalog; Dependency-Graph + Checker; Lemma 0 und Hurwitz-Reduktion formal verifiziert; Zertifikate C-1…C-7; Gegenmodelle Davenport–Heilbronn und Epstein rigoros; Fehler F-1, F-2 gefunden und behoben | alle |
