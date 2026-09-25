@@ -58,6 +58,7 @@ sich jede spätere Abweichung feststellen.
 | CMI-Seite „Riemann Hypothesis“ (HTML) | `https://www.claymath.org/millennium/riemann-hypothesis/` | `fbefff83737a12f6b36de74c251ee10127507b76b322807433fea8e5e5c985ff` (dynamisch, nur Indiz) |
 | Platt–Trudgian, arXiv:2004.09765 | `https://arxiv.org/pdf/2004.09765` | (Text ausgewertet, s. §3) |
 | Alpöge–Furman, arXiv:2608.13637v2 | `https://arxiv.org/pdf/2608.13637v2` | `6de3b156342e7b4a802c34f8ef40432567e9dabe006938da04233f19fc4ef444` |
+| Bombieri, Rend. Lincei 11 (2000) 183–233 (Weil-Funktional, Thm. 1, 2, 8) | `http://www.bdim.eu/item?id=RLIN_2000_9_11_3_183_0&fmt=pdf` | `20bd544fc5297766966630092aba4c1e10c6a7e663d14be89bbe1d0c8220b7fd` |
 | Lamzouri, arXiv:2609.02882v2 | `https://arxiv.org/pdf/2609.02882v2` | `305df7fcbbf96e61ccca2cbae13dcb2b7f9251b054d02dd0c78551982621046b` |
 
 ## 3. Audit der Eingangsangaben (Foundational-Audit-Track)

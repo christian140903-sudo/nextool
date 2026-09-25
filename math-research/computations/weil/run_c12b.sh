@@ -1,0 +1,5 @@
+#!/bin/sh
+run() { python3 -u c12_certify_finite.py $1 $2 $3 $4 > ../results/weil_c12_L$1-$2_N$3.json 2> ../results/weil_c12_L$1-$2_N$3.log; }
+( run 11 10 46 400 ) &
+( run 5 4 56 560 ) &
+wait

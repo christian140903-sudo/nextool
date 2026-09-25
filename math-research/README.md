@@ -17,7 +17,7 @@ oder im etablierten Rahmen).
 
 ## Statusvokabular
 
-Jede neue Aussage startet als `CONJECTURE`. Zulässige Status:
+Jede neue Aussage startet als `CONJECTURE`. Ab V-4 gilt zusätzlich das Statusvokabular aus [`rh/08`](rh/08-BRIDGE-THEOREM.md) §7 (NUMERICAL ≠ PROVED-FINITE ≠ BRIDGE-CLOSED ≠ RH-PROVED). Zulässige Status:
 
 | Status | Bedeutung |
 |---|---|
@@ -68,6 +68,7 @@ ersetzen an keiner tragenden Stelle einen Beweis.
 | `rh/05-RESEARCH-PROGRAM.md` | Strukturfilter F-EP/F-UNI/F-ALL/F-INC, Arbeitspakete Phase 2 |
 | `rh/06-STRATEGY-PHASE2.md` | Strategie Phase 2 (Reduktionskette, Arbeitspakete, Erfolgsstufen) |
 | `rh/07-FINDINGS-PHASE2.md` | Befunde Phase 2: Weil-Labor, Radikalstruktur, Epstein-Kalibrierung, Barriere B-CCM2 |
+| `rh/08-BRIDGE-THEOREM.md` | **Bridge Theorem** (endlich → volle Weil-Positivität, bewiesen), acht Prüfpunkte, Lemma R, Zirkularitäts-Audit, verbindliches Statusvokabular |
 | `rh/dependency_map.toml` | Lemma-Dependency-Graph bis MAIN (maschinenlesbar) |
 | `rh/proof_lint.toml` | Proof-Lint-Katalog L-01 … L-19 |
 | `tools/depcheck.py` | Abnahmeprüfung: Ist MAIN geschlossen? |

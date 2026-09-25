@@ -8,16 +8,16 @@
 [node.MAIN]
 statement = "RH (Form S, äquivalent B, M): ∀ρ, ζ(ρ)=0 ∧ 0<Re ρ<1 ⇒ Re ρ=1/2"
 status = "OPEN"
-depends_on = ["LEM-0", "CCM-ROUTE"]
-alternative_routes = ["K-W"]
-note = "Aktuelle Arbeitsroute (S-1): MAIN ⇐ LEM-0 ∧ CCM-ROUTE. Graph-Semantik ist UND; Alternativen (ODER) stehen in alternative_routes und im Atlas."
+depends_on = ["LEM-0", "KW-ALL", "BT-L", "IMP-WEIL-C"]
+alternative_routes = ["CCM-ROUTE"]
+note = "Weil-Track (rh/08): KW-ALL ⇒ (BT-L) Q ≥ 0 auf C_c^∞(ℝ) ⇒ (IMP-WEIL-C, W∞) RH ⇒ (LEM-0) MAIN. Graph-Semantik UND; Alternativen in alternative_routes."
 
 [node.LEM-0]
 statement = "S ⇔ M (Mathlib RiemannHypothesis); nichttriviale Nullstellen liegen im offenen Streifen"
 status = "FORMALLY_VERIFIED"
 depends_on = ["IMP-FE", "IMP-NV1", "IMP-Z0"]
 artifact = "formal/RHTarget.lean :: RHDossier.rhStrip_iff_riemannHypothesis"
-lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19"]
+lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19","L-20","L-21"]
 lint_note = "L-14: Lemma 0 ist eine Umformulierung von MAIN, kein Beweisschritt zur Lage der Nullstellen. Die Eulerprodukt-Forderung betrifft K-W, nicht LEM-0."
 
 [node.IMP-FE]
@@ -90,7 +90,7 @@ statement = "∀ f : ℕ → ℂ → ℂ, (∀n, f n holomorph auf S={|Im z|<1/2
 status = "FORMALLY_VERIFIED"
 depends_on = ["LEM-0"]
 artifact = "formal/HurwitzReduction.lean :: RHDossier.riemannHypothesis_of_approximation (Hurwitz-Kern über Maximumprinzip; Mathlib hat keinen Hurwitz-Satz)"
-lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19"]
+lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19","L-20","L-21"]
 lint_note = "Reine Reduktion; L-14 betrifft die Konstruktion der f_n (CCM-ROUTE), nicht RED-HUR."
 
 [node.RED-HUR-DIV]
@@ -98,7 +98,7 @@ statement = "Approximanten mit reellen Nullstellen in S konvergieren lokal gleic
 status = "FORMALLY_VERIFIED"
 depends_on = ["RED-HUR", "LEM-0"]
 artifact = "formal/HurwitzReduction.lean :: RHDossier.riemannHypothesis_of_approximation_divisible"
-lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19"]
+lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19","L-20","L-21"]
 lint_note = "Reine Reduktion (M2′)."
 
 [node.IMP-CCM510]
@@ -147,3 +147,57 @@ artifact = "computations/weil/*.py, computations/results/weil_v1.txt, weil_v3_cc
 statement = "Epstein-Kalibrierung: Radikalstruktur generisch; H-Ξ bricht genau bei Verlust der Fensterpositivität (L≈1.5)"
 status = "NUMERICAL"
 artifact = "computations/results/weil_e1_epstein_L*.json; rh/07-FINDINGS-PHASE2.md §5"
+
+[node.KW-ALL]
+statement = "∀L>0 ∀N∈ℕ: W_{N,L} ⪰ 0   (⇔ RH nach BT; λ₁(L) ≥ 0 ∀L)"
+status = "OPEN"
+note = "Der gesamte ungelöste Inhalt von RH. Nach Lemma R nur strukturell beweisbar (keine gleichmäßige Schranke möglich)."
+
+[node.BT-L]
+statement = "Für jedes L>0: Q ≥ 0 auf C_c^∞((−L,L)) ⇔ Q ≥ 0 auf H_L ⇔ ∀N W_{N,L} ⪰ 0 ⇔ lim_N λ_min(W_{N,L}) ≥ 0 ⇔ λ₁(L) ≥ 0"
+status = "PROVED"
+depends_on = ["IMP-STIRLING"]
+artifact = "rh/08-BRIDGE-THEOREM.md §2–3 (Lemmata B0–B7, Satz BT-L)"
+lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19","L-20","L-21"]
+lint_note = "Intern geprüft (adversarialer Selbstcheck, zwei Konstantenkorrekturen eingearbeitet). Unabhängige menschliche Prüfung ausstehend. L-14: reine Funktionalanalysis, keine Aussage über Nullstellen."
+
+[node.BT]
+statement = "RH ⇔ ∀L ∀N W_{N,L} ⪰ 0 (globales Bridge Theorem)"
+status = "PROVED"
+depends_on = ["BT-L", "IMP-WEIL-C", "IMP-EF"]
+artifact = "rh/08-BRIDGE-THEOREM.md §3"
+lint = ["L-01","L-02","L-03","L-04","L-05","L-06","L-07","L-08","L-09","L-10","L-11","L-12","L-13","L-14","L-15","L-16","L-17","L-18","L-19","L-20","L-21"]
+lint_note = "Informationsknoten (Äquivalenz). Für MAIN wird nur die Richtung KW-ALL ⇒ RH gebraucht (BT-L + IMP-WEIL-C)."
+
+[node.IMP-STIRLING]
+statement = "Re ψ(1/4 + iτ/2) = log(|τ|/2) + O(τ^{-2}) (|τ|→∞)"
+status = "IMPORTED"
+source = "DLMF 5.11.2 (Stirling-Reihe für ψ)"
+refereed = true
+hypotheses_checked = true
+
+[node.IMP-WEIL-C]
+statement = "W∞: RH ⇔ Q(f) ≥ 0 für alle f ∈ C_c^∞(ℝ,ℂ) (Konventionen rh/08 §1)"
+status = "IMPORTED"
+source = "Bombieri, Rend. Lincei Mat. Appl. 11 (2000) 183–233, Theorem 1 (S. 191–193, Primärtext gelesen, SHA-256 20bd544f…b7fd); Weil 1952"
+refereed = true
+hypotheses_checked = true
+note = "Rückrichtung liefert strikte Negativität bei ¬RH; Übersetzung f(x)=e^{x/2}g(e^x) in rh/08 §1."
+
+[node.IMP-EF]
+statement = "Explizite Formel Σ_ρ m_ρ F̂(γ_ρ) = F̂(i/2)+F̂(−i/2)+∫F̂μ − Σ Λ(n)n^{−1/2}(F(log n)+F(−log n)) für F ∈ C_c²"
+status = "IMPORTED"
+source = "Alpöge–Furman (2.1) für gerade F ∈ C_c² (Primärtext; dort nach Iwaniec–Kowalski §5.5); Bombieri 2000 Theorem 2 (Primärtext); Reduktion auf reelle f (gerades F) durch Lemma B7"
+refereed = true
+hypotheses_checked = true
+
+[node.LEM-R]
+statement = "Unbedingt: λ₁(L) ≤ Q(k_L)/‖k_L‖² → 0 doppelt-exponentiell (k_L = Φ·1_[−L,L]); gleichmäßige Koerzitivität unmöglich"
+status = "CANDIDATE"
+artifact = "rh/08 §5; Numerik R(k_L) ≈ 0.12–0.18·Φ(L)²"
+
+[node.CERT-FINITE-W]
+statement = "W_{N,L} ≻ 0 und even-simple (M1_N), λ_min rigoros eingeschlossen, für (N,L) in results/weil_c12_*.json"
+status = "PROVED_FINITE"
+artifact = "computations/weil/c12_certify_finite.py; computations/results/weil_c12_*.json"
+note = "Nach BT-L NUR Positivität auf E_N(L). Keine Beweislast für KW-ALL (L-20)."

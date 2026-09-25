@@ -14,8 +14,10 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent / "rh"
-OK_STATUS = {"PROVED", "PROVED_COMPUTER", "FORMALLY_VERIFIED", "IMPORTED"}
-NEEDS_LINT = {"PROVED", "PROVED_COMPUTER", "FORMALLY_VERIFIED"}
+OK_STATUS = {"PROVED", "PROVED_UNIFORM", "BRIDGE_CLOSED", "PROVED_COMPUTER", "FORMALLY_VERIFIED", "IMPORTED"}
+# Nicht zulässig auf dem MAIN-Pfad: NUMERICAL, OBSERVED, CONJECTURE, CANDIDATE, OPEN, HEURISTIC, IMPORTED_PREPRINT,
+# PROVED_FINITE (endliche Aussage ersetzt keinen ∀-Quantor), REFUTED.  RH_PROVED nur für MAIN, nur bei geschlossenem Pfad.
+NEEDS_LINT = {"PROVED", "PROVED_UNIFORM", "BRIDGE_CLOSED", "PROVED_COMPUTER", "FORMALLY_VERIFIED"}
 
 
 def main() -> int:
@@ -72,6 +74,8 @@ def main() -> int:
         if why:
             blockers.append((n, "; ".join(why)))
 
+    if graph["MAIN"].get("status") == "RH_PROVED" and (errors or blockers):
+        errors.append("MAIN trägt RH_PROVED, obwohl der Pfad nicht geschlossen ist")
     if not graph["MAIN"].get("depends_on"):
         blockers.append(("MAIN", "keine Beweiskante (depends_on leer)"))
 

@@ -4,9 +4,11 @@
 **Projektstatus:** `OPEN` · Phase 1 (Infrastruktur) und Phase 2 (Weil-Labor, CCM-Route, Epstein-Kalibrierung) abgeschlossen — Befunde: [`rh/07-FINDINGS-PHASE2.md`](rh/07-FINDINGS-PHASE2.md)
 **Letzte Aktualisierung:** 2026-09-25
 
-**Maschinenprüfbarer Stand:** `python3 tools/depcheck.py` meldet *MAIN geschlossen: NEIN*. Der MAIN-Pfad
-ist durch 5 Knoten blockiert: M1N, H-XI, NORMAL, IMP-CCM510, CCM-ROUTE. **Barriere B-CCM2:** H-XI ist inhaltlich
-äquivalent zur Weil-Fensterpositivität; der harte Kern bleibt K-W.
+**Maschinenprüfbarer Stand (V-4):** `python3 tools/depcheck.py` meldet *MAIN geschlossen: NEIN*. Der MAIN-Pfad
+(Weil-Track, rh/08) ist durch **genau einen Knoten** blockiert: **KW-ALL: ∀L ∀N W_{N,L} ⪰ 0** (⇔ RH).
+Alle übrigen Glieder sind intern bewiesen (Bridge Theorem BT-L) oder am Primärtext geprüft (Bombieri 2000,
+Thm. 1/2; Alpöge–Furman (2.1)). Endliche Zertifikate (C-12) sind `PROVED-FINITE` und tragen keine Beweislast
+für KW-ALL (Lint L-20).
 
 Jeder Eintrag trägt eine ID. Einträge werden nicht gelöscht, sondern bekommen einen neuen Status.
 Detaildokumente liegen in [`rh/`](rh/).
@@ -102,5 +104,6 @@ Alternativroute / harter Kern: K-W ── IMP-WEIL (Konventionen festgelegt, Ori
 | ID | Datum | Ereignis | Betroffene Einträge |
 |---|---|---|---|
 | V-1 | 2026-09-25 | Grunddirektive aufgenommen; Aktenstruktur angelegt | — |
+| V-4 | 2026-09-25 | Closure-Direktive umgesetzt: exaktes Weil-Kriterium W∞ fixiert; Bridge Theorem BT-L/BT mit Beweis (rh/08); IMP-WEIL-C/IMP-EF am Primärtext (Bombieri 2000) geprüft; Statusvokabular NUMERICAL/OBSERVED/CONJECTURE/PROVED-FINITE/PROVED-UNIFORM/BRIDGE-CLOSED/RH-PROVED; Lint L-20/L-21; Lemma R (keine gleichmäßige Koerzitivität); Zirkularitäts-Audit; C-11 Härtetests; C-12 erste PROVED-FINITE-Zertifikate; MAIN hängt nur noch an KW-ALL | Graph, 01, 04, 08 |
 | V-3 | 2026-09-25 | Phase 2: Weil-Labor (V1–V4 validiert), Paritätsleiter, Winkelgesetz, Radikalstruktur H-Ξ, M2′ formal verifiziert, F-6/F-7 widerlegt, Epstein-Kalibrierung ⇒ B-CCM2 | S-1, S-2, Graph |
 | V-2 | 2026-09-25 | RH als Problem eingegangen. Target Freeze mit SHA-256; Audit der Eingangsangaben (A1–A13, u. a. Korrektur Q-HP, Präzisierung 10¹³ vs. Platt–Trudgian, CMI-Regel 5(c)); Atlas; Ledger; Lint-Katalog; Dependency-Graph + Checker; Lemma 0 und Hurwitz-Reduktion formal verifiziert; Zertifikate C-1…C-7; Gegenmodelle Davenport–Heilbronn und Epstein rigoros; Fehler F-1, F-2 gefunden und behoben | alle |

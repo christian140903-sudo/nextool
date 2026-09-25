@@ -29,6 +29,9 @@ Spalte „Status“: der heutige Zustand der *Projektinfrastruktur*, nicht eines
 | **RH-21** | **Kein Dichte-Schluss:** Jede Aussage der Form „Anteil ≥ c“ (auch c = 1) gilt als nicht hinreichend. | Lint L-03 | ✅ spezifiziert |
 | **RH-22** | **Zertifikats-Reproduzierbarkeit:** Jede Rechnung mit Beweislast ist mit Skript, Version (`requirements.txt`), Präzision und Ausgabe-JSON eingecheckt. | `computations/results/` | ✅ laufend |
 
+| **RH-23** | **Bridge-Pflicht (Weil-Track):** Kette exaktes Weil-Kriterium → Testfunktionenraum → endliche Approximationen → uniforme Kontrolle → volle Positivität → RH; jeder Pfeil ist eine eigene Beweispflicht | rh/08 (BT-L, BT bewiesen; KW-ALL offen) | 🟡 Brücke bewiesen, Prämisse offen |
+| **RH-24** | **Statustrennung:** NUMERICAL ≠ PROVED-FINITE ≠ BRIDGE-CLOSED ≠ RH-PROVED; `RH_PROVED` nur bei geschlossenem `depcheck` | depcheck erzwingt es | ✅ |
+
 ## HEUREKA-Schwelle (unverändert aus der Spezifikation)
 
 MAIN exakt getroffen · keine offenen Lemmas · keine versteckte RH-Annahme · keine rein numerische
