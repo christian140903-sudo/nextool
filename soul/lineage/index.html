@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soul Lineage — correctable memory for AI agents</title>
+<meta name="description" content="Soul Lineage: when a remembered premise turns out wrong, find the conclusions and actions that were built on it. Planned extension of the open-source Soul memory kernel, March to September 2027.">
+<link rel="canonical" href="https://nextool.app/soul/lineage/">
+<meta name="theme-color" content="#050505">
+<meta name="color-scheme" content="dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Soul Lineage — correctable memory for AI agents">
+<meta property="og:description" content="When a premise turns out wrong, find everything that was built on it. Planned for 2027, open source, local-first.">
+<meta property="og:url" content="https://nextool.app/soul/lineage/">
+<meta property="og:image" content="https://nextool.app/soul/assets/og-soul.png">
+<meta property="og:site_name" content="nextool">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23050505'/><circle cx='16' cy='16' r='6' fill='%234f46e5'/></svg>">
+<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/soul.css">
+<style>
+  .ln-sec{padding:clamp(2.5rem,6vw,4.5rem) 0;border-top:1px solid var(--line)}
+  .ln-sec h2{font-size:clamp(1.5rem,1.1rem + 1.6vw,2.1rem);letter-spacing:-.03em;margin:.6rem 0 1rem;line-height:1.15}
+  .ln-sec p,.ln-sec li{color:var(--tx-2);line-height:1.65;max-width:46rem}
+  .ln-sec p strong,.ln-sec li strong{color:var(--tx)}
+  .ln-kx{font-family:var(--mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--acc-3)}
+  .ln-grid{display:grid;gap:1rem;margin-top:1.5rem}
+  @media (min-width:820px){.ln-grid.three{grid-template-columns:repeat(3,1fr)}.ln-grid.two{grid-template-columns:repeat(2,1fr)}}
+  .ln-card{background:var(--bg-1);border:1px solid var(--line);border-radius:var(--r);padding:1.25rem 1.3rem}
+  .ln-card h3{margin:.2rem 0 .5rem;font-size:1.05rem;color:var(--tx)}
+  .ln-card p{margin:0;font-size:.95rem}
+  .ln-tag{display:inline-block;font-family:var(--mono);font-size:.72rem;padding:.2rem .5rem;border-radius:999px;border:1px solid var(--line-2);color:var(--tx-2)}
+  .ln-tag.ok{color:var(--live);border-color:rgba(52,211,153,.35);background:var(--live-soft)}
+  .ln-tag.no{color:var(--warn);border-color:rgba(245,181,68,.35);background:var(--warn-soft)}
+  .ln-table{width:100%;border-collapse:collapse;margin-top:1.25rem;font-size:.95rem}
+  .ln-table th,.ln-table td{text-align:left;padding:.7rem .6rem;border-bottom:1px solid var(--line);vertical-align:top;color:var(--tx-2)}
+  .ln-table th{color:var(--tx-3);font-weight:500;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}
+  .ln-table td:first-child{color:var(--tx)}
+  .ln-wrapx{overflow-x:auto}
+  .ln-fig{margin-top:1.5rem;background:var(--bg-1);border:1px solid var(--line);border-radius:var(--r-lg);padding:1rem}
+  .ln-fig{overflow-x:auto}
+  .ln-fig svg{width:100%;min-width:620px;height:auto;display:block}
+  .ln-fig figcaption{color:var(--tx-3);font-size:.85rem;margin-top:.6rem}
+  .ln-quote{border-left:3px solid var(--acc);padding:.2rem 0 .2rem 1rem;margin:1.25rem 0;color:var(--tx)}
+  .ln-hero{padding:clamp(3rem,8vw,6rem) 0 clamp(2rem,5vw,3rem)}
+  .ln-hero h1{font-size:clamp(2.3rem,1.3rem + 4vw,3.8rem);line-height:1.03;letter-spacing:-.04em;margin:1rem 0 0;font-weight:700}
+  .ln-hero .lead{font-size:clamp(1.05rem,.95rem + .5vw,1.3rem);color:var(--tx-2);max-width:42rem;margin-top:1.2rem;line-height:1.55}
+  .ln-badges{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.4rem}
+  .ln-foot{padding:2.5rem 0 3rem;border-top:1px solid var(--line);color:var(--tx-3);font-size:.9rem}
+  .ln-foot a{color:var(--tx-2)}</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="bar">
+  <div class="in">
+    <a href="/" class="brand"><span class="dot"></span>nextool<span class="sub">/soul/lineage</span></a>
+    <div class="links">
+      <a href="#problem">Problem</a>
+      <a href="#today">Today</a>
+      <a href="#plan">Plan</a>
+      <a href="#limits">Limits</a>
+      <a href="../">Soul</a>
+    </div>
+    <a href="https://github.com/christian140903-sudo/soul-mcp" class="cta" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</nav>
+
+<main id="main">
+<div class="wrap">
+
+  <section class="ln-hero">
+    <p class="ln-kx">Planned extension of Soul · March – September 2027</p>
+    <h1>Soul Lineage<br><span style="color:var(--acc-3)">correctable memory</span> for AI agents</h1>
+    <p class="lead">AI assistants now remember things across weeks. When a remembered fact turns out to be wrong, you can fix that one entry. Everything the assistant concluded or did because of it stays in place and keeps being used. Soul Lineage records what was derived from what, so a correction shows exactly what needs a second look.</p>
+    <div class="ln-badges">
+      <span class="ln-tag no">Design stage · not built yet</span>
+      <span class="ln-tag ok">Builds on Soul 4.0.2 (npm, MIT, 373 tests)</span>
+      <span class="ln-tag">Local-first · one SQLite file · no telemetry</span>
+    </div>
+  </section>
+
+  <section class="ln-sec" id="problem">
+    <p class="ln-kx">The problem</p>
+    <h2>A correction today reaches one entry. Its consequences stay.</h2>
+    <p>A concrete example from a coding assistant with long-term memory:</p>
+    <figure class="ln-fig">
+      <svg viewBox="0 0 800 330" role="img" aria-labelledby="figt figd">
+        <title id="figt">What happens when a premise is revoked</title>
+        <desc id="figd">Monday a fact is remembered, Tuesday a conclusion is drawn from it, Wednesday an action is taken, Thursday the fact is corrected. Today only the fact is corrected. With Soul Lineage the conclusion and the action are flagged for review.</desc>
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--tx-3)"/></marker>
+        </defs>
+        <text x="10" y="22" style="fill:var(--tx-3);font:600 12px var(--mono);letter-spacing:.08em">TODAY</text>
+        <g style="font:13px var(--sans)">
+          <rect x="10" y="36" width="170" height="74" rx="10" style="fill:var(--bg-2);stroke:var(--err)"/>
+          <text x="22" y="58" style="fill:var(--tx-3);font-size:11px">Mon · memory</text>
+          <text x="22" y="78" style="fill:var(--tx)">"Customer runs</text>
+          <text x="22" y="96" style="fill:var(--tx)">PostgreSQL 14"</text>
+          <line x1="180" y1="73" x2="218" y2="73" style="stroke:var(--tx-3)" marker-end="url(#ar)"/>
+          <rect x="220" y="36" width="170" height="74" rx="10" style="fill:var(--bg-2);stroke:var(--line-2)"/>
+          <text x="232" y="58" style="fill:var(--tx-3);font-size:11px">Tue · conclusion</text>
+          <text x="232" y="78" style="fill:var(--tx)">"Feature X won't</text>
+          <text x="232" y="96" style="fill:var(--tx)">work, migrate"</text>
+          <line x1="390" y1="73" x2="428" y2="73" style="stroke:var(--tx-3)" marker-end="url(#ar)"/>
+          <rect x="430" y="36" width="170" height="74" rx="10" style="fill:var(--bg-2);stroke:var(--line-2)"/>
+          <text x="442" y="58" style="fill:var(--tx-3);font-size:11px">Wed · action</text>
+          <text x="442" y="78" style="fill:var(--tx)">Migration script,</text>
+          <text x="442" y="96" style="fill:var(--tx)">pull request</text>
+          <rect x="620" y="36" width="170" height="74" rx="10" style="fill:var(--bg-2);stroke:var(--live)"/>
+          <text x="632" y="58" style="fill:var(--tx-3);font-size:11px">Thu · correction</text>
+          <text x="632" y="78" style="fill:var(--tx)">"It is actually</text>
+          <text x="632" y="96" style="fill:var(--tx)">PostgreSQL 16"</text>
+          <text x="232" y="132" style="fill:var(--warn);font-size:12px">stays unmarked, keeps being used</text>
+          <text x="442" y="148" style="fill:var(--warn);font-size:12px">nobody knows it rests on the error</text>
+        </g>
+        <line x1="10" y1="172" x2="790" y2="172" style="stroke:var(--line)"/>
+        <text x="10" y="200" style="fill:var(--acc-3);font:600 12px var(--mono);letter-spacing:.08em">WITH SOUL LINEAGE</text>
+        <g style="font:13px var(--sans)">
+          <rect x="10" y="214" width="170" height="74" rx="10" style="fill:var(--bg-2);stroke:var(--err);stroke-dasharray:5 4"/>
+          <text x="22" y="236" style="fill:var(--tx-3);font-size:11px">revoked premise</text>
+          <text x="22" y="256" style="fill:var(--tx-2);text-decoration:line-through">"Customer runs</text>
+          <text x="22" y="274" style="fill:var(--tx-2);text-decoration:line-through">PostgreSQL 14"</text>
+          <line x1="180" y1="251" x2="218" y2="251" style="stroke:var(--acc-3)" marker-end="url(#ar)"/>
+          <rect x="220" y="214" width="170" height="74" rx="10" style="fill:var(--acc-soft);stroke:var(--acc)"/>
+          <text x="232" y="236" style="fill:var(--acc-3);font-size:11px">doubtful · needs review</text>
+          <text x="232" y="256" style="fill:var(--tx)">"Feature X won't</text>
+          <text x="232" y="274" style="fill:var(--tx)">work, migrate"</text>
+          <line x1="390" y1="251" x2="428" y2="251" style="stroke:var(--acc-3)" marker-end="url(#ar)"/>
+          <rect x="430" y="214" width="170" height="74" rx="10" style="fill:var(--acc-soft);stroke:var(--acc)"/>
+          <text x="442" y="236" style="fill:var(--acc-3);font-size:11px">doubtful · needs review</text>
+          <text x="442" y="256" style="fill:var(--tx)">Migration script,</text>
+          <text x="442" y="274" style="fill:var(--tx)">pull request</text>
+          <rect x="620" y="214" width="170" height="74" rx="10" style="fill:var(--bg-2);stroke:var(--line-2)"/>
+          <text x="632" y="236" style="fill:var(--tx-3);font-size:11px">report</text>
+          <text x="632" y="256" style="fill:var(--tx)">"1 conclusion and</text>
+          <text x="632" y="274" style="fill:var(--tx)">1 action affected"</text>
+          <text x="10" y="316" style="fill:var(--tx-3);font-size:12px">Dry run first · limits on how far doubt spreads · a person decides · nothing is deleted automatically</text>
+        </g>
+      </svg>
+      <figcaption>Today the correction replaces one entry. With lineage, what was built on the wrong premise becomes visible and goes to review.</figcaption>
+    </figure>
+    <p style="margin-top:1.5rem">The idea itself is old: truth maintenance systems (Doyle 1979, de Kleer 1986) withdraw conclusions when an assumption is retracted. What is new is the setting. A language model does not reliably say which facts in its context it actually used. <strong>What was delivered into the context is knowable; what was really used is not.</strong> Current memory systems for LLMs (Letta/MemGPT, Mem0, LangMem, Zep/Graphiti) store and retrieve, and some expire facts over time, but none records which memory went into which conclusion or action.</p>
+  </section>
+
+  <section class="ln-sec" id="today">
+    <p class="ln-kx">What exists today</p>
+    <h2>The foundation is shipped and tested. The propagation does not exist.</h2>
+    <p>Soul is a local-first memory server for MCP clients such as Claude Code, Claude Desktop, Cursor and Windsurf. On npm since February 2026, seven releases, MIT licensed, used daily by its author.</p>
+    <div class="ln-wrapx">
+      <table class="ln-table">
+        <thead><tr><th>Capability</th><th>Soul 4.0.2</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Provenance per memory</td><td><span class="ln-tag ok">yes</span></td><td>source type, confidence and status on every entry</td></tr>
+          <tr><td>Contradictions made visible</td><td><span class="ln-tag ok">yes</span></td><td>disputed pairs instead of silent overwrites</td></tr>
+          <tr><td>Correction links what it replaces</td><td><span class="ln-tag ok">yes</span></td><td>single step only (<code>supersedes</code>)</td></tr>
+          <tr><td>Log of which memories went into which context</td><td><span class="ln-tag ok">yes</span></td><td>kept 90 days today, for retrieval measurement</td></tr>
+          <tr><td>Runs, receipts and episodes for executed work</td><td><span class="ln-tag ok">yes</span></td><td>receipts are self-attested, and say so</td></tr>
+          <tr><td>Link from a context to what was produced in it</td><td><span class="ln-tag no">no</span></td><td>the missing edge</td></tr>
+          <tr><td>Revocation that reaches dependent conclusions and actions</td><td><span class="ln-tag no">no</span></td><td>the planned work</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:1rem">Quality evidence in the repository: 373 tests, coverage thresholds enforced in CI on Node 20, 22 and 24, a smoke test against the real packed tarball, five SIGKILL crash tests, migration and restore probes, a threat model, and a README section called "What Soul is not".</p>
+  </section>
+
+  <section class="ln-sec" id="plan">
+    <p class="ln-kx">What will be built</p>
+    <h2>Three pieces, in the open</h2>
+    <div class="ln-grid three">
+      <div class="ln-card"><span class="ln-tag">1 · capture</span><h3>Dependency edges</h3><p>When something is stored or run in a context, Soul records which memories were delivered into that context. Clients can also declare the premises they used. Edges carry their kind: retrieved, declared or confirmed.</p></div>
+      <div class="ln-card"><span class="ln-tag">2 · revoke</span><h3>Bounded doubt</h3><p>Revoking or correcting a memory starts with a dry run that shows the affected set. Reachable conclusions and actions are marked doubtful within policy limits and go to the review queue. Marks resolve when the premise is confirmed or retracted.</p></div>
+      <div class="ln-card"><span class="ln-tag">3 · share</span><h3>Open specification</h3><p>The edge schema and propagation rules are published separately from the code (CC-BY), so other memory systems can implement them. A small preregistered benchmark is published whatever the result.</p></div>
+    </div>
+    <h2 style="margin-top:2.5rem;font-size:1.35rem">Timeline</h2>
+    <div class="ln-wrapx">
+      <table class="ln-table">
+        <thead><tr><th>Milestone</th><th>Content</th><th>Done by</th></tr></thead>
+        <tbody>
+          <tr><td>M1</td><td>Written specification, additive schema migration behind the existing backup gate</td><td>April 2027</td></tr>
+          <tr><td>M2</td><td>Automatic capture of dependency edges, links from contexts to runs and episodes</td><td>May 2027</td></tr>
+          <tr><td>M3</td><td>Revocation, traversal, doubt marks, conservative default policy</td><td>July 2027</td></tr>
+          <tr><td>M4</td><td>MCP tools ("what depends on this?", revoke with dry run), scale and crash tests up to about one million edges</td><td>August 2027</td></tr>
+          <tr><td>M5</td><td>Small benchmark with two model families, Soul 5.0 release, specification v1.0</td><td>September 2027</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:1rem">About 450 hours, done by one person alongside a full-time job, the same way Soul was built so far.</p>
+  </section>
+
+  <section class="ln-sec" id="limits">
+    <p class="ln-kx">Honest limits</p>
+    <h2>What this will not claim</h2>
+    <ul>
+      <li><strong>Retrieved is not the same as used.</strong> Edges from delivery are a superset of true dependencies. That errs on the safe side, but it over-marks. Finding out what a model really relied on is a research question; this phase measures it only in a small benchmark.</li>
+      <li><strong>Doubt can spread too far.</strong> That is why every revocation starts as a dry run, propagation has limits, and nothing is deleted automatically.</li>
+      <li><strong>No quality claim before measurement.</strong> Soul's README still says no model benchmark results exist yet. That sentence changes only when a preregistered measurement exists, including if the result is negative.</li>
+      <li><strong>Not built yet.</strong> This page describes a plan. Nothing here is released until it is on npm and in the repository.</li>
+    </ul>
+  </section>
+
+  <section class="ln-sec" id="who">
+    <p class="ln-kx">Who</p>
+    <h2>Christian Bucher</h2>
+    <p>Self-taught developer in Vienna. I built and maintain Soul alone, in the evenings and on weekends next to a full-time job, and start university (business informatics) in autumn 2027. I use AI coding assistants as tools and remain responsible for architecture, tests, review and releases.</p>
+    <p><a href="https://github.com/christian140903-sudo/soul-mcp" target="_blank" rel="noopener" style="color:var(--acc-3)">Soul on GitHub</a> · <a href="https://www.npmjs.com/package/soul-mcp" target="_blank" rel="noopener" style="color:var(--acc-3)">npm</a> · <a href="https://github.com/christian140903-sudo/soul-mcp/blob/main/ROADMAP.md" target="_blank" rel="noopener" style="color:var(--acc-3)">Roadmap</a> · <a href="/about/" style="color:var(--acc-3)">About (English)</a> · <a href="mailto:christian140903@gmail.com" style="color:var(--acc-3)">christian140903@gmail.com</a></p>
+  </section>
+
+</div>
+</main>
+
+<footer class="ln-foot">
+  <div class="wrap">© 2026 Christian Bucher · Vienna · <a href="../">Soul</a> · <a href="/">nextool.app</a> · <a href="/impressum.html">Impressum</a></div>
+</footer>
+</body>
+</html>
