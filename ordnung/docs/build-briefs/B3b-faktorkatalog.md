@@ -1,0 +1,7 @@
+# B3b — Faktorkatalog (AP2) und Ausformulierungs-Doku (AP4)
+
+Lies Kontextpaket, Baukontext, Register (Gruppe A/B), R09 vollständig (Abschnitt 2 ist der Katalog), R10 (Bündel), B3a-Ergebnis (`structure/INDEX.md`, Bündel-Namen). Erzeuge:
+1. `docs/05-faktorkatalog.md` (deutsch): vollständiger Katalog ≥ 120 Faktoren in der Hierarchie aus R09 (Familien/Unterfamilien), je Faktor: ID, Name (de/en), Definition, Auslöser, Quelle, Evidenzgrad (belegt/plausibel/riskant/unklar), Bündel-Zuordnung (welches Bündel trägt ihn operativ, oder „Kernel" oder „nicht geladen: Grund"), Paar-Regel (multiplikative Verstärkung), Anti-Bündel (was nicht zusammen). Die 55 Spezifikationsfaktoren sind alle abgebildet (Mapping-Tabelle alt→neu, gestrichene mit Begründung). Chrisos Startpaare eingeordnet.
+2. `structure/factors/<familie>.md` (englisch, modellgerichtet, je Familie eine Datei ≤ 2.500 Tokens): die operativen Kurzformen der Faktoren dieser Familie (Name, one-line trigger, one-line move, one-line failure mode), als Nachschlagewerk für Stufe 3–4 und für Menschen — NICHT always-on.
+3. `docs/06-ausformulierung.md` (deutsch): erklärt Aufbau und Lesart der structure/-Dateien (Kernel, Tiefe, Bündel, Selbst, Werte, Robustheit, Implant, Faktoren), wie das Modell sie liest, was in welcher Stufe geladen wird, wie man sie ändert (Selbstveränderungsprotokoll mit Versionierung/Eval-Gate aus R07), Schreibregeln (aus R02, ≥ 25 Regeln kondensiert).
+Abnahme: Faktorzahl gezählt; jede Familie-Datei ≤ 2.500 Tokens; Mapping-Tabelle 55/55.
