@@ -4,55 +4,101 @@
   "lang": "de",
   "pair": "/en/case-study/",
   "title": "Fallstudie: Anatomie eines Scheineffekts — Christian Bucher",
-  "description": "Eine eigene Messzahl, am selben Tag zurückgenommen: wie eine Prüfrunde zwei Fehler im eigenen Eval-Aufbau fand — und was ich bis heute nicht erklären kann.",
+  "description": "Eine Messzahl, die ich am selben Tag zurückgenommen habe: wie eine Prüfrunde zwei Fehler in meinem eigenen Eval-Aufbau fand — und was ich bis heute nicht erklären kann.",
   "nav": "case",
   "updated": "2026-10-08"
 }
 -->
 <article class="prose">
-<p class="eyebrow">Fallstudie · Kurzfassung</p>
+<p class="eyebrow">Fallstudie</p>
 <h1>Anatomie eines Scheineffekts</h1>
 <p class="lede">Ich messe, ob es wirklich wirkt — auch wenn das Ergebnis gegen mich ausfällt.</p>
-<p class="status">Stand {{date:2026-10-08}} · Rohdaten noch nicht veröffentlicht · Langfassung folgt · {{todo:Chriso liest gegen und bringt den Text in eigene Worte}}</p>
+<p class="status">Stand {{date:2026-10-08}} · Rohdaten noch nicht veröffentlicht · {{todo:Chriso bringt den Text in eigene Worte und liest die Abschnitte „Wie die Fehler gefunden wurden“ und „Was nach der Reparatur übrig blieb“ selbst gegen die Quellen}}</p>
 
-<h2 id="aufbau">Was ich gemessen habe</h2>
-<p>Im August 2026 habe ich geprüft, ob ein eigener System-Prompt Sprachmodelle auf dem fremden Programmier-Benchmark HumanEval verbessert. Gemessen wurde gepaart, auf zwei offenen Modellen der gpt-oss-Familie. Die Vorhersage für den zweiten Lauf habe ich vorher als Commit festgehalten ({{time:2026-08-28T11:57|11:57 Uhr}}, der Lauf folgte um {{time:2026-08-28T12:25|12:25 Uhr}}, am {{date:2026-08-28}}). Ein Placebo-Arm mit gleich langem Fülltext war gebaut, seine Läufe blieben aber unvollständig ({{fact:case.placebo_runs}} Aufgaben).</p>
+<div class="card">
+<h2 id="kurz">Kurzfassung</h2>
+<p>Im August 2026 habe ich gemessen, ob ein eigener Systemprompt Sprachmodelle auf dem Programmier-Benchmark HumanEval verbessert. Ich habe {{fact:case.registered}} registriert und am selben Tag zurückgenommen, bevor die Zahl nach außen ging. Aus den gespeicherten Antworten lassen sich nur {{fact:case.recomputable}} nachrechnen — die Differenz ist ungeklärt. Nach Reparatur der Auswertung blieben {{fact:case.after_fix}} ({{fact:case.after_fix_p}}) auf Läufen, die weiter ungleich instruiert waren; der Versuch war nicht korrigierbar, nur zu verwerfen. Rohdaten noch nicht veröffentlicht.</p>
+</div>
 
-<h2 id="befund">Was die Prüfung fand</h2>
-<p>Eine Nachprüfung der gespeicherten Antworten und eine gegnerisch angesetzte Prüfrunde meiner eigenen Agenten — nach einer Regel, die ich drei Tage vorher festgelegt hatte — fanden am selben Tag zwei Fehler in meinem Aufbau:</p>
-<ol>
-<li>Die Auswertung nahm den ersten Codeblock einer Antwort. Schrieb ein Modell zuerst eine Formel und dann die Lösung, wurde die Formel bewertet. Dieser Fehler ließ sich reparieren.</li>
-<li>Nur der Arm mit meinem Prompt bekam die Anweisung, ausschließlich im geforderten Format zu antworten. Dieser Fehler steckt in den Läufen selbst; er ließ sich nachträglich nicht reparieren.</li>
-</ol>
-<p>Ich habe {{fact:case.registered}} registriert und am selben Tag zurückgenommen, bevor die Zahl nach außen ging. Aus den gespeicherten Antworten lassen sich nur {{fact:case.recomputable}} nachrechnen — die Differenz ist ungeklärt. Nach Reparatur der Auswertung blieben {{fact:case.after_fix}} ({{fact:case.after_fix_p}}) auf Läufen, die weiter ungleich instruiert waren; der Versuch war nicht korrigierbar, nur zu verwerfen. Rohdaten noch nicht veröffentlicht.</p>
+<h2 id="frage">Die Ausgangsfrage</h2>
+<p>Im August 2026 arbeitete ich an einem Systemprompt, der vor jede Anfrage an ein Sprachmodell einen festen Denk-Rahmen setzt: sechs Arbeitsanweisungen wie „Lies den Auftrag als sein Autor“ oder „Hinterfrage den vorgeschriebenen Weg“. Die These, die sich später als falsch erwies: Dieser Rahmen macht Antworten besser, unabhängig vom Modell.</p>
+<p>Erste Vergleiche, bei denen ein Sprachmodell als Richter zwei Antworten bewertete, sahen gut aus. Richter-Urteile auf selbst geschriebenen Aufgaben sind aber genau das, was ein Gutachter zuerst zerlegt. Deshalb die nächste Frage: Hält der Effekt auf einem fremden Benchmark, den fremde Tests maschinell prüfen?</p>
+
+<h2 id="aufbau">Der Versuchsaufbau</h2>
+<ul>
+<li><strong>Benchmark:</strong> HumanEval mit seinen mitgelieferten Tests, dazu EvalPlus mit verschärften Randfalltests. Datensätze per Hash gepinnt, Stichprobe {{fact:case.sample}} Aufgaben, fester Zufallsstartwert.</li>
+<li><strong>Gepaart:</strong> Arm A ist das nackte Modell, Arm B dasselbe Modell mit Rahmen; gleiche Aufgaben, gleicher Lauf.</li>
+<li><strong>Modelle:</strong> Die Läufe, um die es hier geht, liefen auf zwei offenen Modellen derselben Familie, <code>gpt-oss-120b</code> und <code>gpt-oss-20b</code>.</li>
+<li><strong>Vorher festgelegt:</strong> Unter {{fact:case.completeness_rule}} vollständiger Antwortpaare gilt eine Zelle als „nicht gemessen“ und bekommt keine Zahl. Vor dem zweiten Wiederholungslauf habe ich ein Bestätigungskriterium in die Versionskontrolle geschrieben ({{time:2026-08-28T11:57+02:00|11:57 Uhr}}; der Lauf folgte um {{time:2026-08-28T12:25+02:00|12:25 Uhr}}, am {{date:2026-08-28}}).</li>
+<li><strong>Placebo-Arm (ab dem {{date:2026-08-28}}):</strong> ein Sachtext über Gezeiten, auf die Länge des Rahmens abgestimmt, ohne Anleitungswörter; ein Test prüft das gegen eine Liste verbotener Wörter und prüft gegen, dass dieselbe Liste den echten Rahmen trifft. Seine Läufe blieben unvollständig ({{fact:case.placebo_runs}} Aufgaben) und damit unter der eigenen Vollständigkeitsschwelle.</li>
+</ul>
+<p>Auf dem Papier ein sauberer Aufbau.</p>
+
+<h2 id="ergebnis">Das erste Ergebnis</h2>
+<p>Der erste Lauf am {{date:2026-08-27}} zeigte nichts: Alle Konfidenzintervalle enthielten die Null. Die Diagnose fand eine Ursache. Eine veraltete Modellliste stufte das größere Modell als „klein“ ein, und „klein“ erzwang einen sichtbaren Plan vor der Antwort; einige Antworten mit Rahmen enthielten deshalb gar keinen Code.</p>
+<p>Nach der Reparatur drehte sich das Bild. Drei Wiederholungsläufe am {{date:2026-08-28}} ergaben im Mittel {{fact:case.registered}} für den Rahmen — die Zahl, die ich noch am selben Tag zurückgenommen habe. Das vorab festgelegte Kriterium für den zweiten Lauf war verfehlt, und so habe ich es auch abgerechnet. Der Gesamteindruck blieb trotzdem stark, und der Zwischenstand der unvollständigen Placebo-Läufe schien ihn zu bestätigen. Dazu kam eine Erklärung, die gut klang: Die Antworten mit Rahmen hielten sich an die vorgegebene Funktionssignatur. Auch der Placebo-Zwischenstand und diese Erklärung sind zurückgenommen.</p>
+
+<h2 id="fehler">Wie die Fehler gefunden wurden</h2>
+<p>Am selben Tag lief eine Nachprüfung, ausschließlich auf den gespeicherten Antwortdateien, ohne einen einzigen neuen Modellaufruf. Danach eine Gegenprüfung nach einer Regel, die ich drei Tage vorher festgeschrieben hatte: Bevor eine Zahl nach außen gehen kann, setzen zwei bis drei Prüf-Agenten mit dem Auftrag an, Fehler zu finden. Wer die erste Nachprüfung ausgelöst hat, ist in meinen Unterlagen nicht belegt.</p>
+<h3 id="fehler-1">Erster Fehler: Die Auswertung nahm den ersten Codeblock</h3>
+<p>Meine eigene Auswertung zog vor den fremden Tests den ersten Markdown-Codeblock aus einer Antwort. Das nackte Modell schrieb aber oft mehrere Blöcke, das Modell mit Rahmen fast nie. Typischer Fall: Im ersten Block stand eine Formel als Pseudocode, die eigentliche Lösung im zweiten. Gewertet wurde die Formel. Nimmt man stattdessen den Block mit der geforderten Funktionssignatur, werden {{fact:case.rescued}} Antworten gerettet und keine zerstört, die meisten davon im nackten Arm. Dieser Fehler war reparierbar.</p>
+<h3 id="fehler-2">Zweiter Fehler: Nur ein Arm bekam eine Formatanweisung</h3>
+<p>In der Nacht davor war ein Formatschutz in die Anbindung gekommen, über die der Rahmen eingespielt wurde. Bei maschinell geprüften Anfragen fügte er einen Satz hinzu: „Nothing at all may stand outside the deliverable … Match the requested output format exactly.“ Ausgelöst wurde er über den Schlüssel, mit dem die Messstrecke den Arm mit Rahmen ansprach. Arm B bekam diesen Satz, Arm A keinerlei Formatanweisung. Der Formatschutz selbst war gebaut und getestet; er wirkte nur auf einer Seite. Dieser Fehler steckt in den Läufen selbst und ließ sich nachträglich nicht reparieren. Gefunden hat ihn die Gegenprüfung, nicht ich.</p>
+<p>So erklärt sich der Scheineffekt nach heutigem Stand: Der Arm mit Rahmen schrieb fast immer genau einen Block, und nur er hatte eine Anweisung bekommen, die genau darauf hinausläuft. Die Auswertung verwandelte „ein Block“ in „richtig“. Ein Lauf mit derselben Anweisung in beiden Armen, der die Rolle der Formatanweisung getrennt prüft, fehlt.</p>
+
+<h2 id="danach">Was nach der Reparatur übrig blieb</h2>
+<p>Mit korrekter Code-Extraktion blieb im Mittel über sechs Messungen ein Unterschied von {{fact:case.after_fix}} ({{fact:case.after_fix_p}}); die Konfidenzintervalle enthalten bei beiden Modellen die Null. Diese Läufe waren aber weiter ungleich instruiert — der Versuch ließ sich nicht korrigieren, nur verwerfen. Rohdaten noch nicht veröffentlicht.</p>
+<p>Gegen den Fülltext war nach der Reparatur kein einheitlicher Vorsprung mehr zu sehen: auf einem Modell darunter, auf dem anderen darüber — auf Placebo-Läufen, die unvollständig blieben. Auch der Unterschied in der Signaturtreue schrumpfte auf einen Bruchteil; die Erklärung „hält sich an die Signatur“ ist zurückgezogen. Der Benchmark hatte zu einem großen Teil Antwortformatierung gemessen, nicht Korrektheit.</p>
 
 <h2 id="unerklaert">Was ich nicht erklären kann</h2>
-<p>Die registrierte und zurückgenommene Zahl ({{fact:case.registered}}) lässt sich aus den gespeicherten Antworten nicht exakt nachrechnen; dort ergeben sich {{fact:case.recomputable}}. Woher die Differenz kommt, weiß ich nicht. Ich nenne sie trotzdem, weil eine Fallstudie über Messfehler sonst selbst einen verschweigen würde.</p>
+<p>Die registrierte und zurückgenommene Zahl ({{fact:case.registered}}) lässt sich aus den gespeicherten Antworten nicht exakt nachrechnen. Die unveränderte Auswertung liefert auf denselben Dateien {{fact:case.recomputable}}, bestätigt durch zwei unabhängige Rechnungen. Woher die Differenz kommt, weiß ich nicht. Ich nenne sie trotzdem, weil eine Fallstudie über Messfehler sonst selbst einen verschweigen würde.</p>
 
 <h2 id="laenge">Der zweite Scheineffekt: Länge statt Qualität</h2>
-<p>Frühere Vergleiche in meinen Evals hatte ein KI-Richter bewertet. Eine Nachprüfung zeigte, dass dieser Richter meist die längere Antwort wählte: In einer eigenen Nachrechnung aus den Rohdaten gewinnt die längere Antwort {{fact:case.length_bias}} der Vergleiche. Ob der Richter Länge belohnt oder die längeren Antworten wirklich besser waren, ist offen. Die mit diesem Richter gemessenen Vorteile habe ich zurückgenommen. Rohdaten noch nicht veröffentlicht.</p>
+<p>Die früheren Vergleiche hatte ein KI-Richter bewertet. Die Nachprüfung zeigte, dass dieser Richter überwiegend die längere Antwort wählte. In einer eigenen Nachrechnung aus den gespeicherten Rohurteilen gewinnt die längere Antwort {{fact:case.length_bias}} der Vergleiche. Ob der Richter Länge belohnt oder ob die längeren Antworten wirklich besser waren, ist nicht getrennt. Als Beleg taugen die mit diesem Richter gemessenen Vorteile damit nicht mehr; ich habe sie zurückgenommen. Rohdaten noch nicht veröffentlicht.</p>
+
+<h2 id="regeln">Wie man prüft, ob eine KI-Verbesserung echt ist</h2>
+<p>Fünf Regeln für Teams, die Prompts, Skills oder Agenten einführen:</p>
+<ol>
+<li><strong>Gegen gleich viel Text messen, nicht gegen nichts.</strong> Eine Fassung gleicher Länge ohne Anleitung ist der faire Nullpunkt. Wer nur gegen „nichts“ misst, schreibt einen bloßen Kontexteffekt der eigenen Anleitung gut.</li>
+<li><strong>Gleichbehandlung am Draht prüfen.</strong> Die tatsächlich gesendeten Anfragen beider Varianten Byte für Byte vergleichen. Eine Schutzschicht, ein Schalter, ein Schlüssel: Alles, was nur eine Seite erreicht, wird mitgemessen.</li>
+<li><strong>Die Auswertung prüfen wie den Prüfling.</strong> Antworten, die als falsch gewertet wurden, selbst lesen. Der Codeblock-Fehler stand die ganze Zeit in den Dateien; sichtbar wurde er erst, als jemand die Antworten las statt nur die Trefferquote.</li>
+<li><strong>Schwellen vorher festlegen, Rohdaten aufbewahren.</strong> Kriterien und Vorhersagen vor den Daten versionieren, jede Rohantwort als Datei sichern. Die Fehler ließen sich ohne neuen Modellaufruf finden, weil alles auf der Platte lag.</li>
+<li><strong>Vor jeder Zahl nach außen eine zweite Instanz mit dem Auftrag „finde den Fehler“.</strong> Wer den Versuch gebaut hat, sieht die eigene Annahme nicht. Hier fand die Gegenprüfung den schwersten Fehler, nicht der Autor des Versuchs.</li>
+</ol>
+<p>Für ein Team, das Skills in einem eigenen Repository pflegt, heißt das praktisch: Jede Änderung an einem Skill läuft gegen eine feste Aufgabenliste, gegen die alte Fassung und gegen eine gleich lange Leerfassung; geprüft wird mechanisch, wo immer es geht, und das Ergebnis wird mit dem Commit versioniert.</p>
+
+<h2 id="folgen">Was daraus entstanden ist</h2>
+<ul>
+<li><strong>Eine Sperre mit Widerrufsliste:</strong> eine Sperrdatei und eine maschinenlesbare Liste, welche Zahlen gesperrt oder zurückgenommen sind — angelegt am {{date:2026-08-28}}, noch nicht in einem öffentlichen Repository.</li>
+<li><strong>Messregeln:</strong> Form ist der gefährlichste Störfaktor, also Extraktion und Bewertung gegen Länge und Format härten; Gleichbehandlung am Draht beweisen statt im Code annehmen; Eigenstreuung zuerst messen — ein unveränderter Arm schwankte zwischen zwei Läufen um bis zu {{fact:case.self_variance}} (noch mit der fehlerhaften Extraktion gemessen).</li>
+<li><strong>Folgemessungen nach diesem Muster:</strong> ohne KI-Richter, mit Fülltext als Nullpunkt, Schwellen vorab. Beim Faktencheck dieser Fallstudie fiel auf, dass der Fülltext in einer dieser Messungen nur gut halb so lang war wie der Rahmen — die erste Regel war dort also selbst nicht erfüllt. Ihre Ergebnisse sind noch nicht aufbereitet veröffentlicht.</li>
+<li><strong>Eine Produktentscheidung:</strong> Die Prämisse „ein fester Rahmen, der bei jedem Modell und jeder Aufgabe hilft“ ist im Projekt als durch eigene Daten widerlegt festgeschrieben.</li>
+</ul>
+<p>Derselbe Gedanke steckt in zwei kleinen Werkzeugen aus dem Juli: <a href="/projekte/#postcondition-mcp">postcondition-mcp</a> prüft nach einer Agenten-Aktion unabhängig, ob sich die Welt wirklich verändert hat; <a href="/projekte/#behaviorlock">behaviorlock</a> vergleicht Agentenverhalten vor und nach einem Modell- oder Prompt-Wechsel. Erfolg wird nicht behauptet, sondern gegen einen beobachtbaren Zustand geprüft.</p>
 
 <h2 id="grenzen">Was diese Fallstudie nicht zeigt</h2>
 <div class="limits">
 <ul>
-<li>Der Versuch war nicht als Ganzes vorab registriert; vorab festgehalten war nur die Vorhersage für den zweiten Lauf.</li>
-<li>Gemessen wurde auf zwei offenen Modellen derselben Familie.</li>
-<li>Der p-Wert stammt aus einem Vorzeichentest über abhängige Läufe und ist entsprechend schwach.</li>
-<li>Wer die erste Nachprüfung ausgelöst hat, ist nicht belegt.</li>
-<li>Rohdaten, Sperrdatei und die Liste der zurückgenommenen Zahlen sind noch nicht veröffentlicht.</li>
+<li>Die Rohdaten der HumanEval-Läufe, die Sperrdatei und die Widerrufsliste liegen lokal und sind nicht veröffentlicht. Die Zahlen auf dieser Seite sind von außen bisher nicht nachprüfbar.</li>
+<li>Kleine Stichprobe, zwei offene Modelle derselben Familie. Der Versuch war als Ganzes nicht präregistriert; vorab festgelegt waren nur die Vollständigkeitsregel und das Kriterium für den zweiten Lauf. Die Läufe waren Gegenproben nach Reparaturen.</li>
+<li>Die Intervallmethode der Messstrecke war zu eng, weil sie auf die abweichenden Paare bedingte; korrekte Intervalle wären breiter. Der p-Wert stammt aus einem Vorzeichentest, der die Läufe als unabhängig behandelt, obwohl sie dieselben Aufgaben teilen — er ist entsprechend schwach.</li>
+<li>Die Placebo-Läufe blieben unvollständig.</li>
+<li>Warum die registrierte Zahl nicht nachrechenbar ist, ist offen. Wer die erste Nachprüfung auslöste, ist nicht belegt.</li>
 </ul>
 </div>
 
-<h2 id="seitdem">Was ich seitdem anders mache</h2>
-<p>Seitdem verlange ich einen Placebo-Arm, prüfe die Auswertung wie den Prüfling und sage, wenn etwas nicht wirkt. Konkret:</p>
-<ul>
-<li>gegen gleich viel Text messen, nicht gegen nichts;</li>
-<li>die tatsächlich gesendeten Anfragen beider Varianten vergleichen;</li>
-<li>als falsch gewertete Antworten selbst lesen;</li>
-<li>vor jeder Zahl nach außen eine Gegenprüfung mit dem Auftrag „finde den Fehler“.</li>
-</ul>
-<p>Umgesetzt mit Claude-Agenten unter meiner Anleitung; den schwersten Fehler fand die Gegenprüfung, nicht ich.</p>
+<h2 id="entstehung">Zur Entstehung</h2>
+<p>Messstrecke, Auswertungen und die meisten Arbeitsdokumente sind mit Claude-Agenten (Claude Code) entstanden, die ich geführt habe. Ich habe die Fragen gestellt, die Regeln gesetzt und die Entscheidungen getroffen; die Agenten haben gebaut, gerechnet und, unter diesen Regeln, auch den schwersten Fehler gefunden. Dieser Text wurde mit Claude entworfen und in einem getrennten Faktencheck — ebenfalls durch einen Claude-Agenten — gegen die Quellen geprüft.</p>
 
-<h2 id="fundstellen">Fundstellen</h2>
-<p>Methode und Auswertungscode liegen in einem noch nicht öffentlichen Repository; die Rohdaten sind noch nicht veröffentlicht. {{todo:Link auf Langfassung und Eval-Repository, sobald T-Eval-Repo erfüllt ist}}</p>
+<h2 id="quellen">Fundstellen</h2>
+<p>Jede Zahl auf dieser Seite steht mit Quelle und Prüfdatum in <a href="/facts.json">facts.json</a>. Die Quellen dahinter und ihr Stand:</p>
+<ul>
+<li>Ergebnisdateien der Läufe und Placebo-Läufe, gespeicherte Modellantworten — lokal, nicht veröffentlicht.</li>
+<li>Auswertungscode (Extraktion) und Messstrecke (Anbindung mit Formatschutz) — in einem nicht öffentlichen Repository.</li>
+<li>Commits mit Vorhersage und Ergebnis vom {{date:2026-08-28}} — im selben nicht öffentlichen Repository.</li>
+<li>Sperrdatei mit Widerrufsliste vom {{date:2026-08-28}} — lokal, nicht veröffentlicht.</li>
+<li>Rohurteile des KI-Richters für die Längen-Nachrechnung — lokal, nicht veröffentlicht.</li>
+</ul>
+<p>{{todo:Link auf das Eval-Repository mit Rohdaten (oder ausdrücklich „Methode ohne Rohdaten“), sobald T-Eval-Repo erfüllt ist}}</p>
+<p>Wenn Sie jemanden suchen, der so misst: <a href="/arbeitgeber/">Anstellung: Nachweise</a>.</p>
 </article>

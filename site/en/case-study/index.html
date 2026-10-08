@@ -36,51 +36,97 @@
 </div></header>
 <main id="inhalt"><div class="wrap">
 <article class="prose">
-<p class="eyebrow">Case study · short version</p>
+<p class="eyebrow">Case study</p>
 <h1>Anatomy of a phantom effect</h1>
 <p class="lede">I measure whether it really works — even when the result goes against me.</p>
-<p class="status">As of <time datetime="2026-10-08">8 October 2026</time> · raw data not yet published · long version to follow · <mark class="todo" data-todo="">Chriso reviews and puts this into his own words</mark></p>
+<p class="status">As of <time datetime="2026-10-08">8 October 2026</time> · raw data not yet published · <mark class="todo" data-todo="">Chriso puts the text into his own words and checks the sections “How the flaws were found” and “What was left after the fix” against the sources himself</mark></p>
 
-<h2 id="setup">What I measured</h2>
-<p>In August 2026 I tested whether my own system prompt improves language models on the public HumanEval coding benchmark. The comparison was paired, on two open models from the gpt-oss family. I committed the prediction for the second run beforehand (<time datetime="2026-08-28T11:57">11:57</time>, the run followed at <time datetime="2026-08-28T12:25">12:25</time>, on <time datetime="2026-08-28">28 August 2026</time>). A placebo arm with equal-length filler text was built, but its runs stayed incomplete (<data value="19/30, 26/30" data-fact="case.placebo_runs">19 and 26 of 30 each</data> tasks).</p>
+<div class="card">
+<h2 id="summary">Summary</h2>
+<p>In August 2026 I measured whether my own system prompt improves language models on the HumanEval coding benchmark. I registered <data value="+17.8" data-fact="case.registered">+17.8 percentage points</data> and withdrew them the same day, before the number left the project. From the stored answers only <data value="+15.6" data-fact="case.recomputable">+15.6</data> can be recomputed — the difference is unexplained. After fixing the grader, <data value="+3.3" data-fact="case.after_fix">+3.3</data> remained (<data value="0.375" data-fact="case.after_fix_p">p = 0.375</data>) on runs that were still unequally instructed; the experiment could not be corrected, only discarded. Raw data not yet published.</p>
+</div>
 
-<h2 id="findings">What the review found</h2>
-<p>An audit of the stored answers and an adversarial review round of my own agents — following a rule I had set three days earlier — found two flaws in my setup the same day:</p>
-<ol>
-<li>The grader took the first code block of an answer. When a model wrote a formula first and the solution second, the formula was graded. This flaw was fixable.</li>
-<li>Only the arm with my prompt was told to answer strictly in the required format. This flaw is in the runs themselves; it could not be fixed afterwards.</li>
-</ol>
-<p>I registered <data value="+17.8" data-fact="case.registered">+17.8 percentage points</data> and withdrew them the same day, before the number left the project. From the stored answers only <data value="+15.6" data-fact="case.recomputable">+15.6</data> can be recomputed — the difference is unexplained. After fixing the grader, <data value="+3.3" data-fact="case.after_fix">+3.3</data> remained (<data value="0.375" data-fact="case.after_fix_p">p = 0.375</data>) on runs that were still unequally instructed; the experiment could not be corrected, only discarded. Raw data not yet published.</p>
+<h2 id="question">The question</h2>
+<p>In August 2026 I was working on a system prompt that puts a fixed thinking frame in front of every request to a language model: six working instructions such as “reread the request as its author” or “challenge the prescribed path”. The hypothesis, which later turned out to be wrong: the frame makes answers better, regardless of the model.</p>
+<p>Early comparisons in which a language model judged pairs of answers looked good. But judge verdicts on self-written tasks are the first thing a reviewer takes apart. So the next question: does the effect hold on someone else's benchmark, graded mechanically by someone else's tests?</p>
+
+<h2 id="setup">The setup</h2>
+<ul>
+<li><strong>Benchmark:</strong> HumanEval with its own tests, plus EvalPlus with stricter edge-case tests. Datasets pinned by hash, a sample of <data value="30/164" data-fact="case.sample">30 of 164</data> tasks, fixed random seed.</li>
+<li><strong>Paired:</strong> arm A is the bare model, arm B the same model with the frame; same tasks, same run.</li>
+<li><strong>Models:</strong> the runs discussed here used two open models from the same family, <code>gpt-oss-120b</code> and <code>gpt-oss-20b</code>.</li>
+<li><strong>Fixed in advance:</strong> below <data value="90 %" data-fact="case.completeness_rule">90 %</data> complete answer pairs, a cell counts as “not measured” and gets no number. Before the second repeat run I committed a confirmation criterion to version control (<time datetime="2026-08-28T11:57+02:00">11:57</time>; the run followed at <time datetime="2026-08-28T12:25+02:00">12:25</time>, on <time datetime="2026-08-28">28 August 2026</time>).</li>
+<li><strong>Placebo arm (from <time datetime="2026-08-28">28 August 2026</time>):</strong> factual text about ocean tides, matched to the length of the frame, without instruction words; a test checks this against a list of forbidden words and cross-checks that the same list does hit the real frame. Its runs stayed incomplete (<data value="19/30, 26/30" data-fact="case.placebo_runs">19 and 26 of 30 each</data> tasks) and therefore below the project's own completeness threshold.</li>
+</ul>
+<p>On paper, a clean setup.</p>
+
+<h2 id="first-result">The first result</h2>
+<p>The first run on <time datetime="2026-08-27">27 August 2026</time> showed nothing: every confidence interval contained zero. The diagnosis found a cause. An outdated model list classified the larger model as “small”, and “small” forced a visible plan before the answer; some answers with the frame therefore contained no code at all.</p>
+<p>After the fix the picture flipped. Three repeat runs on <time datetime="2026-08-28">28 August 2026</time> averaged <data value="+17.8" data-fact="case.registered">+17.8 percentage points</data> for the frame — the number I withdrew the same day. The criterion fixed in advance for the second run was missed, and I recorded it as missed. The overall impression stayed strong anyway, and the interim state of the incomplete placebo runs seemed to confirm it. On top came an explanation that sounded good: answers with the frame stuck to the required function signature. The placebo interim state and this explanation are withdrawn too.</p>
+
+<h2 id="flaws">How the flaws were found</h2>
+<p>The same day, an audit ran on the stored answer files only, without a single new model call. After that came a counter-check under a rule I had written down three days earlier: before any number can leave the project, two or three review agents are set on it with the job of finding errors. Who triggered the first audit is not documented in my records.</p>
+<h3 id="flaw-1">First flaw: the grader took the first code block</h3>
+<p>My own grading code pulled the first Markdown code block out of an answer before running someone else's tests. The bare model, however, often wrote several blocks; the model with the frame almost never did. Typical case: the first block held a formula as pseudocode, the actual solution came in the second. The formula got graded. Taking the block with the required function signature instead rescues <data value="36" data-fact="case.rescued">36</data> answers and breaks none, most of them in the bare arm. This flaw was fixable.</p>
+<h3 id="flaw-2">Second flaw: only one arm got a format instruction</h3>
+<p>The night before, a format guard had been added to the connection that injected the frame. For mechanically graded requests it added one sentence: “Nothing at all may stand outside the deliverable … Match the requested output format exactly.” It was triggered by the key the test harness used for the framed arm. Arm B got this sentence, arm A no format instruction at all. The format guard itself was built and tested; it simply acted on one side only. This flaw is in the runs themselves and could not be fixed afterwards. The counter-check found it, not I.</p>
+<p>That is how the phantom effect is explained as of today: the framed arm almost always wrote exactly one block, and only it had received an instruction that amounts to exactly that. The grader turned “one block” into “correct”. A run with the same instruction in both arms, which would test the role of the format instruction separately, is missing.</p>
+
+<h2 id="after-fix">What was left after the fix</h2>
+<p>With correct code extraction, the mean over six measurements was a difference of <data value="+3.3" data-fact="case.after_fix">+3.3</data> (<data value="0.375" data-fact="case.after_fix_p">p = 0.375</data>); the confidence intervals contain zero for both models. These runs were still unequally instructed, though — the experiment could not be corrected, only discarded. Raw data not yet published.</p>
+<p>Against the filler text, no consistent lead was left after the fix: below on one model, above on the other — on placebo runs that stayed incomplete. The difference in signature adherence shrank to a fraction as well; the explanation “sticks to the signature” is withdrawn. The benchmark had largely measured answer formatting, not correctness.</p>
 
 <h2 id="unexplained">What I cannot explain</h2>
-<p>The registered and withdrawn number (<data value="+17.8" data-fact="case.registered">+17.8 percentage points</data>) cannot be recomputed exactly from the stored answers; they give <data value="+15.6" data-fact="case.recomputable">+15.6</data>. I do not know where the difference comes from. I state it anyway, because a case study about measurement errors would otherwise hide one itself.</p>
+<p>The registered and withdrawn number (<data value="+17.8" data-fact="case.registered">+17.8 percentage points</data>) cannot be recomputed exactly from the stored answers. The unchanged grader gives <data value="+15.6" data-fact="case.recomputable">+15.6</data> on the same files, confirmed by two independent calculations. I do not know where the difference comes from. I state it anyway, because a case study about measurement errors would otherwise hide one itself.</p>
 
 <h2 id="length">The second phantom effect: length instead of quality</h2>
-<p>Earlier comparisons in my evals had been scored by an AI judge. An audit showed that this judge mostly picked the longer answer: in a recomputation from the raw data, the longer answer wins <data value="71.0 %" data-fact="case.length_bias">71.0 %</data> of the comparisons. Whether the judge rewards length or the longer answers really were better is open. I withdrew the advantages measured with this judge. Raw data not yet published.</p>
+<p>The earlier comparisons had been scored by an AI judge. The audit showed that this judge mostly picked the longer answer. In a separate recalculation from the stored raw verdicts, the longer answer wins <data value="71.0 %" data-fact="case.length_bias">71.0 %</data> of the comparisons. Whether the judge rewards length or the longer answers really were better has not been separated. The advantages measured with this judge therefore no longer count as evidence; I withdrew them. Raw data not yet published.</p>
+
+<h2 id="rules">How to check whether an AI improvement is real</h2>
+<p>Five rules for teams that introduce prompts, skills or agents:</p>
+<ol>
+<li><strong>Measure against the same amount of text, not against nothing.</strong> A version of equal length without instructions is the fair zero point. Measuring only against “nothing” credits a plain context effect to your instructions.</li>
+<li><strong>Verify equal treatment on the wire.</strong> Compare the requests both variants actually send, byte for byte. A guard layer, a flag, a key: anything that reaches only one side gets measured along with it.</li>
+<li><strong>Test the grader as hard as the candidate.</strong> Read the answers that were marked wrong yourself. The code-block flaw sat in the files all along; it only became visible when someone read the answers instead of just the hit rate.</li>
+<li><strong>Fix thresholds in advance, keep the raw data.</strong> Version criteria and predictions before the data, save every raw answer as a file. The flaws could be found without a new model call because everything was on disk.</li>
+<li><strong>Before any number goes out, a second instance whose job is “find the error”.</strong> Whoever built the experiment does not see their own assumption. Here the counter-check found the worst flaw, not the author of the experiment.</li>
+</ol>
+<p>For a team that maintains skills in its own repository, that means in practice: every change to a skill runs against a fixed task list, against the old version and against an equally long blank version; checks are mechanical wherever possible, and the result is versioned with the commit.</p>
+
+<h2 id="since">What came out of it</h2>
+<ul>
+<li><strong>A lock with a withdrawal list:</strong> a lock file and a machine-readable list of which numbers are locked or withdrawn — created on <time datetime="2026-08-28">28 August 2026</time>, not yet in a public repository.</li>
+<li><strong>Measurement rules:</strong> form is the most dangerous confounder, so harden extraction and grading against length and format; prove equal treatment on the wire instead of assuming it in code; measure your own noise first — an unchanged arm varied by up to <data value="16.7" data-fact="case.self_variance">16.7 percentage points</data> between two runs (still measured with the faulty extraction).</li>
+<li><strong>Follow-up measurements on this pattern:</strong> no AI judge, filler text as the zero point, thresholds in advance. The fact-check of this case study found that in one of them the filler text was only a little over half as long as the frame — so the first rule was not met there either. Their results are not yet published in prepared form.</li>
+<li><strong>A product decision:</strong> the premise “one fixed frame that helps every model on every task” is recorded in the project as refuted by its own data.</li>
+</ul>
+<p>The same idea sits in two small tools from July: <a href="/en/projects/#postcondition-mcp">postcondition-mcp</a> checks independently, after an agent action, whether the world really changed; <a href="/en/projects/#behaviorlock">behaviorlock</a> compares agent behaviour before and after a model or prompt change. Success is not claimed but checked against an observable state.</p>
 
 <h2 id="limits">What this case study does not show</h2>
 <div class="limits">
 <ul>
-<li>The experiment was not pre-registered as a whole; only the prediction for the second run was fixed in advance.</li>
-<li>It ran on two open models from the same family.</li>
-<li>The p-value comes from a sign test over dependent runs and is correspondingly weak.</li>
-<li>Who triggered the first audit is not documented.</li>
-<li>Raw data, the lock file and the list of withdrawn numbers are not yet published.</li>
+<li>The raw data of the HumanEval runs, the lock file and the withdrawal list are stored locally and not published. The numbers on this page cannot yet be checked from outside.</li>
+<li>Small sample, two open models from the same family. The experiment as a whole was not pre-registered; only the completeness rule and the criterion for the second run were fixed in advance. The runs were re-checks after repairs.</li>
+<li>The harness's interval method was too narrow because it conditioned on the discordant pairs; correct intervals would be wider. The p-value comes from a sign test that treats the runs as independent although they share the same tasks — it is correspondingly weak.</li>
+<li>The placebo runs stayed incomplete.</li>
+<li>Why the registered number cannot be recomputed is open. Who triggered the first audit is not documented.</li>
 </ul>
 </div>
 
-<h2 id="since">What I do differently since</h2>
-<p>Since then I require a placebo arm, test the grader as hard as the candidate, and say when something does not work. In practice:</p>
-<ul>
-<li>measure against the same amount of text, not against nothing;</li>
-<li>diff the requests both variants actually send;</li>
-<li>read the answers that were marked wrong;</li>
-<li>before any number leaves the project, a counter-check whose only job is “find the error”.</li>
-</ul>
-<p>Built with Claude agents under my direction; the worst flaw was found by the counter-check, not by me.</p>
+<h2 id="origin">How this was made</h2>
+<p>The test harness, the analyses and most working documents were built with Claude agents (Claude Code) under my direction. I asked the questions, set the rules and made the decisions; the agents built, calculated and, under those rules, also found the worst flaw. This text was drafted with Claude and checked against the sources in a separate fact-check — also by a Claude agent.</p>
 
 <h2 id="sources">Sources</h2>
-<p>Method and grading code are in a repository that is not yet public; the raw data are not yet published. <mark class="todo" data-todo="">link to the long version and the eval repository once T-Eval-Repo is met</mark></p>
+<p>Every number on this page is listed with its source and verification date in <a href="/facts.json">facts.json</a>. The sources behind them and their status:</p>
+<ul>
+<li>Result files of the runs and placebo runs, stored model answers — local, not published.</li>
+<li>Grading code (extraction) and test harness (connection with the format guard) — in a non-public repository.</li>
+<li>Commits with the prediction and the result from <time datetime="2026-08-28">28 August 2026</time> — in the same non-public repository.</li>
+<li>Lock file with withdrawal list from <time datetime="2026-08-28">28 August 2026</time> — local, not published.</li>
+<li>Raw verdicts of the AI judge for the length recalculation — local, not published.</li>
+</ul>
+<p><mark class="todo" data-todo="">link to the eval repository with raw data (or explicitly “method without raw data”) once T-Eval-Repo is met</mark></p>
+<p>If you are looking for someone who measures like this: <a href="/en/hire/">Hiring me: evidence</a>.</p>
 </article>
 </div></main>
 <footer class="site-footer"><div class="wrap">
