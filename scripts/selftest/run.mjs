@@ -117,6 +117,11 @@ const CASES = [
   ["STAGE1-commercial", (fx) => inject(fx, "ueber-mich/index.html", "<p>Workshops ab sofort buchbar.</p>")],
   ["STAGE1-commercial", (fx) => inject(fx, "en/about/index.html", "<p>Day rate on request.</p>")],
   ["STAGE1-commercial", (fx) => fx.write("workshops/index.html", fx.read("kontakt/index.html")), { expect: /Workshop-Seite/ }],
+  // Stufe 1 auch dort, wo Suchtreffer und Link-Vorschauen den Text zeigen (Gegenpruefung 2026-10-08)
+  ["STAGE1-commercial", (fx) => fx.write("ueber-mich/index.html", fx.read("ueber-mich/index.html").replace(/(<meta name="description" content="[^"]*)"/, "$1 Workshops für Teams buchen.\"")), { where: /\[meta description\]/ }],
+  ["STAGE1-commercial", (fx) => fx.write("ueber-mich/index.html", fx.read("ueber-mich/index.html").replace(/(<meta property="og:title" content=")/, "$1Workshops buchen — ")), { where: /\[meta og:title\]/ }],
+  ["STAGE1-commercial", (fx) => fx.write("en/about/index.html", fx.read("en/about/index.html").replace(/(<meta property="og:description" content=")/, "$1Book a workshop. ")), { where: /\[meta og:description\]/ }],
+  ["STAGE1-commercial", (fx) => inject(fx, "ueber-mich/index.html", '<p><a href="/kontakt/" aria-label="Workshops buchen">Kontakt</a></p>'), { where: /\[aria-label\]/ }],
   ["SD-forbidden", (fx) => fx.edit("index.html", "</head>", '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"x","address":{"@type":"PostalAddress"}}</script>\n</head>')],
   ["SD-forbidden", (fx) => inject(fx, "index.html", '<div itemscope itemtype="https://schema.org/Offer"><span itemprop="price">1</span></div>')],
   ["SD-forbidden", (fx) => fx.edit("index.html", "</head>", '<meta property="business:contact_data:street_address" content="x">\n</head>')],
@@ -187,9 +192,9 @@ for (const [rule, mutate, opts = {}] of CASES) {
   const fx = fixture();
   try {
     mutate(fx);
-    const { expect, ...lintOpts } = opts;
+    const { expect, where, ...lintOpts } = opts;
     const e = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [], ...lintOpts }));
-    const hit = e.find((x) => x.rule === rule && (!expect || expect.test(x.msg)));
+    const hit = e.find((x) => x.rule === rule && (!expect || expect.test(x.msg)) && (!where || where.test(x.where)));
     if (hit) console.log(`  ok    ${rule.padEnd(22)} ausgelöst: ${hit.msg.slice(0, 80)}`);
     else { failed++; console.log(`  FEHLER ${rule.padEnd(21)} NICHT ausgelöst (gefunden: ${[...new Set(e.map((x) => x.rule))].join(", ") || "nichts"})`); }
   } catch (err) {

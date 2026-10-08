@@ -403,6 +403,13 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
 
   // --- Seitenpruefungen -----------------------------------------------------------
   const pageMeta = new Map();
+  // Stufe 1: keine Angebotssprache, keine Preise (Audit T15, § 5 ECG). Gilt fuer alles, was Besucher,
+  // Suchtreffer oder Link-Vorschauen zeigen: Fliesstext, <title>, Meta/OG-Texte und Text-Attribute.
+  const checkStage1 = (text, where) => {
+    if (C.STAGE !== 1 || !text) return;
+    const m = C.STAGE1_COMMERCIAL.exec(collapse(text));
+    if (m) err("STAGE1-commercial", where, `„${m[0]}“ — Stufe 1 ist nicht kommerziell (keine Angebote, Preise, Workshops; § 5 ECG)`);
+  };
   for (const [url, page] of site.pages) {
     const { rel, tokens } = page;
     const meta = { lang: null, title: null, desc: null, canonical: null, robots: "", alts: {}, h1: 0, main: 0, ogImage: null, links: [], headings: [], switches: [] };
@@ -468,8 +475,8 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         if (t.name === "a" && a.href) meta.links.push(a.href);
         if (t.name === "img" && !("alt" in a)) err("A11Y-img-alt", rel, "<img> ohne alt");
         // Attribute mit sichtbarem/teilbarem Text
-        for (const k of ["alt", "title", "aria-label", "placeholder"]) if (a[k]) { checkText(a[k], `${rel} [${k}]`, { pagePath: url, attr: true }); checkNotes([{ text: a[k] }], `${rel} [${k}]`); }
-        if (t.name === "meta" && a.content && /^(description|og:title|og:description|og:image:alt|twitter:)/.test(a.name || a.property || "")) { checkText(a.content, `${rel} [meta ${a.name || a.property}]`, { pagePath: url, attr: true }); checkNotes([{ text: a.content }], `${rel} [meta ${a.name || a.property}]`); }
+        for (const k of ["alt", "title", "aria-label", "placeholder"]) if (a[k]) { checkText(a[k], `${rel} [${k}]`, { pagePath: url, attr: true }); checkNotes([{ text: a[k] }], `${rel} [${k}]`); checkStage1(a[k], `${rel} [${k}]`); }
+        if (t.name === "meta" && a.content && /^(description|og:title|og:description|og:image:alt|og:site_name|twitter:)/.test(a.name || a.property || "")) { const w = `${rel} [meta ${a.name || a.property}]`; checkText(a.content, w, { pagePath: url, attr: true }); checkNotes([{ text: a.content }], w); checkStage1(a.content, w); }
         for (const k of ["href", "src"]) if (a[k]) for (const p of C.PRIVACY) if ((p.id === "whatsapp" || p.id === "tel-link" || p.id === "gmail" || p.id === "telefon") && p.re.test(a[k])) err("TXT-privacy", `${rel} [${k}]`, `Privatdaten-Muster „${p.id}“ in Link (maskiert: ${mask(a[k])})`);
       },
     });
@@ -503,11 +510,8 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     // noindex nur mit Grund; die 404 muss noindex sein (Audit T10/T12)
     if (/noindex/.test(meta.robots) && !C.NOINDEX_ALLOWED[url]) err("HEAD-noindex", rel, "noindex ohne Eintrag in NOINDEX_ALLOWED (Inhaltsseiten sind indexierbar, Audit T12)");
     if (url === "/404.html" && !/noindex/.test(meta.robots)) err("HEAD-noindex", rel, "Fehlerseite ohne noindex (Audit T10)");
-    // Stufe 1: keine Angebotssprache, keine Preise (Audit T15, § 5 ECG)
-    if (C.STAGE === 1) for (const b of textBlocks(tokens)) {
-      const m = C.STAGE1_COMMERCIAL.exec(collapse(b.text));
-      if (m) err("STAGE1-commercial", rel, `„${m[0]}“ — Stufe 1 ist nicht kommerziell (keine Angebote, Preise, Workshops; § 5 ECG)`);
-    }
+    // Stufe 1 im Fliesstext und <title> (Attribute und Meta oben im walk)
+    for (const b of textBlocks(tokens)) checkStage1(b.text, rel);
     if (!meta.ogImage) err("HEAD-og-image", rel, "og:image fehlt");
     else if (!site.files.has(meta.ogImage.replace(C.ORIGIN + "/", ""))) err("HEAD-og-image", rel, `og:image-Datei fehlt: ${meta.ogImage}`);
     // Offene Punkte = OFFEN-Kommentare aus {{todo:}} (Go-live-Tor). Kommentare stehen im ausgelieferten
