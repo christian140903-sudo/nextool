@@ -32,7 +32,14 @@ Node 20 or later, no dependencies.
 npm run build   # regenerate site/ from src/
 npm test        # build check + site linter + linter self-test
 npm run serve   # local preview with _redirects and _headers applied
+npm run test:sw # browser test of the service-worker kill switch (needs Playwright + Chromium; not in CI)
 ```
+
+Until July 2026 earlier pages registered service workers at `/sw.js` and
+`/prep/sw.js`. Both addresses now serve the same kill-switch worker
+(`src/static/sw.js`): it deletes all caches, unregisters itself and reloads
+open tabs. `npm run test:sw` installs the old workers in Chromium, switches to
+the current `site/` and checks that no registration and no cache remain.
 
 ## Photo
 
