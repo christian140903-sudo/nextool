@@ -1,26 +1,15 @@
 # Security policy
 
-## Supported surface
+## Scope
 
-Security and privacy fixes apply to the live `main` branch and the pages served
-at `nextool.app`.
+This repository builds a static website (`site/`). There are no accounts, no
+forms, no scripts and no third-party requests on the published pages. Useful
+reports include: a page loading anything from another origin, a missing or
+weakened security header, personal data published by mistake, and a redirect
+that leads somewhere unexpected.
 
 ## Reporting
 
-Use the repository's private vulnerability reporting feature when available.
-If it is not available, contact the maintainer through the address linked on
-the live site's contact section.
-
-Please include the affected URL or file, a minimal reproduction and the impact.
-Do not include credentials, personal data or sensitive document contents in a
-public GitHub issue.
-
-## Scope
-
-Useful reports include unexpected network transmission, unsafe HTML or script
-injection, sensitive browser storage, insecure random generation, dependency
-loading from an untrusted source and a misleading privacy claim.
-
-The repository is a collection of independent browser pages. A page being
-static does not prove that every feature is offline; some pages intentionally
-use third-party libraries or public APIs.
+Use GitHub's private vulnerability reporting for this repository. If it is not
+available, write to the address on the site's contact page. Please do not put
+personal data or credentials into a public issue.
