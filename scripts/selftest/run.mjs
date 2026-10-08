@@ -171,6 +171,18 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(fx.base, { recursive: true, force: true });
 }
 
+// Kontrolle 5: freigegebene Anschriften und Rechtsverweise gehen auf den Rechtsseiten durch (und stehen dort wirklich)
+{
+  const fx = fixture();
+  const need = [["datenschutz/index.html", "Barichgasse 40–42, 1030 Wien"], ["en/privacy/index.html", "Barichgasse 40–42, 1030 Vienna"], ["datenschutz/index.html", "101 Townsend St, San Francisco, CA 94107"], ["en/privacy/index.html", "Section 165(3)"]];
+  const missing = need.filter(([p, s]) => !fx.read(p).includes(s));
+  const e = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] })).filter((x) => /privacy|NUM-unsourced/.test(x.rule));
+  if (missing.length) { failed++; console.log(`  FEHLER Kontrolle: „${missing[0][1]}“ fehlt auf ${missing[0][0]} — Test prüft nichts`); }
+  else if (e.length) { failed++; console.log(`  FEHLER Kontrolle: freigegebene Anschrift abgelehnt (${e[0].rule}: ${e[0].msg})`); }
+  else console.log("  ok    Kontrolle: DSB- und Cloudflare-Anschrift, Section 165(3) auf den Rechtsseiten erlaubt");
+  rmSync(fx.base, { recursive: true, force: true });
+}
+
 for (const [rule, mutate, opts = {}] of CASES) {
   const fx = fixture();
   try {
@@ -187,5 +199,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 4 - failed} von ${CASES.length + 4} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 5 - failed} von ${CASES.length + 5} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);
