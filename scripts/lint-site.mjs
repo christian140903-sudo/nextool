@@ -9,7 +9,7 @@
 //   Privatdaten-Muster + private Sperrliste (Arbeitgeber, Heimatort; nur per Datei/Secret)
 //   _headers (CSP, HSTS ohne preload …) · _redirects (Syntax, Ziele, keine verdeckten Seiten)
 //   Abdeckung aller Alt-URLs (src/legacy-urls.txt) · Sitemap/robots · Farbkontraste (WCAG AA)
-//   offene Punkte ({{todo}}) · Commit-Nachrichten seit dem Relaunch
+//   offene Punkte (OFFEN-Kommentare aus {{todo}}), sichtbare Notizen/Platzhalter · Commit-Nachrichten
 //
 //   node scripts/lint-site.mjs            normale Pruefung (offene Punkte = Warnung)
 //   node scripts/lint-site.mjs --release  Freigabe: offene Punkte, fehlende private Liste,
@@ -186,6 +186,17 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     privRes.forEach((re, i) => { if (re.test(text)) err("TXT-private", where, `Begriff Nr. ${i + 1} der privaten Sperrliste`); });
   };
 
+  // Sichtbare interne Notizen (immer Fehler) und Ausfuell-Platzhalter (Release: Fehler). parts = [{text, exempt}]
+  const checkNotes = (parts, where) => {
+    const all = parts.map((p) => p.text).join(""), outside = parts.filter((p) => !p.exempt).map((p) => p.text).join("");
+    for (const n of C.NOTE_VISIBLE) {
+      const m = n.re.exec(n.code ? all : outside);
+      if (m) err("NOTE-visible", where, `sichtbare interne Notiz („${n.id}“) — gehört als {{todo:…}} in einen HTML-Kommentar`);
+    }
+    const m = C.PLACEHOLDER.exec(outside);
+    if (m) warn("PLACEHOLDER-open", where, `Platzhalter „${m[0]}“ im sichtbaren Text (Audit T14)`);
+  };
+
   // --- Seiten einlesen --------------------------------------------------------
   const htmlFiles = [...site.files].filter((f) => f.endsWith(".html"));
   for (const rel of htmlFiles) {
@@ -349,7 +360,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   const pageMeta = new Map();
   for (const [url, page] of site.pages) {
     const { rel, tokens } = page;
-    const meta = { lang: null, title: null, desc: null, canonical: null, robots: "", alts: {}, h1: 0, main: 0, ogImage: null, todos: 0, links: [] };
+    const meta = { lang: null, title: null, desc: null, canonical: null, robots: "", alts: {}, h1: 0, main: 0, ogImage: null, links: [] };
     walk(tokens, {
       onStart: (t, stack) => {
         const a = t.attrs;
@@ -362,7 +373,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         if (t.name === "link" && a.rel === "alternate" && a.hreflang) meta.alts[a.hreflang] = a.href;
         if (t.name === "h1") meta.h1++;
         if (t.name === "main") meta.main++;
-        if (t.name === "mark" && "data-todo" in a) meta.todos++;
+        if ("data-todo" in a || /(^|\s)todo(\s|$)/.test(a.class || "")) err("NOTE-visible", rel, `sichtbare OFFEN-Marke <${t.name}> — interne Notizen nur als {{todo:…}} (HTML-Kommentar)`);
         if (t.name === "script") err("SEC-inline-script", rel, "<script> ist verboten (CSP script-src 'none')");
         if (t.name === "style") err("SEC-inline-style", rel, "<style> ist verboten (CSP style-src 'self')");
         if (["iframe", "object", "embed", "form", "frame", "applet"].includes(t.name)) err("SEC-embed", rel, `<${t.name}> ist nicht erlaubt`);
@@ -388,8 +399,8 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         if (t.name === "a" && a.href) meta.links.push(a.href);
         if (t.name === "img" && !("alt" in a)) err("A11Y-img-alt", rel, "<img> ohne alt");
         // Attribute mit sichtbarem/teilbarem Text
-        for (const k of ["alt", "title", "aria-label", "placeholder"]) if (a[k]) checkText(a[k], `${rel} [${k}]`, { pagePath: url, attr: true });
-        if (t.name === "meta" && a.content && /^(description|og:title|og:description|og:image:alt|twitter:)/.test(a.name || a.property || "")) checkText(a.content, `${rel} [meta ${a.name || a.property}]`, { pagePath: url, attr: true });
+        for (const k of ["alt", "title", "aria-label", "placeholder"]) if (a[k]) { checkText(a[k], `${rel} [${k}]`, { pagePath: url, attr: true }); checkNotes([{ text: a[k] }], `${rel} [${k}]`); }
+        if (t.name === "meta" && a.content && /^(description|og:title|og:description|og:image:alt|twitter:)/.test(a.name || a.property || "")) { checkText(a.content, `${rel} [meta ${a.name || a.property}]`, { pagePath: url, attr: true }); checkNotes([{ text: a.content }], `${rel} [meta ${a.name || a.property}]`); }
         for (const k of ["href", "src"]) if (a[k]) for (const p of C.PRIVACY) if ((p.id === "whatsapp" || p.id === "tel-link" || p.id === "gmail" || p.id === "telefon") && p.re.test(a[k])) err("TXT-privacy", `${rel} [${k}]`, `Privatdaten-Muster „${p.id}“ in Link (maskiert: ${mask(a[k])})`);
       },
     });
@@ -410,7 +421,12 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     if (meta.main !== 1) err("HEAD-main", rel, "genau ein <main> nötig");
     if (!meta.ogImage) err("HEAD-og-image", rel, "og:image fehlt");
     else if (!site.files.has(meta.ogImage.replace(C.ORIGIN + "/", ""))) err("HEAD-og-image", rel, `og:image-Datei fehlt: ${meta.ogImage}`);
-    if (meta.todos) warn("TODO-open", rel, `${meta.todos} offene Punkte ({{todo}})`);
+    // Offene Punkte = OFFEN-Kommentare aus {{todo:}} (Go-live-Tor). Kommentare stehen im ausgelieferten
+    // Quelltext, deshalb gelten fuer sie die Regeln wie fuer Commit-Nachrichten (Privatdaten, Zahlen, Sperrliste "all").
+    const comments = tokens.filter((t) => t.type === "comment");
+    for (const c of comments) checkText(collapse(c.text), `${rel} [Kommentar]`, { scope: "all" });
+    const offen = comments.filter((c) => /^\s*OFFEN:/.test(c.text)).length;
+    if (offen) warn("TODO-open", rel, `${offen} offene Punkte (OFFEN-Kommentare aus {{todo:}})`);
 
     // Sprachpaare
     if (C.PAIR_EXEMPT[url]) {
@@ -465,7 +481,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   for (const [url, page] of site.pages) {
     const { rel, tokens } = page;
     const lang = pageMeta.get(url)?.lang;
-    for (const b of textBlocks(tokens)) checkText(collapse(b.text), rel, { pagePath: url });
+    for (const b of textBlocks(tokens)) { checkText(collapse(b.text), rel, { pagePath: url }); checkNotes(b.parts, rel); }
 
     // Fakten
     let factCount = 0;

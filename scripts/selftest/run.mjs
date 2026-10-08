@@ -87,6 +87,14 @@ const CASES = [
   ["STRUCT-script-file", (fx) => fx.write("assets/app.js", "void 0;")],
   ["REDIR-shadow", (fx) => fx.write("_redirects", fx.read("_redirects") + "\n/prep/*   /   301\n")],
   ["SEC-sw-register", (fx) => inject(fx, "index.html", "<p>navigator.serviceWorker.register('/sw.js')</p>")],
+  // Interne Notizen / Platzhalter (Nachbesserung 11, Audit T14)
+  ["NOTE-visible", (fx) => inject(fx, "impressum/index.html", "<p>Chriso bestätigt die Namensform.</p>"), { expect: /„Chriso“/ }],
+  ["NOTE-visible", (fx) => inject(fx, "index.html", '<p><mark class="todo" data-todo="">Link fehlt</mark></p>'), { expect: /OFFEN-Marke/ }],
+  ["NOTE-visible", (fx) => inject(fx, "index.html", "<p>Stand: {{Datum}}</p>"), { expect: /„\{\{…\}\}“/ }],
+  ["NOTE-visible", (fx) => inject(fx, "index.html", '<p title="TODO: Text kürzen">x</p>'), { expect: /TODO/ }],
+  ["PLACEHOLDER-open", (fx) => inject(fx, "arbeitgeber/index.html", "<p>Verfügbar ab [Datum].</p>"), { release: true }],
+  ["TXT-private", (fx) => inject(fx, "index.html", "<!--OFFEN: früher bei Beispielfirma-->"), { privateTerms: ["Beispielfirma"], expect: /Nr\. 1/ }],
+  ["TXT-revoked", (fx) => inject(fx, "index.html", "<!--OFFEN: alter Wert 70,4 %-->")],
 ];
 
 let failed = 0;
@@ -122,6 +130,16 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(fx.base, { recursive: true, force: true });
 }
 
+// Kontrolle 4: erlaubte Klammern — Auslassung „[…]“ im Zitat, <url> und {{ }} in Code — auch im Release-Modus
+{
+  const fx = fixture();
+  inject(fx, "en/case-study/index.html", "<p>He wrote: “[…] it held”.</p><p><code>git clone &lt;url&gt;</code> <code>${{ secrets.X }}</code></p>");
+  const f = lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [], release: true }).filter((x) => x.rule === "PLACEHOLDER-open" || x.rule === "NOTE-visible");
+  if (f.length) { failed++; console.log(`  FEHLER Kontrolle: erlaubte Klammern abgelehnt (${f[0].rule}: ${f[0].msg})`); }
+  else console.log("  ok    Kontrolle: „[…]“, <url> und {{ }} in Code bleiben erlaubt");
+  rmSync(fx.base, { recursive: true, force: true });
+}
+
 for (const [rule, mutate, opts = {}] of CASES) {
   const fx = fixture();
   try {
@@ -138,5 +156,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 3 - failed} von ${CASES.length + 3} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 4 - failed} von ${CASES.length + 4} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);

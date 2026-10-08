@@ -142,8 +142,22 @@ function renderFact(key, lang, facts) {
   return `<data value="${esc(f.value)}" data-fact="${esc(key)}">${esc(display)}</data>`;
 }
 
+// Interne Notiz / offener Punkt (OFFEN-Mechanik): {{todo:Text}} wird ein HTML-Kommentar
+// <!--OFFEN: Text-->, nie sichtbarer Text (Nachbesserung 11: interne Hinweise gehoeren nicht auf
+// die Seite). Der Linter zaehlt diese Kommentare; im Release-Modus ist jeder ein Fehler (Go-live-Tor).
+// Text, der den Kommentar vorzeitig beenden oder verschachteln koennte, bricht den Build ab.
+export function offenComment(text, where = "") {
+  const t = text.trim();
+  if (!t) throw new Error(`${where}: leerer {{todo:}}`);
+  if (/--|<!-|-$/.test(t)) throw new Error(`${where}: {{todo:…}} darf weder "--" noch "<!-" enthalten noch auf "-" enden (HTML-Kommentar): ${t.slice(0, 60)}`);
+  return `<!--OFFEN: ${t}-->`;
+}
+// Absaetze, die nach dem Umwandeln nur noch aus OFFEN-Kommentaren bestehen, faellt der leere Rahmen weg.
+const EMPTY_P = /<p(?:\s[^>]*)?>((?:\s*<!--OFFEN: [\s\S]*?-->)+)\s*<\/p>/g;
+
 function expand(body, page, ctx) {
   const lang = page.meta.lang;
+  const where = relative(ROOT, page.file);
   return body.replace(/\{\{([a-z]+)(?::([^}]*))?\}\}/g, (m, kind, arg = "") => {
     switch (kind) {
       case "fact": return renderFact(arg.trim(), lang, ctx.facts);
@@ -153,12 +167,12 @@ function expand(body, page, ctx) {
         if (!iso || !label) throw new Error(`{{time:ISO|Text}} erwartet, gefunden ${m}`);
         return `<time datetime="${esc(iso)}">${esc(label)}</time>`;
       }
-      case "todo": return `<mark class="todo" data-todo="">${arg}</mark>`;
+      case "todo": return offenComment(arg, where);
       case "email": return `<a href="mailto:${esc(ctx.site.email)}">${esc(ctx.site.email)}</a>`;
       case "photo": return renderPhoto(arg.trim(), ctx);
-      default: throw new Error(`${relative(ROOT, page.file)}: unbekannter Platzhalter ${m}`);
+      default: throw new Error(`${where}: unbekannter Platzhalter ${m}`);
     }
-  });
+  }).replace(EMPTY_P, "$1");
 }
 
 function outPath(urlPath) {

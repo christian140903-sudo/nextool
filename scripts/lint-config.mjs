@@ -131,6 +131,22 @@ export const PRIVACY = [
   { id: "strasse", re: /\b[A-ZÄÖÜ][a-zäöüß-]+(?:straße|strasse|gasse|weg|platz|allee|ring|zeile|kai|lände|promenade)\s+\d+|\bStr\.\s*\d+|\b1[0-2]\d0\s+Wien\b|\bA-\d{4}\b/, street: true },
 ];
 
+// ---------------------------------------------------------------------------
+// Interne Notizen und Platzhalter (Nachbesserung 11, Audit T14)
+// ---------------------------------------------------------------------------
+// Offene Punkte stehen als {{todo:}} in den Quellen und landen als <!--OFFEN: …--> im HTML
+// (unsichtbar; Release-Modus: jeder ist ein Fehler). Sichtbar darf davon nichts sein:
+// NOTE_VISIBLE ist in jedem Modus ein Fehler, "code" = auch in <code>/<pre> verboten.
+export const NOTE_VISIBLE = [
+  { id: "Chriso", re: /\bChriso\b/, code: true },            // interner Rufname, auf der Website heisst er Christian Bucher
+  { id: "OFFEN:", re: /\bOFFEN:/, code: true },
+  { id: "TODO/FIXME", re: /\b(?:TODO|FIXME|TBD|XXX)\b/ },
+  { id: "{{…}}", re: /\{\{|\}\}/ },                           // vom Build nicht ersetzter Platzhalter
+];
+// Ausfuell-Platzhalter wie [Datum], [n], <Name> — normal Warnung, im Release-Modus Fehler (T14).
+// Erlaubt: Auslassung in Zitaten "[…]" / "[...]".
+export const PLACEHOLDER = /\[(?!…\]|\.\.\.\])[^\]\n]{1,40}\]|<[^<>\n]{1,40}>/;
+
 // Kontexte, in denen Ziffern ohne Fakt erlaubt sind (Rechtsverweise, Jahreszahlen).
 export const NUMBER_MASKS = [
   /§\s*\d+[a-z]?(?:\s*(?:Abs\.|Z|lit\.)\s*\d*[a-z]?)*/g,
