@@ -349,7 +349,10 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
           if (!String(a.content || "").startsWith(C.ORIGIN + "/")) err("RES-external", rel, `OG-Bild nicht auf eigener Domain: ${a.content}`);
         }
         for (const r of resAttrs.filter(Boolean)) {
-          if (/^(?:[a-z]+:)?\/\//i.test(r) || /^data:/i.test(r)) err("RES-external", rel, `fremde/eingebettete Ressource: ${r.slice(0, 80)}`);
+          if (/^(?:[a-z]+:)?\/\//i.test(r) || /^data:/i.test(r)) { err("RES-external", rel, `fremde/eingebettete Ressource: ${r.slice(0, 80)}`); continue; }
+          // Lokale Ressource muss als Datei ausgeliefert werden (z. B. kein <img> auf ein fehlendes Foto).
+          const p = (r.startsWith("/") ? r : posix.join(posix.dirname(url.endsWith("/") ? url + "x" : url), r)).split(/[?#]/)[0].replace(/^\//, "");
+          if (!site.files.has(decodeURIComponent(p))) err("RES-missing", rel, `lokale Ressource fehlt: ${r}`);
         }
         if (t.name === "a" && a.href) meta.links.push(a.href);
         if (t.name === "img" && !("alt" in a)) err("A11Y-img-alt", rel, "<img> ohne alt");

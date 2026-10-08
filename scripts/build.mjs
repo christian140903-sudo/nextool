@@ -17,6 +17,13 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(ROOT, "src");
 const OUT = join(ROOT, "site");
 
+// Foto (Positionierung §7.7): src/static/assets/foto.jpg (Pflicht, wenn ein Foto erscheinen soll)
+// und optional foto.webp. Fehlt foto.jpg, rendert {{photo:...}} Initialen statt eines <img> —
+// so verweist keine Seite auf eine fehlende Datei. Ist es da, bricht der Build ab, wenn
+// Metadaten (EXIF/XMP/IPTC: koennen Aufnahmeort und Geraet verraten) oder > 150 KB.
+const PHOTO_SIZES = ["large", "medium", "small"];
+const PHOTO_MAX_BYTES = 150 * 1024;
+
 const MONTHS = {
   de: ["Jänner", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
   en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -57,6 +64,76 @@ function parsePage(file) {
   return { meta, body: raw.slice(m[0].length), file };
 }
 
+// Liest Breite/Hoehe aus dem SOF-Segment und meldet Metadaten-Segmente (APP1 = EXIF/XMP, APP13 = IPTC).
+export function jpegInfo(buf, name = "foto.jpg") {
+  if (buf.length < 4 || buf[0] !== 0xff || buf[1] !== 0xd8) throw new Error(`${name}: keine JPEG-Datei`);
+  let i = 2, width = 0, height = 0;
+  const meta = [];
+  while (i + 4 <= buf.length) {
+    if (buf[i] !== 0xff) throw new Error(`${name}: JPEG-Struktur unlesbar bei Byte ${i}`);
+    while (buf[i + 1] === 0xff) i++; // Fuellbytes
+    const marker = buf[i + 1];
+    if (marker === 0xd9 || marker === 0xda) break; // Bildende / Bilddaten
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) { i += 2; continue; }
+    const len = buf.readUInt16BE(i + 2);
+    if (marker === 0xe1) meta.push(buf.subarray(i + 4, i + 8).toString("latin1") === "Exif" ? "EXIF" : "XMP/APP1");
+    if (marker === 0xed) meta.push("IPTC/APP13");
+    if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) {
+      height = buf.readUInt16BE(i + 5);
+      width = buf.readUInt16BE(i + 7);
+    }
+    i += 2 + len;
+  }
+  if (!width || !height) throw new Error(`${name}: Bildgröße nicht lesbar`);
+  return { width, height, meta };
+}
+
+function webpMeta(buf) {
+  if (buf.subarray(0, 4).toString("latin1") !== "RIFF" || buf.subarray(8, 12).toString("latin1") !== "WEBP") throw new Error("foto.webp: keine WebP-Datei");
+  const meta = [];
+  for (let i = 12; i + 8 <= buf.length;) {
+    const id = buf.subarray(i, i + 4).toString("latin1");
+    if (id === "EXIF" || id === "XMP ") meta.push(id.trim());
+    i += 8 + buf.readUInt32LE(i + 4) + (buf.readUInt32LE(i + 4) % 2);
+  }
+  return meta;
+}
+
+function loadPhoto(src) {
+  const jpg = join(src, "static", "assets", "foto.jpg");
+  const webp = join(src, "static", "assets", "foto.webp");
+  if (!existsSync(jpg)) {
+    if (existsSync(webp)) throw new Error("foto.webp ohne foto.jpg — JPEG ist der Pflicht-Fallback (§7.7)");
+    return null;
+  }
+  const buf = readFileSync(jpg);
+  const info = jpegInfo(buf);
+  const problems = [];
+  if (buf.length > PHOTO_MAX_BYTES) problems.push(`foto.jpg ist ${Math.round(buf.length / 1024)} KB (> 150 KB)`);
+  if (info.meta.length) problems.push(`foto.jpg enthält Metadaten (${info.meta.join(", ")}) — vor dem Einchecken entfernen`);
+  let hasWebp = false;
+  if (existsSync(webp)) {
+    const w = readFileSync(webp);
+    if (w.length > PHOTO_MAX_BYTES) problems.push(`foto.webp ist ${Math.round(w.length / 1024)} KB (> 150 KB)`);
+    const m = webpMeta(w);
+    if (m.length) problems.push(`foto.webp enthält Metadaten (${m.join(", ")})`);
+    hasWebp = true;
+  }
+  if (problems.length) throw new Error(problems.join("; "));
+  return { width: info.width, height: info.height, webp: hasWebp };
+}
+
+function renderPhoto(size, ctx) {
+  if (!PHOTO_SIZES.includes(size)) throw new Error(`{{photo:${size}}}: Größe muss ${PHOTO_SIZES.join("|")} sein`);
+  const p = ctx.photo;
+  if (!p) {
+    const initials = ctx.site.name.split(/\s+/).map((w) => w[0]).join("").toUpperCase();
+    return `<div class="portrait portrait-${size} portrait-initials" aria-hidden="true">${esc(initials)}</div>`;
+  }
+  const source = p.webp ? `<source srcset="/assets/foto.webp" type="image/webp">` : "";
+  return `<picture class="portrait portrait-${size}">${source}<img src="/assets/foto.jpg" alt="${esc(ctx.site.name)}" width="${p.width}" height="${p.height}" decoding="async"${size === "large" ? "" : ' loading="lazy"'}></picture>`;
+}
+
 function renderFact(key, lang, facts) {
   const f = facts[key];
   if (!f) throw new Error(`unbekannter Fakt: ${key}`);
@@ -78,6 +155,7 @@ function expand(body, page, ctx) {
       }
       case "todo": return `<mark class="todo" data-todo="">${arg}</mark>`;
       case "email": return `<a href="mailto:${esc(ctx.site.email)}">${esc(ctx.site.email)}</a>`;
+      case "photo": return renderPhoto(arg.trim(), ctx);
       default: throw new Error(`${relative(ROOT, page.file)}: unbekannter Platzhalter ${m}`);
     }
   });
@@ -105,7 +183,9 @@ function layout(page, html, ctx) {
     alt.push(`<link rel="alternate" hreflang="x-default" href="${abs(site.xDefault)}">`);
   }
   const langTarget = meta.pair || site.strings[other].home;
-  const nav = site.nav[meta.lang].map((item) => {
+  // Zwei Tueren verlinken sich nicht (Positionierung §1.5): Auf einer Tuer-Seite (meta.door)
+  // fehlen Navigationspunkte, die zur jeweils anderen Tuer gehoeren (item.door).
+  const nav = site.nav[meta.lang].filter((item) => !(meta.door && item.door && item.door !== meta.door)).map((item) => {
     const cur = item.id === meta.nav ? ' aria-current="page"' : "";
     return `<li><a href="${item.href}"${cur}>${esc(item.label)}</a></li>`;
   });
@@ -192,16 +272,16 @@ function sitemap(pages, site) {
   return lines.join("\n") + "\n";
 }
 
-export function build() {
-  const site = JSON.parse(readFileSync(join(SRC, "site.json"), "utf8"));
-  const factsRaw = readFileSync(join(SRC, "facts.json"), "utf8");
+export function build({ src = SRC } = {}) {
+  const site = JSON.parse(readFileSync(join(src, "site.json"), "utf8"));
+  const factsRaw = readFileSync(join(src, "facts.json"), "utf8");
   const facts = JSON.parse(factsRaw).facts;
   for (const [k, f] of Object.entries(facts)) {
     if (!f.value || !f.source || !/^\d{4}-\d{2}-\d{2}$/.test(f.verified || "")) throw new Error(`facts.json: ${k} braucht value, source, verified (JJJJ-MM-TT)`);
   }
-  const ctx = { site, facts };
+  const ctx = { site, facts, photo: loadPhoto(src) };
   const out = new Map();
-  const pages = listFiles(join(SRC, "pages")).filter((f) => f.endsWith(".html")).map(parsePage);
+  const pages = listFiles(join(src, "pages")).filter((f) => f.endsWith(".html")).map(parsePage);
   const seen = new Set();
   for (const p of pages) {
     if (seen.has(p.meta.path)) throw new Error(`Pfad doppelt: ${p.meta.path}`);
@@ -211,8 +291,8 @@ export function build() {
     if (p.meta.pair && !seen.has(p.meta.pair)) throw new Error(`${p.meta.path}: Sprachpaar ${p.meta.pair} existiert nicht`);
     out.set(outPath(p.meta.path), Buffer.from(layout(p, expand(p.body, p, ctx), ctx), "utf8"));
   }
-  for (const f of listFiles(join(SRC, "static"))) {
-    const rel = relative(join(SRC, "static"), f).split(sep).join("/");
+  for (const f of listFiles(join(src, "static"))) {
+    const rel = relative(join(src, "static"), f).split(sep).join("/");
     if (out.has(rel)) throw new Error(`Datei doppelt: ${rel}`);
     out.set(rel, readFileSync(f));
   }

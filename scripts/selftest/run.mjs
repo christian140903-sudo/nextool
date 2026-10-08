@@ -53,6 +53,7 @@ const CASES = [
   ["NUM-fact-mismatch", (fx) => fx.edit("projekte/index.html", 'data-fact="soul_mcp.tests">373 von 373<', 'data-fact="soul_mcp.tests">374 von 374<')],
   ["NUM-fact-unknown", (fx) => inject(fx, "index.html", '<p><data value="1" data-fact="erfunden.zahl">1</data></p>')],
   ["FACTS-schema", (fx) => { const j = JSON.parse(fx.read("facts.json")); delete j.facts["soul_mcp.tests"].source; fx.write("facts.json", JSON.stringify(j)); }],
+  ["RES-missing", (fx) => inject(fx, "index.html", '<p><img src="/assets/foto.jpg" alt="x"></p>')],
   ["LINK-broken", (fx) => inject(fx, "index.html", '<p><a href="/gibt-es-nicht/">x</a></p>')],
   ["LINK-broken", (fx) => inject(fx, "index.html", '<p><a href="/about.html">alt</a></p>')],
   ["LINK-anchor", (fx) => inject(fx, "index.html", '<p><a href="/projekte/#fehlt">x</a></p>')],
