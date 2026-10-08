@@ -28,7 +28,7 @@ export const PAIR_EXEMPT = {
   "/404.html": "zweisprachige Fehlerseite (DE und EN auf einer Seite)",
   "/postcondition/": "englische Produktseite, aus npm und README verlinkt; deutsche Zusammenfassung auf /projekte/#postcondition-mcp",
   "/behaviorlock/": "englische Produktseite, aus README verlinkt; deutsche Zusammenfassung auf /projekte/#behaviorlock",
-  "/proofspec/": "englische Produktseite, aus README verlinkt; auf /projekte/ erst nach dem README-Fix (Positionierung §7.3)",
+  "/proofspec/": "englische Produktseite, aus README verlinkt; deutsche Zusammenfassung auf /projekte/#proofspec (mit OFFEN-Tor bis zum README-Fix, Positionierung §7.3)",
   "/soul/lineage/": "englische Planseite, noindex, solange ein Antragsentwurf darauf verweist (Positionierung §7.5)",
 };
 
