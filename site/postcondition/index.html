@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>postcondition-mcp — verify what an agent's action changed</title>
+<meta name="description" content="postcondition-mcp declares the intended result, observes the world through narrow read-only verifiers and returns satisfied, violated or unknown.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://nextool.app/postcondition/">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0c0e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fbf8f3" media="(prefers-color-scheme: light)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Christian Bucher">
+<meta property="og:title" content="postcondition-mcp — verify what an agent's action changed">
+<meta property="og:description" content="postcondition-mcp declares the intended result, observes the world through narrow read-only verifiers and returns satisfied, violated or unknown.">
+<meta property="og:url" content="https://nextool.app/postcondition/">
+<meta property="og:image" content="https://nextool.app/assets/og-en.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Christian Bucher — I direct AI coding agents to ship tested software and measure whether what I built actually worked. nextool.app">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<a class="skip-link" href="#inhalt">Skip to content</a>
+<header class="site-header"><div class="wrap">
+<a class="brand" href="/en/">Christian Bucher</a>
+<nav class="site-nav" aria-label="Main navigation"><ul><li><a href="/en/hire/">Hiring me</a></li><li><a href="/en/projects/" aria-current="page">Projects</a></li><li><a href="/en/case-study/">Case study</a></li><li><a href="/en/about/">About</a></li><li class="lang-switch"><a href="/" hreflang="de" lang="de">Deutsch</a></li></ul></nav>
+</div></header>
+<main id="inhalt"><div class="wrap">
+<div class="prose">
+<p class="eyebrow">postcondition-mcp · outcome verification for AI agents</p>
+<h1>The tool returned success. Did the world change?</h1>
+<p class="lede">postcondition-mcp checks whether the world changed, not whether the agent said so. It declares the intended result, observes the outside world through constrained read-only verifiers and returns a verdict: satisfied, violated or unknown.</p>
+<pre><code>npx -y postcondition-mcp serve</code></pre>
+<p class="status">npm · version <data value="0.1.0" data-fact="postcondition.version">0.1.0</data> · MIT · as of <time datetime="2026-10-08">8 October 2026</time></p>
+
+<h2 id="how">How it works</h2>
+<ol>
+<li><strong>Declare</strong> the outcome: a concrete result, with a subject and, if needed, a deadline.</li>
+<li><strong>Act</strong> with any tool. postcondition-mcp is not another orchestrator; your existing tool, CI job, script or person does the work.</li>
+<li><strong>Observe</strong> independently: a narrow verifier reads file, HTTP, Git or npm state without running arbitrary shell commands.</li>
+<li><strong>Report</strong> the verdict — satisfied, violated or unknown — with evidence class, digest, timestamp and a link to the previous receipt.</li>
+</ol>
+
+<h2 id="verifiers">Verifiers</h2>
+<ul>
+<li><strong>File:</strong> existence, absence, size, SHA-256, contained text, JSON-pointer equality.</li>
+<li><strong>HTTP:</strong> GET only; status, text and JSON values with redirect, timeout, size and private-network guards.</li>
+<li><strong>Git:</strong> branch, clean tree, HEAD, tag and locally fetched remote-tracking state, through fixed argument sets.</li>
+<li><strong>npm:</strong> published versions and dist-tags from the public registry API.</li>
+<li><strong>Manual:</strong> statements by a person or an agent stay labelled as attestation and are never upgraded to external proof.</li>
+</ul>
+
+<h2 id="evidence">Evidence classes</h2>
+<div class="table-wrap">
+<table class="stack">
+<thead><tr><th scope="col">Class</th><th scope="col">Meaning</th></tr></thead>
+<tbody>
+<tr><td data-label="Class"><code>externally_observed</code></td><td data-label="Meaning">A remote HTTP or npm endpoint was read independently.</td></tr>
+<tr><td data-label="Class"><code>configured_verifier</code></td><td data-label="Meaning">A constrained local file or Git check ran.</td></tr>
+<tr><td data-label="Class"><code>manual_attestation</code></td><td data-label="Meaning">A person supplied the result.</td></tr>
+<tr><td data-label="Class"><code>self_attestation</code></td><td data-label="Meaning">An agent supplied its own result.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="limits">What it does not do</h2>
+<div class="limits">
+<ul>
+<li>No arbitrary shell verifier, no action execution, no account, no telemetry, no required cloud service.</li>
+<li>HTTP is GET-only and blocks loopback, private, link-local and reserved targets by default.</li>
+<li>The local hash chain detects changes but is not a signed notarisation and gives no non-repudiation.</li>
+<li>Git checks read locally fetched tracking refs; they do not contact or change the remote.</li>
+<li>A young project, built in one evening, with no external users so far.</li>
+</ul>
+</div>
+
+<h2 id="verify">Verify it yourself</h2>
+<div class="verify">
+<pre><code>git clone https://github.com/christian140903-sudo/postcondition-mcp
+cd postcondition-mcp &amp;&amp; npm ci &amp;&amp; npm test</code></pre>
+<p>Result on <time datetime="2026-10-08">8 October 2026</time>: <data value="53" data-fact="postcondition.tests">53 of 53</data> tests passed. I also triggered the failure case: a tampered ledger reports itself as invalid.</p>
+</div>
+<p><a href="https://github.com/christian140903-sudo/postcondition-mcp">Source on GitHub</a> · <a href="https://www.npmjs.com/package/postcondition-mcp">npm</a> · <a href="/en/projects/#postcondition-mcp">all projects</a></p>
+</div>
+</div></main>
+<footer class="site-footer"><div class="wrap">
+<p><a href="mailto:hello@nextool.app">hello@nextool.app</a></p>
+<ul><li><a href="/en/contact/">Contact</a></li><li><a href="/en/legal-notice/">Legal notice</a></li><li><a href="/en/privacy/">Privacy</a></li><li><a href="/facts.json">Numbers and sources (facts.json)</a></li></ul>
+<p>Last updated: <time datetime="2026-10-08">8 October 2026</time></p>
+<p>Static site with no scripts and no requests to third-party servers. Built with Claude Code under my direction; a linter lets a number through only with its source and verification date from facts.json.</p>
+</div></footer>
+</body>
+</html>
