@@ -89,6 +89,18 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   else console.log("  ok    Kontrolle: saubere Kopie ohne Fehler");
   rmSync(fx.base, { recursive: true, force: true });
 }
+// Kontrolle 3: "your team" ist kein "our team" (Wortgrenze), "our team" schlaegt an
+{
+  const fx = fixture();
+  inject(fx, "en/contact/index.html", "<p>Your team decides.</p>");
+  const ok = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] }));
+  inject(fx, "en/contact/index.html", "<p>Our team decides.</p>");
+  const bad = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] }));
+  if (ok.length) { failed++; console.log(`  FEHLER Kontrolle: „Your team“ wurde abgelehnt (${ok[0].rule}: ${ok[0].msg})`); }
+  else if (!bad.some((e) => e.rule === "TXT-banned")) { failed++; console.log("  FEHLER Kontrolle: „Our team“ wurde NICHT abgelehnt"); }
+  else console.log("  ok    Kontrolle: „Your team“ erlaubt, „Our team“ abgelehnt");
+  rmSync(fx.base, { recursive: true, force: true });
+}
 // Kontrolle 2: widerrufene Zahl mit Pflichtkontext ist erlaubt
 {
   const fx = fixture();
@@ -114,5 +126,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 2 - failed} von ${CASES.length + 2} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 3 - failed} von ${CASES.length + 3} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);

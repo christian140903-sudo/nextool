@@ -72,7 +72,7 @@ export const BANNED = [
   { id: "proxy-rahmung", re: /Soul[- ]Proxy|Soul[- ]Frame|Intent\s+Analysis|Task\s+Restructuring|\b4\.1\.x\b|Soul\s+4\.1\b|Soul\s+5\.0/i, scope: "site" },
   { id: "marke-nextool", re: /\bNex[Tt]ool\b|\bNEXTOOL\b/, scope: "site" },
   // §10.2 Nr. 6–8
-  { id: "wir-fuer-einzelperson", re: /\bWir\b|unser(?:em|en)?\s+Team|our\s+team|unsere\s+Kunden|our\s+(?:clients|customers)/, scope: "site" },
+  { id: "wir-fuer-einzelperson", re: /\bWir\b|\b[Uu]nser(?:em|en)?\s+Team|\b[Oo]ur\s+team|\b[Uu]nsere\s+Kunden|\b[Oo]ur\s+(?:clients|customers)/, scope: "site" },
   { id: "aufforderung-statt-beleg", re: /glaub(?:en\s+Sie)?\s+mir\s+kein\s+Wort|don'?t\s+trust\s+me|Prüfen\s+Sie\s+mich\s+nicht|do\s+not\s+trust\s+this\s+page/i, scope: "all" },
   { id: "ki-ton", re: /\bnahtlos|\bseamless|leistungsstark|\bpowerful\b|\brobust\b|\bentscheidend|\bcrucial\b|game[- ]?changer|cutting[- ]edge|state[- ]of[- ]the[- ]art/i, scope: "site" },
   // §10.2 Nr. 9–12, §3.3
