@@ -53,5 +53,6 @@ data, because those can reveal where and with which device a photo was taken.
 
 ## License
 
-Code: MIT (see `LICENSE`). Fonts under `site/assets/fonts/` keep their own
-SIL Open Font License 1.1.
+Code: MIT (see `LICENSE`). Text and graphics of the website (`src/pages/`,
+`site/`): CC BY 4.0 unless marked otherwise, as stated in the legal notice.
+Fonts under `site/assets/fonts/` keep their own SIL Open Font License 1.1.

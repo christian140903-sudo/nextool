@@ -125,6 +125,7 @@ const CASES = [
   ["FACTS-internal", (fx) => { const j = JSON.parse(fx.read("facts.json")); j.facts["soul_mcp.tests"].offen = "am Merge-Tag angleichen"; fx.write("facts.json", JSON.stringify(j)); }, { expect: /„offen“/ }],
   ["TXT-privacy", (fx) => inject(fx, "kontakt/index.html", "<p>Barichgasse 40–42, 1030 Wien</p>"), { expect: /strasse/ }],
   ["NUM-unsourced", (fx) => inject(fx, "datenschutz/index.html", "<p>Seite 165(3) im Handbuch.</p>")],
+  ["NUM-unsourced", (fx) => inject(fx, "impressum/index.html", "<p>Lizenz in Version 4.0.</p>")],
 ];
 
 let failed = 0;

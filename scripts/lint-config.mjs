@@ -195,6 +195,7 @@ export const NUMBER_MASKS = [
   /\b(?:Art\.|Article|Section|Abs\.|Nr\.|lit\.)\s*\d+[a-z]?(?:\(\d+\))*(?:\([a-z]\))?(?:\s*(?:bis|to|und|and|–|-)\s*\d+)?/g,
   /\bZ\s\d+\b/g,
   /\b(?:19|20)\d{2}\b/g,
+  /\b(?:CC BY(?:-[A-Z]{2})?|Open Font License)\s\d+\.\d+\b/g, // Lizenzversionen (Impressum), keine Messzahl
 ];
 export const NUMBER_TOKEN = /(?<![\p{L}\p{N}_.@\/#-])[+−-]?\d+(?:[.,]\d+)*(?![\p{L}\p{N}_])/gu;
 
