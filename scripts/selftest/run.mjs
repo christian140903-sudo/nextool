@@ -95,6 +95,7 @@ const CASES = [
   ["PLACEHOLDER-open", (fx) => inject(fx, "arbeitgeber/index.html", "<p>Verfügbar ab [Datum].</p>"), { release: true }],
   ["TXT-private", (fx) => inject(fx, "index.html", "<!--OFFEN: früher bei Beispielfirma-->"), { privateTerms: ["Beispielfirma"], expect: /Nr\. 1/ }],
   ["TXT-revoked", (fx) => inject(fx, "index.html", "<!--OFFEN: alter Wert 70,4 %-->")],
+  ["HTML-structure", (fx) => inject(fx, "en/privacy/index.html", "<!--OFFEN: x--> Text</p>")],
   // Audit T1–T18 der Website-Session (Nachbesserung 2): je neue Regel ein Gegenbeispiel
   ["I18N-absolute", (fx) => fx.edit("projekte/index.html", '<link rel="alternate" hreflang="en" href="https://nextool.app/en/projects/">', '<link rel="alternate" hreflang="en" href="/en/projects/">')],
   ["SITEMAP-hreflang", (fx) => fx.edit("sitemap.xml", '<loc>https://nextool.app/projekte/</loc>', '<loc>https://nextool.app/projekte/</loc>\n    <xhtml:link rel="alternate" hreflang="fr" href="https://nextool.app/fr/"/>')],

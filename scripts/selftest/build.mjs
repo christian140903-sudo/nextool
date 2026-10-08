@@ -106,6 +106,11 @@ check("{{todo}} wird HTML-Kommentar, Absatz nur mit Notiz entfällt", (fx) => {
   if (!html.includes("</picture><!--OFFEN: Notiz eins-->") && !html.includes("CB</div><!--OFFEN: Notiz eins-->")) throw new Error("Notiz eins nicht als freier Kommentar (leerer <p> geblieben?)");
   if (!html.includes("<p>Text <!--OFFEN: Notiz zwei--></p>")) throw new Error("Notiz zwei nicht als Kommentar im Absatz");
 });
+check("Absatz mit Text zwischen zwei Notizen bleibt erhalten", (fx) => {
+  writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "<p>{{todo:a}} sichtbarer Text {{todo:b}}</p>"));
+  const html = page(build({ src: fx.src }), "phototest.html");
+  if (!html.includes("<p><!--OFFEN: a--> sichtbarer Text <!--OFFEN: b--></p>")) throw new Error("Absatz-Rahmen um sichtbaren Text entfernt");
+});
 check("{{todo}} mit -- bricht ab (Kommentar darf nicht vorzeitig enden)", (fx) => {
   writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "{{todo:a --> b}}"));
   expectThrow(fx, /darf weder "--"/);

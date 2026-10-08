@@ -153,7 +153,9 @@ export function offenComment(text, where = "") {
   return `<!--OFFEN: ${t}-->`;
 }
 // Absaetze, die nach dem Umwandeln nur noch aus OFFEN-Kommentaren bestehen, faellt der leere Rahmen weg.
-const EMPTY_P = /<p(?:\s[^>]*)?>((?:\s*<!--OFFEN: [\s\S]*?-->)+)\s*<\/p>/g;
+// Kommentarinhalt ohne "--" (offenComment garantiert das), damit das Muster nie ueber ein "-->" hinweg
+// bis zu einem spaeteren Kommentar reicht und dabei sichtbaren Text verschluckt.
+const EMPTY_P = /<p(?:\s[^>]*)?>((?:\s*<!--OFFEN: (?:(?!--)[\s\S])*-->)+)\s*<\/p>/g;
 
 function expand(body, page, ctx) {
   const lang = page.meta.lang;

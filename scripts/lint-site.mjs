@@ -218,6 +218,9 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     let tokens;
     try { tokens = tokenize(html); } catch (e) { err("HTML-parse", rel, e.message); continue; }
     if (/serviceWorker\s*\.\s*register/.test(html)) err("SEC-sw-register", rel, "serviceWorker.register — Seiten registrieren keinen Worker (Audit T7)");
+    // Verwaiste End-Tags (z. B. ein </p>, dessen <p> beim Bauen verloren ging): Browser reparieren das
+    // still, die Seitenstruktur ist dann trotzdem falsch.
+    walk(tokens, { onEnd: (t, stack) => { if (!stack.some((x) => x.name === t.name)) err("HTML-structure", rel, `</${t.name}> ohne öffnendes <${t.name}>`); } });
     const ids = new Set();
     for (const t of tokens) if (t.type === "start" && t.attrs.id) ids.add(t.attrs.id);
     site.pages.set(urlOfFile(rel), { rel, html, tokens, ids });
@@ -418,9 +421,9 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         for (const k of ["itemtype", "typeof"]) for (const ty of String(a[k] || "").split(/\s+/).filter(Boolean)) {
           if (C.SD_FORBIDDEN_TYPES.test(ty.replace(/^.*[/#:]/, ""))) err("SD-forbidden", rel, `${k}="${ty}" (Audit T16)`);
         }
-        for (const k of ["itemprop", "property", "rel"]) for (const pr of String(a[k] || "").split(/\s+/).filter(Boolean)) {
+        for (const k of ["itemprop", "property"]) for (const pr of String(a[k] || "").split(/\s+/).filter(Boolean)) {
           if (t.name === "meta" && k === "property" && C.OG_FORBIDDEN.test(pr)) err("SD-forbidden", rel, `Open-Graph-Ortsangabe ${pr} (Audit T16)`);
-          else if (k !== "rel" && C.SD_FORBIDDEN_PROPS.test(pr.replace(/^.*[/#:]/, ""))) err("SD-forbidden", rel, `${k}="${pr}" (Audit T16)`);
+          else if (C.SD_FORBIDDEN_PROPS.test(pr.replace(/^.*[/#:]/, ""))) err("SD-forbidden", rel, `${k}="${pr}" (Audit T16)`);
         }
         if (t.name === "main") meta.main++;
         if ("data-todo" in a || /(^|\s)todo(\s|$)/.test(a.class || "")) err("NOTE-visible", rel, `sichtbare OFFEN-Marke <${t.name}> — interne Notizen nur als {{todo:…}} (HTML-Kommentar)`);
