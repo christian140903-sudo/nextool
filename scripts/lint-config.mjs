@@ -38,6 +38,29 @@ export const PAIR_EXEMPT = {
   "/soul/lineage/": "englische Planseite, noindex, solange ein Antragsentwurf darauf verweist (Positionierung §7.5)",
 };
 
+// Seiten mit noindex — nur mit Grund (Audit T12: Inhaltsseiten sind indexierbar). Die 404 MUSS noindex sein (T10).
+export const NOINDEX_ALLOWED = {
+  "/404.html": "Fehlerseite (wird unter beliebigen Adressen ausgeliefert)",
+  "/archiv/": "Erklaerseite zum Altbestand, Ziel der Alt-Weiterleitungen (Positionierung §7.3)",
+  "/en/archive/": "englische Fassung von /archiv/",
+  "/soul/lineage/": "Planseite, noindex laut Positionierung §7.5",
+};
+
+// Positivliste der ausgelieferten Dateitypen (Audit T5/T11; ergaenzt FORBIDDEN_FILE_PATTERNS).
+// Ein neuer Typ (z. B. PDF fuer den Lebenslauf) wird hier bewusst ergaenzt — vorher Metadaten pruefen.
+export const ALLOWED_FILE = /^(?:_headers|_redirects)$|\.(?:html|css|woff2|txt|png|jpg|webp|svg|json|xml|js)$/;
+
+// Stufe 1 ist NICHT kommerziell: keine Workshop-Seite, keine Preise, keine Angebotssprache
+// (§ 5 ECG; Uebergabe 06-rechtstexte README "Stufe 1 nicht kommerziell"; Positionierung §11).
+// Fuer Stufe 2 (nach T-Recht-1) STAGE auf 2 setzen; dann greifen nur noch Sperrliste/preise.
+export const STAGE = 1;
+export const STAGE1_COMMERCIAL = /\d[\d.,]*\s?(?:€|EUR\b|Euro\b)|(?:€|\bEUR)\s?\d|\bPreis(?:e|en|liste)?\b|\bHonorar|\bTages(?:satz|sätze)|\bStundensatz|\bbuch(?:en|bar|ung)\b|\bAngebot|\bWorkshop|\bProbesession|\bCoaching|\bprice[sd]?\b|\bpricing\b|\bfees?\b|\bday[- ]rate|\bbook(?:ing|\s+a|\s+now)\b|\boffer(?:s|ing)?\b/i;
+
+// Strukturierte Daten (Audit T16): keine Angebote, keine Organisation, keine Anschrift/Telefon/Geburtsdaten.
+export const SD_FORBIDDEN_TYPES = /^(?:Offer|AggregateOffer|Demand|Organization|Corporation|LocalBusiness|ProfessionalService|Store|Product|Service|PostalAddress|Place)$/i;
+export const SD_FORBIDDEN_PROPS = /^(?:address|streetAddress|postalCode|telephone|faxNumber|birthDate|birthPlace|homeLocation|geo|offers|makesOffer|hasOfferCatalog|priceRange|price|worksFor|employee|seller|vatID|taxID)$/i;
+export const OG_FORBIDDEN = /^(?:business:contact_data:|place:location:|product:price|og:(?:street-address|locality|region|postal-code|country-name|phone_number|latitude|longitude))/i;
+
 // Seiten ohne canonical (Fehlerseite wird unter beliebigen Adressen ausgeliefert).
 export const CANONICAL_EXEMPT = new Set(["/404.html"]);
 

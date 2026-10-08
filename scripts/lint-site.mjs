@@ -10,6 +10,10 @@
 //   _headers (CSP, HSTS ohne preload …) · _redirects (Syntax, Ziele, keine verdeckten Seiten)
 //   Abdeckung aller Alt-URLs (src/legacy-urls.txt) · Sitemap/robots · Farbkontraste (WCAG AA)
 //   offene Punkte (OFFEN-Kommentare aus {{todo}}), sichtbare Notizen/Platzhalter · Commit-Nachrichten
+//   Abmelde-Worker sw.js · Audit T1–T18 der Website-Session, soweit sie hier passen (Sprachlink,
+//   Ueberschriften, "Stand", noindex-Ausnahmen, target, Positivliste Dateitypen, Schriftlizenzen,
+//   Sitemap-Form/hreflang, strukturierte Daten, Stufe 1 ohne Angebotssprache); jede dieser Regeln
+//   nennt ihre Nummer ("Audit Tn") in Kommentar oder Meldung
 //
 //   node scripts/lint-site.mjs            normale Pruefung (offene Punkte = Warnung)
 //   node scripts/lint-site.mjs --release  Freigabe: offene Punkte, fehlende private Liste,
@@ -79,7 +83,7 @@ export function parseRedirects(text) {
     const parts = l.split(/\s+/);
     if (parts.length < 2 || parts.length > 3) { errors.push({ line: i + 1, msg: `Zeile hat ${parts.length} Felder` }); return; }
     const [src, dest, code = "302"] = parts;
-    rules.push({ src, dest, code, line: i + 1, dynamic: /[*:]/.test(src) });
+    rules.push({ src, dest, code, explicitCode: parts.length === 3, length: line.length, line: i + 1, dynamic: /[*:]/.test(src) });
   });
   return { rules, errors };
 }
@@ -135,6 +139,16 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   for (const f of site.files) {
     if (C.FORBIDDEN_FILE_PATTERNS.some((re) => re.test(f))) err("STRUCT-forbidden-file", f, "darf nicht ausgeliefert werden");
     for (const b of C.BANNED) if (b.scope === "all" && b.re.test(f)) err("TXT-banned", f, `Dateiname trifft Sperrliste (${b.id})`);
+    if (!C.ALLOWED_FILE.test(f)) err("STRUCT-unexpected-file", f, "Dateityp steht nicht auf der Positivliste (lint-config ALLOWED_FILE; Audit T5/T11)");
+  }
+  // Schriften nur mit Lizenztext daneben (Audit T10; OFL 1.1 verlangt die Lizenz bei Weitergabe).
+  // Zuordnung ueber den Namen: "Inter-OFL.txt" deckt "inter-latin-var.woff2", "JetBrainsMono-OFL.txt" "jetbrains-mono-…".
+  const letters = (x) => x.toLowerCase().replace(/[^a-z]/g, "");
+  for (const f of site.files) {
+    if (!/\.(?:woff2?|ttf|otf)$/.test(f)) continue;
+    const dir = posix.dirname(f), font = letters(posix.basename(f).replace(/\.[^.]+$/, ""));
+    const lic = [...site.files].filter((g) => posix.dirname(g) === dir && /-OFL\.txt$/i.test(g)).map((g) => letters(posix.basename(g).replace(/-OFL\.txt$/i, "")));
+    if (!lic.some((l) => l && font.startsWith(l))) err("STRUCT-font-license", f, "kein passender Lizenztext (<Familie>-OFL.txt) im selben Ordner");
   }
 
   // --- facts.json -------------------------------------------------------------
@@ -215,14 +229,26 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     const { rules: r, errors } = parseRedirects(readFileSync(join(siteDir, "_redirects"), "utf8"));
     rules = r;
     for (const e of errors) err("REDIR-syntax", `_redirects:${e.line}`, e.msg);
+    // Grenzen laut Cloudflare (developers.cloudflare.com/pages/configuration/redirects/, gelesen 2026-10-08):
+    // "limited to 2,000 static redirects and 100 dynamic redirects", "Each redirect declaration has a
+    // 1,000-character limit", "You may only include a single splat in the URL". Die 100-Zeilen-Grenze
+    // aus Audit T9 gilt bei Pages also nur fuer dynamische Regeln (Splat/Platzhalter), nicht fuer alle.
     const stat = rules.filter((x) => !x.dynamic).length, dyn = rules.length - stat;
     if (stat > 2000 || dyn > 100) err("REDIR-limits", "_redirects", `${stat} statisch / ${dyn} dynamisch — Grenze 2000/100`);
-    for (const x of rules) {
+    rules.forEach((x, i) => {
       x.re = ruleRegex(x.src);
-      if (!x.src.startsWith("/")) err("REDIR-syntax", `_redirects:${x.line}`, `Quelle muss mit / beginnen: ${x.src}`);
-      if (!["301", "302", "303", "307", "308"].includes(x.code)) err("REDIR-code", `_redirects:${x.line}`, `Status ${x.code} gibt es bei Cloudflare Pages nicht (nur 301/302/303/307/308)`);
-      else if (!["301", "308"].includes(x.code)) warn("REDIR-code", `_redirects:${x.line}`, `nicht dauerhaft (${x.code})`);
-    }
+      const at = `_redirects:${x.line}`;
+      if (!x.src.startsWith("/")) err("REDIR-syntax", at, `Quelle muss mit / beginnen: ${x.src}`);
+      if (!x.explicitCode) err("REDIR-syntax", at, "Statuscode fehlt (Pages nähme 302; Audit T9: drei Felder)");
+      if ((x.src.match(/\*/g) || []).length > 1) err("REDIR-syntax", at, "mehr als ein Splat in der Quelle (Pages erlaubt einen)");
+      if (x.length > 1000) err("REDIR-limits", at, `Zeile hat ${x.length} Zeichen — Pages erlaubt 1.000`);
+      if (!["301", "302", "303", "307", "308"].includes(x.code)) err("REDIR-code", at, `Status ${x.code} gibt es bei Cloudflare Pages nicht (nur 301/302/303/307/308)`);
+      else if (x.code !== "301") err("REDIR-code", at, `Status ${x.code} — Altbestand wird dauerhaft mit 301 umgeleitet (Positionierung §7.5, Audit T9)`);
+      // Regel wird nie erreicht, wenn eine fruehere schon passt (Pages: erste passende Regel gewinnt).
+      const sample = x.src.replace(/\*/g, "x").replace(/:[A-Za-z]\w*/g, "x");
+      const earlier = rules.slice(0, i).find((y) => y.src === x.src || (!x.dynamic && y.re.test(sample)));
+      if (earlier) err("REDIR-unreachable", at, `${x.src} wird nie erreicht — Zeile ${earlier.line} (${earlier.src}) passt vorher`);
+    });
   }
   // Jede ausgelieferte Datei hat eine Primaer-URL; Seiten zusaetzlich Alias-Formen,
   // die Pages selbst auf die Primaer-URL umleitet (/x -> /x/, /x/index.html -> /x/, /x.html -> /x).
@@ -360,7 +386,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   const pageMeta = new Map();
   for (const [url, page] of site.pages) {
     const { rel, tokens } = page;
-    const meta = { lang: null, title: null, desc: null, canonical: null, robots: "", alts: {}, h1: 0, main: 0, ogImage: null, links: [] };
+    const meta = { lang: null, title: null, desc: null, canonical: null, robots: "", alts: {}, h1: 0, main: 0, ogImage: null, links: [], headings: [], switches: [] };
     walk(tokens, {
       onStart: (t, stack) => {
         const a = t.attrs;
@@ -372,6 +398,30 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         if (t.name === "link" && a.rel === "canonical") meta.canonical = a.href;
         if (t.name === "link" && a.rel === "alternate" && a.hreflang) meta.alts[a.hreflang] = a.href;
         if (t.name === "h1") meta.h1++;
+        if (/^h[1-6]$/.test(t.name)) meta.headings.push(Number(t.name[1]));
+        // Sprachlink im Kopf (Audit T3)
+        if (t.name === "a" && stack.some((x) => x.name === "li" && /(^|\s)lang-switch(\s|$)/.test(x.attrs.class || ""))) meta.switches.push(a);
+        // kein target (Audit T8): Links oeffnen im selben Fenster
+        if ("target" in a && a.target !== "_self") err("LINK-target", rel, `target="${a.target}" an <${t.name}> (Audit T8)`);
+        // Strukturierte Daten (Audit T16): JSON-LD, Microdata, RDFa, Open-Graph-Ortsangaben
+        if (t.name === "script" && /ld\+json/i.test(a.type || "")) {
+          let data = null;
+          try { data = JSON.parse(t.content || ""); } catch { err("SD-forbidden", rel, "JSON-LD nicht lesbar"); }
+          const visit = (o) => {
+            if (Array.isArray(o)) return o.forEach(visit);
+            if (!o || typeof o !== "object") return;
+            for (const ty of [].concat(o["@type"] || [])) if (C.SD_FORBIDDEN_TYPES.test(String(ty))) err("SD-forbidden", rel, `JSON-LD @type ${ty} (Audit T16: kein Angebot, keine Organisation, keine Anschrift)`);
+            for (const [k, v] of Object.entries(o)) { if (C.SD_FORBIDDEN_PROPS.test(k)) err("SD-forbidden", rel, `JSON-LD-Eigenschaft ${k} (Audit T16)`); visit(v); }
+          };
+          visit(data);
+        }
+        for (const k of ["itemtype", "typeof"]) for (const ty of String(a[k] || "").split(/\s+/).filter(Boolean)) {
+          if (C.SD_FORBIDDEN_TYPES.test(ty.replace(/^.*[/#:]/, ""))) err("SD-forbidden", rel, `${k}="${ty}" (Audit T16)`);
+        }
+        for (const k of ["itemprop", "property", "rel"]) for (const pr of String(a[k] || "").split(/\s+/).filter(Boolean)) {
+          if (t.name === "meta" && k === "property" && C.OG_FORBIDDEN.test(pr)) err("SD-forbidden", rel, `Open-Graph-Ortsangabe ${pr} (Audit T16)`);
+          else if (k !== "rel" && C.SD_FORBIDDEN_PROPS.test(pr.replace(/^.*[/#:]/, ""))) err("SD-forbidden", rel, `${k}="${pr}" (Audit T16)`);
+        }
         if (t.name === "main") meta.main++;
         if ("data-todo" in a || /(^|\s)todo(\s|$)/.test(a.class || "")) err("NOTE-visible", rel, `sichtbare OFFEN-Marke <${t.name}> — interne Notizen nur als {{todo:…}} (HTML-Kommentar)`);
         if (t.name === "script") err("SEC-inline-script", rel, "<script> ist verboten (CSP script-src 'none')");
@@ -419,6 +469,26 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     if (!/<meta charset="utf-8">/i.test(page.html)) err("HEAD-charset", rel, "charset utf-8 fehlt");
     if (meta.h1 !== 1) err("HEAD-h1", rel, `${meta.h1} × <h1> (genau eine)`);
     if (meta.main !== 1) err("HEAD-main", rel, "genau ein <main> nötig");
+    // Ueberschriften ohne Spruenge, erste ist h1 (Audit T4)
+    meta.headings.forEach((h, i) => {
+      if (i === 0 && h !== 1) err("HEAD-heading-order", rel, `erste Überschrift ist h${h}, nicht h1`);
+      if (i > 0 && h > meta.headings[i - 1] + 1) err("HEAD-heading-order", rel, `Sprung von h${meta.headings[i - 1]} auf h${h} (Audit T4)`);
+    });
+    // "Stand" mit <time datetime> (Audit T12); gueltiges Datum
+    const stand = /(?:Stand|Last updated|Updated):?\s*<time datetime="(\d{4})-(\d{2})-(\d{2})">/.exec(page.html);
+    if (!stand) err("HEAD-stand", rel, "„Stand: <time datetime=…>“ fehlt (Audit T12)");
+    else {
+      const d = new Date(Date.UTC(+stand[1], +stand[2] - 1, +stand[3]));
+      if (d.getUTCMonth() !== +stand[2] - 1 || d.getUTCDate() !== +stand[3]) err("HEAD-stand", rel, `Stand-Datum ${stand[1]}-${stand[2]}-${stand[3]} gibt es nicht`);
+    }
+    // noindex nur mit Grund; die 404 muss noindex sein (Audit T10/T12)
+    if (/noindex/.test(meta.robots) && !C.NOINDEX_ALLOWED[url]) err("HEAD-noindex", rel, "noindex ohne Eintrag in NOINDEX_ALLOWED (Inhaltsseiten sind indexierbar, Audit T12)");
+    if (url === "/404.html" && !/noindex/.test(meta.robots)) err("HEAD-noindex", rel, "Fehlerseite ohne noindex (Audit T10)");
+    // Stufe 1: keine Angebotssprache, keine Preise (Audit T15, § 5 ECG)
+    if (C.STAGE === 1) for (const b of textBlocks(tokens)) {
+      const m = C.STAGE1_COMMERCIAL.exec(collapse(b.text));
+      if (m) err("STAGE1-commercial", rel, `„${m[0]}“ — Stufe 1 ist nicht kommerziell (keine Angebote, Preise, Workshops; § 5 ECG)`);
+    }
     if (!meta.ogImage) err("HEAD-og-image", rel, "og:image fehlt");
     else if (!site.files.has(meta.ogImage.replace(C.ORIGIN + "/", ""))) err("HEAD-og-image", rel, `og:image-Datei fehlt: ${meta.ogImage}`);
     // Offene Punkte = OFFEN-Kommentare aus {{todo:}} (Go-live-Tor). Kommentare stehen im ausgelieferten
@@ -438,8 +508,22 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
       if (!meta.alts[other]) err("I18N-pair", rel, `hreflang ${other} fehlt (oder Seite in PAIR_EXEMPT mit Grund eintragen)`);
       if (meta.alts["x-default"] !== C.ORIGIN + "/") err("I18N-xdefault", rel, "x-default muss auf / zeigen");
     }
+    // hreflang nur als absolute eigene URL (Audit T2; relative Ziele entgingen sonst der Gegenseitigkeitspruefung)
+    for (const [hl, href] of Object.entries(meta.alts)) if (!String(href).startsWith(C.ORIGIN + "/")) err("I18N-absolute", rel, `hreflang ${hl} ist keine absolute URL auf ${C.ORIGIN}: ${href}`);
+    // Sprachlink: genau einer, zeigt auf das Sprachpaar (ohne Paar: Startseite der anderen Sprache), mit hreflang und lang (Audit T3)
+    {
+      const other = meta.lang === "de" ? "en" : "de";
+      const want = meta.alts[other] ? String(meta.alts[other]).slice(C.ORIGIN.length) : other === "en" ? "/en/" : "/";
+      if (meta.switches.length !== 1) err("I18N-switch", rel, `${meta.switches.length} Sprachlinks im Kopf (genau einer)`);
+      else {
+        const a = meta.switches[0];
+        if (a.href !== want || a.hreflang !== other || a.lang !== other) err("I18N-switch", rel, `Sprachlink ${a.href} (hreflang=${a.hreflang}, lang=${a.lang}) — erwartet ${want} mit hreflang und lang ${other}`);
+      }
+    }
   }
   for (const p of Object.keys(C.PAIR_EXEMPT)) if (!site.pages.has(p)) err("I18N-pair", p, "PAIR_EXEMPT nennt eine Seite, die es nicht gibt (veraltete Ausnahme)");
+  for (const p of Object.keys(C.NOINDEX_ALLOWED)) if (!site.pages.has(p)) err("HEAD-noindex", p, "NOINDEX_ALLOWED nennt eine Seite, die es nicht gibt (veraltete Ausnahme)");
+  if (C.STAGE === 1) for (const p of C.DOORS.workshops) if (site.pages.has(p)) err("STAGE1-commercial", site.pages.get(p).rel, "Workshop-Seite in Stufe 1 (nicht kommerziell bis T-Recht-1, § 5 ECG)");
   // Gegenseitigkeit
   for (const [url, meta] of pageMeta) {
     if (C.PAIR_EXEMPT[url]) continue;
@@ -535,6 +619,25 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
       else if (/noindex/.test(m.robots)) err("SITEMAP-noindex", "sitemap.xml", `${l} ist noindex und gehört nicht in die Sitemap`);
     }
     for (const e of expected) if (!locs.includes(e)) err("SITEMAP-missing", "sitemap.xml", `${e} fehlt`);
+    // Form (Audit T10): Kopf, Namensraum, je <url> genau ein <loc>, absolute eigene URLs, keine Dubletten, lastmod-Datum
+    const fmt = (m) => err("SITEMAP-format", "sitemap.xml", m);
+    if (!/^<\?xml version="1\.0" encoding="UTF-8"\?>\s*<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9"[^>]*>/.test(sm)) fmt("Kopf oder urlset-Namensraum fehlt");
+    if (!/<\/urlset>\s*$/.test(sm)) fmt("</urlset> fehlt am Ende");
+    const blocks = [...sm.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((m) => m[1]);
+    if (blocks.length !== (sm.match(/<url>/g) || []).length || blocks.length !== (sm.match(/<\/url>/g) || []).length) fmt("<url>-Elemente nicht paarig");
+    if (/&(?!amp;|lt;|gt;|quot;|apos;)/.test(sm)) fmt("unmaskiertes & (XML)");
+    if (new Set(locs).size !== locs.length) fmt("doppelte <loc>");
+    for (const b of blocks) {
+      const ls = [...b.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+      if (ls.length !== 1) { fmt(`<url> mit ${ls.length} <loc>`); continue; }
+      if (!ls[0].startsWith(C.ORIGIN + "/")) fmt(`<loc> nicht absolut auf ${C.ORIGIN}: ${ls[0]}`);
+      const lm = /<lastmod>([^<]*)<\/lastmod>/.exec(b);
+      if (lm && !/^\d{4}-\d{2}-\d{2}$/.test(lm[1])) fmt(`lastmod „${lm[1]}“ ist kein Datum`);
+      // hreflang in der Sitemap = hreflang der Seite (Audit T2)
+      const sAlts = Object.fromEntries([...b.matchAll(/<xhtml:link rel="alternate" hreflang="([^"]+)" href="([^"]+)"\/>/g)].map((m) => [m[1], m[2]]));
+      const pm = pageMeta.get(ls[0].replace(C.ORIGIN, ""));
+      if (pm && JSON.stringify(Object.entries(sAlts).sort()) !== JSON.stringify(Object.entries(pm.alts).sort())) err("SITEMAP-hreflang", "sitemap.xml", `${ls[0]}: hreflang in der Sitemap weicht von der Seite ab`);
+    }
   }
   if (site.files.has("robots.txt") && !/^Sitemap:\s*https:\/\/nextool\.app\/sitemap\.xml/m.test(readFileSync(join(siteDir, "robots.txt"), "utf8"))) err("ROBOTS-sitemap", "robots.txt", "Sitemap-Zeile fehlt");
 
