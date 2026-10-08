@@ -8,12 +8,11 @@ linter, CI) stays out of the published output.
 
 ## Earlier content
 
+<!-- OFFEN: only true once the old repository is private (repository swap); check before go-live. -->
 Everything that was published here before the rebuild (browser tools, guides,
-shop prototypes, a side project and older product pages) is preserved
-unchanged on the branch
-[`archiv/vor-relaunch-2026-10`](https://github.com/christian140903-sudo/nextool/tree/archiv/vor-relaunch-2026-10)
-and in the git history. Old URLs redirect to `/archiv/` or to their successor
-page (see `site/_redirects`).
+shop prototypes, a side project and older product pages) is kept in private
+repositories; I am happy to show it on request. Old URLs redirect to
+`/archiv/` or to their successor page (see `site/_redirects`).
 
 ## Layout
 
