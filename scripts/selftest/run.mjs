@@ -43,7 +43,7 @@ const CASES = [
   ["TXT-banned", (fx) => inject(fx, "en/hire/index.html", "<p>Open to part-time work.</p>")],
   ["TXT-revoked", (fx) => inject(fx, "index.html", "<p>Gemessen: <code>+17,8</code> Punkte.</p>")],
   ["TXT-revoked", (fx) => inject(fx, "index.html", "<p>Score <code>70,4 %</code>.</p>")],
-  ["TXT-privacy", (fx) => inject(fx, "index.html", "<p>Telefon: +43 699 1234 5678</p>")],
+  ["TXT-privacy", (fx) => inject(fx, "index.html", "<p>Telefon: +43 000 00 00 000</p>")],
   ["TXT-privacy", (fx) => inject(fx, "index.html", '<p><a href="https://wa.me/0000000">Chat</a></p>')],
   ["TXT-privacy", (fx) => inject(fx, "index.html", "<p>Musterstraße 12</p>")],
   ["TXT-privacy", (fx) => inject(fx, "index.html", "<p>muster@gmail.com</p>")],
