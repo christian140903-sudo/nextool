@@ -76,6 +76,17 @@ const CASES = [
   ["STRUCT-forbidden-file", (fx) => fx.write("notizen.md", "intern")],
   ["STRUCT-required", (fx) => rmSync(join(fx.base, "site", "robots.txt"))],
   ["TODO-open", (fx) => {}, { release: true }],
+  // Abmelde-Worker (Nachbesserung 1)
+  ["SW-killswitch", (fx) => fx.write("sw.js", fx.read("sw.js") + '\nself.addEventListener("fetch", (e) => e.respondWith(fetch(e.request)));\n')],
+  ["SW-killswitch", (fx) => { for (const f of ["sw.js", "prep/sw.js"]) fx.write(f, fx.read(f).replace("self.registration.unregister()", "Promise.resolve()")); }, { expect: /unregister\(\) fehlt/ }],
+  ["SW-killswitch", (fx) => fx.write("prep/sw.js", fx.read("prep/sw.js") + "\n// geaendert\n"), { expect: /weicht von sw\.js ab/ }],
+  ["SW-killswitch", (fx) => fx.write("sw.js", fx.read("sw.js").replace("self.skipWaiting();", "self.skipWaiting(;"))],
+  ["SW-headers", (fx) => fx.edit("_headers", "/prep/sw.js\n  Cache-Control: no-cache\n  Content-Type: text/javascript; charset=utf-8", "/prep/sw.js\n  Cache-Control: no-cache")],
+  ["SW-headers", (fx) => fx.write("_headers", fx.read("_headers") + "\n/sw.js\n  Content-Security-Policy: sandbox\n")],
+  ["STRUCT-required", (fx) => rmSync(join(fx.base, "site", "prep", "sw.js"))],
+  ["STRUCT-script-file", (fx) => fx.write("assets/app.js", "void 0;")],
+  ["REDIR-shadow", (fx) => fx.write("_redirects", fx.read("_redirects") + "\n/prep/*   /   301\n")],
+  ["SEC-sw-register", (fx) => inject(fx, "index.html", "<p>navigator.serviceWorker.register('/sw.js')</p>")],
 ];
 
 let failed = 0;
@@ -115,8 +126,9 @@ for (const [rule, mutate, opts = {}] of CASES) {
   const fx = fixture();
   try {
     mutate(fx);
-    const e = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [], ...opts }));
-    const hit = e.find((x) => x.rule === rule);
+    const { expect, ...lintOpts } = opts;
+    const e = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [], ...lintOpts }));
+    const hit = e.find((x) => x.rule === rule && (!expect || expect.test(x.msg)));
     if (hit) console.log(`  ok    ${rule.padEnd(22)} ausgelöst: ${hit.msg.slice(0, 80)}`);
     else { failed++; console.log(`  FEHLER ${rule.padEnd(21)} NICHT ausgelöst (gefunden: ${[...new Set(e.map((x) => x.rule))].join(", ") || "nichts"})`); }
   } catch (err) {

@@ -15,8 +15,14 @@ export const RELAUNCH_BASE = "4505f3c326251cd55dc631675bb309813f727f88";
 export const REQUIRED_FILES = [
   "index.html", "en/index.html", "404.html", "_headers", "_redirects",
   "robots.txt", "sitemap.xml", "facts.json", "assets/site.css", "favicon.svg",
-  "assets/og-de.png", "assets/og-en.png",
+  "assets/og-de.png", "assets/og-en.png", "sw.js", "prep/sw.js",
 ];
+
+// Abmelde-Worker (Nachbesserung Punkt 1): Unter diesen Adressen haben alte Seiten von 2026-02-23
+// bis 2026-07-18 Service Worker registriert (/sw.js Scope /, /prep/sw.js Scope /prep/). Dort muss
+// dieselbe Abmelde-Datei liegen, sonst bleiben die alten Worker in Besucher-Browsern aktiv.
+// Browser-Nachweis: scripts/browser/sw-killswitch.mjs (npm run test:sw, nicht in CI).
+export const SW_KILLSWITCH = ["sw.js", "prep/sw.js"];
 
 export const FORBIDDEN_FILE_PATTERNS = [
   /(^|\/)\.env/, /(^|\/)\.DS_Store$/, /\.sh$/, /\.md$/, /(^|\/)package(-lock)?\.json$/,

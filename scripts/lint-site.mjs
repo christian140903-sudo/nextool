@@ -25,7 +25,9 @@ import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, dirname, relative, sep, posix } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
+import { Script } from "node:vm";
 import { tokenize, walk, textBlocks, collapse } from "./lib/html.mjs";
+import { parseHeaders, headersFor } from "./lib/cf-headers.mjs";
 import * as C from "./lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -190,6 +192,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     const html = readFileSync(join(siteDir, rel), "utf8");
     let tokens;
     try { tokens = tokenize(html); } catch (e) { err("HTML-parse", rel, e.message); continue; }
+    if (/serviceWorker\s*\.\s*register/.test(html)) err("SEC-sw-register", rel, "serviceWorker.register — Seiten registrieren keinen Worker (Audit T7)");
     const ids = new Set();
     for (const t of tokens) if (t.type === "start" && t.attrs.id) ids.add(t.attrs.id);
     site.pages.set(urlOfFile(rel), { rel, html, tokens, ids });
@@ -293,6 +296,34 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     if (!get("Referrer-Policy")) err("HDR-referrer", "_headers", "Referrer-Policy fehlt");
     if (!/camera=\(\)/.test(get("Permissions-Policy") || "")) err("HDR-permissions", "_headers", "Permissions-Policy (camera/microphone/geolocation aus) fehlt");
     if (/https?:\/\/(?!nextool\.app)/.test(h)) err("HDR-csp-unsafe", "_headers", "fremder Host in _headers");
+  }
+
+  // --- Abmelde-Worker (Nachbesserung 1; Audit T7/T10) ---------------------------
+  // Der Browser-Nachweis liegt in scripts/browser/sw-killswitch.mjs; hier die statischen Bedingungen,
+  // die er voraussetzt: gleiche Datei an allen alten Worker-Adressen, kein fetch-Handler, alle
+  // Aufraeumschritte vorhanden, gueltiges JavaScript, passende Header (Typ, no-cache, kein sandbox).
+  const hdrRules = site.files.has("_headers") ? parseHeaders(readFileSync(join(siteDir, "_headers"), "utf8")) : [];
+  const swFiles = C.SW_KILLSWITCH.filter((f) => site.files.has(f)); // fehlende meldet STRUCT-required
+  const swRef = swFiles.length ? readFileSync(join(siteDir, swFiles[0])) : null;
+  for (const f of swFiles) {
+    const buf = readFileSync(join(siteDir, f));
+    const src = buf.toString("utf8");
+    if (!buf.equals(swRef)) err("SW-killswitch", f, `weicht von ${swFiles[0]} ab — alle Abmelde-Worker müssen gleich sein`);
+    try { new Script(src, { filename: f }); } catch (e) { err("SW-killswitch", f, `kein gültiges JavaScript: ${e.message}`); }
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+    if (/addEventListener\s*\(\s*["'`]fetch["'`]|\bonfetch\b/.test(code)) err("SW-killswitch", f, "fetch-Handler verboten — der Worker darf nie eine Anfrage abfangen");
+    if (/\bimportScripts\b|(?<![.\w])fetch\s*\(/.test(code)) err("SW-killswitch", f, "lädt etwas nach (importScripts/fetch) — verboten");
+    for (const [re, what] of [[/skipWaiting\s*\(/, "skipWaiting()"], [/caches\.delete\s*\(/, "caches.delete()"], [/registration\.unregister\s*\(/, "registration.unregister()"], [/clients\.matchAll\s*\(/, "clients.matchAll()"], [/\.navigate\s*\(/, "client.navigate()"]]) {
+      if (!re.test(code)) err("SW-killswitch", f, `${what} fehlt`);
+    }
+    const h = headersFor(hdrRules, "/" + f);
+    const type = h.get("content-type")?.[1] || "";
+    if (!/^(?:text|application)\/javascript\b/i.test(type)) err("SW-headers", "_headers", `/${f}: Content-Type muss ein JavaScript-Typ sein (ist „${type || "nicht gesetzt"}“), sonst scheitert das Update`);
+    if (!/\bno-cache\b|\bno-store\b|\bmax-age=0\b/.test(h.get("cache-control")?.[1] || "")) err("SW-headers", "_headers", `/${f}: Cache-Control: no-cache fehlt`);
+    if (/\bsandbox\b/.test(h.get("content-security-policy")?.[1] || "")) err("SW-headers", "_headers", `/${f}: CSP mit sandbox sperrt CacheStorage im Worker (Browser-Test, Gegenprobe F)`);
+  }
+  for (const f of site.files) {
+    if (/\.m?js$/.test(f) && !C.SW_KILLSWITCH.includes(f)) err("STRUCT-script-file", f, "Skriptdatei — ausgeliefert werden nur die Abmelde-Worker (CSP script-src 'none')");
   }
 
   // --- Farbkontraste ------------------------------------------------------------
