@@ -153,12 +153,20 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
 
   // --- facts.json -------------------------------------------------------------
   let facts = {};
+  let factsText = "";
   try {
-    facts = JSON.parse(readFileSync(join(siteDir, "facts.json"), "utf8")).facts || {};
+    factsText = readFileSync(join(siteDir, "facts.json"), "utf8");
+    facts = JSON.parse(factsText).facts || {};
     for (const [k, f] of Object.entries(facts)) {
       if (!f.value || !f.source || !/^\d{4}-\d{2}-\d{2}$/.test(f.verified || "")) err("FACTS-schema", "facts.json", `${k}: value, source und verified (JJJJ-MM-TT) sind Pflicht`);
+      // Ausgelieferte facts.json ohne interne Felder (Pruefbericht 9): der Build entfernt sie
+      for (const key of C.FACTS_INTERNAL_KEYS) if (key in f) err("FACTS-internal", "facts.json", `${k}: internes Feld „${key}“ wird ausgeliefert`);
     }
   } catch (e) { err("FACTS-schema", "facts.json", `nicht lesbar: ${e.message}`); }
+  for (const re of C.FACTS_INTERNAL) {
+    const m = re.exec(factsText);
+    if (m) err("FACTS-internal", "facts.json", `interner Verweis „${m[0]}“ in der ausgelieferten facts.json — gehört in source_internal`);
+  }
 
   // --- private Sperrliste -----------------------------------------------------
   let priv = privateTerms;
@@ -173,7 +181,15 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   if (!privRes.length) (release ? err : info)("PRIV-list-missing", "-", "private Sperrliste (Arbeitgeber, Heimatort) nicht vorhanden — NICHT GEPRÜFT (Datei .site-private-denylist.txt oder Secret SITE_PRIVATE_DENYLIST)");
   else info("PRIV-list", "-", `private Sperrliste: ${privRes.length} Begriffe geprüft`);
 
-  const checkText = (text, where, { scope = "site", pagePath = null, attr = false } = {}) => {
+  // Freigegebene oeffentliche Anschriften (lint-config PUBLIC_ADDRESSES) nur auf ihren Seiten ausblenden.
+  const maskPublic = (text, pagePath) => {
+    let t = text;
+    for (const a of C.PUBLIC_ADDRESSES) if (pagePath && a.pages.includes(pagePath)) t = t.split(a.text).join(" ".repeat(a.text.length));
+    return t;
+  };
+
+  const checkText = (rawText, where, { scope = "site", pagePath = null, attr = false } = {}) => {
+    const text = maskPublic(rawText, pagePath);
     for (const b of C.BANNED) {
       if (scope === "all" && b.scope !== "all") continue;
       const m = b.re.exec(text);
@@ -599,7 +615,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
       onText: (text, stack) => {
         if (stack.some((s) => C.NUMBER_EXEMPT_ELEMENTS.has(s.name) || (s.name === "data" && "data-fact" in s.attrs) || (s.name === "mark" && "data-todo" in s.attrs))) return;
         if (!stack.some((s) => s.name === "body" || s.name === "title")) return;
-        let masked = text;
+        let masked = maskPublic(text, url);
         for (const re of C.NUMBER_MASKS) masked = masked.replace(re, (m) => " ".repeat(m.length));
         for (const m of masked.matchAll(C.NUMBER_TOKEN)) {
           const ctx = collapse(text.slice(Math.max(0, m.index - 25), m.index + m[0].length + 15));

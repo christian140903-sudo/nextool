@@ -75,6 +75,24 @@ export const PART_TIME_ALLOWED = new Set(DOORS.workshops);
 // Strassenanschrift erst ab T-Recht-1 im Impressum (ECG); bis dahin nirgends.
 export const STREET_ALLOWED = new Set([]);
 
+// Oeffentliche Anschriften von Behoerde und Anbieter, die die Datenschutzerklaerung nennt (Art. 13, 77 DSGVO;
+// Rechtstexte B6 der Website-Session). Nur exakt diese Zeichenfolge, nur auf diesen Seiten: Der Linter blendet
+// sie vor Privatdaten- und Zahlenpruefung aus. Jede andere Strassenanschrift bleibt ein Fehler.
+export const PUBLIC_ADDRESSES = [
+  { text: "Barichgasse 40–42, 1030 Wien", pages: ["/datenschutz/"], why: "Österreichische Datenschutzbehörde (dsb.gv.at), Stand B6 08.10.2026" },
+  { text: "Barichgasse 40–42, 1030 Vienna", pages: ["/en/privacy/"], why: "dieselbe Anschrift, englische Fassung" },
+  { text: "101 Townsend St, San Francisco, CA 94107", pages: ["/datenschutz/", "/en/privacy/"], why: "Cloudflare, Inc. laut Cloudflare Privacy Policy (gültig ab 04.11.2025, abgerufen 08.10.2026)" },
+];
+
+// Interne Verweise, die in der ausgelieferten facts.json nichts zu suchen haben (Pruefbericht 9, Nachbesserung 10):
+// Namen nicht oeffentlicher Dokumente und Zeilenverweise in nicht oeffentliche Repositories. Solche Angaben
+// gehoeren in das Feld source_internal (der Build entfernt es, siehe FACTS_INTERNAL_KEYS in scripts/build.mjs).
+export const FACTS_INTERNAL = [
+  /Positionierung/i, /\bKarte\s*\d/i, /FAKTEN/, /EVIDENZ-INVENTAR|\bNachtrag\s*\d/i, /Faktencheck/i,
+  /\bmission\//i, /soul-workspace/i, /\b[\w-]+\.mjs:\d/, /Transkript/i, /\bChriso\b/, /EXT1-ERGEBNIS|KONTROLLARM|DREI-LAEUFE/i,
+];
+export const FACTS_INTERNAL_KEYS = ["source_internal", "offen"];
+
 // ---------------------------------------------------------------------------
 // Sperrliste: Woerter und Rahmungen (Positionierung §3.3, §10.2; Auftrag 2026-10-08)
 // ---------------------------------------------------------------------------
@@ -171,9 +189,10 @@ export const NOTE_VISIBLE = [
 export const PLACEHOLDER = /\[(?!…\]|\.\.\.\])[^\]\n]{1,40}\]|<[^<>\n]{1,40}>/;
 
 // Kontexte, in denen Ziffern ohne Fakt erlaubt sind (Rechtsverweise, Jahreszahlen).
+// "Article/Section" fuer die englischen Rechtsseiten (Art. 6(1)(f) GDPR, Section 165(3) TKG 2021).
 export const NUMBER_MASKS = [
-  /§\s*\d+[a-z]?(?:\s*(?:Abs\.|Z|lit\.)\s*\d*[a-z]?)*/g,
-  /\b(?:Art\.|Abs\.|Nr\.|lit\.)\s*\d+[a-z]?(?:\(\d+\))*(?:\([a-z]\))?(?:\s*(?:bis|to|und|and|–|-)\s*\d+)?/g,
+  /§\s*\d+[a-z]?(?:\(\d+\))*(?:\s*(?:Abs\.|Z|lit\.)\s*\d*[a-z]?)*/g,
+  /\b(?:Art\.|Article|Section|Abs\.|Nr\.|lit\.)\s*\d+[a-z]?(?:\(\d+\))*(?:\([a-z]\))?(?:\s*(?:bis|to|und|and|–|-)\s*\d+)?/g,
   /\bZ\s\d+\b/g,
   /\b(?:19|20)\d{2}\b/g,
 ];

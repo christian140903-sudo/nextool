@@ -115,6 +115,28 @@ check("{{todo}} mit -- bricht ab (Kommentar darf nicht vorzeitig enden)", (fx) =
   writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "{{todo:a --> b}}"));
   expectThrow(fx, /darf weder "--"/);
 });
+check("<!--intern … --> steht nur in src/, nicht in der Ausgabe", (fx) => {
+  writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "<p>a</p>\n<!--intern vorbereiteter Absatz\n<h2>Geheim</h2> {{f:person.name}} -->\n<p>b</p>"));
+  const html = page(build({ src: fx.src }), "phototest.html");
+  if (/intern|Geheim|person\.name/.test(html)) throw new Error("interner Kommentar ausgeliefert");
+  if (!html.includes("<p>a</p>\n<p>b</p>")) throw new Error("umgebender Text beschädigt");
+});
+check("<!--intern ohne Ende bricht ab", (fx) => {
+  writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "<!--intern offen ohne Ende"));
+  expectThrow(fx, /ohne schliessendes/);
+});
+check("Fakt mit offen: OFFEN-Kommentar am Wert; ausgelieferte facts.json ohne interne Felder", (fx) => {
+  const p = join(fx.src, "facts.json");
+  const j = JSON.parse(readFileSync(p, "utf8"));
+  const f = j.facts["soul_mcp.tests"];
+  f.offen = "am Merge-Tag angleichen"; f.source_internal = "interne Fundstelle";
+  writeFileSync(p, JSON.stringify(j, null, 2));
+  const out = build({ src: fx.src });
+  if (!/data-fact="soul_mcp\.tests">[^<]*<\/data><!--OFFEN: facts\.json soul_mcp\.tests: am Merge-Tag angleichen-->/.test(page(out, "projekte/index.html"))) throw new Error("OFFEN-Kommentar fehlt am Fakt");
+  const pub = JSON.parse(out.get("facts.json").toString("utf8")).facts["soul_mcp.tests"];
+  if ("offen" in pub || "source_internal" in pub) throw new Error("internes Feld ausgeliefert");
+  if (pub.value !== f.value || pub.source !== f.source) throw new Error("öffentliche Felder verändert");
+});
 check("Tür-Seite ohne Navigationspunkt der anderen Tür", (fx) => {
   const p = join(fx.src, "site.json");
   const site = JSON.parse(readFileSync(p, "utf8"));

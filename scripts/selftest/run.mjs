@@ -120,6 +120,11 @@ const CASES = [
   ["SD-forbidden", (fx) => fx.edit("index.html", "</head>", '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"x","address":{"@type":"PostalAddress"}}</script>\n</head>')],
   ["SD-forbidden", (fx) => inject(fx, "index.html", '<div itemscope itemtype="https://schema.org/Offer"><span itemprop="price">1</span></div>')],
   ["SD-forbidden", (fx) => fx.edit("index.html", "</head>", '<meta property="business:contact_data:street_address" content="x">\n</head>')],
+  // Recht und Fakten (Nachbesserung 7/10/12, Pruefbericht 9)
+  ["FACTS-internal", (fx) => { const j = JSON.parse(fx.read("facts.json")); j.facts["soul_mcp.tests"].source = "Positionierung §3.1 Nr. 1"; fx.write("facts.json", JSON.stringify(j)); }, { expect: /Positionierung/ }],
+  ["FACTS-internal", (fx) => { const j = JSON.parse(fx.read("facts.json")); j.facts["soul_mcp.tests"].offen = "am Merge-Tag angleichen"; fx.write("facts.json", JSON.stringify(j)); }, { expect: /„offen“/ }],
+  ["TXT-privacy", (fx) => inject(fx, "kontakt/index.html", "<p>Barichgasse 40–42, 1030 Wien</p>"), { expect: /strasse/ }],
+  ["NUM-unsourced", (fx) => inject(fx, "datenschutz/index.html", "<p>Seite 165(3) im Handbuch.</p>")],
 ];
 
 let failed = 0;

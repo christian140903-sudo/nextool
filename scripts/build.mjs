@@ -12,6 +12,7 @@
 import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
 import { join, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { FACTS_INTERNAL_KEYS } from "./lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(ROOT, "src");
@@ -61,7 +62,31 @@ function parsePage(file) {
   }
   if (!["de", "en"].includes(meta.lang)) throw new Error(`${relative(ROOT, file)}: lang muss de oder en sein`);
   formatDate(meta.updated, meta.lang);
-  return { meta, body: raw.slice(m[0].length), file };
+  return { meta, body: stripIntern(raw.slice(m[0].length), relative(ROOT, file)), file };
+}
+
+// Reine Quell-Kommentare <!--intern … -->: Begruendungen, Normenhinweise und vorbereitete Absaetze,
+// die erst nach einer offenen Frage gelten (z. B. "Unabhaengigkeit" erst nach F4). Sie stehen nur in
+// src/, der Build entfernt sie, damit sie nicht im ausgelieferten Quelltext stehen. Go-live-Tore
+// gehoeren dagegen in {{todo:}} (werden <!--OFFEN:-->, der Release-Linter zaehlt sie).
+export function stripIntern(body, where = "") {
+  const out = body.replace(/[ \t]*<!--intern\b[\s\S]*?-->[ \t]*\r?\n?/g, "");
+  if (/<!--intern\b/.test(out)) throw new Error(`${where}: <!--intern ohne schliessendes -->`);
+  return out;
+}
+
+// Ausgelieferte facts.json (Pruefbericht 9, Nachbesserung 10): interne Felder bleiben in src/facts.json.
+//   source_internal = Fundstelle in nicht oeffentlichen Dokumenten (fuer die eigene Nachpruefung)
+//   offen           = Go-live-Tor am Fakt (z. B. "am Merge-Tag angleichen"); erzeugt auf jeder Seite,
+//                     die den Fakt zeigt, ein OFFEN-Kommentar -> test:release bricht ab, bis es weg ist.
+// Die Liste der Felder steht in scripts/lint-config.mjs (FACTS_INTERNAL_KEYS); der Linter prueft dieselbe.
+export function publicFacts(raw) {
+  const j = JSON.parse(raw);
+  const facts = {};
+  for (const [k, f] of Object.entries(j.facts)) {
+    facts[k] = Object.fromEntries(Object.entries(f).filter(([fk]) => !FACTS_INTERNAL_KEYS.includes(fk)));
+  }
+  return JSON.stringify({ ...j, facts }, null, 2) + "\n";
 }
 
 // Liest Breite/Hoehe aus dem SOF-Segment und meldet Metadaten-Segmente (APP1 = EXIF/XMP, APP13 = IPTC).
@@ -139,7 +164,8 @@ function renderFact(key, lang, facts) {
   if (!f) throw new Error(`unbekannter Fakt: ${key}`);
   if (!f.source || !f.verified) throw new Error(`Fakt ${key} ohne source/verified`);
   const display = f[lang] ?? f.display ?? f.value;
-  return `<data value="${esc(f.value)}" data-fact="${esc(key)}">${esc(display)}</data>`;
+  const gate = f.offen ? offenComment(`facts.json ${key}: ${f.offen}`, `facts.json ${key}`) : "";
+  return `<data value="${esc(f.value)}" data-fact="${esc(key)}">${esc(display)}</data>${gate}`;
 }
 
 // Interne Notiz / offener Punkt (OFFEN-Mechanik): {{todo:Text}} wird ein HTML-Kommentar
@@ -312,7 +338,7 @@ export function build({ src = SRC } = {}) {
     if (out.has(rel)) throw new Error(`Datei doppelt: ${rel}`);
     out.set(rel, readFileSync(f));
   }
-  out.set("facts.json", Buffer.from(factsRaw, "utf8"));
+  out.set("facts.json", Buffer.from(publicFacts(factsRaw), "utf8"));
   out.set("sitemap.xml", Buffer.from(sitemap(pages, site), "utf8"));
   return out;
 }
