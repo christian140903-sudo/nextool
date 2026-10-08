@@ -1,0 +1,36 @@
+name: Site check
+
+# npm test = build --check (site/ passt zu src/) + Linter v2 + Linter-Selbsttest.
+# Die private Sperrliste (Arbeitgeber, Heimatort) kommt nur aus dem Repository-Secret
+# SITE_PRIVATE_DENYLIST (ein Begriff je Zeile); fehlt es, meldet der Linter "NICHT GEPRÜFT".
+# Treffer werden nie im Klartext ausgegeben.
+
+on:
+  push:
+    branches-ignore: ["archiv/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # Commit-Nachrichten seit dem Relaunch werden mitgeprueft
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: npm test
+        run: npm test
+        env:
+          SITE_PRIVATE_DENYLIST: ${{ secrets.SITE_PRIVATE_DENYLIST }}
