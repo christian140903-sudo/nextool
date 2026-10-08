@@ -34,6 +34,17 @@ npm test        # build check + site linter + linter self-test
 npm run serve   # local preview with _redirects and _headers applied
 ```
 
+## Photo
+
+Pages place the portrait with `{{photo:large}}`, `{{photo:medium}}` or
+`{{photo:small}}`. As long as `src/static/assets/foto.jpg` does not exist, the
+build renders initials instead of an `<img>`, so no page points to a missing
+file. To add the photo: put `foto.jpg` (required fallback) and optionally
+`foto.webp` into `src/static/assets/`, each at most 150 KB and without
+metadata (for example `exiftool -all= foto.jpg`), then run `npm run build`.
+The build stops if a file is too large or still carries EXIF, XMP or IPTC
+data, because those can reveal where and with which device a photo was taken.
+
 ## License
 
 Code: MIT (see `LICENSE`). Fonts under `site/assets/fonts/` keep their own
