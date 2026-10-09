@@ -208,5 +208,21 @@ check("Tür-Seite ohne Navigationspunkt der anderen Tür", (fx) => {
   if (!navOf(page(out, "kontakt/index.html")).includes('href="/workshops/"')) throw new Error("Kontrollseite ohne Workshops-Punkt — Test prüft nichts");
 });
 
+// Barrierefreiheit (Welle F2, BF-07): Ohne Sprachpaar fuehrt der Sprachlink auf die Startseite und sagt das.
+check("Sprachlink ohne Sprachpaar nennt die Startseite (BF-07)", (fx) => {
+  const site = JSON.parse(readFileSync(join(fx.src, "site.json"), "utf8"));
+  const out = build({ src: fx.src });
+  const sw = (rel) => /<p class="lang-switch"><a href="([^"]*)"[^>]*>([^<]*)<\/a>/.exec(page(out, rel)).slice(1).join(" ");
+  if (sw("behaviorlock/index.html") !== `/ ${site.strings.en.langLinkHome}`) throw new Error(`/behaviorlock/: ${sw("behaviorlock/index.html")}`);
+  if (sw("en/projects/index.html") !== `/projekte/ ${site.strings.en.langLink}`) throw new Error(`/en/projects/: ${sw("en/projects/index.html")}`);
+});
+check("fehlendes langLinkHome bricht ab (BF-07)", (fx) => {
+  const p = join(fx.src, "site.json");
+  const site = JSON.parse(readFileSync(p, "utf8"));
+  delete site.strings.en.langLinkHome;
+  writeFileSync(p, JSON.stringify(site));
+  expectThrow(fx, /langLinkHome fehlt/);
+});
+
 console.log(`\nselftest build: ${total - failed} von ${total} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);

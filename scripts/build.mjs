@@ -248,6 +248,7 @@ function layout(page, html, ctx) {
     alt.push(`<link rel="alternate" hreflang="x-default" href="${abs(site.xDefault)}">`);
   }
   const langTarget = meta.pair || site.strings[other].home;
+  if (!meta.pair && !s.langLinkHome) throw new Error(`${meta.path}: strings.${meta.lang}.langLinkHome fehlt in site.json (Sprachlink ohne Sprachpaar, BF-07)`);
   // Zwei Tueren verlinken sich nicht (Positionierung §1.5): Auf einer Tuer-Seite (meta.door)
   // fehlen Navigationspunkte, die zur jeweils anderen Tuer gehoeren (item.door).
   const nav = site.nav[meta.lang].filter((item) => !(meta.door && item.door && item.door !== meta.door)).map((item) => {
@@ -300,7 +301,7 @@ function layout(page, html, ctx) {
     `<header class="site-header"><div class="wrap">`,
     `<a class="brand" href="${s.home}">${esc(site.name)}</a>`,
     `<nav class="site-nav" aria-label="${esc(s.navLabel)}"><ul>${nav.join("")}</ul></nav>`,
-    `<p class="lang-switch"><a href="${langTarget}" hreflang="${other}" lang="${other}">${esc(s.langLink)}</a></p>`,
+    `<p class="lang-switch"><a href="${langTarget}" hreflang="${other}" lang="${other}">${esc(meta.pair ? s.langLink : s.langLinkHome)}</a></p>`, // ohne Sprachpaar: Ziel ist die Startseite (WCAG 2.4.4, BF-07)
     `</div></header>`,
     `<main id="inhalt"><div class="wrap">`,
     html.trim(),
