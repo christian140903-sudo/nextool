@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Selbsttest des Site-Linters: Ein Mechanismus gilt erst als gebaut, wenn sein Fehlerfall
-// einmal ausgeloest wurde. Jeder Fall kopiert site/ in ein Temp-Verzeichnis, baut genau
-// einen Verstoss ein und erwartet die passende Regel. Dazu zwei Kontrollen:
+// einmal ausgeloest wurde. Jeder Fall kopiert eine Vorlage von site/ in ein Temp-Verzeichnis,
+// baut genau einen Verstoss ein und erwartet die passende Regel. Die Vorlage baut der Test
+// einmal selbst aus src/ mit dem engsten Zustand (P4-01, siehe VORLAGE). Dazu zwei Kontrollen:
 //   - die unveraenderte Kopie muss fehlerfrei sein (sonst prueft der Test nichts),
 //   - eine widerrufene Zahl MIT Pflichtkontext darf NICHT anschlagen.
 // Alle Testdaten sind erfunden (keine echten Nummern, Namen, Adressen).
@@ -19,13 +20,30 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 // Faelle steuern den Zustand selbst; ein in CI gesetztes Secret SITE_PRIVATE_STATE darf sie nicht veraendern (P3-04).
 delete process.env.SITE_PRIVATE_STATE;
 
+// Vorlage der Fixture (P4-01): site/ einmal je Lauf aus dem Quellstand gebaut, mit dem engsten Zustand — nicht die
+// echte site/ kopiert. Die echte site/ ist mit dem privaten Zustand gebaut; weicht ein Schalter davon ab (z. B.
+// zF1 = true), waere die „saubere Kopie“ unter STATE_STRICT rot, mit Datei wie mit Variable. Den Zustand der Kopie
+// dafuer auf den echten zu setzen, reicht nicht: Faelle, die rot werden muessen, setzen den engsten Zustand voraus.
+// Die echte site/ mit dem echten Zustand prueft der Linter-Lauf vor diesem Test (npm test).
+const VORLAGE = mkdtempSync(join(tmpdir(), "lint-selftest-vorlage-"));
+process.on("exit", () => rmSync(VORLAGE, { recursive: true, force: true }));
+{
+  const src = join(VORLAGE, "src");
+  cpSync(join(ROOT, "src"), src, { recursive: true, filter: (p) => p !== join(ROOT, "src", "state.json") });
+  writeFileSync(join(src, "state.json"), JSON.stringify(STATE_STRICT));
+  for (const [rel, buf] of build({ src, env: {} })) {
+    const p = join(VORLAGE, "site", rel);
+    mkdirSync(dirname(p), { recursive: true });
+    writeFileSync(p, buf);
+  }
+}
+
 function fixture() {
   const base = mkdtempSync(join(tmpdir(), "lint-selftest-"));
-  cpSync(join(ROOT, "site"), join(base, "site"), { recursive: true });
+  cpSync(join(VORLAGE, "site"), join(base, "site"), { recursive: true });
   mkdirSync(join(base, "src"), { recursive: true });
   cpSync(join(ROOT, "src", "legacy-urls.txt"), join(base, "src", "legacy-urls.txt"));
-  // Zustand der Kopie = engster Zustand (wie in CI, wo die private src/state.json fehlt); der echte private
-  // Zustand spielt fuer den Selbsttest keine Rolle.
+  // Zustand der Kopie = engster Zustand, passend zur Vorlage; Faelle verstellen ihn gezielt (state).
   writeFileSync(join(base, "src", "state.json"), JSON.stringify(STATE_STRICT));
   const f = (p) => join(base, "site", p);
   return {
@@ -534,7 +552,7 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   const fx = fixture();
   let res = "";
   try {
-    cpSync(join(ROOT, "src"), join(fx.base, "src"), { recursive: true });
+    cpSync(join(VORLAGE, "src"), join(fx.base, "src"), { recursive: true });
     writeFileSync(join(fx.base, "src", "state.json"), JSON.stringify({ ...STATE_STRICT, zF1: true }));
     for (const [rel, buf] of build({ src: join(fx.base, "src") })) fx.write(rel, buf);
     const run = () => errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] }));
