@@ -253,6 +253,21 @@ export function renderKit(part, lang, site, state) {
   return esc(t.satz).replace("{name}", name);
 }
 
+// Adressen in Befehlen (R4b b2, P3-05): {{url:https://…}} setzt die Adresse mit Umbruchstellen nur nach jedem "/" (<wbr>)
+// ein, nie im Schema "https://"; ein Pfadteil mit Bindestrich (Benutzername, Repository) ist nicht trennbar
+// (<span class="nobr">), sonst bricht der Browser dort am Bindestrich oder — bei overflow-wrap: anywhere in Zellen und
+// <pre> — mitten im Wort. Text und Kopie bleiben genau die Adresse. Eine Funktion fuer Pruef-Karte, Tabellenzellen und
+// Projektbloecke; `git clone https://…` von Hand bricht den Build ab (expand), damit keine Stelle ohne sie bleibt.
+export function breakUrl(url) {
+  const m = /^(https?:\/\/)([^\s<>"'&{}|]+)$/.exec(url.trim());
+  if (!m) throw new Error(`{{url:…}} braucht eine http(s)-Adresse ohne Leerzeichen und HTML (${url.length} Zeichen)`);
+  const parts = m[2].split("/");
+  return esc(m[1]) + "<wbr>" + parts.map((p, i) => {
+    const t = esc(p) + (i < parts.length - 1 ? "/" : "");
+    return p.includes("-") ? `<span class="nobr">${t}</span>` : t;
+  }).join("<wbr>");
+}
+
 // Bedingter Text (R4b b5): {{if:F-nn}}…{{/if}} wird nur ausgeliefert, wenn der private Zustand die Kennung
 // freigibt (zE1 enthaelt "F-nn"). Fehlt der Schalter oder die Datei, faellt der Text weg — fuer Saetze, die erst
 // nach einer Antwort ausgeliefert werden duerfen. Die Kennung bleibt daneben als {{todo:F-nn}} stehen, damit das
@@ -295,6 +310,7 @@ function expand(body, page, ctx) {
     ctx.ifUsed.get(id).add(lang);
   }
   const withBlocks = applyIf(withBausteine, ctx.state.zE1, where);
+  if (/git clone +https?:\/\//.test(withBlocks)) throw new Error(`${where}: Adresse nach „git clone“ von Hand — nur über {{url:…}} (P3-05), sonst bricht sie am Handy mitten im Namen um`);
   if (withBlocks.includes(ctx.site.kit.name)) throw new Error(`${where}: „${ctx.site.kit.name}“ steht wörtlich in der Seite — nur über {{kit}} oder {{kit:titel}} (R4b b4), sonst wechselt diese Stelle am Tag der Veröffentlichung nicht mit`);
   return withBlocks.replace(/\{\{([a-z]+)(?::([^}]*))?\}\}/g, (m, kind, arg = "") => {
     switch (kind) {
@@ -309,6 +325,7 @@ function expand(body, page, ctx) {
       case "email": return mailto(ctx.site.email);
       case "kernsatz": return esc(ctx.site.strings[lang].kernsatz);
       case "kit": return renderKit(arg.trim(), lang, ctx.site, ctx.state);
+      case "url": return breakUrl(arg);
       case "photo": return renderPhoto(arg.trim(), ctx);
       default: throw new Error(`${where}: unbekannter Platzhalter ${m}`);
     }

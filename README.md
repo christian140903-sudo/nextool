@@ -97,6 +97,11 @@ is inserted before the other placeholders, so `{{fact:…}}` inside it comes
 from `facts.json` as on the page. An unknown name, a missing language file or
 a block inside a block stops the build.
 
+Addresses in commands are written as `{{url:https://…}}`. The build lets them
+wrap only after a `/` and keeps a path part with a hyphen (a user or repository
+name) in one piece, so a phone never splits the name; copied text stays the
+exact address. A hand-written address after `git clone` stops the build.
+
 ## Photo
 
 Pages place the portrait with `{{photo:large}}`, `{{photo:medium}}` or

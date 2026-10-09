@@ -17,7 +17,7 @@ import { mkdtempSync, cpSync, writeFileSync, readFileSync, rmSync, mkdirSync } f
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { build, jpegInfo, ciStateNote } from "../build.mjs";
+import { build, jpegInfo, ciStateNote, breakUrl } from "../build.mjs";
 import { STATE_STRICT, IF_ZWILLINGE } from "../lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -256,6 +256,31 @@ check("<!--intern Klartext --> im Baustein bricht ab, Meldung ohne Klartext", (f
   writeFileSync(join(fx.src, "bausteine", "notiz.de.html"), `<p>a</p><!--intern ${CLEAR}-->`);
   setBody(fx, "{{baustein:notiz}}");
   noLeak(fx, /<!--intern nur als/);
+});
+
+// Adressen in Befehlen (P3-05): {{url:…}} bricht nur nach "/" um, Pfadteile mit Bindestrich bleiben ganz; Pruef-Karte und
+// Pruefweg-Zelle zeigen dieselbe Adresse mit denselben Umbruchstellen; `git clone https://…` von Hand bricht ab.
+const stripTags = (h) => h.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&");
+check("{{url:…}}: <wbr> nach jedem /, Pfadteil mit Bindestrich als nobr, Text = Adresse", () => {
+  const u = "https://example.org/beispiel-name/projekt-x/datei";
+  const h = breakUrl(u);
+  if (h !== 'https://<wbr>example.org/<wbr><span class="nobr">beispiel-name/</span><wbr><span class="nobr">projekt-x/</span><wbr>datei') throw new Error(h);
+  if (stripTags(h) !== u) throw new Error("Text weicht von der Adresse ab");
+});
+check("{{url:…}} ohne http(s)-Adresse bricht ab", (fx) => { setBody(fx, "<pre><code>{{url:javascript:alert(1)}}</code></pre>"); expectThrow(fx, /\{\{url:…\}\} braucht eine http\(s\)-Adresse/); });
+check("{{url:…}} mit HTML darin bricht ab", (fx) => { setBody(fx, '<pre><code>{{url:https://example.org/a"b}}</code></pre>'); expectThrow(fx, /\{\{url:…\}\} braucht/); });
+check("`git clone https://…` von Hand bricht ab", (fx) => { setBody(fx, "<pre><code>git clone https://example.org/beispiel-name/x</code></pre>"); expectThrow(fx, /Adresse nach „git clone“ von Hand/); });
+check("Prüfweg-Zelle (Anstellungsseite) und Prüf-Karte: dieselbe Adresse mit denselben Umbruchstellen (DE und EN)", (fx) => {
+  const out = build({ src: fx.src });
+  for (const rel of ["arbeitgeber/index.html", "en/hire/index.html"]) {
+    const html = page(out, rel);
+    const inCard = (/<span class="cont">(.*?)<\/span><span class="cmd">/.exec(card(html)) || [])[1];
+    const cell = (/<td data-label="(?:Prüfweg|Verify)"><code>git clone (.*?) &amp;&amp;/.exec(html) || [])[1];
+    if (!inCard || !cell) throw new Error(`${rel}: Karte oder Zelle nicht gefunden`);
+    if (inCard !== cell) throw new Error(`${rel}: Zelle ${cell} ≠ Karte ${inCard}`);
+    if (!cell.includes('<wbr><span class="nobr">christian140903-sudo/</span><wbr>')) throw new Error(`${rel}: Benutzername nicht als ganzer Pfadteil`);
+  }
+  for (const [rel, html] of out) if (rel.endsWith(".html") && /git clone https?:\/\/[^<]*?-/.test(html.toString("utf8"))) throw new Error(`${rel}: Adresse nach git clone ohne Umbruchstellen`);
 });
 
 // team-skills-kit (R4b b4): ein String-Paar in site.json, zwei Zustaende, gesteuert von zF1. Beide Zustaende
