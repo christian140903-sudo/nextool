@@ -130,7 +130,7 @@ function urlOfFile(rel) {
 // ---------------------------------------------------------------------------
 // Hauptpruefung
 // ---------------------------------------------------------------------------
-export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = false, privateTerms = null, gitCheck = true } = {}) {
+export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = false, privateTerms = null, gitCheck = true, gitBase = C.RELAUNCH_BASE, knownCommits = C.COMMITS_KNOWN } = {}) {
   const findings = [];
   const add = (level, rule, where, msg) => findings.push({ level, rule, where, msg });
   const err = (r, w, m) => add("error", r, w, m);
@@ -799,16 +799,25 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   if (gitCheck) {
     let log = null;
     try {
-      log = execFileSync("git", ["log", "--format=%h%x1f%s%n%b%x1e", `${C.RELAUNCH_BASE}..HEAD`], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+      log = execFileSync("git", ["log", "--format=%H%x1f%s%n%b%x1e", `${gitBase}..HEAD`], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
     } catch { log = null; }
     if (log === null) (release ? err : info)("GIT-commits", "-", "Commit-Nachrichten NICHT GEPRÜFT (kein git oder Basis-Commit fehlt — in CI fetch-depth: 0)");
     else {
       const commits = log.split("\x1e").map((c) => c.trim()).filter(Boolean);
+      let knownHits = 0;
       for (const c of commits) {
         const [hash, msg] = c.split("\x1f");
-        checkText(msg.replace(/^(Co-Authored-By|Claude-Session):.*$/gim, ""), `commit ${hash}`, { scope: "all" });
+        const where = `commit ${hash.slice(0, 7)}`;
+        const body = msg.replace(/^(Co-Authored-By|Claude-Session):.*$/gim, "");
+        checkText(body, where, { scope: "all" });
+        // §13 gilt auch hier (Befunde T-01/P-02), ohne seitengebundene Regeln; bekannte Alt-Treffer: warn = im Release Fehler.
+        const known = knownCommits[hash] || [];
+        for (const h of checkSperrliste(body, { state, page: null, rules: sperrRules, skipPageRules: true })) {
+          if (known.includes(h.id)) { knownHits++; warn("GIT-commit-known", where, `${sperrMsg(h)} — bekannter Alt-Treffer, verschwindet erst mit dem Repo-Tausch (Release nur aus dem neuen Repo)`); }
+          else err(`SPERR-${h.group}`, where, sperrMsg(h));
+        }
       }
-      info("GIT-commits", "-", `${commits.length} Commit-Nachrichten seit ${C.RELAUNCH_BASE.slice(0, 7)} geprüft`);
+      info("GIT-commits", "-", `${commits.length} Commit-Nachrichten seit ${gitBase.slice(0, 7)} geprüft (Sperrliste v2 eingeschlossen, ${knownHits} bekannte Alt-Treffer)`);
     }
   }
 

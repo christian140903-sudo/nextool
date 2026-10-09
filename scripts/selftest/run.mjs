@@ -352,6 +352,37 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   else console.log("  ok    Kontrolle: Bindung B-bezahlt verneint/mit Auftrag grün; ohne private Liste kein öffentlicher Wortlaut");
 }
 
+// Kontrolle 12 (T-01/P-02): Commit-Nachrichten laufen durch die Sperrliste v2 (ohne Seitenbindung). In der
+// Kopie entsteht ein eigenes git-Repo: Basis-Commit, dann eine Probe-Nachricht. Rot muss sie werden; als
+// bekannter Alt-Treffer nur Warnung (Release: Fehler); eine saubere Nachricht bleibt gruen.
+{
+  const fx = fixture();
+  const git = (...a) => execFileSync("git", ["-C", fx.base, "-c", "user.name=Selbsttest", "-c", "user.email=selbsttest@example.org", "-c", "commit.gpgsign=false", ...a], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  let res = "";
+  try {
+    git("init", "-q");
+    git("commit", "-q", "--allow-empty", "-m", "Basis");
+    const base = git("rev-parse", "HEAD");
+    git("commit", "-q", "--allow-empty", "-m", "Probe: Feuerprobe startet, Workshops ab Montag");
+    const probe = git("rev-parse", "HEAD");
+    const run = (o) => lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: true, gitBase: base, privateTerms: [], ...o }).filter((x) => x.where === `commit ${probe.slice(0, 7)}`);
+    const rot = run({ knownCommits: {} }).filter((x) => x.level === "error").map((x) => x.rule).sort().join(",");
+    const bekannt = run({ knownCommits: { [probe]: ["A-vorbereitet", "C-workshop"] } }).map((x) => `${x.level}:${x.rule}`).sort().join(",");
+    const bekanntRel = run({ knownCommits: { [probe]: ["A-vorbereitet", "C-workshop"] }, release: true }).filter((x) => x.level === "error").length;
+    const teil = run({ knownCommits: { [probe]: ["A-vorbereitet"] } }).filter((x) => x.level === "error").map((x) => x.rule).join(",");
+    git("commit", "-q", "--allow-empty", "-m", "Startseite: Zeilenabstand angeglichen");
+    const sauber = lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: true, gitBase: probe, privateTerms: [], knownCommits: {} }).filter((x) => x.level === "error" && /^commit /.test(x.where)).length;
+    if (rot !== "SPERR-A,SPERR-C") res = `rote Nachricht ergibt „${rot}“ statt SPERR-A,SPERR-C`;
+    else if (bekannt !== "warn:GIT-commit-known,warn:GIT-commit-known") res = `bekannte Treffer ergeben „${bekannt}“`;
+    else if (bekanntRel !== 2) res = `bekannte Treffer im Release ${bekanntRel} Fehler statt 2`;
+    else if (teil !== "SPERR-C") res = `nur A bekannt ergibt „${teil}“ statt SPERR-C`;
+    else if (sauber) res = `saubere Nachricht ergibt ${sauber} Fehler`;
+  } catch (e) { res = `Testaufbau gescheitert: ${e.message}`; }
+  if (res) { failed++; console.log(`  FEHLER Kontrolle: Commit-Prüfung ${res}`); }
+  else console.log("  ok    Kontrolle: Commit-Nachricht rot (SPERR-A, SPERR-C), bekannt = Warnung, Release = Fehler, sauber = grün");
+  rmSync(fx.base, { recursive: true, force: true });
+}
+
 // Kontrolle 6 (R-03): Das Release-Tor erkennt die neutralen Kennungen. Ohne jede Kennung kein TODO-open;
 // genau eine eingefuegte <!--OFFEN:F-nn--> macht genau diese Seite rot; email_off und Kennungen sind im
 // Normalmodus kein Fehler.
@@ -391,5 +422,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 11 - failed} von ${CASES.length + 11} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 12 - failed} von ${CASES.length + 12} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);

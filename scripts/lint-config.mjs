@@ -4,8 +4,9 @@
 //
 // scope: "site"   = nur sichtbarer Text/Attribute der ausgelieferten Seiten
 //        "all"    = zusaetzlich Commit-Nachrichten seit dem Relaunch und Dateinamen in site/
-// Namen (z. B. geparkte Projekte) gelten nur fuer "site": In Commit-Nachrichten darf stehen,
-// dass etwas entfernt wurde; verboten sind dort Werbebehauptungen, widerrufene Zahlen, Privatdaten.
+// Namen (z. B. geparkte Projekte) aus BANNED gelten nur fuer "site": In Commit-Nachrichten darf stehen,
+// dass etwas entfernt wurde. Die Sperrliste v2 (§13, unten) gilt dagegen auch fuer Commit-Nachrichten,
+// ohne Seitenbindung: dort also keine gesperrte Wendung, auch nicht als Zitat einer Entfernung.
 
 import { readFileSync } from "node:fs";
 
@@ -16,6 +17,27 @@ export const HOST = new URL(ORIGIN).host;
 
 // Letzter Commit vor dem Relaunch (= Archiv-Branch archiv/vor-relaunch-2026-10).
 export const RELAUNCH_BASE = "4505f3c326251cd55dc631675bb309813f727f88";
+
+// Commit-Nachrichten sind eine Flaeche (§13 Geltung: "auch Commit-Messages"): Der Linter wendet die
+// §13-Regeln ohne Seitenbindung auf jede Nachricht seit RELAUNCH_BASE an. Diese Treffer sind bekannt und
+// ohne Historien-Umschreibung nicht zu beheben; sie verschwinden mit dem Repo-Tausch (frisches Repo ohne
+// diese Historie). Bis dahin Warnung, im Release Fehler: Go-live erst aus dem neuen Repo. Jeder andere
+// Treffer (andere Regel oder anderer Commit) ist sofort ein Fehler. Befunde T-01/P-02, 2026-10-09.
+export const COMMITS_KNOWN = {
+  "3684bf424ce088b80198256d9d0828c1efd11b81": ["D-verfuegbar-ab"],
+  "0d8b0132b781e900d81a90fcd18e90291bedef94": ["A-doi"],
+  "e0f61cb5e0b0b034d1e4cb949c15442f7fbb09b5": ["E-phrasen"],
+  "7732e6f9b0bdf08c2ba3b6595ae4f8d1bac21b96": ["F-git-sichtbar"],
+  "685aec1e12ef5ceb6bc922f76cde5bebd9e09c71": ["A-vorbereitet", "E-phrasen"],
+  "ad7f3bef9a43ef214c4af3e9261fd1c40e6c4f9e": ["F-git-sichtbar"],
+  "33d1de2bc1d04a0b5231e6796ce67722196cc18b": ["A-vorbereitet"],
+  "f29f603e4f1a4b61909ac9f991401e746007360f": ["C-workshop"],
+  "63c5adf45ed6cc5268ab57776175eba48c79f0b2": ["C-workshop"],
+  "35a8b457ebde6c22be5d0327e06f2d694d2297ed": ["C-workshop"],
+  "f0a483341edc46e293dd4d838d8847b9ec0e9789": ["F-kit-name"],
+  "b099933c447698163a8125ce81ca8f9d4a3ed420": ["F-kit-name"],
+  "99c758c8de72ac3d67286cc621dd25f845368600": ["C-workshop"],
+};
 
 export const REQUIRED_FILES = [
   "index.html", "en/index.html", "404.html", "_headers", "_redirects",
