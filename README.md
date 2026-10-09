@@ -36,6 +36,9 @@ npm run og      # redraw the link-preview images from src/site.json (needs Playw
 npm run scan -- <file|dir>  # apply the same wording rules to other text files (prints counts, never the matched text)
 ```
 
+Inside a git working tree, `npm run scan` skips gitignored files in the folders it walks (source:
+`git ls-files`) and reports how many it skipped; a file or ignored folder named explicitly is read.
+
 Some wording rules depend on the state of the work (for example, whether a repository is public yet).
 Those switches live in a private `src/state.json` that is not part of this repository (`.gitignore`).
 Without it — as in CI or a fresh clone — the linter checks against the strictest state

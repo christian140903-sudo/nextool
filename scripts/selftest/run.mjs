@@ -523,6 +523,37 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(fx.base, { recursive: true, force: true });
 }
 
+// Kontrolle 17 (Welle F3, Werkzeug): Der Dokument-Scan laesst in Ordnern gitignorierte Dateien aus (Quelle
+// `git ls-files`), zaehlt sie, nennt sie nicht. Ausdruecklich genannte Dateien und ignorierte Ordner liest er,
+// ausserhalb von git alles. Testbegriff erfunden, private Liste per Umgebung.
+{
+  const dir = mkdtempSync(join(tmpdir(), "scan-git-selftest-"));
+  const roh = mkdtempSync(join(tmpdir(), "scan-nogit-selftest-"));
+  let res = "";
+  const run = (...p) => { try { return { code: 0, out: execFileSync(process.execPath, [join(ROOT, "scripts", "sperrliste-scan.mjs"), ...p], { encoding: "utf8", env: { ...process.env, SITE_PRIVATE_DENYLIST: "Beispielfirma" } }) }; } catch (e) { return { code: e.status, out: String(e.stdout) }; } };
+  const sum = (r) => { const m = /(\d+) Dateien, (\d+) Treffer .*; (\d+) gitignorierte Dateie?n? ausgelassen\)/.exec(r.out); return m ? m.slice(1).map(Number).join("/") : "keine Summenzeile"; };
+  try {
+    for (const d of [dir, roh]) {
+      writeFileSync(join(d, ".gitignore"), "privat.json\nentwuerfe/\n");
+      for (const f of ["verfolgt.md", "neu.md", "privat.json"]) writeFileSync(join(d, f), "Früher bei Beispielfirma.\n");
+      mkdirSync(join(d, "entwuerfe"));
+      writeFileSync(join(d, "entwuerfe", "cv.md"), "Früher bei Beispielfirma.\n");
+    }
+    execFileSync("git", ["-C", dir, "init", "-q"]);
+    execFileSync("git", ["-C", dir, "add", "verfolgt.md", ".gitignore"]);
+    const ordner = run(dir), datei = run(join(dir, "privat.json")), ignOrdner = run(join(dir, "entwuerfe")), ohneGit = run(roh);
+    if (ordner.code !== 1 || sum(ordner) !== "2/2/2") res = `Ordner im Repo: ${sum(ordner)} statt 2/2/2 (Dateien/Treffer/ausgelassen), Exit ${ordner.code}`;
+    else if (/privat\.json|cv\.md/.test(ordner.out)) res = "ausgelassene Datei wird benannt";
+    else if (sum(datei) !== "1/1/0") res = `ausdrücklich genannte ignorierte Datei: ${sum(datei)} statt 1/1/0`;
+    else if (sum(ignOrdner) !== "1/1/0") res = `ausdrücklich genannter ignorierter Ordner: ${sum(ignOrdner)} statt 1/1/0`;
+    else if (sum(ohneGit) !== "4/4/0") res = `ohne git: ${sum(ohneGit)} statt 4/4/0`;
+  } catch (e) { res = `Testaufbau gescheitert: ${e.message}`; }
+  if (res) { failed++; console.log(`  FEHLER Kontrolle: Scan und .gitignore: ${res}`); }
+  else console.log("  ok    Kontrolle: Scan lässt gitignorierte Dateien im Ordner aus (gezählt, nicht benannt); genannte Datei/ignorierter Ordner gelesen; ohne git alles");
+  rmSync(dir, { recursive: true, force: true });
+  rmSync(roh, { recursive: true, force: true });
+}
+
 for (const [rule, mutate, opts = {}] of CASES) {
   const fx = fixture();
   try {
@@ -539,5 +570,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 16 - failed} von ${CASES.length + 16} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 17 - failed} von ${CASES.length + 17} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);

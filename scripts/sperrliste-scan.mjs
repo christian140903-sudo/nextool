@@ -15,10 +15,17 @@
 //
 // Was die Schicht darunter im Fehlerfall schon selbst tut: nichts — ein nicht lesbarer Ordner waere
 // still leer. Deshalb zaehlt die Ausgabe die gelesenen Dateien, und ein Pfad ohne Textdatei ist ein Fehler.
+//
+// Gitignorierte Dateien (z. B. die private src/state.json mit ihrer Legende) sind keine oeffentliche Flaeche:
+// In einem Ordner innerhalb eines git-Arbeitsbaums liest der Scan nur, was `git ls-files --cached --others
+// --exclude-standard` nennt (verfolgt oder neu, aber nicht ignoriert). Ausdruecklich genannte Dateien und
+// ausdruecklich genannte ignorierte Ordner (z. B. private Entwuerfe) liest er immer; ausserhalb von git alles.
+// Ausgelassene Dateien werden gezaehlt, nicht benannt (ihre Namen koennen selbst privat sein).
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { join, dirname, relative } from "node:path";
+import { join, dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import { loadState, checkSperrliste, parsePrivateList, bindPrivateRules, checkPrivate } from "./lib/sperrliste.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -42,15 +49,25 @@ if (listErrors.length || bindErrors.length) { for (const e of [...listErrors, ..
 if (!entries.length && !bound.length) console.log("  HINWEIS private Liste fehlt — Gruppe G und vertrauliche Einträge NICHT GEPRÜFT");
 for (const id of missing) console.log(`  HINWEIS Regel ${id} hat privaten Wortlaut, die private Liste bindet ihn nicht — NICHT GEPRÜFT`);
 
+// Sichtbare Dateien eines Ordners laut git (absolute Pfade) oder null = kein Filter (ausserhalb von git, git
+// fehlt, oder der Ordner ist selbst ignoriert und wurde ausdruecklich genannt).
+function gitVisible(dir) {
+  const git = (...a) => execFileSync("git", ["-C", dir, ...a], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  try { git("rev-parse", "--is-inside-work-tree"); } catch { return null; }
+  try { git("check-ignore", "-q", "."); return null; } catch { /* Exit 1 = nicht ignoriert: filtern */ }
+  return new Set(git("ls-files", "-z", "--cached", "--others", "--exclude-standard").split("\0").filter(Boolean).map((f) => resolve(dir, f)));
+}
+
 const files = [];
-const collect = (p) => {
+let ignored = 0;
+const collect = (p, visible) => {
   if (!existsSync(p)) { console.error(`  FEHLER Pfad fehlt: ${p}`); process.exit(2); }
-  if (statSync(p).isDirectory()) { for (const n of readdirSync(p).sort()) if (!n.startsWith(".") && n !== "node_modules" && n !== "__pycache__") collect(join(p, n)); }
-  else if (TEXT.test(p)) files.push(p);
+  if (statSync(p).isDirectory()) { for (const n of readdirSync(p).sort()) if (!n.startsWith(".") && n !== "node_modules" && n !== "__pycache__") collect(join(p, n), visible); }
+  else if (TEXT.test(p)) { if (visible && !visible.has(resolve(p))) ignored++; else files.push(p); }
 };
 for (const p of paths) {
   const before = files.length;
-  collect(p);
+  collect(p, existsSync(p) && statSync(p).isDirectory() ? gitVisible(p) : null);
   if (files.length === before) { console.error(`  FEHLER keine Textdatei unter ${p}`); process.exit(2); }
 }
 
@@ -76,5 +93,5 @@ for (const f of files) {
   if (flags.has("--lines") && n) console.log(`      Zeilen ${lines.join(" ")}`);
 }
 console.log(`${"Summe".padEnd(55)}  ${GROUPS.map((g) => String(sum[g]).padStart(3)).join("  ")}`);
-console.log(`\nsperrliste-scan: ${files.length} Dateien, ${total} Treffer (Zustand: ${strict ? "engster (src/state.json fehlt)" : Object.entries(state).filter(([k]) => !k.startsWith("_")).map(([k, v]) => `${k} ${Array.isArray(v) ? v.length : v}`).join(", ")}; private Liste ${entries.length} Einträge, ${bound.length} Bindungen).`);
+console.log(`\nsperrliste-scan: ${files.length} Dateien, ${total} Treffer (Zustand: ${strict ? "engster (src/state.json fehlt)" : Object.entries(state).filter(([k]) => !k.startsWith("_")).map(([k, v]) => `${k} ${Array.isArray(v) ? v.length : v}`).join(", ")}; private Liste ${entries.length} Einträge, ${bound.length} Bindungen; ${ignored} gitignorierte Datei${ignored === 1 ? "" : "en"} ausgelassen).`);
 process.exit(total ? 1 : 0);
