@@ -19,8 +19,9 @@ const SRC = join(ROOT, "src");
 const OUT = join(ROOT, "site");
 
 // Foto (Positionierung §7.7): src/static/assets/foto.jpg (Pflicht, wenn ein Foto erscheinen soll)
-// und optional foto.webp. Fehlt foto.jpg, rendert {{photo:...}} Initialen statt eines <img> —
-// so verweist keine Seite auf eine fehlende Datei. Ist es da, bricht der Build ab, wenn
+// und optional foto.webp. Fehlt foto.jpg, rendert {{photo:large}} Initialen statt eines <img>,
+// {{photo:medium}}/{{photo:small}} rendern nichts (R4 a3: ein kleines Monogramm wirkt wie ein
+// Platzhalter und steht mobil verwaist) — so verweist keine Seite auf eine fehlende Datei. Ist es da, bricht der Build ab, wenn
 // Metadaten (EXIF/XMP/IPTC: koennen Aufnahmeort und Geraet verraten) oder > 150 KB.
 const PHOTO_SIZES = ["large", "medium", "small"];
 const PHOTO_MAX_BYTES = 150 * 1024;
@@ -166,6 +167,7 @@ function renderPhoto(size, ctx) {
   if (!PHOTO_SIZES.includes(size)) throw new Error(`{{photo:${size}}}: Größe muss ${PHOTO_SIZES.join("|")} sein`);
   const p = ctx.photo;
   if (!p) {
+    if (size !== "large") return "";
     const initials = ctx.site.name.split(/\s+/).map((w) => w[0]).join("").toUpperCase();
     return `<div class="portrait portrait-${size} portrait-initials" aria-hidden="true">${esc(initials)}</div>`;
   }
@@ -248,7 +250,6 @@ function layout(page, html, ctx) {
     const cur = item.id === meta.nav ? ' aria-current="page"' : "";
     return `<li><a href="${item.href}"${cur}>${esc(item.label)}</a></li>`;
   });
-  nav.push(`<li class="lang-switch"><a href="${langTarget}" hreflang="${other}" lang="${other}">${esc(s.langLink)}</a></li>`);
   const footerLinks = s.footerNav.map((l) => `<li><a href="${l.href}">${esc(l.label)}</a></li>`).join("");
   const robots = meta.robots || "index,follow";
   const ogImage = abs(meta.ogImage || `/assets/og-${meta.lang}.png`);
@@ -291,6 +292,7 @@ function layout(page, html, ctx) {
     `<header class="site-header"><div class="wrap">`,
     `<a class="brand" href="${s.home}">${esc(site.name)}</a>`,
     `<nav class="site-nav" aria-label="${esc(s.navLabel)}"><ul>${nav.join("")}</ul></nav>`,
+    `<p class="lang-switch"><a href="${langTarget}" hreflang="${other}" lang="${other}">${esc(s.langLink)}</a></p>`,
     `</div></header>`,
     `<main id="inhalt"><div class="wrap">`,
     html.trim(),

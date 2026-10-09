@@ -74,6 +74,7 @@ check("ohne foto.jpg: Initialen, kein <img>", (fx) => {
   const html = page(build({ src: fx.src }), "phototest.html");
   if (!html.includes('class="portrait portrait-large portrait-initials" aria-hidden="true">CB<')) throw new Error("Initialen fehlen");
   if (/foto\.(jpg|webp)/.test(html)) throw new Error("verweist trotzdem auf foto.*");
+  if (/portrait-small/.test(html)) throw new Error("{{photo:small}} ohne Foto rendert trotzdem etwas (R4 a3: nur large zeigt Initialen)");
 });
 check("sauberes JPEG: <img> mit Breite/Höhe, Datei ausgeliefert", (fx) => {
   fx.asset("foto.jpg", jpeg({ width: 640, height: 800 }));
@@ -82,6 +83,7 @@ check("sauberes JPEG: <img> mit Breite/Höhe, Datei ausgeliefert", (fx) => {
   if (!html.includes('<img src="/assets/foto.jpg" alt="Christian Bucher" width="640" height="800"')) throw new Error("img fehlt oder ohne Maße");
   if (html.includes("foto.webp")) throw new Error("webp-Quelle ohne Datei");
   if (!out.has("assets/foto.jpg")) throw new Error("foto.jpg nicht im Ergebnis");
+  if (!html.includes('<picture class="portrait portrait-small">')) throw new Error("{{photo:small}} mit Foto fehlt");
 });
 check("JPEG + WebP: <source> für WebP", (fx) => {
   fx.asset("foto.jpg", jpeg());

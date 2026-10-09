@@ -44,8 +44,8 @@ the current `site/` and checks that no registration and no cache remain.
 
 Pages place the portrait with `{{photo:large}}`, `{{photo:medium}}` or
 `{{photo:small}}`. As long as `src/static/assets/foto.jpg` does not exist, the
-build renders initials instead of an `<img>`, so no page points to a missing
-file. To add the photo: put `foto.jpg` (required fallback) and optionally
+build renders initials for `large` and nothing for `medium` and `small`, so no
+page points to a missing file. To add the photo: put `foto.jpg` (required fallback) and optionally
 `foto.webp` into `src/static/assets/`, each at most 150 KB and without
 metadata (for example `exiftool -all= foto.jpg`; afterwards check with
 `exiftool -a -G1 foto.jpg`), then run `npm run build`.

@@ -111,7 +111,7 @@ const CASES = [
   // Audit T1–T18 der Website-Session (Nachbesserung 2): je neue Regel ein Gegenbeispiel
   ["I18N-absolute", (fx) => fx.edit("projekte/index.html", '<link rel="alternate" hreflang="en" href="https://nextool.app/en/projects/">', '<link rel="alternate" hreflang="en" href="/en/projects/">')],
   ["SITEMAP-hreflang", (fx) => fx.edit("sitemap.xml", '<loc>https://nextool.app/projekte/</loc>', '<loc>https://nextool.app/projekte/</loc>\n    <xhtml:link rel="alternate" hreflang="fr" href="https://nextool.app/fr/"/>')],
-  ["I18N-switch", (fx) => fx.edit("kontakt/index.html", '<li class="lang-switch"><a href="/en/contact/"', '<li class="lang-switch"><a href="/en/"')],
+  ["I18N-switch", (fx) => fx.edit("kontakt/index.html", '<p class="lang-switch"><a href="/en/contact/"', '<p class="lang-switch"><a href="/en/"')],
   ["HEAD-heading-order", (fx) => inject(fx, "kontakt/index.html", "<h4>Zu tief</h4>")],
   ["STRUCT-unexpected-file", (fx) => fx.write("assets/lebenslauf.pdf", "%PDF-1.4")],
   ["LINK-target", (fx) => inject(fx, "index.html", '<p><a href="/projekte/" target="_blank">x</a></p>')],

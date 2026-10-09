@@ -437,7 +437,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         if (t.name === "h1") meta.h1++;
         if (/^h[1-6]$/.test(t.name)) meta.headings.push(Number(t.name[1]));
         // Sprachlink im Kopf (Audit T3)
-        if (t.name === "a" && stack.some((x) => x.name === "li" && /(^|\s)lang-switch(\s|$)/.test(x.attrs.class || ""))) meta.switches.push(a);
+        if (t.name === "a" && stack.some((x) => /(^|\s)lang-switch(\s|$)/.test(x.attrs.class || ""))) meta.switches.push(a);
         // kein target (Audit T8): Links oeffnen im selben Fenster
         if ("target" in a && a.target !== "_self") err("LINK-target", rel, `target="${a.target}" an <${t.name}> (Audit T8)`);
         // Strukturierte Daten (Audit T16): JSON-LD, Microdata, RDFa, Open-Graph-Ortsangaben
