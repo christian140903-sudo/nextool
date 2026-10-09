@@ -58,8 +58,10 @@ export const ALLOWED_FILE = /^(?:_headers|_redirects)$|\.(?:html|css|woff2|txt|p
 // Stufe 1 ist NICHT kommerziell: keine Workshop-Seite, keine Preise, keine Angebotssprache
 // (§ 5 ECG; Uebergabe 06-rechtstexte README "Stufe 1 nicht kommerziell"; Positionierung §11).
 // Fuer Stufe 2 (nach T-Recht-1) STAGE auf 2 setzen; dann greifen nur noch Sperrliste/preise.
+// Ausdruck wörtlich aus der Rechtsabnahme Welle E (R-06; dort 15/15 Angebotssätze gefangen, 8/8 legitime
+// durchgelassen). Ein Netz, kein Beweis: „Ich unterstütze Teams bei …“ geht weiter durch — Endkontrolle bleibt.
 export const STAGE = 1;
-export const STAGE1_COMMERCIAL = /\d[\d.,]*\s?(?:€|EUR\b|Euro\b)|(?:€|\bEUR)\s?\d|\bPreis(?:e|en|liste)?\b|\bHonorar|\bTages(?:satz|sätze)|\bStundensatz|\bbuch(?:en|bar|ung)\b|\bAngebot|\bWorkshop|\bProbesession|\bCoaching|\bprice[sd]?\b|\bpricing\b|\bfees?\b|\bday[- ]rate|\bbook(?:ing|\s+a|\s+now)\b|\boffer(?:s|ing)?\b/i;
+export const STAGE1_COMMERCIAL = /\d[\d.,]*\s?(?:€|EUR\b|Euro\b)|(?:€|\bEUR)\s?\d|\bPreis(?:e|en|liste)?\b|\bHonorar|\bTages(?:satz|sätze)|\bStundensatz|\bbuch(?:en|bar|ung)\b|\bAngebot|\bWorkshop|\bProbesession|\bCoaching|\bprice[sd]?\b|\bpricing\b|\bfees?\b|\bday[- ]rate|\bbook(?:ing|\s+a|\s+now)\b|\boffer(?:s|ing)?\b|\b(?:an)?biete[nt]?\b|\bBeratungs?(?:leistung|angebot)|\bberate\s+(?:Sie|Ihr|Teams?|Unternehmen|Firmen)\b|\bSchulung|\btrainings\b|\btraining\s+(?:für|for)\b|\bconsult(?:ing|ancy|ants?)\b|\bfreelanc|\bhire\s+me\b|\bfor\s+hire\b|\bDienstleistung|\bLeistungen\b|\bsponsor(?:s|ing)?\b|\bSpende|\bdonat(?:e|ion|ions)\b|\baffiliates?\b|\bauf\s+Anfrage\b|\bErstgespräch|\bbuy\s+me\s+a\s+coffee|\bko-?fi\b|\bpatreon\b|\bpaypal|\bavailable\s+for\s+(?:projects|freelance|contract)/i;
 
 // Strukturierte Daten (Audit T16): keine Angebote, keine Organisation, keine Anschrift/Telefon/Geburtsdaten.
 export const SD_FORBIDDEN_TYPES = /^(?:Offer|AggregateOffer|Demand|Organization|Corporation|LocalBusiness|ProfessionalService|Store|Product|Service|PostalAddress|Place)$/i;

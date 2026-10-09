@@ -139,6 +139,9 @@ const CASES = [
   ["STAGE1-commercial", (fx) => fx.write("ueber-mich/index.html", fx.read("ueber-mich/index.html").replace(/(<meta property="og:title" content=")/, "$1Workshops buchen — ")), { where: /\[meta og:title\]/ }],
   ["STAGE1-commercial", (fx) => fx.write("en/about/index.html", fx.read("en/about/index.html").replace(/(<meta property="og:description" content=")/, "$1Book a workshop. ")), { where: /\[meta og:description\]/ }],
   ["STAGE1-commercial", (fx) => inject(fx, "ueber-mich/index.html", '<p><a href="/kontakt/" aria-label="Workshops buchen">Kontakt</a></p>'), { where: /\[aria-label\]/ }],
+  // R-06 (Rechtsabnahme Welle E): erweiterter Ausdruck faengt Angebotsverben und "hire me"
+  ["STAGE1-commercial", (fx) => inject(fx, "ueber-mich/index.html", "<p>Ich biete Beratung für Teams an.</p>"), { expect: /„biete“/ }],
+  ["STAGE1-commercial", (fx) => inject(fx, "en/about/index.html", "<p>Hire me for your next project.</p>"), { expect: /„Hire me“/ }],
   ["SD-forbidden", (fx) => fx.edit("index.html", "</head>", '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"x","address":{"@type":"PostalAddress"}}</script>\n</head>')],
   ["SD-forbidden", (fx) => inject(fx, "index.html", '<div itemscope itemtype="https://schema.org/Offer"><span itemprop="price">1</span></div>')],
   ["SD-forbidden", (fx) => fx.edit("index.html", "</head>", '<meta property="business:contact_data:street_address" content="x">\n</head>')],
@@ -205,6 +208,16 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(fx.base, { recursive: true, force: true });
 }
 
+// Kontrolle 7 (R-06): Distanzierung ist kein Angebot — "not sponsored by Anthropic" bleibt erlaubt
+{
+  const fx = fixture();
+  inject(fx, "en/about/index.html", "<p>This site is not sponsored by Anthropic.</p>");
+  const e = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] }));
+  if (e.length) { failed++; console.log(`  FEHLER Kontrolle: „not sponsored by Anthropic“ abgelehnt (${e[0].rule}: ${e[0].msg})`); }
+  else console.log("  ok    Kontrolle: „not sponsored by Anthropic“ wird durchgelassen (R-06)");
+  rmSync(fx.base, { recursive: true, force: true });
+}
+
 // Kontrolle 6 (R-03): Das Release-Tor erkennt die neutralen Kennungen. Ohne jede Kennung kein TODO-open;
 // genau eine eingefuegte <!--OFFEN:F-nn--> macht genau diese Seite rot; email_off und Kennungen sind im
 // Normalmodus kein Fehler.
@@ -244,5 +257,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 6 - failed} von ${CASES.length + 6} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 7 - failed} von ${CASES.length + 7} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);
