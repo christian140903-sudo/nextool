@@ -11,6 +11,9 @@
 //   Abdeckung aller Alt-URLs (src/legacy-urls.txt) · Sitemap/robots · Farbkontraste (WCAG AA)
 //   offene Punkte (<!--OFFEN:F-nn--> aus {{todo:F-nn}}), nur inhaltsleere HTML-Kommentare (R-03),
 //   sichtbare Notizen/Platzhalter · Commit-Nachrichten
+//   Sperrliste v2 nach Positionierung v2 §13 A–F (Regeln in lint-config SPERRLISTE; bedingte Regeln lesen
+//   src/state.json, fail-closed) · Gruppe G und vertrauliche Eintraege nur ueber die private Liste, die
+//   auch ausgelieferte Textdateien und den oeffentlichen Quellbaum prueft
 //   Abmelde-Worker sw.js · Audit T1–T18 der Website-Session, soweit sie hier passen (Sprachlink,
 //   Ueberschriften, "Stand", noindex-Ausnahmen, target, Positivliste Dateitypen, Schriftlizenzen,
 //   Sitemap-Form/hreflang, strukturierte Daten, Stufe 1 ohne Angebotssprache); jede dieser Regeln
@@ -27,12 +30,13 @@
 // Privatdaten-Treffer werden NIE im Klartext ausgegeben (CI-Logs sind oeffentlich).
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { join, dirname, relative, sep, posix } from "node:path";
+import { join, dirname, relative, sep, posix, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { Script } from "node:vm";
 import { tokenize, walk, textBlocks, collapse } from "./lib/html.mjs";
 import { parseHeaders, headersFor } from "./lib/cf-headers.mjs";
+import { loadState, checkSperrliste, parsePrivateList, checkPrivate } from "./lib/sperrliste.mjs";
 import * as C from "./lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -170,6 +174,29 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     if (m) err("FACTS-internal", "facts.json", `interner Verweis „${m[0]}“ in der ausgelieferten facts.json — gehört in source_internal`);
   }
 
+  // --- Zustand (src/state.json, Positionierung v2 §7) ---------------------------
+  // Fail-closed: fehlt die Datei oder ein Schluessel, ist ein Wert unbekannt -> Fehler; die Regeln laufen
+  // dann mit dem strengsten Zustand weiter (lint-config STATE_STRICT).
+  const { state: rawState, errors: stateErrors } = loadState(rootDir);
+  for (const e of stateErrors) err("STATE-invalid", "src/state.json", e);
+  const state = stateErrors.length ? C.STATE_STRICT : rawState;
+  if (!stateErrors.length && state.feuerprobe.status === "bericht-v01") {
+    for (const k of ["feuerprobe.satz1_de", "feuerprobe.satz1_en", "feuerprobe.doi"]) if (!String(facts[k]?.value || "").trim()) err("STATE-invalid", "facts.json", `feuerprobe.status = bericht-v01 verlangt ${k} in facts.json (§3.2)`);
+  }
+  // Stufe (STAGE in lint-config) und Rechtszustand der Website muessen zusammenpassen — sonst laeuft ein
+  // Stufenwechsel nur halb.
+  if ((C.STAGE === 1) !== (state.recht.website === "R0")) err("STATE-invalid", "src/state.json", `recht.website = ${state.recht.website} passt nicht zu STAGE = ${C.STAGE} in lint-config`);
+  const sperr = (text, where, page) => {
+    for (const h of checkSperrliste(text, { state, page })) err(`SPERR-${h.group}`, where, `§13 ${h.group} „${h.id}“: „${h.match}“ — ${h.why}`);
+  };
+  // Keine Zahlen in Vorschaubildern (§13 F): der Bildtext steht in src/og-stamp.json.
+  {
+    const stamp = join(rootDir, "src", "og-stamp.json");
+    if (existsSync(stamp)) for (const [lang, v] of Object.entries(JSON.parse(readFileSync(stamp, "utf8")))) {
+      if (v && typeof v === "object" && /\d/.test(`${v.kernsatz || ""} ${v.ort || ""}`)) err("SPERR-F", "src/og-stamp.json", `Vorschaubild ${lang} enthält eine Zahl (§13 F: keine Zahlen in Social-Preview-Bildern)`);
+    }
+  }
+
   // --- README.md im oeffentlichen Repository (R-03) ----------------------------
   // Auch dort nur inhaltsleere Kommentare; ein <!--OFFEN:F-nn--> ist ein Go-live-Tor wie auf den Seiten.
   const readme = join(rootDir, "README.md");
@@ -211,10 +238,42 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     if (envList && envList.trim()) priv = envList.split(/\r?\n/);
     else if (existsSync(file)) priv = readFileSync(file, "utf8").split(/\r?\n/);
   }
-  priv = (priv || []).map((t) => t.trim()).filter((t) => t && !t.startsWith("#"));
-  const privRes = priv.map((t) => new RegExp(`(?<![\\p{L}\\p{N}])${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "iu"));
+  // Zeilenformat (lib/sperrliste.mjs): Begriff | re:<Ausdruck> | "[A-G] " davor als Gruppe. Ein ungueltiger
+  // Ausdruck ist in jedem Modus ein Fehler (sonst waere der Eintrag still wirkungslos).
+  const { entries: privEntries, errors: privErrors } = parsePrivateList(priv || []);
+  for (const e of privErrors) err("PRIV-list-invalid", "-", e);
+  const privRes = privEntries.map((e) => e.re);
+  const privHit = (text, where) => { for (const h of checkPrivate(text, privEntries)) err("TXT-private", where, `Eintrag Nr. ${h.n} (Gruppe ${h.group}) der privaten Sperrliste`); };
   if (!privRes.length) (release ? err : info)("PRIV-list-missing", "-", "private Sperrliste (Arbeitgeber, Heimatort) nicht vorhanden — NICHT GEPRÜFT (Datei .site-private-denylist.txt oder Secret SITE_PRIVATE_DENYLIST)");
   else info("PRIV-list", "-", `private Sperrliste: ${privRes.length} Begriffe geprüft`);
+
+  // Dateinamen, ausgelieferte Textdateien, Zustandsschluessel (§7 M5/M6) und oeffentlicher Quellbaum.
+  // Das Repository ist oeffentlich: Was in src/, scripts/ oder README steht, ist so sichtbar wie die Seite.
+  for (const f of site.files) {
+    privHit(f, `${f} [Dateiname]`);
+    sperr(f.replace(/[/_.-]+/g, " "), `${f} [Dateiname]`, urlOfFile(f));
+    if (!/\.(?:html|json|txt|xml|svg|css|js)$|^_(?:headers|redirects)$/.test(f)) continue;
+    const text = readFileSync(join(siteDir, f), "utf8");
+    if (!f.endsWith(".html")) privHit(text, f); // Seiten prueft checkText blockweise
+    const k = C.STATE_PRIVATE_KEYS.exec(text);
+    if (k) err("STATE-leak", f, `Zustandsschlüssel ${k[0].replace(/\s*:$/, "")} wird ausgeliefert — gehört nur in src/state.json (§7)`);
+  }
+  {
+    const skip = new Set([".git", "node_modules", "site", ".private"]);
+    const own = resolvePath(process.env.SITE_PRIVATE_DENYLIST_FILE || join(rootDir, ".site-private-denylist.txt"));
+    const scan = (dir) => {
+      if (!existsSync(dir)) return;
+      for (const n of readdirSync(dir).sort()) {
+        const p = join(dir, n);
+        if (statSync(p).isDirectory()) { if (!skip.has(n)) scan(p); continue; }
+        if (resolvePath(p) === own || !/\.(?:html|json|txt|md|mjs|js|css|ya?ml|toml|svg|xml)$|^(?:CNAME|LICENSE|_headers|_redirects|\.gitignore)$/.test(n)) continue;
+        const rel = relative(rootDir, p).split(sep).join("/");
+        privHit(rel, `${rel} [Dateiname]`);
+        privHit(readFileSync(p, "utf8"), rel);
+      }
+    };
+    if (privEntries.length) scan(rootDir);
+  }
 
   // Freigegebene oeffentliche Anschriften (lint-config PUBLIC_ADDRESSES) nur auf ihren Seiten ausblenden.
   const maskPublic = (text, pagePath) => {
@@ -230,7 +289,9 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
       const m = b.re.exec(text);
       if (m) err("TXT-banned", where, `Sperrliste „${b.id}“: „${m[0]}“`);
     }
-    if (scope === "site" && pagePath && !C.PART_TIME_ALLOWED.has(pagePath)) {
+    // Unter Endzustand b ist "Teilzeit" auf der Anstellungs-Tuer ausdruecklich erlaubt (v2 §13 D, einzige Ausnahme).
+    const partTimeOk = C.PART_TIME_ALLOWED.has(pagePath) || (state.endzustand === "b" && C.DOORS.hire.includes(pagePath));
+    if (scope === "site" && pagePath && !partTimeOk) {
       const m = C.PART_TIME.exec(text);
       if (m) err("TXT-banned", where, `„${m[0]}“ nur auf der Workshops-Tür (Positionierung §1.2)`);
     }
@@ -248,7 +309,8 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
       const m = p.re.exec(text);
       if (m) err("TXT-privacy", where, `Privatdaten-Muster „${p.id}“ (Treffer maskiert: ${mask(m[0])})`);
     }
-    privRes.forEach((re, i) => { if (re.test(text)) err("TXT-private", where, `Begriff Nr. ${i + 1} der privaten Sperrliste`); });
+    privHit(text, where);
+    if (scope === "site") sperr(text, where, pagePath);
   };
 
   // Sichtbare interne Notizen (immer Fehler) und Ausfuell-Platzhalter (Release: Fehler). parts = [{text, exempt}]
@@ -508,6 +570,11 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
           if (!site.files.has(decodeURIComponent(p))) err("RES-missing", rel, `lokale Ressource fehlt: ${r}`);
         }
         if (t.name === "a" && a.href) meta.links.push(a.href);
+        // §13 E: die datierte Korrekturliste nur auf der Archivseite (erkannt am Anker)
+        if (/^(?:korrekturen|corrections)$/i.test(a.id || "") && !C.PAGES.archive.includes(url)) err("SPERR-E", rel, `Korrekturliste (#${a.id}) außerhalb der Archivseite (§13 E)`);
+        // §13 F / §7: keine Links auf Commits in Repos, die privat werden; kein Link auf team-skills-kit vor kit_oeffentlich
+        if (a.href && C.LINK_PRIVATE_COMMIT.test(a.href)) err("SPERR-F", rel, `Link auf einen Commit in einem Repo, das privat wird: ${a.href} (§13 F)`);
+        if (a.href && /team-skills-kit/i.test(a.href) && !state.kit_oeffentlich) err("SPERR-F", rel, `Link auf team-skills-kit vor kit_oeffentlich = true (§7): ${a.href}`);
         if (t.name === "img" && !("alt" in a)) err("A11Y-img-alt", rel, "<img> ohne alt");
         // Attribute mit sichtbarem/teilbarem Text
         for (const k of ["alt", "title", "aria-label", "placeholder"]) if (a[k]) { checkText(a[k], `${rel} [${k}]`, { pagePath: url, attr: true }); checkNotes([{ text: a[k] }], `${rel} [${k}]`); checkStage1(a[k], `${rel} [${k}]`); }
@@ -628,6 +695,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         const tp = site.pages.get(urlOfFile(file));
         if (tp && !tp.ids.has(frag)) err("LINK-anchor", rel, `Anker #${frag} fehlt auf ${p || url}`);
       }
+      if (C.PAGES.feuerprobe.includes(url) && C.DOORS.workshops.includes(urlOfFile(file))) err("DOOR-crossing", rel, `Feuerprobe-Seite verlinkt die Workshops-Tür (${href}) — Positionierung v2 §7`);
       const from = doorOf(url), to = doorOf(urlOfFile(file));
       if (from && to && from !== to) err("DOOR-crossing", rel, `Tür ${from} verlinkt Tür ${to} (${href}) — Positionierung §1.5`);
     }

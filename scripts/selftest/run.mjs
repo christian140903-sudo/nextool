@@ -10,6 +10,7 @@ import { mkdtempSync, cpSync, readFileSync, writeFileSync, mkdirSync, rmSync, re
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import { lint } from "../lint-site.mjs";
 import { ORIGIN as O, HOST } from "../lint-config.mjs";
 
@@ -20,9 +21,17 @@ function fixture() {
   cpSync(join(ROOT, "site"), join(base, "site"), { recursive: true });
   mkdirSync(join(base, "src"), { recursive: true });
   cpSync(join(ROOT, "src", "legacy-urls.txt"), join(base, "src", "legacy-urls.txt"));
+  cpSync(join(ROOT, "src", "state.json"), join(base, "src", "state.json"));
   const f = (p) => join(base, "site", p);
   return {
     base,
+    // Zustand (src/state.json) gezielt verstellen: patch wird flach eingemischt, "a.b" setzt verschachtelt.
+    state(patch) {
+      const sf = join(base, "src", "state.json");
+      const st = JSON.parse(readFileSync(sf, "utf8"));
+      for (const [k, v] of Object.entries(patch)) { const ks = k.split("."); let o = st; while (ks.length > 1) o = o[ks.shift()]; o[ks[0]] = v; }
+      writeFileSync(sf, JSON.stringify(st));
+    },
     read: (p) => readFileSync(f(p), "utf8"),
     write: (p, s) => { mkdirSync(dirname(f(p)), { recursive: true }); writeFileSync(f(p), s); },
     edit(p, from, to) {
@@ -151,6 +160,40 @@ const CASES = [
   ["TXT-privacy", (fx) => inject(fx, "kontakt/index.html", "<p>Barichgasse 40–42, 1030 Wien</p>"), { expect: /strasse/ }],
   ["NUM-unsourced", (fx) => inject(fx, "datenschutz/index.html", "<p>Seite 165(3) im Handbuch.</p>")],
   ["NUM-unsourced", (fx) => inject(fx, "impressum/index.html", "<p>Lizenz in Version 4.0.</p>")],
+  // Sperrliste v2 (Positionierung v2 §13 A–F): je Gruppe ein Fall, der rot werden MUSS. Bedingte Regeln
+  // werden mit einem absichtlich falschen Zustand ausgeloest (Gegenstueck gruen: Kontrolle 9).
+  ["SPERR-A", (fx) => inject(fx, "projekte/index.html", "<p>Feuerprobe: der Messplan folgt.</p>"), { expect: /A-vorbereitet/ }],
+  ["SPERR-A", (fx) => { fx.state({ "feuerprobe.status": "e1-offen" }); inject(fx, "en/hire/index.html", "<p>Feuerprobe: calibration passed.</p>"); }, { expect: /A-eichung/ }],
+  ["SPERR-A", (fx) => { fx.state({ "feuerprobe.status": "e1-offen" }); inject(fx, "projekte/index.html", "<p>Die Feuerprobe ist eine unabhängige Messung.</p>"); }, { expect: /A-unabhaengig/ }],
+  ["SPERR-A", (fx) => inject(fx, "projekte/index.html", "<p>Getestet: <code>2.1.40</code>.</p>"), { expect: /A-version/ }],
+  ["SPERR-B", (fx) => inject(fx, "en/about/index.html", "<p>I receive no money, credits or early access from Anthropic.</p>"), { expect: /B-keine-verbindung/ }],
+  ["SPERR-B", (fx) => inject(fx, "ueber-mich/index.html", "<p>Davon unabhängig schreibe ich Werkzeuge.</p>"), { expect: /B-davon-unabhaengig/ }],
+  ["SPERR-C", (fx) => inject(fx, "en/about/index.html", "<p>I also give talks on agent tooling.</p>"), { expect: /C-vortraege/ }],
+  ["SPERR-C", (fx) => inject(fx, "ueber-mich/index.html", "<p>Der Kurs ist update-sicher.</p>"), { expect: /C-haltbarkeit/ }],
+  ["SPERR-C", (fx) => inject(fx, "ueber-mich/index.html", "<p>Reviews zwischen den Terminen.</p>"), { expect: /C-kundenrepo/ }],
+  ["SPERR-D", (fx) => inject(fx, "en/hire/index.html", "<p>Vienna or EU-remote, full-time.</p>"), { expect: /D-vollzeit/ }],
+  ["SPERR-D", (fx) => inject(fx, "en/about/index.html", "<p>Available up to twenty hours a week.</p>"), { expect: /D-wochenstunden/ }],
+  ["SPERR-D", (fx) => { fx.state({ rolle: "B" }); }, { expect: /D-rolle-b/ }],
+  ["SPERR-E", (fx) => inject(fx, "en/about/index.html", "<p>My setup is private for now.</p>"), { expect: /E-phrasen/ }],
+  ["SPERR-E", (fx) => inject(fx, "ueber-mich/index.html", '<h2 id="korrekturen">Korrekturen</h2>'), { expect: /Korrekturliste/ }],
+  ["SPERR-F", (fx) => inject(fx, "projekte/index.html", "<p>Vorlage: claude-code-team-kit.</p>"), { expect: /F-kit-name/ }],
+  ["SPERR-F", (fx) => inject(fx, "projekte/index.html", '<p><a href="https://github.com/beispiel/nextool/commit/abc1234">Commit</a></p>'), { expect: /privat wird/ }],
+  ["SPERR-F", (fx) => inject(fx, "index.html", "<p>Für Teams: team-skills-kit, eine offene Vorlage.</p>"), { expect: /F-kit-start/ }],
+  ["SPERR-F", (fx) => writeFileSync(join(fx.base, "src", "og-stamp.json"), JSON.stringify({ de: { kernsatz: "Gebaut in 3 Monaten.", ort: "Wien" } })), { where: /^src\/og-stamp\.json$/ }],
+  // Zustand fail-closed (§3.2, §7): fehlend, unbekannter Wert, Tippfehler, Stufe passt nicht, bericht-v01 ohne DOI
+  ["STATE-invalid", (fx) => rmSync(join(fx.base, "src", "state.json")), { expect: /fehlt/ }],
+  ["STATE-invalid", (fx) => fx.state({ endzustand: "vielleicht" }), { expect: /endzustand/ }],
+  ["STATE-invalid", (fx) => fx.state({ endzustant: "a" }), { expect: /Tippfehler/ }],
+  ["STATE-invalid", (fx) => fx.state({ kit_oeffentlich: "ja" }), { expect: /kit_oeffentlich/ }],
+  ["STATE-invalid", (fx) => fx.state({ "recht.website": "R1" }), { expect: /STAGE/ }],
+  ["STATE-invalid", (fx) => fx.state({ "feuerprobe.status": "bericht-v01" }), { expect: /feuerprobe\.doi/ }],
+  ["STATE-leak", (fx) => { const j = JSON.parse(fx.read("facts.json")); j.endzustand = "offen"; fx.write("facts.json", JSON.stringify(j)); }, { where: /^facts\.json$/ }],
+  // Private Liste: Ausdruck, Gruppe, ungueltiger Ausdruck, ausgelieferte Textdatei, oeffentlicher Quellbaum
+  ["TXT-private", (fx) => inject(fx, "index.html", "<p>Früher im Beispielhandel.</p>"), { privateTerms: ["re:beispiel\\p{L}*"], expect: /Nr\. 1 \(Gruppe G\)/ }],
+  ["TXT-private", (fx) => inject(fx, "index.html", "<p>Ein Musterwort.</p>"), { privateTerms: ["# Kopf", "[D] Musterwort"], expect: /Gruppe D/ }],
+  ["PRIV-list-invalid", (fx) => {}, { privateTerms: ["re:(offen"], expect: /^Eintrag Nr\. 1 ist kein gültiger Ausdruck$/ }],
+  ["TXT-private", (fx) => fx.write("robots.txt", fx.read("robots.txt") + "# Beispielfirma\n"), { privateTerms: ["Beispielfirma"], where: /^robots\.txt$/ }],
+  ["TXT-private", (fx) => writeFileSync(join(fx.base, "src", "notiz.md"), "früher bei Beispielfirma\n"), { privateTerms: ["Beispielfirma"], where: /^src\/notiz\.md$/ }],
 ];
 
 let failed = 0;
@@ -218,6 +261,62 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(fx.base, { recursive: true, force: true });
 }
 
+// Kontrolle 8 (Sperrliste v2): erlaubte Gegenstuecke je Gruppe A–F bleiben gruen (heutiger Zustand)
+{
+  const fx = fixture();
+  inject(fx, "fallstudie/index.html", "<p>Der Versuch war als Ganzes nicht präregistriert.</p>"); // A: verneint
+  inject(fx, "ueber-mich/index.html", "<p>Getrennt davon schreibe ich Werkzeuge.</p>"); // B
+  inject(fx, "ueber-mich/index.html", "<p>Rückmeldung zu Übungen gebe ich als schriftlichen Kommentar; umsetzen und freigeben tut das Team.</p>"); // C (§5.5)
+  inject(fx, "en/hire/index.html", "<p>I work full-time outside IT.</p>"); // D: heutige Stelle, keine Verfuegbarkeit
+  inject(fx, "archiv/index.html", "<p>Kaufstrecken ohne Produkt sind archiviert.</p>"); // E: erlaubte Nachbarform von „Shops ohne Ware“
+  inject(fx, "projekte/index.html", "<p>team-skills-kit ist in Vorbereitung.</p>"); // F: nicht auf der Startseite
+  const e = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] }));
+  if (e.length) { failed++; console.log(`  FEHLER Kontrolle: erlaubte Gegenstücke A–F abgelehnt (${e[0].rule}: ${e[0].msg})`); }
+  else console.log("  ok    Kontrolle: erlaubte Gegenstücke A–F (verneint, „getrennt davon“, §5.5, heutige Stelle, Archiv, Projekte) bleiben grün");
+  rmSync(fx.base, { recursive: true, force: true });
+}
+
+// Kontrolle 9 (Sperrliste v2): bedingte Regeln — derselbe Text ist im passenden Zustand erlaubt.
+// Gegenstueck zu den roten SPERR-Faellen oben (dort derselbe Text mit dem heutigen bzw. falschen Zustand).
+{
+  const pairs = [
+    ["A-eichung", { "feuerprobe.status": "e1-getroffen" }, "en/hire/index.html", "<p>Feuerprobe: calibration passed.</p>"],
+    ["B-keine-verbindung", { "offenlegung.f4": "nein" }, "en/about/index.html", "<p>I receive no money, credits or early access from Anthropic.</p>"],
+    ["C-vortraege", { vortraege: [{ ort: "Beispielort", datum: "2026-11-01" }] }, "en/about/index.html", "<p>I also give talks on agent tooling.</p>"],
+    ["D-vollzeit", { endzustand: "a" }, "en/hire/index.html", "<p>Vienna or EU-remote, full-time.</p>"],
+    ["D-teilzeit", { endzustand: "b" }, "en/hire/index.html", "<p>Open to part-time work.</p>"],
+    ["F-kit-start", { kit_oeffentlich: true }, "index.html", "<p>Für Teams: team-skills-kit, eine offene Vorlage.</p>"],
+  ];
+  const bad = [];
+  for (const [id, patch, page, html] of pairs) {
+    const fx = fixture();
+    fx.state(patch);
+    inject(fx, page, html);
+    const e = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] }));
+    if (e.length) bad.push(`${id}: ${e[0].rule} ${e[0].msg}`);
+    rmSync(fx.base, { recursive: true, force: true });
+  }
+  if (bad.length) { failed++; console.log(`  FEHLER Kontrolle: bedingte Regel trotz passendem Zustand rot (${bad[0]})`); }
+  else console.log(`  ok    Kontrolle: ${pairs.length} bedingte Regeln im passenden Zustand grün (Gegenstück zu den roten Fällen)`);
+}
+
+// Kontrolle 10 (Sperrliste v2, Dokument-Scan): scripts/sperrliste-scan.mjs zaehlt je Gruppe, gibt keinen
+// Fundstellen-Text aus, Exit 1 bei Treffer, Exit 0 bei sauberem Text. Private Liste per Umgebung (Testbegriff).
+{
+  const dir = mkdtempSync(join(tmpdir(), "scan-selftest-"));
+  writeFileSync(join(dir, "rot.md"), "# Profil\nCoaching für Teams.\nFrüher bei Beispielfirma.\nMy setup is private for now.\n");
+  writeFileSync(join(dir, "gruen.md"), "# Profil\nIch baue mit Agenten und prüfe, was sie liefern.\n");
+  const run = (f) => { try { return { code: 0, out: execFileSync(process.execPath, [join(ROOT, "scripts", "sperrliste-scan.mjs"), "--ids", join(dir, f)], { encoding: "utf8", env: { ...process.env, SITE_PRIVATE_DENYLIST: "Beispielfirma" } }) }; } catch (e) { return { code: e.status, out: String(e.stdout) }; } };
+  const rot = run("rot.md"), gruen = run("gruen.md");
+  const row = /rot\.md\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/.exec(rot.out);
+  const [a, b, c, d, e, f, g] = row ? row.slice(1).map(Number) : [];
+  if (rot.code !== 1 || !row || c !== 1 || e !== 1 || g !== 1 || a + b + d + f !== 0) { failed++; console.log(`  FEHLER Kontrolle: Dokument-Scan zählt falsch (Exit ${rot.code}, Zeile ${row ? row.slice(1).join("/") : "fehlt"})`); }
+  else if (/Beispielfirma/.test(rot.out)) { failed++; console.log("  FEHLER Kontrolle: Dokument-Scan gibt privaten Begriff im Klartext aus"); }
+  else if (gruen.code !== 0) { failed++; console.log(`  FEHLER Kontrolle: Dokument-Scan rot bei sauberem Text (Exit ${gruen.code})`); }
+  else console.log("  ok    Kontrolle: Dokument-Scan rot (C 1, E 1, G 1, Exit 1, ohne Klartext) / grün (Exit 0)");
+  rmSync(dir, { recursive: true, force: true });
+}
+
 // Kontrolle 6 (R-03): Das Release-Tor erkennt die neutralen Kennungen. Ohne jede Kennung kein TODO-open;
 // genau eine eingefuegte <!--OFFEN:F-nn--> macht genau diese Seite rot; email_off und Kennungen sind im
 // Normalmodus kein Fehler.
@@ -257,5 +356,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 7 - failed} von ${CASES.length + 7} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 10 - failed} von ${CASES.length + 10} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);

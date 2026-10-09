@@ -213,3 +213,107 @@ export const NUMBER_TOKEN = /(?<![\p{L}\p{N}_.@\/#-])[+−-]?\d+(?:[.,]\d+)*(?![
 
 // Elemente, deren Inhalt von der Zahlenregel ausgenommen ist.
 export const NUMBER_EXEMPT_ELEMENTS = new Set(["code", "pre", "kbd", "samp", "time", "script", "style"]);
+
+// ---------------------------------------------------------------------------
+// Sperrliste v2 (Positionierung v2 §13 A–F, Mechanik §7/§13) — Linter v2, Welle F
+// ---------------------------------------------------------------------------
+// Bedingte Eintraege lesen den Zustand aus src/state.json (nicht ausgeliefert; Schema und
+// Startwerte siehe STATE_SCHEMA). Jede Regel: id, group (A–F), re; optional
+//   when(state)  aktiv nur, wenn die Bedingung gilt (sonst erlaubt)
+//   ctx          trifft nur, wenn derselbe Textblock (bei sentence: derselbe Satz) auch ctx enthaelt
+//   unless       trifft nicht, wenn der Block (bei sentence: der Satz) unless enthaelt
+//   negatable    ein verneinter Satz ("nicht", "not", "kein" …) zaehlt nicht als Behauptung
+//   sentence     ctx/unless gelten satzweise statt blockweise
+//   pages        nur auf diesen Seiten (Website); beim Dokument-Scan gilt die Regel immer, ausser siteOnly
+// Gruppe G (Privates: Branchen, Schul-/Wehrdienstjahre, Kundennamen) steht NICHT hier: Eine
+// oeffentliche Liste verriete, was sie schuetzen soll. G lebt in der privaten Sperrliste
+// (.site-private-denylist.txt bzw. Secret SITE_PRIVATE_DENYLIST), ebenso Eintraege aus A und D, deren
+// Wortlaut selbst etwas Vertrauliches andeuten wuerde.
+export const PAGES = {
+  start: ["/", "/en/"],
+  hire: ["/arbeitgeber/", "/en/hire/"],
+  archive: ["/archiv/", "/en/archive/"],
+  feuerprobe: ["/feuerprobe/", "/en/feuerprobe/"],
+};
+
+export const STATE_SCHEMA = {
+  "feuerprobe.status": ["vorbereitet", "e1-offen", "e1-getroffen", "e1-nicht-getroffen", "bericht-v01"],
+  "offenlegung.bezahlter_auftrag": "boolean",
+  "offenlegung.f4": "string", // "offen" | "nein" | Text der genannten Verbindung (§3.3)
+  endzustand: ["offen", "a", "b", "c"],
+  rolle: ["A", "B"],
+  "recht.website": ["R0", "R1"],
+  "recht.kurs": ["T2-offen", "T2-U", "T2-IT"],
+  "recht.profile": ["P-R0", "P-R1"],
+  vortraege: "array", // je Eintrag {ort, datum}; leer = kein Vortragssatz
+  kit_oeffentlich: "boolean", // true erst bei HTTP 200 auf das Repo
+};
+// Zustandsschluessel, die nie ausgeliefert werden duerfen (§7 Gegenpruefung M5/M6): als JSON-Schluessel in
+// irgendeiner Datei unter site/ = Fehler STATE-leak. (feuerprobe.status darf ab e1-offen oeffentlich sein.)
+export const STATE_PRIVATE_KEYS = /"(?:endzustand|rolle|recht|offenlegung|kit_oeffentlich|vortraege|bezahlter_auftrag|f4)"\s*:|"(?:recht|offenlegung)\.[a-z_0-9]+"/;
+
+// Strengster Zustand: gilt nur, wenn src/state.json fehlt oder ungueltig ist (dann ist der Lauf ohnehin rot,
+// STATE-invalid), damit die uebrigen Regeln trotzdem mit den engsten Bedingungen weiterpruefen.
+export const STATE_STRICT = {
+  feuerprobe: { status: "vorbereitet" }, offenlegung: { bezahlter_auftrag: false, f4: "offen" }, endzustand: "offen",
+  rolle: "B", recht: { website: "R0", kurs: "T2-offen", profile: "P-R0" }, vortraege: [], kit_oeffentlich: false,
+};
+
+const FP = /Feuerprobe|prereg-v0|\bEichung|\bcalibrat|Stopp-?Kontroll|stop controls?/i;
+const PREREG = /präregistriert|praeregistriert|pre-?registered|Präregistrierung|pre-?registration/i;
+const VERFUEGBAR = /verfügbar|available|EU-remote|start date|Starttermin|Eintritt/i;
+const KIT = /team-skills-kit|\bKit\b|Vorlage|template/i;
+const fp = (s) => s.feuerprobe.status;
+const vorBericht = (s) => fp(s) !== "bericht-v01";
+
+export const SPERRLISTE = [
+  // A. Feuerprobe (§13 A, Status-Leiter §3.2)
+  { id: "A-vorbereitet", group: "A", re: /Feuerprobe/i, when: (s) => fp(s) === "vorbereitet", why: "Status „vorbereitet“: die Feuerprobe auf keiner Fläche nennen (§3.2)" },
+  { id: "A-ergebnis", group: "A", re: /\bv?\d+\.\d+\.\d+\b|\b\d+\s?(?:Tage|Wochen|Monate|Stunden|Versionen|days|weeks|months|hours|versions)\b|\bFunde?\b|\bfindings?\b|Fehler gefunden|found (?:a |an )?(?:bug|flaw|failure|regression)|failed since|seit Version|since version/i, ctx: FP, when: vorBericht, why: "Ergebnisse (Versionen, Dauern, Funde) vor „bericht-v01“" },
+  { id: "A-version", group: "A", re: /\b2\.1\.\d+\b/, when: vorBericht, why: "Versionsmuster vor „bericht-v01“ (§13 Mechanik)" },
+  { id: "A-eichung", group: "A", re: /Eichung (?:ist )?bestanden|calibration (?:has )?passed/i, when: (s) => !["e1-getroffen", "bericht-v01"].includes(fp(s)), why: "„Eichung bestanden“ erst nach der dokumentierten F7-Meldung" },
+  { id: "A-prereg-status", group: "A", re: PREREG, when: (s) => fp(s) === "vorbereitet", negatable: true, why: "„präregistriert“ erst ab dem öffentlichen Tag prereg-v0" },
+  { id: "A-rohdaten", group: "A", re: /Rohdaten[^.\n]{0,30}öffentlich|raw data[^.\n]{0,30}public/i, when: vorBericht, negatable: true, why: "„Rohdaten öffentlich“ erst ab „bericht-v01“" },
+  { id: "A-doi", group: "A", re: /\bDOI\b|doi\.org\//i, when: vorBericht, why: "eine DOI erst, wenn sie auflöst (ab „bericht-v01“)" },
+  { id: "A-unabhaengig", group: "A", re: /unabhängig|independent/i, ctx: FP, negatable: true, why: "„unabhängig/independent“ für Feuerprobe oder Messung (kein externer Prüfer)" },
+  { id: "A-erster", group: "A", re: /\bals Erste[rn]?\b|\bthe first\b|\bfirst (?:to|ever)\b|weltweit erste/i, ctx: FP, negatable: true, why: "„als Erster/first“ im Feuerprobe-Umfeld" },
+  { id: "A-ki-agenten", group: "A", re: /KI-Agenten|AI agents/i, ctx: FP, why: "im Feuerprobe-Satz „Claude Code“, nicht „KI-Agenten“ allgemein" },
+  { id: "A-benchmark", group: "A", re: /Modell-?Benchmark|model[- ]benchmark|benchmarks? (?:the )?models?|evaluates? (?:Claude|the model)|bewertet (?:Claude|das Modell)/i, ctx: FP, negatable: true, why: "Antwort-Stub statt Modell: kein Modell-Benchmark" },
+  { id: "A-python", group: "A", re: /\bPython\b|measurement code|Messcode/i, ctx: FP, negatable: true, why: "keine Python-Kompetenz aus der Feuerprobe ableiten" },
+  // B. Offenlegung (§13 B, §3.3)
+  { id: "B-bezahlt", group: "B", re: /bezahlte (?:Schulung|Trainings?|Workshops?|Kurse)|paid (?:training|workshops?|courses?)/i, when: (s) => !s.offenlegung.bezahlter_auftrag, negatable: true, why: "bezahlte Schulungen erst mit unterschriebenem Auftrag (B1)" },
+  { id: "B-keine-verbindung", group: "B", re: /(?:keine|kein|weder|no|without)\s+(?:[\p{L}-]+,?\s+){0,4}?(?:Verbindung|Geld|Guthaben|Vorabzugang|money|credits|early access|connection|affiliation)\b[^.\n]{0,60}\bAnthropic|\bAnthropic\b[^.\n]{0,60}\b(?:keine|kein|weder|no)\s+(?:[\p{L}-]+,?\s+){0,4}?(?:Verbindung|Geld|Guthaben|Vorabzugang|money|credits|early access|connection|affiliation)\b|not affiliated with Anthropic|nicht mit Anthropic verbunden/iu, when: (s) => s.offenlegung.f4 === "offen", why: "„keine Verbindung zu Anthropic“ erst nach Chrisos F4-Antwort (B2)" },
+  { id: "B-unabhaengig-selbst", group: "B", re: /unabhängige[rn]? (?:Trainer|Berater|Entwickler)|independent (?:trainer|consultant|developer)|unabhängig von Anthropic|independent (?:of|from) Anthropic/i, when: (s) => s.offenlegung.f4 === "offen", why: "„unabhängig“ als Selbstbeschreibung erst nach F4" },
+  { id: "B-davon-unabhaengig", group: "B", re: /davon unabhängig/i, why: "„getrennt davon“ statt „davon unabhängig“" },
+  // C. Angebot, Recht, Foerderung (§13 C, §7 Linter v2)
+  { id: "C-workshop", group: "C", re: /\bworkshops?\b/i, when: (s) => s.recht.website === "R0", why: "Workshops erst mit recht.website = R1" },
+  { id: "C-vortraege", group: "C", re: /\bgive talks\b|\bgiving talks\b|halte Vorträge|Vorträge halte/i, when: (s) => !s.vortraege.length, negatable: true, why: "Vortragssatz erst nach dem ersten gehaltenen Vortrag (vortraege leer)" },
+  { id: "C-angebotsverb", group: "C", re: /\boffer(?:s|ing)? (?:training|workshops?|courses?)\b|\bbiete[nt]? (?:[\p{L}-]+ ){0,3}?(?:Schulungen|Workshops|Kurse)\b|Schulungen an\b/iu, when: (s) => s.recht.website === "R0", negatable: true, why: "Angebotsverb vor R1" },
+  { id: "C-unterricht", group: "C", re: /\bI (?:also )?teach\b|mechanics I teach|\bunterrichte\b/i, when: (s) => !s.offenlegung.bezahlter_auftrag, negatable: true, why: "„I teach/ich unterrichte“ erst mit bezahltem Auftrag (B1)" },
+  { id: "C-pilotpreis", group: "C", re: /\b490\b|\b2[.,]100\b/, why: "Pilotpreise nie öffentlich" },
+  { id: "C-coaching", group: "C", re: /\bCoach(?:es|ing)?\b|\bBegleitung\b|Festpreis für 50 Stunden|nur geleistete Stunden/i, negatable: true, why: "„Coaching/Begleitung“ ist kein Angebotsname" },
+  { id: "C-foerderung", group: "C", re: /förderbar|\b50\s?%\s?Zuschuss|Skills[- ]?Scheck|AMS-QBN|Förderung möglich/i, negatable: true, why: "Förder-Aussagen erst mit zertifiziertem Träger" },
+  { id: "C-trainer-teilzeit", group: "C", re: /Trainer in Teilzeit|als Trainer[^.\n]{0,40}neben einer Anstellung/i, why: "Teilzeit-Trainer-Satz entfällt im Kundentext (§5.5)" },
+  { id: "C-kundenrepo", group: "C", re: /\bich setze (?:das |es )?um\b|arbeite in Ihrem Repo|richte Claude Code in Ihrem Team ein|Reviews? zwischen den Terminen|Reviews?[^.\n]{0,25}(?:binnen|innerhalb von|within) 48|Review-Rechte|review rights|(?:merge|freigeben|Freigabe)[^.\n]{0,40}(?:Ihrem|Kunden)[- ]?Repo/i, negatable: true, why: "keine Arbeit im Kundenrepository; Ersatz §5.5 „Rückmeldung zu Übungen …“" },
+  { id: "C-haltbarkeit", group: "C", re: /Modell-Update überleben|survives? the next model update|update-sicher|update-proof|, die halten\b/i, why: "Titel versprechen keine Haltbarkeit" },
+  { id: "C-ai-act", group: "C", re: /AI[- ]Act[^.\n]{0,40}Art(?:ikel|icle|\.)\s*4\b|Art(?:ikel|icle|\.)\s*4\b[^.\n]{0,40}(?:AI[- ]Act|KI-VO|KI-Verordnung)|AI literacy|KI-Kompetenz/i, why: "AI-Act-Art.-4-Argumente erst nach der Prüfung" },
+  { id: "C-kaltakquise", group: "C", re: /(?:≥|>=|mindestens|at least)\s?20 (?:Direktnachrichten|DMs|direct messages)|Kaltakquise|cold (?:e-?mails?|outreach|DMs?)/i, negatable: true, why: "keine kalten Werbe-Nachrichten (§ 174 TKG)" },
+  // D. Rolle und Verfuegbarkeit (§13 D, §1.2)
+  { id: "D-rolle-b", group: "D", re: /(?:role|Stelle|position|Rolle)[^.\n]{0,50}agent reliability|agent reliability (?:role|engineer)/i, when: (s) => s.rolle === "B", why: "„agent reliability“ als Rollenname nur in Rolle A" },
+  { id: "D-vollzeit", group: "D", re: /\bVollzeit\b|\bfull[- ]time\b/i, ctx: VERFUEGBAR, sentence: true, negatable: true, pages: PAGES.hire, when: (s) => !["a", "c"].includes(s.endzustand), why: "„Vollzeit“ in der Verfügbarkeit nur bei endzustand a/c" },
+  { id: "D-wochenstunden", group: "D", re: /(?:up to|bis (?:zu )?)\s?\S+\s+(?:hours|Stunden) (?:a|per|pro|in der) (?:week|Woche)|\bhours (?:a|per) week\b|Wochenstunden|Stunden pro Woche/i, why: "Wochenstunden nie auf Website oder Profil (F25)" },
+  { id: "D-verfuegbar-ab", group: "D", re: /available (?:from|starting|as of)|verfügbar ab|ab sofort verfügbar|full-time from|Vollzeit ab|start date|Startdatum/i, when: (s) => s.endzustand === "offen", negatable: true, why: "kein Verfügbarkeitsdatum vor der Endzustands-Entscheidung" },
+  // E. Dramaturgie (§13 E); die datierte Korrekturliste prueft der Linter ueber die Anker (E-korrekturliste)
+  { id: "E-phrasen", group: "E", re: /private for now|no degree yet|Shops? ohne Ware|shops? without goods|Quereinsteiger, der misst|career changer who measures|So führe ich Claude Code|My setup, mechanically|zwei Scheineffekte|two phantom effects/i, why: "gesperrte Rahmung (§13 E)" },
+  // F. Belege und Links (§13 F); Testzahlen nur aus facts.json prueft NUM-unsourced
+  { id: "F-git-sichtbar", group: "F", re: /in git sichtbar|visible in git/i, why: "nach dem Repo-Tausch nicht mehr sichtbar" },
+  { id: "F-commit-privat", group: "F", re: /\b4635f92\b/, why: "Commit in einem Repo, das privat wird" },
+  { id: "F-prereg", group: "F", re: PREREG, unless: FP, negatable: true, why: "„präregistriert“ nur für die Feuerprobe" },
+  { id: "F-kit-name", group: "F", re: /claude-code-team-kit|Demo-Skill-Repo|demo[- ]skill[- ]repo|\b3 (?:von|of|out of) 11\b/i, why: "alter Kit-Name/eigenes Demo-Repo/„3 von 11“ als Schlagzeile" },
+  { id: "F-kit-claim", group: "F", re: /misst, wie zuverlässig ein Modell|measures how reliably (?:a|the) model|live getestet|live[- ]tested|im Einsatz|used by teams|in use (?:by|at)|rechtlich geprüft|legally (?:reviewed|checked|vetted)/i, ctx: KIT, negatable: true, why: "team-skills-kit: nur Belegtes (§3.4)" },
+  { id: "F-kit-start", group: "F", re: /team-skills-kit/i, pages: PAGES.start, siteOnly: true, when: (s) => !s.kit_oeffentlich, why: "Teamzeile auf der Startseite erst bei kit_oeffentlich = true (§7)" },
+  { id: "F-inspect", group: "F", re: /Inspect eval tasks|Python \(Inspect/i, why: "kein Inspect-Repo öffentlich" },
+  { id: "F-npm", group: "F", re: /(?:behaviorlock|agent-invariants)[^.\n]{0,40}\bon npm\b|npm (?:install|i) (?:-g )?(?:behaviorlock|agent-invariants)\b|npx (?:behaviorlock|agent-invariants)\b|npmjs\.com\/package\/(?:behaviorlock|agent-invariants)/i, why: "„on npm“ für behaviorlock/agent-invariants erst nach T-npm" },
+];
+// Links auf Commits in Repos, die privat werden (§13 F): alte nextool-Historie und das geparkte Projekt.
+export const LINK_PRIVATE_COMMIT = /\/4635f92|github\.com\/[^/]+\/(?:nextool|anima[\w.-]*)\/commit\//i;

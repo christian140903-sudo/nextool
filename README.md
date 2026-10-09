@@ -33,7 +33,12 @@ npm test        # build check + site linter + linter self-test
 npm run serve   # local preview with _redirects and _headers applied
 npm run test:sw # browser test of the service-worker kill switch (needs Playwright + Chromium; not in CI)
 npm run og      # redraw the link-preview images from src/site.json (needs Playwright + Chromium)
+npm run scan -- <file|dir>  # apply the same wording rules to other text files (prints counts, never the matched text)
 ```
+
+Some wording rules depend on the state of the work (for example, whether a repository is public yet).
+Those switches live in `src/state.json`; the build does not deploy it, and the linter fails if a
+value is missing or unknown, or if one of its keys shows up under `site/`.
 
 Until July 2026 earlier pages registered service workers at `/sw.js` and
 `/prep/sw.js`. Both addresses now serve the same kill-switch worker
