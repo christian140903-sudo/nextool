@@ -268,6 +268,18 @@ export function breakUrl(url) {
   }).join("<wbr>");
 }
 
+// Verweis auf eine Karte derselben Seite (P3-06): {{karte:<id>}} wird <a href="#id">id</a>, aber nur, solange weiter unten
+// auf dieser Seite eine Karte <section id="id" class="card …"> steht. Ein Satz wie „Einzelheiten stehen in seiner Karte
+// weiter unten“ faellt so mit der Karte: Wird sie entfernt oder zu einer Zeile, bricht der Build ab, statt den Satz
+// stehen zu lassen (LINK-anchor faengt nur ein fehlendes id, nicht den Text). body = Seite nach den Bausteinen.
+export function renderKarte(id, body, where = "") {
+  if (!/^[a-z][a-z0-9-]*$/.test(id)) throw new Error(`${where}: {{karte:…}} braucht eine id aus a–z, 0–9 und -`);
+  const ref = body.indexOf(`{{karte:${id}}}`);
+  const card = new RegExp(`<section id="${id}" class="(?:[^"]* )?card(?: [^"]*)?"`).exec(body);
+  if (!card || card.index < ref) throw new Error(`${where}: {{karte:${id}}} verweist auf eine Karte weiter unten, aber dort steht keine <section id="${id}" class="card …"> mehr — den Satz mit der Karte umstellen`);
+  return `<a href="#${id}">${esc(id)}</a>`;
+}
+
 // Bedingter Text (R4b b5): {{if:F-nn}}…{{/if}} wird nur ausgeliefert, wenn der private Zustand die Kennung
 // freigibt (zE1 enthaelt "F-nn"). Fehlt der Schalter oder die Datei, faellt der Text weg — fuer Saetze, die erst
 // nach einer Antwort ausgeliefert werden duerfen. Die Kennung bleibt daneben als {{todo:F-nn}} stehen, damit das
@@ -326,6 +338,7 @@ function expand(body, page, ctx) {
       case "kernsatz": return esc(ctx.site.strings[lang].kernsatz);
       case "kit": return renderKit(arg.trim(), lang, ctx.site, ctx.state);
       case "url": return breakUrl(arg);
+      case "karte": return renderKarte(arg.trim(), withBlocks, where);
       case "photo": return renderPhoto(arg.trim(), ctx);
       default: throw new Error(`${where}: unbekannter Platzhalter ${m}`);
     }

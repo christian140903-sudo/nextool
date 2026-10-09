@@ -283,6 +283,27 @@ check("Prüfweg-Zelle (Anstellungsseite) und Prüf-Karte: dieselbe Adresse mit d
   for (const [rel, html] of out) if (rel.endsWith(".html") && /git clone https?:\/\/[^<]*?-/.test(html.toString("utf8"))) throw new Error(`${rel}: Adresse nach git clone ohne Umbruchstellen`);
 });
 
+// Kartenverweis (P3-06): Der Satz „Einzelheiten stehen in seiner Karte weiter unten“ steht nur, solange die Karte weiter
+// unten auf derselben Seite steht; wird sie entfernt oder zu einer Zeile, bricht der Build ab.
+const editPage = (fx, rel, fn) => { const p = join(fx.src, "pages", ...rel.split("/")); writeFileSync(p, fn(readFileSync(p, "utf8"))); };
+check("{{karte:proofspec}}: Link im Überblick, solange die Karte weiter unten steht (DE und EN)", (fx) => {
+  const out = build({ src: fx.src });
+  if (!page(out, "projekte/index.html").includes('<p><a href="#proofspec">proofspec</a> wird archiviert')) throw new Error("DE-Satz fehlt");
+  if (!page(out, "en/projects/index.html").includes('<p><a href="#proofspec">proofspec</a> is being archived')) throw new Error("EN-Satz fehlt");
+});
+check("Karte zu einer Zeile umgebaut (keine class card mehr) → Abbruch", (fx) => {
+  editPage(fx, "en/projects.html", (t) => t.replace('<section id="proofspec" class="card prose"', '<section id="proofspec" class="prose"'));
+  expectThrow(fx, /en\/projects\.html: \{\{karte:proofspec\}\} verweist auf eine Karte weiter unten/);
+});
+check("Karte entfernt → Abbruch", (fx) => {
+  editPage(fx, "de/projekte.html", (t) => t.replace('<section id="proofspec" class="card prose"', '<section id="proofspec-alt" class="card prose"'));
+  expectThrow(fx, /de\/projekte\.html: \{\{karte:proofspec\}\} verweist/);
+});
+check("Karte über dem Verweis statt weiter unten → Abbruch", (fx) => {
+  setBody(fx, '<section id="beispiel" class="card prose"><h2>x</h2></section><p>{{karte:beispiel}} steht weiter unten.</p>');
+  expectThrow(fx, /\{\{karte:beispiel\}\} verweist auf eine Karte weiter unten/);
+});
+
 // team-skills-kit (R4b b4): ein String-Paar in site.json, zwei Zustaende, gesteuert von zF1. Beide Zustaende
 // werden gebaut; alle vier Stellen wechseln gemeinsam, der Link steht nur im Zustand "oeffentlich".
 const KIT_PAGES = [["arbeitgeber/index.html", "de"], ["projekte/index.html", "de"], ["en/hire/index.html", "en"], ["en/projects/index.html", "en"]];
