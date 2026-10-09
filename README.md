@@ -47,9 +47,12 @@ Pages place the portrait with `{{photo:large}}`, `{{photo:medium}}` or
 build renders initials instead of an `<img>`, so no page points to a missing
 file. To add the photo: put `foto.jpg` (required fallback) and optionally
 `foto.webp` into `src/static/assets/`, each at most 150 KB and without
-metadata (for example `exiftool -all= foto.jpg`), then run `npm run build`.
+metadata (for example `exiftool -all= foto.jpg`; afterwards check with
+`exiftool -a -G1 foto.jpg`), then run `npm run build`.
 The build stops if a file is too large or still carries EXIF, XMP or IPTC
-data, because those can reveal where and with which device a photo was taken.
+data, a JPEG comment, MPF extra images, or a second image or EXIF block after
+the image data, because those can reveal where and with which device a photo
+was taken.
 
 ## License
 

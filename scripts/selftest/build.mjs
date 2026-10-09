@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Selbsttest des Builds (scripts/build.mjs): Jeder Mechanismus loest seinen Fehlerfall einmal aus.
 //   Foto  — ohne foto.jpg Initialen statt <img>; mit sauberem JPEG <img> mit Breite/Hoehe;
-//           EXIF, > 150 KB oder WebP ohne JPEG brechen den Build ab (fail-closed).
+//           EXIF, Kommentar, MPF, Anhang (zweites JPEG/EXIF), > 150 KB oder WebP ohne JPEG brechen ab.
 //   Tueren — auf einer Seite mit "door" fehlt der Navigationspunkt der anderen Tuer (§1.5).
 //   Kennungen — interne Notizen nur als F-nn (R-03); Klartext bricht ab, ohne in der Meldung zu stehen.
 // Arbeitet auf einer Temp-Kopie von src/; die echten Quellen bleiben unberuehrt.
@@ -10,7 +10,7 @@ import { mkdtempSync, cpSync, writeFileSync, readFileSync, rmSync, mkdirSync } f
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { build } from "../build.mjs";
+import { build, jpegInfo } from "../build.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -19,10 +19,11 @@ function seg(marker, body) {
   head[0] = 0xff; head[1] = marker; head.writeUInt16BE(body.length + 2, 2);
   return Buffer.concat([head, body]);
 }
-// Minimales JPEG-Geruest: SOI, optional APP1/Exif, SOF0 mit Groesse, optional Fuellkommentare, EOI.
-function jpeg({ width = 4, height = 3, exif = false, padKB = 0 } = {}) {
+// Minimales JPEG-Geruest: SOI, optional APP1/Exif, weitere Segmente, SOF0 mit Groesse, optional Fuellkommentare, EOI.
+function jpeg({ width = 4, height = 3, exif = false, padKB = 0, segs = [] } = {}) {
   const parts = [Buffer.from([0xff, 0xd8])];
   if (exif) parts.push(seg(0xe1, Buffer.concat([Buffer.from("Exif\0\0", "latin1"), Buffer.alloc(16)])));
+  for (const [marker, body] of segs) parts.push(seg(marker, body));
   const sof = Buffer.from([8, 0, 0, 0, 0, 1, 1, 0x11, 0]);
   sof.writeUInt16BE(height, 1); sof.writeUInt16BE(width, 3);
   parts.push(seg(0xc0, sof));
@@ -96,6 +97,22 @@ check("EXIF im WebP bricht ab", (fx) => {
 });
 check("WebP ohne JPEG bricht ab", (fx) => { fx.asset("foto.webp", Buffer.from("RIFF\x04\0\0\0WEBP", "latin1")); expectThrow(fx, /ohne foto\.jpg/); });
 check("kaputtes JPEG bricht ab", (fx) => { fx.asset("foto.jpg", Buffer.from("kein bild")); expectThrow(fx, /keine JPEG-Datei/); });
+// R-07 (Abnahme Welle E): Faelle des Rohberichts, je erwartete Meldungsliste exakt.
+const R07 = [
+  ["sauber", () => jpeg(), []],
+  ["EXIF im Kopf (z. B. GPS)", () => jpeg({ exif: true }), ["EXIF"]],
+  ["JPEG-Kommentar (COM)", () => jpeg({ segs: [[0xfe, Buffer.from("Beispielkamera Seriennummer 0000", "latin1")]] }), ["COM/Kommentar"]],
+  ["Anhang: zweites JPEG mit EXIF hinter den Bilddaten", () => Buffer.concat([jpeg(), jpeg({ exif: true })]), ["weiteres JPEG in der Datei", "EXIF (hinter den Bilddaten)"]],
+  ["MPO: MPF-Segment und Zusatzbild", () => Buffer.concat([jpeg({ segs: [[0xe2, Buffer.concat([Buffer.from("MPF\0", "latin1"), Buffer.alloc(12)])]] }), jpeg()]), ["MPF/Zusatzbilder", "weiteres JPEG in der Datei"]],
+  ["ICC-Profil (APP2) ohne Fehltreffer", () => jpeg({ segs: [[0xe2, Buffer.concat([Buffer.from("ICC_PROFILE\0\x01\x01", "latin1"), Buffer.alloc(64, 0x41)])]] }), []],
+];
+for (const [name, make, want] of R07) {
+  check(`R-07 jpegInfo: ${name} → [${want.join(", ")}]`, () => {
+    const got = jpegInfo(make()).meta;
+    if (JSON.stringify(got) !== JSON.stringify(want)) throw new Error(`gemeldet [${got.join(", ")}]`);
+  });
+}
+check("R-07: Foto mit Anhang bricht den Build ab", (fx) => { fx.asset("foto.jpg", Buffer.concat([jpeg(), jpeg({ exif: true })])); expectThrow(fx, /Metadaten \(weiteres JPEG in der Datei, EXIF \(hinter den Bilddaten\)\)/); });
 check("unbekannte Fotogröße bricht ab", (fx) => {
   writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "{{photo:riesig}}"));
   expectThrow(fx, /Größe muss/);

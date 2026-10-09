@@ -97,7 +97,8 @@ export function publicFacts(raw) {
   return JSON.stringify({ ...j, facts }, null, 2) + "\n";
 }
 
-// Liest Breite/Hoehe aus dem SOF-Segment und meldet Metadaten-Segmente (APP1 = EXIF/XMP, APP13 = IPTC).
+// Liest Breite/Hoehe aus dem SOF-Segment und meldet Metadaten (APP1 = EXIF/XMP, APP13 = IPTC, COM = Kommentar,
+// APP2 MPF = Zusatzbilder; R-07: auch ein zweites JPEG oder EXIF irgendwo hinter dem Dateianfang).
 export function jpegInfo(buf, name = "foto.jpg") {
   if (buf.length < 4 || buf[0] !== 0xff || buf[1] !== 0xd8) throw new Error(`${name}: keine JPEG-Datei`);
   let i = 2, width = 0, height = 0;
@@ -111,6 +112,8 @@ export function jpegInfo(buf, name = "foto.jpg") {
     const len = buf.readUInt16BE(i + 2);
     if (marker === 0xe1) meta.push(buf.subarray(i + 4, i + 8).toString("latin1") === "Exif" ? "EXIF" : "XMP/APP1");
     if (marker === 0xed) meta.push("IPTC/APP13");
+    if (marker === 0xfe) meta.push("COM/Kommentar");
+    if (marker === 0xe2 && buf.subarray(i + 4, i + 7).toString("latin1") === "MPF") meta.push("MPF/Zusatzbilder");
     if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) {
       height = buf.readUInt16BE(i + 5);
       width = buf.readUInt16BE(i + 7);
@@ -118,6 +121,9 @@ export function jpegInfo(buf, name = "foto.jpg") {
     i += 2 + len;
   }
   if (!width || !height) throw new Error(`${name}: Bildgröße nicht lesbar`);
+  // Zweites Bild oder Metadaten hinter den Bilddaten (Handy-Zusatzbilder, Motion Photo, Hersteller-Anhaenge)
+  if (buf.indexOf(Buffer.from([0xff, 0xd8, 0xff]), 2) !== -1) meta.push("weiteres JPEG in der Datei");
+  if (!meta.includes("EXIF") && buf.indexOf(Buffer.from("Exif\0\0", "latin1"), 2) !== -1) meta.push("EXIF (hinter den Bilddaten)");
   return { width, height, meta };
 }
 
