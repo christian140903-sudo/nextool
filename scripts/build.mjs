@@ -258,13 +258,18 @@ export function renderKit(part, lang, site, state) {
 // nach einer Antwort ausgeliefert werden duerfen. Die Kennung bleibt daneben als {{todo:F-nn}} stehen, damit das
 // Go-live-Tor die Frage weiter haelt. Nicht fuer vorbereiteten Wortlaut, der noch gar nicht gilt: src/ ist
 // oeffentlich (R-03). Fail-closed: Kennung nicht F-nn, verschachtelt, ohne {{/if}} oder {{/if}} ohne Anfang = Abbruch.
+// Zurueckgehaltener Text braucht sein {{todo:F-nn}} ausserhalb der Klammer auf derselben Seite, sonst Abbruch
+// (P3-01): Wer die Frage schliesst, ohne zE1 zu setzen, liesse den Text sonst still und endgueltig wegfallen.
 const IF_BLOCK = /\{\{if:([^}]*)\}\}([\s\S]*?)\{\{\/if\}\}/g;
 export function applyIf(body, released, where = "") {
+  const outside = body.replace(IF_BLOCK, "");
   const out = body.replace(IF_BLOCK, (m, raw, inner) => {
     const id = raw.trim();
     if (!MARKER_ID.test(id)) throw new Error(`${where}: {{if:…}} — ${clearLen(id)}`);
     if (inner.includes("{{if:")) throw new Error(`${where}: {{if:${id}}} verschachtelt oder ohne {{/if}}`);
-    return released.includes(id) ? inner : "";
+    if (released.includes(id)) return inner;
+    if (!new RegExp(`\\{\\{todo:\\s*${id}\\s*\\}\\}`).test(outside)) throw new Error(`${where}: {{if:${id}}} ist in zE1 nicht freigegeben und hat kein {{todo:${id}}} außerhalb der Klammer — der Text fiele still weg; zE1 setzen, Klammer entfernen oder Text löschen`);
+    return "";
   });
   if (/\{\{\/?if\b/.test(out)) throw new Error(`${where}: {{if:…}} ohne {{/if}} oder {{/if}} ohne Anfang`);
   return out;

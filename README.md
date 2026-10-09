@@ -51,6 +51,8 @@ switch together, and only the published state links the repository. Once a build
 differs from the strictest state, CI needs that state too, otherwise `build --check` fails there.
 Text wrapped in `{{if:F-nn}}…{{/if}}` is published only when the private state releases that
 marker; without the switch (or without the file) the text is left out and the open marker stays.
+A withheld block needs its open marker `{{todo:F-nn}}` outside the block on the same page;
+without it the build stops, so closing the question without the switch cannot drop the text silently.
 
 Until July 2026 earlier pages registered service workers at `/sw.js` and
 `/prep/sw.js`. Both addresses now serve the same kill-switch worker

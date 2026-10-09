@@ -7,7 +7,8 @@
 //   Bausteine — die Pruef-Karte steht einmal je Sprache (src/bausteine/) und erscheint gleich auf Start- und
 //           Anstellungsseite; unbekannter Name, fehlende Sprachfassung, Baustein im Baustein brechen ab.
 //   Kit   — der team-skills-kit-Satz kommt aus site.json, beide Zustaende (zF1) gebaut; Link nur bei "oeffentlich".
-//   Bedingt — {{if:F-nn}}…{{/if}} nur mit Schalter zE1; ohne Schalter fehlt der Satz, die OFFEN-Kennung bleibt.
+//   Bedingt — {{if:F-nn}}…{{/if}} nur mit Schalter zE1; ohne Schalter fehlt der Satz, die OFFEN-Kennung bleibt;
+//           zurueckgehalten ohne {{todo:F-nn}} ausserhalb der Klammer bricht ab (P3-01).
 // Arbeitet auf einer Temp-Kopie von src/; die echten Quellen bleiben unberuehrt.
 
 import { mkdtempSync, cpSync, writeFileSync, readFileSync, rmSync, mkdirSync } from "node:fs";
@@ -317,6 +318,15 @@ check("Schlüssel zE1 fehlt in src/state.json: gültig, nichts ausgeliefert", (f
 });
 check("ohne src/state.json fehlen sie ebenfalls (engster Zustand)", (fx) => { ifBody(fx); rmSync(join(fx.src, "state.json")); ifCheck(fx, []); });
 check("Schalter zE1 = [F-91] liefert genau diesen Satz aus", (fx) => { ifBody(fx); fx.state({ zE1: ["F-91"] }); ifCheck(fx, ["F-91"]); });
+// P3-01: Zurueckgehaltener Text ohne offene Kennung fiele still weg — das bricht ab; freigegebener Text braucht keine.
+check("{{if}} ohne Freigabe und ohne {{todo}} bricht ab (P3-01)", (fx) => { setBody(fx, "{{if:F-91}}<p>a</p>{{/if}}"); expectThrow(fx, /\{\{if:F-91\}\} ist in zE1 nicht freigegeben und hat kein \{\{todo:F-91\}\} außerhalb der Klammer/); });
+check("{{todo}} nur innerhalb der Klammer zählt nicht (P3-01)", (fx) => { setBody(fx, "{{if:F-91}}<p>a</p>{{todo:F-91}}{{/if}}"); expectThrow(fx, /\{\{if:F-91\}\} ist in zE1 nicht freigegeben/); });
+check("{{todo}} einer anderen Kennung zählt nicht (P3-01)", (fx) => { setBody(fx, "{{if:F-91}}<p>a</p>{{/if}}{{todo:F-92}}"); expectThrow(fx, /\{\{if:F-91\}\} ist in zE1 nicht freigegeben/); });
+check("freigegeben ohne {{todo}}: Text steht (Frage geschlossen)", (fx) => {
+  setBody(fx, `{{if:F-91}}<p>${IF_SAETZE[0][1]}</p>{{/if}}`);
+  fx.state({ zE1: ["F-91"] });
+  if (!page(build({ src: fx.src }), "phototest.html").includes(IF_SAETZE[0][1])) throw new Error("freigegebener Satz fehlt");
+});
 check("Schalter zE1 kein Kennungs-Array bricht ab", (fx) => { fx.state({ zE1: "F-80" }); expectThrow(fx, /src\/state\.json ungültig: zE1/); });
 check("{{if:Klartext}} bricht ab, Meldung ohne Klartext", (fx) => { setBody(fx, `{{if:${CLEAR}}}<p>x</p>{{/if}}`); noLeak(fx, /\{\{if:…\}\} — Klartext statt Kennung/); });
 check("{{if}} verschachtelt bricht ab", (fx) => { setBody(fx, "{{if:F-91}}<p>a</p>{{if:F-92}}<p>b</p>{{/if}}{{/if}}"); expectThrow(fx, /verschachtelt oder ohne \{\{\/if\}\}/); });
