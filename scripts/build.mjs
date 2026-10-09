@@ -12,6 +12,7 @@
 import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
 import { join, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 import { FACTS_INTERNAL_KEYS } from "./lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -218,6 +219,7 @@ function expand(body, page, ctx) {
       }
       case "todo": return offenComment(arg, where);
       case "email": return mailto(ctx.site.email);
+      case "kernsatz": return esc(ctx.site.strings[lang].kernsatz);
       case "photo": return renderPhoto(arg.trim(), ctx);
       default: throw new Error(`${where}: unbekannter Platzhalter ${m}`);
     }
@@ -255,9 +257,11 @@ function layout(page, html, ctx) {
   const footerLinks = s.footerNav.map((l) => `<li><a href="${l.href}">${esc(l.label)}</a></li>`).join("");
   const robots = meta.robots || "index,follow";
   const ogImage = abs(meta.ogImage || `/assets/og-${meta.lang}.png`);
-  const ogAlt = meta.lang === "de"
-    ? `Christian Bucher — Ich führe KI-Coding-Agenten zu getesteter, veröffentlichter Software und messe, ob es wirklich wirkt. ${new URL(site.origin).host}`
-    : `Christian Bucher — I direct AI coding agents to ship tested software and measure whether what I built actually worked. ${new URL(site.origin).host}`;
+  // Kernsatz (Positionierung v2 §1.1) steht einmal je Sprache in src/site.json; Seiten holen ihn mit
+  // {{kernsatz}}, die Beschreibung darf ihn ebenso enthalten, das OG-Bild zeigt ihn (Stempel: src/og-stamp.json).
+  const description = meta.description.replaceAll("{{kernsatz}}", s.kernsatz);
+  if (description.includes("{{")) throw new Error(`${meta.path}: unbekannter Platzhalter in description`);
+  const ogAlt = `Christian Bucher · ${s.ort}: ${s.kernsatz} ${new URL(site.origin).host}`;
   const head = [
     `<!doctype html>`,
     `<html lang="${meta.lang}" dir="ltr">`,
@@ -265,7 +269,7 @@ function layout(page, html, ctx) {
     `<meta charset="utf-8">`,
     `<meta name="viewport" content="width=device-width, initial-scale=1">`,
     `<title>${esc(meta.title)}</title>`,
-    `<meta name="description" content="${esc(meta.description)}">`,
+    `<meta name="description" content="${esc(description)}">`,
     `<meta name="robots" content="${esc(robots)}">`,
     canonical ? `<link rel="canonical" href="${canonical}">` : "",
     ...alt,
@@ -275,7 +279,7 @@ function layout(page, html, ctx) {
     `<meta property="og:type" content="website">`,
     `<meta property="og:site_name" content="${esc(site.name)}">`,
     `<meta property="og:title" content="${esc(meta.title)}">`,
-    `<meta property="og:description" content="${esc(meta.description)}">`,
+    `<meta property="og:description" content="${esc(description)}">`,
     canonical ? `<meta property="og:url" content="${canonical}">` : "",
     `<meta property="og:image" content="${ogImage}">`,
     `<meta property="og:image:width" content="1200">`,
@@ -335,8 +339,34 @@ function sitemap(pages, site) {
   return lines.join("\n") + "\n";
 }
 
+// OG-Bilder (src/static/assets/og-de.png, og-en.png) zeigen Kernsatz, Ort und Host als Pixel. Erzeugt
+// werden sie mit `npm run og` (scripts/og-image.mjs, braucht Playwright); das Skript schreibt dazu
+// src/og-stamp.json (Text + SHA-256 je Bild). Der Build bricht ab, wenn Text oder Bild nicht mehr zum
+// Stempel passen — sonst zeigte die Link-Vorschau nach einer Aenderung still den alten Satz (fail-closed).
+export function ogStampWant(site, lang) {
+  const s = site.strings[lang] || {};
+  if (!s.kernsatz || !s.ort) throw new Error(`site.json: strings.${lang} braucht kernsatz und ort`);
+  return { kernsatz: s.kernsatz, ort: s.ort, host: new URL(site.origin).host };
+}
+function checkOgStamp(src, site) {
+  const file = join(src, "og-stamp.json");
+  if (!existsSync(file)) throw new Error("src/og-stamp.json fehlt — npm run og");
+  const stamp = JSON.parse(readFileSync(file, "utf8"));
+  for (const lang of ["de", "en"]) {
+    const want = ogStampWant(site, lang);
+    const got = stamp[lang] || {};
+    for (const k of Object.keys(want)) {
+      if (got[k] !== want[k]) throw new Error(`og-${lang}.png zeigt ${k} „${got[k]}“, src/site.json sagt „${want[k]}“ — npm run og`);
+    }
+    const png = join(src, "static", "assets", `og-${lang}.png`);
+    const sha = createHash("sha256").update(readFileSync(png)).digest("hex");
+    if (got.sha256 !== sha) throw new Error(`og-${lang}.png passt nicht zum Stempel in src/og-stamp.json — npm run og`);
+  }
+}
+
 export function build({ src = SRC } = {}) {
   const site = JSON.parse(readFileSync(join(src, "site.json"), "utf8"));
+  checkOgStamp(src, site);
   const factsRaw = readFileSync(join(src, "facts.json"), "utf8");
   const facts = JSON.parse(factsRaw).facts;
   for (const [k, f] of Object.entries(facts)) {

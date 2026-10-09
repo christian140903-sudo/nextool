@@ -170,6 +170,23 @@ check("Fakt mit offen F-nn: <!--OFFEN:F-nn--> am Wert; ausgelieferte facts.json 
 });
 check("facts.json offen mit Klartext bricht ab, Meldung ohne Klartext", (fx) => { setFact(fx, (f) => { f.offen = CLEAR; }); noLeak(fx, /soul_mcp\.tests\.offen — Klartext/); });
 check("facts.json source_internal mit Klartext bricht ab, Meldung ohne Klartext", (fx) => { setFact(fx, (f) => { f.source_internal = CLEAR; }); noLeak(fx, /source_internal nur als "intern:F-nn"/); });
+// Kernsatz aus einer Quelle (Positionierung v2 §1.1) und OG-Stempel (fail-closed)
+const editSite = (fx, fn) => { const p = join(fx.src, "site.json"); const j = JSON.parse(readFileSync(p, "utf8")); fn(j); writeFileSync(p, JSON.stringify(j, null, 2)); };
+check("{{kernsatz}} rendert den Satz aus site.json in Seite, description und og:image:alt", (fx) => {
+  const want = JSON.parse(readFileSync(join(fx.src, "site.json"), "utf8")).strings.en.kernsatz;
+  const html = page(build({ src: fx.src }), "en/index.html");
+  const e = want.replace(/&/g, "&amp;");
+  if (!html.includes(`<h1 id="core">${e}</h1>`)) throw new Error("H1 ohne Kernsatz");
+  if (!html.includes(`<meta name="description" content="${e} `)) throw new Error("description ohne Kernsatz");
+  const alt = (/<meta property="og:image:alt" content="([^"]*)">/.exec(html) || [])[1] || "";
+  if (!alt.includes(e)) throw new Error("og:image:alt ohne Kernsatz");
+  if (html.includes("{{")) throw new Error("Platzhalter übrig");
+});
+check("Kernsatz geändert ohne npm run og bricht ab", (fx) => { editSite(fx, (j) => { j.strings.en.kernsatz += " Neu."; }); expectThrow(fx, /og-en\.png zeigt kernsatz/); });
+check("Domainwechsel ohne npm run og bricht ab (Host im Bild)", (fx) => { editSite(fx, (j) => { j.origin = "https://example.org"; }); expectThrow(fx, /og-de\.png zeigt host/); });
+check("OG-Bild verändert ohne neuen Stempel bricht ab", (fx) => { fx.asset("og-en.png", Buffer.concat([readFileSync(join(fx.src, "static", "assets", "og-en.png")), Buffer.from([0])])); expectThrow(fx, /og-en\.png passt nicht zum Stempel/); });
+check("fehlender OG-Stempel bricht ab", (fx) => { rmSync(join(fx.src, "og-stamp.json")); expectThrow(fx, /og-stamp\.json fehlt/); });
+check("unbekannter Platzhalter in description bricht ab", (fx) => { setPage(fx, "<p>x</p>"); const p = join(fx.src, "pages", "x", "phototest.html"); writeFileSync(p, readFileSync(p, "utf8").replace('"description": "nur Selbsttest"', '"description": "{{kernsatz}} {{todo:F-01}}"')); expectThrow(fx, /unbekannter Platzhalter in description/); });
 check("R-04: {{email}} und Fußzeile nur mit <!--email_off-->-Klammer", (fx) => {
   setPage(fx, "<p>{{email}}</p>");
   const html = page(build({ src: fx.src }), "phototest.html");

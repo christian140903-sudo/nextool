@@ -32,6 +32,7 @@ npm run build   # regenerate site/ from src/
 npm test        # build check + site linter + linter self-test
 npm run serve   # local preview with _redirects and _headers applied
 npm run test:sw # browser test of the service-worker kill switch (needs Playwright + Chromium; not in CI)
+npm run og      # redraw the link-preview images from src/site.json (needs Playwright + Chromium)
 ```
 
 Until July 2026 earlier pages registered service workers at `/sw.js` and
@@ -47,10 +48,19 @@ into canonical and hreflang links, Open Graph tags, the sitemap, `robots.txt`
 (template `{{origin}}` in `src/static/robots.txt`) and `facts.json`. The linter
 rejects a hard-coded copy of it anywhere in `src/` or `scripts/` (rule
 `SRC-origin`) and checks that `CNAME` names the same host (rule `CNAME-host`).
-To move the site: change `origin`, update `CNAME`, run `npm run build`. The
+To move the site: change `origin`, update `CNAME`, run `npm run og` and `npm run build`. The
 mail address (`email` in `src/site.json`) and the domain named as plain text in
 page descriptions and in the legal pages are separate and change only if they
 should; find them with `grep -rn "nextool\.app" src`.
+
+## Core sentence and preview images
+
+The core sentence of each language is written once, as `kernsatz` in
+`src/site.json`; pages use `{{kernsatz}}` (also allowed in a page
+description). The link-preview images `og-de.png` and `og-en.png` show the
+sentence, the city and the host as pixels, so `npm run og` redraws them and
+records text and SHA-256 in `src/og-stamp.json`. The build stops when the
+sentence, the host or an image no longer matches that stamp.
 
 ## Photo
 
