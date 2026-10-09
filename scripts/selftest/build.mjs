@@ -286,24 +286,37 @@ check("unvollständiger Kit-Zustand bricht ab, auch wenn er gerade nicht gilt", 
 check("{{kit:unbekannt}} bricht ab", (fx) => { setBody(fx, "<p>{{kit:unbekannt}}</p>"); expectThrow(fx, /erlaubt sind \{\{kit\}\} und \{\{kit:titel\}\}/); });
 
 // Bedingter Text (R4b b5): {{if:F-nn}}…{{/if}} nur mit Schalter zE1 im privaten Zustand; ohne Schalter (oder ohne
-// Datei) fehlt der Satz in site/, die OFFEN-Kennung bleibt fuer das Go-live-Tor.
+// Datei) fehlt der Satz in site/, die OFFEN-Kennung bleibt fuer das Go-live-Tor. Geprueft an einer Testseite.
+// Die vier Archivzeilen F-79–F-82 sind die Standardfassung (v2 §7; W4 „in beiden Faellen“ auf dem Archiv): sie stehen
+// ohne Schalter, von der Antwort haengt nur ein Zusatz ab, den die OFFEN-Kennung haelt (P3-01, Welle F3).
 const ARCHIV = [["archiv/index.html", "F-79", "Oktober 2026:"], ["archiv/index.html", "F-80", "github.io ersetzt"], ["en/archive/index.html", "F-81", "October 2026:"], ["en/archive/index.html", "F-82", "replaced a page on github.io"]];
-const archivCheck = (out, released) => {
+check("Archivzeilen F-79–F-82 stehen ohne Schalter in site/, Kennungen bleiben (P3-01)", (fx) => {
+  const out = build({ src: fx.src });
   for (const [rel, id, satz] of ARCHIV) {
     const html = page(out, rel);
-    if (html.includes(satz) !== released.includes(id)) throw new Error(`${rel}: Satz ${id} ${released.includes(id) ? "fehlt trotz" : "steht ohne"} Schalter`);
+    if (!html.includes(satz)) throw new Error(`${rel}: Zeile ${id} fehlt`);
     if (!html.includes(`<!--OFFEN:${id}-->`)) throw new Error(`${rel}: Kennung ${id} fehlt`);
-    if (/\{\{\/?if/.test(html)) throw new Error(`${rel}: {{if}} im Ergebnis`);
   }
+});
+const IF_SAETZE = [["F-91", "Erster bedingter Testsatz."], ["F-92", "Zweiter bedingter Testsatz."]];
+const ifBody = (fx) => setBody(fx, IF_SAETZE.map(([id, satz]) => `{{if:${id}}}<p>${satz}</p>{{/if}}{{todo:${id}}}`).join("\n"));
+const ifCheck = (fx, released) => {
+  const html = page(build({ src: fx.src }), "phototest.html");
+  for (const [id, satz] of IF_SAETZE) {
+    if (html.includes(satz) !== released.includes(id)) throw new Error(`Satz ${id} ${released.includes(id) ? "fehlt trotz" : "steht ohne"} Schalter`);
+    if (!html.includes(`<!--OFFEN:${id}-->`)) throw new Error(`Kennung ${id} fehlt`);
+  }
+  if (/\{\{\/?if/.test(html)) throw new Error("{{if}} im Ergebnis");
 };
-check("ohne Schalter fehlen die Archivsätze F-79–F-82 in site/, Kennungen bleiben", (fx) => archivCheck(build({ src: fx.src }), []));
+check("ohne Schalter fehlen die bedingten Sätze, Kennungen bleiben", (fx) => { ifBody(fx); ifCheck(fx, []); });
 check("Schlüssel zE1 fehlt in src/state.json: gültig, nichts ausgeliefert", (fx) => {
+  ifBody(fx);
   const { zE1, ...ohne } = STATE_STRICT;
   writeFileSync(join(fx.src, "state.json"), JSON.stringify(ohne));
-  archivCheck(build({ src: fx.src }), []);
+  ifCheck(fx, []);
 });
-check("ohne src/state.json fehlen sie ebenfalls (engster Zustand)", (fx) => { rmSync(join(fx.src, "state.json")); archivCheck(build({ src: fx.src }), []); });
-check("Schalter zE1 = [F-80] liefert genau diesen Satz aus", (fx) => { fx.state({ zE1: ["F-80"] }); archivCheck(build({ src: fx.src }), ["F-80"]); });
+check("ohne src/state.json fehlen sie ebenfalls (engster Zustand)", (fx) => { ifBody(fx); rmSync(join(fx.src, "state.json")); ifCheck(fx, []); });
+check("Schalter zE1 = [F-91] liefert genau diesen Satz aus", (fx) => { ifBody(fx); fx.state({ zE1: ["F-91"] }); ifCheck(fx, ["F-91"]); });
 check("Schalter zE1 kein Kennungs-Array bricht ab", (fx) => { fx.state({ zE1: "F-80" }); expectThrow(fx, /src\/state\.json ungültig: zE1/); });
 check("{{if:Klartext}} bricht ab, Meldung ohne Klartext", (fx) => { setBody(fx, `{{if:${CLEAR}}}<p>x</p>{{/if}}`); noLeak(fx, /\{\{if:…\}\} — Klartext statt Kennung/); });
 check("{{if}} verschachtelt bricht ab", (fx) => { setBody(fx, "{{if:F-91}}<p>a</p>{{if:F-92}}<p>b</p>{{/if}}{{/if}}"); expectThrow(fx, /verschachtelt oder ohne \{\{\/if\}\}/); });
