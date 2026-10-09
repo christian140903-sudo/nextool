@@ -23,6 +23,8 @@
 //   node scripts/lint-site.mjs            normale Pruefung (offene Punkte = Warnung)
 //   node scripts/lint-site.mjs --release  Freigabe: offene Punkte, fehlende private Liste,
 //                                         nicht pruefbare Commits = Fehler (fail-closed)
+//   In GitHub Actions (GITHUB_ACTIONS=true) zusaetzlich eine Annotation „Sperrliste NICHT GEPRÜFT“
+//   samt Abschnitt in der Job-Zusammenfassung, wenn die private Liste fehlt oder Regeln nicht bindet.
 //
 // Was die Schicht darunter im Fehlerfall schon selbst tut: Cloudflare Pages liefert jede
 // Datei in site/ ungeprueft aus; Browser melden CSP-Verstoesse nur in der Konsole. Daher
@@ -30,7 +32,7 @@
 //
 // Privatdaten-Treffer werden NIE im Klartext ausgegeben (CI-Logs sind oeffentlich).
 
-import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, existsSync, appendFileSync } from "node:fs";
 import { join, dirname, relative, sep, posix, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
@@ -864,6 +866,19 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   return findings;
 }
 
+// GitHub Actions (Befund P-01, Welle F2): Ohne Secret steht „NICHT GEPRÜFT“ im Normalmodus nur als info im Log,
+// der Lauf ist gruen — 28 Laeufe lang unbemerkt. Deshalb EINE Annotation am Lauf (GitHub zeigt je Schritt nur
+// 10 Warn-Annotationen, daher gebuendelt): gruen heisst dann sichtbar „ohne private Sperrliste geprueft“.
+// Die Meldungen nennen nur oeffentliche Regel-Ids, nie Listeninhalte. null = nichts zu melden.
+export function ciAnnotation(findings) {
+  const miss = findings.filter((f) => f.rule === "PRIV-list-missing" || f.rule === "PRIV-rule-missing");
+  if (!miss.length) return null;
+  const level = miss.some((f) => f.level === "error") ? "error" : "warning";
+  const lead = level === "error" ? "Release-Tor rot: private Sperrliste fehlt oder ist unvollständig." : "Ein grüner Lauf ist kein Nachweis für die private Sperrliste.";
+  const esc = (x) => x.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+  return { line: `::${level} title=Sperrliste NICHT GEPRÜFT::${esc(`${lead} ${miss.map((f) => f.msg).join(" · ")}`)}`, summary: `### Private Sperrliste NICHT GEPRÜFT\n\n${lead}\n\n${miss.map((f) => `- ${f.msg}`).join("\n")}\n` };
+}
+
 function main() {
   const release = process.argv.includes("--release");
   const findings = lint({ release });
@@ -872,6 +887,11 @@ function main() {
   for (const f of findings.filter((x) => x.level === "info")) console.log(`  info  ${f.rule.padEnd(18)} ${f.where}: ${f.msg}`);
   for (const f of warns) console.log(`  WARN  ${f.rule.padEnd(18)} ${f.where}: ${f.msg}`);
   for (const f of errors) console.log(`  FEHLER ${f.rule.padEnd(17)} ${f.where}: ${f.msg}`);
+  const note = process.env.GITHUB_ACTIONS === "true" ? ciAnnotation(findings) : null;
+  if (note) {
+    console.log(note.line);
+    if (process.env.GITHUB_STEP_SUMMARY) try { appendFileSync(process.env.GITHUB_STEP_SUMMARY, note.summary); } catch { /* Zusammenfassung ist Zusatz; die Annotation steht schon im Log */ }
+  }
   console.log(`\nlint-site${release ? " --release" : ""}: ${errors.length} Fehler, ${warns.length} Warnungen.`);
   process.exit(errors.length ? 1 : 0);
 }

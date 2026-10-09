@@ -11,7 +11,7 @@ import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-import { lint } from "../lint-site.mjs";
+import { lint, ciAnnotation } from "../lint-site.mjs";
 import { ORIGIN as O, HOST, STATE_STRICT } from "../lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -477,6 +477,26 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(fx.base, { recursive: true, force: true });
 }
 
+// Kontrolle 15 (P-01, Welle F2): Fehlt die private Liste oder bindet sie Regeln nicht, gibt es fuer GitHub Actions
+// genau EINE Annotation (Normalmodus warning, Release error, Zeilenumbrueche und % maskiert); ohne PRIV-Meldung keine.
+{
+  const fx = fixture();
+  const run = (o) => ciAnnotation(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [], ...o }));
+  const head = (n, lvl) => !!n && n.line.startsWith(`::${lvl} title=Sperrliste NICHT GEPRÜFT::`) && !/[\r\n]/.test(n.line) && n.summary.startsWith("### Private Sperrliste NICHT GEPRÜFT");
+  const ohne = run({}), rel = run({ release: true }), teil = run({ privateTerms: ["Beispielfirma"] });
+  const esc = ciAnnotation([{ rule: "PRIV-rule-missing", level: "warn", where: "-", msg: "a%b\nc" }]);
+  const still = ciAnnotation([{ rule: "PAGES", level: "info", where: "-", msg: "x" }]);
+  let res = "";
+  if (!head(ohne, "warning") || !/B-b1/.test(ohne.line)) res = "fehlende Liste ohne Warn-Annotation (mit B-b1)";
+  else if (!head(rel, "error")) res = "Release ohne Fehler-Annotation";
+  else if (!head(teil, "warning") || !/A-ergebnis/.test(teil.line)) res = "ungebundene Regel ohne Annotation";
+  else if (!esc.line.endsWith("a%25b%0Ac")) res = "Zeilenumbruch/% nicht maskiert";
+  else if (still !== null) res = "Annotation ohne PRIV-Meldung";
+  if (res) { failed++; console.log(`  FEHLER Kontrolle: CI-Annotation: ${res}`); }
+  else console.log("  ok    Kontrolle: CI-Annotation „Sperrliste NICHT GEPRÜFT“ bei fehlender Liste (warning), im Release (error), bei ungebundener Regel; maskiert; sonst keine");
+  rmSync(fx.base, { recursive: true, force: true });
+}
+
 for (const [rule, mutate, opts = {}] of CASES) {
   const fx = fixture();
   try {
@@ -493,5 +513,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 14 - failed} von ${CASES.length + 14} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 15 - failed} von ${CASES.length + 15} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);
