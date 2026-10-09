@@ -26,7 +26,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-import { loadState, checkSperrliste, parsePrivateList, bindPrivateRules, checkPrivate } from "./lib/sperrliste.mjs";
+import { loadState, STATE_ENV, checkSperrliste, parsePrivateList, bindPrivateRules, checkPrivate } from "./lib/sperrliste.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const TEXT = /\.(?:md|txt|html?|json|ya?ml|csv|tex)$/i;
@@ -37,8 +37,8 @@ const flags = new Set(args.filter((a) => a.startsWith("--")));
 const paths = args.filter((a) => !a.startsWith("--"));
 if (!paths.length) { console.error("Aufruf: node scripts/sperrliste-scan.mjs [--ids] [--lines] <datei|ordner> …"); process.exit(2); }
 
-const { state, errors: stateErrors, strict } = loadState(ROOT);
-if (stateErrors.length) { for (const e of stateErrors) console.error(`  FEHLER STATE-invalid src/state.json: ${e}`); process.exit(2); }
+const { state, errors: stateErrors, strict, source: stateSource } = loadState(ROOT);
+if (stateErrors.length) { for (const e of stateErrors) console.error(`  FEHLER STATE-invalid ${stateSource}: ${e}`); process.exit(2); }
 
 const envList = process.env.SITE_PRIVATE_DENYLIST;
 const listFile = process.env.SITE_PRIVATE_DENYLIST_FILE || join(ROOT, ".site-private-denylist.txt");
@@ -93,5 +93,5 @@ for (const f of files) {
   if (flags.has("--lines") && n) console.log(`      Zeilen ${lines.join(" ")}`);
 }
 console.log(`${"Summe".padEnd(55)}  ${GROUPS.map((g) => String(sum[g]).padStart(3)).join("  ")}`);
-console.log(`\nsperrliste-scan: ${files.length} Dateien, ${total} Treffer (Zustand: ${strict ? "engster (src/state.json fehlt)" : Object.entries(state).filter(([k]) => !k.startsWith("_")).map(([k, v]) => `${k} ${Array.isArray(v) ? v.length : v}`).join(", ")}; private Liste ${entries.length} Einträge, ${bound.length} Bindungen; ${ignored} gitignorierte Datei${ignored === 1 ? "" : "en"} ausgelassen).`);
+console.log(`\nsperrliste-scan: ${files.length} Dateien, ${total} Treffer (Zustand: ${strict ? "engster (src/state.json fehlt, SITE_PRIVATE_STATE nicht gesetzt)" : stateSource === STATE_ENV ? "aus SITE_PRIVATE_STATE, Werte nicht ausgegeben" : Object.entries(state).filter(([k]) => !k.startsWith("_")).map(([k, v]) => `${k} ${Array.isArray(v) ? v.length : v}`).join(", ")}; private Liste ${entries.length} Einträge, ${bound.length} Bindungen; ${ignored} gitignorierte Datei${ignored === 1 ? "" : "en"} ausgelassen).`);
 process.exit(total ? 1 : 0);

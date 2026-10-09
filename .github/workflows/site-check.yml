@@ -5,8 +5,11 @@ name: Site check
 # SITE_PRIVATE_DENYLIST (Inhalt 1:1 wie die private Datei .site-private-denylist.txt); fehlt es oder
 # bindet es nicht alle Regeln, meldet der Linter "NICHT GEPRÜFT" und setzt die Annotation
 # "Sperrliste NICHT GEPRÜFT" am Lauf: Dann ist ein grüner Lauf KEIN Nachweis für die private Sperrliste.
-# Treffer werden nie im Klartext ausgegeben. Die Zustandsdatei src/state.json ist privat und fehlt hier;
-# der Linter prueft dann mit dem engsten Zustand (STATE_STRICT in scripts/lint-config.mjs).
+# Treffer werden nie im Klartext ausgegeben. Die Zustandsdatei src/state.json ist privat und fehlt hier; ihr Inhalt
+# kommt aus dem Repository-Secret SITE_PRIVATE_STATE (JSON 1:1 wie die private Datei; Build und Linter lesen es, wenn
+# die Datei fehlt; ungueltiges JSON = Fehler, nie stiller Rueckfall). Fehlt das Secret, pruefen Build und Linter mit
+# dem engsten Zustand (STATE_STRICT in scripts/lint-config.mjs), und der Build setzt die Annotation
+# "Zustand NICHT GESETZT": Weicht der private Zustand davon ab, ist build --check dann rot.
 # Release-Tor (R-03): Nur auf main laeuft zusaetzlich `npm run test:release`; es ist rot, solange
 # <!--OFFEN:F-nn--> im Quelltext stehen und solange die Historie bekannte Sperrlisten-Treffer in
 # Commit-Nachrichten enthaelt (COMMITS_KNOWN in lint-config; erst ein Repo ohne diese Historie ist frei).
@@ -43,8 +46,10 @@ jobs:
         run: npm test
         env:
           SITE_PRIVATE_DENYLIST: ${{ secrets.SITE_PRIVATE_DENYLIST }}
+          SITE_PRIVATE_STATE: ${{ secrets.SITE_PRIVATE_STATE }}
       - name: Release-Tor (nur main)
         if: github.ref == 'refs/heads/main'
         run: npm run test:release
         env:
           SITE_PRIVATE_DENYLIST: ${{ secrets.SITE_PRIVATE_DENYLIST }}
+          SITE_PRIVATE_STATE: ${{ secrets.SITE_PRIVATE_STATE }}

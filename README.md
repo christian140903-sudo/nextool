@@ -49,6 +49,10 @@ sentence about team-skills-kit is written once per language in `src/site.json` (
 states; pages place it with `{{kit}}` and its section title with `{{kit:titel}}`, so all places
 switch together, and only the published state links the repository. Once a build-relevant switch
 differs from the strictest state, CI needs that state too, otherwise `build --check` fails there.
+Without the file, build, linter and scan read the same JSON from the environment variable
+`SITE_PRIVATE_STATE` (an Actions secret, a Cloudflare build variable); the file wins if both exist.
+Invalid JSON in the variable is an error, never a silent fallback, and messages never show its
+content. While neither is set, CI shows the annotation "Zustand NICHT GESETZT".
 Text wrapped in `{{if:F-nn}}…{{/if}}` is published only when the private state releases that
 marker; without the switch (or without the file) the text is left out and the open marker stays.
 A withheld block needs its open marker `{{todo:F-nn}}` outside the block on the same page;

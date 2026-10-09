@@ -17,10 +17,13 @@ import { mkdtempSync, cpSync, writeFileSync, readFileSync, rmSync, mkdirSync } f
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { build, jpegInfo } from "../build.mjs";
+import { build, jpegInfo, ciStateNote } from "../build.mjs";
 import { STATE_STRICT, IF_ZWILLINGE } from "../lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+// Die Faelle steuern den Zustand selbst (Datei in der Kopie oder env-Parameter). Ein in CI gesetztes Secret
+// SITE_PRIVATE_STATE darf sie nicht veraendern (P3-04).
+delete process.env.SITE_PRIVATE_STATE;
 
 function seg(marker, body) {
   const head = Buffer.alloc(4);
@@ -76,8 +79,8 @@ const page = (out, rel) => {
   if (!b) throw new Error(`${rel} nicht gebaut`);
   return b.toString("utf8");
 };
-function expectThrow(fx, re) {
-  try { build({ src: fx.src }); } catch (e) {
+function expectThrow(fx, re, env) {
+  try { build({ src: fx.src, ...(env ? { env } : {}) }); } catch (e) {
     if (re.test(e.message)) return;
     throw new Error(`falsche Meldung: ${e.message}`);
   }
@@ -365,6 +368,43 @@ check("Zwillinge: Klammern in beiden Sprachen → Text nur bei Freigabe des ganz
   fx.state({ zE1: [ZW_DE, ZW_EN] });
   out = build({ src: fx.src });
   if (!page(out, "phototest.html").includes("<p>Zwillingstest DE.</p>") || !page(out, "en/phototest.html").includes("<p>Twin test EN.</p>")) throw new Error("Paar freigegeben, Text fehlt");
+});
+
+// Privater Zustand fuer CI/Cloudflare (P3-04): src/state.json > SITE_PRIVATE_STATE > engster Zustand. Ungueltiges JSON in
+// der Variable bricht ab (kein stiller Rueckfall); Meldungen nennen weder Inhalt noch Werte (CI-Logs sind oeffentlich).
+const envState = (patch) => ({ SITE_PRIVATE_STATE: JSON.stringify({ ...STATE_STRICT, ...patch }) });
+check("ohne Datei: SITE_PRIVATE_STATE wird benutzt (zF1 = true → 4 Kit-Links)", (fx) => {
+  rmSync(join(fx.src, "state.json"));
+  const n = kitLinks(build({ src: fx.src, env: envState({ zF1: true }) }));
+  if (n !== 4) throw new Error(`${n} Kit-Links statt 4`);
+});
+check("Datei hat Vorrang vor SITE_PRIVATE_STATE", (fx) => {
+  if (kitLinks(build({ src: fx.src, env: envState({ zF1: true }) })) !== 0) throw new Error("Variable statt Datei benutzt");
+  build({ src: fx.src, env: { SITE_PRIVATE_STATE: "{kein JSON" } }); // Datei da: Variable wird gar nicht gelesen
+});
+check("SITE_PRIVATE_STATE kein JSON → Abbruch, Meldung ohne Inhalt", (fx) => {
+  rmSync(join(fx.src, "state.json"));
+  expectThrow(fx, /^SITE_PRIVATE_STATE ungültig: SITE_PRIVATE_STATE ist kein gültiges JSON \(Inhalt nicht ausgegeben\)$/, { SITE_PRIVATE_STATE: '{"zF1": Beispielwert' });
+});
+check("SITE_PRIVATE_STATE mit falschem Wert oder Schlüssel → Abbruch, weder Wert noch Name in der Meldung", (fx) => {
+  rmSync(join(fx.src, "state.json"));
+  for (const [env, re] of [[envState({ zB2: { Beispielfeld: "Beispielwert" } }), /zB2 ist nicht erlaubt \(Wert nicht ausgegeben\)/], [envState({ Beispielschluessel: 1 }), /ein Schlüssel \(Name nicht ausgegeben\) ist kein bekannter Schlüssel/], [envState({ zE1: ["F-80"] }), /zE1 gibt F-80 frei, aber nicht seinen Zwilling F-82/]]) {
+    try { build({ src: fx.src, env }); } catch (e) {
+      if (!re.test(e.message)) throw new Error(`falsche Meldung: ${e.message}`);
+      if (/Beispiel/.test(e.message)) throw new Error("Meldung enthält Inhalt der Variable");
+      continue;
+    }
+    throw new Error("Build lief durch, sollte abbrechen");
+  }
+});
+check("SITE_PRIVATE_STATE leer = nicht gesetzt (engster Zustand)", (fx) => {
+  rmSync(join(fx.src, "state.json"));
+  if (kitLinks(build({ src: fx.src, env: { SITE_PRIVATE_STATE: " \n" } })) !== 0) throw new Error("Kit-Link ohne Zustand");
+});
+check("CI-Hinweis „Zustand NICHT GESETZT“ nur ohne Datei und ohne Variable", () => {
+  const n = ciStateNote("strict");
+  if (!n || !n.line.startsWith("::warning title=Zustand NICHT GESETZT::") || /[\r\n]/.test(n.line) || !n.summary.startsWith("### Zustand NICHT GESETZT")) throw new Error("Annotation fehlt oder mehrzeilig");
+  if (ciStateNote("src/state.json") || ciStateNote("SITE_PRIVATE_STATE")) throw new Error("Annotation trotz Zustand");
 });
 
 // Barrierefreiheit (Welle F2, BF-07): Ohne Sprachpaar fuehrt der Sprachlink auf die Startseite und sagt das.

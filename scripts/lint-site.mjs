@@ -39,7 +39,7 @@ import { execFileSync } from "node:child_process";
 import { Script } from "node:vm";
 import { tokenize, walk, textBlocks, collapse } from "./lib/html.mjs";
 import { parseHeaders, headersFor } from "./lib/cf-headers.mjs";
-import { loadState, checkSperrliste, parsePrivateList, bindPrivateRules, checkPrivate } from "./lib/sperrliste.mjs";
+import { loadState, STATE_ENV, checkSperrliste, parsePrivateList, bindPrivateRules, checkPrivate } from "./lib/sperrliste.mjs";
 import * as C from "./lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -140,7 +140,7 @@ function urlOfFile(rel) {
 // ---------------------------------------------------------------------------
 // Hauptpruefung
 // ---------------------------------------------------------------------------
-export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = false, privateTerms = null, gitCheck = true, gitBase = C.RELAUNCH_BASE, knownCommits = C.COMMITS_KNOWN } = {}) {
+export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = false, privateTerms = null, gitCheck = true, gitBase = C.RELAUNCH_BASE, knownCommits = C.COMMITS_KNOWN, env = process.env } = {}) {
   const findings = [];
   const add = (level, rule, where, msg) => findings.push({ level, rule, where, msg });
   const err = (r, w, m) => add("error", r, w, m);
@@ -185,12 +185,13 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   }
 
   // --- Zustand (privat: src/state.json, Positionierung v2 §7) ---------------------
-  // Fehlt die Datei (nicht im oeffentlichen Repository, z. B. in CI): engster Zustand STATE_STRICT, Info.
-  // Ist sie da, aber ungueltig: Fehler; die Regeln laufen dann ebenfalls mit STATE_STRICT weiter.
-  const { state: rawState, errors: stateErrors, strict: stateStrict } = loadState(rootDir);
-  for (const e of stateErrors) err("STATE-invalid", "src/state.json", e);
+  // Quelle: Datei, sonst Umgebungsvariable SITE_PRIVATE_STATE (CI-Secret, P3-04), sonst engster Zustand STATE_STRICT (Info).
+  // Ist die Quelle da, aber ungueltig: Fehler; die Regeln laufen dann ebenfalls mit STATE_STRICT weiter.
+  const { state: rawState, errors: stateErrors, strict: stateStrict, source: stateSource } = loadState(rootDir, env);
+  for (const e of stateErrors) err("STATE-invalid", stateSource, e);
   const state = stateErrors.length ? C.STATE_STRICT : rawState;
-  if (stateStrict) info("STATE-strict", "src/state.json", "nicht vorhanden (privat, nicht im Repository) — geprüft mit dem engsten Zustand STATE_STRICT");
+  if (stateStrict) info("STATE-strict", "src/state.json", "nicht vorhanden (privat, nicht im Repository) und SITE_PRIVATE_STATE nicht gesetzt — geprüft mit dem engsten Zustand STATE_STRICT");
+  else if (stateSource === STATE_ENV && !stateErrors.length) info("STATE-env", STATE_ENV, "Zustand aus der Umgebungsvariable (Inhalt nicht ausgegeben)");
   if (!stateErrors.length && state.zA === "a4") {
     for (const k of C.STATE_A4_FACTS) if (!String(facts[k]?.value || "").trim()) err("STATE-invalid", "facts.json", `zA = a4 verlangt ${k} in facts.json (§3.2)`);
   }

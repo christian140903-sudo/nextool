@@ -9,7 +9,7 @@
 // liefert aus, was in site/ liegt. Deshalb bricht dieser Build bei jedem unbekannten
 // Platzhalter, fehlenden Fakt oder kaputten Seitenkopf ab (fail-closed).
 
-import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync, rmSync, existsSync, appendFileSync } from "node:fs";
 import { join, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
@@ -456,7 +456,7 @@ function checkOgStamp(src, site) {
   }
 }
 
-export function build({ src = SRC } = {}) {
+export function build({ src = SRC, env = process.env } = {}) {
   const site = JSON.parse(readFileSync(join(src, "site.json"), "utf8"));
   checkOgStamp(src, site);
   const factsRaw = readFileSync(join(src, "facts.json"), "utf8");
@@ -467,10 +467,11 @@ export function build({ src = SRC } = {}) {
     if ("source_internal" in f && !/^intern:F-\d{2,3}$/.test(String(f.source_internal))) throw new Error(`facts.json: ${k}.source_internal nur als "intern:F-nn" — ${clearLen(String(f.source_internal))}`);
   }
   checkKit(site);
-  // Privater Zustand wie beim Linter (lib/sperrliste.mjs): fehlt src/state.json, gilt der engste Zustand; ist sie
-  // da, aber ungueltig, bricht der Build ab, statt still mit einem Teilzustand zu bauen.
-  const { state, errors: stateErrors } = loadState(join(src, ".."));
-  if (stateErrors.length) throw new Error(`src/state.json ungültig: ${stateErrors.join("; ")}`);
+  // Privater Zustand wie beim Linter (lib/sperrliste.mjs): src/state.json, sonst SITE_PRIVATE_STATE (CI, Cloudflare),
+  // sonst der engste Zustand; ist die Quelle da, aber ungueltig, bricht der Build ab, statt still mit einem Teilzustand
+  // zu bauen.
+  const { state, errors: stateErrors, source: stateSource } = loadState(join(src, ".."), env);
+  if (stateErrors.length) throw new Error(`${stateSource} ungültig: ${stateErrors.join("; ")}`);
   const ctx = { site, facts, photo: loadPhoto(src), src, state, ifUsed: new Map() };
   const out = new Map();
   const pages = listFiles(join(src, "pages")).filter((f) => f.endsWith(".html")).map(parsePage);
@@ -499,8 +500,25 @@ export function build({ src = SRC } = {}) {
   return out;
 }
 
+// CI-Hinweis (P3-04, gleiches Muster wie „Sperrliste NICHT GEPRÜFT“ im Linter): Ohne src/state.json und ohne
+// SITE_PRIVATE_STATE baut der Build mit dem engsten Zustand. Das ist sicher (fail-closed); weicht der private Zustand aber
+// davon ab, ist `build --check` dort rot, und gruen heisst nur „mit dem engsten Zustand gebaut“. Deshalb eine Annotation
+// am Lauf, solange das Secret fehlt. Steht hier und nicht im Linter, weil der Build zuerst laeuft (auch im roten Fall).
+// null = nichts zu melden.
+export const STATE_NOTE = "src/state.json fehlt und SITE_PRIVATE_STATE ist nicht gesetzt: gebaut und geprüft mit dem engsten Zustand (STATE_STRICT). Weicht der private Zustand davon ab, ist build --check hier rot — Secret SITE_PRIVATE_STATE setzen.";
+export function ciStateNote(source) {
+  if (source !== "strict") return null;
+  return { line: `::warning title=Zustand NICHT GESETZT::${STATE_NOTE}`, summary: `### Zustand NICHT GESETZT\n\n${STATE_NOTE}\n` };
+}
+
 function main() {
   const check = process.argv.includes("--check");
+  const { source: stateSource } = loadState(ROOT);
+  const note = process.env.GITHUB_ACTIONS === "true" ? ciStateNote(stateSource) : null;
+  if (note) {
+    console.log(note.line);
+    if (process.env.GITHUB_STEP_SUMMARY) try { appendFileSync(process.env.GITHUB_STEP_SUMMARY, note.summary); } catch { /* Zusatz; die Annotation steht schon im Log */ }
+  }
   let out;
   try { out = build(); } catch (e) { console.error(`BUILD FEHLER: ${e.message}`); process.exit(2); }
   const existing = new Set(listFiles(OUT).map((f) => relative(OUT, f).split(sep).join("/")));
@@ -521,6 +539,7 @@ function main() {
     if (diffs.length) {
       console.error(`site/ passt nicht zum Quellstand (${diffs.length} Dateien anders) — bitte "npm run build" ausführen und committen:`);
       for (const d of diffs.slice(0, 40)) console.error("  " + d);
+      if (stateSource === "strict") console.error(`Hinweis: ${STATE_NOTE}`);
       process.exit(1);
     }
     console.log(`build --check: site/ entspricht dem Quellstand (${out.size} Dateien).`);

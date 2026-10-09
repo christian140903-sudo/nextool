@@ -20,14 +20,28 @@ export const sentencesOf = (text) => text.split(/(?<=[.!?…])\s+(?=[\p{Lu}„�
 
 const get = (obj, path) => path.split(".").reduce((o, k) => (o && typeof o === "object" ? o[k] : undefined), obj);
 
-// strict = true: Datei fehlt, es gilt STATE_STRICT (kein Fehler). errors nicht leer: Datei da, aber ungueltig.
-export function loadState(rootDir) {
+// Quelle des Zustands (P3-04), in dieser Reihenfolge:
+//   1. Datei src/state.json (lokal; gitignoriert)
+//   2. Umgebungsvariable SITE_PRIVATE_STATE mit demselben JSON-Inhalt (CI-Secret, Cloudflare-Build-Variable)
+//   3. sonst STATE_STRICT (strict = true, kein Fehler)
+// errors nicht leer: Quelle da, aber ungueltig — auch ungueltiges JSON in der Variable ist ein Fehler, nie ein stiller
+// Rueckfall auf den engsten Zustand. Eine leere Variable gilt als nicht gesetzt (ein fehlendes GitHub-Secret ist ""). Die
+// Variable landet in oeffentlichen CI-Logs nur ueber diese Meldungen: Sie nennen deshalb nie Inhalt oder Werte daraus.
+// source: "src/state.json" | "SITE_PRIVATE_STATE" | "strict".
+export const STATE_ENV = "SITE_PRIVATE_STATE";
+export function loadState(rootDir, env = process.env) {
   const file = join(rootDir, "src", "state.json");
-  if (!existsSync(file)) return { state: STATE_STRICT, errors: [], strict: true };
+  const fromEnv = !existsSync(file);
+  if (fromEnv && !(env[STATE_ENV] || "").trim()) return { state: STATE_STRICT, errors: [], strict: true, source: "strict" };
+  const source = fromEnv ? STATE_ENV : "src/state.json";
   let state;
-  try { state = JSON.parse(readFileSync(file, "utf8")); } catch (e) { return { state: null, errors: [`src/state.json nicht lesbar: ${e.message}`], strict: false }; }
+  try { state = JSON.parse(fromEnv ? env[STATE_ENV] : readFileSync(file, "utf8")); } catch (e) {
+    return { state: null, errors: [fromEnv ? `${STATE_ENV} ist kein gültiges JSON (Inhalt nicht ausgegeben)` : `src/state.json nicht lesbar: ${e.message}`], strict: false, source };
+  }
   if (state && typeof state === "object") for (const k of STATE_OPTIONAL) if (state[k] === undefined) state[k] = STATE_STRICT[k];
-  return { state, errors: validateState(state), strict: false };
+  const errors = validateState(state);
+  const mask = (e) => e.replace(/ = .* ist nicht erlaubt/, " ist nicht erlaubt (Wert nicht ausgegeben)").replace(/^.+ ist kein bekannter Schlüssel/, "ein Schlüssel (Name nicht ausgegeben) ist kein bekannter Schlüssel");
+  return { state, errors: fromEnv ? errors.map(mask) : errors, strict: false, source };
 }
 
 // Gibt Fehlertexte zurueck (leer = gueltig). Unbekannte Schluessel sind ebenfalls ein Fehler: Ein

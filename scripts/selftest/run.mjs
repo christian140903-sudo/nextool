@@ -16,6 +16,8 @@ import { build } from "../build.mjs";
 import { ORIGIN as O, HOST, STATE_STRICT } from "../lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+// Faelle steuern den Zustand selbst; ein in CI gesetztes Secret SITE_PRIVATE_STATE darf sie nicht veraendern (P3-04).
+delete process.env.SITE_PRIVATE_STATE;
 
 function fixture() {
   const base = mkdtempSync(join(tmpdir(), "lint-selftest-"));
@@ -459,6 +461,29 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(fx.base, { recursive: true, force: true });
 }
 
+// Kontrolle (P3-04): Ohne Datei liest der Linter SITE_PRIVATE_STATE (CI-Secret). Gueltig = benutzt (Info STATE-env, Rolle A
+// wirksam), kein JSON = STATE-invalid ohne Inhalt; die Datei hat Vorrang vor der Variable.
+{
+  const fx = fixture();
+  const sf = join(fx.base, "src", "state.json");
+  inject(fx, "en/hire/index.html", "<p>Looking for a role focused on agent reliability.</p>");
+  const run = (env) => lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [], env });
+  const has = (f, rule, re = /./) => f.some((x) => x.rule === rule && re.test(x.msg));
+  writeFileSync(sf, JSON.stringify(STATE_STRICT));
+  const datei = run({ SITE_PRIVATE_STATE: "{kein JSON" });
+  rmSync(sf);
+  const envA = run({ SITE_PRIVATE_STATE: JSON.stringify({ ...STATE_STRICT, zD2: "A" }) });
+  const kaputt = run({ SITE_PRIVATE_STATE: '{"zD2": Beispielwert' });
+  let res = "";
+  if (has(datei, "STATE-invalid") || has(datei, "STATE-env") || !has(datei, "SPERR-D", /D-rolle-b/)) res = "Datei hat keinen Vorrang vor der Variable";
+  else if (!has(envA, "STATE-env") || has(envA, "STATE-strict") || has(envA, "SPERR-D", /D-rolle-b/)) res = "gültige Variable nicht benutzt";
+  else if (!kaputt.some((x) => x.rule === "STATE-invalid" && x.where === "SITE_PRIVATE_STATE" && /kein gültiges JSON/.test(x.msg))) res = "ungültige Variable ohne STATE-invalid";
+  else if (kaputt.some((x) => /Beispielwert/.test(x.msg))) res = "Meldung enthält Inhalt der Variable";
+  if (res) { failed++; console.log(`  FEHLER Kontrolle: SITE_PRIVATE_STATE ${res}`); }
+  else console.log("  ok    Kontrolle: SITE_PRIVATE_STATE ohne Datei benutzt (STATE-env, Rolle A), kein JSON = STATE-invalid ohne Inhalt, Datei hat Vorrang");
+  rmSync(fx.base, { recursive: true, force: true });
+}
+
 // Kontrolle 6 (R-03): Das Release-Tor erkennt die neutralen Kennungen. Ohne jede Kennung kein TODO-open;
 // genau eine eingefuegte <!--OFFEN:F-nn--> macht genau diese Seite rot; email_off und Kennungen sind im
 // Normalmodus kein Fehler.
@@ -573,5 +598,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 17 - failed} von ${CASES.length + 17} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 18 - failed} von ${CASES.length + 18} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);
