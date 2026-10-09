@@ -8,7 +8,7 @@ linter, CI) stays out of the published output.
 
 ## Earlier content
 
-<!-- OFFEN: only true once the old repository is private (repository swap); check before go-live. -->
+<!--OFFEN:F-75-->
 Everything that was published here before the rebuild (browser tools, guides,
 shop prototypes, a side project and older product pages) is kept in private
 repositories; I am happy to show it on request. Old URLs redirect to

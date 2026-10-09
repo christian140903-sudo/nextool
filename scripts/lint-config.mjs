@@ -184,6 +184,11 @@ export const NOTE_VISIBLE = [
   { id: "TODO/FIXME", re: /\b(?:TODO|FIXME|TBD|XXX)\b/ },
   { id: "{{…}}", re: /\{\{|\}\}/ },                           // vom Build nicht ersetzter Platzhalter
 ];
+// HTML-Kommentare im ausgelieferten Quelltext (Welle F, R-03): Jeder Besucher kann sie per "Seitenquelltext"
+// lesen, und das Repository ist oeffentlich. Erlaubt sind nur Kommentare ohne Inhalt: die neutrale Kennung
+// eines Go-live-Tors (<!--OFFEN:F-nn-->, Klartext in der privaten Zuordnung) und die Cloudflare-Klammer
+// <!--email_off-->…<!--/email_off--> (R-04). Alles andere ist in jedem Modus ein Fehler (NOTE-comment).
+export const COMMENT_ALLOWED = /^(?:OFFEN:F-\d{2,3}|\/?email_off)$/;
 // Ausfuell-Platzhalter wie [Datum], [n], <Name> — normal Warnung, im Release-Modus Fehler (T14).
 // Erlaubt: Auslassung in Zitaten "[…]" / "[...]".
 export const PLACEHOLDER = /\[(?!…\]|\.\.\.\])[^\]\n]{1,40}\]|<[^<>\n]{1,40}>/;

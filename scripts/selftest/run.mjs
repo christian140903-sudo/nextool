@@ -6,7 +6,7 @@
 //   - eine widerrufene Zahl MIT Pflichtkontext darf NICHT anschlagen.
 // Alle Testdaten sind erfunden (keine echten Nummern, Namen, Adressen).
 
-import { mkdtempSync, cpSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { mkdtempSync, cpSync, readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -96,6 +96,13 @@ const CASES = [
   ["TXT-private", (fx) => inject(fx, "index.html", "<!--OFFEN: früher bei Beispielfirma-->"), { privateTerms: ["Beispielfirma"], expect: /Nr\. 1/ }],
   ["TXT-revoked", (fx) => inject(fx, "index.html", "<!--OFFEN: alter Wert 70,4 %-->")],
   ["HTML-structure", (fx) => inject(fx, "en/privacy/index.html", "<!--OFFEN: x--> Text</p>")],
+  // Neutrale Kennungen (R-03): nur <!--OFFEN:F-nn--> und email_off im ausgelieferten HTML; Inhalt nie in der Meldung
+  ["NOTE-comment", (fx) => inject(fx, "arbeitgeber/index.html", "<!--OFFEN: Verfügbar ab Beispieldatum-->"), { expect: /^(?!.*Beispiel).*Klartext \(\d+ Zeichen/ }],
+  ["NOTE-comment", (fx) => inject(fx, "index.html", "<!-- Notiz für später -->"), { expect: /Inhalt nicht ausgegeben/ }],
+  ["NOTE-comment", (fx) => inject(fx, "impressum/index.html", "<!--intern:F-01-->"), { expect: /nur <!--OFFEN:F-nn-->/ }],
+  ["NOTE-comment", (fx) => inject(fx, "kontakt/index.html", "<!--OFFEN:F-1-->")],
+  ["NOTE-comment", (fx) => writeFileSync(join(fx.base, "README.md"), "# x\n<!-- OFFEN: nur wahr, wenn Beispiel -->\n"), { where: /^README\.md$/ }],
+  ["TODO-open", (fx) => writeFileSync(join(fx.base, "README.md"), "# x\n<!--OFFEN:F-98-->\n"), { release: true, where: /^README\.md$/ }],
   // Audit T1–T18 der Website-Session (Nachbesserung 2): je neue Regel ein Gegenbeispiel
   ["I18N-absolute", (fx) => fx.edit("projekte/index.html", '<link rel="alternate" hreflang="en" href="https://nextool.app/en/projects/">', '<link rel="alternate" hreflang="en" href="/en/projects/">')],
   ["SITEMAP-hreflang", (fx) => fx.edit("sitemap.xml", '<loc>https://nextool.app/projekte/</loc>', '<loc>https://nextool.app/projekte/</loc>\n    <xhtml:link rel="alternate" hreflang="fr" href="https://nextool.app/fr/"/>')],
@@ -188,6 +195,29 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(fx.base, { recursive: true, force: true });
 }
 
+// Kontrolle 6 (R-03): Das Release-Tor erkennt die neutralen Kennungen. Ohne jede Kennung kein TODO-open;
+// genau eine eingefuegte <!--OFFEN:F-nn--> macht genau diese Seite rot; email_off und Kennungen sind im
+// Normalmodus kein Fehler.
+{
+  const fx = fixture();
+  const htmls = [];
+  const walk = (d) => { for (const n of readdirSync(d)) { const p = join(d, n); if (statSync(p).isDirectory()) walk(p); else if (p.endsWith(".html")) htmls.push(p); } };
+  walk(join(fx.base, "site"));
+  let removed = 0;
+  for (const p of htmls) { const h = readFileSync(p, "utf8"); const c = h.replace(/<!--OFFEN:F-\d{2,3}-->/g, () => { removed++; return ""; }); writeFileSync(p, c); }
+  const rel = (o) => lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [], ...o }).filter((x) => x.level === "error" && /TODO-open|NOTE-comment/.test(x.rule));
+  const before = rel({ release: true });
+  inject(fx, "kontakt/index.html", '<p><!--email_off--><a href="mailto:x@example.org">x@example.org</a><!--/email_off--><!--OFFEN:F-99--></p>');
+  const normal = rel({});
+  const after = rel({ release: true });
+  if (!removed) { failed++; console.log("  FEHLER Kontrolle: keine <!--OFFEN:F-nn--> in site/ gefunden — Test prüft nichts"); }
+  else if (before.length) { failed++; console.log(`  FEHLER Kontrolle: ohne Kennungen trotzdem ${before[0].rule} (${before[0].where})`); }
+  else if (normal.length) { failed++; console.log(`  FEHLER Kontrolle: Kennung/email_off im Normalmodus abgelehnt (${normal[0].rule}: ${normal[0].msg})`); }
+  else if (after.length !== 1 || after[0].rule !== "TODO-open" || after[0].where !== "kontakt/index.html") { failed++; console.log(`  FEHLER Kontrolle: Release-Tor erkennt <!--OFFEN:F-99--> nicht genau einmal (${after.map((x) => x.rule + "@" + x.where).join(", ") || "nichts"})`); }
+  else console.log(`  ok    Kontrolle: Release-Tor rot genau an <!--OFFEN:F-99--> (${removed} Kennungen entfernt → 0); email_off erlaubt`);
+  rmSync(fx.base, { recursive: true, force: true });
+}
+
 for (const [rule, mutate, opts = {}] of CASES) {
   const fx = fixture();
   try {
@@ -204,5 +234,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 5 - failed} von ${CASES.length + 5} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 6 - failed} von ${CASES.length + 6} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);

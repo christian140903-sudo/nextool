@@ -9,7 +9,8 @@
 //   Privatdaten-Muster + private Sperrliste (Arbeitgeber, Heimatort; nur per Datei/Secret)
 //   _headers (CSP, HSTS ohne preload …) · _redirects (Syntax, Ziele, keine verdeckten Seiten)
 //   Abdeckung aller Alt-URLs (src/legacy-urls.txt) · Sitemap/robots · Farbkontraste (WCAG AA)
-//   offene Punkte (OFFEN-Kommentare aus {{todo}}), sichtbare Notizen/Platzhalter · Commit-Nachrichten
+//   offene Punkte (<!--OFFEN:F-nn--> aus {{todo:F-nn}}), nur inhaltsleere HTML-Kommentare (R-03),
+//   sichtbare Notizen/Platzhalter · Commit-Nachrichten
 //   Abmelde-Worker sw.js · Audit T1–T18 der Website-Session, soweit sie hier passen (Sprachlink,
 //   Ueberschriften, "Stand", noindex-Ausnahmen, target, Positivliste Dateitypen, Schriftlizenzen,
 //   Sitemap-Form/hreflang, strukturierte Daten, Stufe 1 ohne Angebotssprache); jede dieser Regeln
@@ -166,6 +167,16 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   for (const re of C.FACTS_INTERNAL) {
     const m = re.exec(factsText);
     if (m) err("FACTS-internal", "facts.json", `interner Verweis „${m[0]}“ in der ausgelieferten facts.json — gehört in source_internal`);
+  }
+
+  // --- README.md im oeffentlichen Repository (R-03) ----------------------------
+  // Auch dort nur inhaltsleere Kommentare; ein <!--OFFEN:F-nn--> ist ein Go-live-Tor wie auf den Seiten.
+  const readme = join(rootDir, "README.md");
+  if (existsSync(readme)) {
+    const comments = [...readFileSync(readme, "utf8").matchAll(/<!--([\s\S]*?)-->/g)].map((m) => m[1].trim());
+    for (const c of comments) if (!C.COMMENT_ALLOWED.test(c)) err("NOTE-comment", "README.md", `Kommentar mit Klartext (${c.length} Zeichen, Inhalt nicht ausgegeben) — nur <!--OFFEN:F-nn--> erlaubt`);
+    const open = comments.filter((c) => /^OFFEN:/.test(c)).length;
+    if (open) warn("TODO-open", "README.md", `${open} offene Punkte (<!--OFFEN:F-nn-->)`);
   }
 
   // --- private Sperrliste -----------------------------------------------------
@@ -518,8 +529,11 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     // Quelltext, deshalb gelten fuer sie die Regeln wie fuer Commit-Nachrichten (Privatdaten, Zahlen, Sperrliste "all").
     const comments = tokens.filter((t) => t.type === "comment");
     for (const c of comments) checkText(collapse(c.text), `${rel} [Kommentar]`, { scope: "all" });
+    // Nur inhaltsleere Kommentare (R-03, COMMENT_ALLOWED); den Inhalt nie ausgeben (CI-Logs sind oeffentlich).
+    for (const c of comments) if (!C.COMMENT_ALLOWED.test(c.text)) err("NOTE-comment", rel, `HTML-Kommentar mit Klartext (${c.text.length} Zeichen, Inhalt nicht ausgegeben) — erlaubt sind nur <!--OFFEN:F-nn--> und email_off; Klartext gehört in die private Zuordnung`);
+    // Jeder OFFEN-Kommentar ist ein offenes Tor, auch einer mit Klartext (der zusaetzlich NOTE-comment ausloest).
     const offen = comments.filter((c) => /^\s*OFFEN:/.test(c.text)).length;
-    if (offen) warn("TODO-open", rel, `${offen} offene Punkte (OFFEN-Kommentare aus {{todo:}})`);
+    if (offen) warn("TODO-open", rel, `${offen} offene Punkte (<!--OFFEN:F-nn--> aus {{todo:F-nn}} oder facts.json offen)`);
 
     // Sprachpaare
     if (C.PAIR_EXEMPT[url]) {

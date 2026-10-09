@@ -3,6 +3,7 @@
 //   Foto  — ohne foto.jpg Initialen statt <img>; mit sauberem JPEG <img> mit Breite/Hoehe;
 //           EXIF, > 150 KB oder WebP ohne JPEG brechen den Build ab (fail-closed).
 //   Tueren — auf einer Seite mit "door" fehlt der Navigationspunkt der anderen Tuer (§1.5).
+//   Kennungen — interne Notizen nur als F-nn (R-03); Klartext bricht ab, ohne in der Meldung zu stehen.
 // Arbeitet auf einer Temp-Kopie von src/; die echten Quellen bleiben unberuehrt.
 
 import { mkdtempSync, cpSync, writeFileSync, readFileSync, rmSync, mkdirSync } from "node:fs";
@@ -99,44 +100,57 @@ check("unbekannte Fotogröße bricht ab", (fx) => {
   writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "{{photo:riesig}}"));
   expectThrow(fx, /Größe muss/);
 });
-check("{{todo}} wird HTML-Kommentar, Absatz nur mit Notiz entfällt", (fx) => {
-  writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "<p>{{todo:Notiz eins}}</p><p>Text {{todo:Notiz zwei}}</p>"));
+// Neutrale Kennungen (R-03): Klartext-Notizen im oeffentlichen Repo/HTML brechen den Build ab,
+// ohne den Klartext in die (oeffentliche) Meldung zu schreiben.
+const CLEAR = "Verfügbar ab Beispieldatum, Notiz für Beispielperson";
+const noLeak = (fx, re) => {
+  try { build({ src: fx.src }); } catch (e) {
+    if (!re.test(e.message)) throw new Error(`falsche Meldung: ${e.message}`);
+    if (/Beispiel/.test(e.message)) throw new Error("Meldung enthält den Klartext");
+    return;
+  }
+  throw new Error("Build lief durch, sollte abbrechen");
+};
+const setPage = (fx, html) => writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", html));
+check("{{todo:F-nn}} wird <!--OFFEN:F-nn-->, Absatz nur mit Kennung entfällt", (fx) => {
+  setPage(fx, "<p>{{todo:F-91}}</p><p>Text {{todo:F-92}}</p>");
   const html = page(build({ src: fx.src }), "phototest.html");
   if (/<mark|data-todo/.test(html)) throw new Error("sichtbare Marke im Ergebnis");
-  if (!html.includes("</picture><!--OFFEN: Notiz eins-->") && !html.includes("CB</div><!--OFFEN: Notiz eins-->")) throw new Error("Notiz eins nicht als freier Kommentar (leerer <p> geblieben?)");
-  if (!html.includes("<p>Text <!--OFFEN: Notiz zwei--></p>")) throw new Error("Notiz zwei nicht als Kommentar im Absatz");
+  if (!html.includes("CB</div><!--OFFEN:F-91-->")) throw new Error("F-91 nicht als freier Kommentar (leerer <p> geblieben?)");
+  if (!html.includes("<p>Text <!--OFFEN:F-92--></p>")) throw new Error("F-92 nicht als Kommentar im Absatz");
 });
-check("Absatz mit Text zwischen zwei Notizen bleibt erhalten", (fx) => {
-  writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "<p>{{todo:a}} sichtbarer Text {{todo:b}}</p>"));
+check("Absatz mit Text zwischen zwei Kennungen bleibt erhalten", (fx) => {
+  setPage(fx, "<p>{{todo:F-91}} sichtbarer Text {{todo:F-92}}</p>");
+  if (!page(build({ src: fx.src }), "phototest.html").includes("<p><!--OFFEN:F-91--> sichtbarer Text <!--OFFEN:F-92--></p>")) throw new Error("Absatz-Rahmen um sichtbaren Text entfernt");
+});
+check("{{todo:Klartext}} bricht ab, Meldung ohne Klartext", (fx) => { setPage(fx, `<p>{{todo:${CLEAR}}}</p>`); noLeak(fx, /\{\{todo:…\}\} — Klartext statt Kennung/); });
+check("{{todo:F-01 --> b}} (Kennung mit Anhang) bricht ab", (fx) => { setPage(fx, "{{todo:F-01 --> b}}"); noLeak(fx, /Klartext statt Kennung/); });
+check("<!--intern:F-nn--> steht nur in src/, nicht in der Ausgabe", (fx) => {
+  setPage(fx, "<p>a</p>\n<!--intern:F-93-->\n<p>b</p>");
   const html = page(build({ src: fx.src }), "phototest.html");
-  if (!html.includes("<p><!--OFFEN: a--> sichtbarer Text <!--OFFEN: b--></p>")) throw new Error("Absatz-Rahmen um sichtbaren Text entfernt");
-});
-check("{{todo}} mit -- bricht ab (Kommentar darf nicht vorzeitig enden)", (fx) => {
-  writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "{{todo:a --> b}}"));
-  expectThrow(fx, /darf weder "--"/);
-});
-check("<!--intern … --> steht nur in src/, nicht in der Ausgabe", (fx) => {
-  writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "<p>a</p>\n<!--intern vorbereiteter Absatz\n<h2>Geheim</h2> {{f:person.name}} -->\n<p>b</p>"));
-  const html = page(build({ src: fx.src }), "phototest.html");
-  if (/intern|Geheim|person\.name/.test(html)) throw new Error("interner Kommentar ausgeliefert");
+  if (/intern|F-93/.test(html)) throw new Error("Kennung ausgeliefert");
   if (!html.includes("<p>a</p>\n<p>b</p>")) throw new Error("umgebender Text beschädigt");
 });
-check("<!--intern ohne Ende bricht ab", (fx) => {
-  writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", "<!--intern offen ohne Ende"));
-  expectThrow(fx, /ohne schliessendes/);
-});
-check("Fakt mit offen: OFFEN-Kommentar am Wert; ausgelieferte facts.json ohne interne Felder", (fx) => {
+check("<!--intern Klartext --> bricht ab, Meldung ohne Klartext", (fx) => { setPage(fx, `<!--intern ${CLEAR}\n<h2>Beispielabsatz</h2> -->`); noLeak(fx, /<!--intern nur als/); });
+check("<!--internal …--> (ohne Doppelpunkt) bricht ab", (fx) => { setPage(fx, `<!--internal ${CLEAR}-->`); noLeak(fx, /<!--intern nur als/); });
+check("<!--intern ohne Ende bricht ab", (fx) => { setPage(fx, `<!--intern ${CLEAR}`); noLeak(fx, /<!--intern nur als/); });
+const setFact = (fx, fn) => {
   const p = join(fx.src, "facts.json");
   const j = JSON.parse(readFileSync(p, "utf8"));
-  const f = j.facts["soul_mcp.tests"];
-  f.offen = "am Merge-Tag angleichen"; f.source_internal = "interne Fundstelle";
+  fn(j.facts["soul_mcp.tests"]);
   writeFileSync(p, JSON.stringify(j, null, 2));
+  return j.facts["soul_mcp.tests"];
+};
+check("Fakt mit offen F-nn: <!--OFFEN:F-nn--> am Wert; ausgelieferte facts.json ohne interne Felder", (fx) => {
+  const f = setFact(fx, (f) => { f.offen = "F-94"; f.source_internal = "intern:F-95"; });
   const out = build({ src: fx.src });
-  if (!/data-fact="soul_mcp\.tests">[^<]*<\/data><!--OFFEN: facts\.json soul_mcp\.tests: am Merge-Tag angleichen-->/.test(page(out, "projekte/index.html"))) throw new Error("OFFEN-Kommentar fehlt am Fakt");
+  if (!/data-fact="soul_mcp\.tests">[^<]*<\/data><!--OFFEN:F-94-->/.test(page(out, "projekte/index.html"))) throw new Error("OFFEN-Kennung fehlt am Fakt");
   const pub = JSON.parse(out.get("facts.json").toString("utf8")).facts["soul_mcp.tests"];
   if ("offen" in pub || "source_internal" in pub) throw new Error("internes Feld ausgeliefert");
   if (pub.value !== f.value || pub.source !== f.source) throw new Error("öffentliche Felder verändert");
 });
+check("facts.json offen mit Klartext bricht ab, Meldung ohne Klartext", (fx) => { setFact(fx, (f) => { f.offen = CLEAR; }); noLeak(fx, /soul_mcp\.tests\.offen — Klartext/); });
+check("facts.json source_internal mit Klartext bricht ab, Meldung ohne Klartext", (fx) => { setFact(fx, (f) => { f.source_internal = CLEAR; }); noLeak(fx, /source_internal nur als "intern:F-nn"/); });
 check("Tür-Seite ohne Navigationspunkt der anderen Tür", (fx) => {
   const p = join(fx.src, "site.json");
   const site = JSON.parse(readFileSync(p, "utf8"));

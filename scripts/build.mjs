@@ -65,20 +65,28 @@ function parsePage(file) {
   return { meta, body: stripIntern(raw.slice(m[0].length), relative(ROOT, file)), file };
 }
 
-// Reine Quell-Kommentare <!--intern … -->: Begruendungen, Normenhinweise und vorbereitete Absaetze,
-// die erst nach einer offenen Frage gelten (z. B. "Unabhaengigkeit" erst nach F4). Sie stehen nur in
-// src/, der Build entfernt sie, damit sie nicht im ausgelieferten Quelltext stehen. Go-live-Tore
-// gehoeren dagegen in {{todo:}} (werden <!--OFFEN:-->, der Release-Linter zaehlt sie).
+// Neutrale Kennungen (Welle F, R-03): Das Repository ist oeffentlich, also auch src/. Interne Notizen
+// (offene Fragen, Begruendungen, vorbereitete Absaetze) stehen deshalb NUR als Kennung F-nn im Quelltext;
+// der Klartext liegt in einer privaten Zuordnung ausserhalb des Repositorys.
+//   {{todo:F-nn}}          Go-live-Tor -> <!--OFFEN:F-nn--> im HTML (test:release zaehlt es als Fehler)
+//   <!--intern:F-nn-->     reine Quellnotiz -> wird beim Build entfernt
+//   facts.json "offen": "F-nn"                  Tor am Fakt -> <!--OFFEN:F-nn--> an jedem gerenderten Wert
+//   facts.json "source_internal": "intern:F-nn" interne Fundstelle -> nicht ausgeliefert
+// Alles andere bricht den Build ab. Die Meldungen nennen den Klartext nie (CI-Logs sind oeffentlich).
+export const MARKER_ID = /^F-\d{2,3}$/;
+const clearLen = (t) => `Klartext statt Kennung F-nn (${t.length} Zeichen, Inhalt nicht ausgegeben) — Text in die private Zuordnung, hier nur die Kennung`;
+
 export function stripIntern(body, where = "") {
-  const out = body.replace(/[ \t]*<!--intern\b[\s\S]*?-->[ \t]*\r?\n?/g, "");
-  if (/<!--intern\b/.test(out)) throw new Error(`${where}: <!--intern ohne schliessendes -->`);
+  const out = body.replace(/[ \t]*<!--intern:F-\d{2,3}-->[ \t]*\r?\n?/g, "");
+  const m = /<!--intern([\s\S]*?)(?:-->|$)/.exec(out);
+  if (m) throw new Error(`${where}: <!--intern nur als <!--intern:F-nn--> erlaubt; ${clearLen(m[1].trim())}`);
   return out;
 }
 
 // Ausgelieferte facts.json (Pruefbericht 9, Nachbesserung 10): interne Felder bleiben in src/facts.json.
-//   source_internal = Fundstelle in nicht oeffentlichen Dokumenten (fuer die eigene Nachpruefung)
-//   offen           = Go-live-Tor am Fakt (z. B. "am Merge-Tag angleichen"); erzeugt auf jeder Seite,
-//                     die den Fakt zeigt, ein OFFEN-Kommentar -> test:release bricht ab, bis es weg ist.
+//   source_internal = "intern:F-nn", Kennung einer Fundstelle in nicht oeffentlichen Dokumenten
+//   offen           = "F-nn", Go-live-Tor am Fakt; erzeugt auf jeder Seite, die den Fakt zeigt,
+//                     <!--OFFEN:F-nn--> -> test:release bricht ab, bis das Feld weg ist.
 // Die Liste der Felder steht in scripts/lint-config.mjs (FACTS_INTERNAL_KEYS); der Linter prueft dieselbe.
 export function publicFacts(raw) {
   const j = JSON.parse(raw);
@@ -164,24 +172,21 @@ function renderFact(key, lang, facts) {
   if (!f) throw new Error(`unbekannter Fakt: ${key}`);
   if (!f.source || !f.verified) throw new Error(`Fakt ${key} ohne source/verified`);
   const display = f[lang] ?? f.display ?? f.value;
-  const gate = f.offen ? offenComment(`facts.json ${key}: ${f.offen}`, `facts.json ${key}`) : "";
+  const gate = f.offen ? offenComment(f.offen, `facts.json ${key}.offen`) : "";
   return `<data value="${esc(f.value)}" data-fact="${esc(key)}">${esc(display)}</data>${gate}`;
 }
 
-// Interne Notiz / offener Punkt (OFFEN-Mechanik): {{todo:Text}} wird ein HTML-Kommentar
-// <!--OFFEN: Text-->, nie sichtbarer Text (Nachbesserung 11: interne Hinweise gehoeren nicht auf
-// die Seite). Der Linter zaehlt diese Kommentare; im Release-Modus ist jeder ein Fehler (Go-live-Tor).
-// Text, der den Kommentar vorzeitig beenden oder verschachteln koennte, bricht den Build ab.
-export function offenComment(text, where = "") {
-  const t = text.trim();
+// Offener Punkt (OFFEN-Mechanik): {{todo:F-nn}} wird der HTML-Kommentar <!--OFFEN:F-nn-->, nie sichtbarer
+// Text (Nachbesserung 11). Der Linter zaehlt diese Kommentare; im Release-Modus ist jeder ein Fehler
+// (Go-live-Tor). Nur die Kennung ist erlaubt (R-03): Klartext im Kommentar waere im Seitenquelltext lesbar.
+export function offenComment(id, where = "") {
+  const t = String(id).trim();
   if (!t) throw new Error(`${where}: leerer {{todo:}}`);
-  if (/--|<!-|-$/.test(t)) throw new Error(`${where}: {{todo:…}} darf weder "--" noch "<!-" enthalten noch auf "-" enden (HTML-Kommentar): ${t.slice(0, 60)}`);
-  return `<!--OFFEN: ${t}-->`;
+  if (!MARKER_ID.test(t)) throw new Error(`${where}: {{todo:…}} — ${clearLen(t)}`);
+  return `<!--OFFEN:${t}-->`;
 }
 // Absaetze, die nach dem Umwandeln nur noch aus OFFEN-Kommentaren bestehen, faellt der leere Rahmen weg.
-// Kommentarinhalt ohne "--" (offenComment garantiert das), damit das Muster nie ueber ein "-->" hinweg
-// bis zu einem spaeteren Kommentar reicht und dabei sichtbaren Text verschluckt.
-const EMPTY_P = /<p(?:\s[^>]*)?>((?:\s*<!--OFFEN: (?:(?!--)[\s\S])*-->)+)\s*<\/p>/g;
+const EMPTY_P = /<p(?:\s[^>]*)?>((?:\s*<!--OFFEN:F-\d{2,3}-->)+)\s*<\/p>/g;
 
 function expand(body, page, ctx) {
   const lang = page.meta.lang;
@@ -320,6 +325,8 @@ export function build({ src = SRC } = {}) {
   const facts = JSON.parse(factsRaw).facts;
   for (const [k, f] of Object.entries(facts)) {
     if (!f.value || !f.source || !/^\d{4}-\d{2}-\d{2}$/.test(f.verified || "")) throw new Error(`facts.json: ${k} braucht value, source, verified (JJJJ-MM-TT)`);
+    if ("offen" in f && !MARKER_ID.test(String(f.offen))) throw new Error(`facts.json: ${k}.offen — ${clearLen(String(f.offen))}`);
+    if ("source_internal" in f && !/^intern:F-\d{2,3}$/.test(String(f.source_internal))) throw new Error(`facts.json: ${k}.source_internal nur als "intern:F-nn" — ${clearLen(String(f.source_internal))}`);
   }
   const ctx = { site, facts, photo: loadPhoto(src) };
   const out = new Map();
