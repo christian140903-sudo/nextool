@@ -5,12 +5,13 @@
 //
 // Was die Schicht darunter im Fehlerfall schon selbst tut: nichts — ein fehlender oder falsch
 // geschriebener Zustand waere fuer JavaScript einfach `undefined`, und jede bedingte Regel waere still
-// aus. Deshalb ist der Zustand fail-closed: fehlt ein Schluessel oder hat er einen unbekannten Wert,
-// meldet validateState einen Fehler und der Linter scheitert.
+// aus. Deshalb ist der Zustand fail-closed: Fehlt die Datei (sie ist nicht im oeffentlichen Repository),
+// gilt der engste Zustand STATE_STRICT. Ist sie da, aber fehlt ein Schluessel oder hat er einen
+// unbekannten Wert, meldet validateState einen Fehler und der Linter scheitert.
 
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { SPERRLISTE, STATE_SCHEMA } from "../lint-config.mjs";
+import { SPERRLISTE, STATE_SCHEMA, STATE_STRICT } from "../lint-config.mjs";
 
 // Verneinung (Rechtsabnahme Welle E, E-03): ein verneinter Satz ist keine Behauptung.
 export const NEGATION = /(?<![\p{L}\p{N}])(?:nicht|nichts|kein|keine|keinen|keinem|keiner|keines|nie|niemals|ohne|weder|not|no|never|nothing|none|neither|nor|without)(?![\p{L}\p{N}])|n['’]t(?!\p{L})/iu;
@@ -19,12 +20,13 @@ export const sentencesOf = (text) => text.split(/(?<=[.!?…])\s+(?=[\p{Lu}„�
 
 const get = (obj, path) => path.split(".").reduce((o, k) => (o && typeof o === "object" ? o[k] : undefined), obj);
 
+// strict = true: Datei fehlt, es gilt STATE_STRICT (kein Fehler). errors nicht leer: Datei da, aber ungueltig.
 export function loadState(rootDir) {
   const file = join(rootDir, "src", "state.json");
-  if (!existsSync(file)) return { state: null, errors: ["src/state.json fehlt"] };
+  if (!existsSync(file)) return { state: STATE_STRICT, errors: [], strict: true };
   let state;
-  try { state = JSON.parse(readFileSync(file, "utf8")); } catch (e) { return { state: null, errors: [`src/state.json nicht lesbar: ${e.message}`] }; }
-  return { state, errors: validateState(state) };
+  try { state = JSON.parse(readFileSync(file, "utf8")); } catch (e) { return { state: null, errors: [`src/state.json nicht lesbar: ${e.message}`], strict: false }; }
+  return { state, errors: validateState(state), strict: false };
 }
 
 // Gibt Fehlertexte zurueck (leer = gueltig). Unbekannte Schluessel sind ebenfalls ein Fehler: Ein
@@ -48,7 +50,7 @@ export function validateState(state) {
     }
   };
   walk(state, "");
-  if (Array.isArray(state.vortraege)) state.vortraege.forEach((v, i) => { if (!v || !v.ort || !/^\d{4}-\d{2}-\d{2}$/.test(v.datum || "")) errors.push(`vortraege[${i}] braucht ort und datum (JJJJ-MM-TT)`); });
+  if (Array.isArray(state.zC4)) state.zC4.forEach((v, i) => { if (!v || !v.ort || !/^\d{4}-\d{2}-\d{2}$/.test(v.datum || "")) errors.push(`zC4[${i}] braucht ort und datum (JJJJ-MM-TT)`); });
   return errors;
 }
 

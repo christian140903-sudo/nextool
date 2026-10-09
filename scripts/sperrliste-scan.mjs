@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Sperrliste v2 auf beliebige Textdateien anwenden (Positionierung v2 §13 A–G), z. B. auf Lebenslaeufe,
 // Profiltexte oder Plaene ausserhalb dieses Repositories. Dieselben Regeln wie der Site-Linter:
-// A–F aus scripts/lint-config.mjs (bedingte Regeln mit dem Zustand aus src/state.json), G und
+// A–F aus scripts/lint-config.mjs (bedingte Regeln mit dem privaten Zustand src/state.json, ohne Datei der
+// engste Zustand), G und
 // vertrauliche Eintraege aus der privaten Liste (.site-private-denylist.txt oder SITE_PRIVATE_DENYLIST).
 // Dokumente gelten als "alle Flaechen": seitengebundene Regeln greifen ueberall (ausser siteOnly).
 //
@@ -29,7 +30,7 @@ const flags = new Set(args.filter((a) => a.startsWith("--")));
 const paths = args.filter((a) => !a.startsWith("--"));
 if (!paths.length) { console.error("Aufruf: node scripts/sperrliste-scan.mjs [--ids] [--lines] <datei|ordner> …"); process.exit(2); }
 
-const { state, errors: stateErrors } = loadState(ROOT);
+const { state, errors: stateErrors, strict } = loadState(ROOT);
 if (stateErrors.length) { for (const e of stateErrors) console.error(`  FEHLER STATE-invalid src/state.json: ${e}`); process.exit(2); }
 
 const envList = process.env.SITE_PRIVATE_DENYLIST;
@@ -75,5 +76,5 @@ for (const f of files) {
   if (flags.has("--lines") && n) console.log(`      Zeilen ${lines.join(" ")}`);
 }
 console.log(`${"Summe".padEnd(55)}  ${GROUPS.map((g) => String(sum[g]).padStart(3)).join("  ")}`);
-console.log(`\nsperrliste-scan: ${files.length} Dateien, ${total} Treffer (Zustand: feuerprobe ${state.feuerprobe.status}, endzustand ${state.endzustand}, rolle ${state.rolle}, website ${state.recht.website}; private Liste ${entries.length} Einträge, ${bound.length} Bindungen).`);
+console.log(`\nsperrliste-scan: ${files.length} Dateien, ${total} Treffer (Zustand: ${strict ? "engster (src/state.json fehlt)" : Object.entries(state).filter(([k]) => !k.startsWith("_")).map(([k, v]) => `${k} ${Array.isArray(v) ? v.length : v}`).join(", ")}; private Liste ${entries.length} Einträge, ${bound.length} Bindungen).`);
 process.exit(total ? 1 : 0);

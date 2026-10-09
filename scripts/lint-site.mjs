@@ -12,7 +12,8 @@
 //   offene Punkte (<!--OFFEN:F-nn--> aus {{todo:F-nn}}), nur inhaltsleere HTML-Kommentare (R-03),
 //   sichtbare Notizen/Platzhalter · Commit-Nachrichten
 //   Sperrliste v2 nach Positionierung v2 §13 A–F (Regeln in lint-config SPERRLISTE; bedingte Regeln lesen
-//   src/state.json, fail-closed) · Gruppe G und vertrauliche Eintraege nur ueber die private Liste, die
+//   den privaten Zustand src/state.json, ohne Datei den engsten Zustand) · Gruppe G und vertrauliche
+//   Eintraege nur ueber die private Liste, die
 //   auch ausgelieferte Textdateien und den oeffentlichen Quellbaum prueft
 //   Abmelde-Worker sw.js · Audit T1–T18 der Website-Session, soweit sie hier passen (Sprachlink,
 //   Ueberschriften, "Stand", noindex-Ausnahmen, target, Positivliste Dateitypen, Schriftlizenzen,
@@ -181,18 +182,19 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     if (m) err("FACTS-internal", "facts.json", `interner Verweis „${m[0]}“ in der ausgelieferten facts.json — gehört in source_internal`);
   }
 
-  // --- Zustand (src/state.json, Positionierung v2 §7) ---------------------------
-  // Fail-closed: fehlt die Datei oder ein Schluessel, ist ein Wert unbekannt -> Fehler; die Regeln laufen
-  // dann mit dem strengsten Zustand weiter (lint-config STATE_STRICT).
-  const { state: rawState, errors: stateErrors } = loadState(rootDir);
+  // --- Zustand (privat: src/state.json, Positionierung v2 §7) ---------------------
+  // Fehlt die Datei (nicht im oeffentlichen Repository, z. B. in CI): engster Zustand STATE_STRICT, Info.
+  // Ist sie da, aber ungueltig: Fehler; die Regeln laufen dann ebenfalls mit STATE_STRICT weiter.
+  const { state: rawState, errors: stateErrors, strict: stateStrict } = loadState(rootDir);
   for (const e of stateErrors) err("STATE-invalid", "src/state.json", e);
   const state = stateErrors.length ? C.STATE_STRICT : rawState;
-  if (!stateErrors.length && state.feuerprobe.status === "bericht-v01") {
-    for (const k of ["feuerprobe.satz1_de", "feuerprobe.satz1_en", "feuerprobe.doi"]) if (!String(facts[k]?.value || "").trim()) err("STATE-invalid", "facts.json", `feuerprobe.status = bericht-v01 verlangt ${k} in facts.json (§3.2)`);
+  if (stateStrict) info("STATE-strict", "src/state.json", "nicht vorhanden (privat, nicht im Repository) — geprüft mit dem engsten Zustand STATE_STRICT");
+  if (!stateErrors.length && state.zA === "a4") {
+    for (const k of C.STATE_A4_FACTS) if (!String(facts[k]?.value || "").trim()) err("STATE-invalid", "facts.json", `zA = a4 verlangt ${k} in facts.json (§3.2)`);
   }
   // Stufe (STAGE in lint-config) und Rechtszustand der Website muessen zusammenpassen — sonst laeuft ein
-  // Stufenwechsel nur halb.
-  if ((C.STAGE === 1) !== (state.recht.website === "R0")) err("STATE-invalid", "src/state.json", `recht.website = ${state.recht.website} passt nicht zu STAGE = ${C.STAGE} in lint-config`);
+  // Stufenwechsel nur halb. (Stufe 2 braucht deshalb auch in CI einen Zustand mit zC1 = R1.)
+  if ((C.STAGE === 1) !== (state.zC1 === "R0")) err("STATE-invalid", "src/state.json", `zC1 = ${state.zC1} passt nicht zu STAGE = ${C.STAGE} in lint-config`);
   // Regelsatz: oeffentliche Regeln, ergaenzt um die privat gebundenen Ausdruecke (wird unten nach dem Lesen
   // der privaten Liste gesetzt, vor dem ersten Aufruf). Private Treffer erscheinen nie im Klartext.
   let sperrRules = C.SPERRLISTE.filter((r) => !r.private);
@@ -280,7 +282,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
       for (const [w, v] of units) sperr(v, w, urlOfFile(f));
     }
     const k = C.STATE_PRIVATE_KEYS.exec(text);
-    if (k) err("STATE-leak", f, `Zustandsschlüssel ${k[0].replace(/\s*:$/, "")} wird ausgeliefert — gehört nur in src/state.json (§7)`);
+    if (k) err("STATE-leak", f, `Zustandsschlüssel ${k[0].replace(/\s*:$/, "")} wird ausgeliefert — gehört nur in die private src/state.json (§7)`);
   }
   {
     const skip = new Set([".git", "node_modules", "site", ".private"]);
@@ -317,8 +319,8 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
       const m = b.re.exec(text);
       if (m) err("TXT-banned", where, `Sperrliste „${b.id}“: „${m[0]}“`);
     }
-    // Unter Endzustand b ist "Teilzeit" auf der Anstellungs-Tuer ausdruecklich erlaubt (v2 §13 D, einzige Ausnahme).
-    const partTimeOk = C.PART_TIME_ALLOWED.has(pagePath) || (state.endzustand === "b" && C.DOORS.hire.includes(pagePath));
+    // Bei zD1 = b ist "Teilzeit" auf der Anstellungs-Tuer ausdruecklich erlaubt (v2 §13 D, einzige Ausnahme).
+    const partTimeOk = C.PART_TIME_ALLOWED.has(pagePath) || (state.zD1 === "b" && C.DOORS.hire.includes(pagePath));
     if (scope === "site" && pagePath && !partTimeOk) {
       const m = C.PART_TIME.exec(text);
       if (m) err("TXT-banned", where, `„${m[0]}“ nur auf der Workshops-Tür (Positionierung §1.2)`);
@@ -600,9 +602,9 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         if (t.name === "a" && a.href) meta.links.push(a.href);
         // §13 E: die datierte Korrekturliste nur auf der Archivseite (erkannt am Anker)
         if (/^(?:korrekturen|corrections)$/i.test(a.id || "") && !C.PAGES.archive.includes(url)) err("SPERR-E", rel, `Korrekturliste (#${a.id}) außerhalb der Archivseite (§13 E)`);
-        // §13 F / §7: keine Links auf Commits in Repos, die privat werden; kein Link auf team-skills-kit vor kit_oeffentlich
+        // §13 F / §7: keine Links auf Commits in Repos, die privat werden; kein Link auf team-skills-kit vor zF1 = true
         if (a.href && C.LINK_PRIVATE_COMMIT.test(a.href)) err("SPERR-F", rel, `Link auf einen Commit in einem Repo, das privat wird: ${a.href} (§13 F)`);
-        if (a.href && /team-skills-kit/i.test(a.href) && !state.kit_oeffentlich) err("SPERR-F", rel, `Link auf team-skills-kit vor kit_oeffentlich = true (§7): ${a.href}`);
+        if (a.href && /team-skills-kit/i.test(a.href) && !state.zF1) err("SPERR-F", rel, `Link auf team-skills-kit vor zF1 = true (§7): ${a.href}`);
         if (t.name === "img" && !("alt" in a)) err("A11Y-img-alt", rel, "<img> ohne alt");
         // aria-current="page" nur auf dem Link zu genau dieser Seite; ein Bereich (Projekte auf einer Projektseite)
         // ist aria-current="true" (WCAG 1.3.1/4.1.2, Barrierefreiheit BF-03).

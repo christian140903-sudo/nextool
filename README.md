@@ -37,8 +37,10 @@ npm run scan -- <file|dir>  # apply the same wording rules to other text files (
 ```
 
 Some wording rules depend on the state of the work (for example, whether a repository is public yet).
-Those switches live in `src/state.json`; the build does not deploy it, and the linter fails if a
-value is missing or unknown, or if one of its keys shows up under `site/`.
+Those switches live in a private `src/state.json` that is not part of this repository (`.gitignore`).
+Without it — as in CI or a fresh clone — the linter checks against the strictest state
+(`STATE_STRICT` in `scripts/lint-config.mjs`). If the file exists, the linter fails when a value is
+missing or unknown; it also fails if a state key shows up under `site/`.
 
 Until July 2026 earlier pages registered service workers at `/sw.js` and
 `/prep/sw.js`. Both addresses now serve the same kill-switch worker
