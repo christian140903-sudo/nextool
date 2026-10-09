@@ -6,6 +6,7 @@
 //   Kennungen — interne Notizen nur als F-nn (R-03); Klartext bricht ab, ohne in der Meldung zu stehen.
 //   Bausteine — die Pruef-Karte steht einmal je Sprache (src/bausteine/) und erscheint gleich auf Start- und
 //           Anstellungsseite; unbekannter Name, fehlende Sprachfassung, Baustein im Baustein brechen ab.
+//   Kit   — der team-skills-kit-Satz kommt aus site.json, beide Zustaende (zF1) gebaut; Link nur bei "oeffentlich".
 // Arbeitet auf einer Temp-Kopie von src/; die echten Quellen bleiben unberuehrt.
 
 import { mkdtempSync, cpSync, writeFileSync, readFileSync, rmSync, mkdirSync } from "node:fs";
@@ -13,6 +14,7 @@ import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build, jpegInfo } from "../build.mjs";
+import { STATE_STRICT } from "../lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -48,7 +50,13 @@ function fixture() {
   rmSync(join(src, "static", "assets", "foto.webp"), { force: true });
   mkdirSync(join(src, "pages", "x"), { recursive: true });
   writeFileSync(join(src, "pages", "x", "phototest.html"), TEST_PAGE);
-  return { base, src, asset: (n, buf) => writeFileSync(join(src, "static", "assets", n), buf) };
+  // Zustand der Kopie = engster Zustand (wie in CI); der private src/state.json spielt fuer den Test keine Rolle.
+  writeFileSync(join(src, "state.json"), JSON.stringify(STATE_STRICT));
+  return {
+    base, src,
+    asset: (n, buf) => writeFileSync(join(src, "static", "assets", n), buf),
+    state: (patch) => writeFileSync(join(src, "state.json"), JSON.stringify({ ...STATE_STRICT, ...patch })),
+  };
 }
 
 let failed = 0, total = 0;
@@ -237,6 +245,44 @@ check("<!--intern Klartext --> im Baustein bricht ab, Meldung ohne Klartext", (f
   setBody(fx, "{{baustein:notiz}}");
   noLeak(fx, /<!--intern nur als/);
 });
+
+// team-skills-kit (R4b b4): ein String-Paar in site.json, zwei Zustaende, gesteuert von zF1. Beide Zustaende
+// werden gebaut; alle vier Stellen wechseln gemeinsam, der Link steht nur im Zustand "oeffentlich".
+const KIT_PAGES = [["arbeitgeber/index.html", "de"], ["projekte/index.html", "de"], ["en/hire/index.html", "en"], ["en/projects/index.html", "en"]];
+const kitSite = (fx) => JSON.parse(readFileSync(join(fx.src, "site.json"), "utf8"));
+const kitLinks = (out) => [...out].filter(([rel]) => rel.endsWith(".html")).reduce((n, [, b]) => n + (b.toString("utf8").match(/href="[^"]*team-skills-kit[^"]*"/g) || []).length, 0);
+function kitCheck(fx, zustand) {
+  const site = kitSite(fx);
+  const out = build({ src: fx.src });
+  const href = `${site.github}/${site.kit.name}`;
+  for (const [rel, lang] of KIT_PAGES) {
+    const t = site.kit[lang][zustand];
+    const name = zustand === "oeffentlich" ? `<a href="${href}">${site.kit.name}</a>` : site.kit.name;
+    const html = page(out, rel);
+    if (!html.includes(`<p>${t.satz.replace("{name}", name)}</p>`)) throw new Error(`${rel}: Satz „${zustand}“ fehlt`);
+    const other = site.kit[lang][zustand === "oeffentlich" ? "vorbereitung" : "oeffentlich"].satz.replace("{name}", "");
+    if (html.includes(other)) throw new Error(`${rel}: Satz des anderen Zustands steht noch da`);
+    const id = lang === "de" ? "vorbereitung" : "in-preparation";
+    if (rel.includes("proje") && !(html.includes(`<h2 id="${id}">${t.titel}</h2>`) && html.includes(`<a href="#${id}">${t.titel}</a>`))) throw new Error(`${rel}: Titel „${t.titel}“ nicht in Überschrift und Inhaltsverzeichnis`);
+  }
+  return kitLinks(out);
+}
+check("Kit vorbereitung (zF1 = false): Satz an 4 Stellen, kein Link, Titel „In Vorbereitung“", (fx) => {
+  if (kitCheck(fx, "vorbereitung") !== 0) throw new Error("Link auf das Kit trotz zF1 = false");
+});
+check("Kit öffentlich (zF1 = true): Satz mit Link an 4 Stellen, Titel wechselt mit", (fx) => {
+  fx.state({ zF1: true });
+  const n = kitCheck(fx, "oeffentlich");
+  if (n !== 4) throw new Error(`${n} Links auf das Kit statt 4`);
+});
+check("ohne src/state.json gilt der engste Zustand (Kit ohne Link)", (fx) => {
+  rmSync(join(fx.src, "state.json"));
+  if (kitCheck(fx, "vorbereitung") !== 0) throw new Error("Link ohne Zustandsdatei");
+});
+check("ungültige src/state.json bricht ab", (fx) => { fx.state({ zF1: "ja" }); expectThrow(fx, /src\/state\.json ungültig: zF1/); });
+check("Kit-Name wörtlich in einer Seite bricht ab", (fx) => { setBody(fx, "<p>Bald: team-skills-kit.</p>"); expectThrow(fx, /steht wörtlich in der Seite — nur über \{\{kit\}\}/); });
+check("unvollständiger Kit-Zustand bricht ab, auch wenn er gerade nicht gilt", (fx) => { editSite(fx, (j) => { delete j.kit.en.oeffentlich.satz; }); expectThrow(fx, /kit\.en\.oeffentlich\.satz braucht genau einmal \{name\}/); });
+check("{{kit:unbekannt}} bricht ab", (fx) => { setBody(fx, "<p>{{kit:unbekannt}}</p>"); expectThrow(fx, /erlaubt sind \{\{kit\}\} und \{\{kit:titel\}\}/); });
 
 // Barrierefreiheit (Welle F2, BF-07): Ohne Sprachpaar fuehrt der Sprachlink auf die Startseite und sagt das.
 check("Sprachlink ohne Sprachpaar nennt die Startseite (BF-07)", (fx) => {

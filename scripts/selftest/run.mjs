@@ -12,6 +12,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { lint, ciAnnotation } from "../lint-site.mjs";
+import { build } from "../build.mjs";
 import { ORIGIN as O, HOST, STATE_STRICT } from "../lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -497,6 +498,30 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(fx.base, { recursive: true, force: true });
 }
 
+// Kontrolle 16 (R4b b4): Der Kit-Satz im Zustand "oeffentlich" (zF1 = true) wird gebaut und besteht den Linter
+// mit demselben Zustand; mit dem engsten Zustand (CI/Cloudflare ohne src/state.json) meldet der Linter den Link
+// (SPERR-F). Darum braucht CI den Zustand, sobald zF1 vom engsten Zustand abweicht.
+{
+  const fx = fixture();
+  let res = "";
+  try {
+    cpSync(join(ROOT, "src"), join(fx.base, "src"), { recursive: true });
+    writeFileSync(join(fx.base, "src", "state.json"), JSON.stringify({ ...STATE_STRICT, zF1: true }));
+    for (const [rel, buf] of build({ src: join(fx.base, "src") })) fx.write(rel, buf);
+    const run = () => errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] }));
+    const links = (fx.read("arbeitgeber/index.html").match(/href="[^"]*team-skills-kit"/g) || []).length;
+    const mitZustand = run();
+    fx.state({ zF1: false });
+    const streng = run().filter((x) => x.rule === "SPERR-F" && /Link auf team-skills-kit/.test(x.msg));
+    if (links !== 1) res = `gebaute Anstellungsseite hat ${links} Kit-Links statt 1`;
+    else if (mitZustand.length) res = `Zustand „öffentlich“ mit zF1 = true rot (${mitZustand[0].rule}: ${mitZustand[0].msg})`;
+    else if (streng.length !== 4) res = `engster Zustand meldet ${streng.length} statt 4 Kit-Links`;
+  } catch (e) { res = `Testaufbau gescheitert: ${e.message}`; }
+  if (res) { failed++; console.log(`  FEHLER Kontrolle: Kit öffentlich: ${res}`); }
+  else console.log("  ok    Kontrolle: Kit „öffentlich“ gebaut (zF1 = true) = Linter grün; derselbe Stand mit engstem Zustand = 4× SPERR-F (Link)");
+  rmSync(fx.base, { recursive: true, force: true });
+}
+
 for (const [rule, mutate, opts = {}] of CASES) {
   const fx = fixture();
   try {
@@ -513,5 +538,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 15 - failed} von ${CASES.length + 15} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 16 - failed} von ${CASES.length + 16} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);

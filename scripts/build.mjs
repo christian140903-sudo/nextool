@@ -14,6 +14,7 @@ import { join, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { FACTS_INTERNAL_KEYS } from "./lint-config.mjs";
+import { loadState } from "./lib/sperrliste.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(ROOT, "src");
@@ -224,10 +225,40 @@ export function insertBausteine(body, lang, src, where = "") {
   });
 }
 
+// team-skills-kit (R4b b4): Der Satz ueber das Kit steht EINMAL je Sprache in src/site.json ("kit"), in zwei
+// Zustaenden: "vorbereitung" (ohne Link) und "oeffentlich" (Name verlinkt auf das Repository unter site.github).
+// Welcher gilt, entscheidet der private Zustand zF1 (src/state.json; fehlt die Datei: engster Zustand, also
+// vorbereitung). Seiten setzen {{kit}} (Satz) und {{kit:titel}} (Ueberschrift des Abschnitts) ein, so wechseln
+// alle Stellen in derselben Minute. Fail-closed: beide Zustaende muessen in beiden Sprachen vollstaendig sein
+// (auch der gerade nicht benutzte), und der Name darf in keiner Seite woertlich stehen (sonst driftet eine Stelle).
+// Weicht zF1 vom engsten Zustand ab, braucht `build --check` ohne src/state.json (CI, Cloudflare) den Zustand
+// ebenfalls — sonst ist er dort rot; das gilt genauso fuer die Link-Regel des Linters.
+export const KIT_STATES = ["vorbereitung", "oeffentlich"];
+export function checkKit(site) {
+  const kit = site.kit;
+  if (!kit || typeof kit.name !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(kit.name)) throw new Error("site.json: kit.name fehlt oder ist kein Repository-Name");
+  for (const lang of ["de", "en"]) for (const z of KIT_STATES) {
+    const t = kit[lang] && kit[lang][z];
+    if (!t || typeof t.titel !== "string" || !t.titel.trim()) throw new Error(`site.json: kit.${lang}.${z}.titel fehlt`);
+    if (typeof t.satz !== "string" || t.satz.split("{name}").length !== 2) throw new Error(`site.json: kit.${lang}.${z}.satz braucht genau einmal {name}`);
+    if (/[{}<>]/.test(t.satz.replace("{name}", "")) || /[{}<>]/.test(t.titel)) throw new Error(`site.json: kit.${lang}.${z} enthält Klammern oder HTML`);
+  }
+}
+export function renderKit(part, lang, site, state) {
+  const zustand = state.zF1 === true ? "oeffentlich" : "vorbereitung";
+  const t = site.kit[lang][zustand];
+  if (part === "titel") return esc(t.titel);
+  if (part !== "") throw new Error(`{{kit:${part}}} — erlaubt sind {{kit}} und {{kit:titel}}`);
+  const name = zustand === "oeffentlich" ? `<a href="${esc(`${site.github}/${site.kit.name}`)}">${esc(site.kit.name)}</a>` : esc(site.kit.name);
+  return esc(t.satz).replace("{name}", name);
+}
+
 function expand(body, page, ctx) {
   const lang = page.meta.lang;
   const where = relative(ROOT, page.file);
-  return insertBausteine(body, lang, ctx.src, where).replace(/\{\{([a-z]+)(?::([^}]*))?\}\}/g, (m, kind, arg = "") => {
+  const withBlocks = insertBausteine(body, lang, ctx.src, where);
+  if (withBlocks.includes(ctx.site.kit.name)) throw new Error(`${where}: „${ctx.site.kit.name}“ steht wörtlich in der Seite — nur über {{kit}} oder {{kit:titel}} (R4b b4), sonst wechselt diese Stelle am Tag der Veröffentlichung nicht mit`);
+  return withBlocks.replace(/\{\{([a-z]+)(?::([^}]*))?\}\}/g, (m, kind, arg = "") => {
     switch (kind) {
       case "fact": return renderFact(arg.trim(), lang, ctx.facts);
       case "date": return `<time datetime="${esc(arg)}">${esc(formatDate(arg.trim(), lang))}</time>`;
@@ -239,6 +270,7 @@ function expand(body, page, ctx) {
       case "todo": return offenComment(arg, where);
       case "email": return mailto(ctx.site.email);
       case "kernsatz": return esc(ctx.site.strings[lang].kernsatz);
+      case "kit": return renderKit(arg.trim(), lang, ctx.site, ctx.state);
       case "photo": return renderPhoto(arg.trim(), ctx);
       default: throw new Error(`${where}: unbekannter Platzhalter ${m}`);
     }
@@ -396,7 +428,12 @@ export function build({ src = SRC } = {}) {
     if ("offen" in f && !MARKER_ID.test(String(f.offen))) throw new Error(`facts.json: ${k}.offen — ${clearLen(String(f.offen))}`);
     if ("source_internal" in f && !/^intern:F-\d{2,3}$/.test(String(f.source_internal))) throw new Error(`facts.json: ${k}.source_internal nur als "intern:F-nn" — ${clearLen(String(f.source_internal))}`);
   }
-  const ctx = { site, facts, photo: loadPhoto(src), src };
+  checkKit(site);
+  // Privater Zustand wie beim Linter (lib/sperrliste.mjs): fehlt src/state.json, gilt der engste Zustand; ist sie
+  // da, aber ungueltig, bricht der Build ab, statt still mit einem Teilzustand zu bauen.
+  const { state, errors: stateErrors } = loadState(join(src, ".."));
+  if (stateErrors.length) throw new Error(`src/state.json ungültig: ${stateErrors.join("; ")}`);
+  const ctx = { site, facts, photo: loadPhoto(src), src, state };
   const out = new Map();
   const pages = listFiles(join(src, "pages")).filter((f) => f.endsWith(".html")).map(parsePage);
   const seen = new Set();

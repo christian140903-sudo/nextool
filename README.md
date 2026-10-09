@@ -41,6 +41,11 @@ Those switches live in a private `src/state.json` that is not part of this repos
 Without it — as in CI or a fresh clone — the linter checks against the strictest state
 (`STATE_STRICT` in `scripts/lint-config.mjs`). If the file exists, the linter fails when a value is
 missing or unknown; it also fails if a state key shows up under `site/`.
+The build reads the same file the same way (missing = strictest state, invalid = build error). The
+sentence about team-skills-kit is written once per language in `src/site.json` (`kit`), in two
+states; pages place it with `{{kit}}` and its section title with `{{kit:titel}}`, so all places
+switch together, and only the published state links the repository. Once a build-relevant switch
+differs from the strictest state, CI needs that state too, otherwise `build --check` fails there.
 
 Until July 2026 earlier pages registered service workers at `/sw.js` and
 `/prep/sw.js`. Both addresses now serve the same kill-switch worker
