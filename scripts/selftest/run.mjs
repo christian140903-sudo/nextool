@@ -174,6 +174,7 @@ const CASES = [
   ["SPERR-D", (fx) => inject(fx, "en/hire/index.html", "<p>Vienna or EU-remote, full-time.</p>"), { expect: /D-vollzeit/ }],
   ["SPERR-D", (fx) => inject(fx, "en/about/index.html", "<p>Available up to twenty hours a week.</p>"), { expect: /D-wochenstunden/ }],
   ["SPERR-D", (fx) => { fx.state({ rolle: "B" }); }, { expect: /D-rolle-b/ }],
+  ["SPERR-D", (fx) => inject(fx, "arbeitgeber/index.html", "<p>Eintritt: nach Vereinbarung.</p>"), { expect: /D-verfuegbar-ab/ }],
   ["SPERR-E", (fx) => inject(fx, "en/about/index.html", "<p>My setup is private for now.</p>"), { expect: /E-phrasen/ }],
   ["SPERR-E", (fx) => inject(fx, "ueber-mich/index.html", '<h2 id="korrekturen">Korrekturen</h2>'), { expect: /Korrekturliste/ }],
   ["SPERR-F", (fx) => inject(fx, "projekte/index.html", "<p>Vorlage: claude-code-team-kit.</p>"), { expect: /F-kit-name/ }],
