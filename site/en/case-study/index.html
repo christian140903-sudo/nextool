@@ -50,7 +50,7 @@
 </div>
 
 <h2 id="question">The question</h2>
-<p>In August 2026 I was working on a system prompt that puts a fixed thinking frame in front of every request to a language model: six working instructions such as “reread the request as its author” or “challenge the prescribed path”. The hypothesis, which later turned out to be wrong: the frame makes answers better, regardless of the model.</p>
+<p>In August 2026 I was working on a system prompt that puts a fixed thinking frame in front of every request to a language model. The frame consisted of six working instructions such as “reread the request as its author” or “challenge the prescribed path”. The hypothesis, which later turned out to be wrong: the frame makes answers better, regardless of the model.</p>
 <p>Early comparisons in which a language model judged pairs of answers looked good. But judge verdicts on self-written tasks are the first thing a reviewer takes apart. So the next question: does the effect hold on someone else's benchmark, graded mechanically by someone else's tests?</p>
 
 <h2 id="setup">The setup</h2>
@@ -59,7 +59,7 @@
 <li><strong>Paired:</strong> arm A is the bare model, arm B the same model with the frame; same tasks, same run.</li>
 <li><strong>Models:</strong> the runs discussed here used two open models from the same family, <code>gpt-oss-120b</code> and <code>gpt-oss-20b</code>.</li>
 <li><strong>Fixed in advance:</strong> below <data value="90 %" data-fact="case.completeness_rule">90 %</data> complete answer pairs, a cell counts as “not measured” and gets no number. Before the second repeat run I committed a confirmation criterion to version control (<time datetime="2026-08-28T11:57+02:00">11:57</time>; the run followed at <time datetime="2026-08-28T12:25+02:00">12:25</time>, on <time datetime="2026-08-28">28 August 2026</time>).</li>
-<li><strong>Placebo arm (from <time datetime="2026-08-28">28 August 2026</time>):</strong> factual text about ocean tides, matched to the length of the frame, without instruction words; a test checks this against a list of forbidden words and cross-checks that the same list does hit the real frame. Its runs stayed incomplete (<data value="19/30, 26/30" data-fact="case.placebo_runs">19 and 26 of 30 each</data> tasks) and therefore below the project's own completeness threshold.</li>
+<li><strong>Placebo arm (from <time datetime="2026-08-28">28 August 2026</time>):</strong> factual text about ocean tides, matched to the length of the frame, without instruction words. A test checks this against a list of forbidden words and cross-checks that the same list does hit the real frame. Its runs stayed incomplete (<data value="19/30, 26/30" data-fact="case.placebo_runs">19 and 26 of 30 each</data> tasks) and therefore below the project's own completeness threshold.</li>
 </ul>
 <p>On paper, a clean setup.</p>
 
@@ -68,12 +68,12 @@
 <p>After the fix the picture flipped. Three repeat runs on <time datetime="2026-08-28">28 August 2026</time> averaged <data value="+17.8" data-fact="case.registered">+17.8 percentage points</data> for the frame — the number I withdrew the same day. The criterion fixed in advance for the second run was missed, and I recorded it as missed. The overall impression stayed strong anyway, and the interim state of the incomplete placebo runs seemed to confirm it. On top came an explanation that sounded good: answers with the frame stuck to the required function signature. The placebo interim state and this explanation are withdrawn too.</p>
 
 <h2 id="flaws">How the flaws were found</h2>
-<p>The same day, an audit ran on the stored answer files only, without a single new model call. After that came a counter-check under a rule I had written down three days earlier: before any number can leave the project, two or three review agents are set on it with the job of finding errors. Who triggered the first audit is not documented in my records.</p>
+<p>The same day, an audit ran on the stored answer files only, without a single new model call. After that came a counter-check under a rule I had written down three days earlier. It says: before any number can leave the project, two or three review agents are set on it with the job of finding errors. Who triggered the first audit is not documented in my records.</p>
 <h3 id="flaw-1">First flaw: the grader took the first code block</h3>
 <p>My own grading code pulled the first Markdown code block out of an answer before running someone else's tests. The bare model, however, often wrote several blocks; the model with the frame almost never did. Typical case: the first block held a formula as pseudocode, the actual solution came in the second. The formula got graded. Taking the block with the required function signature instead rescues <data value="36" data-fact="case.rescued">36</data> answers and breaks none, most of them in the bare arm. This flaw was fixable.</p>
 <h3 id="flaw-2">Second flaw: only one arm got a format instruction</h3>
 <p>The night before, a format guard had been added to the connection that injected the frame. For mechanically graded requests it added one sentence: “Nothing at all may stand outside the deliverable … Match the requested output format exactly.” It was triggered by the key the test harness used for the framed arm. Arm B got this sentence, arm A no format instruction at all. The format guard itself was built and tested; it simply acted on one side only. This flaw is in the runs themselves and could not be fixed afterwards. The counter-check found it, not I.</p>
-<p>That is how the phantom effect is explained as of today: the framed arm almost always wrote exactly one block, and only it had received an instruction that amounts to exactly that. The grader turned “one block” into “correct”. A run with the same instruction in both arms, which would test the role of the format instruction separately, is missing.</p>
+<p>That is how the phantom effect is explained as of today: the framed arm almost always wrote exactly one block. Only it had received an instruction that amounts to exactly that. The grader turned “one block” into “correct”. A run with the same instruction in both arms, which would test the role of the format instruction separately, is missing.</p>
 
 <h2 id="after-fix">What was left after the fix</h2>
 <p>With correct code extraction, the mean over six measurements was a difference of <data value="+3.3" data-fact="case.after_fix">+3.3</data> (<data value="0.375" data-fact="case.after_fix_p">p = 0.375</data>); the confidence intervals contain zero for both models. These runs were still unequally instructed, though — the experiment could not be corrected, only discarded. Raw data not yet published.</p>
@@ -94,16 +94,16 @@
 <li><strong>Fix thresholds in advance, keep the raw data.</strong> Version criteria and predictions before the data, save every raw answer as a file. The flaws could be found without a new model call because everything was on disk.</li>
 <li><strong>Before any number goes out, a second instance whose job is “find the error”.</strong> Whoever built the experiment does not see their own assumption. Here the counter-check found the worst flaw, not the author of the experiment.</li>
 </ol>
-<p>For a team that maintains skills in its own repository, that means in practice: every change to a skill runs against a fixed task list, against the old version and against an equally long blank version; checks are mechanical wherever possible, and the result is versioned with the commit.</p>
+<p>For a team that maintains skills in its own repository, that means in practice the following. Every change to a skill runs against a fixed task list, against the old version and against an equally long blank version. Checks are mechanical wherever possible, and the result is versioned with the commit.</p>
 
 <h2 id="since">What came out of it</h2>
 <ul>
-<li><strong>A lock with a withdrawal list:</strong> a lock file and a machine-readable list of which numbers are locked or withdrawn — created on <time datetime="2026-08-28">28 August 2026</time>, not yet in a public repository.</li>
-<li><strong>Measurement rules:</strong> form is the most dangerous confounder, so harden extraction and grading against length and format; prove equal treatment on the wire instead of assuming it in code; measure your own noise first — an unchanged arm varied by up to <data value="16.7" data-fact="case.self_variance">16.7 percentage points</data> between two runs (still measured with the faulty extraction).</li>
-<li><strong>Follow-up measurements on this pattern:</strong> no AI judge, filler text as the zero point, thresholds in advance. The fact-check of this case study found that in one of them the filler text was only a little over half as long as the frame — so the first rule was not met there either. Their results are not yet published in prepared form.</li>
+<li><strong>A lock with a withdrawal list:</strong> a lock file and a machine-readable list of which numbers are locked or withdrawn. It was created on <time datetime="2026-08-28">28 August 2026</time> and is not yet in a public repository.</li>
+<li><strong>Measurement rules:</strong> form is the most dangerous confounder, so harden extraction and grading against length and format. Prove equal treatment on the wire instead of assuming it in code. Measure your own noise first — an unchanged arm varied by up to <data value="16.7" data-fact="case.self_variance">16.7 percentage points</data> between two runs (still measured with the faulty extraction).</li>
+<li><strong>Follow-up measurements on this pattern:</strong> no AI judge, filler text as the zero point, thresholds in advance. The fact-check of this case study found that in one of them the filler text was only a little over half as long as the frame. So the first rule was not met there either. Their results are not yet published in prepared form.</li>
 <li><strong>A product decision:</strong> the premise “one fixed frame that helps every model on every task” is recorded in the project as refuted by its own data.</li>
 </ul>
-<p>The same idea sits in two small tools from July: <a href="/en/projects/#postcondition-mcp">postcondition-mcp</a> checks independently, after an agent action, whether the world really changed; <a href="/en/projects/#behaviorlock">behaviorlock</a> compares agent behaviour before and after a model or prompt change. Success is not claimed but checked against an observable state.</p>
+<p>The same idea sits in two small tools from July: <a href="/en/projects/#postcondition-mcp">postcondition-mcp</a> checks independently, after an agent action, whether the world really changed. <a href="/en/projects/#behaviorlock">behaviorlock</a> compares agent behaviour before and after a model or prompt change. Success is not claimed but checked against an observable state.</p>
 
 <h2 id="limits">What this case study does not show</h2>
 <div class="limits">
