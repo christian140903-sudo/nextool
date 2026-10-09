@@ -4,6 +4,10 @@ name: Site check
 # Die private Sperrliste (Arbeitgeber, Heimatort) kommt nur aus dem Repository-Secret
 # SITE_PRIVATE_DENYLIST (ein Begriff je Zeile); fehlt es, meldet der Linter "NICHT GEPRÜFT".
 # Treffer werden nie im Klartext ausgegeben.
+# Release-Tor (R-03): Nur auf main laeuft zusaetzlich `npm run test:release`; es ist rot, solange
+# <!--OFFEN:F-nn--> im Quelltext stehen. Branches und Pull Requests pruefen nur `npm test`, damit die
+# normale CI nicht wegen fehlender Angaben dauerhaft rot ist. Das eigentliche Deploy-Tor ist der
+# Build-Befehl `npm run test:release` in Cloudflare Pages; eine rote CI haelt Cloudflare nicht auf.
 
 on:
   push:
@@ -32,5 +36,10 @@ jobs:
           node-version: 22
       - name: npm test
         run: npm test
+        env:
+          SITE_PRIVATE_DENYLIST: ${{ secrets.SITE_PRIVATE_DENYLIST }}
+      - name: Release-Tor (nur main)
+        if: github.ref == 'refs/heads/main'
+        run: npm run test:release
         env:
           SITE_PRIVATE_DENYLIST: ${{ secrets.SITE_PRIVATE_DENYLIST }}
