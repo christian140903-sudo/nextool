@@ -23,6 +23,8 @@ const OUT = join(ROOT, "site");
 // {{photo:medium}}/{{photo:small}} rendern nichts (R4 a3: ein kleines Monogramm wirkt wie ein
 // Platzhalter und steht mobil verwaist) — so verweist keine Seite auf eine fehlende Datei. Ist es da, bricht der Build ab, wenn
 // Metadaten (EXIF/XMP/IPTC: koennen Aufnahmeort und Geraet verraten) oder > 150 KB.
+// Dateien in src/static, in die der Build die Basis-URL aus src/site.json einsetzt ({{origin}}).
+const STATIC_TEMPLATES = new Set(["robots.txt"]);
 const PHOTO_SIZES = ["large", "medium", "small"];
 const PHOTO_MAX_BYTES = 150 * 1024;
 
@@ -254,8 +256,8 @@ function layout(page, html, ctx) {
   const robots = meta.robots || "index,follow";
   const ogImage = abs(meta.ogImage || `/assets/og-${meta.lang}.png`);
   const ogAlt = meta.lang === "de"
-    ? "Christian Bucher — Ich führe KI-Coding-Agenten zu getesteter, veröffentlichter Software und messe, ob es wirklich wirkt. nextool.app"
-    : "Christian Bucher — I direct AI coding agents to ship tested software and measure whether what I built actually worked. nextool.app";
+    ? `Christian Bucher — Ich führe KI-Coding-Agenten zu getesteter, veröffentlichter Software und messe, ob es wirklich wirkt. ${new URL(site.origin).host}`
+    : `Christian Bucher — I direct AI coding agents to ship tested software and measure whether what I built actually worked. ${new URL(site.origin).host}`;
   const head = [
     `<!doctype html>`,
     `<html lang="${meta.lang}" dir="ltr">`,
@@ -357,9 +359,14 @@ export function build({ src = SRC } = {}) {
   for (const f of listFiles(join(src, "static"))) {
     const rel = relative(join(src, "static"), f).split(sep).join("/");
     if (out.has(rel)) throw new Error(`Datei doppelt: ${rel}`);
-    out.set(rel, readFileSync(f));
+    // Basis-URL (R4 a13) steht nur in src/site.json; Textvorlagen in src/static tragen {{origin}}.
+    if (STATIC_TEMPLATES.has(rel)) {
+      const t = readFileSync(f, "utf8").replaceAll("{{origin}}", site.origin);
+      if (t.includes("{{")) throw new Error(`${rel}: unbekannter Platzhalter in Vorlage`);
+      out.set(rel, Buffer.from(t, "utf8"));
+    } else out.set(rel, readFileSync(f));
   }
-  out.set("facts.json", Buffer.from(publicFacts(factsRaw), "utf8"));
+  out.set("facts.json", Buffer.from(publicFacts(factsRaw).replaceAll("{{origin}}", site.origin), "utf8"));
   out.set("sitemap.xml", Buffer.from(sitemap(pages, site), "utf8"));
   return out;
 }

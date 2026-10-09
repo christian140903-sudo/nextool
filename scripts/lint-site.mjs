@@ -36,6 +36,7 @@ import { parseHeaders, headersFor } from "./lib/cf-headers.mjs";
 import * as C from "./lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 function listFiles(dir) {
   const out = [];
@@ -177,6 +178,29 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     for (const c of comments) if (!C.COMMENT_ALLOWED.test(c)) err("NOTE-comment", "README.md", `Kommentar mit Klartext (${c.length} Zeichen, Inhalt nicht ausgegeben) — nur <!--OFFEN:F-nn--> erlaubt`);
     const open = comments.filter((c) => /^OFFEN:/.test(c)).length;
     if (open) warn("TODO-open", "README.md", `${open} offene Punkte (<!--OFFEN:F-nn-->)`);
+  }
+
+  // --- Basis-URL nur in src/site.json (R4 a13) ----------------------------------
+  // Fuer den Domainwechsel muss die Adresse an genau einer Stelle stehen. Geprueft werden die Quellen
+  // (src/, scripts/), nicht site/: dort steht sie zu Recht ueberall (canonical, hreflang, OG, Sitemap).
+  {
+    const re = new RegExp(`(?:https?:)?//${reEsc(C.HOST)}(?![\\w.-])`, "i");
+    const scan = (dir) => {
+      if (!existsSync(dir)) return;
+      for (const n of readdirSync(dir).sort()) {
+        const p = join(dir, n);
+        if (statSync(p).isDirectory()) { if (n !== "node_modules") scan(p); continue; }
+        if (!/\.(?:html|json|txt|css|js|mjs|svg|xml|toml)$|^_(?:headers|redirects)$/.test(n)) continue;
+        const rel = relative(rootDir, p).split(sep).join("/");
+        if (rel !== "src/site.json" && re.test(readFileSync(p, "utf8"))) err("SRC-origin", rel, `Basis-URL ${C.ORIGIN} hart verdrahtet — sie steht nur in src/site.json (R4 a13)`);
+      }
+    };
+    scan(join(rootDir, "src"));
+    scan(join(rootDir, "scripts"));
+    // CNAME (Domain-Bindung beim Hoster) ist Konfiguration, keine Quelle: Sie muss zum Host aus
+    // src/site.json passen, sonst laeuft ein Domainwechsel nur halb (Seiten neu, Bindung alt).
+    const cname = join(rootDir, "CNAME");
+    if (existsSync(cname) && readFileSync(cname, "utf8").trim() !== C.HOST) err("CNAME-host", "CNAME", `CNAME passt nicht zum Host ${C.HOST} aus src/site.json`);
   }
 
   // --- private Sperrliste -----------------------------------------------------
@@ -362,7 +386,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     if (!/nosniff/i.test(get("X-Content-Type-Options") || "")) err("HDR-nosniff", "_headers", "X-Content-Type-Options: nosniff fehlt");
     if (!get("Referrer-Policy")) err("HDR-referrer", "_headers", "Referrer-Policy fehlt");
     if (!/camera=\(\)/.test(get("Permissions-Policy") || "")) err("HDR-permissions", "_headers", "Permissions-Policy (camera/microphone/geolocation aus) fehlt");
-    if (/https?:\/\/(?!nextool\.app)/.test(h)) err("HDR-csp-unsafe", "_headers", "fremder Host in _headers");
+    if (new RegExp(`https?://(?!${reEsc(C.HOST)}(?![\\w.-]))`).test(h)) err("HDR-csp-unsafe", "_headers", "fremder Host in _headers");
   }
 
   // --- Abmelde-Worker (Nachbesserung 1; Audit T7/T10) ---------------------------
@@ -687,7 +711,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
       if (pm && JSON.stringify(Object.entries(sAlts).sort()) !== JSON.stringify(Object.entries(pm.alts).sort())) err("SITEMAP-hreflang", "sitemap.xml", `${ls[0]}: hreflang in der Sitemap weicht von der Seite ab`);
     }
   }
-  if (site.files.has("robots.txt") && !/^Sitemap:\s*https:\/\/nextool\.app\/sitemap\.xml/m.test(readFileSync(join(siteDir, "robots.txt"), "utf8"))) err("ROBOTS-sitemap", "robots.txt", "Sitemap-Zeile fehlt");
+  if (site.files.has("robots.txt") && !new RegExp(`^Sitemap:\\s*${reEsc(C.ORIGIN)}/sitemap\\.xml$`, "m").test(readFileSync(join(siteDir, "robots.txt"), "utf8"))) err("ROBOTS-sitemap", "robots.txt", "Sitemap-Zeile fehlt");
 
   // --- Commit-Nachrichten seit dem Relaunch -----------------------------------------
   if (gitCheck) {

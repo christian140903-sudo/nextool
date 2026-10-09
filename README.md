@@ -40,6 +40,18 @@ Until July 2026 earlier pages registered service workers at `/sw.js` and
 open tabs. `npm run test:sw` installs the old workers in Chromium, switches to
 the current `site/` and checks that no registration and no cache remain.
 
+## Domain
+
+The base URL is written once, as `origin` in `src/site.json`. The build puts it
+into canonical and hreflang links, Open Graph tags, the sitemap, `robots.txt`
+(template `{{origin}}` in `src/static/robots.txt`) and `facts.json`. The linter
+rejects a hard-coded copy of it anywhere in `src/` or `scripts/` (rule
+`SRC-origin`) and checks that `CNAME` names the same host (rule `CNAME-host`).
+To move the site: change `origin`, update `CNAME`, run `npm run build`. The
+mail address (`email` in `src/site.json`) and the domain named as plain text in
+page descriptions and in the legal pages are separate and change only if they
+should; find them with `grep -rn "nextool\.app" src`.
+
 ## Photo
 
 Pages place the portrait with `{{photo:large}}`, `{{photo:medium}}` or

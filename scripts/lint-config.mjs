@@ -7,7 +7,12 @@
 // Namen (z. B. geparkte Projekte) gelten nur fuer "site": In Commit-Nachrichten darf stehen,
 // dass etwas entfernt wurde; verboten sind dort Werbebehauptungen, widerrufene Zahlen, Privatdaten.
 
-export const ORIGIN = "https://nextool.app";
+import { readFileSync } from "node:fs";
+
+// Basis-URL (R4 a13): steht genau einmal, in src/site.json ("origin"). Build, Linter und Selbsttests
+// lesen sie dort; die Regel SRC-origin lehnt jede hart verdrahtete Kopie in src/ und scripts/ ab.
+export const ORIGIN = JSON.parse(readFileSync(new URL("../src/site.json", import.meta.url), "utf8")).origin;
+export const HOST = new URL(ORIGIN).host;
 
 // Letzter Commit vor dem Relaunch (= Archiv-Branch archiv/vor-relaunch-2026-10).
 export const RELAUNCH_BASE = "4505f3c326251cd55dc631675bb309813f727f88";

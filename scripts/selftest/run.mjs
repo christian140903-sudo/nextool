@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lint } from "../lint-site.mjs";
+import { ORIGIN as O, HOST } from "../lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -58,10 +59,10 @@ const CASES = [
   ["LINK-broken", (fx) => inject(fx, "index.html", '<p><a href="/about.html">alt</a></p>')],
   ["LINK-anchor", (fx) => inject(fx, "index.html", '<p><a href="/projekte/#fehlt">x</a></p>')],
   ["HEAD-description", (fx) => fx.edit("kontakt/index.html", /<meta name="description" content="[^"]*">/.exec(fx.read("kontakt/index.html"))[0], "")],
-  ["HEAD-canonical", (fx) => fx.edit("kontakt/index.html", 'rel="canonical" href="https://nextool.app/kontakt/"', 'rel="canonical" href="https://nextool.app/kontakt"')],
+  ["HEAD-canonical", (fx) => fx.edit("kontakt/index.html", `rel="canonical" href="${O}/kontakt/"`, `rel="canonical" href="${O}/kontakt"`)],
   ["HEAD-h1", (fx) => inject(fx, "kontakt/index.html", "<h1>Zweite Überschrift</h1>")],
   ["HEAD-lang", (fx) => fx.edit("kontakt/index.html", '<html lang="de"', '<html lang="xx"')],
-  ["I18N-pair", (fx) => fx.edit("projekte/index.html", '<link rel="alternate" hreflang="en" href="https://nextool.app/en/projects/">', "")],
+  ["I18N-pair", (fx) => fx.edit("projekte/index.html", `<link rel="alternate" hreflang="en" href="${O}/en/projects/">`, "")],
   ["DOOR-crossing", (fx) => { fx.write("workshops/index.html", fx.read("kontakt/index.html").replace("</main>", '<p><a href="/en/hire/">x</a></p></main>')); }],
   ["REDIR-shadow", (fx) => fx.write("_redirects", fx.read("_redirects") + "\n/projekte/   /   301\n")],
   ["REDIR-target", (fx) => fx.write("_redirects", fx.read("_redirects").replace("# --- Personen", "/alt-x   /nirgends/   301\n# --- Personen"))],
@@ -72,7 +73,7 @@ const CASES = [
   ["HDR-frame-ancestors", (fx) => fx.write("_headers", fx.read("_headers").replace("frame-ancestors 'none'; ", ""))],
   ["HDR-hsts-preload", (fx) => fx.write("_headers", fx.read("_headers").replace("max-age=31536000", "max-age=31536000; includeSubDomains; preload"))],
   ["A11Y-contrast", (fx) => fx.write("assets/site.css", fx.read("assets/site.css").replace("--text-subtle: #575b63;", "--text-subtle: #b0b0b0;"))],
-  ["SITEMAP-noindex", (fx) => fx.write("sitemap.xml", fx.read("sitemap.xml").replace("</urlset>", "  <url><loc>https://nextool.app/archiv/</loc></url>\n</urlset>"))],
+  ["SITEMAP-noindex", (fx) => fx.write("sitemap.xml", fx.read("sitemap.xml").replace("</urlset>", `  <url><loc>${O}/archiv/</loc></url>\n</urlset>`))],
   ["STRUCT-forbidden-file", (fx) => fx.write("notizen.md", "intern")],
   ["STRUCT-required", (fx) => rmSync(join(fx.base, "site", "robots.txt"))],
   ["TODO-open", (fx) => {}, { release: true }],
@@ -109,8 +110,12 @@ const CASES = [
   ["NOTE-comment", (fx) => writeFileSync(join(fx.base, "README.md"), "# x\n<!-- OFFEN: nur wahr, wenn Beispiel -->\n"), { where: /^README\.md$/ }],
   ["TODO-open", (fx) => writeFileSync(join(fx.base, "README.md"), "# x\n<!--OFFEN:F-98-->\n"), { release: true, where: /^README\.md$/ }],
   // Audit T1–T18 der Website-Session (Nachbesserung 2): je neue Regel ein Gegenbeispiel
-  ["I18N-absolute", (fx) => fx.edit("projekte/index.html", '<link rel="alternate" hreflang="en" href="https://nextool.app/en/projects/">', '<link rel="alternate" hreflang="en" href="/en/projects/">')],
-  ["SITEMAP-hreflang", (fx) => fx.edit("sitemap.xml", '<loc>https://nextool.app/projekte/</loc>', '<loc>https://nextool.app/projekte/</loc>\n    <xhtml:link rel="alternate" hreflang="fr" href="https://nextool.app/fr/"/>')],
+  ["I18N-absolute", (fx) => fx.edit("projekte/index.html", `<link rel="alternate" hreflang="en" href="${O}/en/projects/">`, '<link rel="alternate" hreflang="en" href="/en/projects/">')],
+  ["SITEMAP-hreflang", (fx) => fx.edit("sitemap.xml", `<loc>${O}/projekte/</loc>`, `<loc>${O}/projekte/</loc>\n    <xhtml:link rel="alternate" hreflang="fr" href="${O}/fr/"/>`)],
+  // R4 a13: Basis-URL steht nur in src/site.json; CNAME muss zum Host passen
+  ["SRC-origin", (fx) => { mkdirSync(join(fx.base, "src", "pages"), { recursive: true }); writeFileSync(join(fx.base, "src", "pages", "probe.html"), `<p><a href="${O}/projekte/">x</a></p>`); }, { where: /^src\/pages\/probe\.html$/ }],
+  ["SRC-origin", (fx) => { mkdirSync(join(fx.base, "scripts"), { recursive: true }); writeFileSync(join(fx.base, "scripts", "probe.mjs"), `const u = "//${HOST}/x";\n`); }, { where: /^scripts\/probe\.mjs$/ }],
+  ["CNAME-host", (fx) => writeFileSync(join(fx.base, "CNAME"), "example.org\n"), { where: /^CNAME$/ }],
   ["I18N-switch", (fx) => fx.edit("kontakt/index.html", '<p class="lang-switch"><a href="/en/contact/"', '<p class="lang-switch"><a href="/en/"')],
   ["HEAD-heading-order", (fx) => inject(fx, "kontakt/index.html", "<h4>Zu tief</h4>")],
   ["STRUCT-unexpected-file", (fx) => fx.write("assets/lebenslauf.pdf", "%PDF-1.4")],
