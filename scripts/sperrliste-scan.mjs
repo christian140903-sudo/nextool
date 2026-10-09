@@ -18,7 +18,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadState, checkSperrliste, parsePrivateList, checkPrivate } from "./lib/sperrliste.mjs";
+import { loadState, checkSperrliste, parsePrivateList, bindPrivateRules, checkPrivate } from "./lib/sperrliste.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const TEXT = /\.(?:md|txt|html?|json|ya?ml|csv|tex)$/i;
@@ -35,9 +35,11 @@ if (stateErrors.length) { for (const e of stateErrors) console.error(`  FEHLER S
 const envList = process.env.SITE_PRIVATE_DENYLIST;
 const listFile = process.env.SITE_PRIVATE_DENYLIST_FILE || join(ROOT, ".site-private-denylist.txt");
 const rawList = envList && envList.trim() ? envList.split(/\r?\n/) : existsSync(listFile) ? readFileSync(listFile, "utf8").split(/\r?\n/) : [];
-const { entries, errors: listErrors } = parsePrivateList(rawList);
-if (listErrors.length) { for (const e of listErrors) console.error(`  FEHLER PRIV-list-invalid: ${e}`); process.exit(2); }
-if (!entries.length) console.log("  HINWEIS private Liste fehlt — Gruppe G und vertrauliche Einträge NICHT GEPRÜFT");
+const { entries, bound, errors: listErrors } = parsePrivateList(rawList);
+const { rules, missing, errors: bindErrors } = bindPrivateRules(bound);
+if (listErrors.length || bindErrors.length) { for (const e of [...listErrors, ...bindErrors]) console.error(`  FEHLER PRIV-list-invalid: ${e}`); process.exit(2); }
+if (!entries.length && !bound.length) console.log("  HINWEIS private Liste fehlt — Gruppe G und vertrauliche Einträge NICHT GEPRÜFT");
+for (const id of missing) console.log(`  HINWEIS Regel ${id} hat privaten Wortlaut, die private Liste bindet ihn nicht — NICHT GEPRÜFT`);
 
 const files = [];
 const collect = (p) => {
@@ -59,7 +61,7 @@ for (const f of files) {
   const ids = {}, lines = [];
   readFileSync(f, "utf8").split(/\r?\n/).forEach((line, i) => {
     const hits = [
-      ...checkSperrliste(line, { state, page: null }).map((h) => ({ group: h.group, id: h.id })),
+      ...checkSperrliste(line, { state, page: null, rules }).map((h) => ({ group: h.group, id: h.id })),
       ...checkPrivate(line, entries).map((h) => ({ group: h.group, id: `privat-${h.n}` })),
     ];
     for (const h of hits) { count[h.group]++; ids[h.id] = (ids[h.id] || 0) + 1; lines.push(`${i + 1}:${h.id}`); }
@@ -73,5 +75,5 @@ for (const f of files) {
   if (flags.has("--lines") && n) console.log(`      Zeilen ${lines.join(" ")}`);
 }
 console.log(`${"Summe".padEnd(55)}  ${GROUPS.map((g) => String(sum[g]).padStart(3)).join("  ")}`);
-console.log(`\nsperrliste-scan: ${files.length} Dateien, ${total} Treffer (Zustand: feuerprobe ${state.feuerprobe.status}, endzustand ${state.endzustand}, rolle ${state.rolle}, website ${state.recht.website}; private Liste ${entries.length} Einträge).`);
+console.log(`\nsperrliste-scan: ${files.length} Dateien, ${total} Treffer (Zustand: feuerprobe ${state.feuerprobe.status}, endzustand ${state.endzustand}, rolle ${state.rolle}, website ${state.recht.website}; private Liste ${entries.length} Einträge, ${bound.length} Bindungen).`);
 process.exit(total ? 1 : 0);

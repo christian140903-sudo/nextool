@@ -42,6 +42,10 @@ function fixture() {
   };
 }
 const inject = (fx, page, html) => fx.edit(page, "</main>", `${html}</main>`);
+// Datei im (oeffentlichen) Linter-Code der Kopie anlegen; der Quellbaum-Scan prueft scripts/ wie das echte Repo.
+const script = (fx, name, text) => { mkdirSync(join(fx.base, "scripts"), { recursive: true }); writeFileSync(join(fx.base, "scripts", name), text); };
+// Bindung einer oeffentlichen Regel mit privatem Wortlaut (erfundener Wortlaut).
+const BIND_B = "[B] @B-bezahlt re:bezahlte\\p{L}* Beispielkurse";
 
 const CASES = [
   ["RES-external", (fx) => fx.edit("index.html", "</head>", '<link rel="stylesheet" href="https://fonts.example.org/css2?family=Inter">\n</head>')],
@@ -195,6 +199,15 @@ const CASES = [
   ["PRIV-list-invalid", (fx) => {}, { privateTerms: ["re:(offen"], expect: /^Eintrag Nr\. 1 ist kein gültiger Ausdruck$/ }],
   ["TXT-private", (fx) => fx.write("robots.txt", fx.read("robots.txt") + "# Beispielfirma\n"), { privateTerms: ["Beispielfirma"], where: /^robots\.txt$/ }],
   ["TXT-private", (fx) => writeFileSync(join(fx.base, "src", "notiz.md"), "früher bei Beispielfirma\n"), { privateTerms: ["Beispielfirma"], where: /^src\/notiz\.md$/ }],
+  // Wortlaut nur privat (Befunde T-02/P-01): Preise, Foerderung u. a. kennt nur die private Liste. Testwerte erfunden —
+  // ein echter Preis hier waere selbst die Veroeffentlichung, die der Test verhindern soll.
+  ["TXT-private", (fx) => inject(fx, "ueber-mich/index.html", "<p>Pilotpreis 999 EUR.</p>"), { privateTerms: ["[C] re:(?<![\\p{N}])999(?![\\p{N}])"], expect: /Nr\. 1 \(Gruppe C\)/ }],
+  ["TXT-private", (fx) => script(fx, "regel.mjs", "export const R = /\\b999\\b/;\n"), { privateTerms: ["[C] re:(?<![\\p{N}#.,])(?<!(?<!\\\\)\\p{L})999(?![\\p{N}])"], where: /^scripts\/regel\.mjs$/ }],
+  ["SPERR-B", (fx) => inject(fx, "ueber-mich/index.html", "<p>Ich gebe bezahlte Beispielkurse.</p>"), { privateTerms: [BIND_B], expect: /^(?!.*Beispielkurse).*B-bezahlt.*maskiert/ }],
+  ["TXT-private", (fx) => script(fx, "regel.mjs", "// bezahlte Beispielkurse\n"), { privateTerms: [BIND_B], where: /^scripts\/regel\.mjs$/, expect: /Bindung B-bezahlt/ }],
+  ["PRIV-rule-missing", () => {}, { privateTerms: ["Beispielfirma"], release: true, expect: /B-bezahlt/ }],
+  ["PRIV-list-invalid", () => {}, { privateTerms: ["[B] @B-gibtsnicht re:x"], expect: /^Eintrag Nr\. 1 bindet keine Regel/ }],
+  ["PRIV-list-invalid", () => {}, { privateTerms: ["[C] @B-bezahlt re:x"], expect: /Gruppe passt nicht/ }],
 ];
 
 let failed = 0;
@@ -318,6 +331,27 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(dir, { recursive: true, force: true });
 }
 
+// Kontrolle 11 (T-02/P-01): Eine gebundene Regel behaelt Verneinung und Zustandsbedingung der oeffentlichen
+// Regel; ohne private Liste kennt der oeffentliche Linter den Wortlaut nicht (kein SPERR-/TXT-Fehler).
+{
+  const runs = [
+    ["verneint", {}, "<p>Ich gebe keine bezahlten Beispielkurse.</p>", [BIND_B]],
+    ["Auftrag unterschrieben", { "offenlegung.bezahlter_auftrag": true }, "<p>Ich gebe bezahlte Beispielkurse.</p>", [BIND_B]],
+    ["ohne private Liste", {}, "<p>Ich gebe bezahlte Beispielkurse.</p>", []], // Preise mit Währung sperrt schon STAGE1-commercial
+  ];
+  const bad = [];
+  for (const [name, patch, html, privateTerms] of runs) {
+    const fx = fixture();
+    fx.state(patch);
+    inject(fx, "ueber-mich/index.html", html);
+    const e = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms }));
+    if (e.length) bad.push(`${name}: ${e[0].rule} ${e[0].msg}`);
+    rmSync(fx.base, { recursive: true, force: true });
+  }
+  if (bad.length) { failed++; console.log(`  FEHLER Kontrolle: gebundene Regel falsch (${bad[0]})`); }
+  else console.log("  ok    Kontrolle: Bindung B-bezahlt verneint/mit Auftrag grün; ohne private Liste kein öffentlicher Wortlaut");
+}
+
 // Kontrolle 6 (R-03): Das Release-Tor erkennt die neutralen Kennungen. Ohne jede Kennung kein TODO-open;
 // genau eine eingefuegte <!--OFFEN:F-nn--> macht genau diese Seite rot; email_off und Kennungen sind im
 // Normalmodus kein Fehler.
@@ -357,5 +391,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 10 - failed} von ${CASES.length + 10} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 11 - failed} von ${CASES.length + 11} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);

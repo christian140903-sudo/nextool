@@ -225,10 +225,13 @@ export const NUMBER_EXEMPT_ELEMENTS = new Set(["code", "pre", "kbd", "samp", "ti
 //   negatable    ein verneinter Satz ("nicht", "not", "kein" …) zaehlt nicht als Behauptung
 //   sentence     ctx/unless gelten satzweise statt blockweise
 //   pages        nur auf diesen Seiten (Website); beim Dokument-Scan gilt die Regel immer, ausser siteOnly
+//   private      re: null — der Ausdruck kommt nur aus der privaten Liste ("[B] @<id> re:…"); Id, Gruppe und
+//                Bedingung bleiben hier. Ohne Bindung: NICHT GEPRUEFT (Warnung, im Release Fehler).
 // Gruppe G (Privates: Branchen, Schul-/Wehrdienstjahre, Kundennamen) steht NICHT hier: Eine
 // oeffentliche Liste verriete, was sie schuetzen soll. G lebt in der privaten Sperrliste
-// (.site-private-denylist.txt bzw. Secret SITE_PRIVATE_DENYLIST), ebenso Eintraege aus A und D, deren
-// Wortlaut selbst etwas Vertrauliches andeuten wuerde.
+// (.site-private-denylist.txt bzw. Secret SITE_PRIVATE_DENYLIST), ebenso Eintraege aus A bis D, deren
+// Wortlaut selbst etwas Vertrauliches andeuten wuerde. Das Repository ist so oeffentlich wie die Seite:
+// Auch ein Beispiel in einer Regel ist eine Veroeffentlichung (§13 Geltung).
 export const PAGES = {
   start: ["/", "/en/"],
   hire: ["/arbeitgeber/", "/en/hire/"],
@@ -278,10 +281,10 @@ export const SPERRLISTE = [
   { id: "A-unabhaengig", group: "A", re: /unabhängig|independent/i, ctx: FP, negatable: true, why: "„unabhängig/independent“ für Feuerprobe oder Messung (kein externer Prüfer)" },
   { id: "A-erster", group: "A", re: /\bals Erste[rn]?\b|\bthe first\b|\bfirst (?:to|ever)\b|weltweit erste/i, ctx: FP, negatable: true, why: "„als Erster/first“ im Feuerprobe-Umfeld" },
   { id: "A-ki-agenten", group: "A", re: /KI-Agenten|AI agents/i, ctx: FP, why: "im Feuerprobe-Satz „Claude Code“, nicht „KI-Agenten“ allgemein" },
-  { id: "A-benchmark", group: "A", re: /Modell-?Benchmark|model[- ]benchmark|benchmarks? (?:the )?models?|evaluates? (?:Claude|the model)|bewertet (?:Claude|das Modell)/i, ctx: FP, negatable: true, why: "Antwort-Stub statt Modell: kein Modell-Benchmark" },
+  { id: "A-benchmark", group: "A", re: /Modell-?Benchmark|model[- ]benchmark|benchmarks? (?:the )?models?|evaluates? (?:Claude|the model)|bewertet (?:Claude|das Modell)/i, ctx: FP, negatable: true, why: "kein Modell-Benchmark (§13 A)" },
   { id: "A-python", group: "A", re: /\bPython\b|measurement code|Messcode/i, ctx: FP, negatable: true, why: "keine Python-Kompetenz aus der Feuerprobe ableiten" },
   // B. Offenlegung (§13 B, §3.3)
-  { id: "B-bezahlt", group: "B", re: /bezahlte (?:Schulung|Trainings?|Workshops?|Kurse)|paid (?:training|workshops?|courses?)/i, when: (s) => !s.offenlegung.bezahlter_auftrag, negatable: true, why: "bezahlte Schulungen erst mit unterschriebenem Auftrag (B1)" },
+  { id: "B-bezahlt", group: "B", re: null, private: true, when: (s) => !s.offenlegung.bezahlter_auftrag, negatable: true, why: "§13 B1, erst mit unterschriebenem Auftrag (Wortlaut privat)" },
   { id: "B-keine-verbindung", group: "B", re: /(?:keine|kein|weder|no|without)\s+(?:[\p{L}-]+,?\s+){0,4}?(?:Verbindung|Geld|Guthaben|Vorabzugang|money|credits|early access|connection|affiliation)\b[^.\n]{0,60}\bAnthropic|\bAnthropic\b[^.\n]{0,60}\b(?:keine|kein|weder|no)\s+(?:[\p{L}-]+,?\s+){0,4}?(?:Verbindung|Geld|Guthaben|Vorabzugang|money|credits|early access|connection|affiliation)\b|not affiliated with Anthropic|nicht mit Anthropic verbunden/iu, when: (s) => s.offenlegung.f4 === "offen", why: "„keine Verbindung zu Anthropic“ erst nach Chrisos F4-Antwort (B2)" },
   { id: "B-unabhaengig-selbst", group: "B", re: /unabhängige[rn]? (?:Trainer|Berater|Entwickler)|independent (?:trainer|consultant|developer)|unabhängig von Anthropic|independent (?:of|from) Anthropic/i, when: (s) => s.offenlegung.f4 === "offen", why: "„unabhängig“ als Selbstbeschreibung erst nach F4" },
   { id: "B-davon-unabhaengig", group: "B", re: /davon unabhängig/i, why: "„getrennt davon“ statt „davon unabhängig“" },
@@ -290,10 +293,7 @@ export const SPERRLISTE = [
   { id: "C-vortraege", group: "C", re: /\bgive talks\b|\bgiving talks\b|halte Vorträge|Vorträge halte/i, when: (s) => !s.vortraege.length, negatable: true, why: "Vortragssatz erst nach dem ersten gehaltenen Vortrag (vortraege leer)" },
   { id: "C-angebotsverb", group: "C", re: /\boffer(?:s|ing)? (?:training|workshops?|courses?)\b|\bbiete[nt]? (?:[\p{L}-]+ ){0,3}?(?:Schulungen|Workshops|Kurse)\b|Schulungen an\b/iu, when: (s) => s.recht.website === "R0", negatable: true, why: "Angebotsverb vor R1" },
   { id: "C-unterricht", group: "C", re: /\bI (?:also )?teach\b|mechanics I teach|\bunterrichte\b/i, when: (s) => !s.offenlegung.bezahlter_auftrag, negatable: true, why: "„I teach/ich unterrichte“ erst mit bezahltem Auftrag (B1)" },
-  { id: "C-pilotpreis", group: "C", re: /\b490\b|\b2[.,]100\b/, why: "Pilotpreise nie öffentlich" },
   { id: "C-coaching", group: "C", re: /\bCoach(?:es|ing)?\b|\bBegleitung\b|Festpreis für 50 Stunden|nur geleistete Stunden/i, negatable: true, why: "„Coaching/Begleitung“ ist kein Angebotsname" },
-  { id: "C-foerderung", group: "C", re: /förderbar|\b50\s?%\s?Zuschuss|Skills[- ]?Scheck|AMS-QBN|Förderung möglich/i, negatable: true, why: "Förder-Aussagen erst mit zertifiziertem Träger" },
-  { id: "C-trainer-teilzeit", group: "C", re: /Trainer in Teilzeit|als Trainer[^.\n]{0,40}neben einer Anstellung/i, why: "Teilzeit-Trainer-Satz entfällt im Kundentext (§5.5)" },
   { id: "C-kundenrepo", group: "C", re: /\bich setze (?:das |es )?um\b|arbeite in Ihrem Repo|richte Claude Code in Ihrem Team ein|Reviews? zwischen den Terminen|Reviews?[^.\n]{0,25}(?:binnen|innerhalb von|within) 48|Review-Rechte|review rights|(?:merge|freigeben|Freigabe)[^.\n]{0,40}(?:Ihrem|Kunden)[- ]?Repo/i, negatable: true, why: "keine Arbeit im Kundenrepository; Ersatz §5.5 „Rückmeldung zu Übungen …“" },
   { id: "C-haltbarkeit", group: "C", re: /Modell-Update überleben|survives? the next model update|update-sicher|update-proof|, die halten\b/i, why: "Titel versprechen keine Haltbarkeit" },
   { id: "C-ai-act", group: "C", re: /AI[- ]Act[^.\n]{0,40}Art(?:ikel|icle|\.)\s*4\b|Art(?:ikel|icle|\.)\s*4\b[^.\n]{0,40}(?:AI[- ]Act|KI-VO|KI-Verordnung)|AI literacy|KI-Kompetenz/i, why: "AI-Act-Art.-4-Argumente erst nach der Prüfung" },

@@ -36,7 +36,7 @@ import { execFileSync } from "node:child_process";
 import { Script } from "node:vm";
 import { tokenize, walk, textBlocks, collapse } from "./lib/html.mjs";
 import { parseHeaders, headersFor } from "./lib/cf-headers.mjs";
-import { loadState, checkSperrliste, parsePrivateList, checkPrivate } from "./lib/sperrliste.mjs";
+import { loadState, checkSperrliste, parsePrivateList, bindPrivateRules, checkPrivate } from "./lib/sperrliste.mjs";
 import * as C from "./lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -186,8 +186,12 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   // Stufe (STAGE in lint-config) und Rechtszustand der Website muessen zusammenpassen — sonst laeuft ein
   // Stufenwechsel nur halb.
   if ((C.STAGE === 1) !== (state.recht.website === "R0")) err("STATE-invalid", "src/state.json", `recht.website = ${state.recht.website} passt nicht zu STAGE = ${C.STAGE} in lint-config`);
+  // Regelsatz: oeffentliche Regeln, ergaenzt um die privat gebundenen Ausdruecke (wird unten nach dem Lesen
+  // der privaten Liste gesetzt, vor dem ersten Aufruf). Private Treffer erscheinen nie im Klartext.
+  let sperrRules = C.SPERRLISTE.filter((r) => !r.private);
+  const sperrMsg = (h) => `§13 ${h.group} „${h.id}“: ${h.private ? `Wortlaut privat (Treffer maskiert: ${h.len} Zeichen)` : `„${h.match}“`} — ${h.why}`;
   const sperr = (text, where, page) => {
-    for (const h of checkSperrliste(text, { state, page })) err(`SPERR-${h.group}`, where, `§13 ${h.group} „${h.id}“: „${h.match}“ — ${h.why}`);
+    for (const h of checkSperrliste(text, { state, page, rules: sperrRules })) err(`SPERR-${h.group}`, where, sperrMsg(h));
   };
   // Keine Zahlen in Vorschaubildern (§13 F): der Bildtext steht in src/og-stamp.json.
   {
@@ -240,12 +244,18 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   }
   // Zeilenformat (lib/sperrliste.mjs): Begriff | re:<Ausdruck> | "[A-G] " davor als Gruppe. Ein ungueltiger
   // Ausdruck ist in jedem Modus ein Fehler (sonst waere der Eintrag still wirkungslos).
-  const { entries: privEntries, errors: privErrors } = parsePrivateList(priv || []);
-  for (const e of privErrors) err("PRIV-list-invalid", "-", e);
+  const { entries: privEntries, bound: privBound, errors: privErrors } = parsePrivateList(priv || []);
+  const bind = bindPrivateRules(privBound);
+  for (const e of [...privErrors, ...bind.errors]) err("PRIV-list-invalid", "-", e);
+  sperrRules = bind.rules;
   const privRes = privEntries.map((e) => e.re);
   const privHit = (text, where) => { for (const h of checkPrivate(text, privEntries)) err("TXT-private", where, `Eintrag Nr. ${h.n} (Gruppe ${h.group}) der privaten Sperrliste`); };
-  if (!privRes.length) (release ? err : info)("PRIV-list-missing", "-", "private Sperrliste (Arbeitgeber, Heimatort) nicht vorhanden — NICHT GEPRÜFT (Datei .site-private-denylist.txt oder Secret SITE_PRIVATE_DENYLIST)");
-  else info("PRIV-list", "-", `private Sperrliste: ${privRes.length} Begriffe geprüft`);
+  if (!privRes.length && !privBound.length) (release ? err : info)("PRIV-list-missing", "-", `private Sperrliste (Arbeitgeber, Heimatort) nicht vorhanden — NICHT GEPRÜFT, ebenso die Regeln mit privatem Wortlaut (${bind.missing.join(", ")}) (Datei .site-private-denylist.txt oder Secret SITE_PRIVATE_DENYLIST)`);
+  else {
+    info("PRIV-list", "-", `private Sperrliste: ${privRes.length} Begriffe und ${privBound.length} Bindungen geprüft`);
+    // Liste vorhanden, aber eine Regel mit privatem Wortlaut ungebunden (z. B. Secret nicht nachgezogen); warn = im Release Fehler
+    for (const id of bind.missing) warn("PRIV-rule-missing", "-", `Regel ${id} hat privaten Wortlaut, die private Liste bindet ihn nicht („@${id} re:…“) — NICHT GEPRÜFT`);
+  }
 
   // Dateinamen, ausgelieferte Textdateien, Zustandsschluessel (§7 M5/M6) und oeffentlicher Quellbaum.
   // Das Repository ist oeffentlich: Was in src/, scripts/ oder README steht, ist so sichtbar wie die Seite.
@@ -269,10 +279,14 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         if (resolvePath(p) === own || !/\.(?:html|json|txt|md|mjs|js|css|ya?ml|toml|svg|xml)$|^(?:CNAME|LICENSE|_headers|_redirects|\.gitignore)$/.test(n)) continue;
         const rel = relative(rootDir, p).split(sep).join("/");
         privHit(rel, `${rel} [Dateiname]`);
-        privHit(readFileSync(p, "utf8"), rel);
+        const text = readFileSync(p, "utf8");
+        privHit(text, rel);
+        // Gebundene Wortlaute (private Regeln) duerfen auch nicht im Linter-Code stehen (Leak 0d8b013: die
+        // Regel selbst war die Veroeffentlichung). src/ bleibt aussen vor: Dort entscheidet der Zustand.
+        if (rel.startsWith("scripts/")) for (const b of privBound) if (b.re.test(text)) err("TXT-private", rel, `Eintrag Nr. ${b.n} (Bindung ${b.id}) der privaten Sperrliste`);
       }
     };
-    if (privEntries.length) scan(rootDir);
+    if (privEntries.length || privBound.length) scan(rootDir);
   }
 
   // Freigegebene oeffentliche Anschriften (lint-config PUBLIC_ADDRESSES) nur auf ihren Seiten ausblenden.
