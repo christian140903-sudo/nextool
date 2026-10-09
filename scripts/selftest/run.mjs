@@ -157,6 +157,8 @@ const CASES = [
   // R-06 (Rechtsabnahme Welle E): erweiterter Ausdruck faengt Angebotsverben und "hire me"
   ["STAGE1-commercial", (fx) => inject(fx, "ueber-mich/index.html", "<p>Ich biete Beratung für Teams an.</p>"), { expect: /„biete“/ }],
   ["STAGE1-commercial", (fx) => inject(fx, "en/about/index.html", "<p>Hire me for your next project.</p>"), { expect: /„Hire me“/ }],
+  // Barrierefreiheit (Welle F2, BF-03): aktuelle Seite vs. aktueller Bereich
+  ["A11Y-current", (fx) => fx.edit("behaviorlock/index.html", 'href="/en/projects/" aria-current="true"', 'href="/en/projects/" aria-current="page"')],
   ["SD-forbidden", (fx) => fx.edit("index.html", "</head>", '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"x","address":{"@type":"PostalAddress"}}</script>\n</head>')],
   ["SD-forbidden", (fx) => inject(fx, "index.html", '<div itemscope itemtype="https://schema.org/Offer"><span itemprop="price">1</span></div>')],
   ["SD-forbidden", (fx) => fx.edit("index.html", "</head>", '<meta property="business:contact_data:street_address" content="x">\n</head>')],

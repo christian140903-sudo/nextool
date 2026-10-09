@@ -251,7 +251,9 @@ function layout(page, html, ctx) {
   // Zwei Tueren verlinken sich nicht (Positionierung §1.5): Auf einer Tuer-Seite (meta.door)
   // fehlen Navigationspunkte, die zur jeweils anderen Tuer gehoeren (item.door).
   const nav = site.nav[meta.lang].filter((item) => !(meta.door && item.door && item.door !== meta.door)).map((item) => {
-    const cur = item.id === meta.nav ? ' aria-current="page"' : "";
+    // aria-current="page" nur, wenn der Link genau diese Seite ist; sonst markiert er den Bereich (z. B. Projekte
+    // auf einer Projektseite) mit aria-current="true" (WCAG 1.3.1/4.1.2, Barrierefreiheit BF-03).
+    const cur = item.id === meta.nav ? (item.href === meta.path ? ' aria-current="page"' : ' aria-current="true"') : "";
     return `<li><a href="${item.href}"${cur}>${esc(item.label)}</a></li>`;
   });
   const footerLinks = s.footerNav.map((l) => `<li><a href="${l.href}">${esc(l.label)}</a></li>`).join("");

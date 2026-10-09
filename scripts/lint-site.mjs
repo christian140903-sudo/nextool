@@ -604,6 +604,9 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         if (a.href && C.LINK_PRIVATE_COMMIT.test(a.href)) err("SPERR-F", rel, `Link auf einen Commit in einem Repo, das privat wird: ${a.href} (§13 F)`);
         if (a.href && /team-skills-kit/i.test(a.href) && !state.kit_oeffentlich) err("SPERR-F", rel, `Link auf team-skills-kit vor kit_oeffentlich = true (§7): ${a.href}`);
         if (t.name === "img" && !("alt" in a)) err("A11Y-img-alt", rel, "<img> ohne alt");
+        // aria-current="page" nur auf dem Link zu genau dieser Seite; ein Bereich (Projekte auf einer Projektseite)
+        // ist aria-current="true" (WCAG 1.3.1/4.1.2, Barrierefreiheit BF-03).
+        if (t.name === "a" && a["aria-current"] === "page" && a.href !== url) err("A11Y-current", rel, `aria-current="page" an einem Link auf ${a.href}, die Seite ist ${url} (BF-03: Bereich = aria-current="true")`);
         // Attribute mit sichtbarem/teilbarem Text
         for (const k of ["alt", "title", "aria-label", "placeholder"]) if (a[k]) { checkText(a[k], `${rel} [${k}]`, { pagePath: url, attr: true }); checkNotes([{ text: a[k] }], `${rel} [${k}]`); checkStage1(a[k], `${rel} [${k}]`); }
         if (t.name === "meta" && a.content && /^(description|og:title|og:description|og:image:alt|og:site_name|twitter:)/.test(a.name || a.property || "")) { const w = `${rel} [meta ${a.name || a.property}]`; checkText(a.content, w, { pagePath: url, attr: true }); checkNotes([{ text: a.content }], w); checkStage1(a.content, w); }
