@@ -101,6 +101,11 @@ const CASES = [
   ["NOTE-comment", (fx) => inject(fx, "index.html", "<!-- Notiz für später -->"), { expect: /Inhalt nicht ausgegeben/ }],
   ["NOTE-comment", (fx) => inject(fx, "impressum/index.html", "<!--intern:F-01-->"), { expect: /nur <!--OFFEN:F-nn-->/ }],
   ["NOTE-comment", (fx) => inject(fx, "kontakt/index.html", "<!--OFFEN:F-1-->")],
+  // R-04: mailto nur in <!--email_off-->…<!--/email_off-->
+  ["SEC-email-off", (fx) => inject(fx, "kontakt/index.html", '<p><a href="mailto:x@example.org">x@example.org</a></p>'), { expect: /ohne <!--email_off-->-Klammer/ }],
+  ["SEC-email-off", (fx) => inject(fx, "kontakt/index.html", '<p><!--email_off--><a href="mailto:x@example.org">x</a></p>'), { expect: /doppelt geöffnet/ }],
+  ["SEC-email-off", (fx) => fx.edit("kontakt/index.html", "</body>", "<!--email_off--></body>"), { expect: /nicht geschlossen/ }],
+  ["SEC-email-off", (fx) => fx.edit("datenschutz/index.html", '<!--email_off--><a href="mailto:dsb@dsb.gv.at">', '<a href="mailto:dsb@dsb.gv.at">'), { expect: /\/email_off--> ohne öffnendes/ }],
   ["NOTE-comment", (fx) => writeFileSync(join(fx.base, "README.md"), "# x\n<!-- OFFEN: nur wahr, wenn Beispiel -->\n"), { where: /^README\.md$/ }],
   ["TODO-open", (fx) => writeFileSync(join(fx.base, "README.md"), "# x\n<!--OFFEN:F-98-->\n"), { release: true, where: /^README\.md$/ }],
   // Audit T1–T18 der Website-Session (Nachbesserung 2): je neue Regel ein Gegenbeispiel

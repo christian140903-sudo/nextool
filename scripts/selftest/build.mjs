@@ -151,6 +151,13 @@ check("Fakt mit offen F-nn: <!--OFFEN:F-nn--> am Wert; ausgelieferte facts.json 
 });
 check("facts.json offen mit Klartext bricht ab, Meldung ohne Klartext", (fx) => { setFact(fx, (f) => { f.offen = CLEAR; }); noLeak(fx, /soul_mcp\.tests\.offen — Klartext/); });
 check("facts.json source_internal mit Klartext bricht ab, Meldung ohne Klartext", (fx) => { setFact(fx, (f) => { f.source_internal = CLEAR; }); noLeak(fx, /source_internal nur als "intern:F-nn"/); });
+check("R-04: {{email}} und Fußzeile nur mit <!--email_off-->-Klammer", (fx) => {
+  setPage(fx, "<p>{{email}}</p>");
+  const html = page(build({ src: fx.src }), "phototest.html");
+  const wrapped = html.match(/<!--email_off--><a href="mailto:[^"]+">[^<]+<\/a><!--\/email_off-->/g) || [];
+  const all = html.match(/href="mailto:/g) || [];
+  if (wrapped.length !== 2 || all.length !== 2) throw new Error(`erwartet 2 geklammerte mailto (Seite + Fußzeile), gefunden ${wrapped.length} von ${all.length}`);
+});
 check("Tür-Seite ohne Navigationspunkt der anderen Tür", (fx) => {
   const p = join(fx.src, "site.json");
   const site = JSON.parse(readFileSync(p, "utf8"));

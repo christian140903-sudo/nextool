@@ -529,6 +529,17 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     // Quelltext, deshalb gelten fuer sie die Regeln wie fuer Commit-Nachrichten (Privatdaten, Zahlen, Sperrliste "all").
     const comments = tokens.filter((t) => t.type === "comment");
     for (const c of comments) checkText(collapse(c.text), `${rel} [Kommentar]`, { scope: "all" });
+    // R-04: jeder mailto-Link zwischen <!--email_off--> und <!--/email_off--> (sonst schreibt Cloudflares
+    // E-Mail-Verschleierung ihn um und bindet ein Skript ein); Klammern paarweise. Adresse nie ausgeben.
+    {
+      let off = false;
+      for (const t of tokens) {
+        if (t.type === "comment" && t.text === "email_off") { if (off) err("SEC-email-off", rel, "<!--email_off--> doppelt geöffnet"); off = true; }
+        else if (t.type === "comment" && t.text === "/email_off") { if (!off) err("SEC-email-off", rel, "<!--/email_off--> ohne öffnendes <!--email_off-->"); off = false; }
+        else if (t.type === "start" && t.name === "a" && /^\s*mailto:/i.test(t.attrs.href || "") && !off) err("SEC-email-off", rel, "mailto-Link ohne <!--email_off-->-Klammer (R-04, Cloudflare-Verschleierung)");
+      }
+      if (off) err("SEC-email-off", rel, "<!--email_off--> nicht geschlossen");
+    }
     // Nur inhaltsleere Kommentare (R-03, COMMENT_ALLOWED); den Inhalt nie ausgeben (CI-Logs sind oeffentlich).
     for (const c of comments) if (!C.COMMENT_ALLOWED.test(c.text)) err("NOTE-comment", rel, `HTML-Kommentar mit Klartext (${c.text.length} Zeichen, Inhalt nicht ausgegeben) — erlaubt sind nur <!--OFFEN:F-nn--> und email_off; Klartext gehört in die private Zuordnung`);
     // Jeder OFFEN-Kommentar ist ein offenes Tor, auch einer mit Klartext (der zusaetzlich NOTE-comment ausloest).

@@ -188,6 +188,12 @@ export function offenComment(id, where = "") {
 // Absaetze, die nach dem Umwandeln nur noch aus OFFEN-Kommentaren bestehen, faellt der leere Rahmen weg.
 const EMPTY_P = /<p(?:\s[^>]*)?>((?:\s*<!--OFFEN:F-\d{2,3}-->)+)\s*<\/p>/g;
 
+// E-Mail-Links (R-04): Cloudflare ersetzt mailto-Links bei eingeschalteter E-Mail-Verschleierung durch
+// /cdn-cgi/l/email-protection und bindet email-decode.min.js ein — ein Skript, das die Seite nicht haben
+// soll. <!--email_off--> nimmt den Link davon aus; der Zonenschalter gehoert trotzdem aus (Klickliste).
+// Der Linter (SEC-email-off) lehnt jeden mailto-Link ausserhalb dieser Klammer ab.
+export const mailto = (addr) => `<!--email_off--><a href="mailto:${esc(addr)}">${esc(addr)}</a><!--/email_off-->`;
+
 function expand(body, page, ctx) {
   const lang = page.meta.lang;
   const where = relative(ROOT, page.file);
@@ -201,7 +207,7 @@ function expand(body, page, ctx) {
         return `<time datetime="${esc(iso)}">${esc(label)}</time>`;
       }
       case "todo": return offenComment(arg, where);
-      case "email": return `<a href="mailto:${esc(ctx.site.email)}">${esc(ctx.site.email)}</a>`;
+      case "email": return mailto(ctx.site.email);
       case "photo": return renderPhoto(arg.trim(), ctx);
       default: throw new Error(`${where}: unbekannter Platzhalter ${m}`);
     }
@@ -284,7 +290,7 @@ function layout(page, html, ctx) {
     html.trim(),
     `</div></main>`,
     `<footer class="site-footer"><div class="wrap">`,
-    `<p><a href="mailto:${esc(site.email)}">${esc(site.email)}</a></p>`,
+    `<p>${mailto(site.email)}</p>`,
     `<ul>${footerLinks}</ul>`,
     `<p>${esc(s.updated)}: <time datetime="${meta.updated}">${esc(formatDate(meta.updated, meta.lang))}</time></p>`,
     `<p>${esc(s.colophon)}</p>`,
