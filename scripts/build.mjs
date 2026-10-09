@@ -3,7 +3,7 @@
 // Ohne Abhaengigkeiten, deterministisch (kein Datum aus der Uhr; zweimal bauen = gleiche Bytes).
 //
 //   node scripts/build.mjs           schreibt site/ (synchronisiert: entfernt verwaiste Dateien)
-//   node scripts/build.mjs --check   baut im Speicher und vergleicht mit site/; Exit 1 bei Abweichung
+//   node scripts/build.mjs --check   baut im Speicher und vergleicht mit site/; Exit 1, wenn etwas anders ist
 //
 // Was die Schicht darunter im Fehlerfall schon selbst tut: nichts — Cloudflare Pages
 // liefert aus, was in site/ liegt. Deshalb bricht dieser Build bei jedem unbekannten
@@ -424,7 +424,7 @@ function main() {
   }
   if (check) {
     if (diffs.length) {
-      console.error(`site/ passt nicht zum Quellstand (${diffs.length} Abweichungen) — bitte "npm run build" ausführen und committen:`);
+      console.error(`site/ passt nicht zum Quellstand (${diffs.length} Dateien anders) — bitte "npm run build" ausführen und committen:`);
       for (const d of diffs.slice(0, 40)) console.error("  " + d);
       process.exit(1);
     }

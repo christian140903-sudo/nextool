@@ -48,8 +48,12 @@ const inject = (fx, page, html) => fx.edit(page, "</main>", `${html}</main>`);
 const script = (fx, name, text) => { mkdirSync(join(fx.base, "scripts"), { recursive: true }); writeFileSync(join(fx.base, "scripts", name), text); };
 // Text an die Quelle eines Fakts in der ausgelieferten facts.json haengen.
 const factSource = (fx, key, more) => { const j = JSON.parse(fx.read("facts.json")); j.facts[key].source += more; fx.write("facts.json", JSON.stringify(j)); };
-// Bindung einer oeffentlichen Regel mit privatem Wortlaut (erfundener Wortlaut).
-const BIND_B = "[B] @B-bezahlt re:bezahlte\\p{L}* Beispielkurse";
+// Bindungen von Regeln mit privatem Wortlaut und eines privaten Kontextmusters. Alle Wortlaute sind erfunden:
+// Ein echter Begriff hier waere selbst die Veroeffentlichung, die der Test verhindern soll.
+const BIND_B = "[B] @B-b1 re:Musterkurs\\p{L}*";
+const BIND_A = "[A] @A-vorbereitet re:Beispielprobe";
+const BIND_A1 = "[A] @A-e1 re:Musterkalibrierung (?:ist )?bestanden";
+const SLOT_A = "[A] @A-kontext re:Beispielprobe|Musterkalibrierung";
 
 const CASES = [
   ["RES-external", (fx) => fx.edit("index.html", "</head>", '<link rel="stylesheet" href="https://fonts.example.org/css2?family=Inter">\n</head>')],
@@ -176,9 +180,15 @@ const CASES = [
   ["NUM-unsourced", (fx) => inject(fx, "impressum/index.html", "<p>Lizenz in Version 4.0.</p>")],
   // Sperrliste v2 (Positionierung v2 §13 A–F): je Gruppe ein Fall, der rot werden MUSS. Bedingte Regeln
   // werden mit einem absichtlich falschen Zustand ausgeloest (Gegenstueck gruen: Kontrolle 9).
-  ["SPERR-A", (fx) => inject(fx, "projekte/index.html", "<p>Feuerprobe: der Messplan folgt.</p>"), { expect: /A-vorbereitet/ }],
-  ["SPERR-A", (fx) => { fx.state({ zA: "a1" }); inject(fx, "en/hire/index.html", "<p>Feuerprobe: calibration passed.</p>"); }, { expect: /A-eichung/ }],
-  ["SPERR-A", (fx) => { fx.state({ zA: "a1" }); inject(fx, "projekte/index.html", "<p>Die Feuerprobe ist eine unabhängige Messung.</p>"); }, { expect: /A-unabhaengig/ }],
+  // Gruppe A: Name und Begriffe des Vorhabens nur ueber private Bindungen (Plan F2 Punkt 7)
+  ["SPERR-A", (fx) => inject(fx, "projekte/index.html", "<p>Beispielprobe: der Messplan folgt.</p>"), { privateTerms: [BIND_A], expect: /^(?!.*Beispielprobe).*A-vorbereitet.*maskiert/ }],
+  ["SPERR-A", (fx) => { fx.state({ zA: "a1" }); inject(fx, "en/hire/index.html", "<p>Musterkalibrierung bestanden.</p>"); }, { privateTerms: [BIND_A1], expect: /A-e1/ }],
+  ["SPERR-A", (fx) => { fx.state({ zA: "a1" }); inject(fx, "projekte/index.html", "<p>Die Beispielprobe ist eine unabhängige Messung.</p>"); }, { privateTerms: [SLOT_A], expect: /A-unabhaengig/ }],
+  ["DOOR-crossing", (fx) => { fx.write("workshops/index.html", fx.read("kontakt/index.html")); fx.write("beispielprobe/index.html", fx.read("kontakt/index.html").replace("</main>", '<p><a href="/workshops/">x</a></p></main>')); }, { privateTerms: [BIND_A], expect: /Seite des Vorhabens/ }],
+  ["TXT-private", (fx) => script(fx, "regel.mjs", "// Beispielprobe\n"), { privateTerms: [BIND_A], where: /^scripts\/regel\.mjs$/, expect: /Bindung A-vorbereitet/ }],
+  ["TXT-private", (fx) => writeFileSync(join(fx.base, "README.md"), "# x\nMusterkalibrierung\n"), { privateTerms: [SLOT_A], where: /^README\.md$/, expect: /Bindung A-kontext/ }],
+  ["PRIV-rule-missing", () => {}, { privateTerms: ["Beispielfirma"], release: true, expect: /Regel A-ergebnis/ }],
+  ["PRIV-list-invalid", () => {}, { privateTerms: ["[B] @A-kontext re:x"], expect: /Gruppe passt nicht/ }],
   ["SPERR-A", (fx) => inject(fx, "projekte/index.html", "<p>Getestet: <code>2.1.40</code>.</p>"), { expect: /A-version/ }],
   ["SPERR-B", (fx) => inject(fx, "en/about/index.html", "<p>I receive no money, credits or early access from Anthropic.</p>"), { expect: /B-keine-verbindung/ }],
   ["SPERR-B", (fx) => inject(fx, "ueber-mich/index.html", "<p>Davon unabhängig schreibe ich Werkzeuge.</p>"), { expect: /B-davon-unabhaengig/ }],
@@ -215,11 +225,11 @@ const CASES = [
   // ein echter Preis hier waere selbst die Veroeffentlichung, die der Test verhindern soll.
   ["TXT-private", (fx) => inject(fx, "ueber-mich/index.html", "<p>Pilotpreis 999 EUR.</p>"), { privateTerms: ["[C] re:(?<![\\p{N}])999(?![\\p{N}])"], expect: /Nr\. 1 \(Gruppe C\)/ }],
   ["TXT-private", (fx) => script(fx, "regel.mjs", "export const R = /\\b999\\b/;\n"), { privateTerms: ["[C] re:(?<![\\p{N}#.,])(?<!(?<!\\\\)\\p{L})999(?![\\p{N}])"], where: /^scripts\/regel\.mjs$/ }],
-  ["SPERR-B", (fx) => inject(fx, "ueber-mich/index.html", "<p>Ich gebe bezahlte Beispielkurse.</p>"), { privateTerms: [BIND_B], expect: /^(?!.*Beispielkurse).*B-bezahlt.*maskiert/ }],
-  ["TXT-private", (fx) => script(fx, "regel.mjs", "// bezahlte Beispielkurse\n"), { privateTerms: [BIND_B], where: /^scripts\/regel\.mjs$/, expect: /Bindung B-bezahlt/ }],
-  ["PRIV-rule-missing", () => {}, { privateTerms: ["Beispielfirma"], release: true, expect: /B-bezahlt/ }],
+  ["SPERR-B", (fx) => inject(fx, "ueber-mich/index.html", "<p>Ich gebe Musterkurse.</p>"), { privateTerms: [BIND_B], expect: /^(?!.*Musterkurs).*B-b1.*maskiert/ }],
+  ["TXT-private", (fx) => script(fx, "regel.mjs", "// Musterkurse\n"), { privateTerms: [BIND_B], where: /^scripts\/regel\.mjs$/, expect: /Bindung B-b1/ }],
+  ["PRIV-rule-missing", () => {}, { privateTerms: ["Beispielfirma"], release: true, expect: /B-b1/ }],
   ["PRIV-list-invalid", () => {}, { privateTerms: ["[B] @B-gibtsnicht re:x"], expect: /^Eintrag Nr\. 1 bindet keine Regel/ }],
-  ["PRIV-list-invalid", () => {}, { privateTerms: ["[C] @B-bezahlt re:x"], expect: /Gruppe passt nicht/ }],
+  ["PRIV-list-invalid", () => {}, { privateTerms: ["[C] @B-b1 re:x"], expect: /Gruppe passt nicht/ }],
   // Sperrliste v2 in ausgelieferten Textdateien (Befund P-04): facts.json je Textwert (Fundort mit Pfad), robots.txt, _redirects
   ["SPERR-F", (fx) => factSource(fx, "corrections.claimed", " Der Rückbau ist in git sichtbar; präregistriert."), { expect: /F-git-sichtbar/, where: /^facts\.json \[facts\.corrections\.claimed\.source\]$/ }],
   ["SPERR-A", (fx) => factSource(fx, "corrections.claimed", " Der Rückbau ist in git sichtbar; präregistriert."), { expect: /A-prereg-status/, where: /^facts\.json/ }],
@@ -312,7 +322,7 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
 // Gegenstueck zu den roten SPERR-Faellen oben (dort derselbe Text mit dem heutigen bzw. falschen Zustand).
 {
   const pairs = [
-    ["A-eichung", { zA: "a2" }, "en/hire/index.html", "<p>Feuerprobe: calibration passed.</p>"],
+    ["A-e1", { zA: "a2" }, "en/hire/index.html", "<p>Musterkalibrierung bestanden.</p>", [BIND_A1]],
     ["B-keine-verbindung", { zB2: "nein" }, "en/about/index.html", "<p>I receive no money, credits or early access from Anthropic.</p>"],
     ["C-vortraege", { zC4: [{ ort: "Beispielort", datum: "2026-11-01" }] }, "en/about/index.html", "<p>I also give talks on agent tooling.</p>"],
     ["D-vollzeit", { zD1: "a" }, "en/hire/index.html", "<p>Vienna or EU-remote, full-time.</p>"],
@@ -320,11 +330,11 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
     ["F-kit-start", { zF1: true }, "index.html", "<p>Für Teams: team-skills-kit, eine offene Vorlage.</p>"],
   ];
   const bad = [];
-  for (const [id, patch, page, html] of pairs) {
+  for (const [id, patch, page, html, privateTerms = []] of pairs) {
     const fx = fixture();
     fx.state(patch);
     inject(fx, page, html);
-    const e = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] }));
+    const e = errorsOf(lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms }));
     if (e.length) bad.push(`${id}: ${e[0].rule} ${e[0].msg}`);
     rmSync(fx.base, { recursive: true, force: true });
   }
@@ -353,9 +363,9 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
 // Regel; ohne private Liste kennt der oeffentliche Linter den Wortlaut nicht (kein SPERR-/TXT-Fehler).
 {
   const runs = [
-    ["verneint", {}, "<p>Ich gebe keine bezahlten Beispielkurse.</p>", [BIND_B]],
-    ["zB1 = true", { zB1: true }, "<p>Ich gebe bezahlte Beispielkurse.</p>", [BIND_B]],
-    ["ohne private Liste", {}, "<p>Ich gebe bezahlte Beispielkurse.</p>", []], // Preise mit Währung sperrt schon STAGE1-commercial
+    ["verneint", {}, "<p>Ich gebe keine Musterkurse.</p>", [BIND_B]],
+    ["zB1 = true", { zB1: true }, "<p>Ich gebe Musterkurse.</p>", [BIND_B]],
+    ["ohne private Liste", {}, "<p>Ich gebe Musterkurse.</p>", []], // Preise mit Währung sperrt schon STAGE1-commercial
   ];
   const bad = [];
   for (const [name, patch, html, privateTerms] of runs) {
@@ -367,7 +377,7 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
     rmSync(fx.base, { recursive: true, force: true });
   }
   if (bad.length) { failed++; console.log(`  FEHLER Kontrolle: gebundene Regel falsch (${bad[0]})`); }
-  else console.log("  ok    Kontrolle: Bindung B-bezahlt verneint/mit Auftrag grün; ohne private Liste kein öffentlicher Wortlaut");
+  else console.log("  ok    Kontrolle: Bindung B-b1 verneint/mit zB1 = true grün; ohne private Liste kein öffentlicher Wortlaut");
 }
 
 // Kontrolle 12 (T-01/P-02): Commit-Nachrichten laufen durch die Sperrliste v2 (ohne Seitenbindung). In der
@@ -381,9 +391,9 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
     git("init", "-q");
     git("commit", "-q", "--allow-empty", "-m", "Basis");
     const base = git("rev-parse", "HEAD");
-    git("commit", "-q", "--allow-empty", "-m", "Probe: Feuerprobe startet, Workshops ab Montag");
+    git("commit", "-q", "--allow-empty", "-m", "Probe: Beispielprobe startet, Workshops ab Montag");
     const probe = git("rev-parse", "HEAD");
-    const run = (o) => lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: true, gitBase: base, privateTerms: [], ...o }).filter((x) => x.where === `commit ${probe.slice(0, 7)}`);
+    const run = (o) => lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: true, gitBase: base, privateTerms: [BIND_A], ...o }).filter((x) => x.where === `commit ${probe.slice(0, 7)}`);
     const rot = run({ knownCommits: {} }).filter((x) => x.level === "error").map((x) => x.rule).sort().join(",");
     const bekannt = run({ knownCommits: { [probe]: ["A-vorbereitet", "C-workshop"] } }).map((x) => `${x.level}:${x.rule}`).sort().join(",");
     const bekanntRel = run({ knownCommits: { [probe]: ["A-vorbereitet", "C-workshop"] }, release: true }).filter((x) => x.level === "error").length;

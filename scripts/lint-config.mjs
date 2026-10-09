@@ -263,17 +263,23 @@ export const NUMBER_EXEMPT_ELEMENTS = new Set(["code", "pre", "kbd", "samp", "ti
 //   pages        nur auf diesen Seiten (Website); beim Dokument-Scan gilt die Regel immer, ausser siteOnly
 //   private      re: null — der Ausdruck kommt nur aus der privaten Liste ("[B] @<id> re:…"); Id, Gruppe und
 //                Bedingung bleiben hier. Ohne Bindung: NICHT GEPRUEFT (Warnung, im Release Fehler).
+//   ctx/unless als "@<Name>": privates Kontextmuster aus PRIVATE_SLOTS, ebenfalls nur ueber "[A] @<Name> re:…".
 // Gruppe G (Privates: Branchen, Schul-/Wehrdienstjahre, Kundennamen) steht NICHT hier: Eine
 // oeffentliche Liste verriete, was sie schuetzen soll. G lebt in der privaten Sperrliste
 // (.site-private-denylist.txt bzw. Secret SITE_PRIVATE_DENYLIST), ebenso Eintraege aus A bis D, deren
 // Wortlaut selbst etwas Vertrauliches andeuten wuerde. Das Repository ist so oeffentlich wie die Seite:
-// Auch ein Beispiel in einer Regel ist eine Veroeffentlichung (§13 Geltung).
+// Auch ein Beispiel in einer Regel ist eine Veroeffentlichung (§13 Geltung). Fuer Gruppe A heisst das: Name
+// und Begriffe des Messvorhabens (§3.2) stehen nur in der privaten Liste, solange zA = a0 gilt — als Bindung
+// der Regeln A-vorbereitet und A-e1 und als Kontextmuster A-kontext. Die Seite des Vorhabens erkennt der Linter
+// am gebundenen Namen (Pfad), nicht an einer Liste hier.
 export const PAGES = {
   start: ["/", "/en/"],
   hire: ["/arbeitgeber/", "/en/hire/"],
   archive: ["/archiv/", "/en/archive/"],
-  feuerprobe: ["/feuerprobe/", "/en/feuerprobe/"],
 };
+// Private Kontextmuster (Name → Gruppe): nur aus der privaten Liste ("[A] @A-kontext re:…"). Regeln, die eines
+// brauchen (ctx/unless "@A-kontext"), gelten ohne Bindung als NICHT GEPRUEFT (wie Regeln mit privatem Wortlaut).
+export const PRIVATE_SLOTS = { "A-kontext": "A" };
 
 // Zustand (Positionierung v2 §7): src/state.json ist NICHT Teil des oeffentlichen Repositorys (.gitignore),
 // denn schon die Schalter verraten Plaene. Schluessel und Werte sind deshalb neutrale Kuerzel; ihre Bedeutung
@@ -308,28 +314,28 @@ export const STATE_STRICT = Object.freeze({
   zA: "a0", zB1: false, zB2: "offen", zC1: "R0", zC2: "k0", zC3: "p0", zC4: Object.freeze([]), zD1: "offen", zD2: "B", zF1: false,
 });
 
-const FP = /Feuerprobe|prereg-v0|\bEichung|\bcalibrat|Stopp-?Kontroll|stop controls?/i;
+const FP = "@A-kontext";
 const PREREG = /präregistriert|praeregistriert|pre-?registered|Präregistrierung|pre-?registration/i;
 const VERFUEGBAR = /verfügbar|available|EU-remote|start date|Starttermin|Eintritt/i;
 const KIT = /team-skills-kit|\bKit\b|Vorlage|template/i;
 const vorBericht = (s) => s.zA !== "a4";
 
 export const SPERRLISTE = [
-  // A. Feuerprobe (§13 A, Status-Leiter §3.2)
-  { id: "A-vorbereitet", group: "A", re: /Feuerprobe/i, when: (s) => s.zA === "a0", why: "Status „vorbereitet“: die Feuerprobe auf keiner Fläche nennen (§3.2)" },
+  // A. Messvorhaben (§13 A, Status-Leiter §3.2); Name und Begriffe nur privat
+  { id: "A-vorbereitet", group: "A", re: null, private: true, when: (s) => s.zA === "a0", why: "zA = a0: das Vorhaben auf keiner Fläche nennen (§3.2; Wortlaut privat)" },
   { id: "A-ergebnis", group: "A", re: /\bv?\d+\.\d+\.\d+\b|\b\d+\s?(?:Tage|Wochen|Monate|Stunden|Versionen|days|weeks|months|hours|versions)\b|\bFunde?\b|\bfindings?\b|Fehler gefunden|found (?:a |an )?(?:bug|flaw|failure|regression)|failed since|seit Version|since version/i, ctx: FP, when: vorBericht, why: "Ergebnisse (Versionen, Dauern, Funde) vor zA = a4" },
   { id: "A-version", group: "A", re: /\b2\.1\.\d+\b/, when: vorBericht, why: "Versionsmuster vor zA = a4 (§13 Mechanik)" },
-  { id: "A-eichung", group: "A", re: /Eichung (?:ist )?bestanden|calibration (?:has )?passed/i, when: (s) => !["a2", "a4"].includes(s.zA), why: "„Eichung bestanden“ erst nach der dokumentierten F7-Meldung" },
-  { id: "A-prereg-status", group: "A", re: PREREG, when: (s) => s.zA === "a0", negatable: true, why: "„präregistriert“ erst ab dem öffentlichen Tag prereg-v0" },
+  { id: "A-e1", group: "A", re: null, private: true, when: (s) => !["a2", "a4"].includes(s.zA), why: "erst ab zA = a2 (§3.2; Wortlaut privat)" },
+  { id: "A-prereg-status", group: "A", re: PREREG, when: (s) => s.zA === "a0", negatable: true, why: "„präregistriert“ erst ab zA = a1 (öffentlicher Tag, §3.2)" },
   { id: "A-rohdaten", group: "A", re: /Rohdaten[^.\n]{0,30}öffentlich|raw data[^.\n]{0,30}public/i, when: vorBericht, negatable: true, why: "„Rohdaten öffentlich“ erst ab zA = a4" },
   { id: "A-doi", group: "A", re: /\bDOI\b|doi\.org\//i, when: vorBericht, why: "eine DOI erst, wenn sie auflöst (ab zA = a4)" },
-  { id: "A-unabhaengig", group: "A", re: /unabhängig|independent/i, ctx: FP, negatable: true, why: "„unabhängig/independent“ für Feuerprobe oder Messung (kein externer Prüfer)" },
-  { id: "A-erster", group: "A", re: /\bals Erste[rn]?\b|\bthe first\b|\bfirst (?:to|ever)\b|weltweit erste/i, ctx: FP, negatable: true, why: "„als Erster/first“ im Feuerprobe-Umfeld" },
-  { id: "A-ki-agenten", group: "A", re: /KI-Agenten|AI agents/i, ctx: FP, why: "im Feuerprobe-Satz „Claude Code“, nicht „KI-Agenten“ allgemein" },
+  { id: "A-unabhaengig", group: "A", re: /unabhängig|independent/i, ctx: FP, negatable: true, why: "„unabhängig/independent“ für das Vorhaben oder die Messung (kein externer Prüfer)" },
+  { id: "A-erster", group: "A", re: /\bals Erste[rn]?\b|\bthe first\b|\bfirst (?:to|ever)\b|weltweit erste/i, ctx: FP, negatable: true, why: "„als Erster/first“ im Umfeld des Vorhabens" },
+  { id: "A-ki-agenten", group: "A", re: /KI-Agenten|AI agents/i, ctx: FP, why: "im Satz zum Vorhaben „Claude Code“, nicht „KI-Agenten“ allgemein" },
   { id: "A-benchmark", group: "A", re: /Modell-?Benchmark|model[- ]benchmark|benchmarks? (?:the )?models?|evaluates? (?:Claude|the model)|bewertet (?:Claude|das Modell)/i, ctx: FP, negatable: true, why: "kein Modell-Benchmark (§13 A)" },
-  { id: "A-python", group: "A", re: /\bPython\b|measurement code|Messcode/i, ctx: FP, negatable: true, why: "keine Python-Kompetenz aus der Feuerprobe ableiten" },
+  { id: "A-python", group: "A", re: /\bPython\b|measurement code|Messcode/i, ctx: FP, negatable: true, why: "keine Python-Kompetenz aus dem Vorhaben ableiten" },
   // B. Offenlegung (§13 B, §3.3)
-  { id: "B-bezahlt", group: "B", re: null, private: true, when: (s) => !s.zB1, negatable: true, why: "§13 B1, erst mit zB1 = true (Wortlaut privat)" },
+  { id: "B-b1", group: "B", re: null, private: true, when: (s) => !s.zB1, negatable: true, why: "§13 B1, erst mit zB1 = true (Wortlaut privat)" },
   { id: "B-keine-verbindung", group: "B", re: /(?:keine|kein|weder|no|without)\s+(?:[\p{L}-]+,?\s+){0,4}?(?:Verbindung|Geld|Guthaben|Vorabzugang|money|credits|early access|connection|affiliation)\b[^.\n]{0,60}\bAnthropic|\bAnthropic\b[^.\n]{0,60}\b(?:keine|kein|weder|no)\s+(?:[\p{L}-]+,?\s+){0,4}?(?:Verbindung|Geld|Guthaben|Vorabzugang|money|credits|early access|connection|affiliation)\b|not affiliated with Anthropic|nicht mit Anthropic verbunden/iu, when: (s) => s.zB2 === "offen", why: "„keine Verbindung zu Anthropic“ erst, wenn zB2 nicht mehr offen ist (§13 B2)" },
   { id: "B-unabhaengig-selbst", group: "B", re: /unabhängige[rn]? (?:Trainer|Berater|Entwickler)|independent (?:trainer|consultant|developer)|unabhängig von Anthropic|independent (?:of|from) Anthropic/i, when: (s) => s.zB2 === "offen", why: "„unabhängig“ als Selbstbeschreibung erst, wenn zB2 nicht mehr offen ist" },
   { id: "B-davon-unabhaengig", group: "B", re: /davon unabhängig/i, why: "„getrennt davon“ statt „davon unabhängig“" },
@@ -353,7 +359,7 @@ export const SPERRLISTE = [
   // F. Belege und Links (§13 F); Testzahlen nur aus facts.json prueft NUM-unsourced
   { id: "F-git-sichtbar", group: "F", re: /in git sichtbar|visible in git|\bgit[- ]?(?:Historie|history)\b/i, why: "nach dem Repo-Tausch und T-Reset nicht mehr sichtbar; Ersatz „auf Anfrage“" },
   { id: "F-commit-privat", group: "F", re: /\b4635f92\b/, why: "Commit in einem Repo, das privat wird" },
-  { id: "F-prereg", group: "F", re: PREREG, unless: FP, negatable: true, why: "„präregistriert“ nur für die Feuerprobe" },
+  { id: "F-prereg", group: "F", re: PREREG, unless: FP, negatable: true, why: "„präregistriert“ nur für das Vorhaben der Gruppe A (§13 F)" },
   { id: "F-kit-name", group: "F", re: /claude-code-team-kit|Demo-Skill-Repo|demo[- ]skill[- ]repo|\b3 (?:von|of|out of) 11\b/i, why: "alter Kit-Name/eigenes Demo-Repo/„3 von 11“ als Schlagzeile" },
   { id: "F-kit-claim", group: "F", re: /misst, wie zuverlässig ein Modell|measures how reliably (?:a|the) model|live getestet|live[- ]tested|im Einsatz|used by teams|in use (?:by|at)|rechtlich geprüft|legally (?:reviewed|checked|vetted)/i, ctx: KIT, negatable: true, why: "team-skills-kit: nur Belegtes (§3.4)" },
   { id: "F-kit-start", group: "F", re: /team-skills-kit/i, pages: PAGES.start, siteOnly: true, when: (s) => !s.zF1, why: "Teamzeile auf der Startseite erst bei zF1 = true (§7)" },

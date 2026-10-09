@@ -263,7 +263,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
   else {
     info("PRIV-list", "-", `private Sperrliste: ${privRes.length} Begriffe und ${privBound.length} Bindungen geprüft`);
     // Liste vorhanden, aber eine Regel mit privatem Wortlaut ungebunden (z. B. Secret nicht nachgezogen); warn = im Release Fehler
-    for (const id of bind.missing) warn("PRIV-rule-missing", "-", `Regel ${id} hat privaten Wortlaut, die private Liste bindet ihn nicht („@${id} re:…“) — NICHT GEPRÜFT`);
+    for (const id of bind.missing) warn("PRIV-rule-missing", "-", `Regel ${id} braucht einen privaten Wortlaut oder ein privates Kontextmuster („@… re:…“), die private Liste bindet es nicht — NICHT GEPRÜFT`);
   }
 
   // Dateinamen, ausgelieferte Textdateien, Zustandsschluessel (§7 M5/M6) und oeffentlicher Quellbaum.
@@ -297,9 +297,10 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         privHit(rel, `${rel} [Dateiname]`);
         const text = readFileSync(p, "utf8");
         privHit(text, rel);
-        // Gebundene Wortlaute (private Regeln) duerfen auch nicht im Linter-Code stehen (Leak 0d8b013: die
-        // Regel selbst war die Veroeffentlichung). src/ bleibt aussen vor: Dort entscheidet der Zustand.
-        if (rel.startsWith("scripts/")) for (const b of privBound) if (b.re.test(text)) err("TXT-private", rel, `Eintrag Nr. ${b.n} (Bindung ${b.id}) der privaten Sperrliste`);
+        // Gebundene Wortlaute und Kontextmuster duerfen auch nicht im Linter-Code, in README, Workflows oder
+        // anderen Dateien ausserhalb von src/ stehen (Leak 0d8b013: die Regel selbst war die Veroeffentlichung).
+        // src/ bleibt aussen vor: Dort entscheidet der Zustand, geprueft ueber die gebaute Fassung in site/.
+        if (!rel.startsWith("src/")) for (const b of privBound) if (b.re.test(text)) err("TXT-private", rel, `Eintrag Nr. ${b.n} (Bindung ${b.id}) der privaten Sperrliste`);
       }
     };
     if (privEntries.length || privBound.length) scan(rootDir);
@@ -726,8 +727,9 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     else if (tm.lang !== other) err("I18N-pair", site.pages.get(url).rel, `Sprachpaar ${target} hat lang=${tm.lang}`);
   }
 
-  // Links, Anker, Tueren
+  // Links, Anker, Tueren. Die Seite des Vorhabens (Gruppe A) erkennt der Linter am privat gebundenen Namen im Pfad.
   const doorOf = (p) => Object.entries(C.DOORS).find(([, list]) => list.includes(p))?.[0];
+  const nameA = sperrRules.find((r) => r.id === "A-vorbereitet")?.re;
   for (const [url, meta] of pageMeta) {
     const rel = site.pages.get(url).rel;
     for (const href of meta.links) {
@@ -746,7 +748,7 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
         const tp = site.pages.get(urlOfFile(file));
         if (tp && !tp.ids.has(frag)) err("LINK-anchor", rel, `Anker #${frag} fehlt auf ${p || url}`);
       }
-      if (C.PAGES.feuerprobe.includes(url) && C.DOORS.workshops.includes(urlOfFile(file))) err("DOOR-crossing", rel, `Feuerprobe-Seite verlinkt die Workshops-Tür (${href}) — Positionierung v2 §7`);
+      if (nameA && nameA.test(url) && C.DOORS.workshops.includes(urlOfFile(file))) err("DOOR-crossing", rel, `Seite des Vorhabens (Gruppe A) verlinkt die Workshops-Tür (${href}) — Positionierung v2 §7`);
       const from = doorOf(url), to = doorOf(urlOfFile(file));
       if (from && to && from !== to) err("DOOR-crossing", rel, `Tür ${from} verlinkt Tür ${to} (${href}) — Positionierung §1.5`);
     }

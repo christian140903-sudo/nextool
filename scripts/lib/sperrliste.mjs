@@ -11,7 +11,7 @@
 
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { SPERRLISTE, STATE_SCHEMA, STATE_STRICT } from "../lint-config.mjs";
+import { SPERRLISTE, STATE_SCHEMA, STATE_STRICT, PRIVATE_SLOTS } from "../lint-config.mjs";
 
 // Verneinung (Rechtsabnahme Welle E, E-03): ein verneinter Satz ist keine Behauptung.
 export const NEGATION = /(?<![\p{L}\p{N}])(?:nicht|nichts|kein|keine|keinen|keinem|keiner|keines|nie|niemals|ohne|weder|not|no|never|nothing|none|neither|nor|without)(?![\p{L}\p{N}])|n['’]t(?!\p{L})/iu;
@@ -59,6 +59,7 @@ export function validateState(state) {
 // "@<Regel-Id> re:<Ausdruck>" (nach der Gruppe) = Bindung: liefert den Ausdruck einer oeffentlichen Regel
 // mit privatem Wortlaut (lint-config: re: null, private: true). Die Regel behaelt ihre oeffentliche
 // Bedingung (when), Verneinung und Seitenbindung; nur der Wortlaut bleibt privat.
+// "@<Name> re:<Ausdruck>" mit einem Namen aus PRIVATE_SLOTS = privates Kontextmuster (ctx/unless "@<Name>").
 export function parsePrivateList(lines) {
   const entries = [], bound = [], errors = [];
   let n = 0;
@@ -84,21 +85,27 @@ export function parsePrivateList(lines) {
   return { entries, bound, errors };
 }
 
-// Setzt die gebundenen privaten Ausdruecke in die oeffentlichen Regeln mit private: true ein.
-// rules = alle pruefbaren Regeln (private ohne Bindung fallen heraus), missing = deren Ids (NICHT geprueft),
-// errors = Bindung an eine unbekannte/nicht private Regel, falsche Gruppe, doppelte Bindung (nie mit Inhalt).
-export function bindPrivateRules(bound, rules = SPERRLISTE) {
+// Setzt die gebundenen privaten Ausdruecke in die oeffentlichen Regeln ein: Wortlaut (private: true) und
+// Kontextmuster (ctx/unless "@<Name>", Namen aus PRIVATE_SLOTS).
+// rules = alle pruefbaren Regeln (Regeln, denen ein privater Teil fehlt, fallen heraus), missing = deren Ids
+// (NICHT geprueft), errors = Bindung an eine unbekannte/nicht private Regel oder ein unbekanntes Muster, falsche
+// Gruppe, doppelte Bindung (nie mit Inhalt).
+export function bindPrivateRules(bound, rules = SPERRLISTE, slots = PRIVATE_SLOTS) {
   const errors = [], byId = new Map();
   for (const b of bound) {
     const r = rules.find((x) => x.id === b.id);
-    if (!r || !r.private) errors.push(`Eintrag Nr. ${b.n} bindet keine Regel mit privatem Wortlaut`);
-    else if (b.group && b.group !== r.group) errors.push(`Eintrag Nr. ${b.n}: Gruppe passt nicht zur Regel ${r.id} (${r.group})`);
-    else if (byId.has(r.id)) errors.push(`Eintrag Nr. ${b.n}: Regel ${r.id} ist schon gebunden`);
-    else byId.set(r.id, b.re);
+    const group = r ? r.group : slots[b.id];
+    if (!group || (r && !r.private)) errors.push(`Eintrag Nr. ${b.n} bindet keine Regel mit privatem Wortlaut`);
+    else if (b.group && b.group !== group) errors.push(`Eintrag Nr. ${b.n}: Gruppe passt nicht zu ${b.id} (${group})`);
+    else if (byId.has(b.id)) errors.push(`Eintrag Nr. ${b.n}: ${b.id} ist schon gebunden`);
+    else byId.set(b.id, b.re);
   }
+  const ref = (v) => (typeof v === "string" ? byId.get(v.replace(/^@/, "")) : v);
+  const needs = (r) => [...(r.private ? [r.id] : []), ...[r.ctx, r.unless].filter((v) => typeof v === "string").map((v) => v.replace(/^@/, ""))];
+  const complete = (r) => needs(r).every((id) => byId.has(id));
   return {
-    rules: rules.filter((r) => !r.private || byId.has(r.id)).map((r) => (r.private ? { ...r, re: byId.get(r.id) } : r)),
-    missing: rules.filter((r) => r.private && !byId.has(r.id)).map((r) => r.id),
+    rules: rules.filter(complete).map((r) => (needs(r).length ? { ...r, re: r.private ? byId.get(r.id) : r.re, ctx: ref(r.ctx), unless: ref(r.unless) } : r)),
+    missing: rules.filter((r) => !complete(r)).map((r) => r.id),
     errors,
   };
 }
@@ -106,7 +113,8 @@ export function bindPrivateRules(bound, rules = SPERRLISTE) {
 // Wendet die oeffentlichen Regeln an. page = URL-Pfad der Seite oder null (Dokument-Scan: alle Flaechen).
 // skipPageRules: seitengebundene Regeln (pages, siteOnly) auslassen, z. B. fuer Commit-Nachrichten.
 // Regeln mit privatem Wortlaut liefern den Treffer nie im Klartext (match = null, nur len).
-export function checkSperrliste(text, { state, page = null, rules = SPERRLISTE, skipPageRules = false } = {}) {
+const PUBLIC_RULES = bindPrivateRules([]).rules; // ohne private Liste pruefbar
+export function checkSperrliste(text, { state, page = null, rules = PUBLIC_RULES, skipPageRules = false } = {}) {
   const hits = [];
   if (!text || !state) return hits;
   const sentences = sentencesOf(text);
