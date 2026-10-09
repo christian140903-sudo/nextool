@@ -121,6 +121,13 @@ class Site {
   }
 }
 
+// Alle Textwerte eines JSON-Objekts als [Pfad, Text] (Pfad mit Punkten, Listen mit Index).
+function jsonStrings(o, path = "", out = []) {
+  if (typeof o === "string") out.push([path, o]);
+  else if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) jsonStrings(v, path ? `${path}.${k}` : k, out);
+  return out;
+}
+
 function urlOfFile(rel) {
   if (rel === "index.html") return "/";
   if (rel.endsWith("/index.html")) return "/" + rel.slice(0, -"index.html".length);
@@ -264,7 +271,14 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     sperr(f.replace(/[/_.-]+/g, " "), `${f} [Dateiname]`, urlOfFile(f));
     if (!/\.(?:html|json|txt|xml|svg|css|js)$|^_(?:headers|redirects)$/.test(f)) continue;
     const text = readFileSync(join(siteDir, f), "utf8");
-    if (!f.endsWith(".html")) privHit(text, f); // Seiten prueft checkText blockweise
+    if (!f.endsWith(".html")) {
+      privHit(text, f); // Seiten prueft checkText blockweise
+      // Sperrliste v2 auch in ausgelieferten Textdateien (Befund P-04): JSON je Textwert (ctx/unless gelten pro
+      // Aussage, Fundort mit Pfad), alles andere als Ganzes. Ungueltiges JSON: ganzer Text (meldet FACTS-*).
+      let units = [[f, text]];
+      if (f.endsWith(".json")) { try { units = jsonStrings(JSON.parse(text)).map(([p, v]) => [`${f} [${p}]`, v]); } catch { /* ganzer Text */ } }
+      for (const [w, v] of units) sperr(v, w, urlOfFile(f));
+    }
     const k = C.STATE_PRIVATE_KEYS.exec(text);
     if (k) err("STATE-leak", f, `Zustandsschlüssel ${k[0].replace(/\s*:$/, "")} wird ausgeliefert — gehört nur in src/state.json (§7)`);
   }

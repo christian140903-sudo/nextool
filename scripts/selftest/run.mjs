@@ -44,6 +44,8 @@ function fixture() {
 const inject = (fx, page, html) => fx.edit(page, "</main>", `${html}</main>`);
 // Datei im (oeffentlichen) Linter-Code der Kopie anlegen; der Quellbaum-Scan prueft scripts/ wie das echte Repo.
 const script = (fx, name, text) => { mkdirSync(join(fx.base, "scripts"), { recursive: true }); writeFileSync(join(fx.base, "scripts", name), text); };
+// Text an die Quelle eines Fakts in der ausgelieferten facts.json haengen.
+const factSource = (fx, key, more) => { const j = JSON.parse(fx.read("facts.json")); j.facts[key].source += more; fx.write("facts.json", JSON.stringify(j)); };
 // Bindung einer oeffentlichen Regel mit privatem Wortlaut (erfundener Wortlaut).
 const BIND_B = "[B] @B-bezahlt re:bezahlte\\p{L}* Beispielkurse";
 
@@ -208,6 +210,12 @@ const CASES = [
   ["PRIV-rule-missing", () => {}, { privateTerms: ["Beispielfirma"], release: true, expect: /B-bezahlt/ }],
   ["PRIV-list-invalid", () => {}, { privateTerms: ["[B] @B-gibtsnicht re:x"], expect: /^Eintrag Nr\. 1 bindet keine Regel/ }],
   ["PRIV-list-invalid", () => {}, { privateTerms: ["[C] @B-bezahlt re:x"], expect: /Gruppe passt nicht/ }],
+  // Sperrliste v2 in ausgelieferten Textdateien (Befund P-04): facts.json je Textwert (Fundort mit Pfad), robots.txt, _redirects
+  ["SPERR-F", (fx) => factSource(fx, "corrections.claimed", " Der Rückbau ist in git sichtbar; präregistriert."), { expect: /F-git-sichtbar/, where: /^facts\.json \[facts\.corrections\.claimed\.source\]$/ }],
+  ["SPERR-A", (fx) => factSource(fx, "corrections.claimed", " Der Rückbau ist in git sichtbar; präregistriert."), { expect: /A-prereg-status/, where: /^facts\.json/ }],
+  ["SPERR-F", (fx) => factSource(fx, "corrections.claimed", " Der Rückbau steht in der git-Historie."), { expect: /F-git-sichtbar/, where: /^facts\.json/ }],
+  ["SPERR-F", (fx) => fx.write("robots.txt", fx.read("robots.txt") + "# the rollback is visible in git\n"), { expect: /F-git-sichtbar/, where: /^robots\.txt$/ }],
+  ["SPERR-C", (fx) => fx.write("_redirects", fx.read("_redirects") + "# /services -> /workshops/\n"), { expect: /C-workshop/, where: /^_redirects$/ }],
 ];
 
 let failed = 0;

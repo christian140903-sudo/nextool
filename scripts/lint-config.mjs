@@ -328,7 +328,7 @@ export const SPERRLISTE = [
   // E. Dramaturgie (§13 E); die datierte Korrekturliste prueft der Linter ueber die Anker (E-korrekturliste)
   { id: "E-phrasen", group: "E", re: /private for now|no degree yet|Shops? ohne Ware|shops? without goods|Quereinsteiger, der misst|career changer who measures|So führe ich Claude Code|My setup, mechanically|zwei Scheineffekte|two phantom effects/i, why: "gesperrte Rahmung (§13 E)" },
   // F. Belege und Links (§13 F); Testzahlen nur aus facts.json prueft NUM-unsourced
-  { id: "F-git-sichtbar", group: "F", re: /in git sichtbar|visible in git/i, why: "nach dem Repo-Tausch nicht mehr sichtbar" },
+  { id: "F-git-sichtbar", group: "F", re: /in git sichtbar|visible in git|\bgit[- ]?(?:Historie|history)\b/i, why: "nach dem Repo-Tausch und T-Reset nicht mehr sichtbar; Ersatz „auf Anfrage“" },
   { id: "F-commit-privat", group: "F", re: /\b4635f92\b/, why: "Commit in einem Repo, das privat wird" },
   { id: "F-prereg", group: "F", re: PREREG, unless: FP, negatable: true, why: "„präregistriert“ nur für die Feuerprobe" },
   { id: "F-kit-name", group: "F", re: /claude-code-team-kit|Demo-Skill-Repo|demo[- ]skill[- ]repo|\b3 (?:von|of|out of) 11\b/i, why: "alter Kit-Name/eigenes Demo-Repo/„3 von 11“ als Schlagzeile" },
