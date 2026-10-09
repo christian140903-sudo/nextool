@@ -222,7 +222,8 @@ check("Tür-Seite ohne Navigationspunkt der anderen Tür", (fx) => {
 
 // Bausteine (R4b b1): Die Pruef-Karte kommt aus EINER Datei je Sprache; Start- und Anstellungsseite zeigen
 // denselben Block mit denselben Fakten. Fehlerfaelle brechen ab.
-const card = (html) => (/<aside class="proof-card"[\s\S]*?<\/aside>/.exec(html) || [""])[0];
+// <section> statt <aside> (P3-02): ein <aside> in <main> meldet axe als landmark-complementary-is-top-level.
+const card = (html) => (/<section class="proof-card"[\s\S]*?<\/section>/.exec(html) || [""])[0];
 check("Prüf-Karte: Start- und Anstellungsseite zeigen denselben Baustein mit Fakten (DE und EN)", (fx) => {
   setFact(fx, (f) => { f.de = "111 von 111"; f.en = "111 of 111"; });
   const out = build({ src: fx.src });
@@ -232,7 +233,11 @@ check("Prüf-Karte: Start- und Anstellungsseite zeigen denselben Baustein mit Fa
     if (a !== b) throw new Error(`${lang}: Karte auf ${start} und ${hire} verschieden`);
     if (!a.includes(`data-fact="soul_mcp.tests">111 ${lang === "de" ? "von" : "of"} 111</data>`)) throw new Error(`${lang}: geänderter Fakt nicht in der Karte`);
     if (a.includes("{{")) throw new Error(`${lang}: Platzhalter in der Karte übrig`);
+    // Zugaenglicher Name (P3-02): aria-labelledby zeigt auf die Ueberschrift IN der Karte.
+    const label = (/^<section class="proof-card" aria-labelledby="([^"]+)">/.exec(a) || [])[1];
+    if (!label || !new RegExp(`<h2 id="${label}"[^>]*>[^<]+</h2>`).test(a)) throw new Error(`${lang}: Karte ohne aria-labelledby auf ihre Überschrift`);
   }
+  for (const rel of ["index.html", "en/index.html", "arbeitgeber/index.html", "en/hire/index.html"]) if (page(out, rel).includes("<aside")) throw new Error(`${rel}: <aside> ausgeliefert`);
 });
 const setBody = (fx, html) => writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", html));
 check("unbekannter Baustein bricht ab", (fx) => { setBody(fx, "{{baustein:gibt-es-nicht}}"); expectThrow(fx, /Baustein gibt-es-nicht fehlt/); });

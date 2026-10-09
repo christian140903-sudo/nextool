@@ -166,6 +166,8 @@ const CASES = [
   ["STAGE1-commercial", (fx) => inject(fx, "en/about/index.html", "<p>Hire me for your next project.</p>"), { expect: /„Hire me“/ }],
   // Barrierefreiheit (Welle F2, BF-03): aktuelle Seite vs. aktueller Bereich
   ["A11Y-current", (fx) => fx.edit("behaviorlock/index.html", 'href="/en/projects/" aria-current="true"', 'href="/en/projects/" aria-current="page"')],
+  // P3-02: Pruef-Karte als <aside> in <main> (axe landmark-complementary-is-top-level)
+  ["A11Y-landmark", (fx) => fx.write("arbeitgeber/index.html", fx.read("arbeitgeber/index.html").replace(/<section( class="proof-card"[\s\S]*?)<\/section>/, "<aside$1</aside>")), { expect: /<aside> in <main>/ }],
   // Sprache von Teilen (BF-04): Umlaut im englischen Teil, Ersatzschreibung im deutschen Teil = Fehler in jedem Modus
   ["A11Y-lang-parts", (fx) => inject(fx, "en/about/index.html", "<p>Schöne Grüße.</p>"), { expect: /ohne lang="de"/ }],
   ["A11Y-lang-parts", (fx) => inject(fx, "ueber-mich/index.html", "<p>Die Datenschutzerklaerung gilt.</p>"), { expect: /Ersatzschreibung „Datenschutzerklaerung“/ }],

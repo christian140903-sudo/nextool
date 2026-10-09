@@ -579,6 +579,10 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
           else if (C.SD_FORBIDDEN_PROPS.test(pr.replace(/^.*[/#:]/, ""))) err("SD-forbidden", rel, `${k}="${pr}" (Audit T16)`);
         }
         if (t.name === "main") meta.main++;
+        // Ergaenzender Bereich nur auf oberster Ebene (P3-02, axe landmark-complementary-is-top-level): ein <aside> in
+        // <main>, <header>, <footer> oder <nav> ist eine Landmarke in einer Landmarke — dort <section aria-labelledby>.
+        const outer = (t.name === "aside" || a.role === "complementary") && stack.find((x) => ["main", "header", "footer", "nav"].includes(x.name));
+        if (outer) err("A11Y-landmark", rel, `<${t.name}${a.role ? ` role="${a.role}"` : ""}> in <${outer.name}> — ergänzender Bereich nur auf oberster Ebene; im Inhalt <section aria-labelledby> nehmen`);
         if ("data-todo" in a || /(^|\s)todo(\s|$)/.test(a.class || "")) err("NOTE-visible", rel, `sichtbare OFFEN-Marke <${t.name}> — interne Notizen nur als {{todo:…}} (HTML-Kommentar)`);
         if (t.name === "script") err("SEC-inline-script", rel, "<script> ist verboten (CSP script-src 'none')");
         if (t.name === "style") err("SEC-inline-style", rel, "<style> ist verboten (CSP style-src 'self')");
