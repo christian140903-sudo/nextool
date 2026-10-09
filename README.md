@@ -69,6 +69,15 @@ sentence, the city and the host as pixels, so `npm run og` redraws them and
 records text and SHA-256 in `src/og-stamp.json`. The build stops when the
 sentence, the host or an image no longer matches that stamp.
 
+## Shared blocks
+
+A block that appears on several pages, such as the "verify it yourself" card
+on the home and hiring pages, is written once per language in
+`src/bausteine/<name>.<lang>.html` and placed with `{{baustein:<name>}}`. It
+is inserted before the other placeholders, so `{{fact:…}}` inside it comes
+from `facts.json` as on the page. An unknown name, a missing language file or
+a block inside a block stops the build.
+
 ## Photo
 
 Pages place the portrait with `{{photo:large}}`, `{{photo:medium}}` or

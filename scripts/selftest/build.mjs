@@ -4,6 +4,8 @@
 //           EXIF, Kommentar, MPF, Anhang (zweites JPEG/EXIF), > 150 KB oder WebP ohne JPEG brechen ab.
 //   Tueren — auf einer Seite mit "door" fehlt der Navigationspunkt der anderen Tuer (§1.5).
 //   Kennungen — interne Notizen nur als F-nn (R-03); Klartext bricht ab, ohne in der Meldung zu stehen.
+//   Bausteine — die Pruef-Karte steht einmal je Sprache (src/bausteine/) und erscheint gleich auf Start- und
+//           Anstellungsseite; unbekannter Name, fehlende Sprachfassung, Baustein im Baustein brechen ab.
 // Arbeitet auf einer Temp-Kopie von src/; die echten Quellen bleiben unberuehrt.
 
 import { mkdtempSync, cpSync, writeFileSync, readFileSync, rmSync, mkdirSync } from "node:fs";
@@ -206,6 +208,34 @@ check("Tür-Seite ohne Navigationspunkt der anderen Tür", (fx) => {
   if (!/"door":\s*"hire"/.test(readFileSync(join(fx.src, "pages", "de", "arbeitgeber.html"), "utf8"))) throw new Error("/arbeitgeber/ trägt kein door: hire");
   if (navOf(hire).includes('href="/workshops/"')) throw new Error("/arbeitgeber/ verlinkt die Workshops-Tür in der Navigation");
   if (!navOf(page(out, "kontakt/index.html")).includes('href="/workshops/"')) throw new Error("Kontrollseite ohne Workshops-Punkt — Test prüft nichts");
+});
+
+// Bausteine (R4b b1): Die Pruef-Karte kommt aus EINER Datei je Sprache; Start- und Anstellungsseite zeigen
+// denselben Block mit denselben Fakten. Fehlerfaelle brechen ab.
+const card = (html) => (/<aside class="proof-card"[\s\S]*?<\/aside>/.exec(html) || [""])[0];
+check("Prüf-Karte: Start- und Anstellungsseite zeigen denselben Baustein mit Fakten (DE und EN)", (fx) => {
+  setFact(fx, (f) => { f.de = "111 von 111"; f.en = "111 of 111"; });
+  const out = build({ src: fx.src });
+  for (const [start, hire, lang] of [["index.html", "arbeitgeber/index.html", "de"], ["en/index.html", "en/hire/index.html", "en"]]) {
+    const a = card(page(out, start)), b = card(page(out, hire));
+    if (!a || !b) throw new Error(`${lang}: Karte fehlt auf ${a ? hire : start}`);
+    if (a !== b) throw new Error(`${lang}: Karte auf ${start} und ${hire} verschieden`);
+    if (!a.includes(`data-fact="soul_mcp.tests">111 ${lang === "de" ? "von" : "of"} 111</data>`)) throw new Error(`${lang}: geänderter Fakt nicht in der Karte`);
+    if (a.includes("{{")) throw new Error(`${lang}: Platzhalter in der Karte übrig`);
+  }
+});
+const setBody = (fx, html) => writeFileSync(join(fx.src, "pages", "x", "phototest.html"), TEST_PAGE.replace("{{photo:small}}", html));
+check("unbekannter Baustein bricht ab", (fx) => { setBody(fx, "{{baustein:gibt-es-nicht}}"); expectThrow(fx, /Baustein gibt-es-nicht fehlt/); });
+check("Baustein ohne Sprachfassung bricht ab", (fx) => { rmSync(join(fx.src, "bausteine", "pruefkarte.de.html")); expectThrow(fx, /Baustein pruefkarte fehlt \(src\/bausteine\/pruefkarte\.de\.html\)/); });
+check("Baustein im Baustein bricht ab", (fx) => {
+  writeFileSync(join(fx.src, "bausteine", "schleife.de.html"), "<p>{{baustein:schleife}}</p>");
+  setBody(fx, "{{baustein:schleife}}");
+  expectThrow(fx, /Baustein im Baustein/);
+});
+check("<!--intern Klartext --> im Baustein bricht ab, Meldung ohne Klartext", (fx) => {
+  writeFileSync(join(fx.src, "bausteine", "notiz.de.html"), `<p>a</p><!--intern ${CLEAR}-->`);
+  setBody(fx, "{{baustein:notiz}}");
+  noLeak(fx, /<!--intern nur als/);
 });
 
 // Barrierefreiheit (Welle F2, BF-07): Ohne Sprachpaar fuehrt der Sprachlink auf die Startseite und sagt das.

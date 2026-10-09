@@ -205,10 +205,29 @@ const EMPTY_P = /<p(?:\s[^>]*)?>((?:\s*<!--OFFEN:F-\d{2,3}-->)+)\s*<\/p>/g;
 // Der Linter (SEC-email-off) lehnt jeden mailto-Link ausserhalb dieser Klammer ab.
 export const mailto = (addr) => `<!--email_off--><a href="mailto:${esc(addr)}">${esc(addr)}</a><!--/email_off-->`;
 
+// Bausteine (R4b b1): ein Abschnitt, der auf mehreren Seiten gleich steht (z. B. die Pruef-Karte auf
+// Start- und Hire-Seite), liegt EINMAL je Sprache in src/bausteine/<name>.<lang>.html und wird mit
+// {{baustein:<name>}} eingesetzt — vor allen anderen Platzhaltern, damit {{fact:…}} und {{date:…}} darin
+// genauso aus facts.json kommen wie auf der Seite. Fail-closed: unbekannter Name, fehlende Sprachfassung
+// oder ein Baustein im Baustein brechen den Build ab.
+export const BAUSTEIN = /\{\{baustein:([^}]*)\}\}/g;
+export function insertBausteine(body, lang, src, where = "") {
+  return body.replace(BAUSTEIN, (m, raw) => {
+    const name = raw.trim();
+    if (!/^[a-z][a-z0-9-]*$/.test(name)) throw new Error(`${where}: {{baustein:…}} braucht einen Namen aus a–z, 0–9 und -`);
+    const rel = `src/bausteine/${name}.${lang}.html`;
+    const file = join(src, "bausteine", `${name}.${lang}.html`);
+    if (!existsSync(file)) throw new Error(`${where}: Baustein ${name} fehlt (${rel})`);
+    const text = stripIntern(readFileSync(file, "utf8"), rel).trim();
+    if (text.includes("{{baustein:")) throw new Error(`${rel}: Baustein im Baustein ist nicht erlaubt`);
+    return text;
+  });
+}
+
 function expand(body, page, ctx) {
   const lang = page.meta.lang;
   const where = relative(ROOT, page.file);
-  return body.replace(/\{\{([a-z]+)(?::([^}]*))?\}\}/g, (m, kind, arg = "") => {
+  return insertBausteine(body, lang, ctx.src, where).replace(/\{\{([a-z]+)(?::([^}]*))?\}\}/g, (m, kind, arg = "") => {
     switch (kind) {
       case "fact": return renderFact(arg.trim(), lang, ctx.facts);
       case "date": return `<time datetime="${esc(arg)}">${esc(formatDate(arg.trim(), lang))}</time>`;
@@ -377,7 +396,7 @@ export function build({ src = SRC } = {}) {
     if ("offen" in f && !MARKER_ID.test(String(f.offen))) throw new Error(`facts.json: ${k}.offen — ${clearLen(String(f.offen))}`);
     if ("source_internal" in f && !/^intern:F-\d{2,3}$/.test(String(f.source_internal))) throw new Error(`facts.json: ${k}.source_internal nur als "intern:F-nn" — ${clearLen(String(f.source_internal))}`);
   }
-  const ctx = { site, facts, photo: loadPhoto(src) };
+  const ctx = { site, facts, photo: loadPhoto(src), src };
   const out = new Map();
   const pages = listFiles(join(src, "pages")).filter((f) => f.endsWith(".html")).map(parsePage);
   const seen = new Set();
