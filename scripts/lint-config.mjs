@@ -222,6 +222,21 @@ export const COMMENT_ALLOWED = /^(?:OFFEN:F-\d{2,3}|\/?email_off)$/;
 // Erlaubt: Auslassung in Zitaten "[…]" / "[...]".
 export const PLACEHOLDER = /\[(?!…\]|\.\.\.\])[^\]\n]{1,40}\]|<[^<>\n]{1,40}>/;
 
+// ---------------------------------------------------------------------------
+// Sprache von Teilen (WCAG 3.1.2; Audit T17; Barrierefreiheit BF-04, Welle F2)
+// ---------------------------------------------------------------------------
+// Fehler in jedem Modus (mechanisch pruefbar): Umlaut/ß in einem englischen Teil ohne lang="de" und
+// Ersatzschreibung (ae/oe/ue/ss statt Umlaut) in einem deutschen Teil. Die Ersatzliste stammt aus dem
+// Audit (B7 audit.mjs); sie nennt nur Woerter, die es mit Umlaut gibt.
+export const UMLAUT = /[äöüÄÖÜß]/;
+export const ERSATZ = new RegExp("(?<![\\p{L}])(" + ["fuer", "Fuer", "ueber", "Ueber", "koennen", "koennte", "moechte", "moeglich", "Moeglichkeit", "waehrend", "spaeter", "Oesterreich", "oesterreichisch\\p{L}*", "Datenschutzerklaerung", "Aenderung\\p{L}*", "aendern", "geaendert", "Pruefung\\p{L}*", "pruefen", "geprueft", "Schluessel", "zurueck", "natuerlich", "haeufig", "naechste\\p{L}*", "wuerde", "muessen", "duerfen", "hoechstens", "Groesse", "groesser", "Massnahme\\p{L}*", "Strasse", "gemaess", "Gruende", "Gruenden", "Ergaenzung", "erklaert", "Erklaerung", "Bestaetigung", "bestaetigt", "fuehren", "gefuehrt", "Behoerde", "Datenschutzbehoerde", "Jaenner", "Maerz", "Saetze", "Saetzen", "Uebersicht", "uebersetzt", "Uebersetzung"].join("|") + ")(?![\\p{L}])", "u");
+// Nur Hinweis ausserhalb des Release (Heuristik, Fehlalarme moeglich): englische Funktionswoerter in einem
+// deutschen Teil ohne lang="en" — ab 2 Treffern, in einem Link mit hreflang="en" ab 1. /g: nur mit .match()
+// verwenden (zustandslos), nie mit .test()/.exec().
+export const EN_WORDS = /\b(?:the|and|of|to|is|it|may|at|all|with|for|me|my|what|this|that|from|by|not|outside|exactly|nothing)\b/gi;
+// Wendungen, die auf deutschen Seiten als Name oder Fachwort stehen duerfen (vor dem Zaehlen entfernt).
+export const EN_ALLOW = [/\bClaude Code\b/g, /\bPull Requests?\b/gi, /\bModel Context Protocol\b/g, /\bOpen Font License\b/g, /\bData Privacy Framework\b/g, /\bCC BY\b/g];
+
 // Kontexte, in denen Ziffern ohne Fakt erlaubt sind (Rechtsverweise, Jahreszahlen).
 // "Article/Section" fuer die englischen Rechtsseiten (Art. 6(1)(f) GDPR, Section 165(3) TKG 2021).
 export const NUMBER_MASKS = [

@@ -159,6 +159,10 @@ const CASES = [
   ["STAGE1-commercial", (fx) => inject(fx, "en/about/index.html", "<p>Hire me for your next project.</p>"), { expect: /„Hire me“/ }],
   // Barrierefreiheit (Welle F2, BF-03): aktuelle Seite vs. aktueller Bereich
   ["A11Y-current", (fx) => fx.edit("behaviorlock/index.html", 'href="/en/projects/" aria-current="true"', 'href="/en/projects/" aria-current="page"')],
+  // Sprache von Teilen (BF-04): Umlaut im englischen Teil, Ersatzschreibung im deutschen Teil = Fehler in jedem Modus
+  ["A11Y-lang-parts", (fx) => inject(fx, "en/about/index.html", "<p>Schöne Grüße.</p>"), { expect: /ohne lang="de"/ }],
+  ["A11Y-lang-parts", (fx) => inject(fx, "ueber-mich/index.html", "<p>Die Datenschutzerklaerung gilt.</p>"), { expect: /Ersatzschreibung „Datenschutzerklaerung“/ }],
+  ["A11Y-lang-parts", (fx) => inject(fx, "en/about/index.html", '<p lang="en-GB">Siehe <span lang="de">Übersicht</span>, then <em>für</em>.</p>'), { expect: /„für“/ }],
   ["SD-forbidden", (fx) => fx.edit("index.html", "</head>", '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"x","address":{"@type":"PostalAddress"}}</script>\n</head>')],
   ["SD-forbidden", (fx) => inject(fx, "index.html", '<div itemscope itemtype="https://schema.org/Offer"><span itemprop="price">1</span></div>')],
   ["SD-forbidden", (fx) => fx.edit("index.html", "</head>", '<meta property="business:contact_data:street_address" content="x">\n</head>')],
@@ -393,6 +397,24 @@ const errorsOf = (findings) => findings.filter((f) => f.level === "error");
   rmSync(fx.base, { recursive: true, force: true });
 }
 
+// Kontrolle 13 (BF-04): richtig ausgezeichnete Teile bleiben gruen; die Englisch-Heuristik ist nur ein Hinweis
+// (Warnung) und laeuft im Release nicht (Fehlalarme wuerden sonst Releases sperren). Zwei Laeufe hintereinander
+// liefern dieselbe Zahl: EN_WORDS hat /g und wird nur mit .match() benutzt (zustandslos).
+{
+  const fx = fixture();
+  inject(fx, "en/about/index.html", '<p>The authority is the <span lang="de">Österreichische Datenschutzbehörde</span>.</p>');
+  inject(fx, "ueber-mich/index.html", '<p>Ein Zitat: „<span lang="en">All of this is fine.</span>“</p><p>Mit Claude Code und Pull Requests.</p>');
+  const ok = lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] }).filter((x) => /^A11Y-lang/.test(x.rule));
+  inject(fx, "ueber-mich/index.html", "<p>All of this is fine.</p>");
+  const runs = [1, 2].map(() => lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [] }).filter((x) => x.rule === "A11Y-lang-hint" && /All of this/.test(x.msg)));
+  const rel = lint({ siteDir: join(fx.base, "site"), rootDir: fx.base, gitCheck: false, privateTerms: [], release: true }).filter((x) => /^A11Y-lang/.test(x.rule) && /All of this/.test(x.msg));
+  if (ok.length) { failed++; console.log(`  FEHLER Kontrolle: ausgezeichnete Sprachteile abgelehnt (${ok[0].rule}: ${ok[0].msg})`); }
+  else if (runs[0].length !== 1 || runs[1].length !== 1 || runs[0][0].level !== "warn") { failed++; console.log(`  FEHLER Kontrolle: Englisch-Hinweis ${runs.map((r) => r.length).join("/")} statt 1/1 Warnung`); }
+  else if (rel.length) { failed++; console.log(`  FEHLER Kontrolle: Englisch-Heuristik läuft im Release (${rel[0].level})`); }
+  else console.log("  ok    Kontrolle: lang-Teile ausgezeichnet = grün; englischer Satz auf DE = 1 Hinweis (2 Läufe gleich), im Release still");
+  rmSync(fx.base, { recursive: true, force: true });
+}
+
 // Kontrolle 6 (R-03): Das Release-Tor erkennt die neutralen Kennungen. Ohne jede Kennung kein TODO-open;
 // genau eine eingefuegte <!--OFFEN:F-nn--> macht genau diese Seite rot; email_off und Kennungen sind im
 // Normalmodus kein Fehler.
@@ -432,5 +454,5 @@ for (const [rule, mutate, opts = {}] of CASES) {
   }
 }
 
-console.log(`\nselftest: ${CASES.length + 12 - failed} von ${CASES.length + 12} Fällen wie erwartet.`);
+console.log(`\nselftest: ${CASES.length + 13 - failed} von ${CASES.length + 13} Fällen wie erwartet.`);
 process.exit(failed ? 1 : 0);

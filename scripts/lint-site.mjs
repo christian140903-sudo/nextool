@@ -628,6 +628,24 @@ export function lint({ siteDir = join(ROOT, "site"), rootDir = ROOT, release = f
     if (!/<meta charset="utf-8">/i.test(page.html)) err("HEAD-charset", rel, "charset utf-8 fehlt");
     if (meta.h1 !== 1) err("HEAD-h1", rel, `${meta.h1} × <h1> (genau eine)`);
     if (meta.main !== 1) err("HEAD-main", rel, "genau ein <main> nötig");
+    // Sprache von Teilen (WCAG 3.1.2, Audit T17, BF-04): massgeblich ist das naechste lang-Attribut. Umlaut in
+    // einem englischen Teil und Ersatzschreibung in einem deutschen Teil sind Fehler; englischer Text in einem
+    // deutschen Teil ist nur ein Hinweis ausserhalb des Release (Heuristik, Kurzfassung BF-04).
+    walk(tokens, {
+      onText: (text, stack) => {
+        if (!stack.some((x) => x.name === "body") || stack.some((x) => ["code", "pre", "kbd", "samp", "script", "style"].includes(x.name))) return;
+        const t = collapse(text);
+        if (!t) return;
+        const lang = String([...stack].reverse().find((x) => x.attrs && x.attrs.lang)?.attrs.lang || meta.lang || "");
+        if (lang.startsWith("en") && C.UMLAUT.test(t)) err("A11Y-lang-parts", rel, `deutscher Text ohne lang="de" in englischem Teil: „${t.slice(0, 60)}“ (WCAG 3.1.2, Audit T17)`);
+        if (lang.startsWith("de")) { const m = t.match(C.ERSATZ); if (m) err("A11Y-lang-parts", rel, `Ersatzschreibung „${m[0]}“ statt Umlaut (Audit T17)`); }
+        if (!release && lang.startsWith("de")) {
+          const hits = C.EN_ALLOW.reduce((x, re) => x.replace(re, " "), t).match(C.EN_WORDS) || [];
+          const enLink = stack.some((x) => x.name === "a" && x.attrs.hreflang === "en");
+          if (hits.length >= 2 || (enLink && hits.length >= 1)) warn("A11Y-lang-hint", rel, `englischer Text ohne lang="en"? (${hits.slice(0, 4).join(", ")}): „${t.slice(0, 60)}“ (Hinweis, WCAG 3.1.2)`);
+        }
+      },
+    });
     // Ueberschriften ohne Spruenge, erste ist h1 (Audit T4)
     meta.headings.forEach((h, i) => {
       if (i === 0 && h !== 1) err("HEAD-heading-order", rel, `erste Überschrift ist h${h}, nicht h1`);
