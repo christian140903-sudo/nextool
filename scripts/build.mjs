@@ -13,7 +13,7 @@ import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync, rmSync, 
 import { join, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
-import { FACTS_INTERNAL_KEYS } from "./lint-config.mjs";
+import { FACTS_INTERNAL_KEYS, IF_ZWILLINGE } from "./lint-config.mjs";
 import { loadState } from "./lib/sperrliste.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -274,11 +274,27 @@ export function applyIf(body, released, where = "") {
   if (/\{\{\/?if\b/.test(out)) throw new Error(`${where}: {{if:…}} ohne {{/if}} oder {{/if}} ohne Anfang`);
   return out;
 }
+// DE/EN-Zwillinge (P3-03): Steht eine Kennung eines Paars aus IF_ZWILLINGE (lint-config) als {{if}} auf einer Seite,
+// braucht die andere ihre Klammer auf einer Seite der anderen Sprache — sonst gaebe es die Stelle nur einsprachig.
+// Dass zE1 ein Paar nur ganz freigibt, prueft validateState (lib/sperrliste.mjs); dann bricht der Build schon beim Zustand ab.
+// used: Map Kennung -> Set der Sprachen, in denen sie als {{if:…}} steht.
+export function checkIfZwillinge(used, pairs = IF_ZWILLINGE) {
+  for (const [de, en] of pairs) {
+    if (!used.has(de) && !used.has(en)) continue;
+    if (!used.get(de)?.has("de") || !used.get(en)?.has("en")) throw new Error(`{{if:${de}}} (DE) und {{if:${en}}} (EN) sind Zwillinge (IF_ZWILLINGE in scripts/lint-config.mjs) — jede Sprache braucht ihre Klammer`);
+  }
+}
 
 function expand(body, page, ctx) {
   const lang = page.meta.lang;
   const where = relative(ROOT, page.file);
-  const withBlocks = applyIf(insertBausteine(body, lang, ctx.src, where), ctx.state.zE1, where);
+  const withBausteine = insertBausteine(body, lang, ctx.src, where);
+  for (const m of withBausteine.matchAll(/\{\{if:([^}]*)\}\}/g)) {
+    const id = m[1].trim();
+    if (!ctx.ifUsed.has(id)) ctx.ifUsed.set(id, new Set());
+    ctx.ifUsed.get(id).add(lang);
+  }
+  const withBlocks = applyIf(withBausteine, ctx.state.zE1, where);
   if (withBlocks.includes(ctx.site.kit.name)) throw new Error(`${where}: „${ctx.site.kit.name}“ steht wörtlich in der Seite — nur über {{kit}} oder {{kit:titel}} (R4b b4), sonst wechselt diese Stelle am Tag der Veröffentlichung nicht mit`);
   return withBlocks.replace(/\{\{([a-z]+)(?::([^}]*))?\}\}/g, (m, kind, arg = "") => {
     switch (kind) {
@@ -455,7 +471,7 @@ export function build({ src = SRC } = {}) {
   // da, aber ungueltig, bricht der Build ab, statt still mit einem Teilzustand zu bauen.
   const { state, errors: stateErrors } = loadState(join(src, ".."));
   if (stateErrors.length) throw new Error(`src/state.json ungültig: ${stateErrors.join("; ")}`);
-  const ctx = { site, facts, photo: loadPhoto(src), src, state };
+  const ctx = { site, facts, photo: loadPhoto(src), src, state, ifUsed: new Map() };
   const out = new Map();
   const pages = listFiles(join(src, "pages")).filter((f) => f.endsWith(".html")).map(parsePage);
   const seen = new Set();
@@ -467,6 +483,7 @@ export function build({ src = SRC } = {}) {
     if (p.meta.pair && !seen.has(p.meta.pair)) throw new Error(`${p.meta.path}: Sprachpaar ${p.meta.pair} existiert nicht`);
     out.set(outPath(p.meta.path), Buffer.from(layout(p, expand(p.body, p, ctx), ctx), "utf8"));
   }
+  checkIfZwillinge(ctx.ifUsed);
   for (const f of listFiles(join(src, "static"))) {
     const rel = relative(join(src, "static"), f).split(sep).join("/");
     if (out.has(rel)) throw new Error(`Datei doppelt: ${rel}`);

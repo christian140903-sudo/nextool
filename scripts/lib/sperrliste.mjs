@@ -11,7 +11,7 @@
 
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { SPERRLISTE, STATE_SCHEMA, STATE_STRICT, STATE_OPTIONAL, PRIVATE_SLOTS } from "../lint-config.mjs";
+import { SPERRLISTE, STATE_SCHEMA, STATE_STRICT, STATE_OPTIONAL, PRIVATE_SLOTS, IF_ZWILLINGE } from "../lint-config.mjs";
 
 // Verneinung (Rechtsabnahme Welle E, E-03): ein verneinter Satz ist keine Behauptung.
 export const NEGATION = /(?<![\p{L}\p{N}])(?:nicht|nichts|kein|keine|keinen|keinem|keiner|keines|nie|niemals|ohne|weder|not|no|never|nothing|none|neither|nor|without)(?![\p{L}\p{N}])|n['’]t(?!\p{L})/iu;
@@ -53,6 +53,10 @@ export function validateState(state) {
   };
   walk(state, "");
   if (Array.isArray(state.zC4)) state.zC4.forEach((v, i) => { if (!v || !v.ort || !/^\d{4}-\d{2}-\d{2}$/.test(v.datum || "")) errors.push(`zC4[${i}] braucht ort und datum (JJJJ-MM-TT)`); });
+  // DE/EN-Zwillinge (P3-03): nur beide oder keine freigeben, sonst steht eine Stelle nur in einer Sprache.
+  if (Array.isArray(state.zE1)) for (const [de, en] of IF_ZWILLINGE) {
+    if (state.zE1.includes(de) !== state.zE1.includes(en)) { const [a, b] = state.zE1.includes(de) ? [de, en] : [en, de]; errors.push(`zE1 gibt ${a} frei, aber nicht seinen Zwilling ${b} (IF_ZWILLINGE) — DE und EN nur gemeinsam`); }
+  }
   return errors;
 }
 

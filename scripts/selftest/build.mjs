@@ -9,6 +9,8 @@
 //   Kit   — der team-skills-kit-Satz kommt aus site.json, beide Zustaende (zF1) gebaut; Link nur bei "oeffentlich".
 //   Bedingt — {{if:F-nn}}…{{/if}} nur mit Schalter zE1; ohne Schalter fehlt der Satz, die OFFEN-Kennung bleibt;
 //           zurueckgehalten ohne {{todo:F-nn}} ausserhalb der Klammer bricht ab (P3-01).
+//   Zwillinge — DE/EN-Paare aus IF_ZWILLINGE nur gemeinsam freigeben; eine Klammer braucht ihren Zwilling in der
+//           anderen Sprache (P3-03).
 // Arbeitet auf einer Temp-Kopie von src/; die echten Quellen bleiben unberuehrt.
 
 import { mkdtempSync, cpSync, writeFileSync, readFileSync, rmSync, mkdirSync } from "node:fs";
@@ -16,7 +18,7 @@ import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build, jpegInfo } from "../build.mjs";
-import { STATE_STRICT } from "../lint-config.mjs";
+import { STATE_STRICT, IF_ZWILLINGE } from "../lint-config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -337,6 +339,33 @@ check("{{if:Klartext}} bricht ab, Meldung ohne Klartext", (fx) => { setBody(fx, 
 check("{{if}} verschachtelt bricht ab", (fx) => { setBody(fx, "{{if:F-91}}<p>a</p>{{if:F-92}}<p>b</p>{{/if}}{{/if}}"); expectThrow(fx, /verschachtelt oder ohne \{\{\/if\}\}/); });
 check("{{if}} ohne {{/if}} bricht ab", (fx) => { setBody(fx, "{{if:F-91}}<p>a</p>"); expectThrow(fx, /ohne \{\{\/if\}\}/); });
 check("{{/if}} ohne Anfang bricht ab", (fx) => { setBody(fx, "<p>a</p>{{/if}}"); expectThrow(fx, /\{\{\/if\}\} ohne Anfang/); });
+
+// DE/EN-Zwillinge (P3-03): Die Paare stehen nur in IF_ZWILLINGE (lint-config). zE1 gibt ein Paar ganz oder gar nicht
+// frei; steht eine Haelfte als {{if}} auf einer Seite, braucht die andere ihre Klammer in der anderen Sprache.
+const [ZW_DE, ZW_EN] = IF_ZWILLINGE[0];
+const EN_TEST = (body) => `<!--page\n{ "path": "/en/phototest.html", "lang": "en", "title": "Selftest twins", "description": "selftest only", "robots": "noindex", "updated": "2026-10-08" }\n-->\n<div class="prose"><h1>Test</h1>${body}</div>\n`;
+const setEn = (fx, html) => writeFileSync(join(fx.src, "pages", "x", "phototest-en.html"), EN_TEST(html));
+check(`Zwillinge: zE1 = [${ZW_DE}, ${ZW_EN}] (Paar vollständig) → Build läuft`, (fx) => { fx.state({ zE1: [ZW_DE, ZW_EN] }); build({ src: fx.src }); });
+check(`Zwillinge: zE1 = [${ZW_DE}] (nur DE-Hälfte) → Abbruch`, (fx) => { fx.state({ zE1: [ZW_DE] }); expectThrow(fx, new RegExp(`src/state\\.json ungültig: zE1 gibt ${ZW_DE} frei, aber nicht seinen Zwilling ${ZW_EN}`)); });
+check(`Zwillinge: zE1 = [${ZW_EN}] (nur EN-Hälfte) → Abbruch`, (fx) => { fx.state({ zE1: [ZW_EN] }); expectThrow(fx, new RegExp(`zE1 gibt ${ZW_EN} frei, aber nicht seinen Zwilling ${ZW_DE}`)); });
+check("Zwillinge: {{if}} nur auf der DE-Seite, EN-Klammer fehlt → Abbruch", (fx) => {
+  setBody(fx, `{{if:${ZW_DE}}}<p>a</p>{{/if}}{{todo:${ZW_DE}}}`);
+  expectThrow(fx, new RegExp(`\\{\\{if:${ZW_DE}\\}\\} \\(DE\\) und \\{\\{if:${ZW_EN}\\}\\} \\(EN\\) sind Zwillinge`));
+});
+check("Zwillinge: Sprachen vertauscht (DE-Kennung auf EN-Seite) → Abbruch", (fx) => {
+  setBody(fx, `{{if:${ZW_EN}}}<p>a</p>{{/if}}{{todo:${ZW_EN}}}`);
+  setEn(fx, `{{if:${ZW_DE}}}<p>b</p>{{/if}}{{todo:${ZW_DE}}}`);
+  expectThrow(fx, /sind Zwillinge/);
+});
+check("Zwillinge: Klammern in beiden Sprachen → Text nur bei Freigabe des ganzen Paars, dann in beiden", (fx) => {
+  setBody(fx, `{{if:${ZW_DE}}}<p>Zwillingstest DE.</p>{{/if}}{{todo:${ZW_DE}}}`);
+  setEn(fx, `{{if:${ZW_EN}}}<p>Twin test EN.</p>{{/if}}{{todo:${ZW_EN}}}`);
+  let out = build({ src: fx.src });
+  if (page(out, "phototest.html").includes("Zwillingstest") || page(out, "en/phototest.html").includes("Twin test")) throw new Error("Text ohne Freigabe ausgeliefert");
+  fx.state({ zE1: [ZW_DE, ZW_EN] });
+  out = build({ src: fx.src });
+  if (!page(out, "phototest.html").includes("<p>Zwillingstest DE.</p>") || !page(out, "en/phototest.html").includes("<p>Twin test EN.</p>")) throw new Error("Paar freigegeben, Text fehlt");
+});
 
 // Barrierefreiheit (Welle F2, BF-07): Ohne Sprachpaar fuehrt der Sprachlink auf die Startseite und sagt das.
 check("Sprachlink ohne Sprachpaar nennt die Startseite (BF-07)", (fx) => {

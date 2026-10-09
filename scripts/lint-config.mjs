@@ -306,6 +306,11 @@ export const STATE_SCHEMA = {
 // Schluessel, die in der Datei fehlen duerfen: Es gilt dann ihr Wert aus STATE_STRICT. Nur fuer Schalter, deren
 // engster Wert "nichts ausliefern" ist (R4b b5: fehlt der Schalter, wird der Text nicht ausgeliefert).
 export const STATE_OPTIONAL = new Set(["zE1"]);
+// DE/EN-Zwillinge bedingter Texte (P3-03): [DE-Kennung, EN-Kennung] fuer dieselbe Stelle in beiden Sprachen. Die
+// einzige Liste dieser Paare. zE1 gibt ein Paar nur ganz frei (sonst STATE-invalid, Build bricht ab), und steht eine
+// Haelfte als {{if:F-nn}} auf einer Seite, braucht die andere ihre Klammer auf einer Seite der anderen Sprache.
+// Neue zweisprachige {{if}}-Stelle: Paar hier eintragen.
+export const IF_ZWILLINGE = Object.freeze([["F-79", "F-81"], ["F-80", "F-82"]]);
 // Zustandsschluessel duerfen nie ausgeliefert werden: als JSON-Schluessel (in Anfuehrungszeichen, also mit
 // festen Grenzen — "Kontrolle" oder "Rolle" im Text treffen nicht) in irgendeiner Datei unter site/ = Fehler
 // STATE-leak (Plan F2 Punkt 3). Abgeleitet aus dem Schema, damit es keine zweite Liste gibt.

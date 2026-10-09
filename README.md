@@ -53,6 +53,9 @@ Text wrapped in `{{if:F-nn}}…{{/if}}` is published only when the private state
 marker; without the switch (or without the file) the text is left out and the open marker stays.
 A withheld block needs its open marker `{{todo:F-nn}}` outside the block on the same page;
 without it the build stops, so closing the question without the switch cannot drop the text silently.
+German and English twins of the same place are listed once as pairs (`IF_ZWILLINGE` in
+`scripts/lint-config.mjs`): the state must release both or neither, and a block for one half needs
+its twin block on a page in the other language; otherwise the build stops.
 
 Until July 2026 earlier pages registered service workers at `/sw.js` and
 `/prep/sw.js`. Both addresses now serve the same kill-switch worker
