@@ -46,6 +46,8 @@ sentence about team-skills-kit is written once per language in `src/site.json` (
 states; pages place it with `{{kit}}` and its section title with `{{kit:titel}}`, so all places
 switch together, and only the published state links the repository. Once a build-relevant switch
 differs from the strictest state, CI needs that state too, otherwise `build --check` fails there.
+Text wrapped in `{{if:F-nn}}…{{/if}}` is published only when the private state releases that
+marker; without the switch (or without the file) the text is left out and the open marker stays.
 
 Until July 2026 earlier pages registered service workers at `/sw.js` and
 `/prep/sw.js`. Both addresses now serve the same kill-switch worker

@@ -253,10 +253,27 @@ export function renderKit(part, lang, site, state) {
   return esc(t.satz).replace("{name}", name);
 }
 
+// Bedingter Text (R4b b5): {{if:F-nn}}…{{/if}} wird nur ausgeliefert, wenn der private Zustand die Kennung
+// freigibt (zE1 enthaelt "F-nn"). Fehlt der Schalter oder die Datei, faellt der Text weg — fuer Saetze, die erst
+// nach einer Antwort ausgeliefert werden duerfen. Die Kennung bleibt daneben als {{todo:F-nn}} stehen, damit das
+// Go-live-Tor die Frage weiter haelt. Nicht fuer vorbereiteten Wortlaut, der noch gar nicht gilt: src/ ist
+// oeffentlich (R-03). Fail-closed: Kennung nicht F-nn, verschachtelt, ohne {{/if}} oder {{/if}} ohne Anfang = Abbruch.
+const IF_BLOCK = /\{\{if:([^}]*)\}\}([\s\S]*?)\{\{\/if\}\}/g;
+export function applyIf(body, released, where = "") {
+  const out = body.replace(IF_BLOCK, (m, raw, inner) => {
+    const id = raw.trim();
+    if (!MARKER_ID.test(id)) throw new Error(`${where}: {{if:…}} — ${clearLen(id)}`);
+    if (inner.includes("{{if:")) throw new Error(`${where}: {{if:${id}}} verschachtelt oder ohne {{/if}}`);
+    return released.includes(id) ? inner : "";
+  });
+  if (/\{\{\/?if\b/.test(out)) throw new Error(`${where}: {{if:…}} ohne {{/if}} oder {{/if}} ohne Anfang`);
+  return out;
+}
+
 function expand(body, page, ctx) {
   const lang = page.meta.lang;
   const where = relative(ROOT, page.file);
-  const withBlocks = insertBausteine(body, lang, ctx.src, where);
+  const withBlocks = applyIf(insertBausteine(body, lang, ctx.src, where), ctx.state.zE1, where);
   if (withBlocks.includes(ctx.site.kit.name)) throw new Error(`${where}: „${ctx.site.kit.name}“ steht wörtlich in der Seite — nur über {{kit}} oder {{kit:titel}} (R4b b4), sonst wechselt diese Stelle am Tag der Veröffentlichung nicht mit`);
   return withBlocks.replace(/\{\{([a-z]+)(?::([^}]*))?\}\}/g, (m, kind, arg = "") => {
     switch (kind) {

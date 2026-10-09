@@ -11,7 +11,7 @@
 
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { SPERRLISTE, STATE_SCHEMA, STATE_STRICT, PRIVATE_SLOTS } from "../lint-config.mjs";
+import { SPERRLISTE, STATE_SCHEMA, STATE_STRICT, STATE_OPTIONAL, PRIVATE_SLOTS } from "../lint-config.mjs";
 
 // Verneinung (Rechtsabnahme Welle E, E-03): ein verneinter Satz ist keine Behauptung.
 export const NEGATION = /(?<![\p{L}\p{N}])(?:nicht|nichts|kein|keine|keinen|keinem|keiner|keines|nie|niemals|ohne|weder|not|no|never|nothing|none|neither|nor|without)(?![\p{L}\p{N}])|n['’]t(?!\p{L})/iu;
@@ -26,6 +26,7 @@ export function loadState(rootDir) {
   if (!existsSync(file)) return { state: STATE_STRICT, errors: [], strict: true };
   let state;
   try { state = JSON.parse(readFileSync(file, "utf8")); } catch (e) { return { state: null, errors: [`src/state.json nicht lesbar: ${e.message}`], strict: false }; }
+  if (state && typeof state === "object") for (const k of STATE_OPTIONAL) if (state[k] === undefined) state[k] = STATE_STRICT[k];
   return { state, errors: validateState(state), strict: false };
 }
 
@@ -36,9 +37,10 @@ export function validateState(state) {
   if (!state || typeof state !== "object") return ["Zustand ist kein Objekt"];
   for (const [path, rule] of Object.entries(STATE_SCHEMA)) {
     const v = get(state, path);
-    if (v === undefined) errors.push(`${path} fehlt`);
-    else if (Array.isArray(rule) ? !rule.includes(v) : rule === "array" ? !Array.isArray(v) : typeof v !== rule || (rule === "string" && !v.trim()))
-      errors.push(`${path} = ${JSON.stringify(v)} ist nicht erlaubt (${Array.isArray(rule) ? rule.join("|") : rule})`);
+    if (v === undefined) { if (!STATE_OPTIONAL.has(path)) errors.push(`${path} fehlt`); }
+    else if (rule === "ids" ? !Array.isArray(v) || !v.every((x) => typeof x === "string" && /^F-\d{2,3}$/.test(x))
+      : Array.isArray(rule) ? !rule.includes(v) : rule === "array" ? !Array.isArray(v) : typeof v !== rule || (rule === "string" && !v.trim()))
+      errors.push(`${path} = ${JSON.stringify(v)} ist nicht erlaubt (${Array.isArray(rule) ? rule.join("|") : rule === "ids" ? "Liste von Kennungen F-nn" : rule})`);
   }
   const known = new Set(Object.keys(STATE_SCHEMA).flatMap((p) => p.split(".").map((_, i, a) => a.slice(0, i + 1).join("."))));
   const walk = (o, pre) => {

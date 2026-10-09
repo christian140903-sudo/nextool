@@ -300,8 +300,12 @@ export const STATE_SCHEMA = {
   zC4: "array", // je Eintrag {ort, datum}; leer = keiner
   zD1: ["offen", "a", "b", "c"],
   zD2: ["A", "B"],
+  zE1: "ids", // Kennungen F-nn, deren bedingter Text ({{if:F-nn}}…{{/if}}) ausgeliefert wird; leer = keiner
   zF1: "boolean",
 };
+// Schluessel, die in der Datei fehlen duerfen: Es gilt dann ihr Wert aus STATE_STRICT. Nur fuer Schalter, deren
+// engster Wert "nichts ausliefern" ist (R4b b5: fehlt der Schalter, wird der Text nicht ausgeliefert).
+export const STATE_OPTIONAL = new Set(["zE1"]);
 // Zustandsschluessel duerfen nie ausgeliefert werden: als JSON-Schluessel (in Anfuehrungszeichen, also mit
 // festen Grenzen — "Kontrolle" oder "Rolle" im Text treffen nicht) in irgendeiner Datei unter site/ = Fehler
 // STATE-leak (Plan F2 Punkt 3). Abgeleitet aus dem Schema, damit es keine zweite Liste gibt.
@@ -311,7 +315,7 @@ export const STATE_A4_FACTS = ["zA.satz1_de", "zA.satz1_en", "zA.doi"];
 
 // Engster Zustand: gilt, wenn src/state.json fehlt oder ungueltig ist.
 export const STATE_STRICT = Object.freeze({
-  zA: "a0", zB1: false, zB2: "offen", zC1: "R0", zC2: "k0", zC3: "p0", zC4: Object.freeze([]), zD1: "offen", zD2: "B", zF1: false,
+  zA: "a0", zB1: false, zB2: "offen", zC1: "R0", zC2: "k0", zC3: "p0", zC4: Object.freeze([]), zD1: "offen", zD2: "B", zE1: Object.freeze([]), zF1: false,
 });
 
 const FP = "@A-kontext";

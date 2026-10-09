@@ -7,6 +7,7 @@
 //   Bausteine — die Pruef-Karte steht einmal je Sprache (src/bausteine/) und erscheint gleich auf Start- und
 //           Anstellungsseite; unbekannter Name, fehlende Sprachfassung, Baustein im Baustein brechen ab.
 //   Kit   — der team-skills-kit-Satz kommt aus site.json, beide Zustaende (zF1) gebaut; Link nur bei "oeffentlich".
+//   Bedingt — {{if:F-nn}}…{{/if}} nur mit Schalter zE1; ohne Schalter fehlt der Satz, die OFFEN-Kennung bleibt.
 // Arbeitet auf einer Temp-Kopie von src/; die echten Quellen bleiben unberuehrt.
 
 import { mkdtempSync, cpSync, writeFileSync, readFileSync, rmSync, mkdirSync } from "node:fs";
@@ -283,6 +284,31 @@ check("ungültige src/state.json bricht ab", (fx) => { fx.state({ zF1: "ja" }); 
 check("Kit-Name wörtlich in einer Seite bricht ab", (fx) => { setBody(fx, "<p>Bald: team-skills-kit.</p>"); expectThrow(fx, /steht wörtlich in der Seite — nur über \{\{kit\}\}/); });
 check("unvollständiger Kit-Zustand bricht ab, auch wenn er gerade nicht gilt", (fx) => { editSite(fx, (j) => { delete j.kit.en.oeffentlich.satz; }); expectThrow(fx, /kit\.en\.oeffentlich\.satz braucht genau einmal \{name\}/); });
 check("{{kit:unbekannt}} bricht ab", (fx) => { setBody(fx, "<p>{{kit:unbekannt}}</p>"); expectThrow(fx, /erlaubt sind \{\{kit\}\} und \{\{kit:titel\}\}/); });
+
+// Bedingter Text (R4b b5): {{if:F-nn}}…{{/if}} nur mit Schalter zE1 im privaten Zustand; ohne Schalter (oder ohne
+// Datei) fehlt der Satz in site/, die OFFEN-Kennung bleibt fuer das Go-live-Tor.
+const ARCHIV = [["archiv/index.html", "F-79", "Oktober 2026:"], ["archiv/index.html", "F-80", "github.io ersetzt"], ["en/archive/index.html", "F-81", "October 2026:"], ["en/archive/index.html", "F-82", "replaced a page on github.io"]];
+const archivCheck = (out, released) => {
+  for (const [rel, id, satz] of ARCHIV) {
+    const html = page(out, rel);
+    if (html.includes(satz) !== released.includes(id)) throw new Error(`${rel}: Satz ${id} ${released.includes(id) ? "fehlt trotz" : "steht ohne"} Schalter`);
+    if (!html.includes(`<!--OFFEN:${id}-->`)) throw new Error(`${rel}: Kennung ${id} fehlt`);
+    if (/\{\{\/?if/.test(html)) throw new Error(`${rel}: {{if}} im Ergebnis`);
+  }
+};
+check("ohne Schalter fehlen die Archivsätze F-79–F-82 in site/, Kennungen bleiben", (fx) => archivCheck(build({ src: fx.src }), []));
+check("Schlüssel zE1 fehlt in src/state.json: gültig, nichts ausgeliefert", (fx) => {
+  const { zE1, ...ohne } = STATE_STRICT;
+  writeFileSync(join(fx.src, "state.json"), JSON.stringify(ohne));
+  archivCheck(build({ src: fx.src }), []);
+});
+check("ohne src/state.json fehlen sie ebenfalls (engster Zustand)", (fx) => { rmSync(join(fx.src, "state.json")); archivCheck(build({ src: fx.src }), []); });
+check("Schalter zE1 = [F-80] liefert genau diesen Satz aus", (fx) => { fx.state({ zE1: ["F-80"] }); archivCheck(build({ src: fx.src }), ["F-80"]); });
+check("Schalter zE1 kein Kennungs-Array bricht ab", (fx) => { fx.state({ zE1: "F-80" }); expectThrow(fx, /src\/state\.json ungültig: zE1/); });
+check("{{if:Klartext}} bricht ab, Meldung ohne Klartext", (fx) => { setBody(fx, `{{if:${CLEAR}}}<p>x</p>{{/if}}`); noLeak(fx, /\{\{if:…\}\} — Klartext statt Kennung/); });
+check("{{if}} verschachtelt bricht ab", (fx) => { setBody(fx, "{{if:F-91}}<p>a</p>{{if:F-92}}<p>b</p>{{/if}}{{/if}}"); expectThrow(fx, /verschachtelt oder ohne \{\{\/if\}\}/); });
+check("{{if}} ohne {{/if}} bricht ab", (fx) => { setBody(fx, "{{if:F-91}}<p>a</p>"); expectThrow(fx, /ohne \{\{\/if\}\}/); });
+check("{{/if}} ohne Anfang bricht ab", (fx) => { setBody(fx, "<p>a</p>{{/if}}"); expectThrow(fx, /\{\{\/if\}\} ohne Anfang/); });
 
 // Barrierefreiheit (Welle F2, BF-07): Ohne Sprachpaar fuehrt der Sprachlink auf die Startseite und sagt das.
 check("Sprachlink ohne Sprachpaar nennt die Startseite (BF-07)", (fx) => {

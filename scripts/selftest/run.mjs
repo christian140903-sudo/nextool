@@ -212,6 +212,7 @@ const CASES = [
   ["STATE-invalid", (fx) => fx.state({ zD1: "vielleicht" }), { expect: /zD1 = "vielleicht"/ }],
   ["STATE-invalid", (fx) => fx.state({ zD1x: "a" }), { expect: /Tippfehler/ }],
   ["STATE-invalid", (fx) => fx.state({ zF1: "ja" }), { expect: /zF1/ }],
+  ["STATE-invalid", (fx) => fx.state({ zE1: ["F-80", "Notiz"] }), { expect: /zE1 = .*Kennungen F-nn/ }],
   ["STATE-invalid", (fx) => fx.state({ zC1: "R1" }), { expect: /STAGE/ }],
   ["STATE-invalid", (fx) => fx.state({ zA: "a4" }), { expect: /zA\.doi/ }],
   ["STATE-invalid", (fx) => { const sf = join(fx.base, "src", "state.json"); const st = JSON.parse(readFileSync(sf, "utf8")); delete st.zB1; writeFileSync(sf, JSON.stringify(st)); }, { expect: /zB1 fehlt/ }],
